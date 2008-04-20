@@ -26,6 +26,16 @@
 # About Dialog
 # First Version of dxf2gcode_b01 Hopefully all works as it should
 
+from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass
+from dxf2gcode_b01_geoent_arc import ArcClass
+from dxf2gcode_b01_geoent_circle import CircleClass
+from dxf2gcode_b01_geoent_insert import InsertClass
+from dxf2gcode_b01_geoent_line import LineClass
+from dxf2gcode_b01_geoent_polyline import PolylineClass
+from dxf2gcode_b01_geoent_spline import SplineClass
+from dxf2gcode_b01_geoent_ellipse import EllipseClass
+from dxf2gcode_b01_geoent_lwpolyline import LWPolylineClass
+
 import sys, os
 from Tkconstants import END
 from tkMessageBox import showwarning
@@ -217,50 +227,27 @@ class Load_DXF:
         return entities
 
     #Lesen der Geometrien von Blöcken und Entities         
-    def Get_Geo(self,begin, end):
-        geo= []
+    def Get_Geo(self, begin, end):
+        geos= []
         warn=0
         self.start=self.line_pairs.index_code(0,begin,end)
         old_start=self.start
         
         while self.start!=None:
-            name=self.line_pairs.line_pair[self.start].value
+            #Laden der aktuell gefundenen Geometrie
+            name=self.line_pairs.line_pair[self.start].value         
+            entitie_geo,ent_warn = self.get_geo_entitie(len(geos),name)
 
-##            try:            
-            if(name=="POLYLINE"):
-                geo.append(self.Read_Polyline(len(geo)))
-            elif (name=="SPLINE"):
+            #Hinzufügen der Werte oder auch nicht
+            if ent_warn:
                 warn=1
-                geo.append(self.Read_Spline(len(geo)))
-                #Umwandeln zu einer Polyline
-                geo[-1].calculate_nurbs_points()
-                self.text.insert(END,("\n!!!! WARNING: SPLINE imported as POLYLINE with 200 Points !!!!" ))        
-            elif (name=="ARC"):
-                geo.append(self.Read_Arc(len(geo)))                
-            elif (name=="CIRCLE"):
-                geo.append(self.Read_Circle(len(geo)))
-            elif (name=="LINE"):
-                geo.append(self.Read_Line(len(geo)))
-            elif (name=="INSERT"):
-                geo.append(self.Read_Insert(len(geo)))
-            else:  
-                warn=1
-                self.text.insert(END,("\n!!!!WARNING Found unsupported Geometry: %s !!!!" %name))
-                self.text.yview(END)
-                self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
-            #self.text.insert(END,("\n%s" %name))
+            else:
+                geos.append(entitie_geo)
+            
             #Die nächste Suche Starten nach dem gerade gefundenen
-            self.start=self.line_pairs.index_code(0,self.start,end)
+            self.start=self.line_pairs.index_code(0,self.start,end)            
 
-                
-##            except:
-##                showwarning("Save As",("Found %s at Linepair %0.0f with Failure!!!! (Line %0.0f till %0.0f)" \
-##                            %(name, old_start,old_start*2+4,end*2+4)))
-##                
-##                self.text.insert(END,("\nFound %s at Linepair %0.0f with Failure!!!! (Line %0.0f till %0.0f)" \
-##                                            %(name, old_start,old_start*2+4,end*2+4)))
-                
-                        
+            #Debug Informationen anzeigen falls erwünscht                        
             if self.debug:
                 if self.start==None:
                     self.text.insert(END,("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
@@ -268,11 +255,10 @@ class Load_DXF:
                 else:
                     self.text.insert(END,("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
                                             %(name, old_start,old_start*2+4,self.start*2+4)))
-            
                 self.text.yview(END)
 
-            if (self.debug>1)and(len(geo)>0):
-                self.text.insert(END,str(geo[-1]))
+            if (self.debug>1)and(len(geos)>0):
+                self.text.insert(END,str(geos[-1]))
                 self.text.yview(END)
 
             old_start=self.start
@@ -281,259 +267,44 @@ class Load_DXF:
             showwarning("Import Warning","Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
             
         del(self.start)
-        return geo
+        return geos
 
-    def Read_Spline(self, geo_nr):
-        Spline=SplineClass(geo_nr,0,[],0)
-        Old_Point=PointClass(0,0)
+    #Verteiler für die Geo-Instanzen
+    # wird in def Get_Geo aufgerufen
+    # für einen Release kann der ganze Code gerne wieder in einer Datei landen.
+    def get_geo_entitie(self, geo_nr, name):
+        #Entities:
+        # 3DFACE, 3DSOLID, ACAD_PROXY_ENTITY, ARC, ATTDEF, ATTRIB, BODY
+        # CIRCLE, DIMENSTION, ELLIPSE, HATCH, IMAGE, INSERT, LEADER, LINE,
+        # LWPOLYLINE, MLINE, MTEXT, OLEFRAME, OLE2FRAME, POINT, POLYLINE,
+        # RAY, REGION, SEQEND, SHAPE, SOLID, SPLINE, XT, TOLERANCE, TRACE,
+        # VERTEX, VIEWPOINT, XLINE
 
-        #Kürzere Namen zuweisen        
-        lp=self.line_pairs
-        e=lp.index_code(0,self.start+1)
-
-        #Layer zuweisen        
-        s=lp.index_code(8,self.start+1)
-        Spline.Layer_Nr=self.Get_Layer_Nr(lp.line_pair[s].value)
-
-        #Spline Flap zuweisen
-        s=lp.index_code(70,s+1)
-        Spline.Spline_flag=int(lp.line_pair[s].value) 
-
-        #Spline Ordnung zuweisen
-        s=lp.index_code(71,s+1)
-        Spline.Spline_order=int(lp.line_pair[s].value)
-
-        #Number of CPts
-        s=lp.index_code(73,s+1)
-        nCPts=int(lp.line_pair[s].value)          
-
-
-        #Lesen der Knoten
-        while 1:
-            #Knoten Wert
-            sk=lp.index_code(40,s+1,e)
-            if sk==None:
-                break
-            Spline.Knots.append(float(lp.line_pair[sk].value))
-            s=sk
-
-        #Lesen der Gewichtungen
-        while 1:
-            #Knoten Gewichtungen
-            sg=lp.index_code(41,s+1,e)
-            if sg==None:
-                break
-            Spline.Weights.append(float(lp.line_pair[sg].value))
-            s=sg
+        # Instanz des neuen Objekts anlegen und gleichzeitig laden
+        if(name=="POLYLINE"):
+            geo=PolylineClass(geo_nr,self)
+        elif (name=="SPLINE"):
+            geo=SplineClass(geo_nr,self)
+        elif (name=="ARC"):
+            geo=ArcClass(geo_nr,self)
+        elif (name=="CIRCLE"):
+            geo=CircleClass(geo_nr,self)
+        elif (name=="LINE"):
+            geo=LineClass(geo_nr,self)
+        elif (name=="INSERT"):
+            geo=InsertClass(geo_nr,self)
+        elif (name=="ELLIPSE"):
+            geo=EllipseClass(geo_nr,self)
+        elif (name=="LWPOLYLINE"):
+            geo=LWPolylineClass(geo_nr,self)
+        else:  
+            warn=1
+            self.text.insert(END,("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
+            self.text.yview(END)
+            self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
+            return [],1
             
-        if len(Spline.Weights)==0:
-            for nr in range(nCPts):
-                Spline.Weights.append(1)
-                
-        #Lesen der Kontrollpunkte
-        while 1:  
-            #XWert
-            s=lp.index_code(10,s+1,e)
-            #Wenn kein neuer Punkt mehr gefunden wurde abbrechen ...
-            if s==None:
-                break
-            
-            x=float(lp.line_pair[s].value)
-            #YWert
-            s=lp.index_code(20,s+1,e)
-            y=float(lp.line_pair[s].value)
-
-            Spline.CPoints.append(PointClass(x,y))             
-
-            if (Old_Point==Spline.CPoints[-1]):
-               # add to boundary if not zero-length segment
-               Old_Point=Spline.CPoints[-1]
-               if len(Spline.CPoints)>1:
-                   Spline.length+=Spline.CPoints[-2].distance(Spline.CPoints[-1])            
-
-        self.start=e
-        return Spline
-    
-    def Read_Polyline(self, geo_nr):
-        Polyline=PolylineClass(geo_nr,0,[],0)
-        Old_Point=PointClass(0,0)
-
-        #Kürzere Namen zuweisen        
-        lp=self.line_pairs
-        e=lp.index_both(0,"SEQEND",self.start+1)+1
-
-        #Layer zuweisen        
-        s=lp.index_code(8,self.start+1)
-        Polyline.Layer_Nr=self.Get_Layer_Nr(lp.line_pair[s].value)        
-        
-        while 1:
-            s=lp.index_both(0,"VERTEX",s+1,e)
-            if s==None:
-                break
-            
-            #XWert
-            s=lp.index_code(10,s+1,e)
-            x=float(lp.line_pair[s].value)
-            #YWert
-            s=lp.index_code(20,s+1,e)
-            y=float(lp.line_pair[s].value)
-
-            Polyline.Points.append(PointClass(x,y))             
-
-            if (Old_Point==Polyline.Points[-1]):
-               # add to boundary if not zero-length segment
-               Old_Point=Polyline.Points[-1]
-               if len(Polyline.Points)>1:
-                   Polyline.length+=Polyline.Points[-2].distance(Polyline.Points[-1])            
-
-        self.start=e
-        return Polyline
-
-    def Read_Line(self, geo_nr):
-        Line=LineClass(geo_nr,0,[],0)
-
-        #Kürzere Namen zuweisen
-        lp=self.line_pairs
-
-        #Layer zuweisen        
-        s=lp.index_code(8,self.start+1)
-        Line.Layer_Nr=self.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
-        s=lp.index_code(10,s+1)
-        x0=float(lp.line_pair[s].value)
-        #YWert
-        s=lp.index_code(20,s+1)
-        y0=float(lp.line_pair[s].value)
-        #XWert2
-        s=lp.index_code(11,s+1)
-        x1 = float(lp.line_pair[s].value)
-        #YWert2
-        s=lp.index_code(21,s+1)
-        y1 = float(lp.line_pair[s].value)
-
-        Line.Points.append(PointClass(x0,y0))
-        Line.Points.append(PointClass(x1,y1))                
-        #Berechnen der Vektorlänge
-        Line.length=Line.Points[0].distance(Line.Points[1])
-        
-        self.start=s
-        return Line        
-        
-    def Read_Circle(self, geo_nr):
-        Circle=CircleClass(geo_nr,0,[],0,0)
-
-        #Kürzere Namen zuweisen
-        lp=self.line_pairs
-
-        #Layer zuweisen        
-        s=lp.index_code(8,self.start+1)
-        Circle.Layer_Nr=self.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
-        s=lp.index_code(10,s+1)
-        x0=float(lp.line_pair[s].value)
-        #YWert
-        s=lp.index_code(20,s+1)
-        y0=float(lp.line_pair[s].value)
-        Circle.Points.append(PointClass(x0,y0))
-        #Radius
-        s=lp.index_code(40,s+1)
-        Circle.Radius = float(lp.line_pair[s].value)
-                        
-        #Berechnen des Kreisumfangs                
-        Circle.length=Circle.Radius*radians(360)
-        
-        #Berechnen der Start und Endwerte des Kreises ohne Überschneidung              
-        xs=cos(radians(0))*Circle.Radius+x0
-        ys=sin(radians(0))*Circle.Radius+y0
-        Circle.Points.append(PointClass(xs,ys))
-        
-        xe=cos(radians(0))*Circle.Radius+x0
-        ye=sin(radians(0))*Circle.Radius+y0
-        Circle.Points.append(PointClass(xe,ye))
-
-        self.start=s        
-        return Circle
-    
-    def Read_Arc(self, geo_nr):
-        Arc=ArcClass(geo_nr,0,[],0,0,0,0)
-
-        #Kürzere Namen zuweisen
-        lp=self.line_pairs
-
-        #Layer zuweisen        
-        s=lp.index_code(8,self.start+1)
-        Arc.Layer_Nr=self.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
-        s=lp.index_code(10,s+1)
-        x0=float(lp.line_pair[s].value)
-        #YWert
-        s=lp.index_code(20,s+1)
-        y0=float(lp.line_pair[s].value)
-        Arc.Points.append(PointClass(x0,y0))
-        #Radius
-        s=lp.index_code(40,s+1)
-        Arc.Radius = float(lp.line_pair[s].value)
-        #Start Winkel
-        s=lp.index_code(50,s+1)
-        Arc.Start_Ang= float(lp.line_pair[s].value)
-        #End Winkel
-        s=lp.index_code(51,s+1)
-        Arc.End_Ang= float(lp.line_pair[s].value)        
-
-        #Berechnen der Start und Endwerte des Arcs
-        xs=cos(radians(Arc.Start_Ang))*Arc.Radius+x0
-        ys=sin(radians(Arc.Start_Ang))*Arc.Radius+y0
-        Arc.Points.append(PointClass(xs,ys))
-        xe=cos(radians(Arc.End_Ang))*Arc.Radius+x0
-        ye=sin(radians(Arc.End_Ang))*Arc.Radius+y0
-        Arc.Points.append(PointClass(xe,ye))
-
-        #Korrektur des Endwinkels bei Werten <= 0
-        if Arc.End_Ang<=0:
-            EA_cor=Arc.End_Ang+360
-        else:
-            EA_cor=Arc.End_Ang
-            
-        Arc.length=Arc.Radius*abs(radians(EA_cor-Arc.Start_Ang))
-
-        self.start=s
-        return Arc
-    
-    def Read_Insert(self, geo_nr):
-        Insert=InsertClass(geo_nr,0,'',[],[1,1,1])
-        
-        #Kürzere Namen zuweisen
-        lp=self.line_pairs
-        e=lp.index_code(0,self.start+1)
-
-        #Block Name        
-        ind=lp.index_code(2,self.start+1,e)
-        Insert.Block=self.Get_Block_Nr(lp.line_pair[ind].value)
-        #Layer zuweisen        
-        s=lp.index_code(8,self.start+1,e)
-        Insert.Layer_Nr=self.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
-        s=lp.index_code(10,s+1,e)
-        x0=float(lp.line_pair[s].value)
-        #YWert
-        s=lp.index_code(20,s+1,e)
-        y0=float(lp.line_pair[s].value)
-        Insert.Point=PointClass(x0,y0)
-        
-        
-        s=lp.index_code(41,s+1,e)
-        if s!=None:
-            #XScale
-            Insert.Scale[0]=float(lp.line_pair[s].value)
-            #YScale
-            s=lp.index_code(42,s+1,e)
-            Insert.Scale[1]=float(lp.line_pair[s].value)
-            #ZScale
-            s=lp.index_code(43,s+1,e)
-            Insert.Scale[2]=float(lp.line_pair[s].value)
-
-        self.start=e      
-        return Insert
+        return geo,0
 
     #Findet die Nr. des Geometrie Layers
     def Get_Layer_Nr(self,Layer_Name):
@@ -557,64 +328,42 @@ class Load_DXF:
     def Get_Contour(self,entities=None,tol=0.01):
         cont=[]
 
-        points=self.Calc_Int_Points(entities.geo,cont,tol)
+        points=self.App_Cont_or_Calc_IntPts(entities.geo,cont,tol)
         points=self.Find_Common_Points(points,tol)
         cont=self.Search_Contours(entities.geo,points,cont)
         
         return cont    
     
     #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
-    def Calc_Int_Points(self,geo=None,cont=None,tol=0.01):
+    def App_Cont_or_Calc_IntPts(self,geo=None,cont=None,tol=0.01):
         points=[]
-        points_nr=-1
         #Durchlaufen und errechnen der Werte für alle Elemente die eine zusammengesetzte
         #Kontur ergeben können (Circle ist bereits eine geschlossene Kontur)
-       
+
+#Aufsplitten nicht mehr nötig, da nur solche angelegt und 
+#jede Klasse  muss die Funktion App_Cont_or_Calc_IntPts umsetzen.
+#        for i in range(len(geo)) :
+#            if geo[i].Typ=='Arc':
+#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+#            elif geo[i].Typ=='Circle':
+#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+#            elif geo[i].Typ=='Line':
+#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+#            elif geo[i].Typ=='Polyline':
+#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+#            elif geo[i].Typ=='Spline':
+#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+#            elif geo[i].Typ=='Insert':
+#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+#            elif geo[i].Typ=='Ellipse':
+#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+#            else:
+#                print 'unknown geometrie: ' + geo[i].Typ
+
         for i in range(len(geo)) :
-            if geo[i].Typ=='Arc':
-                points_nr+=1
-                points.append(PointsClass(points_nr,i,geo[i].Layer_Nr,[],[],[],[]))
-                points[-1].be=geo[i].Points[-2]
-                points[-1].en=geo[i].Points[-1]
-
-            elif geo[i].Typ=='Circle':
-                cont.append(ContourClass(len(cont),1,[[i,0]],geo[i].length))
-
-            elif geo[i].Typ=='Line':
-                points_nr+=1
-                points.append(PointsClass(points_nr,i,geo[i].Layer_Nr,[],[],[],[]))
-                points[-1].be=geo[i].Points[0]
-                points[-1].en=geo[i].Points[-1]
-                
-            elif geo[i].Typ=='Polyline':
-                #Hinzufügen falls es keine geschlossene Polyline ist
-                if geo[i].Points[0].isintol(geo[i].Points[-1],tol):
-                    geo[i].analyse_and_opt()
-                    cont.append(ContourClass(len(cont),1,[[i,0]],geo[i].length))
-                else:
-                    points_nr+=1
-                    points.append(PointsClass(points_nr,i,geo[i].Layer_Nr,[],[],[],[]))
-                    points[-1].be=geo[i].Points[0]
-                    points[-1].en=geo[i].Points[-1]
-
-            elif geo[i].Typ=='Spline':
-                #Hinzufügen falls es keine geschlossener Spline ist
-                if geo[i].Points[0].isintol(geo[i].Points[-1],tol):
-                    geo[i].analyse_and_opt()
-                    cont.append(ContourClass(len(cont),1,[[i,0]],geo[i].length)) 
-                else:
-                    points_nr+=1
-                    points.append(PointsClass(points_nr,i,geo[i].Layer_Nr,[],[],[],[]))
-                    points[-1].be=geo[i].Points[0]
-                    points[-1].en=geo[i].Points[-1]
-                    
-            elif geo[i].Typ=='Insert':
-                layer_nr=1
-                cont.append(ContourClass(len(cont),0,[[i,0]],0))
-            else:
-                print 'unknown geometrie: ' + geo[i].Typ
+            geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
         return points
-       
+
     #Suchen von gemeinsamen Punkten
     def Find_Common_Points(self,points=None,tol=0.01):
 
@@ -896,335 +645,6 @@ class LayerClass:
     def __len__(self):
         return self.__len__
 
-class InsertClass:
-    def __init__(self,Nr=0,Layer_Nr=0,Block='',Point=[], Scale=[1,1,1]):
-        self.Typ='Insert'
-        self.Nr = Nr
-        self.Layer_Nr = Layer_Nr
-        self.Block = Block
-        self.Point = Point
-        self.Scale=Scale
-        self.length=0
-        
-    def __str__(self):
-        # how to print the object
-        return '\nTyp: Insert\nNr ->'+str(self.Nr)\
-            +'\nLayer Nr: ->'+str(self.Layer_Nr)+'\nBlock ->' +str(self.Block) \
-            +str(self.Point) \
-            +'\nScale ->'+str(self.Scale) 
-
-class CircleClass:
-    def __init__(self,Nr=0,Layer_Nr=0,Points=[], Radius=0,length=0):
-        self.Typ='Circle'
-        self.Nr = Nr
-        self.Layer_Nr = Layer_Nr
-        self.Points = Points
-        self.Radius= Radius
-        self.length=length
-    def __str__(self):
-        # how to print the object
-        s='\nType: Circle\nNr ->'+str(self.Nr) +'\nLayer Nr: ->'+str(self.Layer_Nr)
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nRadius ->'+str(self.Radius)+'\nLength ->'+str(self.length)
-        return s
-    def plot2can(self,canvas,p0,sca,tag):
-        xy=p0[0]+(self.Points[0].x-self.Radius)*sca[0],-p0[1]-(self.Points[0].y-self.Radius)*sca[1],\
-            p0[0]+(self.Points[0].x+self.Radius)*sca[0],-p0[1]-(self.Points[0].y+self.Radius)*sca[1]
-        hdl=Oval(canvas,xy,tag=tag)
-        return hdl
-
-    def get_start_end_points(self,direction):
-        punkt=self.Points[-1]
-        if direction==0:
-            angle=270
-        else:
-            angle=90
-            
-        return punkt,angle
-    
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        st_point, st_angle=self.get_start_end_points(dir)
-        I=(self.Points[0].x-st_point.x)*sca[0]
-        J=(self.Points[0].y-st_point.y)*sca[0]
-        en_point, en_angle=self.get_start_end_points(not(dir))
-        x_en=(en_point.x*sca[0])+p0[0]
-        y_en=(en_point.y*sca[1])+p0[1]
-        
-
-        #Vorsicht geht nicht für Ovale
-        if dir==0:
-            string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,x_en,axis2,y_en,I,J))
-        else:
-            string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,x_en,axis2,y_en,I,J))
-
-        return string    
-        
-class ArcClass:
-    def __init__(self,Nr=0,Layer_Nr=0,Points=[], Radius=0, Start_Ang=0, End_Ang=0,length=0):
-        self.Typ='Arc'
-        self.Nr = Nr
-        self.Layer_Nr = Layer_Nr
-        self.Points=Points
-        self.Radius= Radius
-        self.Start_Ang=Start_Ang
-        self.End_Ang=End_Ang
-        self.length=length
-
-    def __str__(self):
-        # how to print the object
-        s='\nTyp: Arc \nNr ->'+str(self.Nr) \
-            +'\nLayer Nr: ->'+str(self.Layer_Nr)
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nRadius ->'+str(self.Radius)+'\nStart Angle ->'+str(self.Start_Ang) \
-           +'\nEnd Angle ->'+str(self.End_Ang) \
-           +'\nLength ->'+str(self.length)
-        return s
-    def plot2can(self,canvas,p0,sca,tag):
-        if self.End_Ang==0:
-            ext=360-self.Start_Ang
-        else:            
-            ext=self.End_Ang-self.Start_Ang
-
-        if ext<0:
-            ext+=360
-
-        xy=p0[0]+(self.Points[0].x-self.Radius)*sca[0],-p0[1]-(self.Points[0].y-self.Radius)*sca[1],\
-            p0[0]+(self.Points[0].x+self.Radius)*sca[0],-p0[1]-(self.Points[0].y+self.Radius)*sca[1]
-        hdl=Arc(canvas,xy,start=self.Start_Ang,extent=ext,style="arc",\
-            tag=tag)
-        return hdl
-
-    def get_start_end_points(self,direction):
-        if direction==0:
-            punkt=self.Points[1]
-            angle=self.Start_Ang+90
-        elif direction==1:
-            punkt=self.Points[2]
-            angle=self.End_Ang-90
-        return punkt,angle
-    
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        st_point, st_angle=self.get_start_end_points(dir)
-        I=(self.Points[0].x-st_point.x)*sca[0]
-        J=(self.Points[0].y-st_point.y)*sca[0]
-        en_point, en_angle=self.get_start_end_points(not(dir))
-        x_en=(en_point.x*sca[0])+p0[0]
-        y_en=(en_point.y*sca[1])+p0[1]
-        
-
-        #Vorsicht geht nicht für Ovale
-        if dir==0:
-            string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,x_en,axis2,y_en,I,J))
-        else:
-            string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,x_en,axis2,y_en,I,J))
-
-        return string
-            
-class LineClass:
-    def __init__(self,Nr=0,Layer_Nr=0,Points=[],length=0):
-        self.Typ='Line'
-        self.Nr = Nr
-        self.Layer_Nr = Layer_Nr
-        self.Points = Points
-        self.length= length
-    def __str__(self):
-        # how to print the object
-        s= '\nTyp: Line \nNr ->'+str(self.Nr) +'\nLayer Nr: ->'+str(self.Layer_Nr)
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nLength ->'+str(self.length)
-        return s
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=Line(canvas,p0[0]+self.Points[0].x*sca[0],-p0[1]-self.Points[0].y*sca[1],\
-             p0[0]+self.Points[1].x*sca[0],-p0[1]-self.Points[1].y*sca[1],\
-             tag=tag)
-        return hdl
-    
-    def get_start_end_points(self,direction):
-        if direction==0:
-            punkt=self.Points[0]
-            dx=self.Points[1].x-self.Points[0].x
-            dy=self.Points[1].y-self.Points[0].y
-            angle=degrees(atan2(dy, dx))
-        elif direction==1:
-            punkt=self.Points[-1]
-            dx=self.Points[-2].x-self.Points[-1].x
-            dy=self.Points[-2].y-self.Points[-1].y
-            angle=degrees(atan2(dy, dx))
-
-        return punkt, angle
-    
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        en_point, en_angle=self.get_start_end_points(not(dir))
-        x_en=(en_point.x*sca[0])+p0[0]
-        y_en=(en_point.y*sca[1])+p0[1]
-        string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,x_en,axis2,y_en))
-        return string
-        
-class PolylineClass:
-    def __init__(self,Nr=0,Layer_Nr=0,Points=[],length=0):
-        self.Typ='Polyline'
-        self.Nr = Nr
-        self.Layer_Nr = Layer_Nr
-        self.Points=Points
-        self.length= length
-    def __str__(self):
-        # how to print the object
-        s= '\nTyp: Polyline \nNr ->'+str(self.Nr) +'\nLayer Nr: ->'+str(self.Layer_Nr)
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nLength ->'+str(self.length)
-        return s
-
-
-    def analyse_and_opt(self):
-        summe=0
-        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-        #negativer Wert bedeutet CCW geschlossenes Polygon            
-        for p_nr in range(1,len(self.Points)):
-            summe+=(self.Points[p_nr-1].x*self.Points[p_nr].y-self.Points[p_nr].x*self.Points[p_nr-1].y)/2
-        if summe>0.0:
-            self.Points.reverse()
-
-        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-        min_point=self.Points[0]
-        min_p_nr=0
-        del(self.Points[-1])
-        for p_nr in range(1,len(self.Points)):
-            #Geringster Abstand nach unten Unten Links
-            if (min_point.x+min_point.y)>=(self.Points[p_nr].x+self.Points[p_nr].y):
-                min_point=self.Points[p_nr]
-                min_p_nr=p_nr
-        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
- 
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=[]
-        for i in range(1,len(self.Points)):
-            hdl.append(Line(canvas,p0[0]+self.Points[i-1].x*sca[0],-p0[1]-self.Points[i-1].y*sca[1],\
-                            p0[0]+self.Points[i].x*sca[0],-p0[1]-self.Points[i].y*sca[1],\
-                            tag=tag))
-        return hdl
-    
-    def get_start_end_points(self,direction=0,nr=0):
-        if direction==0:
-            punkt=self.Points[nr]
-            dx=self.Points[1].x-self.Points[0].x
-            dy=self.Points[1].y-self.Points[0].y
-            angle=degrees(atan2(dy, dx))
-        elif direction==1:
-            punkt=self.Points[len(self.Points)-nr-1]
-            dx=self.Points[-2].x-self.Points[-1].x
-            dy=self.Points[-2].y-self.Points[-1].y
-            angle=degrees(atan2(dy, dx))
-
-        return punkt,angle
-    
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        
-        for p_nr in range(len(self.Points)-1):
-            en_point, en_angle=self.get_start_end_points(not(dir),p_nr+1)
-            x_en=(en_point.x*sca[0])+p0[0]
-            y_en=(en_point.y*sca[1])+p0[1]
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,x_en,axis2,y_en))
-        return string
-        
-class SplineClass:
-    def __init__(self,Nr=0,Layer_Nr=0,CPoints=[],length=0):
-        self.Typ='Spline'
-        self.Nr = Nr
-        self.Layer_Nr = Layer_Nr
-        self.Spline_flag=[]
-        self.Spline_order=1
-        self.Knots=[]
-        self.Weights=[]
-        self.CPoints=CPoints
-        self.Points=[]
-        self.length= length
-    def __str__(self):
-        # how to print the object
-        s= ('\nTyp: Spline \nNr -> %i' %self.Nr)+\
-           ('\nLayer Nr -> %i' %self.Layer_Nr)+\
-           ('\nSpline flag -> %i' %self.Spline_flag)+\
-           ('\nSpline order -> %i' %self.Spline_order)+\
-           ('\nKnots -> %s' %self.Knots)+\
-           ('\nWeights -> %s' %self.Weights)+\
-           ('\nCPoints ->')
-           
-        for point in self.CPoints:
-            s=s+str(point)
-        s+='\nPoints: ->'
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nLength ->'+str(self.length)
-        return s
-
-    #Berechnen der NURBS Punkte
-    def calculate_nurbs_points(self):
-        import dxf2gcode_b01_nurbs_calc as NURBS
-        reload(NURBS)
-
-        nurb=NURBS.NURBSClass(order=self.Spline_order,Knots=self.Knots,\
-                   Weights=self.Weights,CPoints=self.CPoints,Calc_Pts=200)
-
-        self.Points=nurb.Points      
-
-    def analyse_and_opt(self):     
-        summe=0
-        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-        #negativer Wert bedeutet CCW geschlossenes Polygon            
-        for p_nr in range(1,len(self.Points)):
-            summe+=(self.Points[p_nr-1].x*self.Points[p_nr].y-self.Points[p_nr].x*self.Points[p_nr-1].y)/2
-        if summe>0.0:
-            self.Points.reverse()
-
-        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-        min_point=self.Points[0]
-        min_p_nr=0
-        del(self.Points[-1])
-        for p_nr in range(1,len(self.Points)):
-            #Geringster Abstand nach unten Unten Links
-            if (min_point.x+min_point.y)>=(self.Points[p_nr].x+self.Points[p_nr].y):
-                min_point=self.Points[p_nr]
-                min_p_nr=p_nr
-        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
- 
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=[]
-        for i in range(1,len(self.Points)):
-            hdl.append(Line(canvas,p0[0]+self.Points[i-1].x*sca[0],-p0[1]-self.Points[i-1].y*sca[1],\
-                            p0[0]+self.Points[i].x*sca[0],-p0[1]-self.Points[i].y*sca[1],\
-                            tag=tag))     
-        return hdl
-    
-    def get_start_end_points(self,direction=0,nr=0):
-        if direction==0:
-            punkt=self.Points[nr]
-            dx=self.Points[1].x-self.Points[0].x
-            dy=self.Points[1].y-self.Points[0].y
-            angle=degrees(atan2(dy, dx))
-        elif direction==1:
-            punkt=self.Points[len(self.Points)-nr-1]
-            dx=self.Points[-2].x-self.Points[-1].x
-            dy=self.Points[-2].y-self.Points[-1].y
-            angle=degrees(atan2(dy, dx))
-
-        return punkt,angle
-
-        return punkt,angle
-    
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        
-        for p_nr in range(len(self.Points)-1):
-            en_point, en_angle=self.get_start_end_points(not(dir),p_nr+1)
-            x_en=(en_point.x*sca[0])+p0[0]
-            y_en=(en_point.y*sca[1])+p0[1]
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,x_en,axis2,y_en))
-        return string   
-
 class SectionClass:
     def __init__(self,Nr=0, name='',begin=0,end=1):
         self.Nr= Nr
@@ -1236,6 +656,7 @@ class SectionClass:
         return '\nNr ->'+str(self.Nr)+'\nName ->'+self.name+'\nBegin ->'+str(self.begin)+'\nEnd: ->'+str(self.end)
     def __len__(self):
         return self.__len__
+
 class EntitiesClass:
     def __init__(self,Nr=0, Name='',geo=[],cont=[]):
         self.Nr= Nr
@@ -1272,161 +693,6 @@ class BlocksClass:
     def __str__(self):
         # how to print the object
         s= '\nBlocks:\nNumber of Blocks ->'+str(len(self.Entities))
-        for entitie in self.Entities:
+        for entitie in self.ties:
             s=s+str(entitie)
         return s
-
-class PointClass:
-    def __init__(self,x=0,y=0):
-        self.x=x
-        self.y=y
-    def __str__(self):
-        return ('\nPoint:   X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
-    def __cmp__(self, other) : 
-      return (self.x == other.x) and (self.y == other.y)
-    def __add__(self, other): # add to another point
-        return PointClass(self.x+other.x, self.y+other.y)
-    def __rmul__(self, other):
-        return PointClass(other * self.x,  other * self.y)
-    def distance(self,other):
-        return sqrt(pow(self.x-other.x,2)+pow(self.y-other.y,2))
-    def isintol(self,other,tol):
-        return (abs(self.x-other.x)<=tol) & (abs(self.y-other.y)<tol)
-    def triangle_height(self,other1,other2):
-        #Die 3 Längen des Dreiecks ausrechnen
-        a=self.distance(other1)
-        b=other1.distance(other2)
-        c=self.distance(other2)
-        print a
-        print b
-        print c
-        
-        return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))                
-      
-class PointsClass:
-    #Initialisieren der Klasse
-    def __init__(self,point_nr=0, geo_nr=0,Layer_Nr=None,be=[],en=[],be_cp=[],en_cp=[]):
-        self.point_nr=point_nr
-        self.geo_nr=geo_nr
-        self.Layer_Nr=Layer_Nr
-        self.be=be
-        self.en=en
-        self.be_cp=be_cp
-        self.en_cp=en_cp
-        
-    
-    #Wie die Klasse ausgegeben wird.
-    def __str__(self):
-        # how to print the object
-        return '\npoint_nr ->'+str(self.point_nr)+'\ngeo_nr ->'+str(self.geo_nr) \
-               +'\nLayer_Nr ->'+str(self.Layer_Nr)\
-               +'\nbe ->'+str(self.be)+'\nen ->'+str(self.en)\
-               +'\nbe_cp ->'+str(self.be_cp)+'\nen_cp ->'+str(self.en_cp)
-
-class ContourClass:
-    #Initialisieren der Klasse
-    def __init__(self,cont_nr=0,closed=0,order=[],length=0):
-        self.cont_nr=cont_nr
-        self.closed=closed
-        self.order=order
-        self.length=length
-        
-
-    #Komplettes umdrehen der Kontur
-    def reverse(self):
-        self.order.reverse()
-        for i in range(len(self.order)):
-            if self.order[i][1]==0:
-                self.order[i][1]=1
-            else:
-                self.order[i][1]=0
-        return
-
-    #Ist die klasse geschlossen wenn ja dann 1 zurück geben
-    def is_contour_closed(self):
-
-        #Immer nur die Letzte überprüfen da diese neu ist        
-        for j in range(len(self.order)-1):
-            if self.order[-1][0]==self.order[j][0]:
-                if j==0:
-                    self.closed=1
-                    return self.closed
-                else:
-                    self.closed=2
-                    return self.closed
-        return self.closed
-
-
-    #Ist die klasse geschlossen wenn ja dann 1 zurück geben
-    def remove_other_closed_contour(self):
-        for i in range(len(self.order)):
-            for j in range(i+1,len(self.order)):
-                #print '\ni: '+str(i)+'j: '+str(j)
-                if self.order[i][0]==self.order[j][0]:
-                   self.order=self.order[0:i]
-                   break
-        return 
-    #Berechnen der Zusammengesetzen Kontur Länge
-    def calc_length(self,geos=None):        
-        #Falls die beste geschlossen ist und erste Geo == Letze dann entfernen
-        if (self.closed==1) & (len(self.order)>1):
-            if self.order[0]==self.order[-1]:
-                del(self.order[-1])
-
-        self.length=0
-        for i in range(len(self.order)):
-            self.length+=geos[self.order[i][0]].length
-        return
-
-
-    
-    def analyse_and_opt(self,geos=None):
-        #Errechnen der Länge
-        self.calc_length(geos)
-        
-        #Optimierung für geschlossene Konturen
-        if self.closed==1:
-            summe=0
-            #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-            #negativer Wert bedeutet CCW geschlossenes Polygon
-            geo_point_l, dummy=geos[self.order[-1][0]].get_start_end_points(self.order[-1][1])            
-            for geo_order_nr in range(len(self.order)):
-                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
-                summe+=(geo_point_l.x*geo_point.y-geo_point.x*geo_point_l.y)/2
-                geo_point_l=geo_point
-            if summe>0.0:
-                self.reverse()
-
-            #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-            min_point=geo_point_l
-            min_point_nr=None
-            for geo_order_nr in range(len(self.order)):
-                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
-                #Geringster Abstand nach unten Unten Links
-                if (min_point.x+min_point.y)>=(geo_point.x+geo_point.y):
-                    min_point=geo_point
-                    min_point_nr=geo_order_nr
-            #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-            self.set_new_startpoint(min_point_nr)
-            
-        #Optimierung für offene Konturen
-        else:
-            geo_spoint, dummy=geos[self.order[0][0]].get_start_end_points(self.order[0][1])
-            geo_epoint, dummy=geos[self.order[0][0]].get_start_end_points(not(self.order[0][1]))
-            if (geo_spoint.x+geo_spoint.y)>=(geo_epoint.x+geo_epoint.y):
-                self.reverse()
-
-
-    #Neuen Startpunkt an den Anfang stellen
-    def set_new_startpoint(self,st_p):
-        self.order=self.order[st_p:len(self.order)]+self.order[0:st_p]
-        
-    #Wie die Klasse ausgegeben wird.
-    def __str__(self):
-        # how to print the object
-        return '\ncont_nr ->'+str(self.cont_nr)+'\nclosed ->'+str(self.closed) \
-               +'\norder ->'+str(self.order)+'\nlength ->'+str(self.length)        
-        
-            
-        
-            

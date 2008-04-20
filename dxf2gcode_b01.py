@@ -5,7 +5,7 @@
 #Programmer: Christian Kohloeffel
 #E-mail:     n/A
 #
-#Copyright 2007 Christian Kohlöffel
+#Copyright 2007-2008 Christian Kohlöffel
 #
 #Distributed under the terms of the GPL (GNU Public License)
 #
@@ -23,8 +23,8 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-# About Dialog
-# First Version of dxf2gcode Hopefully all works as it should
+#About Dialog
+#First Version of dxf2gcode Hopefully all works as it should
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b01.py
 
 import sys, os, string, ConfigParser 
@@ -1731,7 +1731,7 @@ class Show_About_Info(Toplevel):
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
         text.insert(END, "You are using DXF2GCODE")
-        text.insert(END, "\nVersion b01 from the 12th April 2008")
+        text.insert(END, "\nVersion b01 from the 16th April 2008")
         text.insert(END, "\nFor more information und updates about")
         text.insert(END, "\nplease visit my homepage at:")
         text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
