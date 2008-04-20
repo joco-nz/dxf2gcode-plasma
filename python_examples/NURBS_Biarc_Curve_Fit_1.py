@@ -83,9 +83,9 @@ class NURBSClass:
             
         self.ignor=[]
         for same_ctlpt in ctlpt_vec:
-            if (len(same_ctlpt)>self.order+2):
+            if (len(same_ctlpt)>self.order+1):
                 self.ignor.append([Knots[same_ctlpt[0]+self.order/2],\
-                                   Knots[same_ctlpt[-1]+self.order/2-1]])
+                                   Knots[same_ctlpt[-1]+self.order/2]])
 
 
         #raise ValueError, "Same Controlpoints Nr. bigger then order+1"
@@ -116,8 +116,11 @@ class NURBSClass:
 
     #Berechnen eines Punkts des NURBS und der ersten Ableitung
     def NURBS_evaluate(self,n=0,u=0):
+        #Errechnen der korrigierten u's
+        cor_u=self.correct_u(u)
+        
         #Errechnen der Homogenen Punkte bis zur n ten Ableitung         
-        HPt=self.BSpline.bspline_ders_evaluate(n=n,u=u)
+        HPt=self.BSpline.bspline_ders_evaluate(n=n,u=cor_u)
 
         #Punkt wieder in Normal Koordinaten zur¸ck transformieren        
         Point=self.HPt_2_Pt(HPt[0])
@@ -139,6 +142,34 @@ class NURBSClass:
             return Point, tangent
         else:
             return Point
+
+    #Korrektur der u Werte um den Ignorierten Teil
+    def correct_u(self,u_org):
+        if not(len(self.ignor)>0):
+            return u_org
+        else:
+            sum_u=0.0
+            sum_vek=[]
+            
+            #Errechen wieviel insgesamt ignoriert wird        
+            for ignor in self.ignor:
+                sum_u+=(ignor[-1]-ignor[0])
+                sum_vek.append(sum_u)
+
+            #Errechnen des neuen u Werts (geht bis u-sum)
+            new_u=u_org*(self.Knots[-1]-sum_u)/(self.Knots[-1])
+
+            #Wenn u nach dem ausgeschnittenen Teil liegt
+            ignor_nr=0
+            while new_u>=self.ignor[ignor_nr][0]:
+                new_u+=sum_vek[ignor_nr]
+                ignor_nr+=1
+                if ignor_nr==len(self.ignor):
+                    break
+
+            print("u_org: %0.5f; new_u: %0.5f" %(u_org,new_u))
+            return new_u        
+
 
     #Umwandeln der NURBS Kontrollpunkte und Weight in einen Homogenen Vektor
     def CPts_2_HCPts(self):
@@ -360,7 +391,7 @@ class BiarcFittingClass:
         self.NURBS=NURBSClass(order=order,Knots=Knots,CPoints=CPoints,Weights=Weights)
 
         #Initialisieren des ersten Wert auf der Kurve und der max. Abtastung
-        self.u=[0.38]
+        self.u=[0.0]
         #Step muﬂ ungerade sein, sonst gibts ein Rundungsproblem
         self.max_step=float(Knots[-1]/(50.01-1))
         self.cur_step=self.max_step
@@ -377,8 +408,8 @@ class BiarcFittingClass:
         u=self.u[-1]
         
         #Berechnen bis alle Biarcs berechnet sind
-        while(u<0.62):#self.NURBS.Knots[-1]):
-        #for i in range(300):
+        #while(u<self.NURBS.Knots[-1]):
+        for i in range(300):
             
             u+=self.cur_step
             if u>self.NURBS.Knots[-1]:
@@ -391,10 +422,11 @@ class BiarcFittingClass:
             Biarc=(BiarcClass(self.PtsVec[-1][0],self.PtsVec[-1][1],
                               PtVec[0],PtVec[1]))
 
-            print Biarc
-            print("max_step: %0.5f; cur_step: %0.5f; u: %0.5f" %(self.max_step,self.cur_step,u))            
+            #print Biarc
+            #print("max_step: %0.5f; cur_step: %0.5f; u: %0.5f" %(self.max_step,self.cur_step,u))            
 
             if Biarc.shape=="Zero":
+                print Biarc
                 pass
                 self.cur_step=min([self.cur_step*2,self.max_step])
             elif Biarc.shape=="Line":
@@ -409,9 +441,7 @@ class BiarcFittingClass:
                 else:
                     u-=self.cur_step
                     self.cur_step*=0.65
-            
-            
-                    
+                         
                        
 class BiarcClass:
     def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[]):
@@ -652,8 +682,8 @@ class PlotClass:
         self.plot1 = self.figure.add_subplot(111)
         self.plot1.set_title("NURBS and B-Spline Algorithms: ")
 
-        arrow_len=0.1
-        arrow_width=0.005
+        arrow_len=0.3
+        arrow_width=0.03
 
         xP=[]
         yP=[]
