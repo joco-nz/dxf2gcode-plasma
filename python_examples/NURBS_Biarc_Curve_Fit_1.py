@@ -56,10 +56,44 @@ class NURBSClass:
                                   CPts=self.HCPts)
 
         #Überprüfen des Knotenvektors
-        for i in range(len(Knots)):
-            for j in range(len(Knots)):
-                #Suchen von mehrfachen Knotenpunkte (Anzahl über order+1 => Korrektur?!)
+        #Suchen von mehrfachen Knotenpunkte (Anzahl über order+1 => Fehler?!)
+        knt_nr=1
+        knt_vec=[[Knots[0]]]
+        while knt_nr < len(Knots):
+            if Knots[knt_nr]==knt_vec[-1][-1]:
+                knt_vec[-1].append(Knots[knt_nr])
+            else:
+                knt_vec.append([Knots[knt_nr]])
+            knt_nr+=1
 
+        for knt_spts in knt_vec:
+            if (len(knt_spts)>self.order+1):
+                raise ValueError, "Same Knots Nr. bigger then order+1"
+
+        #Überprüfen der Kontrollpunkte
+        #Suchen von mehrachen Kontrollpunkten (Anzahl über order+2 => nicht errechnen
+        ctlpt_nr=0
+        ctlpt_vec=[[ctlpt_nr]]
+        while ctlpt_nr < len(CPoints)-1:
+            ctlpt_nr+=1
+            if CPoints[ctlpt_nr].isintol(CPoints[ctlpt_vec[-1][-1]],1e-6):
+                ctlpt_vec[-1].append(ctlpt_nr)
+            else:
+                ctlpt_vec.append([ctlpt_nr])
+            
+        self.ignor=[]
+        for same_ctlpt in ctlpt_vec:
+            if (len(same_ctlpt)>self.order+2):
+                self.ignor.append([Knots[same_ctlpt[0]+self.order/2],\
+                                   Knots[same_ctlpt[-1]+self.order/2-1]])
+
+
+        #raise ValueError, "Same Controlpoints Nr. bigger then order+1"
+        print("Same Controlpoints Nr. bigger then order+2")
+        for ignor in self.ignor:
+            print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))            
+            
+                                         
     #Berechnen von eine Anzahl gleichmässig verteilter Punkte und bis zur ersten Ableitung
     def calc_curve(self,n=0, cpts_nr=20):
         #Anfangswerte für Step und u
