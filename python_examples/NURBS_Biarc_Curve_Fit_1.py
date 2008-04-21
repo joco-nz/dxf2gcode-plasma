@@ -38,8 +38,8 @@ from math import radians, cos, sin,tan, atan2, sqrt, pow, pi
 import sys
 
 class NURBSClass:
-    def __init__(self,order=0,Knots=[],Weights=None,CPoints=None):
-        self.order=order                #Spline order
+    def __init__(self,degree=0,Knots=[],Weights=None,CPoints=None):
+        self.degree=degree                #Spline degree
         self.Knots=Knots                #Knoten Vektor
         self.CPoints=CPoints            #Kontrollpunkte des Splines [2D]
         self.Weights=Weights            #Gewichtung der Einzelnen Punkte
@@ -51,49 +51,64 @@ class NURBSClass:
         self.CPts_2_HCPts()
 
         #Erstellen der BSplineKlasse zur Berechnung der Homogenen Punkte
-        self.BSpline=BSplineClass(order=self.order,\
+        self.BSpline=BSplineClass(degree=self.degree,\
                                   Knots=self.Knots,\
                                   CPts=self.HCPts)
 
+        #Überprüfen der NURBS Parameter
+        self.check_NURBSParameters()
+
+    def check_NURBSParameters(self):
         #Überprüfen des Knotenvektors
-        #Suchen von mehrfachen Knotenpunkte (Anzahl über order+1 => Fehler?!)
+        #Suchen von mehrfachen Knotenpunkte (Anzahl über degree+1 => Fehler?!)
         knt_nr=1
-        knt_vec=[[Knots[0]]]
-        while knt_nr < len(Knots):
-            if Knots[knt_nr]==knt_vec[-1][-1]:
-                knt_vec[-1].append(Knots[knt_nr])
+        knt_vec=[[self.Knots[0]]]
+        self.knt_m_change=[]
+        
+        while knt_nr < len(self.Knots):
+            if self.Knots[knt_nr]==knt_vec[-1][-1]:
+                knt_vec[-1].append(self.Knots[knt_nr])
             else:
-                knt_vec.append([Knots[knt_nr]])
+                knt_vec.append([self.Knots[knt_nr]])
             knt_nr+=1
-
+        
         for knt_spts in knt_vec:
-            if (len(knt_spts)>self.order+1):
-                raise ValueError, "Same Knots Nr. bigger then order+1"
-
+            if (len(knt_spts)>self.degree+1):
+                raise ValueError, "Same Knots Nr. bigger then degree+1"
+            
+            #Überprüfen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
+            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>0.0)and(knt_spts[-1]<1.0)):
+                temp, tangent0=self.NURBS_evaluate(n=1,u=knt_spts[0]-1e-12)
+                temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
+                if abs(tangent0-tangent1)>1e-6:
+                    self.knt_m_change.append(knt_spts[0])
+                    
+                    
         #Überprüfen der Kontrollpunkte
-        #Suchen von mehrachen Kontrollpunkten (Anzahl über order+2 => nicht errechnen
+        #Suchen von mehrachen Kontrollpunkten (Anzahl über degree+2 => nicht errechnen
         ctlpt_nr=0
         ctlpt_vec=[[ctlpt_nr]]
-        while ctlpt_nr < len(CPoints)-1:
+        while ctlpt_nr < len(self.CPoints)-1:
             ctlpt_nr+=1
-            if CPoints[ctlpt_nr].isintol(CPoints[ctlpt_vec[-1][-1]],1e-6):
+            if self.CPoints[ctlpt_nr].isintol(self.CPoints[ctlpt_vec[-1][-1]],1e-6):
                 ctlpt_vec[-1].append(ctlpt_nr)
             else:
                 ctlpt_vec.append([ctlpt_nr])
             
         self.ignor=[]
         for same_ctlpt in ctlpt_vec:
-            if (len(same_ctlpt)>self.order+1):
-                self.ignor.append([Knots[same_ctlpt[0]+self.order/2],\
-                                   Knots[same_ctlpt[-1]+self.order/2]])
+            if (len(same_ctlpt)>self.degree+1):
+                self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
+                                   self.Knots[same_ctlpt[-1]+self.degree/2]])
 
-
-        #raise ValueError, "Same Controlpoints Nr. bigger then order+1"
-        print("Same Controlpoints Nr. bigger then order+2")
+        #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
+        print("Same Controlpoints Nr. bigger then degree+2")
         for ignor in self.ignor:
-            print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))            
-            
-                                         
+            print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))    
+        
+        if len(self.knt_m_change):
+            print("Non steady Angles between Knots: %s" %self.knt_m_change)
+                                               
     #Berechnen von eine Anzahl gleichmässig verteilter Punkte und bis zur ersten Ableitung
     def calc_curve(self,n=0, cpts_nr=20):
         #Anfangswerte für Step und u
@@ -117,10 +132,10 @@ class NURBSClass:
     #Berechnen eines Punkts des NURBS und der ersten Ableitung
     def NURBS_evaluate(self,n=0,u=0):
         #Errechnen der korrigierten u's
-        cor_u=self.correct_u(u)
+        #cor_u=self.correct_u(u)
         
         #Errechnen der Homogenen Punkte bis zur n ten Ableitung         
-        HPt=self.BSpline.bspline_ders_evaluate(n=n,u=cor_u)
+        HPt=self.BSpline.bspline_ders_evaluate(n=n,u=u)
 
         #Punkt wieder in Normal Koordinaten zurück transformieren        
         Point=self.HPt_2_Pt(HPt[0])
@@ -143,33 +158,6 @@ class NURBSClass:
         else:
             return Point
 
-    #Korrektur der u Werte um den Ignorierten Teil
-    def correct_u(self,u_org):
-        if not(len(self.ignor)>0):
-            return u_org
-        else:
-            sum_u=0.0
-            sum_vek=[]
-            
-            #Errechen wieviel insgesamt ignoriert wird        
-            for ignor in self.ignor:
-                sum_u+=(ignor[-1]-ignor[0])
-                sum_vek.append(sum_u)
-
-            #Errechnen des neuen u Werts (geht bis u-sum)
-            new_u=u_org*(self.Knots[-1]-sum_u)/(self.Knots[-1])
-
-            #Wenn u nach dem ausgeschnittenen Teil liegt
-            ignor_nr=0
-            while new_u>=self.ignor[ignor_nr][0]:
-                new_u+=sum_vek[ignor_nr]
-                ignor_nr+=1
-                if ignor_nr==len(self.ignor):
-                    break
-
-            print("u_org: %0.5f; new_u: %0.5f" %(u_org,new_u))
-            return new_u        
-
 
     #Umwandeln der NURBS Kontrollpunkte und Weight in einen Homogenen Vektor
     def CPts_2_HCPts(self):
@@ -185,8 +173,8 @@ class NURBSClass:
             
 
 class BSplineClass:
-    def __init__(self,order=0,Knots=[],CPts=[]):
-        self.order=order
+    def __init__(self,degree=0,Knots=[],CPts=[]):
+        self.degree=degree
         self.Knots=Knots
         self.CPts=CPts
 
@@ -195,12 +183,12 @@ class BSplineClass:
         self.CPts_len=len(self.CPts)
 
         #Eingangsprüfung, ober KnotenAnzahl usw. passt        
-        if  self.Knots_len< self.order+1:
-            raise ValueError, "Order greater than number of control points."
-        if self.Knots_len != (self.CPts_len + self.order+1):
-            print ("shall be: %s" %(self.CPts_len + self.order+1))
+        if  self.Knots_len< self.degree+1:
+            raise ValueError, "degree greater than number of control points."
+        if self.Knots_len != (self.CPts_len + self.degree+1):
+            print ("shall be: %s" %(self.CPts_len + self.degree+1))
             print ("is: %s" %self.Knots_len)
-            raise ValueError, "Knot/Control Point/Order number error."       
+            raise ValueError, "Knot/Control Point/degree number error."       
 
     #Berechnen von eine Anzahl gleichmässig verteilter Punkte bis zur n-ten Ableitung
     def calc_curve(self,n=0,cpts_nr=20):
@@ -235,7 +223,7 @@ class BSplineClass:
         #Berechnen der Basis Funktion bis zur n ten Ableitung am Punkt u        
         dN=self.ders_basis_functions(span,u,n)
 
-        p=self.order
+        p=self.degree
         du=min(n,p) 
 
         CK=[]
@@ -256,12 +244,12 @@ class BSplineClass:
     def findspan(self,u):
         #Spezialfall wenn der Wert==Endpunkt ist
         if(u==self.Knots[-1]):
-            return self.Knots_len-self.order-2 #self.Knots_len #-1
+            return self.Knots_len-self.degree-2 #self.Knots_len #-1
         
         #Binäre Suche starten
         #(Der Interval von low zu high wird immer halbiert bis
         #wert zwischen im Intervall von Knots[mid:mi+1] liegt)
-        low=self.order
+        low=self.degree
         high=self.Knots_len
         mid=(low+high)/2
         while ((u <self.Knots[mid])or(u>=self.Knots[mid+1])):
@@ -274,7 +262,7 @@ class BSplineClass:
 
     #Algorithm A2.3 from "THE NURBS BOOK" pg.72
     def ders_basis_functions(self,span,u,n):
-        d=self.order
+        d=self.degree
         
         #initialisieren der a Matrix
         a=[]
@@ -381,72 +369,152 @@ class BSplineClass:
 class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
-        self.epsilon=0.5
+        self.epsilon=0.2
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        order, CPoints, Weights, Knots=examples.get_nurbs_2()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_2()
 
         #NURBS Klasse initialisieren
-        self.NURBS=NURBSClass(order=order,Knots=Knots,CPoints=CPoints,Weights=Weights)
+        self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
 
-        #Initialisieren des ersten Wert auf der Kurve und der max. Abtastung
-        self.u=[0.0]
-        #Step muß ungerade sein, sonst gibts ein Rundungsproblem
+        #Berechnen der zu Berechnenden getrennten Abschnitte
+        u_sections=self.calc_u_sections(self.NURBS.Knots,\
+                                        self.NURBS.ignor,\
+                                        self.NURBS.knt_m_change[:])
+
+        #Step muß ungerade sein, sonst gibts ein Rundungsproblem um 1
         self.max_step=float(Knots[-1]/(50.01-1))
-        self.cur_step=self.max_step
-
-        #Berechnen des ersten Wert auf der NURBS Kurve
-        self.PtsVec=[]
-        self.PtsVec.append(self.NURBS.NURBS_evaluate(n=1,u=self.u[-1]))
 
         #Berechnen des ersten Biarcs fürs Fitting
-        self.BiarcCurve=[]    
-        self.calc_next_Biarc()
+        self.BiarcCurve=[]
+        self.PtsVec=[]
 
-    def calc_next_Biarc(self):
-        u=self.u[-1]
+        #Schleife für die einzelnen Abschnitte        
+        for u_sect in u_sections:
+            BiarcCurve, PtsVec=self.calc_high_accurancy_BiarcCurve(u_sect,self.epsilon*0.2)
+            self.BiarcCurve.append(BiarcCurve)
+            self.PtsVec.append(PtsVec)
         
-        #Berechnen bis alle Biarcs berechnet sind
-        #while(u<self.NURBS.Knots[-1]):
-        for i in range(300):
-            
-            u+=self.cur_step
-            if u>self.NURBS.Knots[-1]:
-                u=self.NURBS.Knots[-1]
+    def calc_u_sections(self,Knots,ignor,unsteady):
 
+        #Initialisieren
+        u_sections=[]
+
+        #Abfrage ob bereits der Anfang ignoriert wird
+        u_beg=Knots[0]
+        u_end=Knots[0]
+        ig_nr=0
+
+        #Schleife bis u_end==Knots[0]      
+        while u_end<Knots[-1]:
+            u_beg=u_end
+            #Wenn Ignor == Start dann Start = Ende von Ignor              
+            if len(ignor)>ig_nr:
+                if u_beg==ignor[ig_nr][0]:
+                    u_beg=ignor[ig_nr][1]
+                    ig_nr+=1
+
+                    #Löschen der unsteadys bis grßer als u_beg
+                    while (len(unsteady)>0)and(unsteady[0]<=u_beg):
+                        del(unsteady[0])
+
+            #Wenn Ignor noch mehr beiinhaltet dann Ignor Anfang = Ende   
+            if len(ignor)>ig_nr:
+                u_end=ignor[ig_nr][0]
+            else:
+                u_end=Knots[-1]
+
+            if (len(unsteady)>0)and(unsteady[0]<u_end):
+                u_end=unsteady[0]
+                del(unsteady[0])
+
+            #Solange u_beg nicht das Ende ist anhängen
+            if not(u_beg==u_end):            
+                u_sections.append([u_beg,u_end])
+                
+        return u_sections
+
+    def calc_high_accurancy_BiarcCurve(self,u_sect,max_tol):        
+        BiarcCurve=[]
+        cur_step=self.max_step
+        u=u_sect[0]
+        PtsVec=[self.NURBS.NURBS_evaluate(n=1,u=u)]
+        step=0
+        #Berechnen bis alle Biarcs berechnet sind
+        while(u<u_sect[-1]-1e-9):
+        #for i in range(100):
+            step+=1
+
+            u+=cur_step
+            if u>u_sect[-1]:
+                #print "Begrenzung"
+                u=u_sect[-1]-1e-9
 
             PtVec=self.NURBS.NURBS_evaluate(n=1,u=u)
 
             #Aus den letzten 2 Punkten den nächsten Biarc berechnen
-            Biarc=(BiarcClass(self.PtsVec[-1][0],self.PtsVec[-1][1],
-                              PtVec[0],PtVec[1]))
+            Biarc=(BiarcClass(PtsVec[-1][0],PtsVec[-1][1],PtVec[0],PtVec[1]))
 
             #print Biarc
-            #print("max_step: %0.5f; cur_step: %0.5f; u: %0.5f" %(self.max_step,self.cur_step,u))            
+            #print("max_step: %0.5f; cur_step: %0.5f; u: %0.5f" %(self.max_step,cur_step,u))            
 
             if Biarc.shape=="Zero":
-                print Biarc
+                #print Biarc
                 pass
-                self.cur_step=min([self.cur_step*2,self.max_step])
+                self.cur_step=min([cur_step*2,self.max_step])
             elif Biarc.shape=="Line":
-                self.BiarcCurve.append(Biarc)
-                self.cur_step=min([self.cur_step*2,self.max_step])
+                BiarcCurve.append(Biarc)
+                cur_step=min([cur_step*2,self.max_step])
+                PtsVec.append(PtVec)
             else:
-                if Biarc.check_biarc_fitting_tolerance(self.NURBS,self.epsilon,self.u[-1],u):
-                    self.u.append(u)
-                    self.PtsVec.append(PtVec)
-                    self.BiarcCurve.append(Biarc)
-                    self.cur_step=min([self.cur_step*2,self.max_step])
+                if Biarc.check_biarc_fitting_tolerance(self.NURBS,max_tol,u-cur_step,u):
+                    PtsVec.append(PtVec)
+                    BiarcCurve.append(Biarc)
+                    cur_step=min([cur_step*2,self.max_step])
                 else:
-                    u-=self.cur_step
-                    self.cur_step*=0.65
-                         
+                    u-=cur_step
+                    cur_step*=0.75
+                    
+            
+            if step>2000:
+                raise ValueError, "Iteraitions above 2000 reduce tolerance"
+            
+        return BiarcCurve, PtsVec
+
+         #Korrektur der u Werte um den Ignorierten Teil
+    def correct_u(self,u_org):
+        if not(len(self.ignor)>0):
+            return u_org
+        else:
+            
+            sum_vek=[]
+            sum_u=0
+            #Errechen wieviel insgesamt ignoriert wird        
+            for ignor in self.ignor:
+                sum_vek.append(ignor[-1]-ignor[0])
+                sum_u+=sum_vek[-1]
+                
+            #Errechnen des neuen u Werts (geht bis u-sum)
+            new_u=u_org*(self.Knots[-1]-sum_u)/(self.Knots[-1])
+
+            #Wenn u nach dem ausgeschnittenen Teil liegt
+            ignor_nr=0
+
+            while new_u>=self.ignor[ignor_nr][0]:
+                new_u+=sum_vek[ignor_nr]
+                ignor_nr+=1
+                if ignor_nr==len(self.ignor):
+                    break
+
+            print("u_org: %0.5f; new_u: %0.5f" %(u_org,new_u))
+            return new_u
+        return u_org
                        
 class BiarcClass:
     def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[]):
         min_len=1e-5        #Min Abstand für doppelten Punkt
-        min_alpha=1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
+        min_alpha=1e-5      #Winkel ab welchem Gerade angenommen wird inr rad
         max_r=1e4           #Max Radius ab welchem Gerade angenommen wird (10m)
         
         self.Pa=Pa
@@ -534,6 +602,8 @@ class BiarcClass:
         #print("alpha: %s, beta: %s, teta: %s" %(alpha,beta,teta))
         r1=(l/(2*sin((alpha+beta)/2))*sin((beta-alpha+teta)/2)/sin(teta/2))
         r2=(l/(2*sin((alpha+beta)/2))*sin((2*alpha-teta)/2)/sin((alpha+beta-teta)/2))
+        print r1
+        print r2
         return abs(r1),abs(r2)
     def calc_s_e_ang(self,P1,O,P2):
         s_ang=O.norm_angle(P1)
@@ -550,11 +620,13 @@ class BiarcClass:
             check_u.append(u0+check_step*i)
             check_Pts.append(NURBS.NURBS_evaluate(n=0,u=check_u[-1]))
             fit_error.append(self.get_biarc_fitting_error(check_Pts[-1]))
-        if max(fit_error)>=epsilon*0.1:
+        if max(fit_error)>=epsilon:
+            print self
+            print fit_error
             print "Nein"
             return 0
         else:
-            print "Ja"
+            #print "Ja"
             return 1
         
     def get_biarc_fitting_error(self,Pt):
@@ -586,10 +658,9 @@ class ArcGeo:
         self.e_ang=e_ang
         
     def plot2plot(self, plot):
+        #plot.Arc(xy=[self.O.x,self.O.y],width=self.r*2,height=self.r*2)
         plot.plot([self.Pa.x,self.Pe.x],\
-                  [self.Pa.y,self.Pe.y],'og')
-##        plot.plot([self.O.x],\
-##                  [self.O.y],'or')
+                  [self.Pa.y,self.Pe.y],'-g')
 
     def __str__(self):
         return ("\nARC")+\
@@ -688,21 +759,23 @@ class PlotClass:
         xP=[]
         yP=[]
         self.plot1.hold(True)
-        for Pt in biarcs.PtsVec:
-            (Pt[0].x)
-            (Pt[0].y)
-            self.plot1.plot([Pt[0].x],[Pt[0].y],'xr')
-            
-            self.plot1.arrow(Pt[0].x,Pt[0].y,\
-                             cos(Pt[1])*arrow_len,\
-                             sin(Pt[1])*arrow_len,\
-                             width=arrow_width)        
+        for PtsVec in biarcs.PtsVec:
+            for Pt in PtsVec:
+                (Pt[0].x)
+                (Pt[0].y)
+                self.plot1.plot([Pt[0].x],[Pt[0].y],'xr')
+                
+                self.plot1.arrow(Pt[0].x,Pt[0].y,\
+                                 cos(Pt[1])*arrow_len,\
+                                 sin(Pt[1])*arrow_len,\
+                                 width=arrow_width)        
 
-        for biarc in biarcs.BiarcCurve:
-            for geo in biarc.geos:
-                geo.plot2plot(self.plot1)
-            
-        self.canvas.show()
+        for BiarcCurve in biarcs.BiarcCurve:
+            for biarc in BiarcCurve:
+                for geo in biarc.geos:
+                    geo.plot2plot(self.plot1)
+                
+            self.canvas.show()
     
 class ExamplesClass:
     def __init__(self):
@@ -710,8 +783,8 @@ class ExamplesClass:
         
     def calc_nurbs_1(self):
             #Initialisieren der NURBS Klasse
-            order, CPoints, Weights, Knots=self.get_nurbs_1()
-            Nurbs=NURBSClass(order=order,Knots=Knots,CPoints=CPoints,Weights=Weights)
+            degree, CPoints, Weights, Knots=self.get_nurbs_1()
+            Nurbs=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
 
             #Berechnen von 30 Punkten des NURBS
             Points, Tang=Nurbs.calc_curve(n=1,cpts_nr=30)
@@ -721,8 +794,8 @@ class ExamplesClass:
 
     def calc_bspline_1(self):
             #Initialisieren der B-Spline Klasse
-            order, CPts, Knots=self.get_bspline_1()
-            BSpline=BSplineClass(order=order,Knots=Knots,CPts=CPts)
+            degree, CPts, Knots=self.get_bspline_1()
+            BSpline=BSplineClass(degree=degree,Knots=Knots,CPts=CPts)
 
             #Berechnen von 30 Punkten des B-Spline bis zur ersten Ableitung
             Points, Tang=BSpline.calc_curve(n=1,cpts_nr=30)
@@ -736,14 +809,14 @@ class ExamplesClass:
                 
     def get_bspline_1(self):
         #Erstellt mit ndu das Ergebniss aus S.71 und S.91
-        order=2
+        degree=2
         Knots=[0,0,0,1,2,3,4,4,5,5,5]
         CPts=[[0,1],[2,8],[5,1],[7,6],[10,1],[11,1],[12,5],[12.5,7]]
 
-        return order, CPts, Knots           
+        return degree, CPts, Knots           
 
     def get_nurbs_1(self):
-        order=3
+        degree=3
         Knots=[0.0, 0.0, 0.0, 0.0, 0.25, 0.25, 0.25, 0.25, 0.5, 0.5, 0.5,\
                0.5, 0.75, 0.75, 0.75, 0.75, 1.0, 1.0, 1.0, 1.0]
         
@@ -767,10 +840,10 @@ class ExamplesClass:
         CPoints.append(PointClass(x=-105.69,y=147.25))
         CPoints.append(PointClass(x=-105.00,y=147.25))
 
-        return order, CPoints, Weights, Knots   
+        return degree, CPoints, Weights, Knots   
 
     def get_nurbs_2(self):
-        order=3
+        degree=3
         Knots=[0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001,\
                0.10000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001,\
                0.20000000000000001, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999,\
@@ -826,7 +899,7 @@ class ExamplesClass:
         CPoints.append(PointClass(x=-69.25,y=92.00))
         CPoints.append(PointClass(x=-69.25,y=92.00))
         CPoints.append(PointClass(x=-69.25,y=92.00))
-        return order, CPoints, Weights, Knots   
+        return degree, CPoints, Weights, Knots   
 
 if 1:
     master = Tk()
