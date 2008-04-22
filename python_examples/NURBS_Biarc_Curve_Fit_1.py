@@ -369,11 +369,11 @@ class BSplineClass:
 class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
-        self.epsilon=0.2
+        self.epsilon=0.03
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_2()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_3()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
@@ -384,7 +384,7 @@ class BiarcFittingClass:
                                         self.NURBS.knt_m_change[:])
 
         #Step muß ungerade sein, sonst gibts ein Rundungsproblem um 1
-        self.max_step=float(Knots[-1]/(50.01-1))
+        self.max_step=float(Knots[-1]/(20.0))
 
         #Berechnen des ersten Biarcs fürs Fitting
         self.BiarcCurve=[]
@@ -392,9 +392,10 @@ class BiarcFittingClass:
 
         #Schleife für die einzelnen Abschnitte        
         for u_sect in u_sections:
-            BiarcCurve, PtsVec=self.calc_high_accurancy_BiarcCurve(u_sect,self.epsilon*0.2)
+            BiarcCurve, PtsVec=self.calc_high_accurancy_BiarcCurve(u_sect,self.epsilon*1)
             self.BiarcCurve.append(BiarcCurve)
             self.PtsVec.append(PtsVec)
+            print ("Anzahl der Elemente: %0.0f" %len(BiarcCurve))
         
     def calc_u_sections(self,Knots,ignor,unsteady):
 
@@ -435,33 +436,29 @@ class BiarcFittingClass:
                 
         return u_sections
 
-    def calc_high_accurancy_BiarcCurve(self,u_sect,max_tol):        
+    def calc_high_accurancy_BiarcCurve(self,u_sect,max_tol):
+        min_u=1e-12
         BiarcCurve=[]
         cur_step=self.max_step
-        u=u_sect[0]
+        u=u_sect[0]+min_u
         PtsVec=[self.NURBS.NURBS_evaluate(n=1,u=u)]
         step=0
         #Berechnen bis alle Biarcs berechnet sind
-        while(u<u_sect[-1]-1e-9):
-        #for i in range(100):
+        while(u<u_sect[-1]-min_u):
             step+=1
 
             u+=cur_step
+            #Begrenzung von u auf den Maximalwert
             if u>u_sect[-1]:
-                #print "Begrenzung"
-                u=u_sect[-1]-1e-9
+                cur_step=u_sect[-1]-(u-cur_step)-min_u
+                u=u_sect[-1]-min_u
 
             PtVec=self.NURBS.NURBS_evaluate(n=1,u=u)
 
             #Aus den letzten 2 Punkten den nächsten Biarc berechnen
             Biarc=(BiarcClass(PtsVec[-1][0],PtsVec[-1][1],PtVec[0],PtVec[1]))
 
-            #print Biarc
-            #print("max_step: %0.5f; cur_step: %0.5f; u: %0.5f" %(self.max_step,cur_step,u))            
-
             if Biarc.shape=="Zero":
-                #print Biarc
-                pass
                 self.cur_step=min([cur_step*2,self.max_step])
             elif Biarc.shape=="Line":
                 BiarcCurve.append(Biarc)
@@ -471,45 +468,15 @@ class BiarcFittingClass:
                 if Biarc.check_biarc_fitting_tolerance(self.NURBS,max_tol,u-cur_step,u):
                     PtsVec.append(PtVec)
                     BiarcCurve.append(Biarc)
-                    cur_step=min([cur_step*2,self.max_step])
+                    cur_step=min([cur_step/0.7,self.max_step])
                 else:
                     u-=cur_step
-                    cur_step*=0.75
+                    cur_step*=0.7
                     
-            
-            if step>2000:
-                raise ValueError, "Iteraitions above 2000 reduce tolerance"
+            if step>1000:
+                raise ValueError, "Iteraitions above 1000 reduce tolerance"
             
         return BiarcCurve, PtsVec
-
-         #Korrektur der u Werte um den Ignorierten Teil
-    def correct_u(self,u_org):
-        if not(len(self.ignor)>0):
-            return u_org
-        else:
-            
-            sum_vek=[]
-            sum_u=0
-            #Errechen wieviel insgesamt ignoriert wird        
-            for ignor in self.ignor:
-                sum_vek.append(ignor[-1]-ignor[0])
-                sum_u+=sum_vek[-1]
-                
-            #Errechnen des neuen u Werts (geht bis u-sum)
-            new_u=u_org*(self.Knots[-1]-sum_u)/(self.Knots[-1])
-
-            #Wenn u nach dem ausgeschnittenen Teil liegt
-            ignor_nr=0
-
-            while new_u>=self.ignor[ignor_nr][0]:
-                new_u+=sum_vek[ignor_nr]
-                ignor_nr+=1
-                if ignor_nr==len(self.ignor):
-                    break
-
-            print("u_org: %0.5f; new_u: %0.5f" %(u_org,new_u))
-            return new_u
-        return u_org
                        
 class BiarcClass:
     def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[]):
@@ -534,6 +501,7 @@ class BiarcClass:
                                                               self.tan_b,\
                                                               min_alpha)
 
+        
         if(self.l<min_len):
             self.shape="Zero"
             pass
@@ -545,12 +513,12 @@ class BiarcClass:
             #Berechnen der Radien, Mittelpunkte, Zwichenpunkt            
             r1, r2=self.calc_r1_r2(self.l,alpha,beta,self.teta)
             
-            if (r1>max_r):
+            if (abs(r1)>max_r):
                 #Erstellen der Geometrie
                 self.shape="Line"
                 self.geos.append(LineGeo(self.Pa,self.Pb))
                 return 
-                
+          
             O1, O2, k =self.calc_O1_O2_k(r1,r2,self.tan_a,self.teta)
             
             #Berechnen der Start und End- Angles für das drucken
@@ -561,6 +529,10 @@ class BiarcClass:
             self.geos.append(ArcGeo(k,self.Pb,O2,r2,s_ang2,e_ang2)) 
 
     def calc_O1_O2_k(self,r1,r2,tan_a,teta):
+        #print("r1: %0.3f, r2: %0.3f, tan_a: %0.3f, teta: %0.3f" %(r1,r2,tan_a,teta))
+        #print("N1: x: %0.3f, y: %0.3f" %(-sin(tan_a), cos(tan_a)))
+        #print("V: x: %0.3f, y: %0.3f" %(-sin(teta+tan_a),cos(teta+tan_a)))
+
         O1=PointClass(x=self.Pa.x-r1*sin(tan_a),\
                       y=self.Pa.y+r1*cos(tan_a))
         k=PointClass(x=self.Pa.x+r1*(-sin(tan_a)+sin(teta+tan_a)),\
@@ -593,18 +565,17 @@ class BiarcClass:
 
     def limit_angles(self,alpha,beta):
         while (alpha-beta)>pi:
-            alpha=alpha-pi
+            alpha=alpha-2*pi
         while (alpha-beta)<-pi:
-            alpha=alpha+pi
+            alpha=alpha+2*pi
         return alpha,beta
             
     def calc_r1_r2(self,l,alpha,beta,teta):
         #print("alpha: %s, beta: %s, teta: %s" %(alpha,beta,teta))
         r1=(l/(2*sin((alpha+beta)/2))*sin((beta-alpha+teta)/2)/sin(teta/2))
         r2=(l/(2*sin((alpha+beta)/2))*sin((2*alpha-teta)/2)/sin((alpha+beta-teta)/2))
-        print r1
-        print r2
-        return abs(r1),abs(r2)
+        return r1, r2
+    
     def calc_s_e_ang(self,P1,O,P2):
         s_ang=O.norm_angle(P1)
         e_ang=O.norm_angle(P2)
@@ -621,12 +592,13 @@ class BiarcClass:
             check_Pts.append(NURBS.NURBS_evaluate(n=0,u=check_u[-1]))
             fit_error.append(self.get_biarc_fitting_error(check_Pts[-1]))
         if max(fit_error)>=epsilon:
-            print self
-            print fit_error
-            print "Nein"
+            #print self
+            #print fit_error
+            #print "Nein"
             return 0
         else:
             #print "Ja"
+            #print self
             return 1
         
     def get_biarc_fitting_error(self,Pt):
@@ -634,9 +606,9 @@ class BiarcClass:
         w1=self.geos[0].O.norm_angle(Pt)
         if (w1>=min([self.geos[0].s_ang,self.geos[0].e_ang]))and\
            (w1<=max([self.geos[0].s_ang,self.geos[0].e_ang])):
-            diff=self.geos[0].O.distance(Pt)-self.geos[0].r
+            diff=self.geos[0].O.distance(Pt)-abs(self.geos[0].r)
         else:
-            diff=self.geos[1].O.distance(Pt)-self.geos[1].r
+            diff=self.geos[1].O.distance(Pt)-abs(self.geos[1].r)
         return abs(diff)
             
     def __str__(self):
@@ -739,7 +711,7 @@ class PlotClass:
         self.plot1.plot(xC,yC,'-.xr',xP,yP,'-og')
 
         if len(Tang)>0:
-            arrow_len=0.5
+            arrow_len=0.3
             self.plot1.hold(True)
             
             for nr in range(len(Tang)):
@@ -751,10 +723,10 @@ class PlotClass:
         self.canvas.show()
     def make_nurbs_biarc_plot(self,biarcs):
         self.plot1 = self.figure.add_subplot(111)
-        self.plot1.set_title("NURBS and B-Spline Algorithms: ")
+        self.plot1.set_title("NURBS, BIARC Fitting Algorithms: ")
 
         arrow_len=0.3
-        arrow_width=0.03
+        arrow_width=arrow_len*0.05
 
         xP=[]
         yP=[]
@@ -774,8 +746,8 @@ class PlotClass:
             for biarc in BiarcCurve:
                 for geo in biarc.geos:
                     geo.plot2plot(self.plot1)
-                
-            self.canvas.show()
+        self.plot1.axis('scaled')     
+        #self.canvas.show()
     
 class ExamplesClass:
     def __init__(self):
@@ -900,6 +872,29 @@ class ExamplesClass:
         CPoints.append(PointClass(x=-69.25,y=92.00))
         CPoints.append(PointClass(x=-69.25,y=92.00))
         return degree, CPoints, Weights, Knots   
+
+    def get_nurbs_3(self):
+        degree=3
+        
+        Knots=[0,0,0,0,1,2,3,4,4,5,5,5,5]
+
+        Weights= [1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        CPoints=[]
+     
+        CPoints.append(PointClass(x=0.0,y=1.0))
+        CPoints.append(PointClass(x=2.0,y=8.0))
+        CPoints.append(PointClass(x=5.0,y=1.0))
+        CPoints.append(PointClass(x=7.0,y=6.0))
+        CPoints.append(PointClass(x=10.0,y=1.0))
+        CPoints.append(PointClass(x=11.0,y=1.0))
+        CPoints.append(PointClass(x=12.0,y=5.0))
+        CPoints.append(PointClass(x=12.5,y=7.00))
+        CPoints.append(PointClass(x=14.5,y=7.00))
+
+
+
+        return degree, CPoints, Weights, Knots 
 
 if 1:
     master = Tk()
