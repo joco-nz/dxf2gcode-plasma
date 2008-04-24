@@ -25,6 +25,8 @@
 
 
 import matplotlib
+#matplotlib see: http://matplotlib.sourceforge.net/ and  http://www.scipy.org/Cookbook/Matplotlib/
+#numpy      see: http://numpy.scipy.org/ and http://sourceforge.net/projects/numpy/
 matplotlib.use('TkAgg')
 
 from matplotlib.numerix import arange, sin, pi
