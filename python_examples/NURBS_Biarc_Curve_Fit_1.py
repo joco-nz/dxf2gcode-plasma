@@ -371,33 +371,43 @@ class BSplineClass:
 class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
-        self.epsilon=0.03
+        self.epsilon=0.01
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_3()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_2()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
 
+        #High Accuracy Biarc fitting of NURBS        
+        self.BiarcCurve, self.PtsVec=self.calc_high_accurancy_BiarcCurve()
+
+    def analyse_and_compress(self,BiarcCurves):
+        pass
+    
+        
+
+    def calc_high_accurancy_BiarcCurve(self):
         #Berechnen der zu Berechnenden getrennten Abschnitte
         u_sections=self.calc_u_sections(self.NURBS.Knots,\
                                         self.NURBS.ignor,\
                                         self.NURBS.knt_m_change[:])
 
         #Step muß ungerade sein, sonst gibts ein Rundungsproblem um 1
-        self.max_step=float(Knots[-1]/(20.0))
+        self.max_step=float(self.NURBS.Knots[-1]/(50.0))
 
         #Berechnen des ersten Biarcs fürs Fitting
-        self.BiarcCurve=[]
-        self.PtsVec=[]
+        BiarcCurves=[]
+        PtsVecs=[]
 
         #Schleife für die einzelnen Abschnitte        
         for u_sect in u_sections:
-            BiarcCurve, PtsVec=self.calc_high_accurancy_BiarcCurve(u_sect,self.epsilon*1)
-            self.BiarcCurve.append(BiarcCurve)
-            self.PtsVec.append(PtsVec)
+            BiarcCurve, PtsVec=self.calc_Biarc_section(u_sect,self.epsilon*0.05)
+            BiarcCurves.append(BiarcCurve)
+            PtsVecs.append(PtsVec)
             print ("Anzahl der Elemente: %0.0f" %len(BiarcCurve))
+        return BiarcCurves, PtsVecs
         
     def calc_u_sections(self,Knots,ignor,unsteady):
 
@@ -438,7 +448,7 @@ class BiarcFittingClass:
                 
         return u_sections
 
-    def calc_high_accurancy_BiarcCurve(self,u_sect,max_tol):
+    def calc_Biarc_section(self,u_sect,max_tol):
         min_u=1e-12
         BiarcCurve=[]
         cur_step=self.max_step
@@ -570,6 +580,7 @@ class BiarcClass:
             alpha=alpha-2*pi
         while (alpha-beta)<-pi:
             alpha=alpha+2*pi
+            
         return alpha,beta
             
     def calc_r1_r2(self,l,alpha,beta,teta):
