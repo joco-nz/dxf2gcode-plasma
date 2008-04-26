@@ -150,16 +150,16 @@ class EllipseClass:
 
     def get_start_end_points(self,direction=0,nr=0):
         if direction==0:
-            punkt=self.Points[0]
+            punkt=self.Points[nr]
             #punkt=self.Ellipse_Point(self.Center, self.a, self.b, self.Rotation, self.AngS)
             dx=self.Points[1].x-self.Points[0].x
             dy=self.Points[1].y-self.Points[0].y
             angle=degrees(atan2(dy, dx))
         elif direction==1:
-            punkt=self.Points[len(self.Points)-1]
+            punkt=self.Points[len(self.Points)-nr-1]
             #punkt=self.Ellipse_Point(self.Center, self.a, self.b, self.Rotation, self.AngE)
-            dx=self.Points[1].x-self.Points[0].x
-            dy=self.Points[1].y-self.Points[0].y
+            dx=self.Points[-2].x-self.Points[-1].x
+            dy=self.Points[-2].y-self.Points[-1].y
             angle=degrees(atan2(dy, dx))
         return punkt,angle
 
