@@ -373,11 +373,11 @@ class BiarcFittingClass:
         #Max Abweichung für die Biarc Kurve
         self.epsilon=0.02
         self.epsilon_high=self.epsilon*0.01
-        self.segments=70
+        self.segments=20
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_2()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_3()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
@@ -411,25 +411,22 @@ class BiarcFittingClass:
             if geo.type=="Arc":
                 triarc.append(geo)
                 #Wenn Länge des Temp mindestens 3 sind
-                if len(triarc)>3:
+                if len(triarc)>=3:
                     #Steigende Spirale
                     if triarc[0].r<=triarc[2].r:
                         print "Steigend"
+                        self.fit_triac_by_inc_biarc(triarc,self.epsilon)
                     elif triarc[0].r>triarc[2].r:
                         print "Fallend"
-                                                            
-                    print triarc[0]
-                    print triarc[1]
-                    print triarc[2]
-                    
                     del triarc[0]
-            else:
-                triarc[0]=[] 
         return Curves
                 
     def fit_triac_by_inc_biarc(self,arc,eps):
-        tb=(pow((arc[1].r-arc[0].r+eps),2)-pow((arc[1].O.distance(arc[0])),2))/\
-            2*(arc[1].r-arc[0].r+eps+(arc[1].O-arc[0].O)*V0)
+        print arc[0].s_ang
+        print arc[0]
+        tb=(pow((arc[1].r-arc[0].r+eps),2)-pow((arc[1].O.distance(arc[0].O)),2))/\
+            2*(arc[1].r-arc[0].r+eps+(arc[1].O.distance(arc[0].O))*cos(arc[0].s_ang))
+        print tb
         
     def compress_lines(self,Curves):
         joint=[]
