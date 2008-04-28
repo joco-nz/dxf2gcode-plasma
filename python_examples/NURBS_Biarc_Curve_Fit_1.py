@@ -371,13 +371,13 @@ class BSplineClass:
 class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
-        self.epsilon=0.02
+        self.epsilon=0.5
         self.epsilon_high=self.epsilon*0.01
         self.segments=20
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_3()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_4()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
@@ -413,20 +413,45 @@ class BiarcFittingClass:
                 #Wenn Länge des Temp mindestens 3 sind
                 if len(triarc)>=3:
                     #Steigende Spirale
-                    if triarc[0].r<=triarc[2].r:
+                    if (triarc[0].r<=triarc[1].r)and(triarc[1].r<=triarc[2].r):
                         print "Steigend"
                         self.fit_triac_by_inc_biarc(triarc,self.epsilon)
-                    elif triarc[0].r>triarc[2].r:
+                    elif (triarc[0].r>triarc[1].r)and(triarc[1].r>triarc[2].r):
                         print "Fallend"
+                    else:
+                        print 'dazwischen'
                     del triarc[0]
         return Curves
                 
     def fit_triac_by_inc_biarc(self,arc,eps):
-        print arc[0].s_ang
         print arc[0]
-        tb=(pow((arc[1].r-arc[0].r+eps),2)-pow((arc[1].O.distance(arc[0].O)),2))/\
-            2*(arc[1].r-arc[0].r+eps+(arc[1].O.distance(arc[0].O))*cos(arc[0].s_ang))
-        print tb
+        print arc[1]
+        print arc[2]
+
+        #Errechnen von tb        
+        V0=arc[0].Pa.unit_vector(arc[0].O)
+        V2=arc[2].Pa.unit_vector(arc[2].O)
+        t0=(arc[2].r-arc[0].r)
+        D=(arc[2].O-arc[2].O)
+        X0=(t0*t0)-(D*D)
+        X1=2*(D*V0-t0)
+        Y0=2*(t0-D*V2)
+        Y1=2*(V0*V2-1)
+
+        
+        tb=(pow((arc[1].r-arc[0].r+eps),2)-((arc[1].O-arc[0].O)*(arc[1].O-arc[0].O)))/\
+            (2*(arc[1].r-arc[0].r+eps+(arc[1].O-arc[0].O)*V0))
+
+        #Errechnen von tc
+        tc=(pow(t0,2)-(D*D))/2*(t0-(D*V0))
+
+        t=min([tb,tc])
+
+        #Errechnen von u
+        u=(X0+X1*t)/(Y0+Y1*t)
+
+        
+        print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
         
     def compress_lines(self,Curves):
         joint=[]
@@ -766,10 +791,21 @@ class PointClass:
         return ('X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
     def __cmp__(self, other) : 
       return (self.x == other.x) and (self.y == other.y)
+    def __neg__(self):
+        return -1.0*self
     def __add__(self, other): # add to another point
         return PointClass(self.x+other.x, self.y+other.y)
+    def __sub__(self, other):
+        return self + -other
     def __rmul__(self, other):
         return PointClass(other * self.x,  other * self.y)
+    def __mul__(self, other):
+        #Skalarprodukt errechnen
+        return self.x*other.x + self.y*other.y
+    def unit_vector(self,Pto=PointClass(x=0,y=0)):
+        l=self.distance(Pto)
+        diffVec=self-Pto
+        return PointClass(diffVec.x/l,diffVec.y/l)
     def distance(self,other):
         return sqrt(pow(self.x-other.x,2)+pow(self.y-other.y,2))
     def norm_angle(self,other):
@@ -993,7 +1029,7 @@ class ExamplesClass:
         CPoints.append(PointClass(x=8.0,y=-6.0))
         CPoints.append(PointClass(x=3.5,y=-4.00))
         CPoints.append(PointClass(x=0.5,y=4.00))
-        CPoints.append(PointClass(x=-2.0,y=-6.0))
+        CPoints.append(PointClass(x=-2.,y=-6.0))
         CPoints.append(PointClass(x=3.5,y=3.00))
         CPoints.append(PointClass(x=8.5,y=-2.00))
 
@@ -1001,6 +1037,29 @@ class ExamplesClass:
 
         return degree, CPoints, Weights, Knots 
 
+    def get_nurbs_4(self):
+        degree=3
+        
+        Knots=[0,0,0,0,1,2,3,3,3,3]
+
+        Weights= [1, 1, 1, 1, 1, 1]
+
+        CPoints=[]
+     
+        CPoints.append(PointClass(x=0.0,y=-4.0))
+        CPoints.append(PointClass(x=3.5,y=-4.0))
+        CPoints.append(PointClass(x=3.5,y=3.0))
+        CPoints.append(PointClass(x=-3,y=3.0))
+        CPoints.append(PointClass(x=-2.7,y=-2.0))
+        CPoints.append(PointClass(x=0,y=-1))
+
+
+
+
+
+
+
+        return degree, CPoints, Weights, Knots 
 if 1:
     master = Tk()
     #Wenn der NURBS erstellt und ausgedrückt werden soll
