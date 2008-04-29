@@ -430,7 +430,9 @@ class BiarcFittingClass:
 
         #Errechnen von tb        
         V0=arc[0].Pa.unit_vector(arc[0].O)
-        V2=arc[2].Pa.unit_vector(arc[2].O)
+        V2=arc[2].Pe.unit_vector(arc[2].O)
+
+        #Errechnen der Hilfgrössen
         t0=(arc[2].r-arc[0].r)
         D=(arc[2].O-arc[2].O)
         X0=(t0*t0)-(D*D)
@@ -438,18 +440,34 @@ class BiarcFittingClass:
         Y0=2*(t0-D*V2)
         Y1=2*(V0*V2-1)
 
-        
+        #Errechnen von tb
         tb=(pow((arc[1].r-arc[0].r+eps),2)-((arc[1].O-arc[0].O)*(arc[1].O-arc[0].O)))/\
             (2*(arc[1].r-arc[0].r+eps+(arc[1].O-arc[0].O)*V0))
 
         #Errechnen von tc
-        tc=(pow(t0,2)-(D*D))/2*(t0-(D*V0))
+        tc=(pow(t0,2)-(D*D))/(2*(t0-D*V0))
 
+        #Auswahl von t
         t=min([tb,tc])
 
         #Errechnen von u
         u=(X0+X1*t)/(Y0+Y1*t)
 
+        #Errechnen der neuen Arcs
+        Oa=arc[0].O+t*V0
+        ra=arc[0].r+t
+        Ob=arc[2].O-u*V2
+        rb=arc[2].r-u
+        Vn=Oa.unit_vector(Ob)
+        Pn=Oa+ra*Vn
+
+        Arc0=ArcGeo(Pa=arc[0].Pa,Pe=Pn,O=Oa,r=ra,\
+                    s_ang=Oa.norm_angle(arc[0].Pa),e_ang=Oa.norm_angle(Pn))
+        Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,\
+                    s_ang=Ob.norm_angle(Pn),e_ang=Ob.norm_angle(arc[2].Pe))
+
+        print Arc0
+        print Arc1
         
         print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
         
@@ -802,13 +820,25 @@ class PointClass:
     def __mul__(self, other):
         #Skalarprodukt errechnen
         return self.x*other.x + self.y*other.y
-    def unit_vector(self,Pto=PointClass(x=0,y=0)):
+    def unit_vector(self,Pto=None):
+        try:
+            if Pto==None:
+                Pto=PointClass(x=0.0,y=0.0)
+        except:
+            pass
+        
         l=self.distance(Pto)
         diffVec=self-Pto
         return PointClass(diffVec.x/l,diffVec.y/l)
     def distance(self,other):
         return sqrt(pow(self.x-other.x,2)+pow(self.y-other.y,2))
-    def norm_angle(self,other):
+    def norm_angle(self,other=None):
+        try:
+            if other==None:
+                other=PointClass(x=0.0,y=0.0)
+        except:
+            pass
+        
         return atan2(other.y-self.y,other.x-self.x)
     def isintol(self,other,tol):
         return (abs(self.x-other.x)<=tol) & (abs(self.y-other.y)<tol)
