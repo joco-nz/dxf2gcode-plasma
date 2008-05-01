@@ -372,8 +372,8 @@ class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
         self.epsilon=0.5
-        self.epsilon_high=self.epsilon*0.01
-        self.segments=20
+        self.epsilon_high=self.epsilon*0.02
+        self.segments=30
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
@@ -404,29 +404,84 @@ class BiarcFittingClass:
         return Curve        
 
     def compress_biarcs(self,Curves):
-        triarc=[]
+        NewCurve=[]
+        tau=self.epsilon
+        Pts=[]
         #Schleife für die Anzahl der Geometrirs
         for geo in Curves:
-            #Wenn Art == Arc ist dann an temp anhängen
-            if geo.type=="Arc":
-                triarc.append(geo)
-                #Wenn Länge des Temp mindestens 3 sind
-                if len(triarc)>=3:
-                    #Steigende Spirale
-                    if (triarc[0].r<=triarc[1].r)and(triarc[1].r<=triarc[2].r):
-                        print "Steigend"
-                        self.fit_triac_by_inc_biarc(triarc,self.epsilon)
-                    elif (triarc[0].r>triarc[1].r)and(triarc[1].r>triarc[2].r):
+            NewCurve.append(geo)
+        
+            #Wenn die Länge mindestens 3 sind
+            if len(NewCurve)>=3:
+                #Steigende Spirale
+                if ((NewCurve[-3].type=="Arc")\
+                   and(NewCurve[-2].type=="Arc")\
+                   and(NewCurve[-1].type=="Arc")):
+                    Pts.append(geo.Pe)
+                    if(NewCurve[-3].r<=NewCurve[-2].r)\
+                        and(NewCurve[-2].r<=NewCurve[-1].r):
+                        #print "Steigend"
+                        anz=len(NewCurve)
+                        triarc=NewCurve[anz-3:anz]
+                        Arc0,Arc1= self.fit_triac_by_inc_biarc(triarc,tau)
+                        diff=self.check_diff_to_pts(Pts,Arc0,Arc1)
+                        #print ("diff: %s" %diff)
+                        if max(diff)<self.epsilon:
+                            #print "in toleranz"
+                            tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
+                            del NewCurve[anz-3:anz]
+                            NewCurve.append(Arc0)
+                            NewCurve.append(Arc1)
+                            
+                    elif (NewCurve[-3].r>NewCurve[-2].r)\
+                         and(NewCurve[-2].r>NewCurve[-1].r):
                         print "Fallend"
+##                        anz=len(NewCurve)
+##                        triarc=NewCurve[anz-3:anz]
+##                        Arc0,Arc1= self.fit_triac_by_dec_biarc(triarc,tau)
+##                        diff=self.check_diff_to_pts(Pts,Arc0,Arc1)
+##                        #print ("diff: %s" %diff)
+##                        if max(diff)<self.epsilon:
+##                            #print "in toleranz"
+##                            tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
+##                            del NewCurve[anz-3:anz]
+##                            NewCurve.append(Arc0)
+##                            NewCurve.append(Arc1)
+                  
                     else:
-                        print 'dazwischen'
-                    del triarc[0]
-        return Curves
-                
+                        #print 'dazwischen'
+                        del Pts[0]
+
+        return NewCurve
+    
+    def calc_active_tolerance(self,tau,arc,Arc0,Arc1):
+        V0=arc[0].Pa.unit_vector(arc[0].O)
+        Vb=Arc1.Pa.unit_vector(Arc1.O)
+
+        t_=(2*arc[0].r*tau+pow(tau,2))/\
+            (2*(arc[0].r+(arc[0].r+tau)*V0*Vb))
+        
+        te=arc[0].r+t_-(Arc0.Pe-(arc[0].O+(t_*V0))).distance()
+
+        tm=arc[1].O.distance(Arc0.Pe)-abs(arc[1].r)
+        if tm<0.0:
+            tf=tm
+        else:   
+            tf=tau-tm
+
+        #print("tm: %0.3f; te: %0.3f; tau: %0.3f" %(tm,te,tau))
+        epsilon=min([te,tm,tau])
+
+        if epsilon<0.0:
+            epsilon=0.0
+        
+        return epsilon
     def fit_triac_by_inc_biarc(self,arc,eps):
-        print arc[0]
-        print arc[1]
-        print arc[2]
+
+        #print "Alte"
+        #print arc[0]
+        #print arc[1]
+        #print arc[2]
 
         #Errechnen von tb        
         V0=arc[0].Pa.unit_vector(arc[0].O)
@@ -434,7 +489,7 @@ class BiarcFittingClass:
 
         #Errechnen der Hilfgrössen
         t0=(arc[2].r-arc[0].r)
-        D=(arc[2].O-arc[2].O)
+        D=(arc[2].O-arc[0].O)
         X0=(t0*t0)-(D*D)
         X1=2*(D*V0-t0)
         Y0=2*(t0-D*V2)
@@ -458,7 +513,7 @@ class BiarcFittingClass:
         ra=arc[0].r+t
         Ob=arc[2].O-u*V2
         rb=arc[2].r-u
-        Vn=Oa.unit_vector(Ob)
+        Vn=Ob.unit_vector(Oa)
         Pn=Oa+ra*Vn
 
         Arc0=ArcGeo(Pa=arc[0].Pa,Pe=Pn,O=Oa,r=ra,\
@@ -466,11 +521,108 @@ class BiarcFittingClass:
         Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,\
                     s_ang=Ob.norm_angle(Pn),e_ang=Ob.norm_angle(arc[2].Pe))
 
+        #Berechnen des Abstands zur Kurve
+        #db=Arc1.O.distance(arc[2].Pa)-abs(Arc1.r)
+
+        #print("t: %0.3f, u:%0.3f" %(t,u))
+
+        #print "Neue"
+        #print Arc0
+        #print Arc0.Pa.distance(Arc0.O)
+        #print Arc0.Pe.distance(Arc0.O)
+        #print Arc1
+        #print Arc1.Pa.distance(Arc1.O)
+        #print Arc1.Pe.distance(Arc1.O)
+        #print("db: %0.3f" %(db))
+
+        #print ra+Oa.distance(Ob)
+        #print rb
+        #print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
+
+        return Arc0, Arc1
+
+    def fit_triac_by_dec_biarc(self,arc,eps):
+
+        print "Alte"
+        print arc[0]
+        print arc[1]
+        print arc[2]
+
+        #Errechnen von tb        
+        V0=arc[0].Pa.unit_vector(arc[0].O)
+        V2=arc[2].Pe.unit_vector(arc[2].O)
+
+        #Errechnen der Hilfgrössen
+        t0=(arc[2].r-arc[0].r)
+        D=(arc[2].O-arc[0].O)
+        X0=(t0*t0)-(D*D)
+        X1=2*(D*V0-t0)
+        Y0=2*(t0-D*V2)
+        Y1=2*(V0*V2-1)
+
+        #Errechnen von tb
+        tb=(pow((arc[1].r-arc[0].r+eps),2)-((arc[1].O-arc[0].O)*(arc[1].O-arc[0].O)))/\
+            (2*(arc[1].r-arc[0].r+eps+(arc[1].O-arc[0].O)*V0))
+
+        #Errechnen von tc
+        tc=(pow(t0,2)-(D*D))/(2*(t0-D*V0))
+
+        #Auswahl von t
+        t=min([tb,tc])
+
+        #Errechnen von u
+        u=(X0+X1*t)/(Y0+Y1*t)
+
+        #Errechnen der neuen Arcs
+        Oa=arc[0].O+t*V0
+        ra=arc[0].r+t
+        Ob=arc[2].O-u*V2
+        rb=arc[2].r-u
+        Vn=Ob.unit_vector(Oa)
+        Pn=Oa+ra*Vn
+
+        Arc0=ArcGeo(Pa=arc[0].Pa,Pe=Pn,O=Oa,r=ra,\
+                    s_ang=Oa.norm_angle(arc[0].Pa),e_ang=Oa.norm_angle(Pn))
+        Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,\
+                    s_ang=Ob.norm_angle(Pn),e_ang=Ob.norm_angle(arc[2].Pe))
+
+        #Berechnen des Abstands zur Kurve
+        #db=Arc1.O.distance(arc[2].Pa)-abs(Arc1.r)
+
+        #print("t: %0.3f, u:%0.3f" %(t,u))
+
+        print "Neue"
         print Arc0
+        #print Arc0.Pa.distance(Arc0.O)
+        #print Arc0.Pe.distance(Arc0.O)
         print Arc1
-        
-        print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
-        
+        #print Arc1.Pa.distance(Arc1.O)
+        #print Arc1.Pe.distance(Arc1.O)
+        #print("db: %0.3f" %(db))
+
+        #print ra+Oa.distance(Ob)
+        #print rb
+        #print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
+
+        return Arc0, Arc1
+
+
+    def check_diff_to_pts(self,Pts,Arc0,Arc1):
+        diff=[]
+        for Pt in Pts:
+            w0=Arc0.O.norm_angle(Pt)
+            w1=Arc1.O.norm_angle(Pt)
+            if (w0>=min([Arc0.s_ang,Arc0.e_ang]))and\
+               (w0<=max([Arc0.s_ang,Arc0.e_ang])):
+                diff.append(abs(Arc0.O.distance(Pt)-abs(Arc0.r)))
+            elif (w1>=min([Arc1.s_ang,Arc1.e_ang]))and\
+                (w1<=max([Arc1.s_ang,Arc1.e_ang])):
+                diff.append(abs(Arc1.O.distance(Pt)-abs(Arc1.r)))
+            else:
+                #print 'Punkt nicht drinn'
+                del Pts[Pts.index(Pt)]
+                
+        return diff
     def compress_lines(self,Curves):
         joint=[]
         points=[]
@@ -512,6 +664,7 @@ class BiarcFittingClass:
 
         #Step muß ungerade sein, sonst gibts ein Rundungsproblem um 1
         self.max_step=float(self.NURBS.Knots[-1]/(float(self.segments)))
+        #print self.max_step
 
         #Berechnen des ersten Biarcs fürs Fitting
         BiarcCurves=[]
@@ -575,6 +728,7 @@ class BiarcFittingClass:
         while(u<u_sect[-1]-min_u):
             step+=1
             u+=cur_step
+
             #Begrenzung von u auf den Maximalwert
             if u>u_sect[-1]:
                 cur_step=u_sect[-1]-(u-cur_step)-min_u
@@ -652,8 +806,8 @@ class BiarcClass:
             s_ang1,e_ang1=self.calc_s_e_ang(self.Pa,O1,k)
             s_ang2,e_ang2=self.calc_s_e_ang(k,O2,self.Pb)
 
-            self.geos.append(ArcGeo(self.Pa,k,O1,r1,s_ang1,e_ang1))
-            self.geos.append(ArcGeo(k,self.Pb,O2,r2,s_ang2,e_ang2)) 
+            self.geos.append(ArcGeo(self.Pa,k,O1,abs(r1),s_ang1,e_ang1))
+            self.geos.append(ArcGeo(k,self.Pb,O2,abs(r2),s_ang2,e_ang2)) 
 
     def calc_O1_O2_k(self,r1,r2,tan_a,teta):
         #print("r1: %0.3f, r2: %0.3f, tan_a: %0.3f, teta: %0.3f" %(r1,r2,tan_a,teta))
@@ -770,8 +924,21 @@ class ArcGeo:
         
     def plot2plot(self, plot):
         #plot.Arc(xy=[self.O.x,self.O.y],width=self.r*2,height=self.r*2)
-        plot.plot([self.Pa.x,self.Pe.x],\
-                  [self.Pa.y,self.Pe.y],'-g')
+        if (self.e_ang-self.s_ang)<-1.5*pi:
+            self.s_ang-=2*pi
+        elif(self.e_ang-self.s_ang)>1.5*pi:
+            self.s_ang+=2*pi
+            
+        da=(self.e_ang-self.s_ang)/30
+        x=[]; y=[]
+        for i in range(31):
+            ang=self.s_ang+i*da
+            x.append(self.O.x+cos(ang)*abs(self.r))
+            y.append(self.O.y+sin(ang)*abs(self.r))
+            
+        plot.plot(x,y,'-g')
+        #plot.plot([x[0],x[-1]],[y[0],y[-1]],'cd')
+        plot.plot([self.Pa.x,self.Pe.x],[self.Pa.y,self.Pe.y],'cd')
 
     def __str__(self):
         return ("\nARC")+\
@@ -821,16 +988,15 @@ class PointClass:
         #Skalarprodukt errechnen
         return self.x*other.x + self.y*other.y
     def unit_vector(self,Pto=None):
+        diffVec=Pto-self
+        l=diffVec.distance()
+        return PointClass(diffVec.x/l,diffVec.y/l)
+    def distance(self,other=None):
         try:
-            if Pto==None:
-                Pto=PointClass(x=0.0,y=0.0)
+            if other==None:
+                other=PointClass(x=0.0,y=0.0)
         except:
             pass
-        
-        l=self.distance(Pto)
-        diffVec=self-Pto
-        return PointClass(diffVec.x/l,diffVec.y/l)
-    def distance(self,other):
         return sqrt(pow(self.x-other.x,2)+pow(self.y-other.y,2))
     def norm_angle(self,other=None):
         try:
@@ -907,10 +1073,10 @@ class PlotClass:
                 (Pt[0].y)
                 self.plot1.plot([Pt[0].x],[Pt[0].y],'xr')
                 
-                self.plot1.arrow(Pt[0].x,Pt[0].y,\
-                                 cos(Pt[1])*arrow_len,\
-                                 sin(Pt[1])*arrow_len,\
-                                 width=arrow_width)        
+##                self.plot1.arrow(Pt[0].x,Pt[0].y,\
+##                                 cos(Pt[1])*arrow_len,\
+##                                 sin(Pt[1])*arrow_len,\
+##                                 width=arrow_width)        
 
         for geo in biarcs.Curve:
             geo.plot2plot(self.plot1)
