@@ -33,17 +33,51 @@ class PointClass:
         self.x=x
         self.y=y
     def __str__(self):
-        return ('\nPoint:   X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
+        return ('X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
     def __cmp__(self, other) : 
       return (self.x == other.x) and (self.y == other.y)
+    def __neg__(self):
+        return -1.0*self
     def __add__(self, other): # add to another point
         return PointClass(self.x+other.x, self.y+other.y)
+    def __sub__(self, other):
+        return self + -other
     def __rmul__(self, other):
         return PointClass(other * self.x,  other * self.y)
-    def distance(self,other):
+    def __mul__(self, other):
+        try:
+            #Skalarprodukt errechnen
+            return self.x*other.x + self.y*other.y
+        except:
+            #Skalieren des Punkts
+            return PointClass(x=self.x*other[0],y=self.y*other[1])
+    def unit_vector(self,Pto=None):
+        diffVec=Pto-self
+        l=diffVec.distance()
+        return PointClass(diffVec.x/l,diffVec.y/l)
+    def distance(self,other=None):
+        try:
+            if other==None:
+                other=PointClass(x=0.0,y=0.0)
+        except:
+            pass
         return sqrt(pow(self.x-other.x,2)+pow(self.y-other.y,2))
+    def norm_angle(self,other=None):
+        try:
+            if other==None:
+                other=PointClass(x=0.0,y=0.0)
+        except:
+            pass
+        return atan2(other.y-self.y,other.x-self.x)
     def isintol(self,other,tol):
         return (abs(self.x-other.x)<=tol) & (abs(self.y-other.y)<tol)
+    def transform_to_Norm_Coord(self,other,alpha):
+        xt=other.x+self.x*cos(alpha)+self.y*sin(alpha)
+        yt=other.y+self.x*sin(alpha)+self.y*cos(alpha)
+        return PointClass(x=xt,y=yt)
+    def get_arc_point(self,ang=0,r=1):
+        return PointClass(x=self.x+cos(radians(ang))*r,\
+                          y=self.y+sin(radians(ang))*r)
     def triangle_height(self,other1,other2):
         #Die 3 Längen des Dreiecks ausrechnen
         a=self.distance(other1)
@@ -51,8 +85,7 @@ class PointClass:
         c=self.distance(other2)
         print a
         print b
-        print c
-        
+        print c  
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))                
       
 class PointsClass:

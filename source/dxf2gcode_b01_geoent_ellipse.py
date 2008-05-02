@@ -142,8 +142,8 @@ class EllipseClass:
     def plot2can(self,canvas,p0,sca,tag):
         hdl=[]
         for i in range(1,len(self.Points)):
-            hdl.append(Line(canvas,p0[0]+self.Points[i-1].x*sca[0],-p0[1]-self.Points[i-1].y*sca[1],\
-                            p0[0]+self.Points[i].x*sca[0],-p0[1]-self.Points[i].y*sca[1],\
+            hdl.append(Line(canvas,p0.x+self.Points[i-1].x*sca[0],-p0.y-self.Points[i-1].y*sca[1],\
+                            p0.x+self.Points[i].x*sca[0],-p0.y-self.Points[i].y*sca[1],\
                             tag=tag))     
         return hdl
 
@@ -167,8 +167,8 @@ class EllipseClass:
     def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
         for p_nr in range(len(self.Points)-1):
             en_point, en_angle=self.get_start_end_points(not(dir),p_nr+1)
-            x_en=(en_point.x*sca[0])+p0[0]
-            y_en=(en_point.y*sca[1])+p0[1]
+            x_en=(en_point.x*sca[0])+p0.x
+            y_en=(en_point.y*sca[1])+p0.y
             string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,x_en,axis2,y_en))
         return string
 
