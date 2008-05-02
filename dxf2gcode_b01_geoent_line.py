@@ -86,8 +86,8 @@ class LineClass:
         caller.start=s
 
     def plot2can(self,canvas,p0,sca,tag):
-        hdl=Line(canvas,p0[0]+self.Points[0].x*sca[0],-p0[1]-self.Points[0].y*sca[1],\
-             p0[0]+self.Points[1].x*sca[0],-p0[1]-self.Points[1].y*sca[1],\
+        hdl=Line(canvas,p0.x+self.Points[0].x*sca[0],-p0.y-self.Points[0].y*sca[1],\
+             p0.x+self.Points[1].x*sca[0],-p0.y-self.Points[1].y*sca[1],\
              tag=tag)
         return hdl
     
@@ -107,9 +107,8 @@ class LineClass:
     
     def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
         en_point, en_angle=self.get_start_end_points(not(dir))
-        x_en=(en_point.x*sca[0])+p0[0]
-        y_en=(en_point.y*sca[1])+p0[1]
-        string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,x_en,axis2,y_en))
+        ende=en_point*sca+p0
+        string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
         return string
         
 

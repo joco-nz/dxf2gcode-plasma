@@ -115,8 +115,8 @@ class ArcClass:
         if ext<0:
             ext+=360
 
-        xy=p0[0]+(self.Points[0].x-self.Radius)*sca[0],-p0[1]-(self.Points[0].y-self.Radius)*sca[1],\
-            p0[0]+(self.Points[0].x+self.Radius)*sca[0],-p0[1]-(self.Points[0].y+self.Radius)*sca[1]
+        xy=p0.x+(self.Points[0].x-self.Radius)*sca[0],-p0.y-(self.Points[0].y-self.Radius)*sca[1],\
+            p0.x+(self.Points[0].x+self.Radius)*sca[0],-p0.y-(self.Points[0].y+self.Radius)*sca[1]
         hdl=Arc(canvas,xy,start=self.Start_Ang,extent=ext,style="arc",\
             tag=tag)
         return hdl
@@ -132,18 +132,16 @@ class ArcClass:
     
     def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
         st_point, st_angle=self.get_start_end_points(dir)
-        I=(self.Points[0].x-st_point.x)*sca[0]
-        J=(self.Points[0].y-st_point.y)*sca[0]
-        en_point, en_angle=self.get_start_end_points(not(dir))
-        x_en=(en_point.x*sca[0])+p0[0]
-        y_en=(en_point.y*sca[1])+p0[1]
+        IJ=(self.Points[0]-st_point)*sca
         
-
+        en_point, en_angle=self.get_start_end_points(not(dir))
+        ende=en_point*sca+p0
+        
         #Vorsicht geht nicht für Ovale
         if dir==0:
-            string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,x_en,axis2,y_en,I,J))
+            string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
         else:
-            string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,x_en,axis2,y_en,I,J))
+            string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
 
         return string
             
