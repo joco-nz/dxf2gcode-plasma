@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#Bspline_and_NURBS_points_and_derivatives_calculation_1
+#NURBS_fittin_by_Biarc_curves
 #Programmer: Christian Kohlöffel
 #E-mail:     n/A
 #
@@ -372,13 +372,13 @@ class BSplineClass:
 class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
-        self.epsilon=0.01
+        self.epsilon=0.1
         self.epsilon_high=self.epsilon*0.01
         self.segments=50
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_4()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_3()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
