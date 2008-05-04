@@ -25,10 +25,7 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-
-from dxf2gcode_b01_dxf_import import PointClass
-from dxf2gcode_b01_dxf_import import PointsClass
-from dxf2gcode_b01_dxf_import import ContourClass
+from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass
 
 
 class LWPolylineClass:

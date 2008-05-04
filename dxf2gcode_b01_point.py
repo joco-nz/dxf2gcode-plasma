@@ -211,3 +211,40 @@ class ContourClass:
         # how to print the object
         return '\ncont_nr ->'+str(self.cont_nr)+'\nclosed ->'+str(self.closed) \
                +'\norder ->'+str(self.order)+'\nlength ->'+str(self.length)
+
+class ArcGeo:
+    def __init__(self,Pa,Pe,O,r,s_ang,e_ang):
+        self.type="ArcGeo"
+        self.Pa=Pa
+        self.Pe=Pe
+        self.O=O
+        self.r=r
+        self.s_ang=s_ang
+        self.e_ang=e_ang
+        
+
+    def __str__(self):
+        return ("\nARC")+\
+               ("\nPa : %s; s_ang: %0.3f" %(self.Pa,self.s_ang))+\
+               ("\nPe : %s; e_ang: %0.3f" %(self.Pe,self.e_ang))+\
+               ("\nO  : %s; r: %0.3f" %(self.O,self.r))
+    
+class LineGeo:
+    def __init__(self,Pa,Pe):
+        self.type="LineGeo"
+        self.Pa=Pa
+        self.Pe=Pe
+
+
+    def distance2point(self,point):
+        AE=self.Pa.distance(self.Pe)
+        AP=self.Pa.distance(point)
+        EP=self.Pe.distance(point)
+        AEPA=(AE+AP+EP)/2
+        return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
+            
+    def __str__(self):
+        return ("\nLINE")+\
+               ("\nPa : %s" %self.Pa)+\
+               ("\nPe : %s" %self.Pe)
+    

@@ -23,10 +23,9 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-# About Dialog
-# First Version of dxf2gcode_b01 Hopefully all works as it should
 
 from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass
+
 from dxf2gcode_b01_geoent_arc import ArcClass
 from dxf2gcode_b01_geoent_circle import CircleClass
 from dxf2gcode_b01_geoent_insert import InsertClass
