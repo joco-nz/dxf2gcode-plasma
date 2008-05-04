@@ -23,12 +23,10 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
+from Canvas import Arc
 from math import sqrt, sin, cos, atan2, radians, degrees
-
-from dxf2gcode_b01_dxf_import import PointClass
-from dxf2gcode_b01_dxf_import import PointsClass
-from dxf2gcode_b01_dxf_import import ContourClass
+from dxf2gcode_b01_nurbs_calc import Spline2Arcs
+from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass
 
 class SplineClass:
     def __init__(self,Nr=0,caller=None):
@@ -38,37 +36,46 @@ class SplineClass:
         #Initialisieren der Werte        
         self.Layer_Nr = 0
         self.Spline_flag=[]
-        self.Spline_order=1
+        self.degree=1
         self.Knots=[]
         self.Weights=[]
         self.CPoints=[]
-        self.Points=[]
+        self.ArcSpline=[]
         self.length= 0
 
         #Lesen der Geometrie
         self.Read(caller)
+
+        #Umwandeln zu einem ArcSpline
+
+        Spline2ArcsClass=Spline2Arcs(degree=self.degree,Knots=self.Knots,\
+                                Weights=self.Weights,CPoints=self.CPoints,tol=0.01)
+
+        self.ArcSpline=Spline2ArcsClass.Curve
+
+        #print self
         
     def __str__(self):
         # how to print the object
         s= ('\nTyp: Spline \nNr -> %i' %self.Nr)+\
            ('\nLayer Nr -> %i' %self.Layer_Nr)+\
            ('\nSpline flag -> %i' %self.Spline_flag)+\
-           ('\nSpline order -> %i' %self.Spline_order)+\
+           ('\ndegree -> %i' %self.degree)+\
            ('\nKnots -> %s' %self.Knots)+\
            ('\nWeights -> %s' %self.Weights)+\
            ('\nCPoints ->')
            
         for point in self.CPoints:
             s=s+str(point)
-        s+='\nPoints: ->'
-        for point in self.Points:
-            s=s+str(point)
+        s+='\nArcSpline: ->'
+        for geo in self.ArcSpline:
+            s=s+str(geo)
         s=s+'\nLength ->'+str(self.length)
         return s
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
-        #Hinzufügen falls es keine geschlossener Spline ist
-        if self.Points[0].isintol(self.Points[-1],tol):
+        #Hinzufügen falls es keine geschlossener Spline ist !!!!!!!!!!!!!!!!!!!!!!!!!!! CPOINST??
+        if self.CPoints[0].isintol(self.CPoints[-1],tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length)) 
         else:
@@ -94,7 +101,7 @@ class SplineClass:
 
         #Spline Ordnung zuweisen
         s=lp.index_code(71,s+1)
-        self.Spline_order=int(lp.line_pair[s].value)
+        self.degree=int(lp.line_pair[s].value)
 
         #Number of CPts
         s=lp.index_code(73,s+1)
@@ -146,61 +153,52 @@ class SplineClass:
 
         caller.start=e
 
-        #Umwandeln zu einer Polyline
-        self.calculate_nurbs_points()
-
-    #Berechnen der NURBS Punkte
-    def calculate_nurbs_points(self):
-        import dxf2gcode_b01_nurbs_calc as NURBS
-        reload(NURBS)
-
-        nurb=NURBS.NURBSClass(order=self.Spline_order,Knots=self.Knots,\
-                   Weights=self.Weights,CPoints=self.CPoints,Calc_Pts=200)
-
-        self.Points=nurb.Points      
+   
+    
 
     def analyse_and_opt(self):     
         summe=0
         #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-        #negativer Wert bedeutet CCW geschlossenes Polygon            
-        for p_nr in range(1,len(self.Points)):
-            summe+=(self.Points[p_nr-1].x*self.Points[p_nr].y-self.Points[p_nr].x*self.Points[p_nr-1].y)/2
-        if summe>0.0:
-            self.Points.reverse()
-
-        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-        min_point=self.Points[0]
-        min_p_nr=0
-        del(self.Points[-1])
-        for p_nr in range(1,len(self.Points)):
-            #Geringster Abstand nach unten Unten Links
-            if (min_point.x+min_point.y)>=(self.Points[p_nr].x+self.Points[p_nr].y):
-                min_point=self.Points[p_nr]
-                min_p_nr=p_nr
-        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
- 
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=[]
-        for i in range(1,len(self.Points)):
-            hdl.append(Line(canvas,p0.x+self.Points[i-1].x*sca[0],-p0.y-self.Points[i-1].y*sca[1],\
-                            p0.x+self.Points[i].x*sca[0],-p0.y-self.Points[i].y*sca[1],\
-                            tag=tag))     
-        return hdl
-    
-    def get_start_end_points(self,direction=0,nr=0):
-        if direction==0:
-            punkt=self.Points[nr] #Fehler? Die ID des Punktes kann übergeben werden, der Winkel ist fest am ersten Punkt-Paar
-            dx=self.Points[1].x-self.Points[0].x
-            dy=self.Points[1].y-self.Points[0].y
-            angle=degrees(atan2(dy, dx))
-        elif direction==1:
-            punkt=self.Points[len(self.Points)-nr-1]
-            dx=self.Points[-2].x-self.Points[-1].x
-            dy=self.Points[-2].y-self.Points[-1].y
-            angle=degrees(atan2(dy, dx))
-
-        return punkt,angle
+        #negativer Wert bedeutet CCW geschlossenes Polygon    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+        for p_nr in range(1,len(self.CPoints)):
+            summe+=(self.CPoints[p_nr-1].x*self.CPoints[p_nr].y-self.CPoints[p_nr].x*self.CPoints[p_nr-1].y)/2
+            
+##        #if summe>0.0:
+##        #   self.CPoints.reverse()
+##
+##        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
+##        min_point=self.Points[0]
+##        min_p_nr=0
+##        del(self.Points[-1])
+##        for p_nr in range(1,len(self.Points)):
+##            #Geringster Abstand nach unten Unten Links
+##            if (min_point.x+min_point.y)>=(self.Points[p_nr].x+self.Points[p_nr].y):
+##                min_point=self.Points[p_nr]
+##                min_p_nr=p_nr
+##        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
+##        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
+##
+##    def plot2can(self,canvas,p0,sca,tag):
+##        hdl=[]
+##        for i in range(1,len(self.Points)):
+##            hdl.append(Line(canvas,p0.x+self.Points[i-1].x*sca[0],-p0.y-self.Points[i-1].y*sca[1],\
+##                            p0.x+self.Points[i].x*sca[0],-p0.y-self.Points[i].y*sca[1],\
+##                            tag=tag))     
+##        return hdl
+##    
+##    def get_start_end_points(self,direction=0,nr=0):
+##        if direction==0:
+##            punkt=self.Points[nr] #Fehler? Die ID des Punktes kann übergeben werden, der Winkel ist fest am ersten Punkt-Paar
+##            dx=self.Points[1].x-self.Points[0].x
+##            dy=self.Points[1].y-self.Points[0].y
+##            angle=degrees(atan2(dy, dx))
+##        elif direction==1:
+##            punkt=self.Points[len(self.Points)-nr-1]
+##            dx=self.Points[-2].x-self.Points[-1].x
+##            dy=self.Points[-2].y-self.Points[-1].y
+##            angle=degrees(atan2(dy, dx))
+##
+##        return punkt,angle
     
     def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
         

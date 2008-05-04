@@ -27,11 +27,19 @@
 #First Version of dxf2gcode Hopefully all works as it should
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b01.py
 
+#Löschen aller Module aus dem Speicher
+import sys
+if globals().has_key('init_modules'):
+	for m in [x for x in sys.modules.keys() if x not in init_modules]:
+		del(sys.modules[m]) 
+else:
+	init_modules = sys.modules.keys()
+
+
 import sys, os, string, ConfigParser 
-from dxf2gcode_b01_dxf_import import PointClass #,Load_DXF
+from   dxf2gcode_b01_point import PointClass
 import dxf2gcode_b01_dxf_import as dxf_import 
 import dxf2gcode_b01_tsp_opt as tsp
-#from dxf2gcode_b01_tsp_opt import TSPoptimize
 
 import webbrowser
 from Tkconstants import END, INSERT, ALL, N, S, E, W, RAISED, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
@@ -43,8 +51,8 @@ from Canvas import Rectangle, Line, Oval, Arc
 
 from math import radians, cos, sin
 
-reload(dxf_import)
-reload(tsp)
+#reload(dxf_import)
+#reload(tsp)
 
 # Globale "Konstanten"
 DEBUG = 0
@@ -62,11 +70,9 @@ class Erstelle_Fenster:
         self.frame_l=Frame(master) 
         self.frame_l.grid(row=0,column=0,rowspan=2,padx=4,pady=4,sticky=N+E+W)
         
-
         #Erstellen des Canvas Rahmens
         self.frame_c=Frame(master,relief = RIDGE,bd = 2)
         self.frame_c.grid(row=0,column=1,padx=4,pady=4,sticky=N+E+S+W)
-        
         
         #Unterer Rahmen erstellen mit der Lisbox + Scrollbar zur Darstellung der Ereignisse.
         self.frame_u=Frame(master) 
