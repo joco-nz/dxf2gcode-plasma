@@ -51,9 +51,10 @@ class SplineClass:
         Spline2ArcsClass=Spline2Arcs(degree=self.degree,Knots=self.Knots,\
                                 Weights=self.Weights,CPoints=self.CPoints,tol=0.01)
 
+        #print self
         self.ArcSpline=Spline2ArcsClass.Curve
 
-        #print self
+
         
     def __str__(self):
         # how to print the object
@@ -66,7 +67,7 @@ class SplineClass:
            ('\nCPoints ->')
            
         for point in self.CPoints:
-            s=s+str(point)
+            s=s+"\n"+str(point)
         s+='\nArcSpline: ->'
         for geo in self.ArcSpline:
             s=s+str(geo)
@@ -74,15 +75,16 @@ class SplineClass:
         return s
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
-        #Hinzufügen falls es keine geschlossener Spline ist !!!!!!!!!!!!!!!!!!!!!!!!!!! CPOINST??
+        #Hinzufügen falls es keine geschlossener Spline ist CPOINST??
         if self.CPoints[0].isintol(self.CPoints[-1],tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length)) 
         else:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
-                                      be=self.Points[0],
-                                      en=self.Points[-1],be_cp=[],en_cp=[]))      
+                                      be=self.ArcSpline[0].Pa,\
+                                      en=self.ArcSpline[-1].Pe,\
+                                      be_cp=[],en_cp=[]))      
 
     def Read(self, caller):
         Old_Point=PointClass(0,0)
@@ -163,6 +165,12 @@ class SplineClass:
         for p_nr in range(1,len(self.CPoints)):
             summe+=(self.CPoints[p_nr-1].x*self.CPoints[p_nr].y-self.CPoints[p_nr].x*self.CPoints[p_nr-1].y)/2
             
+    def plot2can(self,canvas,p0,sca,tag):
+        hdl=[]
+        for geo in self.ArcSpline:
+            hdl.append(geo.plot2can(canvas,p0,sca,tag))
+       
+        return hdl
 ##        #if summe>0.0:
 ##        #   self.CPoints.reverse()
 ##
@@ -178,32 +186,17 @@ class SplineClass:
 ##        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
 ##        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
 ##
-##    def plot2can(self,canvas,p0,sca,tag):
-##        hdl=[]
-##        for i in range(1,len(self.Points)):
-##            hdl.append(Line(canvas,p0.x+self.Points[i-1].x*sca[0],-p0.y-self.Points[i-1].y*sca[1],\
-##                            p0.x+self.Points[i].x*sca[0],-p0.y-self.Points[i].y*sca[1],\
-##                            tag=tag))     
-##        return hdl
+
 ##    
-##    def get_start_end_points(self,direction=0,nr=0):
-##        if direction==0:
-##            punkt=self.Points[nr] #Fehler? Die ID des Punktes kann übergeben werden, der Winkel ist fest am ersten Punkt-Paar
-##            dx=self.Points[1].x-self.Points[0].x
-##            dy=self.Points[1].y-self.Points[0].y
-##            angle=degrees(atan2(dy, dx))
-##        elif direction==1:
-##            punkt=self.Points[len(self.Points)-nr-1]
-##            dx=self.Points[-2].x-self.Points[-1].x
-##            dy=self.Points[-2].y-self.Points[-1].y
-##            angle=degrees(atan2(dy, dx))
-##
-##        return punkt,angle
+    def get_start_end_points(self,direction=0):
+        if direction==0:
+            punkt, angle=self.ArcSpline[0].get_start_end_points(direction)
+        elif direction==1:
+            punkt, angle=self.ArcSpline[-1].get_start_end_points(direction)
+
+        return punkt,angle
     
     def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        
-        for p_nr in range(len(self.Points)-1):
-            en_point, en_angle=self.get_start_end_points(not(dir),p_nr+1)
-            ende=(en_point*sca)+p0
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
+        for geo in self.ArcSpline:
+            string+=geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
         return string   

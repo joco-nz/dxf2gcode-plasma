@@ -1210,6 +1210,7 @@ class CanvasContentClass:
         
     def set_color(self,hdls,color):
         for hdl in hdls:
+
             if (self.Canvas.canvas.type(hdl)=="arc") | (self.Canvas.canvas.type(hdl)=="oval") :
                 self.Canvas.canvas.itemconfig(hdl, outline=color)
             else:

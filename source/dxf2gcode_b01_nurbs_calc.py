@@ -29,14 +29,14 @@
 from dxf2gcode_b01_point import PointClass, ArcGeo, LineGeo
 
 import sys, os, string
-from math import radians, cos, sin,tan, atan2, sqrt, pow, pi
+from math import radians, cos, sin,tan, atan2, sqrt, pow, pi, ceil
 
 class Spline2Arcs:
     def __init__(self,degree=0,Knots=[],Weights=[],CPoints=[],tol=0.01):
         #Max Abweichung für die Biarc Kurve
         self.epsilon=tol
         self.epsilon_high=self.epsilon*0.01
-        self.segments=50
+        self.segments=30
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
@@ -87,17 +87,17 @@ class Spline2Arcs:
                         diff=self.check_diff_to_pts(Pts,Arc0,Arc1)
 
                         #Überprüfen ob es in Toleranz liegt
-                        #try:
-                        if max(diff)<self.epsilon:
-                            tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
-                            del NewCurve[anz-3:anz]
-                            NewCurve.append(Arc0)
-                            NewCurve.append(Arc1)
+                        try:
+                            if max(diff)<self.epsilon:
+                                tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
+                                del NewCurve[anz-3:anz]
+                                NewCurve.append(Arc0)
+                                NewCurve.append(Arc1)
                             #else:
                                 #print Arc0
                                 #print Arc1
-                        #except:
-                            #pass
+                        except:
+                            pass
 
                             
                     elif (NewCurve[-3].r>NewCurve[-2].r)\
@@ -107,18 +107,18 @@ class Spline2Arcs:
                         triarc=NewCurve[anz-3:anz]
                         Arc0,Arc1= self.fit_triac_by_dec_biarc(triarc,tau)
                         diff=self.check_diff_to_pts(Pts,Arc1,Arc0)
-                        #try:
-                        if max(diff)<self.epsilon:
-                            tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
+                        try:
+                            if max(diff)<self.epsilon:
+                                tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
 
-                            del NewCurve[anz-3:anz]
-                            NewCurve.append(Arc0)
-                            NewCurve.append(Arc1)
+                                del NewCurve[anz-3:anz]
+                                NewCurve.append(Arc0)
+                                NewCurve.append(Arc1)
                             #else:
                                 #print Arc0
                                 #print Arc1
-                        #except:
-                            #pass
+                        except:
+                            pass
                   
                     #else:
                         #print 'dazwischen'
@@ -188,10 +188,8 @@ class Spline2Arcs:
         Vn=Ob.unit_vector(Oa)
         Pn=Oa+ra*Vn
 
-        Arc0=ArcGeo(Pa=arc[0].Pa,Pe=Pn,O=Oa,r=ra,\
-                    s_ang=Oa.norm_angle(arc[0].Pa),e_ang=Oa.norm_angle(Pn))
-        Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,\
-                    s_ang=Ob.norm_angle(Pn),e_ang=Ob.norm_angle(arc[2].Pe))
+        Arc0=ArcGeo(Pa=arc[0].Pa,Pe=Pn,O=Oa,r=ra,dir=arc[0].ext)
+        Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,dir=arc[2].ext)
 
         #print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
 
@@ -232,9 +230,9 @@ class Spline2Arcs:
         Pn=Ob+rb*Vn
 
         Arc0=ArcGeo(Pa=arc[0].Pa,Pe=Pn,O=Oa,r=ra,\
-                    s_ang=Oa.norm_angle(arc[0].Pa),e_ang=Oa.norm_angle(Pn))
+                    s_ang=Oa.norm_angle(arc[0].Pa),e_ang=Oa.norm_angle(Pn),dir=arc[0].ext)
         Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,\
-                    s_ang=Ob.norm_angle(Pn),e_ang=Ob.norm_angle(arc[2].Pe))
+                    s_ang=Ob.norm_angle(Pn),e_ang=Ob.norm_angle(arc[2].Pe),dir=arc[2].ext)
 
         #print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
         return Arc0, Arc1
@@ -254,36 +252,39 @@ class Spline2Arcs:
                 del Pts[Pts.index(Pt)]
         return diff
     
-    def compress_lines(self,Curves):
+    def compress_lines(self,Curve):
         joint=[]
-        points=[]
         NewCurve=[]
-        for geo in Curves:
-            #Wenn Geo eine Linie ist anhängen und überprüfen
-            if geo.type=="LineGeo":
-                points.append(geo.Pe)
-                joint.append(geo)
-                Line=LineGeo(joint[0].Pa,joint[-1].Pe)
-                res=[]
-
-                #Überprüfung der Abweichung               
-                for point in points:
-                    res.append(Line.distance2point(point))
+        Pts=[]
+        for geo in Curve:
+            NewCurve.append(geo)
+            anz=len(NewCurve)
+            if anz>=2:
+                #Wenn Geo eine Linie ist anhängen und überprüfen
+                if (NewCurve[-2].type=="LineGeo") and (NewCurve[-1].type=="LineGeo"):
+                    Pts.append(geo.Pe)
+                    JointLine=LineGeo(NewCurve[-2].Pa,NewCurve[-1].Pe)
                     
-                #Wenn die Abweichung zu Groß ist bis Vorheriges anhängen
-                if not(max(res)<self.epsilon):
-                    NewCurve.append(LineGeo(joint[0].Pa,joint[-2].Pe))
-                    joint=[geo]
-                    points=[geo.Pe]
+                    #Überprüfung der Abweichung               
+                    for point in Pts:
+                        res=[]
+                        res.append(JointLine.distance2point(point))
+                        
+                    #Wenn die Abweichung OK ist Vorheriges anhängen
+                    if (max(res)<self.epsilon):
+                        anz=len(NewCurve)
+##                        print "Passt"
+##                        print NewCurve[-2]
+##                        print NewCurve[-1]
+##                        print JointLine
+                        del NewCurve[anz-2:anz]
+                        NewCurve.append(JointLine)
+                        points=[geo.Pe]
                               
-            #Wenn es eine ander Geometrie als eine Linie ist        
-            else:
-                #Vorheriges Linienstück falls vorhanden anhängen
-                if len(joint)>0:
-                    NewCurve.append(LineGeo(joint[0].Pa,joint[-1].Pe))
-                    joint=[]
-                    points=[]
-                NewCurve.append(geo)
+                #Wenn es eines eine andere Geometrie als eine Linie ist        
+                else:
+                    Pts=[]
+                
                      
         return NewCurve
         
@@ -417,7 +418,7 @@ class BiarcClass:
         elif(self.shape=="LineGeo"):
             #Erstellen der Geometrie
             self.shape="LineGeo"
-            self.geos.append(LineGeo(self.Pa,self.Pb)) 
+            self.geos.append(LineGeo(self.Pa,self.Pb))
         else:
             #Berechnen der Radien, Mittelpunkte, Zwichenpunkt            
             r1, r2=self.calc_r1_r2(self.l,alpha,beta,self.teta)
@@ -434,8 +435,19 @@ class BiarcClass:
             s_ang1,e_ang1=self.calc_s_e_ang(self.Pa,O1,k)
             s_ang2,e_ang2=self.calc_s_e_ang(k,O2,self.Pb)
 
-            self.geos.append(ArcGeo(self.Pa,k,O1,abs(r1),s_ang1,e_ang1))
-            self.geos.append(ArcGeo(k,self.Pb,O2,abs(r2),s_ang2,e_ang2)) 
+            #Berechnen der Richtung und der Extend
+            dir_ang1=(tan_a-s_ang1)%(-2*pi)
+            dir_ang1-=ceil(dir_ang1/(pi))*(2*pi)
+
+            dir_ang2=(tan_b-e_ang2)%(-2*pi)
+            dir_ang2-=ceil(dir_ang2/(pi))*(2*pi)
+            
+            
+            #Erstellen der Geometrien          
+            self.geos.append(ArcGeo(Pa=self.Pa,Pe=k,O=O1,r=abs(r1),\
+                                    s_ang=s_ang1,e_ang=e_ang1,dir=dir_ang1))
+            self.geos.append(ArcGeo(Pa=k,Pe=self.Pb,O=O2,r=abs(r2),\
+                                    s_ang=s_ang2,e_ang=e_ang2,dir=dir_ang2)) 
 
     def calc_O1_O2_k(self,r1,r2,tan_a,teta):
         #print("r1: %0.3f, r2: %0.3f, tan_a: %0.3f, teta: %0.3f" %(r1,r2,tan_a,teta))

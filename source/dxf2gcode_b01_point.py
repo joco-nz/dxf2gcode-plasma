@@ -26,7 +26,8 @@
 # About Dialog
 # First Version of dxf2gcode_b01 Hopefully all works as it should
 
-from math import sqrt, sin, cos, atan2, radians, degrees
+from Canvas import Oval, Arc, Line
+from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil
 
 class PointClass:
     def __init__(self,x=0,y=0):
@@ -45,29 +46,24 @@ class PointClass:
     def __rmul__(self, other):
         return PointClass(other * self.x,  other * self.y)
     def __mul__(self, other):
-        try:
-            #Skalarprodukt errechnen
-            return self.x*other.x + self.y*other.y
-        except:
+        if type(other)==list:
             #Skalieren des Punkts
             return PointClass(x=self.x*other[0],y=self.y*other[1])
+        else:
+            #Skalarprodukt errechnen
+            return self.x*other.x + self.y*other.y
+
     def unit_vector(self,Pto=None):
         diffVec=Pto-self
         l=diffVec.distance()
         return PointClass(diffVec.x/l,diffVec.y/l)
     def distance(self,other=None):
-        try:
-            if other==None:
-                other=PointClass(x=0.0,y=0.0)
-        except:
-            pass
+        if type(other)==type(None):
+            other=PointClass(x=0.0,y=0.0)
         return sqrt(pow(self.x-other.x,2)+pow(self.y-other.y,2))
     def norm_angle(self,other=None):
-        try:
-            if other==None:
-                other=PointClass(x=0.0,y=0.0)
-        except:
-            pass
+        if type(other)==type(None):
+            other=PointClass(x=0.0,y=0.0)
         return atan2(other.y-self.y,other.x-self.x)
     def isintol(self,other,tol):
         return (abs(self.x-other.x)<=tol) & (abs(self.y-other.y)<tol)
@@ -83,9 +79,6 @@ class PointClass:
         a=self.distance(other1)
         b=other1.distance(other2)
         c=self.distance(other2)
-        print a
-        print b
-        print c  
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))                
       
 class PointsClass:
@@ -213,21 +206,68 @@ class ContourClass:
                +'\norder ->'+str(self.order)+'\nlength ->'+str(self.length)
 
 class ArcGeo:
-    def __init__(self,Pa,Pe,O,r,s_ang,e_ang):
+    def __init__(self,Pa=None,Pe=None,O=None,r=1,s_ang=None,e_ang=None,dir=1):
         self.type="ArcGeo"
         self.Pa=Pa
         self.Pe=Pe
         self.O=O
         self.r=r
+
+        #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
+        if type(s_ang)==type(None):
+            s_ang=O.norm_angle(Pa)
+        if type(e_ang)==type(None):
+            e_ang=O.norm_angle(Pe)
+
+        #Aus dem Vorzeichen von dir den extend ausrechnen
+        self.ext=e_ang-s_ang
+        if dir>0.0:
+            self.ext=self.ext%(-2*pi)
+            self.ext-=floor(self.ext/(2*pi))*(2*pi)
+        else:
+            self.ext=self.ext%(-2*pi)
+            self.ext+=ceil(self.ext/(2*pi))*(2*pi)
+                   
         self.s_ang=s_ang
-        self.e_ang=e_ang
+        self.e_ang=e_ang     
+
+    def plot2can(self,canvas,p0,sca,tag):
+     
+        xy=p0.x+(self.O.x-abs(self.r))*sca[0],-p0.y-(self.O.y-abs(self.r))*sca[1],\
+            p0.x+(self.O.x+abs(self.r))*sca[0],-p0.y-(self.O.y+abs(self.r))*sca[1]
+        hdl=Arc(canvas,xy,start=degrees(self.s_ang),extent=degrees(self.ext),style="arc",\
+            tag=tag)
+        return hdl        
+
+    def get_start_end_points(self,direction):
+        if direction==0:
+            punkt=self.Pa
+            angle=self.s_ang*180/pi+90
+        elif direction==1:
+            punkt=self.Pe
+            angle=self.e_ang*180/pi-90
+        return punkt,angle
+    
+    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
+        st_point, st_angle=self.get_start_end_points(dir)
+        IJ=(self.O-st_point)*sca
         
+        en_point, en_angle=self.get_start_end_points(not(dir))
+        ende=en_point*sca+p0
+        
+        #Vorsicht geht nicht für Ovale
+        if dir==0:
+            string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+        else:
+            string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+        return string      
 
     def __str__(self):
         return ("\nARC")+\
                ("\nPa : %s; s_ang: %0.3f" %(self.Pa,self.s_ang))+\
                ("\nPe : %s; e_ang: %0.3f" %(self.Pe,self.e_ang))+\
-               ("\nO  : %s; r: %0.3f" %(self.O,self.r))
+               ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
+               ("\next  : %0.3f" %(self.ext))
     
 class LineGeo:
     def __init__(self,Pa,Pe):
@@ -235,7 +275,28 @@ class LineGeo:
         self.Pa=Pa
         self.Pe=Pe
 
+    def plot2can(self,canvas,p0,sca,tag):
+        anf=p0+self.Pa*sca
+        ende=p0+self.Pe*sca
+        hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag)
+        return hdl
 
+
+    def get_start_end_points(self,direction):
+        if direction==0:
+            punkt=self.Pa
+            angle=self.Pe.norm_angle(self.Pa)
+        elif direction==1:
+            punkt=self.Pe
+            angle=self.Pa.norm_angle(self.Pe)
+        return punkt, angle
+    
+    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
+        en_point, en_angle=self.get_start_end_points(not(dir))
+        ende=en_point*sca+p0
+        string=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
+        return string
+        
     def distance2point(self,point):
         AE=self.Pa.distance(self.Pe)
         AP=self.Pa.distance(point)
