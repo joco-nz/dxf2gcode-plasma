@@ -34,7 +34,8 @@ class PointClass:
         self.x=x
         self.y=y
     def __str__(self):
-        return ('X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
+        #return ('X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
+        return ('CPoints.append(PointClass(x=%6.5f, y=%6.5f))' %(self.x,self.y))
     def __cmp__(self, other) : 
       return (self.x == other.x) and (self.y == other.y)
     def __neg__(self):
@@ -211,7 +212,7 @@ class ArcGeo:
         self.Pa=Pa
         self.Pe=Pe
         self.O=O
-        self.r=r
+        self.r=abs(r)
 
         #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
         if type(s_ang)==type(None):
@@ -232,20 +233,34 @@ class ArcGeo:
         self.e_ang=e_ang     
 
     def plot2can(self,canvas,p0,sca,tag):
-     
-        xy=p0.x+(self.O.x-abs(self.r))*sca[0],-p0.y-(self.O.y-abs(self.r))*sca[1],\
-            p0.x+(self.O.x+abs(self.r))*sca[0],-p0.y-(self.O.y+abs(self.r))*sca[1]
-        hdl=Arc(canvas,xy,start=degrees(self.s_ang),extent=degrees(self.ext),style="arc",\
-            tag=tag)
+
+        #Das Plotten mit Tkinter hat Probleme für kleine Kreissegmente     
+##        xy=p0.x+(self.O.x-abs(self.r))*sca[0],-p0.y-(self.O.y-abs(self.r))*sca[1],\
+##            p0.x+(self.O.x+abs(self.r))*sca[0],-p0.y-(self.O.y+abs(self.r))*sca[1]
+##
+##        hdl=Arc(canvas,xy,start=degrees(self.s_ang),extent=degrees(self.ext),style="arc",\
+##            tag=tag)
+
+        x=[]; y=[]; hdl=[]
+        #Alle 6 Grad ein Segment => 60 Segmente für einen Kreis !!
+        segments=int((abs(degrees(self.ext))//6)+1)
+        for i in range(segments+1):
+            ang=self.s_ang+i*self.ext/segments
+            x.append(p0.x+(self.O.x+cos(ang)*abs(self.r))*sca[0])
+            y.append(p0.y+(self.O.y+sin(ang)*abs(self.r))*sca[1])
+
+            if i>=1:
+                hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag))
+                
         return hdl        
 
     def get_start_end_points(self,direction):
         if direction==0:
             punkt=self.Pa
-            angle=self.s_ang*180/pi+90
+            angle=degrees(self.s_ang)-90
         elif direction==1:
             punkt=self.Pe
-            angle=self.e_ang*180/pi-90
+            angle=degrees(self.e_ang)+90
         return punkt,angle
     
     def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
@@ -279,16 +294,16 @@ class LineGeo:
         anf=p0+self.Pa*sca
         ende=p0+self.Pe*sca
         hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag)
-        return hdl
+        return [hdl]
 
 
     def get_start_end_points(self,direction):
         if direction==0:
             punkt=self.Pa
-            angle=self.Pe.norm_angle(self.Pa)
+            angle=degrees(self.Pa.norm_angle(self.Pe))
         elif direction==1:
             punkt=self.Pe
-            angle=self.Pa.norm_angle(self.Pe)
+            angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
     
     def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
@@ -298,11 +313,14 @@ class LineGeo:
         return string
         
     def distance2point(self,point):
-        AE=self.Pa.distance(self.Pe)
-        AP=self.Pa.distance(point)
-        EP=self.Pe.distance(point)
-        AEPA=(AE+AP+EP)/2
-        return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
+        try:
+            AE=self.Pa.distance(self.Pe)
+            AP=self.Pa.distance(point)
+            EP=self.Pe.distance(point)
+            AEPA=(AE+AP+EP)/2
+            return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
+        except:
+            return 1e8
             
     def __str__(self):
         return ("\nLINE")+\

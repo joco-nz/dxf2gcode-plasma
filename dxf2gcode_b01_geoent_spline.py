@@ -168,7 +168,7 @@ class SplineClass:
     def plot2can(self,canvas,p0,sca,tag):
         hdl=[]
         for geo in self.ArcSpline:
-            hdl.append(geo.plot2can(canvas,p0,sca,tag))
+            hdl+=(geo.plot2can(canvas,p0,sca,tag))
        
         return hdl
 ##        #if summe>0.0:
