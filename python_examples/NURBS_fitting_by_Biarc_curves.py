@@ -99,7 +99,7 @@ class NURBSClass:
             
         self.ignor=[]
         for same_ctlpt in ctlpt_vec:
-            if (len(same_ctlpt)>self.degree+1):
+            if (len(same_ctlpt)>self.degree):
                 self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
                                    self.Knots[same_ctlpt[-1]+self.degree/2]])
 
@@ -371,13 +371,13 @@ class BSplineClass:
 class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
-        self.epsilon=0.1
+        self.epsilon=0.05
         self.epsilon_high=self.epsilon*0.01
         self.segments=50
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_1()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_8()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
@@ -390,18 +390,20 @@ class BiarcFittingClass:
            
     def analyse_and_compress(self,BiarcCurves):
         #Compress all to one curve
-        Curve=[]
+        Curves=[]
         for BiarcCurve in BiarcCurves:
+            Curve=[]
             for Biarc in BiarcCurve:
                 for geo in Biarc.geos:
                     Curve.append(geo)
 
-        print ("Vor Linie: Elemente: %0.0f" %len(Curve))
-        Curve=self.compress_lines(Curve)
-        print ("Nach Linie: Elemente: %0.0f" %len(Curve))
-        Curve=self.compress_biarcs(Curve)
-        print ("Nach Biarc: Elemente: %0.0f" %len(Curve))
-        return Curve        
+            #print ("Vor Linie: Elemente: %0.0f" %len(Curve))
+            Curve=self.compress_lines(Curve)
+            #print ("Nach Linie: Elemente: %0.0f" %len(Curve))
+            Curve=self.compress_biarcs(Curve)
+            #print ("Nach Biarc: Elemente: %0.0f" %len(Curve))
+            Curves+=Curve
+        return Curves
 
     def compress_biarcs(self,Curves):
         NewCurve=[]
@@ -409,9 +411,7 @@ class BiarcFittingClass:
         Pts=[]
         #Schleife für die Anzahl der Geometrirs
         for geo in Curves:
-            NewCurve.append(geo)
-            #print("geo: %s" %geo)
-        
+            NewCurve.append(geo)        
             #Wenn die Länge mindestens 3 sind
             if len(NewCurve)>=3:
                 #Steigende Spirale
@@ -420,7 +420,9 @@ class BiarcFittingClass:
                    and(NewCurve[-1].type=="ArcGeo")):
                     Pts.append(geo.Pe)
                     if(NewCurve[-3].r<=NewCurve[-2].r)\
-                        and(NewCurve[-2].r<=NewCurve[-1].r):
+                        and(NewCurve[-2].r<=NewCurve[-1].r)\
+                        and((NewCurve[-3].ext*NewCurve[-2].ext)>=0.0)\
+                        and((NewCurve[-2].ext*NewCurve[-1].ext)>=0.0):
                         #print "Increasing"
                         anz=len(NewCurve)
                         triarc=NewCurve[anz-3:anz]
@@ -430,19 +432,18 @@ class BiarcFittingClass:
                         #Überprüfen ob es in Toleranz liegt
                         try:
                             if max(diff)<self.epsilon:
-                                tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
+                                tau=self.calc_active_tolerance_inc(self.epsilon,triarc,Arc0,Arc1)
                                 del NewCurve[anz-3:anz]
                                 NewCurve.append(Arc0)
                                 NewCurve.append(Arc1)
-                            #else:
-                                #print Arc0
-                                #print Arc1
                         except:
                             pass
 
                             
                     elif (NewCurve[-3].r>NewCurve[-2].r)\
-                         and(NewCurve[-2].r>NewCurve[-1].r):
+                         and(NewCurve[-2].r>NewCurve[-1].r)\
+                         and((NewCurve[-3].ext*NewCurve[-2].ext)>=0.0)\
+                         and((NewCurve[-2].ext*NewCurve[-1].ext)>=0.0):
                         #print "Decreasing"
                         anz=len(NewCurve)
                         triarc=NewCurve[anz-3:anz]
@@ -450,29 +451,19 @@ class BiarcFittingClass:
                         diff=self.check_diff_to_pts(Pts,Arc1,Arc0)
                         try:
                             if max(diff)<self.epsilon:
-                                tau=self.calc_active_tolerance(tau,triarc,Arc0,Arc1)
+                                tau=self.calc_active_tolerance_dec(self.epsilon,triarc,Arc0,Arc1)
 
                                 del NewCurve[anz-3:anz]
                                 NewCurve.append(Arc0)
                                 NewCurve.append(Arc1)
-                            #else:
-                                #print Arc0
-                                #print Arc1
                         except:
                             pass
                   
-                    #else:
-                        #print 'dazwischen'
-                        #del Pts[0]
                 else:
-                    #print 'Linie dazwischen'
                     Pts=[]
-
-        #for geo in NewCurve:
-        #    print geo
         return NewCurve
     
-    def calc_active_tolerance(self,tau,arc,Arc0,Arc1):
+    def calc_active_tolerance_inc(self,tau,arc,Arc0,Arc1):
         V0=arc[0].Pa.unit_vector(arc[0].O)
         Vb=Arc1.Pa.unit_vector(Arc1.O)
 
@@ -483,17 +474,41 @@ class BiarcFittingClass:
 
         tm=arc[1].O.distance(Arc0.Pe)-abs(arc[1].r)
         if tm<0.0:
-            tf=tm
+            tf=tau
         else:   
             tf=tau-tm
         #print("tm: %0.3f; te: %0.3f; tau: %0.3f" %(tm,te,tau))
-        epsilon=min([te,tm,tau])
+        epsilon=min([te,tf,tau])
 
         if epsilon<0.0:
             epsilon=0.0
         
         return epsilon
-    
+
+    def calc_active_tolerance_dec(self,tau,arc,Arc0,Arc1):
+        V0=arc[2].Pa.unit_vector(arc[2].O)
+        Vb=Arc1.Pa.unit_vector(Arc1.O)
+
+        t_=(2*arc[2].r*tau+pow(tau,2))/\
+            (2*(arc[2].r+(arc[2].r+tau)*V0*Vb))
+        
+        te=arc[2].r+t_-(Arc0.Pe-(arc[2].O+(t_*V0))).distance()
+        te=tau
+
+
+        tm=-arc[1].O.distance(Arc0.Pe)+abs(arc[1].r)
+        if tm<0.0:
+            tf=tau
+        else:   
+            tf=tau-tm
+        #print("tm: %0.3f; tf: %0.3f; te: %0.3f; tau: %0.3f" %(tm,tf,te,tau))
+        epsilon=min([te,tf,tau])
+
+        if epsilon<0.0:
+            epsilon=0.0
+        
+        return epsilon    
+   
     def fit_triac_by_inc_biarc(self,arc,eps):
 
         #Errechnen von tb        
@@ -532,8 +547,15 @@ class BiarcFittingClass:
         Arc0=ArcGeo(Pa=arc[0].Pa,Pe=Pn,O=Oa,r=ra,dir=arc[0].ext)
         Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,dir=arc[2].ext)
 
-        #print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
-
+##        print('\nAlte')
+##        print arc[0]
+##        print arc[1]
+##        print arc[2]
+##        print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
+##        print 'Neue'
+##        print Arc0
+##        print Arc1
+        
         return Arc0, Arc1
 
     def fit_triac_by_dec_biarc(self,arc,eps):
@@ -553,11 +575,12 @@ class BiarcFittingClass:
         tb=(pow((arc[1].r-arc[2].r+eps),2)-((arc[1].O-arc[2].O)*(arc[1].O-arc[2].O)))/\
             (2*(arc[1].r-arc[2].r+eps+(arc[1].O-arc[2].O)*V0))
 
+
         #Errechnen von tc
         tc=(pow(t0,2)-(D*D))/(2*(t0-D*V0))
 
         #Auswahl von t
-        t=min([tb,tc])
+        t=min([tb,tc])     
 
         #Errechnen von u
         u=(X0+X1*t)/(Y0+Y1*t)
@@ -575,7 +598,7 @@ class BiarcFittingClass:
         Arc1=ArcGeo(Pa=Pn,Pe=arc[2].Pe,O=Ob,r=rb,\
                     s_ang=Ob.norm_angle(Pn),e_ang=Ob.norm_angle(arc[2].Pe),dir=arc[2].ext)
 
-        #print("tb: %0.3f; tc: %0.3f; t: %0.3f; u: %0.3f" %(tb,tc,t,u))
+            
         return Arc0, Arc1
 
     def check_diff_to_pts(self,Pts,Arc0,Arc1):
@@ -592,7 +615,6 @@ class BiarcFittingClass:
             else:
                 del Pts[Pts.index(Pt)]
         return diff
-    
     def compress_lines(self,Curve):
         joint=[]
         NewCurve=[]
@@ -606,27 +628,28 @@ class BiarcFittingClass:
                     Pts.append(geo.Pe)
                     JointLine=LineGeo(NewCurve[-2].Pa,NewCurve[-1].Pe)
                     
-                    #Überprüfung der Abweichung               
+                    #Überprüfung der Abweichung
+                    res=[]
                     for point in Pts:
-                        res=[]
                         res.append(JointLine.distance2point(point))
+                    #print res
                         
                     #Wenn die Abweichung OK ist Vorheriges anhängen
                     if (max(res)<self.epsilon):
                         anz=len(NewCurve)
-##                        print "Passt"
-##                        print NewCurve[-2]
-##                        print NewCurve[-1]
-##                        print JointLine
                         del NewCurve[anz-2:anz]
                         NewCurve.append(JointLine)
                         points=[geo.Pe]
+                    #Wenn nicht nicht anhängen und Pts zurücksetzen
+                    else:
+                        Pts=[geo.Pe]
+                        
+
                               
                 #Wenn es eines eine andere Geometrie als eine Linie ist        
                 else:
                     Pts=[]
-                
-                     
+                                   
         return NewCurve
         
     def calc_high_accurancy_BiarcCurve(self):
@@ -668,7 +691,7 @@ class BiarcFittingClass:
                     u_beg=ignor[ig_nr][1]
                     ig_nr+=1
 
-                    #Löschen der unsteadys bis grßer als u_beg
+                    #Löschen der unsteadys bis größer als u_beg
                     while (len(unsteady)>0)and(unsteady[0]<=u_beg):
                         del(unsteady[0])
 
@@ -685,11 +708,10 @@ class BiarcFittingClass:
             #Solange u_beg nicht das Ende ist anhängen
             if not(u_beg==u_end):            
                 u_sections.append([u_beg,u_end])
-                
         return u_sections
 
     def calc_Biarc_section(self,u_sect,max_tol):
-        min_u=1e-12
+        min_u=1e-9
         BiarcCurve=[]
         cur_step=self.max_step
         u=u_sect[0]+min_u
@@ -732,9 +754,9 @@ class BiarcFittingClass:
     
 class BiarcClass:
     def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[]):
-        min_len=1e-5        #Min Abstand für doppelten Punkt
-        min_alpha=1e-5      #Winkel ab welchem Gerade angenommen wird inr rad
-        max_r=1e4           #Max Radius ab welchem Gerade angenommen wird (10m)
+        min_len=1e-9        #Min Abstand für doppelten Punkt
+        min_alpha=1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
+        max_r=5e3           #Max Radius ab welchem Gerade angenommen wird (10m)
         
         self.Pa=Pa
         self.tan_a=tan_a
@@ -752,7 +774,6 @@ class BiarcClass:
                                                               self.tan_a,\
                                                               self.tan_b,\
                                                               min_alpha)
-
         
         if(self.l<min_len):
             self.shape="Zero"
@@ -786,9 +807,9 @@ class BiarcClass:
             
             
             #Erstellen der Geometrien          
-            self.geos.append(ArcGeo(Pa=self.Pa,Pe=k,O=O1,r=abs(r1),\
+            self.geos.append(ArcGeo(Pa=self.Pa,Pe=k,O=O1,r=r1,\
                                     s_ang=s_ang1,e_ang=e_ang1,dir=dir_ang1))
-            self.geos.append(ArcGeo(Pa=k,Pe=self.Pb,O=O2,r=abs(r2),\
+            self.geos.append(ArcGeo(Pa=k,Pe=self.Pb,O=O2,r=r2,\
                                     s_ang=s_ang2,e_ang=e_ang2,dir=dir_ang2)) 
 
     def calc_O1_O2_k(self,r1,r2,tan_a,teta):
@@ -900,7 +921,7 @@ class ArcGeo:
         self.Pa=Pa
         self.Pe=Pe
         self.O=O
-        self.r=r
+        self.r=abs(r)
 
         #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
         if type(s_ang)==type(None):
@@ -919,8 +940,7 @@ class ArcGeo:
                    
         self.s_ang=s_ang
         self.e_ang=e_ang     
-
-    
+  
     def get_start_end_points(self,direction):
         if direction==0:
             punkt=self.Pa
@@ -931,16 +951,12 @@ class ArcGeo:
         return punkt,angle
                    
     def plot2plot(self, plot):
-        #plot.Arc(xy=[self.O.x,self.O.y],width=self.r*2,height=self.r*2)
-        if (self.e_ang-self.s_ang)<-1.5*pi:
-            self.s_ang-=2*pi
-        elif(self.e_ang-self.s_ang)>1.5*pi:
-            self.s_ang+=2*pi
-            
-        da=(self.e_ang-self.s_ang)/30
+    
         x=[]; y=[]
-        for i in range(31):
-            ang=self.s_ang+i*da
+        #Alle 6 Grad ein Linien Segment Drucken
+        segments=int((abs(degrees(self.ext))//6)+1)
+        for i in range(segments+1):
+            ang=self.s_ang+i*self.ext/segments
             x.append(self.O.x+cos(ang)*abs(self.r))
             y.append(self.O.y+sin(ang)*abs(self.r))
             
@@ -1323,7 +1339,158 @@ class ExamplesClass:
         CPoints.append(PointClass(x=-69.25  , y=-92.00))
         CPoints.append(PointClass(x=-69.25  , y=-92.00))
         return degree, CPoints, Weights, Knots
-    
+
+    def get_nurbs_6(self):
+        degree=3
+        Knots = [0.0, 0.0, 0.0, 0.0,\
+                 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001,\
+                 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001,\
+                 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999,\
+                 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002,\
+                 0.5, 0.5, 0.5, 0.5,\
+                 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998,\
+                 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996,\
+                 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993,\
+                 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991,\
+                 1.0, 1.0, 1.0, 1.0]
+        Weights = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        CPoints=[]
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-77.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-77.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-77.50000))
+        CPoints.append(PointClass(x=-60.97700, y=-77.50020))
+        CPoints.append(PointClass(x=-53.35560, y=-80.37450))
+        CPoints.append(PointClass(x=-47.33170, y=-85.17480))
+        CPoints.append(PointClass(x=-47.33170, y=-85.17480))
+        CPoints.append(PointClass(x=-47.33170, y=-85.17480))
+        CPoints.append(PointClass(x=-49.82390, y=-87.66700))
+        CPoints.append(PointClass(x=-49.82390, y=-87.66700))
+        CPoints.append(PointClass(x=-49.82390, y=-87.66700))
+        CPoints.append(PointClass(x=-55.19980, y=-83.49120))
+        CPoints.append(PointClass(x=-61.94320, y=-81.00010))
+        CPoints.append(PointClass(x=-69.24930, y=-81.00000))
+        CPoints.append(PointClass(x=-69.24930, y=-81.00000))
+        CPoints.append(PointClass(x=-69.24930, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-81.00000))
+        CPoints.append(PointClass(x=-76.55740, y=-81.00030))
+        CPoints.append(PointClass(x=-83.30040, y=-83.49120))
+        CPoints.append(PointClass(x=-88.67610, y=-87.66700))
+        CPoints.append(PointClass(x=-88.67610, y=-87.66700))
+        CPoints.append(PointClass(x=-88.67610, y=-87.66700))
+        CPoints.append(PointClass(x=-91.16830, y=-85.17480))
+        CPoints.append(PointClass(x=-91.16830, y=-85.17480))
+        CPoints.append(PointClass(x=-91.16830, y=-85.17480))
+        CPoints.append(PointClass(x=-85.14470, y=-80.37460))
+        CPoints.append(PointClass(x=-77.52360, y=-77.50030))
+        CPoints.append(PointClass(x=-69.25150, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25150, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25150, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
+        return degree, CPoints, Weights, Knots
+
+    def get_nurbs_7(self):
+        degree=3
+        Knots=[0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.5, 0.5, 0.5, 0.5, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 1.0, 1.0, 1.0, 1.0]
+        Weights=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        CPoints =[]
+        CPoints.append(PointClass(x=-52.03270, y=-101.18960))
+        CPoints.append(PointClass(x=-49.80380, y=-104.49620))
+        CPoints.append(PointClass(x=-48.50030, y=-108.47490))
+        CPoints.append(PointClass(x=-48.50000, y=-112.74850))
+        CPoints.append(PointClass(x=-48.50000, y=-112.74850))
+        CPoints.append(PointClass(x=-48.50000, y=-112.74850))
+        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
+        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
+        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
+        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
+        CPoints.append(PointClass(x=-48.50000, y=-112.75070))
+        CPoints.append(PointClass(x=-48.50000, y=-112.75070))
+        CPoints.append(PointClass(x=-48.50000, y=-112.75070))
+        CPoints.append(PointClass(x=-48.50010, y=-117.02480))
+        CPoints.append(PointClass(x=-49.80380, y=-121.00360))
+        CPoints.append(PointClass(x=-52.03280, y=-124.31030))
+        CPoints.append(PointClass(x=-52.03280, y=-124.31030))
+        CPoints.append(PointClass(x=-52.03280, y=-124.31030))
+        CPoints.append(PointClass(x=-54.56410, y=-121.77900))
+        CPoints.append(PointClass(x=-54.56410, y=-121.77900))
+        CPoints.append(PointClass(x=-54.56410, y=-121.77900))
+        CPoints.append(PointClass(x=-52.93950, y=-119.14980))
+        CPoints.append(PointClass(x=-52.00010, y=-116.05620))
+        CPoints.append(PointClass(x=-52.00000, y=-112.75070))
+        CPoints.append(PointClass(x=-52.00000, y=-112.75070))
+        CPoints.append(PointClass(x=-52.00000, y=-112.75070))
+        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
+        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
+        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
+        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
+        CPoints.append(PointClass(x=-52.00000, y=-112.74850))
+        CPoints.append(PointClass(x=-52.00000, y=-112.74850))
+        CPoints.append(PointClass(x=-52.00000, y=-112.74850))
+        CPoints.append(PointClass(x=-52.00020, y=-109.44350))
+        CPoints.append(PointClass(x=-52.93940, y=-106.34970))
+        CPoints.append(PointClass(x=-54.56380, y=-103.72070))
+        CPoints.append(PointClass(x=-54.56380, y=-103.72070))
+        CPoints.append(PointClass(x=-54.56380, y=-103.72070))
+        CPoints.append(PointClass(x=-52.03270, y=-101.18960))
+        CPoints.append(PointClass(x=-52.03270, y=-101.18960))
+        return degree, CPoints, Weights, Knots
+
+    def get_nurbs_8(self):
+        degree = 3
+        Knots = [0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.5, 0.5, 0.5, 0.5, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 1.0, 1.0, 1.0, 1.0]
+        Weights =[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        CPoints =[]
+        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
+        CPoints.append(PointClass(x=-69.24930, y=-92.00000))
+        CPoints.append(PointClass(x=-69.24930, y=-92.00000))
+        CPoints.append(PointClass(x=-69.24930, y=-92.00000))
+        CPoints.append(PointClass(x=-64.97520, y=-92.00010))
+        CPoints.append(PointClass(x=-60.99630, y=-93.30340))
+        CPoints.append(PointClass(x=-57.68950, y=-95.53260))
+        CPoints.append(PointClass(x=-57.68950, y=-95.53260))
+        CPoints.append(PointClass(x=-57.68950, y=-95.53260))
+        CPoints.append(PointClass(x=-60.22060, y=-98.06370))
+        CPoints.append(PointClass(x=-60.22060, y=-98.06370))
+        CPoints.append(PointClass(x=-60.22060, y=-98.06370))
+        CPoints.append(PointClass(x=-62.85000, y=-96.43900))
+        CPoints.append(PointClass(x=-65.94370, y=-95.50010))
+        CPoints.append(PointClass(x=-69.24930, y=-95.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-95.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-95.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
+        CPoints.append(PointClass(x=-69.25150, y=-95.50000))
+        CPoints.append(PointClass(x=-69.25150, y=-95.50000))
+        CPoints.append(PointClass(x=-69.25150, y=-95.50000))
+        CPoints.append(PointClass(x=-72.55680, y=-95.50020))
+        CPoints.append(PointClass(x=-75.65020, y=-96.43910))
+        CPoints.append(PointClass(x=-78.27940, y=-98.06370))
+        CPoints.append(PointClass(x=-78.27940, y=-98.06370))
+        CPoints.append(PointClass(x=-78.27940, y=-98.06370))
+        CPoints.append(PointClass(x=-80.81050, y=-95.53260))
+        CPoints.append(PointClass(x=-80.81050, y=-95.53260))
+        CPoints.append(PointClass(x=-80.81050, y=-95.53260))
+        CPoints.append(PointClass(x=-77.50380, y=-93.30360))
+        CPoints.append(PointClass(x=-73.52530, y=-92.00030))
+        CPoints.append(PointClass(x=-69.25150, y=-92.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-92.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-92.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
+        return degree, CPoints, Weights, Knots
+
 if 1:
     master = Tk()
     #Wenn der NURBS erstellt und ausgedrückt werden soll
