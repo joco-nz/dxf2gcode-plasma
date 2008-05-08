@@ -57,10 +57,7 @@ class NURBSClass:
                                   Knots=self.Knots,\
                                   CPts=self.HCPts)
 
-        #Überprüfen der NURBS Parameter
-        self.check_NURBSParameters()
-
-    def check_NURBSParameters(self):
+    def check_NURBSParameters(self,tol):
         #Überprüfen des Knotenvektors
         #Suchen von mehrfachen Knotenpunkte (Anzahl über degree+1 => Fehler?!)
         knt_nr=1
@@ -84,15 +81,14 @@ class NURBSClass:
                 temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
                 if abs(tangent0-tangent1)>1e-6:
                     self.knt_m_change.append(knt_spts[0])
-                    
-                    
+                               
         #Überprüfen der Kontrollpunkte
         #Suchen von mehrachen Kontrollpunkten (Anzahl über degree+2 => nicht errechnen
         ctlpt_nr=0
         ctlpt_vec=[[ctlpt_nr]]
         while ctlpt_nr < len(self.CPoints)-1:
             ctlpt_nr+=1
-            if self.CPoints[ctlpt_nr].isintol(self.CPoints[ctlpt_vec[-1][-1]],1e-6):
+            if self.CPoints[ctlpt_nr].isintol(self.CPoints[ctlpt_vec[-1][-1]],tol):
                 ctlpt_vec[-1].append(ctlpt_nr)
             else:
                 ctlpt_vec.append([ctlpt_nr])
@@ -371,16 +367,20 @@ class BSplineClass:
 class BiarcFittingClass:
     def __init__(self):
         #Max Abweichung für die Biarc Kurve
-        self.epsilon=0.05
-        self.epsilon_high=self.epsilon*0.01
+        self.epsilon=0.01
+        self.epsilon_high=self.epsilon*0.03
         self.segments=50
 
         #Beispiel aus der ExamplesClass laden
         examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_8()
+        degree, CPoints, Weights, Knots=examples.get_nurbs_6()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
+        
+        #Überprüfen der NURBS Parameter Überprüfung der NURBS Kontrollpunkte ob welche doppelt
+        #Innerhalb der gegebenen Tolerans sind (=> Ignorieren)
+        self.NURBS.check_NURBSParameters(self.epsilon)
 
         #High Accuracy Biarc fitting of NURBS        
         BiarcCurves, self.PtsVec=self.calc_high_accurancy_BiarcCurve()
@@ -397,11 +397,11 @@ class BiarcFittingClass:
                 for geo in Biarc.geos:
                     Curve.append(geo)
 
-            #print ("Vor Linie: Elemente: %0.0f" %len(Curve))
+            print ("Vor Linie: Elemente: %0.0f" %len(Curve))
             Curve=self.compress_lines(Curve)
-            #print ("Nach Linie: Elemente: %0.0f" %len(Curve))
+            print ("Nach Linie: Elemente: %0.0f" %len(Curve))
             Curve=self.compress_biarcs(Curve)
-            #print ("Nach Biarc: Elemente: %0.0f" %len(Curve))
+            print ("Nach Biarc: Elemente: %0.0f" %len(Curve))
             Curves+=Curve
         return Curves
 
@@ -730,7 +730,7 @@ class BiarcFittingClass:
             PtVec=self.NURBS.NURBS_evaluate(n=1,u=u)
 
             #Aus den letzten 2 Punkten den nächsten Biarc berechnen
-            Biarc=(BiarcClass(PtsVec[-1][0],PtsVec[-1][1],PtVec[0],PtVec[1]))
+            Biarc=BiarcClass(PtsVec[-1][0],PtsVec[-1][1],PtVec[0],PtVec[1],max_tol)
 
             if Biarc.shape=="Zero":
                 self.cur_step=min([cur_step*2,self.max_step])
@@ -753,8 +753,7 @@ class BiarcFittingClass:
         return BiarcCurve, PtsVec
     
 class BiarcClass:
-    def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[]):
-        min_len=1e-9        #Min Abstand für doppelten Punkt
+    def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[],min_len=1e-5):
         min_alpha=1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
         max_r=5e3           #Max Radius ab welchem Gerade angenommen wird (10m)
         
@@ -777,6 +776,7 @@ class BiarcClass:
         
         if(self.l<min_len):
             self.shape="Zero"
+            print "Zero"
             pass
         elif(self.shape=="LineGeo"):
             #Erstellen der Geometrie
@@ -939,19 +939,12 @@ class ArcGeo:
             self.ext+=ceil(self.ext/(2*pi))*(2*pi)
                    
         self.s_ang=s_ang
-        self.e_ang=e_ang     
-  
-    def get_start_end_points(self,direction):
-        if direction==0:
-            punkt=self.Pa
-            angle=self.s_ang*180/pi+90
-        elif direction==1:
-            punkt=self.Pe
-            angle=self.e_ang*180/pi-90
-        return punkt,angle
+        self.e_ang=e_ang
+        self.length=self.r*abs(self.ext)
                    
     def plot2plot(self, plot):
-    
+
+        print self
         x=[]; y=[]
         #Alle 6 Grad ein Linien Segment Drucken
         segments=int((abs(degrees(self.ext))//6)+1)
@@ -966,10 +959,10 @@ class ArcGeo:
 
     def __str__(self):
         return ("\nARC")+\
-               ("\nPa : %s; s_ang: %0.3f" %(self.Pa,self.s_ang))+\
-               ("\nPe : %s; e_ang: %0.3f" %(self.Pe,self.e_ang))+\
+               ("\nPa : %s; s_ang: %0.5f" %(self.Pa,self.s_ang))+\
+               ("\nPe : %s; e_ang: %0.5f" %(self.Pe,self.e_ang))+\
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
-               ("\next  : %0.3f" %(self.ext))
+               ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 
 
 class LineGeo:
@@ -977,6 +970,7 @@ class LineGeo:
         self.type="LineGeo"
         self.Pa=Pa
         self.Pe=Pe
+        self.length=self.Pa.distance(self.Pe)
 
     def get_start_end_points(self,direction):
         if direction==0:
@@ -987,7 +981,8 @@ class LineGeo:
             angle=self.Pa.norm_angle(self.Pe)
         return punkt, angle
 
-    def plot2plot(self, plot):   
+    def plot2plot(self, plot):
+        print self
         plot.plot([self.Pa.x,self.Pe.x],[self.Pa.y,self.Pe.y],'-dm')
         
     def distance2point(self,point):
@@ -1000,14 +995,15 @@ class LineGeo:
     def __str__(self):
         return ("\nLINE")+\
                ("\nPa : %s" %self.Pa)+\
-               ("\nPe : %s" %self.Pe)    
+               ("\nPe : %s" %self.Pe)+\
+               ("\nlength: %0.5f" %self.length) 
 
 class PointClass:
     def __init__(self,x=0,y=0):
         self.x=x
         self.y=y
     def __str__(self):
-        return ('X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
+        return ('X ->%6.4f  Y ->%6.4f' %(self.x,self.y))
     def __cmp__(self, other) : 
       return (self.x == other.x) and (self.y == other.y)
     def __neg__(self):

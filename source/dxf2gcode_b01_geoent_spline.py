@@ -169,7 +169,6 @@ class SplineClass:
         hdl=[]
         for geo in self.ArcSpline:
             hdl+=(geo.plot2can(canvas,p0,sca,tag))
-       
         return hdl
 ##        #if summe>0.0:
 ##        #   self.CPoints.reverse()
