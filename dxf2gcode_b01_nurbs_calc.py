@@ -41,6 +41,10 @@ class Spline2Arcs:
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
 
+        #Überprüfen der NURBS Parameter Überprüfung der NURBS Kontrollpunkte ob welche doppelt
+        #Innerhalb der gegebenen Tolerans sind (=> Ignorieren)
+        self.NURBS.check_NURBSParameters(tol)
+
         #High Accuracy Biarc fitting of NURBS        
         BiarcCurves, self.PtsVec=self.calc_high_accurancy_BiarcCurve()
 
@@ -593,10 +597,9 @@ class NURBSClass:
                                   Knots=self.Knots,\
                                   CPts=self.HCPts)
 
-        #Überprüfen der NURBS Parameter
-        self.check_NURBSParameters()
+        
 
-    def check_NURBSParameters(self):
+    def check_NURBSParameters(self,tol=1e-6):
         #Überprüfen des Knotenvektors
         #Suchen von mehrfachen Knotenpunkte (Anzahl über degree+1 => Fehler?!)
         knt_nr=1
@@ -628,7 +631,7 @@ class NURBSClass:
         ctlpt_vec=[[ctlpt_nr]]
         while ctlpt_nr < len(self.CPoints)-1:
             ctlpt_nr+=1
-            if self.CPoints[ctlpt_nr].isintol(self.CPoints[ctlpt_vec[-1][-1]],1e-6):
+            if self.CPoints[ctlpt_nr].isintol(self.CPoints[ctlpt_vec[-1][-1]],tol):
                 ctlpt_vec[-1].append(ctlpt_nr)
             else:
                 ctlpt_vec.append([ctlpt_nr])

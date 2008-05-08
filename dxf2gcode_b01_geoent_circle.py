@@ -24,30 +24,26 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass
+from math import sqrt, sin, cos, atan2, radians, degrees, pi
+from dxf2gcode_b01_point import PointClass, PointsClass, ArcGeo, ContourClass
 
 class CircleClass:
     def __init__(self,Nr=0,caller=None):
         self.Typ='Circle'
         self.Nr = Nr
-
-        #Initialisieren der Werte        
         self.Layer_Nr = 0
-        self.Points = []
-        self.Radius= 0.0
         self.length= 0.0
+        self.geo=None
 
         #Lesen der Geometrie
         self.Read(caller)
         
     def __str__(self):
         # how to print the object
-        s='\nType: Circle\nNr ->'+str(self.Nr) +'\nLayer Nr: ->'+str(self.Layer_Nr)
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nRadius ->'+str(self.Radius)+'\nLength ->'+str(self.length)
-        return s
+        return("\nTyp: Circle ")+\
+              ("\nNr: %i" %self.Nr)+\
+              ("\nLayer Nr:%i" %self.Layer_Nr)+\
+              str(self.geo)
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
@@ -66,53 +62,37 @@ class CircleClass:
         #YWert
         s=lp.index_code(20,s+1)
         y0=float(lp.line_pair[s].value)
-        self.Points.append(PointClass(x0,y0))
+        O=PointClass(x0,y0)
         #Radius
         s=lp.index_code(40,s+1)
-        self.Radius = float(lp.line_pair[s].value)
-                        
-        #Berechnen des Kreisumfangs                
-        self.length=self.Radius*radians(360)
-        
+        r= float(lp.line_pair[s].value)
+                                
         #Berechnen der Start und Endwerte des Kreises ohne Überschneidung              
-        xs=cos(radians(0))*self.Radius+x0
-        ys=sin(radians(0))*self.Radius+y0
-        self.Points.append(PointClass(xs,ys))
-        
-        xe=cos(radians(0))*self.Radius+x0
-        ye=sin(radians(0))*self.Radius+y0
-        self.Points.append(PointClass(xe,ye))
+        s_ang= 0
+        e_ang= 2*pi
 
+        #Berechnen der Start und Endwerte des Arcs
+        Pa=PointClass(x=cos(s_ang)*r,y=sin(s_ang)*r)+O
+        Pe=PointClass(x=cos(e_ang)*r,y=sin(e_ang)*r)+O
+
+        #Anhängen der ArcGeo Klasse für die Geometrie
+        self.geo=ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r,s_ang=s_ang,e_ang=e_ang,dir=1)
+
+        #Länge entspricht der Länge des Kreises
+        self.length=self.geo.length
+       
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=s        
 
     def plot2can(self,canvas,p0,sca,tag):
-        xy=p0.x+(self.Points[0].x-self.Radius)*sca[0],-p0.y-(self.Points[0].y-self.Radius)*sca[1],\
-            p0.x+(self.Points[0].x+self.Radius)*sca[0],-p0.y-(self.Points[0].y+self.Radius)*sca[1]
-        hdl=Oval(canvas,xy,tag=tag)
+        hdl=self.geo.plot2can(canvas,p0,sca,tag)
         return hdl
 
     def get_start_end_points(self,direction):
-        punkt=self.Points[-1]
-        if direction==0:
-            angle=270
-        else:
-            angle=90
-            
+        punkt,angle=self.geo.get_start_end_points(direction)
         return punkt,angle
     
     def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        st_point, st_angle=self.get_start_end_points(dir)
-        IJ=(self.Points[0]-st_point)*sca
-
-        en_point, en_angle=self.get_start_end_points(not(dir))
-        ende=(en_point*sca)+p0
-        
-        #Vorsicht geht nicht für Ovale
-        if dir==0:
-            string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-        else:
-            string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-
-        return string    
+        string+=self.geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
+        return string
         

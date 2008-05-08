@@ -25,16 +25,14 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass
+from dxf2gcode_b01_point import PointClass, LineGeo, PointsClass, ContourClass
 
 class LineClass:
     def __init__(self,Nr=0,caller=None):
         self.Typ='Line'
         self.Nr = Nr
-        
-        #Initialisieren der Werte        
         self.Layer_Nr = 0
-        self.Points = []
+        self.geo = None
         self.length= 0
 
         #Lesen der Geometrie
@@ -42,17 +40,16 @@ class LineClass:
         
     def __str__(self):
         # how to print the object
-        s= '\nTyp: Line \nNr ->'+str(self.Nr) +'\nLayer Nr: ->'+str(self.Layer_Nr)
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nLength ->'+str(self.length)
-        return s
+        return("\nTyp: Line")+\
+              ("\nNr: %i" %self.Nr)+\
+              ("\nLayer Nr: %i" %self.Layer_Nr)+\
+              str(self.geo)
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                   Layer_Nr=self.Layer_Nr,\
-                                  be=self.Points[0],
-                                  en=self.Points[-1],be_cp=[],en_cp=[]))      
+                                  be=self.geo.Pa,
+                                  en=self.geo.Pe,be_cp=[],en_cp=[]))      
         
     def Read(self, caller):
         #Kürzere Namen zuweisen
@@ -74,38 +71,28 @@ class LineClass:
         s=lp.index_code(21,s+1)
         y1 = float(lp.line_pair[s].value)
 
-        self.Points.append(PointClass(x0,y0))
-        self.Points.append(PointClass(x1,y1))                
-        #Berechnen der Vektorlänge
-        self.length=self.Points[0].distance(self.Points[1])
+        Pa=PointClass(x0,y0)
+        Pe=PointClass(x1,y1)               
 
+        #Anhängen der LineGeo Klasse für die Geometrie
+        self.geo=LineGeo(Pa=Pa,Pe=Pe)
+
+        #Länge entspricht der Länge des Kreises
+        self.length=self.geo.length
+        
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=s
 
     def plot2can(self,canvas,p0,sca,tag):
-        hdl=Line(canvas,p0.x+self.Points[0].x*sca[0],-p0.y-self.Points[0].y*sca[1],\
-             p0.x+self.Points[1].x*sca[0],-p0.y-self.Points[1].y*sca[1],\
-             tag=tag)
+        hdl=self.geo.plot2can(canvas,p0,sca,tag)
         return hdl
-    
-    def get_start_end_points(self,direction):
-        if direction==0:
-            punkt=self.Points[0]
-            dx=self.Points[1].x-self.Points[0].x
-            dy=self.Points[1].y-self.Points[0].y
-            angle=degrees(atan2(dy, dx))
-        elif direction==1:
-            punkt=self.Points[-1]
-            dx=self.Points[-2].x-self.Points[-1].x
-            dy=self.Points[-2].y-self.Points[-1].y
-            angle=degrees(atan2(dy, dx))
 
-        return punkt, angle
+    def get_start_end_points(self,direction):
+        punkt,angle=self.geo.get_start_end_points(direction)
+        return punkt,angle
     
     def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        en_point, en_angle=self.get_start_end_points(not(dir))
-        ende=en_point*sca+p0
-        string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
+        string+=self.geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
         return string
         
 

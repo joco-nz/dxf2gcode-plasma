@@ -34,8 +34,8 @@ class PointClass:
         self.x=x
         self.y=y
     def __str__(self):
-        #return ('X ->%6.2f  Y ->%6.2f' %(self.x,self.y))
-        return ('CPoints.append(PointClass(x=%6.5f, y=%6.5f))' %(self.x,self.y))
+        return ('X ->%6.3f  Y ->%6.3f' %(self.x,self.y))
+        #return ('CPoints.append(PointClass(x=%6.5f, y=%6.5f))' %(self.x,self.y))
     def __cmp__(self, other) : 
       return (self.x == other.x) and (self.y == other.y)
     def __neg__(self):
@@ -228,9 +228,14 @@ class ArcGeo:
         else:
             self.ext=self.ext%(-2*pi)
             self.ext+=ceil(self.ext/(2*pi))*(2*pi)
+
+        #Falls es ein Kreis ist Umfang 2pi einsetzen        
+        if self.ext==0.0:
+            self.ext=2*pi
                    
         self.s_ang=s_ang
-        self.e_ang=e_ang     
+        self.e_ang=e_ang
+        self.length=self.r*abs(self.ext)
 
     def plot2can(self,canvas,p0,sca,tag):
 
@@ -257,10 +262,10 @@ class ArcGeo:
     def get_start_end_points(self,direction):
         if direction==0:
             punkt=self.Pa
-            angle=degrees(self.s_ang)-90
+            angle=degrees(self.s_ang)+90*self.ext/abs(self.ext)
         elif direction==1:
             punkt=self.Pe
-            angle=degrees(self.e_ang)+90
+            angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
         return punkt,angle
     
     def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
@@ -271,7 +276,7 @@ class ArcGeo:
         ende=en_point*sca+p0
         
         #Vorsicht geht nicht für Ovale
-        if dir==0:
+        if ((dir==0)and(self.ext>0))or((dir==1)and(self.ext<0)):
             string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
         else:
             string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
@@ -279,17 +284,17 @@ class ArcGeo:
 
     def __str__(self):
         return ("\nARC")+\
-               ("\nPa : %s; s_ang: %0.3f" %(self.Pa,self.s_ang))+\
-               ("\nPe : %s; e_ang: %0.3f" %(self.Pe,self.e_ang))+\
+               ("\nPa : %s; s_ang: %0.5f" %(self.Pa,self.s_ang))+\
+               ("\nPe : %s; e_ang: %0.5f" %(self.Pe,self.e_ang))+\
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
-               ("\next  : %0.3f" %(self.ext))
-    
+               ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 class LineGeo:
     def __init__(self,Pa,Pe):
         self.type="LineGeo"
         self.Pa=Pa
         self.Pe=Pe
-
+        self.length=self.Pa.distance(self.Pe)
+        
     def plot2can(self,canvas,p0,sca,tag):
         anf=p0+self.Pa*sca
         ende=p0+self.Pe*sca
@@ -325,5 +330,6 @@ class LineGeo:
     def __str__(self):
         return ("\nLINE")+\
                ("\nPa : %s" %self.Pa)+\
-               ("\nPe : %s" %self.Pe)
+               ("\nPe : %s" %self.Pe)+\
+               ("\nlength: %0.5f" %self.length)
     

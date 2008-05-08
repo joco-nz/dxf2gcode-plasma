@@ -51,9 +51,6 @@ from Canvas import Rectangle, Line, Oval, Arc
 
 from math import radians, cos, sin
 
-#reload(dxf_import)
-#reload(tsp)
-
 # Globale "Konstanten"
 DEBUG = 0
 APPNAME = "dxf2gcode_b01"
@@ -980,7 +977,6 @@ class CanvasContentClass:
             self.wp_zero_hdls.append(hdl)
             hdl=Arc(self.Canvas.canvas,xy,start=270,extent=90,style="pieslice",outline="gray",fill="gray")
             self.wp_zero_hdls.append(hdl)
-
     def plot_start_end(self):
         for hdl in self.dir_hdls:
             self.Canvas.canvas.delete(hdl) 
@@ -998,45 +994,34 @@ class CanvasContentClass:
                 
                 if self.Shapes[shape_nr].cut_cor>40:
                     self.dir_hdls.append(self.Shapes[shape_nr].plot_cut_cor(self.Canvas))
-                        
     def plot_entities(self,ent_nr=-1,p0=PointClass(x=0,y=0),sca=[1,1,1]):
-            
-        #Zuweisen der richtigen Entities für das Ploten
         if ent_nr==-1:
             entities=self.values.entities
         else:
             entities=self.values.blocks.Entities[ent_nr]
-        
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
         geos=entities.geo
         cont=entities.cont
-        
         #Schleife für die Anzahl der Konturen 
         for c_nr in range(len(cont)):
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
             if geos[cont[c_nr].order[0][0]].Typ=="Insert":
                 geo=geos[cont[c_nr].order[0][0]]
                 self.plot_entities(geo.Block,geo.Point,geo.Scale)
-                
             else:
                 #Schleife für die Anzahl der Geometrien
                 self.Shapes.append(ShapeClass(len(self.Shapes),ent_nr,c_nr,cont[c_nr].closed,p0,sca[:],40,[],[],[]))
-
                 for geo_nr in range(len(cont[c_nr].order)):
                     geo=geos[cont[c_nr].order[geo_nr][0]]
-                    geo_hdl=geo.plot2can(self.Canvas.canvas,p0,sca,self.Shapes[-1].nr)
+                    self.Shapes[-1].geos_hdls+=geo.plot2can(self.Canvas.canvas,p0,sca,self.Shapes[-1].nr)
                     self.Shapes[-1].geos.append(geo)
                     self.Shapes[-1].geos_dir.append(cont[c_nr].order[geo_nr][1])
-                    self.Shapes[-1].geos_hdls.append(geo_hdl)
-                    
                 self.addtoLayerContents(self.Shapes[-1].nr,geo.Layer_Nr)
                 self.addtoEntitieContents(self.Shapes[-1].nr,ent_nr,c_nr)
-
         self.plot_wp_zero()
 
-
     def plot_opt_route(self,shapes_st_en_points,route):
-        #Ausdrucken der optimierten Route        
+        #Ausdrucken der optimierten Route
         for en_nr in range(len(route)):
             if en_nr==0:
                 st_nr=-1
@@ -1056,6 +1041,8 @@ class CanvasContentClass:
 
             self.path_hdls.append(Line(self.Canvas.canvas,x_ca_s,-y_ca_s,x_ca_e,-y_ca_e,fill=col,arrow='last'))
         self.Canvas.canvas.update()
+
+
     #Hinzufügen der Kontur zum Layer        
     def addtoLayerContents(self,shape_nr,lay_nr):
         #Abfrage of der gesuchte Layer schon existiert
@@ -1210,8 +1197,7 @@ class CanvasContentClass:
         
     def set_color(self,hdls,color):
         for hdl in hdls:
-
-            if (self.Canvas.canvas.type(hdl)=="arc") | (self.Canvas.canvas.type(hdl)=="oval") :
+            if (self.Canvas.canvas.type(hdl)=="oval") :
                 self.Canvas.canvas.itemconfig(hdl, outline=color)
             else:
                 self.Canvas.canvas.itemconfig(hdl, fill=color)
