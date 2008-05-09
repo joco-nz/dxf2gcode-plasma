@@ -65,6 +65,11 @@ class EllipseClass:
         'Length: '+str(self.length)
         return s
 
+    
+    def reverse(self):
+        pass    #Das geht noch nicht !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        self.geo.reverse()
+
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         #Ich nehm das mal wörtlich und berechne die Punkte erst hier,
@@ -161,12 +166,12 @@ class EllipseClass:
         return punkt,angle
 
 
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
+    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
         for p_nr in range(len(self.Points)-1):
             en_point, en_angle=self.get_start_end_points(not(dir),p_nr+1)
             x_en=(en_point.x*sca[0])+p0.x
             y_en=(en_point.y*sca[1])+p0.y
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,x_en,axis2,y_en))
+            string=("G1 %s%0.3f %s%0.3f\n" %(axis1,x_en,axis2,y_en))
         return string
 
 

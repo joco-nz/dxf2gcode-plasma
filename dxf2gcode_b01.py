@@ -30,10 +30,10 @@
 #Löschen aller Module aus dem Speicher
 import sys
 if globals().has_key('init_modules'):
-	for m in [x for x in sys.modules.keys() if x not in init_modules]:
-		del(sys.modules[m]) 
+    for m in [x for x in sys.modules.keys() if x not in init_modules]:
+        del(sys.modules[m]) 
 else:
-	init_modules = sys.modules.keys()
+    init_modules = sys.modules.keys()
 
 
 import sys, os, string, ConfigParser 
@@ -1260,6 +1260,7 @@ class ShapeClass:
             else:
                 self.geos_dir[geo_nr]=0
 
+
     def switch_cut_cor(self):
         if self.cut_cor==41:
             self.cut_cor=42
@@ -1357,14 +1358,7 @@ class ShapeClass:
             Pg_ein=Pa_ein.get_arc_point(st_angle+90,start_ver)
             #Eintauchpunkts
             start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
-
-##            print("start_cont: %s; st_angle: %0.3f" %(start_cont,st_angle))
-##            print Oein
-##            print Pa_ein
-##            print IJ
-##            print Pg_ein
-##            print start_ein
-
+            
             #Positionieren des Werkzeugs über dem Anfang und Eintauchen
             string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
             string+=("G0 %s%0.3f \n" %(axis3,paras.Axis3_safe_margin.get()))
@@ -1380,23 +1374,16 @@ class ShapeClass:
         #Fräsradiuskorrektur Rechts        
         elif self.cut_cor==42:
 
-            #Mittelpunkts für Einlaufradius
+            #Mittelpunkt für Einlaufradius
             Oein=start_cont.get_arc_point(st_angle-90,start_rad+tool_rad)
-            #Startpunkts für Einlaufradius
+            #Startpunkt für Einlaufradius
             Pa_ein=Oein.get_arc_point(st_angle+180,start_rad+tool_rad)
             IJ=Oein-Pa_ein
             #Startwerts für Einlaufgerade
             Pg_ein=Pa_ein.get_arc_point(st_angle-90,start_ver)
-            #Eintauchpunkts
+            #Eintauchpunkt
             start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
-
-##            print("start_cont: %s; st_angle: %0.3f" %(start_cont,st_angle))
-##            print Oein
-##            print Pa_ein
-##            print IJ
-##            print Pg_ein
-##            print start_ein
-
+            
             #Positionieren des Werkzeugs über dem Anfang und Eintauchen
             string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
             string+=("G0 %s%0.3f \n" %(axis3,paras.Axis3_safe_margin.get()))
@@ -1410,10 +1397,10 @@ class ShapeClass:
             
         #Schreiben der Geometrien für den ersten Schnitt
         for geo_nr in range(len(self.geos)):
-            string=self.geos[geo_nr].Write_GCode(string,paras,\
-                                                 self.sca,self.p0,\
-                                                 self.geos_dir[geo_nr],\
-                                                 axis1,axis2)
+            string+=self.geos[geo_nr].Write_GCode(paras,\
+                                                  self.sca,self.p0,\
+                                                  self.geos_dir[geo_nr],\
+                                                  axis1,axis2)
 
         #Schleifen für die Anzahl der Schnitte
         #Anfangswert für Direction merken
@@ -1438,10 +1425,10 @@ class ShapeClass:
                     string+=("G"+str(self.cut_cor)+" \n")
                 
             for geo_nr in range(len(self.geos)):
-                string=self.geos[geo_nr].Write_GCode(string,paras,\
-                                                     self.sca,self.p0,\
-                                                     self.geos_dir[geo_nr],\
-                                                     axis1,axis2)
+                string+=self.geos[geo_nr].Write_GCode(paras,\
+                                                      self.sca,self.p0,\
+                                                      self.geos_dir[geo_nr],\
+                                                      axis1,axis2)
 
         #Anfangswert für Direction wieder herstellen falls nötig
         if not(anfang==self.geos_dir[0]):
@@ -1760,7 +1747,7 @@ class EntitieContentClass:
         return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
                +'\nShapes ->'+str(self.Shapes)
 
-class NotebookClass:	
+class NotebookClass:    
     # initialization. receives the master widget
     # reference and the notebook orientation
     def __init__(self, master,width=0,height=0):

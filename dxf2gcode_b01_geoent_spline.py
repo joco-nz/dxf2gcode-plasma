@@ -40,8 +40,8 @@ class SplineClass:
         self.Knots=[]
         self.Weights=[]
         self.CPoints=[]
-        self.ArcSpline=[]
-        self.length= 0
+        self.geo=[]
+        self.length= 0.0
 
         #Lesen der Geometrie
         self.Read(caller)
@@ -51,43 +51,74 @@ class SplineClass:
         Spline2ArcsClass=Spline2Arcs(degree=self.degree,Knots=self.Knots,\
                                 Weights=self.Weights,CPoints=self.CPoints,tol=0.01)
 
-        #print self
-        self.ArcSpline=Spline2ArcsClass.Curve
+        self.geo=Spline2ArcsClass.Curve
 
+        for geo in self.geo:
+            self.length+=geo.length
 
-        
     def __str__(self):
         # how to print the object
-        s= ('\nTyp: Spline \nNr -> %i' %self.Nr)+\
-           ('\nLayer Nr -> %i' %self.Layer_Nr)+\
-           ('\nSpline flag -> %i' %self.Spline_flag)+\
-           ('\ndegree -> %i' %self.degree)+\
-           ('\nKnots -> %s' %self.Knots)+\
-           ('\nWeights -> %s' %self.Weights)+\
-           ('\nCPoints ->')
+        s= ('\nTyp: Spline')+\
+           ('\nNr: %i' %self.Nr)+\
+           ('\nLayer Nr: %i' %self.Layer_Nr)+\
+           ('\nSpline flag: %i' %self.Spline_flag)+\
+           ('\ndegree: %i' %self.degree)+\
+           ('\nlength: %0.3f' %self.length)+\
+           ('\nGeo elements: %i' %len(self.geo))+\
+           ('\nKnots: %s' %self.Knots)+\
+           ('\nWeights: %s' %self.Weights)+\
+           ('\nCPoints: ')
            
         for point in self.CPoints:
             s=s+"\n"+str(point)
-        s+='\nArcSpline: ->'
-        for geo in self.ArcSpline:
-            s=s+str(geo)
-        s=s+'\nLength ->'+str(self.length)
+        s+=('\ngeo: ')
+        for geo in self.geo:
+            s+=str(geo)
         return s
 
+    def reverse(self):
+        self.geo.reverse()
+        for geo in self.geo:
+            geo.reverse()
+            
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
-        #Hinzufügen falls es keine geschlossener Spline ist CPOINST??
+        #Hinzufügen falls es keine geschlossener Spline ist
         if self.CPoints[0].isintol(self.CPoints[-1],tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length)) 
         else:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
-                                      be=self.ArcSpline[0].Pa,\
-                                      en=self.ArcSpline[-1].Pe,\
-                                      be_cp=[],en_cp=[]))      
+                                      be=self.geo[0].Pa,\
+                                      en=self.geo[-1].Pe,\
+                                      be_cp=[],en_cp=[]))
+            
+    def analyse_and_opt(self):
+        summe=0
+
+        #Richtung in welcher der Anfang liegen soll (unten links)        
+        Popt=PointClass(x=-1e3,y=-1e6)
+        
+        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
+        #negativer Wert bedeutet CCW geschlossenes Polygon            
+        for Line in self.geo:
+            summe+=(Line.Pa.x*Line.Pe.y-Line.Pe.x*Line.Pa.y)/2
+        
+        if summe>0.0:
+            self.reverse()
+        
+        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
+        min_distance=self.geo[0].Pa.distance(Popt)
+        min_geo_nr=0
+        for geo_nr in range(1,len(self.geo)):
+            if (self.geo[geo_nr].Pa.distance(Popt)<min_distance):
+                min_distance=self.geo[geo_nr].Pa.distance(Popt)
+                min_geo_nr=geo_nr
+
+        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
+        self.geo=self.geo[min_geo_nr:len(self.geo)]+self.geo[0:min_geo_nr]
 
     def Read(self, caller):
-        Old_Point=PointClass(0,0)
 
         #Kürzere Namen zuweisen        
         lp=caller.line_pairs
@@ -145,57 +176,32 @@ class SplineClass:
             s=lp.index_code(20,s+1,e)
             y=float(lp.line_pair[s].value)
 
-            self.CPoints.append(PointClass(x,y))             
-
-            if (Old_Point==self.CPoints[-1]):
-               # add to boundary if not zero-length segment
-               Old_Point=self.CPoints[-1]
-               if len(self.CPoints)>1:
-                   self.length+=self.CPoints[-2].distance(self.CPoints[-1])            
+            self.CPoints.append(PointClass(x,y))                
 
         caller.start=e
-
-   
-    
-
-    def analyse_and_opt(self):     
-        summe=0
-        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-        #negativer Wert bedeutet CCW geschlossenes Polygon    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
-        for p_nr in range(1,len(self.CPoints)):
-            summe+=(self.CPoints[p_nr-1].x*self.CPoints[p_nr].y-self.CPoints[p_nr].x*self.CPoints[p_nr-1].y)/2
-            
+        
     def plot2can(self,canvas,p0,sca,tag):
         hdl=[]
-        for geo in self.ArcSpline:
+        for geo in self.geo:
             hdl+=(geo.plot2can(canvas,p0,sca,tag))
         return hdl
-##        #if summe>0.0:
-##        #   self.CPoints.reverse()
-##
-##        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-##        min_point=self.Points[0]
-##        min_p_nr=0
-##        del(self.Points[-1])
-##        for p_nr in range(1,len(self.Points)):
-##            #Geringster Abstand nach unten Unten Links
-##            if (min_point.x+min_point.y)>=(self.Points[p_nr].x+self.Points[p_nr].y):
-##                min_point=self.Points[p_nr]
-##                min_p_nr=p_nr
-##        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-##        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
-##
 
-##    
     def get_start_end_points(self,direction=0):
-        if direction==0:
-            punkt, angle=self.ArcSpline[0].get_start_end_points(direction)
-        elif direction==1:
-            punkt, angle=self.ArcSpline[-1].get_start_end_points(direction)
+        if not(direction):
+            punkt, angle=self.geo[0].get_start_end_points(direction)
+        elif direction:
+            punkt, angle=self.geo[-1].get_start_end_points(direction)
 
         return punkt,angle
     
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        for geo in self.ArcSpline:
-            string+=geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
+    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
+        string=""
+        pr_geo=self.geo[:]
+        
+        #Umdrehen falls Gesamte Geometrie gedreht ist.        
+        if dir:
+            pr_geo.reverse()
+        
+        for geo in pr_geo:
+            string+=geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)       
         return string   
