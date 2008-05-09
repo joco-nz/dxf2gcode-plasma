@@ -25,55 +25,95 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass
+from dxf2gcode_b01_point import PointClass, LineGeo, PointsClass, ContourClass
 
 
 class LWPolylineClass:
     def __init__(self,Nr=0,caller=None):
         self.Typ='LWPolyline'
         self.Nr = Nr
-
-        #Initialisieren der Werte        
         self.Layer_Nr = 0
-        self.Points=[]
         self.length= 0
+        self.geo=[]
 
         #Lesen der Geometrie
         self.Read(caller)
         
     def __str__(self):
         # how to print the object
-        s= '\nTyp: Polyline \nNr ->'+str(self.Nr) +'\nLayer Nr: ->'+str(self.Layer_Nr)
-        for point in self.Points:
-            s=s+str(point)
-        s=s+'\nLength ->'+str(self.length)
-        return s
+        string=("\nTyp: LWPolyline")+\
+               ("\nNr: %i" %self.Nr)+\
+               ("\nLayer Nr: %i" %self.Layer_Nr)+\
+               ("\nNr. of Lines: %i" %len(self.geo))+\
+               ("\nlength: %0.3f" %self.length)
+        
+        for geo in self.geo:
+            string+=str(geo)
+        return string
+
+    def reverse(self):
+        self.geo.reverse()
+        for geo in self.geo:
+            geo.reverse()
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         #Hinzufügen falls es keine geschlossene Polyline ist
-        if self.Points[0].isintol(self.Points[-1],tol):
+        if self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
-        else:            
+        else:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
-                          Layer_Nr=self.Layer_Nr,\
-                          be=self.Points[0],
-                          en=self.Points[-1],be_cp=[],en_cp=[]))      
+                                      Layer_Nr=self.Layer_Nr,\
+                                      be=self.geo[0].Pa,
+                                      en=self.geo[-1].Pe,be_cp=[],en_cp=[]))  
             
+    def analyse_and_opt(self):
+        summe=0
+
+        #Richtung in welcher der Anfang liegen soll (unten links)        
+        Popt=PointClass(x=-1e3,y=-1e6)
+        
+        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
+        #negativer Wert bedeutet CCW geschlossenes Polygon            
+        for Line in self.geo:
+            summe+=(Line.Pa.x*Line.Pe.y-Line.Pe.x*Line.Pa.y)/2
+        
+        if summe>0.0:
+            self.reverse()
+         
+        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
+        min_distance=self.geo[0].Pa.distance(Popt)
+        min_geo_nr=0
+        for geo_nr in range(1,len(self.geo)):
+            if (self.geo[geo_nr].Pa.distance(Popt)<min_distance):
+                min_distance=self.geo[geo_nr].Pa.distance(Popt)
+                min_geo_nr=geo_nr
+
+        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
+        self.geo=self.geo[min_geo_nr:len(self.geo)]+self.geo[0:min_geo_nr]
+        
+        
     def Read(self, caller):
         Old_Point=PointClass(0,0)
         #Kürzere Namen zuweisen
         lp=caller.line_pairs
         e=lp.index_code(0,caller.start+1)
+        
         #Layer zuweisen
         s=lp.index_code(8,caller.start+1)
         self.Layer_Nr=caller.Get_Layer_Nr(lp.line_pair[s].value)
+
+        #Pa=None für den ersten Punkt
+        Pa=None
+        
         #Number of vertices
         s=lp.index_code(90,s+1,e)
         NoOfVert=int(lp.line_pair[s].value)
+        
         #Polyline flag (bit-coded); default is 0; 1 = Closed; 128 = Plinegen
         s=lp.index_code(70,s+1,e)
         LWPLClosed=int(lp.line_pair[s].value)
+        
         for i in range(1, NoOfVert):
             #XWert
             s=lp.index_code(10,s+1,e)
@@ -81,67 +121,44 @@ class LWPolylineClass:
             #YWert
             s=lp.index_code(20,s+1,e)
             y=float(lp.line_pair[s].value)
-            self.Points.append(PointClass(x,y))
-            if (Old_Point==self.Points[-1]):
-               # add to boundary if not zero-length segment
-               Old_Point=self.Points[-1]
-               if len(self.Points)>1:
-                   self.length+=self.Points[-2].distance(self.Points[-1])
+            Pe=PointClass(x=x,y=y)
+            
+            #Zuweisen der Geometrien für die Polyline
+            if not(type(Pa)==type(None)):
+                self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                self.length+=self.geo[-1].length
+            Pa=Pe
+                   
         if (LWPLClosed==1):
-            self.Points.append(self.Points[0])
+            self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
+            self.length+=self.geo[-1].length
+            
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=e
-
-    def analyse_and_opt(self):
-        summe=0
-        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-        #negativer Wert bedeutet CCW geschlossenes Polygon            
-        for p_nr in range(1,len(self.Points)):
-            summe+=(self.Points[p_nr-1].x*self.Points[p_nr].y-self.Points[p_nr].x*self.Points[p_nr-1].y)/2
-        if summe>0.0:
-            self.Points.reverse()
-
-        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-        min_point=self.Points[0]
-        min_p_nr=0
-        del(self.Points[-1])
-        for p_nr in range(1,len(self.Points)):
-            #Geringster Abstand nach unten Unten Links
-            if (min_point.x+min_point.y)>=(self.Points[p_nr].x+self.Points[p_nr].y):
-                min_point=self.Points[p_nr]
-                min_p_nr=p_nr
-        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
- 
+                                                          
     def plot2can(self,canvas,p0,sca,tag):
         hdl=[]
-        for i in range(1,len(self.Points)):
-            hdl.append(Line(canvas,p0.x+self.Points[i-1].x*sca[0],-p0.y-self.Points[i-1].y*sca[1],\
-                            p0.x+self.Points[i].x*sca[0],-p0.y-self.Points[i].y*sca[1],\
-                            tag=tag))
+        for geo in self.geo:
+            hdl+=(geo.plot2can(canvas,p0,sca,tag))
         return hdl
     
-    def get_start_end_points(self,direction=0,nr=0):
-        if direction==0:
-            punkt=self.Points[nr]
-            dx=self.Points[1].x-self.Points[0].x
-            dy=self.Points[1].y-self.Points[0].y
-            angle=degrees(atan2(dy, dx))
-        elif direction==1:
-            punkt=self.Points[len(self.Points)-nr-1]
-            dx=self.Points[-2].x-self.Points[-1].x
-            dy=self.Points[-2].y-self.Points[-1].y
-            angle=degrees(atan2(dy, dx))
-
+    
+    def get_start_end_points(self,direction=0):
+        if not(direction):
+            punkt, angle=self.geo[0].get_start_end_points(direction)
+        elif direction:
+            punkt, angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
     
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
+    
+    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
+        string=""
+        pr_geo=self.geo[:]
         
-        for p_nr in range(len(self.Points)-1):
-            en_point, en_angle=self.get_start_end_points(not(dir),p_nr+1)
-            ende=en_point*sca+p0
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
-        return string
+        #Umdrehen falls Gesamte Geometrie gedreht ist.        
+        if dir:
+            pr_geo.reverse()
         
-
-
+        for geo in pr_geo:
+            string+=geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)       
+        return string  

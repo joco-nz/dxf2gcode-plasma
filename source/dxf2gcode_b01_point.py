@@ -237,6 +237,22 @@ class ArcGeo:
         self.e_ang=e_ang
         self.length=self.r*abs(self.ext)
 
+    def __str__(self):
+        return ("\nArcGeo")+\
+               ("\nPa : %s; s_ang: %0.5f" %(self.Pa,self.s_ang))+\
+               ("\nPe : %s; e_ang: %0.5f" %(self.Pe,self.e_ang))+\
+               ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
+               ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
+
+    def reverse(self):
+        Pa=self.Pa
+        Pe=self.Pe
+        ext=self.ext
+        
+        self.Pa=Pe
+        self.Pe=Pa
+        self.ext=ext*-1
+
     def plot2can(self,canvas,p0,sca,tag):
 
         #Das Plotten mit Tkinter hat Probleme für kleine Kreissegmente     
@@ -255,15 +271,14 @@ class ArcGeo:
             y.append(p0.y+(self.O.y+sin(ang)*abs(self.r))*sca[1])
 
             if i>=1:
-                hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag))
-                
+                hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag))       
         return hdl        
 
     def get_start_end_points(self,direction):
-        if direction==0:
+        if not(direction):
             punkt=self.Pa
             angle=degrees(self.s_ang)+90*self.ext/abs(self.ext)
-        elif direction==1:
+        elif direction:
             punkt=self.Pe
             angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
         return punkt,angle
@@ -282,18 +297,27 @@ class ArcGeo:
             string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
         return string      
 
-    def __str__(self):
-        return ("\nARC")+\
-               ("\nPa : %s; s_ang: %0.5f" %(self.Pa,self.s_ang))+\
-               ("\nPe : %s; e_ang: %0.5f" %(self.Pe,self.e_ang))+\
-               ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
-               ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
+
+    
 class LineGeo:
     def __init__(self,Pa,Pe):
         self.type="LineGeo"
         self.Pa=Pa
         self.Pe=Pe
         self.length=self.Pa.distance(self.Pe)
+
+    def __str__(self):
+        return ("\nLineGeo")+\
+               ("\nPa : %s" %self.Pa)+\
+               ("\nPe : %s" %self.Pe)+\
+               ("\nlength: %0.5f" %self.length)        
+
+    def reverse(self):
+        Pa=self.Pa
+        Pe=self.Pe
+        
+        self.Pa=Pe
+        self.Pe=Pa
         
     def plot2can(self,canvas,p0,sca,tag):
         anf=p0+self.Pa*sca
@@ -303,10 +327,10 @@ class LineGeo:
 
 
     def get_start_end_points(self,direction):
-        if direction==0:
+        if not(direction):
             punkt=self.Pa
             angle=degrees(self.Pa.norm_angle(self.Pe))
-        elif direction==1:
+        elif direction:
             punkt=self.Pe
             angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
@@ -325,11 +349,7 @@ class LineGeo:
             AEPA=(AE+AP+EP)/2
             return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
         except:
-            return 1e8
+            return 1e10
             
-    def __str__(self):
-        return ("\nLINE")+\
-               ("\nPa : %s" %self.Pa)+\
-               ("\nPe : %s" %self.Pe)+\
-               ("\nlength: %0.5f" %self.length)
+
     

@@ -37,13 +37,16 @@ class LineClass:
 
         #Lesen der Geometrie
         self.Read(caller)
-        
+
     def __str__(self):
         # how to print the object
         return("\nTyp: Line")+\
               ("\nNr: %i" %self.Nr)+\
               ("\nLayer Nr: %i" %self.Layer_Nr)+\
               str(self.geo)
+
+    def reverse(self):
+        self.geo.reverse()    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         points.append(PointsClass(point_nr=len(points),geo_nr=i,\
@@ -91,8 +94,8 @@ class LineClass:
         punkt,angle=self.geo.get_start_end_points(direction)
         return punkt,angle
     
-    def Write_GCode(self,string,paras,sca,p0,dir,axis1,axis2):
-        string+=self.geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
+    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
+        string=self.geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
         return string
         
 
