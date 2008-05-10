@@ -46,8 +46,10 @@ class SplineClass:
         #Lesen der Geometrie
         self.Read(caller)
 
-        #Umwandeln zu einem ArcSpline
+        #Zuweisen der Toleranz fürs Fitting
+        tol=caller.config.fitting_tolerance.get()
 
+        #Umwandeln zu einem ArcSpline
         Spline2ArcsClass=Spline2Arcs(degree=self.degree,Knots=self.Knots,\
                                 Weights=self.Weights,CPoints=self.CPoints,tol=0.01)
 

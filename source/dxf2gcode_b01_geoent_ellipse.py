@@ -51,10 +51,14 @@ class EllipseClass:
         self.Read(caller)
 
 
+        #Zuweisen der Toleranz fürs Fitting
+        #tol=caller.config.fitting_tolerance.get() !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! VINZ IST FÜR DIE TOLERANZ DES FITTINGS WIE IN SPLINE AUCH 
+
+
     def __str__(self):
-        # how to print the object
-        s=  'Typ: Ellipse\n' + \
-        'Nr:     '+str(self.Nr) +'\n' + \
+        # how to print the object #GEht auch so ellegant wie sprintf in C oder Matlab usw. siehe erste zeile  !!!!!!!!!!!!!!!!!!!!!!
+        s=('Typ: Ellipse\n')+ \
+        ('Nr:     %i \n' %(self.Nr))+\
         'Layer:  '+str(self.Layer_Nr) +'\n' + \
         'Center: '+str(self.Center) +'\n' + \
         'Vektor: '+str(self.Vektor) +'\n' + \
@@ -67,7 +71,7 @@ class EllipseClass:
 
     
     def reverse(self):
-        pass    #Das geht noch nicht !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        pass    #Das geht noch nicht !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Sollte das Ding von der Richtung umdrehen Alle geschlossenen Konturen werden am Anfang auf CW ausgerichtet
         self.geo.reverse()
 
 

@@ -45,26 +45,23 @@ from math import sqrt, sin, cos, atan2, radians, degrees
 
 class Load_DXF:
     #Initialisierung der Klasse
-    def __init__(self, filename='C:/Users/Christian Kohlöffel/Documents/Python/vdr_Fraeskontur_Fraesermitte.dxf',tol=0.01,debug=0,text=None):
+    def __init__(self, filename=None,config=None,text=None):
 
-        #Setzen des Debug Levels
-        if debug<=1:
-            self.debug=0
-        else:
-            self.debug=debug-1
+        self.text=text
+        self.config=config        
 
-        self.text=text            
-        
+        #Setzen des Globalen Debug Levels
+        global DEBUG
+        DEBUG=self.config.debug
+
         #Laden der Kontur und speichern der Werte in die Klassen  
         str=self.Read_File(filename)
 
-        if self.debug:
+        self.line_pairs=self.Get_Line_Pairs(str)        
+
+        if DEBUG:
             self.text.insert(END,("\n\nFile has   %0.0f Lines" %len(str)))
             self.text.yview(END)        
-            
-        self.line_pairs=self.Get_Line_Pairs(str)
-        
-        if self.debug:
             self.text.insert(END,("\nFile has   %0.0f Linepairs" %self.line_pairs.nrs))
             self.text.yview(END)        
 
@@ -80,8 +77,8 @@ class Load_DXF:
         for i in range(len(self.blocks.Entities)):
             # '\n'
             #print self.blocks.Entities[i]
-            self.blocks.Entities[i].cont=self.Get_Contour(self.blocks.Entities[i],tol)
-        self.entities.cont=self.Get_Contour(self.entities,tol)
+            self.blocks.Entities[i].cont=self.Get_Contour(self.blocks.Entities[i])
+        self.entities.cont=self.Get_Contour(self.entities)
    
     #Laden des ausgewählten DXF-Files
     def Read_File(self,filename ):
@@ -136,7 +133,7 @@ class Load_DXF:
             
             start=self.line_pairs.index_both(0,"SECTION",end)
             
-        if self.debug:
+        if DEBUG:
             self.text.insert(END,("\n\nSections found:" ))
             for sect in sections:
                 self.text.insert(END,str(sect))
@@ -165,7 +162,7 @@ class Load_DXF:
                     layers.append(LayerClass(len(layers)))
                     layers[-1].name=self.line_pairs.line_pair[start].value
                     
-        if self.debug:
+        if DEBUG:
             self.text.insert(END,("\n\nLayers found:" ))
             for lay in layers:
                 self.text.insert(END,str(lay))
@@ -196,7 +193,7 @@ class Load_DXF:
                 blocks[-1].end=end
                 start=self.line_pairs.index_both(0,"BLOCK",end+1,blocks_section.end)
 
-        if self.debug:
+        if DEBUG:
             self.text.insert(END,("\n\nBlocks found:" ))
             for bl in blocks:
                 self.text.insert(END,str(bl))
@@ -208,7 +205,7 @@ class Load_DXF:
     def Read_Blocks(self,blocks_pos):
         blocks=BlocksClass([])
         for block_nr in range(len(blocks_pos)):
-            if self.debug:
+            if DEBUG:
                 self.text.insert(END,("\n\nReading Block Nr: %0.0f" % block_nr ))
                 self.text.yview(END)
             blocks.Entities.append(EntitiesClass(block_nr,blocks_pos[block_nr].name,[]))
@@ -218,7 +215,7 @@ class Load_DXF:
     def Read_Entities(self,sections):
         for section_nr in range(len(sections)):
             if (find(sections[section_nr-1].name,"ENTITIES") == 0):
-                if self.debug:
+                if DEBUG:
                     self.text.insert(END,"\n\nReading Entities")
                     self.text.yview(END)
                 entities=EntitiesClass(0,'Entities',[])
@@ -247,7 +244,7 @@ class Load_DXF:
             self.start=self.line_pairs.index_code(0,self.start,end)            
 
             #Debug Informationen anzeigen falls erwünscht                        
-            if self.debug:
+            if DEBUG:
                 if self.start==None:
                     self.text.insert(END,("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
                                             %(name, old_start,old_start*2+4,end*2+4)))
@@ -256,7 +253,7 @@ class Load_DXF:
                                             %(name, old_start,old_start*2+4,self.start*2+4)))
                 self.text.yview(END)
 
-            if (self.debug>1)and(len(geos)>0):
+            if (DEBUG>2)and(len(geos)>0):
                 self.text.insert(END,str(geos[-1]))
                 self.text.yview(END)
 
@@ -297,7 +294,6 @@ class Load_DXF:
         elif (name=="LWPOLYLINE"):
             geo=LWPolylineClass(geo_nr,self)
         else:  
-            warn=1
             self.text.insert(END,("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
             self.text.yview(END)
             self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
@@ -324,47 +320,27 @@ class Load_DXF:
         return block_nr
 
     #Findet die beste Kontur der zusammengesetzen Geometrien
-    def Get_Contour(self,entities=None,tol=0.01):
+    def Get_Contour(self,entities=None):
         cont=[]
 
-        points=self.App_Cont_or_Calc_IntPts(entities.geo,cont,tol)
-        points=self.Find_Common_Points(points,tol)
+        points=self.App_Cont_or_Calc_IntPts(entities.geo,cont)
+        points=self.Find_Common_Points(points)
         cont=self.Search_Contours(entities.geo,points,cont)
         
         return cont    
     
     #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
-    def App_Cont_or_Calc_IntPts(self,geo=None,cont=None,tol=0.01):
+    def App_Cont_or_Calc_IntPts(self,geo=None,cont=None):
+        tol=self.config.points_tolerance.get()
+
         points=[]
-        #Durchlaufen und errechnen der Werte für alle Elemente die eine zusammengesetzte
-        #Kontur ergeben können (Circle ist bereits eine geschlossene Kontur)
-
-#Aufsplitten nicht mehr nötig, da nur solche angelegt und 
-#jede Klasse  muss die Funktion App_Cont_or_Calc_IntPts umsetzen.
-#        for i in range(len(geo)) :
-#            if geo[i].Typ=='Arc':
-#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
-#            elif geo[i].Typ=='Circle':
-#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
-#            elif geo[i].Typ=='Line':
-#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
-#            elif geo[i].Typ=='Polyline':
-#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
-#            elif geo[i].Typ=='Spline':
-#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
-#            elif geo[i].Typ=='Insert':
-#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
-#            elif geo[i].Typ=='Ellipse':
-#                geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
-#            else:
-#                print 'unknown geometrie: ' + geo[i].Typ
-
         for i in range(len(geo)) :
             geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
         return points
 
     #Suchen von gemeinsamen Punkten
-    def Find_Common_Points(self,points=None,tol=0.01):
+    def Find_Common_Points(self,points=None):
+        tol=self.config.points_tolerance.get()
 
         p_list=[]
         
@@ -425,9 +401,6 @@ class Load_DXF:
                 #Common Endpunkt
                 else:
                     points[p_list[l_nr][-2]].en_cp.append(p_list[int_p][3:5])
-
-        #for p in points:
-            #print p
         
         return points
 
