@@ -57,11 +57,11 @@ APPNAME = "dxf2gcode_b01"
 
 class Erstelle_Fenster:
     def __init__(self, master = None, load_filename=None ):
+        
+        self.master=master
 
         #Uebergabe des load_filenames falls von EMC gestartet
         self.load_filename=load_filename
-        
-        self.master=master
 
         #Linker Rahmen erstellen, in welchen später die Eingabefelder kommen       
         self.frame_l=Frame(master) 
@@ -87,22 +87,20 @@ class Erstelle_Fenster:
         self.frame_u.columnconfigure(0,weight=1)
         self.frame_u.columnconfigure(1,weight=0)
 
+        #Voreininstellungen für das Programm laden
+        self.config=ConfigClass(self.text)  
+        
+        if DEBUG>0:
+            self.text.config(height=15)
+
         #Binding für Contextmenu
         self.text.bind("<Button-3>", self.text_contextmenu)
 
         self.textscr.config(command=self.text.yview)
         self.text.config(yscrollcommand=self.textscr.set)
         self.text.insert(END,'Program started\nVersion 0.1\nCoded by C. Kohlöffel')
-        
 
-        #Einstellungen für das Programm
-        self.config=ConfigClass(self.text)
-
-        if DEBUG>0:
-            self.text.config(height=15)
-        self.points_tol=float(self.config.parser.get('Import Parameters','point_tolerance'))    
-
-        #Erstellen de Eingabefelder und des Canvas. 
+        #Erstellen de Eingabefelder und des Canvas
         self.ExportParas =ExportParasClass(self.frame_l,self.config)
         self.Canvas =CanvasClass(self.frame_c,self)
 
@@ -163,7 +161,7 @@ class Erstelle_Fenster:
 
         self.optionmenu=Menu(self.menu,tearoff=0)
         self.menu.add_cascade(label="Options",menu=self.optionmenu)
-        self.optionmenu.add_command(label="Set contour tolerance", command=self.Get_Cont_Tol)
+        self.optionmenu.add_command(label="Set tolerances", command=self.Get_Cont_Tol)
         self.optionmenu.add_separator()
         self.optionmenu.add_command(label="Scale contours", command=self.Get_Cont_Scale)
         self.optionmenu.add_command(label="Move workpiece zero", command=self.Move_WP_zero)
@@ -196,8 +194,7 @@ class Erstelle_Fenster:
         self.text.insert(END,'\nLoading file: '+filename)
         self.text.yview(END)
         
-        self.values=dxf_import.Load_DXF(filename,self.points_tol,DEBUG,self.text)
-        #self.values=Load_DXF(filename,self.points_tol,DEBUG,self.text)
+        self.values=dxf_import.Load_DXF(filename,self.config,self.text)
         
         #Ausgabe der Informationen im Text Fenster
         self.text.insert(END,'\nLoaded layers: ' +str(len(self.values.layers)))
@@ -242,21 +239,24 @@ class Erstelle_Fenster:
         self.del_route_and_menuentry()
             
     def Get_Cont_Tol(self):
-        value=askfloat('Contour Tolerance','Set the tolerance for common points',\
-                                initialvalue=self.points_tol)
-        #Abfrage ob Cancel gedrückt wurde
-        if value==None:
-            return
-        
-        self.points_tol=value
 
+        #Dialog für die Toleranzvoreinstellungen öffnen      
+        title='Contour tolerances'
+        label=(("Tolerance for common points [mm]:"),\
+               ("Tolerance for curve fitting [mm]:"))
+        value=(self.config.points_tolerance.get(),self.config.fitting_tolerance.get())
+        dialog=Tkinter_Variable_Dialog(self.master,title,label,value)
+        self.config.points_tolerance.set(dialog.result[0])
+        self.config.fitting_tolerance.set(dialog.result[1])
+        
         #Falls noch kein File geladen wurde nichts machen
         if self.load_filename==None:
             return
         self.Load_File(self.load_filename)
-        
-        self.text.insert(END,("\nSet new contour tolerance %0.3f, reloaded file" %value))
+        self.text.insert(END,("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file"\
+                              %(dialog.result[0],dialog.result[1])))
         self.text.yview(END)
+        
     def Get_Cont_Scale(self):
         #Abspeichern der alten Werte
         old_scale=self.cont_scale
@@ -279,17 +279,18 @@ class Erstelle_Fenster:
         #Achsenbelegung für den Export
         axis1,axis2,axis3=self.config.get_axis_names()
 
-        #Abspeichern der alten Werte        
+        #Die alten Werte zwischenspeichern für das verschieben des Canvas
         old_dx=self.cont_dx
         old_dy=self.cont_dy
-        
-        dialog=Get_WP_Offset_Dialog(self.master,axis1,axis2,self.cont_dx,self.cont_dy)
-        
-        if dialog.dx==None:
-            return
 
-        self.cont_dx=dialog.dx
-        self.cont_dy=dialog.dy
+        #Dialog mit den definierten Parametern öffnen       
+        title='Workpiece zero offset'
+        label=(("Offset %s axis by mm:" %axis1),\
+               ("Offset %s axis by mm:" %axis2))
+        value=(self.cont_dx,self.cont_dy)
+        dialog=Tkinter_Variable_Dialog(self.master,title,label,value)
+        self.cont_dx=dialog.result[0]
+        self.cont_dy=dialog.result[1]
 
         #Falls noch kein File geladen wurde nichts machen
         self.text.insert(END,("\nWorpiece zero offset: %s %0.2f; %s %0.2f" \
@@ -332,7 +333,7 @@ class Erstelle_Fenster:
         #Daten aus den beiden Textfeldern in strings speichern        
         s_begin=self.ExportParas.gcode_be.get(1.0,END)
         s_end=self.ExportParas.gcode_en.get(1.0,END)
-        paras=self.ExportParas
+        config=self.config
 
         #Schreiben in einen String
         str="(Generated with dxf2code)\n(Created from file: "+self.load_filename+")\n"
@@ -342,7 +343,7 @@ class Erstelle_Fenster:
         string+=(s_begin.strip()+"\n")
 
         #Maschine auf die Anfangshöhe bringen
-        string+=("G0 %s%0.3f\n" %(axis3,paras.Axis3_retract.get()))
+        string+=("G0 %s%0.3f\n" %(axis3,config.Axis3_retract.get()))
 
         #Bei 1 starten da 0 der Startpunkt ist
         #print self.TSP.opt_route[0]
@@ -355,13 +356,13 @@ class Erstelle_Fenster:
             #Drucken falls die Shape nicht disabled ist
             if not(shape.nr in self.CanvasContent.Disabled):
                 #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
-                stat, string =shape.Write_GCode(string,paras,axis1,axis2,axis3)
+                stat, string =shape.Write_GCode(string,config,axis1,axis2,axis3)
                 status=status*stat
 
         #Maschine auf den Endwert positinieren
-        string+=("G0 %s%0.3f \n" %(axis3,paras.Axis3_retract.get()))
+        string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_retract.get()))
         string+=("G0 %s%0.3f %s%0.3f\n" \
-                %(axis1,paras.Axis1_st_en.get(),axis2,paras.Axis2_st_en.get()))
+                %(axis1,config.Axis1_st_en.get(),axis2,config.Axis2_st_en.get()))
 
         string+=(s_end.strip()+"\n")
 
@@ -409,8 +410,8 @@ class Erstelle_Fenster:
                 shapes_st_en_points.append(shape.get_st_en_points())
 
         #Hinzufügen des Start- Endpunkte ausserhalb der Geometrie
-        x_st=self.ExportParas.Axis1_st_en.get()
-        y_st=self.ExportParas.Axis2_st_en.get()
+        x_st=self.config.Axis1_st_en.get()
+        y_st=self.config.Axis2_st_en.get()
         start=PointClass(x=x_st,y=y_st)
         ende=PointClass(x=x_st,y=y_st)
         shapes_st_en_points.append([start,ende])
@@ -460,59 +461,26 @@ class Erstelle_Fenster:
 class ExportParasClass:
     def __init__(self,master=None,config=None):
         self.master=master
-        try:
-            self.tool_dia=DoubleVar()
-            self.tool_dia.set(float(config.parser.get('Tool Parameters','diameter')))
+  
+        self.nb = NotebookClass(self.master,width=240)
 
-            self.start_rad=DoubleVar()
-            self.start_rad.set(float(config.parser.get('Tool Parameters','start_radius')))        
-           
-            self.Axis1_st_en=DoubleVar()
-            self.Axis1_st_en.set(float(config.parser.get('Plane Coordinates','axis1_start_end')))
+        # uses the notebook's frame
+        self.nb_f1 = Frame(self.nb())
+        self.nb_f2 = Frame(self.nb())
 
-            self.Axis2_st_en=DoubleVar()
-            self.Axis2_st_en.set(float(config.parser.get('Plane Coordinates','axis2_start_end')))        
-            
-            self.Axis3_retract=DoubleVar()
-            self.Axis3_retract.set(float(config.parser.get('Depth Coordinates','axis3_retract')))
-            
-            self.Axis3_safe_margin=DoubleVar()
-            self.Axis3_safe_margin.set(float(config.parser.get('Depth Coordinates','axis3_safe_margin')))
+        # keeps the reference to the radiobutton (optional)
+        self.nb.add_screen(self.nb_f1, "Coordinates")
+        self.nb.add_screen(self.nb_f2, "File Beg. & End")
 
-            self.Axis3_slice_depth=DoubleVar()
-            self.Axis3_slice_depth.set(float(config.parser.get('Depth Coordinates','axis3_slice_depth')))        
+        self.nb_f1.columnconfigure(0,weight=1)
+        self.nb_f2.columnconfigure(0,weight=1)        
+    
+        self.erstelle_eingabefelder(config)
+        self.erstelle_textfelder(config)
 
-            self.Axis3_mill_depth=DoubleVar()
-            self.Axis3_mill_depth.set(float(config.parser.get('Depth Coordinates','axis3_mill_depth')))        
-            
-            self.F_G1_Depth=DoubleVar()
-            self.F_G1_Depth.set(float(config.parser.get('Feed Rates','f_g1_depth')))
+        self.gcode_be.insert(END,config.parser.get('Standard Code','begin'))
+        self.gcode_en.insert(END,config.parser.get('Standard Code','end'))
 
-            self.F_G1_Plane=DoubleVar()
-            self.F_G1_Plane.set(float(config.parser.get('Feed Rates','f_g1_plane')))
-
-            self.nb = NotebookClass(self.master,width=240)
-
-            # uses the notebook's frame
-            self.nb_f1 = Frame(self.nb())
-            self.nb_f2 = Frame(self.nb())
-
-            # keeps the reference to the radiobutton (optional)
-            self.nb.add_screen(self.nb_f1, "Coordinates")
-            self.nb.add_screen(self.nb_f2, "File Beg. & End")
-
-            self.nb_f1.columnconfigure(0,weight=1)
-            self.nb_f2.columnconfigure(0,weight=1)        
-        
-            self.erstelle_eingabefelder(config)
-            self.erstelle_textfelder()
-
-            self.gcode_be.insert(END,config.parser.get('Standard Code','begin'))
-            self.gcode_en.insert(END,config.parser.get('Standard Code','end'))
-        except:
-            showerror("Error during reading INI File", "Please delete or correct\n %s"\
-                      %(os.path.join(config.folder,config.cfg_file_name)))
-            raise Exception, "Problem during import from INI File" 
 
     def erstelle_eingabefelder(self,config):
         #Funktion zum erhalten der Achsen Namen aus der Config Klasse
@@ -531,55 +499,55 @@ class ExportParasClass:
    
         Label(f1, text="Tool diameter [mm]:")\
                 .grid(row=0,column=0,sticky=N+W,padx=4)
-        Entry(f1,width=7,textvariable=self.tool_dia)\
+        Entry(f1,width=7,textvariable=config.tool_dia)\
                 .grid(row=0,column=1,sticky=N+E)
 
         Label(f1, text="Start radius (for tool comp.) [mm]:")\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f1,width=7,textvariable=self.start_rad)\
+        Entry(f1,width=7,textvariable=config.start_rad)\
                 .grid(row=1,column=1,sticky=N+E)        
 
         Label(f2, text=("Start at %s [mm]:" %axis1))\
                 .grid(row=0,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.Axis1_st_en)\
+        Entry(f2,width=7,textvariable=config.Axis1_st_en)\
                 .grid(row=0,column=1,sticky=N+E)
 
         Label(f2, text=("Start at %s [mm]:" %axis2))\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.Axis2_st_en)\
+        Entry(f2,width=7,textvariable=config.Axis2_st_en)\
                 .grid(row=1,column=1,sticky=N+E)
 
         Label(f2, text=("%s retraction area [mm]:" %axis3))\
                 .grid(row=2,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.Axis3_retract)\
+        Entry(f2,width=7,textvariable=config.Axis3_retract)\
                 .grid(row=2,column=1,sticky=N+E)
 
         Label(f2, text=("%s safety margin [mm]:" %axis3))\
                 .grid(row=3,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.Axis3_safe_margin)\
+        Entry(f2,width=7,textvariable=config.Axis3_safe_margin)\
                 .grid(row=3,column=1,sticky=N+E)
 
         Label(f2, text=("%s infeed depth [mm]:" %axis3))\
                 .grid(row=4,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.Axis3_slice_depth)\
+        Entry(f2,width=7,textvariable=config.Axis3_slice_depth)\
                 .grid(row=4,column=1,sticky=N+E)
 
         Label(f2, text=("%s mill depth [mm]:" %axis3))\
                 .grid(row=5,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.Axis3_mill_depth)\
+        Entry(f2,width=7,textvariable=config.Axis3_mill_depth)\
                 .grid(row=5,column=1,sticky=N+E)
 
         Label(f3, text=("G1 feed %s-direction [mm/min]:" %axis3))\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f3,width=7,textvariable=self.F_G1_Depth)\
+        Entry(f3,width=7,textvariable=config.F_G1_Depth)\
                 .grid(row=1,column=1,sticky=N+E)
 
         Label(f3, text=("G1 feed %s%s-direction [mm/min]:" %(axis1,axis2)))\
                 .grid(row=2,column=0,sticky=N+W,padx=4)
-        Entry(f3,width=7,textvariable=self.F_G1_Plane)\
+        Entry(f3,width=7,textvariable=config.F_G1_Plane)\
                 .grid(row=2,column=1,sticky=N+E)
 
-    def erstelle_textfelder(self):
+    def erstelle_textfelder(self,config):
         f22=Frame(self.nb_f2,relief = FLAT,bd = 1)
         f22.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
         f22.columnconfigure(0,weight=1)        
@@ -882,7 +850,7 @@ class CanvasClass:
 
         #Verschieben der Shapes
         for shape in self.Content.Shapes:
-            shape.po.x=shape.p0.x-delta_dx
+            shape.p0.x=shape.p0.x-delta_dx
             shape.p0.y=shape.p0.y-delta_dy
         
 #Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
@@ -897,7 +865,6 @@ class CanvasContentClass:
         self.wp_zero_hdls=[]
         self.dir_hdls=[]
         self.path_hdls=[]
-        #self.show_dis=0
         self.text=text
 
         #Anfangswert für das Ansicht Toggle Menu
@@ -952,7 +919,7 @@ class CanvasContentClass:
         self.path_hdls=[]
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.plot_entities()
+        self.plot_entities(p0=PointClass(x=0,y=0),sca=[1,1,1])
         self.LayerContents.sort()
         self.EntitieContents.sort()
 
@@ -1316,17 +1283,17 @@ class ShapeClass:
         hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='PaleGreen2',arrow='first')
         return hdl
     
-    def Write_GCode(self,string,paras,axis1,axis2,axis3):
+    def Write_GCode(self,string,config,axis1,axis2,axis3):
 
         #Einlaufradius und Versatz 
-        start_rad=paras.start_rad.get()
+        start_rad=config.start_rad.get()
         start_ver=start_rad
 
         #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad=paras.tool_dia.get()/2
+        tool_rad=config.tool_dia.get()/2
         
-        depth=paras.Axis3_mill_depth.get()
-        max_slice=paras.Axis3_slice_depth.get()
+        depth=config.Axis3_mill_depth.get()
+        max_slice=config.Axis3_slice_depth.get()
 
         #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
         if -abs(max_slice)<=depth:
@@ -1341,10 +1308,10 @@ class ShapeClass:
         if self.cut_cor==40:              
             #Positionieren des Werkzeugs über dem Anfang und Eintauchen
             string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_cont.x,axis2,start_cont.y))
-            string+=("G0 %s%0.3f \n" %(axis3,paras.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %paras.F_G1_Depth.get())
+            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
+            string+=("F%0.0f\n" %config.F_G1_Depth.get())
             string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %paras.F_G1_Plane.get())
+            string+=("F%0.0f\n" %config.F_G1_Plane.get())
 
         #Fräsradiuskorrektur Links        
         elif self.cut_cor==41:
@@ -1361,10 +1328,10 @@ class ShapeClass:
             
             #Positionieren des Werkzeugs über dem Anfang und Eintauchen
             string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
-            string+=("G0 %s%0.3f \n" %(axis3,paras.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %paras.F_G1_Depth.get())
+            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
+            string+=("F%0.0f\n" %config.F_G1_Depth.get())
             string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %paras.F_G1_Plane.get())
+            string+=("F%0.0f\n" %config.F_G1_Plane.get())
             string+=("G41 \n")
             string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,Pa_ein.x,axis2,Pa_ein.y))
             string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f \n" %(axis1,start_cont.x,axis2,start_cont.y,IJ.x,IJ.y))
@@ -1386,10 +1353,10 @@ class ShapeClass:
             
             #Positionieren des Werkzeugs über dem Anfang und Eintauchen
             string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
-            string+=("G0 %s%0.3f \n" %(axis3,paras.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %paras.F_G1_Depth.get())
+            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
+            string+=("F%0.0f\n" %config.F_G1_Depth.get())
             string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %paras.F_G1_Plane.get())
+            string+=("F%0.0f\n" %config.F_G1_Plane.get())
             string+=("G41 \n")
             string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,Pa_ein.x,axis2,Pa_ein.y))
             string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f \n" %(axis1,start_cont.x,axis2,start_cont.y,IJ.x,IJ.y))
@@ -1397,7 +1364,7 @@ class ShapeClass:
             
         #Schreiben der Geometrien für den ersten Schnitt
         for geo_nr in range(len(self.geos)):
-            string+=self.geos[geo_nr].Write_GCode(paras,\
+            string+=self.geos[geo_nr].Write_GCode(config,\
                                                   self.sca,self.p0,\
                                                   self.geos_dir[geo_nr],\
                                                   axis1,axis2)
@@ -1411,9 +1378,9 @@ class ShapeClass:
                 mom_depth=depth                
 
             #Erneutes Eintauchen
-            string+=("F%0.0f\n" %paras.F_G1_Depth.get())
+            string+=("F%0.0f\n" %config.F_G1_Depth.get())
             string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %paras.F_G1_Plane.get())
+            string+=("F%0.0f\n" %config.F_G1_Plane.get())
 
             #Falls es keine geschlossene Kontur ist    
             if self.closed==0:
@@ -1425,7 +1392,7 @@ class ShapeClass:
                     string+=("G"+str(self.cut_cor)+" \n")
                 
             for geo_nr in range(len(self.geos)):
-                string+=self.geos[geo_nr].Write_GCode(paras,\
+                string+=self.geos[geo_nr].Write_GCode(config,\
                                                       self.sca,self.p0,\
                                                       self.geos_dir[geo_nr],\
                                                       axis1,axis2)
@@ -1436,11 +1403,36 @@ class ShapeClass:
             self.switch_cut_cor()
 
         #Fertig und Zurückziehen des Werkzeugs
-        string+=("G1 %s%0.3f \n" %(axis3,paras.Axis3_safe_margin.get()))
-        string+=("G0 %s%0.3f \n" %(axis3,paras.Axis3_retract.get()))
+        string+=("G1 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
+        string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_retract.get()))
         string+=("G40\n")
 
         return 1, string        
+class LayerContentClass:
+    def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
+        self.LayerNr=LayerNr
+        self.LayerName=LayerName
+        self.Shapes=Shapes
+        
+    def __cmp__(self, other):
+         return cmp(self.LayerNr, other.LayerNr)
+
+    def __str__(self):
+        return '\nLayerNr ->'+str(self.LayerNr)+'\nLayerName ->'+str(self.LayerName)\
+               +'\nShapes ->'+str(self.Shapes)
+    
+class EntitieContentClass:
+    def __init__(self,EntNr=None,EntName='',Shapes=[]):
+        self.EntNr=EntNr
+        self.EntName=EntName
+        self.Shapes=Shapes
+
+    def __cmp__(self, other):
+         return cmp(self.EntNr, other.EntNr)        
+        
+    def __str__(self):
+        return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
+               +'\nShapes ->'+str(self.Shapes)
 
 class ConfigClass:
     def __init__(self,text):
@@ -1452,95 +1444,53 @@ class ConfigClass:
         self.cfg_file_name=APPNAME+'.cfg'
         self.parser.read(os.path.join(self.folder,self.cfg_file_name))
 
-        text.insert(END,'\nLoading config file: ' +str(os.path.join(self.folder,self.cfg_file_name)))
-        text.yview(END)        
-
-        # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen
+        # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
         if len(self.parser.sections())==0:
-
-            self.parser.add_section('Paths') 
-            self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohlöffel\Documents\Python\dxfs')
-            self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohlöffel\Documents\Python')
-
-            self.parser.add_section('Import Parameters') 
-            self.parser.set('Import Parameters', 'point_tolerance', 0.01)
-
-            self.parser.add_section('Export Parameters')
-            self.parser.set('Export Parameters', 'write_to_stdout', 0)               
-            
-            self.parser.add_section('Tool Parameters') 
-            self.parser.set('Tool Parameters', 'diameter', 2.0)
-            self.parser.set('Tool Parameters', 'start_radius', 0.2)
-
-            self.parser.add_section('Plane Selection') 
-            self.parser.set('Plane Selection', 'gcode', 'G17')
-
-            self.parser.add_section('Plane Coordinates') 
-            self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
-            self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
-
-            self.parser.add_section('Depth Coordinates') 
-            self.parser.set('Depth Coordinates', 'axis3_retract', 15)
-            self.parser.set('Depth Coordinates', 'axis3_safe_margin', 3.0)
-            self.parser.set('Depth Coordinates', 'axis3_mill_depth', -3.0)
-            self.parser.set('Depth Coordinates', 'axis3_slice_depth', -1.5)
-
-            self.parser.add_section('Feed Rates')
-            self.parser.set('Feed Rates', 'f_g1_depth', 150)
-            self.parser.set('Feed Rates', 'f_g1_plane', 400)
-
-            self.parser.add_section('Standard Code')
-            self.parser.set('Standard Code', 'begin',\
-                            'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
-                            +'\nG61 P0.01 (Exact Path 0.001 tol.)'\
-                            +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
-                            +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
-                            +'\nS5000M03 (Spindle 5000rpm cw)')
-            
-            self.parser.set('Standard Code', 'end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
-
-            self.parser.add_section('Debug')
-            self.parser.set('Debug', 'global_debug_level', 0)         
-                    
-            open_file = open(os.path.join(self.folder,self.cfg_file_name), "w") 
-            self.parser.write(open_file) 
-            open_file.close()
+            self.make_new_Config_file()
             self.parser.read(os.path.join(self.folder,self.cfg_file_name))
-            text.insert(END,'\nNo config file found generated new on at: ' +str(os.path.join(self.folder,self.cfg_file_name)))
+            text.insert(END,('\nNo config file found generated new on at: %s' \
+                             %os.path.join(self.folder,self.cfg_file_name)))
+            text.yview(END)
+        else:
+            text.insert(END,('\nLoading config file: %s' \
+                             %os.path.join(self.folder,self.cfg_file_name)))
+            text.yview(END) 
+
+
+        #Achsen Name Initialisieren
+        self.make_axis_names()
+
+        #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
+        self.get_all_vars()
+
+        #DEBUG INFORMATIONEN
+        text.insert(END,'\nDebug Level: ' +str(DEBUG))
+        text.yview(END) 
+
+        if DEBUG:
+            text.insert(END,'\n' +str(self))
             text.yview(END)
 
-        try:
-            if int(self.parser.get('Debug', 'global_debug_level'))>0:
-                global DEBUG
-                DEBUG=int(self.parser.get('Debug', 'global_debug_level'))
-                text.insert(END,'\nDebug Level: ' +str(DEBUG))
-                text.yview(END)
+    #Initialisieren der Ebenen Koordinaten
+    def make_axis_names(self):
+        plane_selection=self.parser.get('Plane Selection', 'gcode')
+        if plane_selection=='G17':
+            self.axis1='X'
+            self.axis2='Y'
+            self.axis3='Z'
+        elif plane_selection=='G18':
+            self.axis1='X'
+            self.axis2='Z'
+            self.axis3='Y'
+        elif plane_selection=='G19':
+            self.axis1='Y'
+            self.axis2='Z'
+            self.axis3='X'
+        else:
+            text.insert(END,'\nFAILURE UNKNOWN PLANE SELECTED ')
+            text.yview(END)
+            raise Exception, "Problem during plane selection from INI File "
 
-            #Initialisieren der Ebenen Koordinaten
-            plane_selection=self.parser.get('Plane Selection', 'gcode')
-            if plane_selection=='G17':
-                self.axis1='X'
-                self.axis2='Y'
-                self.axis3='Z'
-            elif plane_selection=='G18':
-                self.axis1='X'
-                self.axis2='Z'
-                self.axis3='Y'
-            elif plane_selection=='G19':
-                self.axis1='Y'
-                self.axis2='Z'
-                self.axis3='X'
-            else:
-                text.insert(END,'\nFAILURE UNKNOWN PLANE SELECTED ')
-                text.yview(END)
-
-            if DEBUG:
-                text.insert(END,'\n' +str(self))
-                text.yview(END)
-        except:
-            showerror("Error during reading INI File", "Please delete or correct\n %s" \
-                      %os.path.join(self.folder,self.cfg_file_name))
-            raise Exception, "Problem during import from INI File " 
     #Die drei Achsen Namen zurück geben
     def get_axis_names(self):
         return self.axis1, self.axis2, self.axis3
@@ -1562,6 +1512,113 @@ class ConfigClass:
 
         return folder 
 
+    def make_new_Config_file(self):
+        self.parser.add_section('Paths') 
+        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohlöffel\Documents\Python\dxfs')
+        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohlöffel\Documents\Python')
+
+        self.parser.add_section('Import Parameters') 
+        self.parser.set('Import Parameters', 'point_tolerance', 0.01)
+        self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
+
+        self.parser.add_section('Export Parameters')
+        self.parser.set('Export Parameters', 'write_to_stdout', 0)               
+        
+        self.parser.add_section('Tool Parameters') 
+        self.parser.set('Tool Parameters', 'diameter', 2.0)
+        self.parser.set('Tool Parameters', 'start_radius', 0.2)
+
+        self.parser.add_section('Plane Selection') 
+        self.parser.set('Plane Selection', 'gcode', 'G17')
+
+        self.parser.add_section('Plane Coordinates') 
+        self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
+        self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
+
+        self.parser.add_section('Depth Coordinates') 
+        self.parser.set('Depth Coordinates', 'axis3_retract', 15)
+        self.parser.set('Depth Coordinates', 'axis3_safe_margin', 3.0)
+        self.parser.set('Depth Coordinates', 'axis3_mill_depth', -3.0)
+        self.parser.set('Depth Coordinates', 'axis3_slice_depth', -1.5)
+
+        self.parser.add_section('Feed Rates')
+        self.parser.set('Feed Rates', 'f_g1_depth', 150)
+        self.parser.set('Feed Rates', 'f_g1_plane', 400)
+
+        self.parser.add_section('Standard Code')
+        self.parser.set('Standard Code', 'begin',\
+                        'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
+                        +'\nG61 P0.01 (Exact Path 0.001 tol.)'\
+                        +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
+                        +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
+                        +'\nS5000M03 (Spindle 5000rpm cw)')
+        
+        self.parser.set('Standard Code', 'end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
+
+        self.parser.add_section('Debug')
+        self.parser.set('Debug', 'global_debug_level', 0)         
+                
+        open_file = open(os.path.join(self.folder,self.cfg_file_name), "w") 
+        self.parser.write(open_file) 
+        open_file.close()
+            
+    def get_all_vars(self):
+        try:
+            self.tool_dia=DoubleVar()
+            self.tool_dia.set(float(self.parser.get('Tool Parameters','diameter')))
+
+            self.start_rad=DoubleVar()
+            self.start_rad.set(float(self.parser.get('Tool Parameters','start_radius')))        
+           
+            self.Axis1_st_en=DoubleVar()
+            self.Axis1_st_en.set(float(self.parser.get('Plane Coordinates','axis1_start_end')))
+
+            self.Axis2_st_en=DoubleVar()
+            self.Axis2_st_en.set(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
+            
+            self.Axis3_retract=DoubleVar()
+            self.Axis3_retract.set(float(self.parser.get('Depth Coordinates','axis3_retract')))
+            
+            self.Axis3_safe_margin=DoubleVar()
+            self.Axis3_safe_margin.set(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
+
+            self.Axis3_slice_depth=DoubleVar()
+            self.Axis3_slice_depth.set(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
+
+            self.Axis3_mill_depth=DoubleVar()
+            self.Axis3_mill_depth.set(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
+            
+            self.F_G1_Depth=DoubleVar()
+            self.F_G1_Depth.set(float(self.parser.get('Feed Rates','f_g1_depth')))
+
+            self.F_G1_Plane=DoubleVar()
+            self.F_G1_Plane.set(float(self.parser.get('Feed Rates','f_g1_plane')))
+
+            self.points_tolerance=DoubleVar()
+            self.points_tolerance.set(float(self.parser.get('Import Parameters','point_tolerance')))
+
+            self.fitting_tolerance=DoubleVar()
+            self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
+
+##            self.gcode_be=StringVar()
+##            self.gcode_be.set(self.parser.get('Standard Code', 'begin'))
+##
+##            self.gcode_en=StringVar()
+##            self.gcode_en.set(self.parser.get('Standard Code', 'end'))            
+                        
+
+                 
+            #Setzen des Globalen Debug Levels
+            self.debug=int(self.parser.get('Debug', 'global_debug_level'))
+            if self.debug>0:
+                global DEBUG
+                DEBUG=self.debug
+            
+        except:
+            showerror("Error during reading INI File", "Please delete or correct\n %s"\
+                      %(os.path.join(self.folder,self.cfg_file_name)))
+            raise Exception, "Problem during import from INI File" 
+            
     def __str__(self):
 
         str=''
@@ -1571,77 +1628,7 @@ class ConfigClass:
                 str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
         return str
 
-class Get_WP_Offset_Dialog(Toplevel):
-    def __init__(self, parent,axis1,axis2,cont_dx,cont_dy):
-        self.dx_var=DoubleVar()
-        self.dx_var.set(cont_dx)
-        self.dy_var=DoubleVar()
-        self.dy_var.set(cont_dy)
 
-        Toplevel.__init__(self, parent)
-        self.transient(parent)
-
-        self.title("Get workpiece zero offsets")
-        self.parent = parent
-        self.result = None
-
-        body = Frame(self)
-        self.initial_focus = self.body(body,axis1,axis2)
-        body.pack(padx=5, pady=5)
-
-        self.buttonbox()
-        self.grab_set()
-
-        if not self.initial_focus:
-            self.initial_focus = self
-
-        self.protocol("WM_DELETE_WINDOW", self.cancel)
-        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
-                                  parent.winfo_rooty()+50))
-
-        self.initial_focus.focus_set()
-        self.wait_window(self)
-
-    def buttonbox(self):
-        
-        box = Frame(self)
-
-        w = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
-        w.pack(side=LEFT, padx=5, pady=5)
-        w = Button(box, text="Cancel", width=10, command=self.cancel)
-        w.pack(side=LEFT, padx=5, pady=5)
-
-        self.bind("<Return>", self.ok)
-        self.bind("<Escape>", self.cancel)
-
-        box.pack()
-
-    def ok(self, event=None):   
-        self.withdraw()
-        self.update_idletasks()
-        self.apply()
-        self.cancel()
-
-    def cancel(self, event=None):
-        self.parent.focus_set()
-        self.destroy()
-
-    def body(self, master,axis1,axis2):
-        self.dx=None
-        self.dy=None
-
-        Label(master, text=("Offset %s axis by mm:" %axis1)).grid(row=0,padx=4)
-        Label(master, text=("Offset %s axis by mm:" %axis2)).grid(row=1,padx=4)
-
-        self.dx_entry = Entry(master,textvariable=self.dx_var)
-        self.dy_entry = Entry(master,textvariable=self.dy_var)
-
-        self.dx_entry.grid(row=0, column=1,padx=4)
-        self.dy_entry.grid(row=1, column=1,padx=4)
-
-    def apply(self):
-        self.dx = self.dx_var.get()
-        self.dy = self.dy_var.get()
 
 class Show_About_Info(Toplevel):
     def __init__(self, parent):
@@ -1721,32 +1708,6 @@ class Show_About_Info(Toplevel):
 
 
 
-class LayerContentClass:
-    def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
-        self.LayerNr=LayerNr
-        self.LayerName=LayerName
-        self.Shapes=Shapes
-        
-    def __cmp__(self, other):
-         return cmp(self.LayerNr, other.LayerNr)
-
-    def __str__(self):
-        return '\nLayerNr ->'+str(self.LayerNr)+'\nLayerName ->'+str(self.LayerName)\
-               +'\nShapes ->'+str(self.Shapes)
-    
-class EntitieContentClass:
-    def __init__(self,EntNr=None,EntName='',Shapes=[]):
-        self.EntNr=EntNr
-        self.EntName=EntName
-        self.Shapes=Shapes
-
-    def __cmp__(self, other):
-         return cmp(self.EntNr, other.EntNr)        
-        
-    def __str__(self):
-        return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
-               +'\nShapes ->'+str(self.Shapes)
-
 class NotebookClass:    
     # initialization. receives the master widget
     # reference and the notebook orientation
@@ -1811,6 +1772,77 @@ class NotebookClass:
         fr.grid()
         self.active_fr = fr
 
+class Tkinter_Variable_Dialog(Toplevel):
+    def __init__(self, parent=None,title='Test Dialog',label=('label1','label2'),value=(0.0,0.0)):
+        if not(len(label)==len(value)):
+            raise Exception, "Number of labels different to number of values"
+
+        #Eingabewerte in self speichern
+        self.label=label
+        self.value=value
+        self.result=self
+
+        Toplevel.__init__(self, parent)
+        self.transient(parent)
+
+        self.title(title)
+        self.parent = parent
+
+        body = Frame(self)
+        self.initial_focus = self.body(body)
+        body.pack(padx=5, pady=5)
+
+        self.buttonbox()
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.cancel)
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+        self.wait_window(self)
+
+    def buttonbox(self):
+        
+        box = Frame(self)
+
+        w = Button(box, text="OK", width=10, command=self.ok, default=ACTIVE)
+        w.pack(side=LEFT, padx=5, pady=5)
+        w = Button(box, text="Cancel", width=10, command=self.cancel)
+        w.pack(side=LEFT, padx=5, pady=5)
+
+        self.bind("<Return>", self.ok)
+        self.bind("<Escape>", self.cancel)
+
+        box.pack()
+
+    def ok(self, event=None):   
+        self.withdraw()
+        self.update_idletasks()
+        self.apply()
+        self.cancel()
+
+    def cancel(self, event=None):
+        self.parent.focus_set()
+        self.destroy()
+
+    def body(self, master):
+        #Die Werte den Tkintervarialben zuweisen
+        self.tkintervars=[]
+        for row_nr in range(len(self.label)):
+            self.tkintervars.append(DoubleVar())
+            self.tkintervars[-1].set(self.value[row_nr])
+            Label(master, text=self.label[row_nr]).grid(row=row_nr,padx=4,sticky=N+W)
+            Entry(master,textvariable=self.tkintervars[row_nr],width=10).grid(row=row_nr, column=1,padx=4,sticky=N+W)
+
+    def apply(self):
+        self.result=[]
+        for tkintervar in self.tkintervars:
+            self.result.append(tkintervar.get())
+
 
 
 
@@ -1826,5 +1858,6 @@ if __name__ == "__main__":
     else:
         Erstelle_Fenster(master)
 
-    master.mainloop()        
+    master.mainloop()
+
     
