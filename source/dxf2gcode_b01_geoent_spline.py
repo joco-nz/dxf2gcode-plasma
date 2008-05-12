@@ -23,7 +23,6 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Arc
 from math import sqrt, sin, cos, atan2, radians, degrees
 from dxf2gcode_b01_nurbs_calc import Spline2Arcs
 from dxf2gcode_b01_point import PointClass, PointsClass, ContourClass

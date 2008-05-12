@@ -36,10 +36,12 @@ else:
     init_modules = sys.modules.keys()
 
 
-import sys, os, string, ConfigParser 
-from   dxf2gcode_b01_point import PointClass
+import sys, os, string, ConfigParser
+from dxf2gcode_b01_point import PointClass
+from dxf2gcode_b01_shape import ShapeClass
 import dxf2gcode_b01_dxf_import as dxf_import 
 import dxf2gcode_b01_tsp_opt as tsp
+
 
 import webbrowser
 from Tkconstants import END, INSERT, ALL, N, S, E, W, RAISED, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
@@ -961,6 +963,7 @@ class CanvasContentClass:
                 
                 if self.Shapes[shape_nr].cut_cor>40:
                     self.dir_hdls.append(self.Shapes[shape_nr].plot_cut_cor(self.Canvas))
+                    
     def plot_entities(self,ent_nr=-1,p0=PointClass(x=0,y=0),sca=[1,1,1]):
         if ent_nr==-1:
             entities=self.values.entities
@@ -1189,225 +1192,7 @@ class CanvasContentClass:
                 hdls=hdls+self.Shapes[s_nr].geos_hdls
         return hdls      
                                        
-class ShapeClass:
-    def __init__(self,nr='None',ent_nr='None',ent_cnr='None',closed=0,\
-                 p0=PointClass(x=0,y=0),sca=[],cut_cor=40,geos=[],geos_dir=[],geos_hdls=[]):
-        self.nr=nr
-        self.ent_nr=ent_nr
-        self.ent_cnr=ent_cnr
-        self.closed=closed
-        self.p0=p0
-        self.sca=sca
-        self.cut_cor=40
-        self.geos=geos
-        self.geos_dir=geos_dir
-        self.geos_hdls=geos_hdls
-        
-    def __str__(self):
-
-        s='\nnr ->'+str(self.nr)+'\nent_nr ->'+str(self.ent_nr)\
-               +'\nent_cnr ->'+str(self.ent_cnr)+'\nclosed ->'+str(self.closed)\
-               +'\np0 ->'+str(self.p0)\
-               +'\nsca ->'+str(self.sca)+'\ncut_cor ->'+str(self.cut_cor)\
-               +'\ngeos ->'+str(self.geos)\
-               +'\ngeos_dir ->'+str(self.geos_dir)+'\ngeo_hdls ->'+str(self.geos_hdls)
-        if DEBUG>3:
-            for geo_nr in range(len(self.geos)):
-                s=s+'\n\nShape geometrie Nr:'+str(geo_nr)+str(self.geos[geo_nr])
-
-        return s
-        
-
-    def reverse(self):
-        self.geos.reverse()
-        self.geos_dir.reverse()
-        for geo_nr in range(len(self.geos_dir)):
-            if self.geos_dir[geo_nr]==0:
-                self.geos_dir[geo_nr]=1
-            else:
-                self.geos_dir[geo_nr]=0
-
-
-    def switch_cut_cor(self):
-        if self.cut_cor==41:
-            self.cut_cor=42
-        elif self.cut_cor==42:
-            self.cut_cor=41
-
-    def get_st_en_points(self):
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
-        start=(st_point*self.sca)+self.p0
-        
-        en_point, en_angle=self.geos[-1].get_start_end_points(not(self.geos_dir[-1]))
-        ende=en_point*self.sca+self.p0
-        return [start,ende]
-          
-    def plot_start(self,CanvasClass):
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
-        start=(st_point*self.sca)+self.p0
-        
-        x_ca,y_ca=CanvasClass.get_can_coordinates(start.x,start.y)
-        length=20
-        dx=cos(radians(st_angle))*length
-        dy=sin(radians(st_angle))*length
-
-        hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='SteelBlue3',arrow='last')
-        return hdl
-
-    def plot_cut_cor(self,CanvasClass):
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
-        start=(st_point*self.sca)+self.p0
-        x_ca,y_ca=CanvasClass.get_can_coordinates(start.x,start.y)
-        length=20
-        
-        if self.cut_cor==41:
-            st_angle=st_angle+90
-        else:
-            st_angle=st_angle-90
-            
-        dx=cos(radians(st_angle))*length
-        dy=sin(radians(st_angle))*length
-
-        hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='SteelBlue3',arrow='last')
-        return hdl
-
-    def plot_end(self,CanvasClass):
-        en_point, en_angle=self.geos[-1].get_start_end_points(not(self.geos_dir[-1]))
-        ende=(en_point*self.sca)+self.p0
-        
-        x_ca,y_ca=CanvasClass.get_can_coordinates(ende.x,ende.y)
-        length=20
-        dx=cos(radians(en_angle))*length
-        dy=sin(radians(en_angle))*length
-
-        hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='PaleGreen2',arrow='first')
-        return hdl
-    
-    def Write_GCode(self,string,config,axis1,axis2,axis3):
-
-        #Einlaufradius und Versatz 
-        start_rad=config.start_rad.get()
-        start_ver=start_rad
-
-        #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad=config.tool_dia.get()/2
-        
-        depth=config.Axis3_mill_depth.get()
-        max_slice=config.Axis3_slice_depth.get()
-
-        #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
-        if -abs(max_slice)<=depth:
-            mom_depth=depth
-        else:
-            mom_depth=-abs(max_slice)
-
-        #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
-        start_cont=(st_point*self.sca)+self.p0
-        
-        if self.cut_cor==40:              
-            #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-            string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_cont.x,axis2,start_cont.y))
-            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
-
-        #Fräsradiuskorrektur Links        
-        elif self.cut_cor==41:
-
-            #Mittelpunkts für Einlaufradius
-            Oein=start_cont.get_arc_point(st_angle+90,start_rad+tool_rad)
-            #Startpunkts für Einlaufradius
-            Pa_ein=Oein.get_arc_point(st_angle+180,start_rad+tool_rad)
-            IJ=Oein-Pa_ein
-            #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(st_angle+90,start_ver)
-            #Eintauchpunkts
-            start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
-            
-            #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-            string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
-            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
-            string+=("G41 \n")
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,Pa_ein.x,axis2,Pa_ein.y))
-            string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f \n" %(axis1,start_cont.x,axis2,start_cont.y,IJ.x,IJ.y))
-            
-
-         
-        #Fräsradiuskorrektur Rechts        
-        elif self.cut_cor==42:
-
-            #Mittelpunkt für Einlaufradius
-            Oein=start_cont.get_arc_point(st_angle-90,start_rad+tool_rad)
-            #Startpunkt für Einlaufradius
-            Pa_ein=Oein.get_arc_point(st_angle+180,start_rad+tool_rad)
-            IJ=Oein-Pa_ein
-            #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(st_angle-90,start_ver)
-            #Eintauchpunkt
-            start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
-            
-            #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-            string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
-            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
-            string+=("G41 \n")
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,Pa_ein.x,axis2,Pa_ein.y))
-            string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f \n" %(axis1,start_cont.x,axis2,start_cont.y,IJ.x,IJ.y))
-            
-            
-        #Schreiben der Geometrien für den ersten Schnitt
-        for geo_nr in range(len(self.geos)):
-            string+=self.geos[geo_nr].Write_GCode(config,\
-                                                  self.sca,self.p0,\
-                                                  self.geos_dir[geo_nr],\
-                                                  axis1,axis2)
-
-        #Schleifen für die Anzahl der Schnitte
-        #Anfangswert für Direction merken
-        anfang=self.geos_dir[0]
-        while mom_depth>depth:
-            mom_depth=mom_depth-abs(max_slice)
-            if mom_depth<depth:
-                mom_depth=depth                
-
-            #Erneutes Eintauchen
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
-
-            #Falls es keine geschlossene Kontur ist    
-            if self.closed==0:
-                self.reverse()
-                self.switch_cut_cor()
-                
-                #Falls cut correction eingeschaltet ist diese umdrehen.
-                if not(self.cut_cor==40):
-                    string+=("G"+str(self.cut_cor)+" \n")
-                
-            for geo_nr in range(len(self.geos)):
-                string+=self.geos[geo_nr].Write_GCode(config,\
-                                                      self.sca,self.p0,\
-                                                      self.geos_dir[geo_nr],\
-                                                      axis1,axis2)
-
-        #Anfangswert für Direction wieder herstellen falls nötig
-        if not(anfang==self.geos_dir[0]):
-            self.reverse()
-            self.switch_cut_cor()
-
-        #Fertig und Zurückziehen des Werkzeugs
-        string+=("G1 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-        string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_retract.get()))
-        string+=("G40\n")
-
-        return 1, string        
+       
 class LayerContentClass:
     def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
         self.LayerNr=LayerNr
