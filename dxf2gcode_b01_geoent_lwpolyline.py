@@ -47,14 +47,12 @@ class LWPolylineClass:
                ("\nNr. of Lines: %i" %len(self.geo))+\
                ("\nlength: %0.3f" %self.length)
         
-        for geo in self.geo:
-            string+=str(geo)
         return string
 
     def reverse(self):
         self.geo.reverse()
         for geo in self.geo:
-            geo.reverse()
+            geo.reverse()    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         #Hinzufügen falls es keine geschlossene Polyline ist
@@ -136,13 +134,7 @@ class LWPolylineClass:
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=e
                                                           
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=[]
-        for geo in self.geo:
-            hdl+=(geo.plot2can(canvas,p0,sca,tag))
-        return hdl
-    
-    
+
     def get_start_end_points(self,direction=0):
         if not(direction):
             punkt, angle=self.geo[0].get_start_end_points(direction)
@@ -151,14 +143,3 @@ class LWPolylineClass:
         return punkt,angle
     
     
-    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
-        string=""
-        pr_geo=self.geo[:]
-        
-        #Umdrehen falls Gesamte Geometrie gedreht ist.        
-        if dir:
-            pr_geo.reverse()
-        
-        for geo in pr_geo:
-            string+=geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)       
-        return string  

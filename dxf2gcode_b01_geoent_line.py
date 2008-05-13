@@ -32,7 +32,7 @@ class LineClass:
         self.Typ='Line'
         self.Nr = Nr
         self.Layer_Nr = 0
-        self.geo = None
+        self.geo = []
         self.length= 0
 
         #Lesen der Geometrie
@@ -43,16 +43,13 @@ class LineClass:
         return("\nTyp: Line")+\
               ("\nNr: %i" %self.Nr)+\
               ("\nLayer Nr: %i" %self.Layer_Nr)+\
-              str(self.geo)
-
-    def reverse(self):
-        self.geo.reverse()    
+              str(self.geo[-1])
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                   Layer_Nr=self.Layer_Nr,\
-                                  be=self.geo.Pa,
-                                  en=self.geo.Pe,be_cp=[],en_cp=[]))      
+                                  be=self.geo[-1].Pa,
+                                  en=self.geo[-1].Pe,be_cp=[],en_cp=[]))      
         
     def Read(self, caller):
         #Kürzere Namen zuweisen
@@ -78,24 +75,16 @@ class LineClass:
         Pe=PointClass(x1,y1)               
 
         #Anhängen der LineGeo Klasse für die Geometrie
-        self.geo=LineGeo(Pa=Pa,Pe=Pe)
+        self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
 
         #Länge entspricht der Länge des Kreises
-        self.length=self.geo.length
+        self.length=self.geo[-1].length
         
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=s
 
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=self.geo.plot2can(canvas,p0,sca,tag)
-        return hdl
-
     def get_start_end_points(self,direction):
-        punkt,angle=self.geo.get_start_end_points(direction)
+        punkt,angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
-    
-    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
-        string=self.geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
-        return string
-        
+            
 
