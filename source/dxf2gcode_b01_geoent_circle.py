@@ -33,7 +33,7 @@ class CircleClass:
         self.Nr = Nr
         self.Layer_Nr = 0
         self.length= 0.0
-        self.geo=None
+        self.geo=[]
 
         #Lesen der Geometrie
         self.Read(caller)
@@ -43,10 +43,7 @@ class CircleClass:
         return("\nTyp: Circle ")+\
               ("\nNr: %i" %self.Nr)+\
               ("\nLayer Nr:%i" %self.Layer_Nr)+\
-              str(self.geo)
-
-    def reverse(self):
-        self.geo.reverse()
+              str(self.geo[-1])
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
@@ -79,23 +76,16 @@ class CircleClass:
         Pe=PointClass(x=cos(e_ang)*r,y=sin(e_ang)*r)+O
 
         #Anhängen der ArcGeo Klasse für die Geometrie
-        self.geo=ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r,s_ang=s_ang,e_ang=e_ang,dir=1)
+        self.geo.append(ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r,s_ang=s_ang,e_ang=e_ang,dir=1))
 
         #Länge entspricht der Länge des Kreises
-        self.length=self.geo.length
+        self.length=self.geo[-1].length
        
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=s        
 
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=self.geo.plot2can(canvas,p0,sca,tag)
-        return hdl
-
     def get_start_end_points(self,direction):
-        punkt,angle=self.geo.get_start_end_points(direction)
+        punkt,angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
     
-    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
-        string=self.geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)
-        return string
         

@@ -248,10 +248,14 @@ class ArcGeo:
         Pa=self.Pa
         Pe=self.Pe
         ext=self.ext
+        s_ang=self.e_ang
+        e_ang=self.s_ang
         
         self.Pa=Pe
         self.Pe=Pa
         self.ext=ext*-1
+        self.s_ang=s_ang
+        self.e_ang=e_ang
 
     def plot2can(self,canvas,p0,sca,tag):
 
@@ -283,21 +287,19 @@ class ArcGeo:
             angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
         return punkt,angle
     
-    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
-        st_point, st_angle=self.get_start_end_points(dir)
+    def Write_GCode(self,paras,sca,p0,axis1,axis2):
+        st_point, st_angle=self.get_start_end_points(0)
         IJ=(self.O-st_point)*sca
         
-        en_point, en_angle=self.get_start_end_points(not(dir))
+        en_point, en_angle=self.get_start_end_points(1)
         ende=en_point*sca+p0
         
         #Vorsicht geht nicht für Ovale
-        if ((dir==0)and(self.ext>0))or((dir==1)and(self.ext<0)):
+        if (self.ext>0):
             string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
         else:
             string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
         return string      
-
-
     
 class LineGeo:
     def __init__(self,Pa,Pe):
@@ -318,13 +320,17 @@ class LineGeo:
         
         self.Pa=Pe
         self.Pe=Pa
+
+    def reverse_copy(self):
+        Pa=self.Pe
+        Pe=self.Pa
+        return LineGeo(Pa=Pa,Pe=Pe)
         
     def plot2can(self,canvas,p0,sca,tag):
         anf=p0+self.Pa*sca
         ende=p0+self.Pe*sca
         hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag)
         return [hdl]
-
 
     def get_start_end_points(self,direction):
         if not(direction):
@@ -335,8 +341,8 @@ class LineGeo:
             angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
     
-    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
-        en_point, en_angle=self.get_start_end_points(not(dir))
+    def Write_GCode(self,paras,sca,p0,axis1,axis2):
+        en_point, en_angle=self.get_start_end_points(1)
         ende=en_point*sca+p0
         string=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
         return string

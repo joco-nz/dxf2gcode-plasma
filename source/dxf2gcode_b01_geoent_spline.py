@@ -73,15 +73,14 @@ class SplineClass:
         for point in self.CPoints:
             s=s+"\n"+str(point)
         s+=('\ngeo: ')
-        for geo in self.geo:
-            s+=str(geo)
+
         return s
 
     def reverse(self):
         self.geo.reverse()
         for geo in self.geo:
-            geo.reverse()
-            
+            geo.reverse()    
+          
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         #Hinzufügen falls es keine geschlossener Spline ist
         if self.CPoints[0].isintol(self.CPoints[-1],tol):
@@ -181,12 +180,6 @@ class SplineClass:
 
         caller.start=e
         
-    def plot2can(self,canvas,p0,sca,tag):
-        hdl=[]
-        for geo in self.geo:
-            hdl+=(geo.plot2can(canvas,p0,sca,tag))
-        return hdl
-
     def get_start_end_points(self,direction=0):
         if not(direction):
             punkt, angle=self.geo[0].get_start_end_points(direction)
@@ -195,14 +188,3 @@ class SplineClass:
 
         return punkt,angle
     
-    def Write_GCode(self,paras,sca,p0,dir,axis1,axis2):
-        string=""
-        pr_geo=self.geo[:]
-        
-        #Umdrehen falls Gesamte Geometrie gedreht ist.        
-        if dir:
-            pr_geo.reverse()
-        
-        for geo in pr_geo:
-            string+=geo.Write_GCode(paras,sca,p0,dir,axis1,axis2)       
-        return string   

@@ -41,26 +41,20 @@ class ShapeClass:
         self.sca=sca
         self.cut_cor=40
         self.geos=geos
-        self.geos_dir=geos_dir
         self.geos_hdls=geos_hdls
         
     def __str__(self):
-
         return '\nnr ->'+str(self.nr)+'\nent_nr ->'+str(self.ent_nr)\
                +'\nent_cnr ->'+str(self.ent_cnr)+'\nclosed ->'+str(self.closed)\
                +'\np0 ->'+str(self.p0)\
                +'\nsca ->'+str(self.sca)+'\ncut_cor ->'+str(self.cut_cor)\
                +'\ngeos ->'+str(self.geos)\
-               +'\ngeos_dir ->'+str(self.geos_dir)+'\ngeo_hdls ->'+str(self.geos_hdls)
+               +'\ngeo_hdls ->'+str(self.geos_hdls)
 
     def reverse(self):
         self.geos.reverse()
-        self.geos_dir.reverse()
-        for geo_nr in range(len(self.geos_dir)):
-            if self.geos_dir[geo_nr]==0:
-                self.geos_dir[geo_nr]=1
-            else:
-                self.geos_dir[geo_nr]=0
+        for geo in self.geos: 
+            geo.reverse()
 
 
     def switch_cut_cor(self):
@@ -70,15 +64,20 @@ class ShapeClass:
             self.cut_cor=41
 
     def get_st_en_points(self):
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
+        st_point, st_angle=self.geos[0].get_start_end_points(0)
         start=(st_point*self.sca)+self.p0
         
-        en_point, en_angle=self.geos[-1].get_start_end_points(not(self.geos_dir[-1]))
+        en_point, en_angle=self.geos[-1].get_start_end_points(1)
         ende=en_point*self.sca+self.p0
         return [start,ende]
-          
+
+    def plot2can(self,canvas):
+        for geo in self.geos:
+            self.geos_hdls+=geo.plot2can(canvas,self.p0,self.sca,self.nr)
+            
+            
     def plot_start(self,CanvasClass):
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
+        st_point, st_angle=self.geos[0].get_start_end_points(0)
         start=(st_point*self.sca)+self.p0
         
         x_ca,y_ca=CanvasClass.get_can_coordinates(start.x,start.y)
@@ -90,7 +89,7 @@ class ShapeClass:
         return hdl
 
     def plot_cut_cor(self,CanvasClass):
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
+        st_point, st_angle=self.geos[0].get_start_end_points(0)
         start=(st_point*self.sca)+self.p0
         x_ca,y_ca=CanvasClass.get_can_coordinates(start.x,start.y)
         length=20
@@ -107,7 +106,7 @@ class ShapeClass:
         return hdl
 
     def plot_end(self,CanvasClass):
-        en_point, en_angle=self.geos[-1].get_start_end_points(not(self.geos_dir[-1]))
+        en_point, en_angle=self.geos[-1].get_start_end_points(1)
         ende=(en_point*self.sca)+self.p0
         
         x_ca,y_ca=CanvasClass.get_can_coordinates(ende.x,ende.y)
@@ -137,7 +136,7 @@ class ShapeClass:
             mom_depth=-abs(max_slice)
 
         #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
-        st_point, st_angle=self.geos[0].get_start_end_points(self.geos_dir[0])
+        st_point, st_angle=self.geos[0].get_start_end_points(0)
         start_cont=(st_point*self.sca)+self.p0
         
         if self.cut_cor==40:              
@@ -198,16 +197,16 @@ class ShapeClass:
             
             
         #Schreiben der Geometrien für den ersten Schnitt
-        for geo_nr in range(len(self.geos)):
-            string+=self.geos[geo_nr].Write_GCode(config,\
-                                                  self.sca,self.p0,\
-                                                  self.geos_dir[geo_nr],\
-                                                  axis1,axis2)
+        for geo in self.geos:
+            string+=geo.Write_GCode(config,\
+                                    self.sca,self.p0,\
+                                    axis1,axis2)
 
+        #Zählen der Schleifen
+        snr=0
         #Schleifen für die Anzahl der Schnitte
-        #Anfangswert für Direction merken
-        anfang=self.geos_dir[0]
         while mom_depth>depth:
+            snr+=1
             mom_depth=mom_depth-abs(max_slice)
             if mom_depth<depth:
                 mom_depth=depth                
@@ -229,11 +228,10 @@ class ShapeClass:
             for geo_nr in range(len(self.geos)):
                 string+=self.geos[geo_nr].Write_GCode(config,\
                                                       self.sca,self.p0,\
-                                                      self.geos_dir[geo_nr],\
                                                       axis1,axis2)
 
         #Anfangswert für Direction wieder herstellen falls nötig
-        if not(anfang==self.geos_dir[0]):
+        if (snr%2)>0:
             self.reverse()
             self.switch_cut_cor()
 

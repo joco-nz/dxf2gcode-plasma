@@ -50,6 +50,7 @@ from Tkinter import Tk, Canvas, Menu, Frame, Grid, DoubleVar, IntVar, Radiobutto
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
+from copy import copy
 
 from math import radians, cos, sin
 
@@ -897,7 +898,7 @@ class CanvasContentClass:
             if not(dir==self.Shapes[shape_nr].cut_cor):
                 return -1   
         return dir-40
-            
+                
     #Erstellen des Gesamten Ausdrucks      
     def makeplot(self,values):
         self.values=values
@@ -921,13 +922,52 @@ class CanvasContentClass:
         self.path_hdls=[]
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.plot_entities(p0=PointClass(x=0,y=0),sca=[1,1,1])
+        self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1])
+        self.plot_shapes()
         self.LayerContents.sort()
         self.EntitieContents.sort()
 
         #Autoscale des Canvas        
         self.Canvas.autoscale()
 
+    def make_shapes(self,ent_nr=-1,p0=PointClass(x=0,y=0),sca=[1,1,1]):
+        if ent_nr==-1:
+            entities=self.values.entities
+        else:
+            entities=self.values.blocks.Entities[ent_nr]
+        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
+        ent_geos=entities.geo
+        cont=entities.cont
+        #Schleife für die Anzahl der Konturen 
+        for c_nr in range(len(cont)):
+            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
+            if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
+                ent_geo=ent_geos[cont[c_nr].order[0][0]]
+                self.make_shapes(ent_geo.Block,ent_geo.Point,ent_geo.Scale)
+            else:
+                #Schleife für die Anzahl der Geometrien
+                self.Shapes.append(ShapeClass(len(self.Shapes),ent_nr,c_nr,cont[c_nr].closed,p0,sca[:],40,[],[],[]))
+                for ent_geo_nr in range(len(cont[c_nr].order)):
+                    ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
+                    if cont[c_nr].order[ent_geo_nr][1]:
+                        ent_geo.geo.reverse()
+                        for geo in ent_geo.geo:
+                            geo=copy(geo)
+                            geo.reverse()
+                            self.Shapes[-1].geos.append(geo)
+
+                        ent_geo.geo.reverse()
+                    else:
+                        for geo in ent_geo.geo:
+                            self.Shapes[-1].geos.append(copy(geo))
+                        
+                self.addtoLayerContents(self.Shapes[-1].nr,ent_geo.Layer_Nr)
+                self.addtoEntitieContents(self.Shapes[-1].nr,ent_nr,c_nr)
+
+    def plot_shapes(self):
+        for shape in self.Shapes:
+            shape.plot2can(self.Canvas.canvas)
+            
     #Drucken des Werkstücknullpunkts
     def plot_wp_zero(self):
         for hdl in self.wp_zero_hdls:
@@ -964,31 +1004,8 @@ class CanvasContentClass:
                 if self.Shapes[shape_nr].cut_cor>40:
                     self.dir_hdls.append(self.Shapes[shape_nr].plot_cut_cor(self.Canvas))
                     
-    def plot_entities(self,ent_nr=-1,p0=PointClass(x=0,y=0),sca=[1,1,1]):
-        if ent_nr==-1:
-            entities=self.values.entities
-        else:
-            entities=self.values.blocks.Entities[ent_nr]
-        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
-        geos=entities.geo
-        cont=entities.cont
-        #Schleife für die Anzahl der Konturen 
-        for c_nr in range(len(cont)):
-            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-            if geos[cont[c_nr].order[0][0]].Typ=="Insert":
-                geo=geos[cont[c_nr].order[0][0]]
-                self.plot_entities(geo.Block,geo.Point,geo.Scale)
-            else:
-                #Schleife für die Anzahl der Geometrien
-                self.Shapes.append(ShapeClass(len(self.Shapes),ent_nr,c_nr,cont[c_nr].closed,p0,sca[:],40,[],[],[]))
-                for geo_nr in range(len(cont[c_nr].order)):
-                    geo=geos[cont[c_nr].order[geo_nr][0]]
-                    self.Shapes[-1].geos_hdls+=geo.plot2can(self.Canvas.canvas,p0,sca,self.Shapes[-1].nr)
-                    self.Shapes[-1].geos.append(geo)
-                    self.Shapes[-1].geos_dir.append(cont[c_nr].order[geo_nr][1])
-                self.addtoLayerContents(self.Shapes[-1].nr,geo.Layer_Nr)
-                self.addtoEntitieContents(self.Shapes[-1].nr,ent_nr,c_nr)
-        self.plot_wp_zero()
+   
+        
 
     def plot_opt_route(self,shapes_st_en_points,route):
         #Ausdrucken der optimierten Route
