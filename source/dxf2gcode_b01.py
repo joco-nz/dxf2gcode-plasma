@@ -1350,7 +1350,7 @@ class ConfigClass:
         self.parser.add_section('Standard Code')
         self.parser.set('Standard Code', 'begin',\
                         'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
-                        +'\nG61 P0.01 (Exact Path 0.001 tol.)'\
+                        +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
                         +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
                         +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
                         +'\nS5000M03 (Spindle 5000rpm cw)')
