@@ -191,7 +191,7 @@ class ShapeClass:
             string+=("F%0.0f\n" %config.F_G1_Depth.get())
             string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
             string+=("F%0.0f\n" %config.F_G1_Plane.get())
-            string+=("G41 \n")
+            string+=("G42 \n")
             string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,Pa_ein.x,axis2,Pa_ein.y))
             string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f \n" %(axis1,start_cont.x,axis2,start_cont.y,IJ.x,IJ.y))
             
