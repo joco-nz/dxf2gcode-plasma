@@ -32,7 +32,7 @@ from Canvas import Line
 
 class ShapeClass:
     def __init__(self,nr='None',ent_nr='None',ent_cnr='None',closed=0,\
-                 p0=PointClass(x=0,y=0),sca=[],cut_cor=40,geos=[],geos_dir=[],geos_hdls=[]):
+                 p0=PointClass(x=0,y=0),sca=[],cut_cor=40,length=0.0,geos=[],geos_hdls=[]):
         self.nr=nr
         self.ent_nr=ent_nr
         self.ent_cnr=ent_cnr
@@ -40,22 +40,27 @@ class ShapeClass:
         self.p0=p0
         self.sca=sca
         self.cut_cor=40
+        self.length=length
         self.geos=geos
         self.geos_hdls=geos_hdls
         
     def __str__(self):
-        return '\nnr ->'+str(self.nr)+'\nent_nr ->'+str(self.ent_nr)\
-               +'\nent_cnr ->'+str(self.ent_cnr)+'\nclosed ->'+str(self.closed)\
-               +'\np0 ->'+str(self.p0)\
-               +'\nsca ->'+str(self.sca)+'\ncut_cor ->'+str(self.cut_cor)\
-               +'\ngeos ->'+str(self.geos)\
-               +'\ngeo_hdls ->'+str(self.geos_hdls)
+        return ('\nnr:          %i' %self.nr)+\
+               ('\nent_nr:      %i' %self.ent_nr)+\
+               ('\nent_cnr:      %i' %self.ent_cnr)+\
+               ('\nclosed:      %i' %self.closed)+\
+               ('\np0:          %s' %self.p0)+\
+               ('\nsca:         %s' %self.sca)+\
+               ('\ncut_cor:     %s' %self.cut_cor)+\
+               ('\nlen(geos):   %i' %len(self.geos))+\
+               ('\nlength:      %0.2f' %self.length)+\
+               ('\ngeos:        %s' %self.geos)
+    
 
     def reverse(self):
         self.geos.reverse()
         for geo in self.geos: 
             geo.reverse()
-
 
     def switch_cut_cor(self):
         if self.cut_cor==41:
@@ -75,6 +80,13 @@ class ShapeClass:
         for geo in self.geos:
             self.geos_hdls+=geo.plot2can(canvas,self.p0,self.sca,self.nr)
             
+    def plot_cut_info(self,CanvasClass):
+        hdls=[]
+        hdls.append(self.plot_start(CanvasClass))
+        hdls.append(self.plot_end(CanvasClass))
+        if self.cut_cor>40:
+            hdls.append(self.plot_cut_cor(CanvasClass))
+        return hdls
             
     def plot_start(self,CanvasClass):
         st_point, st_angle=self.geos[0].get_start_end_points(0)
