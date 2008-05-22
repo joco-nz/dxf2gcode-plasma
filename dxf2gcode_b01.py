@@ -143,7 +143,7 @@ class Erstelle_Fenster:
                                       command=self.CanvasContent.plot_wp_zero)
         self.viewmenu.add_checkbutton(label="Show all path directions",\
                                       variable=self.CanvasContent.toggle_start_stop,\
-                                      command=self.CanvasContent.plot_start_end)
+                                      command=self.CanvasContent.plot_cut_info)
         self.viewmenu.add_checkbutton(label="Show disabled shapes",\
                                       variable=self.CanvasContent.toggle_show_disabled,\
                                       command=self.CanvasContent.show_disabled)
@@ -723,7 +723,7 @@ class CanvasClass:
         self.canvas.scale( ALL, self.firstevent.x,self.firstevent.y,sca,sca)
         self.lastevent=event
 
-        self.Content.plot_start_end() 
+        self.Content.plot_cut_info() 
         self.Content.plot_wp_zero()
 
     def mouse_zoom_release(self,event):
@@ -815,7 +815,7 @@ class CanvasClass:
         self.dx=self.dx-dx/self.scale
         self.dy=self.dy+dy/self.scale
 
-        self.Content.plot_start_end()
+        self.Content.plot_cut_info()
         self.Content.plot_wp_zero()
         
     def get_can_coordinates(self,x_st,y_st):
@@ -844,7 +844,7 @@ class CanvasClass:
         self.dx=self.dx-delta_dx
         self.dy=self.dy-delta_dy
 
-        self.Content.plot_start_end() 
+        self.Content.plot_cut_info() 
         self.Content.plot_wp_zero()
 
         #Schreiben der neuen WErte simulierne auf Curser Punkt 0, 0
@@ -946,7 +946,7 @@ class CanvasContentClass:
                 self.make_shapes(ent_geo.Block,ent_geo.Point,ent_geo.Scale)
             else:
                 #Schleife für die Anzahl der Geometrien
-                self.Shapes.append(ShapeClass(len(self.Shapes),ent_nr,c_nr,cont[c_nr].closed,p0,sca[:],40,[],[],[]))
+                self.Shapes.append(ShapeClass(len(self.Shapes),ent_nr,c_nr,cont[c_nr].closed,p0,sca[:],40,cont[c_nr].length*sca[0],[],[]))
                 for ent_geo_nr in range(len(cont[c_nr].order)):
                     ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
                     if cont[c_nr].order[ent_geo_nr][1]:
@@ -986,7 +986,7 @@ class CanvasContentClass:
             self.wp_zero_hdls.append(hdl)
             hdl=Arc(self.Canvas.canvas,xy,start=270,extent=90,style="pieslice",outline="gray",fill="gray")
             self.wp_zero_hdls.append(hdl)
-    def plot_start_end(self):
+    def plot_cut_info(self):
         for hdl in self.dir_hdls:
             self.Canvas.canvas.delete(hdl) 
         self.dir_hdls=[]
@@ -998,14 +998,8 @@ class CanvasContentClass:
                
         for shape_nr in draw_list:
             if not(shape_nr in self.Disabled):
-                self.dir_hdls.append(self.Shapes[shape_nr].plot_start(self.Canvas))
-                self.dir_hdls.append(self.Shapes[shape_nr].plot_end(self.Canvas))
-                
-                if self.Shapes[shape_nr].cut_cor>40:
-                    self.dir_hdls.append(self.Shapes[shape_nr].plot_cut_cor(self.Canvas))
-                    
-   
-        
+                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas)
+
 
     def plot_opt_route(self,shapes_st_en_points,route):
         #Ausdrucken der optimierten Route
@@ -1091,7 +1085,7 @@ class CanvasContentClass:
             except:
                 pass
             
-        self.plot_start_end()
+        self.plot_cut_info()
         self.set_shapes_color(self.Selected,'selected')
  
     def invert_selection(self):
@@ -1103,7 +1097,7 @@ class CanvasContentClass:
         self.deselect()
         self.Selected=new_sel
         self.set_shapes_color(self.Selected,'selected')
-        self.plot_start_end()
+        self.plot_cut_info()
 
         if DEBUG:
             self.text.insert(END,'\nInverting Selection')
@@ -1116,7 +1110,7 @@ class CanvasContentClass:
                 self.Disabled.append(shape_nr)
         self.set_shapes_color(self.Selected,'disabled')
         self.Selected=[]
-        self.plot_start_end()
+        self.plot_cut_info()
 
     def enable_selection(self):
         for shape_nr in self.Selected:
@@ -1125,7 +1119,7 @@ class CanvasContentClass:
                 del(self.Disabled[nr])
         self.set_shapes_color(self.Selected,'deselected')
         self.Selected=[]
-        self.plot_start_end()
+        self.plot_cut_info()
 
     def show_disabled(self):
         if (self.toggle_show_disabled.get()==1):
@@ -1142,7 +1136,7 @@ class CanvasContentClass:
                 self.text.insert(END,'\n\nSwitched Direction at Shape:'\
                                  +str(self.Shapes[shape_nr]))
                 self.text.yview(END)
-        self.plot_start_end()
+        self.plot_cut_info()
         
     def set_cut_cor(self,correction):
         for shape_nr in self.Selected: 
@@ -1151,7 +1145,7 @@ class CanvasContentClass:
                 self.text.insert(END,'\n\nChanged Cutter Correction at Shape:'\
                                  +str(self.Shapes[shape_nr]))
                 self.text.yview(END)       
-        self.plot_start_end() 
+        self.plot_cut_info() 
         
     def set_shapes_color(self,shape_nrs,state):
         s_shape_nrs=[]

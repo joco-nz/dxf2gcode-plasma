@@ -69,17 +69,18 @@ class InsertClass:
         y0=float(lp.line_pair[s].value)
         self.Point=PointClass(x0,y0)
         
-        
-        s=lp.index_code(41,s+1,e)
-        if s!=None:
-            #XScale
-            self.Scale[0]=float(lp.line_pair[s].value)
-            #YScale
-            s=lp.index_code(42,s+1,e)
-            self.Scale[1]=float(lp.line_pair[s].value)
-            #ZScale
-            s=lp.index_code(43,s+1,e)
-            self.Scale[2]=float(lp.line_pair[s].value)
+        #XScale
+        s_temp=lp.index_code(41,s+1,e)
+        if s_temp!=None:
+            self.Scale[0]=float(lp.line_pair[s_temp].value)
+        #YScale
+        s_temp=lp.index_code(42,s+1,e)
+        if s_temp!=None:
+            self.Scale[1]=float(lp.line_pair[s_temp].value) 
+        #ZScale
+        s_temp=lp.index_code(43,s+1,e)
+        if s_temp!=None:
+            self.Scale[2]=float(lp.line_pair[s_temp].value)
 
         #Neuen Startwert für die nächste Geometrie zurückgeben
         caller.start=e      

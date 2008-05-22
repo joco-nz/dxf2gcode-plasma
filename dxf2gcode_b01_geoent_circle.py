@@ -68,8 +68,8 @@ class CircleClass:
         r= float(lp.line_pair[s].value)
                                 
         #Berechnen der Start und Endwerte des Kreises ohne Überschneidung              
-        s_ang= 0
-        e_ang= 2*pi
+        s_ang= -3*pi/4
+        e_ang= -3*pi/4
 
         #Berechnen der Start und Endwerte des Arcs
         Pa=PointClass(x=cos(s_ang)*r,y=sin(s_ang)*r)+O
@@ -77,6 +77,7 @@ class CircleClass:
 
         #Anhängen der ArcGeo Klasse für die Geometrie
         self.geo.append(ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r,s_ang=s_ang,e_ang=e_ang,dir=1))
+        self.geo[-1].reverse()
 
         #Länge entspricht der Länge des Kreises
         self.length=self.geo[-1].length
