@@ -75,6 +75,12 @@ class PointClass:
     def get_arc_point(self,ang=0,r=1):
         return PointClass(x=self.x+cos(radians(ang))*r,\
                           y=self.y+sin(radians(ang))*r)
+
+    def Write_GCode(self,sca,p0,axis1,axis2):
+        point=self*sca+p0
+        string=("G0 %s%0.3f %s%0.3f\n" %(axis1,point.x,axis2,point.y))
+        return string
+    
     def triangle_height(self,other1,other2):
         #Die 3 Längen des Dreiecks ausrechnen
         a=self.distance(other1)
@@ -257,7 +263,7 @@ class ArcGeo:
         self.s_ang=s_ang
         self.e_ang=e_ang
 
-    def plot2can(self,canvas,p0,sca,tag):
+    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],tag=None,col='black'):
 
         #Das Plotten mit Tkinter hat Probleme für kleine Kreissegmente     
 ##        xy=p0.x+(self.O.x-abs(self.r))*sca[0],-p0.y-(self.O.y-abs(self.r))*sca[1],\
@@ -275,7 +281,7 @@ class ArcGeo:
             y.append(p0.y+(self.O.y+sin(ang)*abs(self.r))*sca[1])
 
             if i>=1:
-                hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag))       
+                hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag,fill=col))       
         return hdl        
 
     def get_start_end_points(self,direction):
@@ -287,7 +293,7 @@ class ArcGeo:
             angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
         return punkt,angle
     
-    def Write_GCode(self,paras,sca,p0,axis1,axis2):
+    def Write_GCode(self,sca,p0,axis1,axis2):
         st_point, st_angle=self.get_start_end_points(0)
         IJ=(self.O-st_point)*sca
         
@@ -326,10 +332,10 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,canvas,p0,sca,tag):
+    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],tag=None,col='black'):
         anf=p0+self.Pa*sca
         ende=p0+self.Pe*sca
-        hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag)
+        hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col)
         return [hdl]
 
     def get_start_end_points(self,direction):
@@ -341,7 +347,7 @@ class LineGeo:
             angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
     
-    def Write_GCode(self,paras,sca,p0,axis1,axis2):
+    def Write_GCode(self,sca,p0,axis1,axis2):
         en_point, en_angle=self.get_start_end_points(1)
         ende=en_point*sca+p0
         string=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))

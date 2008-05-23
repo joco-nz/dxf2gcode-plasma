@@ -108,7 +108,7 @@ class Erstelle_Fenster:
         self.Canvas =CanvasClass(self.frame_c,self)
 
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
-        self.CanvasContent=CanvasContentClass(self.Canvas,self.text)
+        self.CanvasContent=CanvasContentClass(self.Canvas,self.text,self.config)
         self.Canvas.Content=self.CanvasContent
 
         #Erstellen des Fenster Menus
@@ -858,8 +858,10 @@ class CanvasClass:
         
 #Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
 class CanvasContentClass:
-    def __init__(self,Canvas,text):
+    def __init__(self,Canvas,text,config):
         self.Canvas=Canvas
+        self.text=text
+        self.config=config
         self.Shapes=[]
         self.LayerContents=[]
         self.EntitieContents=[]
@@ -868,7 +870,7 @@ class CanvasContentClass:
         self.wp_zero_hdls=[]
         self.dir_hdls=[]
         self.path_hdls=[]
-        self.text=text
+        
 
         #Anfangswert für das Ansicht Toggle Menu
         self.toggle_wp_zero=IntVar()
@@ -998,7 +1000,7 @@ class CanvasContentClass:
                
         for shape_nr in draw_list:
             if not(shape_nr in self.Disabled):
-                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas)
+                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas,self.config)
 
 
     def plot_opt_route(self,shapes_st_en_points,route):
@@ -1496,7 +1498,7 @@ class Show_About_Info(Toplevel):
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
         text.insert(END, "You are using DXF2GCODE")
-        text.insert(END, "\nVersion b01 from the 16th April 2008")
+        text.insert(END, "\nVersion b01 from the 23th May 2008")
         text.insert(END, "\nFor more information und updates about")
         text.insert(END, "\nplease visit my homepage at:")
         text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
