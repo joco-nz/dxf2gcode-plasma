@@ -26,7 +26,7 @@
 #Main Class Shape
 
 import sys, os, string, ConfigParser 
-from   dxf2gcode_b01_point import PointClass
+from   dxf2gcode_b01_point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
 from Canvas import Line
 
@@ -80,12 +80,23 @@ class ShapeClass:
         for geo in self.geos:
             self.geos_hdls+=geo.plot2can(canvas,self.p0,self.sca,self.nr)
             
-    def plot_cut_info(self,CanvasClass):
+    def plot_cut_info(self,CanvasClass,config):
         hdls=[]
         hdls.append(self.plot_start(CanvasClass))
         hdls.append(self.plot_end(CanvasClass))
         if self.cut_cor>40:
             hdls.append(self.plot_cut_cor(CanvasClass))
+
+            #Versatz des Zeichnens durch Position
+            P0=PointClass(x=-CanvasClass.dx*CanvasClass.scale,\
+                          y=-CanvasClass.dy*CanvasClass.scale-CanvasClass.canvas.winfo_height())
+            
+            #Korrektur der Skalierung
+            sca=[CanvasClass.scale]*3
+            
+            self.make_start_moves(config)
+            hdls+=self.st_move[1].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
+            hdls+=self.st_move[2].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
         return hdls
             
     def plot_start(self,CanvasClass):
@@ -128,8 +139,9 @@ class ShapeClass:
 
         hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='PaleGreen2',arrow='first')
         return hdl
-    
-    def Write_GCode(self,string,config,axis1,axis2,axis3):
+
+    def make_start_moves(self,config):
+        self.st_move=[]
 
         #Einlaufradius und Versatz 
         start_rad=config.start_rad.get()
@@ -137,53 +149,35 @@ class ShapeClass:
 
         #Werkzeugdurchmesser in Radius umrechnen        
         tool_rad=config.tool_dia.get()/2
-        
-        depth=config.Axis3_mill_depth.get()
-        max_slice=config.Axis3_slice_depth.get()
-
-        #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
-        if -abs(max_slice)<=depth:
-            mom_depth=depth
-        else:
-            mom_depth=-abs(max_slice)
-
+    
         #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
         st_point, st_angle=self.geos[0].get_start_end_points(0)
         start_cont=(st_point*self.sca)+self.p0
-        
+      
         if self.cut_cor==40:              
-            #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-            string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_cont.x,axis2,start_cont.y))
-            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
+            self.st_move.append(start_cont)
 
         #Fräsradiuskorrektur Links        
         elif self.cut_cor==41:
-
             #Mittelpunkts für Einlaufradius
             Oein=start_cont.get_arc_point(st_angle+90,start_rad+tool_rad)
             #Startpunkts für Einlaufradius
             Pa_ein=Oein.get_arc_point(st_angle+180,start_rad+tool_rad)
-            IJ=Oein-Pa_ein
             #Startwerts für Einlaufgerade
             Pg_ein=Pa_ein.get_arc_point(st_angle+90,start_ver)
-            #Eintauchpunkts
+            
+            #Eintauchpunkts errechnete Korrektur
             start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
-            
-            #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-            string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
-            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
-            string+=("G41 \n")
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,Pa_ein.x,axis2,Pa_ein.y))
-            string+=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f \n" %(axis1,start_cont.x,axis2,start_cont.y,IJ.x,IJ.y))
-            
+            self.st_move.append(start_ein)
 
-         
+            #Einlaufgerade mit Korrektur
+            start_line=LineGeo(Pg_ein,Pa_ein)
+            self.st_move.append(start_line)
+
+            #Einlaufradius mit Korrektur
+            start_rad=ArcGeo(Pa=Pa_ein,Pe=start_cont,O=Oein,r=start_rad+tool_rad,dir=1)
+            self.st_move.append(start_rad)
+            
         #Fräsradiuskorrektur Rechts        
         elif self.cut_cor==42:
 
@@ -194,24 +188,58 @@ class ShapeClass:
             IJ=Oein-Pa_ein
             #Startwerts für Einlaufgerade
             Pg_ein=Pa_ein.get_arc_point(st_angle-90,start_ver)
-            #Eintauchpunkt
+            
+            #Eintauchpunkts errechnete Korrektur
             start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
+            self.st_move.append(start_ein)
+
+            #Einlaufgerade mit Korrektur
+            start_line=LineGeo(Pg_ein,Pa_ein)
+            self.st_move.append(start_line)
+
+            #Einlaufradius mit Korrektur
+            start_rad=ArcGeo(Pa=Pa_ein,Pe=start_cont,O=Oein,r=start_rad+tool_rad,dir=0)
+            self.st_move.append(start_rad)
+    
+    def Write_GCode(self,string,config,axis1,axis2,axis3):
+
+        self.make_start_moves(config)
+        
+        depth=config.Axis3_mill_depth.get()
+        max_slice=config.Axis3_slice_depth.get()
+
+        #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
+        if -abs(max_slice)<=depth:
+            mom_depth=depth
+        else:
+            mom_depth=-abs(max_slice)
+
+
+        #Positionieren des Werkzeugs über dem Anfang und Eintauchen
+        string+=self.st_move[0].Write_GCode([1,1,1],\
+                                            PointClass(x=0,y=0),\
+                                            axis1,axis2)
+        
+        string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
+        string+=("F%0.0f\n" %config.F_G1_Depth.get())
+        string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
+        string+=("F%0.0f\n" %config.F_G1_Plane.get())
+
+        #Wenn G41 oder G42 an ist Fräsradiuskorrektur        
+        if self.cut_cor!=40:
+            string+=("G%i \n" %self.cut_cor)
+            string+=self.st_move[1].Write_GCode([1,1,1],\
+                                            PointClass(x=0,y=0),\
+                                            axis1,axis2)
             
-            #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-            string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,start_ein.x,axis2,start_ein.y))
-            string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
-            string+=("G42 \n")
-            string+=("G1 %s%0.3f %s%0.3f\n" %(axis1,Pa_ein.x,axis2,Pa_ein.y))
-            string+=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f \n" %(axis1,start_cont.x,axis2,start_cont.y,IJ.x,IJ.y))
-            
-            
+            string+=self.st_move[2].Write_GCode([1,1,1],\
+                                            PointClass(x=0,y=0),\
+                                            axis1,axis2)
+
+ 
         #Schreiben der Geometrien für den ersten Schnitt
         for geo in self.geos:
-            string+=geo.Write_GCode(config,\
-                                    self.sca,self.p0,\
+            string+=geo.Write_GCode(self.sca,self.p0,\
                                     axis1,axis2)
 
         #Zählen der Schleifen
@@ -238,8 +266,7 @@ class ShapeClass:
                     string+=("G"+str(self.cut_cor)+" \n")
                 
             for geo_nr in range(len(self.geos)):
-                string+=self.geos[geo_nr].Write_GCode(config,\
-                                                      self.sca,self.p0,\
+                string+=self.geos[geo_nr].Write_GCode(self.sca,self.p0,\
                                                       axis1,axis2)
 
         #Anfangswert für Direction wieder herstellen falls nötig
