@@ -330,26 +330,29 @@ class Erstelle_Fenster:
         #Initial Status für den Export
         status=1
 
-        #Achsenbelegung für den Export
-        axis1,axis2,axis3=self.config.get_axis_names()
-      
+        #PostprocessorClass initialisieren
+        postpro=PostprocessorClass(self.config)
+
+        #Config in einen kurzen Namen speichern
+        config=self.config
+        
         #Daten aus den beiden Textfeldern in strings speichern        
         s_begin=self.ExportParas.gcode_be.get(1.0,END)
         s_end=self.ExportParas.gcode_en.get(1.0,END)
-        config=self.config
 
         #Schreiben in einen String
         str="(Generated with dxf2code)\n(Created from file: "+self.load_filename+")\n"
         string=(str.encode("utf-8"))
-        string+=self.config.parser.get('Plane Selection', 'gcode')
+        string+=config.parser.get('Plane Selection', 'gcode')
         string+=" (Plane Selection from Ini File)\n"
         string+=(s_begin.strip()+"\n")
 
         #Maschine auf die Anfangshöhe bringen
-        string+=("G0 %s%0.3f\n" %(axis3,config.Axis3_retract.get()))
+        #string+=("G0 %s%0.3f\n" %(axis3,))
+        string+=postpro.rap_pos_z(config.Axis3_retract.get())
 
+        
         #Bei 1 starten da 0 der Startpunkt ist
-        #print self.TSP.opt_route[0]
         for nr in range(1,len(self.TSP.opt_route)):
             shape=self.shapes_to_write[self.TSP.opt_route[nr]]
             if DEBUG:
@@ -359,13 +362,13 @@ class Erstelle_Fenster:
             #Drucken falls die Shape nicht disabled ist
             if not(shape.nr in self.CanvasContent.Disabled):
                 #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
-                stat, string =shape.Write_GCode(string,config,axis1,axis2,axis3)
+                stat, string =shape.Write_GCode(string,config,postpro)
                 status=status*stat
 
         #Maschine auf den Endwert positinieren
-        string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_retract.get()))
-        string+=("G0 %s%0.3f %s%0.3f\n" \
-                %(axis1,config.Axis1_st_en.get(),axis2,config.Axis2_st_en.get()))
+        #string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,config.Axis1_st_en.get(),axis2,config.Axis2_st_en.get()
+        string+=postpro.rap_pos_xy(PointClass(x=config.Axis1_st_en.get(),\
+                                              y=config.Axis2_st_en.get()))
 
         string+=(s_end.strip()+"\n")
 
@@ -1269,7 +1272,8 @@ class ConfigClass:
             text.insert(END,'\n' +str(self))
             text.yview(END)
 
-    #Initialisieren der Ebenen Koordinaten
+
+        #Initialisieren der Ebenen Koordinaten
     def make_axis_names(self):
         plane_selection=self.parser.get('Plane Selection', 'gcode')
         if plane_selection=='G17':
@@ -1353,6 +1357,10 @@ class ConfigClass:
         
         self.parser.set('Standard Code', 'end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
 
+        self.parser.add_section('Postprocessor') 
+        self.parser.set('Postprocessor', 'abs_export', 1)
+        self.parser.set('Postprocessor', 'num_format', '%0.3f')
+
         self.parser.add_section('Debug')
         self.parser.set('Debug', 'global_debug_level', 0)         
                 
@@ -1398,14 +1406,7 @@ class ConfigClass:
             self.fitting_tolerance=DoubleVar()
             self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
 
-##            self.gcode_be=StringVar()
-##            self.gcode_be.set(self.parser.get('Standard Code', 'begin'))
-##
-##            self.gcode_en=StringVar()
-##            self.gcode_en.set(self.parser.get('Standard Code', 'end'))            
-                        
-
-                 
+                
             #Setzen des Globalen Debug Levels
             self.debug=int(self.parser.get('Debug', 'global_debug_level'))
             if self.debug>0:
@@ -1426,7 +1427,69 @@ class ConfigClass:
                 str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
         return str
 
+class PostprocessorClass:
+    def __init__(self,config=None):
+        #Die 3 Achsen Namen abhängig von Gewählten Ebene auswählen
+        self.axis1,self.axis2,self.axis3=config.get_axis_names()
+        
+        #Art des exports Absolut or Inkremental
+        self.abs_export=int(config.parser.get('Postprocessor','abs_export'))
+        self.num_format=config.parser.get('Postprocessor','num_format')
 
+        #Die letze Positionen in X,Y und Z zuweisen (Startwerte für relative Positionierung)
+        if not(self.abs_export):
+            self.lastpos=PointClass(x=config.Axis1_st_en.get(),\
+                                    y=config.Axis2_st_en.get())
+            self.lastdepth=config.Axis3_retract.get()
+
+    def lin_pol_arc(self,dir,ende,IJ):
+        if not(self.abs_export):
+            val=ende-self.lastpos
+            self.lastpos=ende
+        else:
+            val=ende
+            
+        if dir=="cw":
+            gcode="G2"
+        elif dir=="ccw":
+            gcode="G3"
+         
+        return (("%s %s"+self.num_format+" %s"+self.num_format+\
+                " I"+self.num_format+" J"+self.num_format+"\n") \
+                %(gcode,self.axis1,val.x,self.axis2,val.y,IJ.x,IJ.y))            
+
+            
+    def rap_pos_z(self,z_pos):
+        return self.feed_pos_z("G0",z_pos)
+
+    def rap_pos_xy(self,newpos):
+        return self.feed_pos_xy("G0",newpos)
+
+    def lin_pol_z(self,z_pos):
+        return self.feed_pos_z("G1",z_pos)
+
+    def lin_pol_xy(self,newpos):
+        return self.feed_pos_xy("G1",newpos)
+
+    def feed_pos_z(self,feed_art,z_pos):
+        if not(self.abs_export):
+            val=z_pos-self.lastdepth
+            self.lastdepth=z_pos
+        else:
+            val=z_pos
+            
+        return (("%s %s "+self.num_format+"\n") %(feed_art,self.axis3,val))
+            
+    def feed_pos_xy(self,feed_art,newpos):        
+        if not(self.abs_export):
+            val=newpos-self.lastpos
+            self.lastpos=newpos
+        else:
+            val=newpos
+            
+        return (("%s %s"+self.num_format+" %s"+self.num_format+"\n")\
+                %(feed_art,self.axis1,val.x,self.axis2,val.y))
+               
 
 class Show_About_Info(Toplevel):
     def __init__(self, parent):
