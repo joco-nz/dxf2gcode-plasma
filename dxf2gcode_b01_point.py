@@ -76,10 +76,10 @@ class PointClass:
         return PointClass(x=self.x+cos(radians(ang))*r,\
                           y=self.y+sin(radians(ang))*r)
 
-    def Write_GCode(self,sca,p0,axis1,axis2):
+    def Write_GCode(self,sca,p0,postpro):
         point=self*sca+p0
-        string=("G0 %s%0.3f %s%0.3f\n" %(axis1,point.x,axis2,point.y))
-        return string
+        #return("G0 %s%0.3f %s%0.3f\n" %(axis1,point.x,axis2,point.y))
+        return postpro.rap_pos_xy(point)
     
     def triangle_height(self,other1,other2):
         #Die 3 Längen des Dreiecks ausrechnen
@@ -293,7 +293,7 @@ class ArcGeo:
             angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
         return punkt,angle
     
-    def Write_GCode(self,sca,p0,axis1,axis2):
+    def Write_GCode(self,sca,p0,postpro):
         st_point, st_angle=self.get_start_end_points(0)
         IJ=(self.O-st_point)*sca
         
@@ -302,9 +302,11 @@ class ArcGeo:
         
         #Vorsicht geht nicht für Ovale
         if (self.ext>0):
-            string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+            #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+            string=postpro.lin_pol_arc("ccw",ende,IJ)
         else:
-            string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+            #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+            string=postpro.lin_pol_arc("cw",ende,IJ)
         return string      
     
 class LineGeo:
@@ -347,11 +349,11 @@ class LineGeo:
             angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
     
-    def Write_GCode(self,sca,p0,axis1,axis2):
+    def Write_GCode(self,sca,p0,postpro):
         en_point, en_angle=self.get_start_end_points(1)
         ende=en_point*sca+p0
-        string=("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
-        return string
+        #return("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
+        return postpro.lin_pol_xy(ende)
         
     def distance2point(self,point):
         try:
