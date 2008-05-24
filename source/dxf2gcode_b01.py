@@ -181,7 +181,7 @@ class Erstelle_Fenster:
         #Auswahl des zu ladenden Files
         myFormats = [('AutoCAD / QCAD Drawing','*.dxf'),\
         ('All File','*.*') ]
-        inidir=self.config.parser.get('Paths','load_path')
+        inidir=self.config.load_path
         filename = askopenfile(initialdir=inidir,\
                                filetypes=myFormats)
         if not filename:
@@ -317,7 +317,7 @@ class Erstelle_Fenster:
         (beg, ende)=os.path.split(self.load_filename)
         (fileBaseName, fileExtension)=os.path.splitext(ende)
 
-        inidir=self.config.parser.get('Paths','save_path')
+        inidir=self.config.save_path
         self.save_filename = asksaveasfilename(initialdir=inidir,\
                                initialfile=fileBaseName +'.ngc',filetypes=myFormats)
 
@@ -343,7 +343,7 @@ class Erstelle_Fenster:
         #Schreiben in einen String
         str="(Generated with dxf2code)\n(Created from file: "+self.load_filename+")\n"
         string=(str.encode("utf-8"))
-        string+=config.parser.get('Plane Selection', 'gcode')
+        string+=config.plane_selection
         string+=" (Plane Selection from Ini File)\n"
         string+=(s_begin.strip()+"\n")
 
@@ -380,7 +380,7 @@ class Erstelle_Fenster:
         self.text.yview(END)        
         
         #Drucken in den Stdout, speziell für EMC2 
-        if int(self.config.parser.get('Export Parameters','write_to_stdout')):
+        if self.config.write_to_stdout:
             print(string)
             self.ende()     
         else:
@@ -484,8 +484,8 @@ class ExportParasClass:
         self.erstelle_eingabefelder(config)
         self.erstelle_textfelder(config)
 
-        self.gcode_be.insert(END,config.parser.get('Standard Code','begin'))
-        self.gcode_en.insert(END,config.parser.get('Standard Code','end'))
+        self.gcode_be.insert(END,config.gcode_be)
+        self.gcode_en.insert(END,config.gcode_en)
 
 
     def erstelle_eingabefelder(self,config):
@@ -1316,8 +1316,8 @@ class ConfigClass:
 
     def make_new_Config_file(self):
         self.parser.add_section('Paths') 
-        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohlöffel\Documents\Python\dxfs')
-        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohlöffel\Documents\Python')
+        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohlöffel\Documents\DXF2GCODE\trunk\dxf')
+        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohlöffel\Documents')
 
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
@@ -1406,7 +1406,20 @@ class ConfigClass:
             self.fitting_tolerance=DoubleVar()
             self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
 
-                
+            #Holen der restlichen Variablen
+            self.load_path=self.parser.get('Paths','load_path')
+            self.save_path=self.parser.get('Paths','save_path')
+
+            self.abs_export=int(self.parser.get('Postprocessor','abs_export'))
+            self.num_format=self.parser.get('Postprocessor','num_format')
+
+            self.plane_selection=self.parser.get('Plane Selection', 'gcode')
+
+            self.write_to_stdout=int(self.parser.get('Export Parameters','write_to_stdout'))
+
+            self.gcode_be=self.parser.get('Standard Code','begin')
+            self.gcode_en=self.parser.get('Standard Code','end')            
+
             #Setzen des Globalen Debug Levels
             self.debug=int(self.parser.get('Debug', 'global_debug_level'))
             if self.debug>0:
@@ -1433,8 +1446,8 @@ class PostprocessorClass:
         self.axis1,self.axis2,self.axis3=config.get_axis_names()
         
         #Art des exports Absolut or Inkremental
-        self.abs_export=int(config.parser.get('Postprocessor','abs_export'))
-        self.num_format=config.parser.get('Postprocessor','num_format')
+        self.abs_export=config.abs_export
+        self.num_format=config.num_format
 
         #Die letze Positionen in X,Y und Z zuweisen (Startwerte für relative Positionierung)
         if not(self.abs_export):
