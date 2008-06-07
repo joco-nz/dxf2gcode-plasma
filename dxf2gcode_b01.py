@@ -283,17 +283,14 @@ class Erstelle_Fenster:
         self.Canvas.scale_contours(self.cont_scale/old_scale)        
         
     def Move_WP_zero(self):
-        #Achsenbelegung für den Export
-        axis1,axis2,axis3=self.config.get_axis_names()
-
         #Die alten Werte zwischenspeichern für das verschieben des Canvas
         old_dx=self.cont_dx
         old_dy=self.cont_dy
 
         #Dialog mit den definierten Parametern öffnen       
         title='Workpiece zero offset'
-        label=(("Offset %s axis by mm:" %axis1),\
-               ("Offset %s axis by mm:" %axis2))
+        label=(("Offset %s axis by mm:" %self.config.ax1_letter),\
+               ("Offset %s axis by mm:" %self.config.ax2_letter))
         value=(self.cont_dx,self.cont_dy)
         dialog=Tkinter_Variable_Dialog(self.master,title,label,value)
         self.cont_dx=dialog.result[0]
@@ -301,7 +298,8 @@ class Erstelle_Fenster:
 
         #Falls noch kein File geladen wurde nichts machen
         self.text.insert(END,("\nWorpiece zero offset: %s %0.2f; %s %0.2f" \
-                              %(axis1,self.cont_dx,axis2,self.cont_dy)))
+                              %(self.config.ax1_letter,self.cont_dx,
+                                self.config.ax2_letter,self.cont_dy)))
         self.text.yview(END)
 
         #Verschieben des Canvas WP zero
