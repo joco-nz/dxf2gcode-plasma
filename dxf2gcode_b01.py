@@ -1323,8 +1323,8 @@ class ConfigClass:
         self.parser.set('Postprocessor number format','pre_decimals',4)
         self.parser.set('Postprocessor number format','post_decimals',2)
         self.parser.set('Postprocessor number format','decimal_seperator','.')
-        self.parser.set('Postprocessor number format','pre_decimal_zero_padding',1)
-        self.parser.set('Postprocessor number format','post_decimal_zero_padding',0)
+        self.parser.set('Postprocessor number format','pre_decimal_zero_padding',0)
+        self.parser.set('Postprocessor number format','post_decimal_zero_padding',1)
         self.parser.set('Postprocessor number format','signed_values',0)
 
         self.parser.add_section('Postprocessor line numbering')
@@ -1635,18 +1635,18 @@ class PostprocessorClass:
         elif (self.signed_val==0)and(self.pre_dec_z_pad==0):
             numstr=(('%'+str(self.pre_dec+self.post_dec+1)+\
                     '.'+str(self.post_dec)+'f') %number)
-
+            
         #Setzen des zugehörigen Dezimal Trennzeichens            
         string+=numstr[0:-(self.post_dec+1)]
-        string+=self.dec_sep
-        string+=numstr[-(self.post_dec):]
+        
+        string_end=self.dec_sep
+        string_end+=numstr[-(self.post_dec):]
 
         #Falls die 0er am Ende entfernt werden sollen
         if self.post_dec_z_pad==0:
-            while (string[-1]=='0')or(string[-1]==self.dec_sep):
-                string=string[0:-1]
-                
-        return string
+            while (len(string_end)>0)and((string_end[-1]=='0')or(string_end[-1]==self.dec_sep)):
+                string_end=string_end[0:-1]                
+        return string+string_end
         
 class Show_About_Info(Toplevel):
     def __init__(self, parent):
