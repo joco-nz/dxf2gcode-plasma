@@ -90,9 +90,13 @@ class Erstelle_Fenster:
         self.frame_u.columnconfigure(0,weight=1)
         self.frame_u.columnconfigure(1,weight=0)
 
+
         #Voreininstellungen für das Programm laden
-        self.config=ConfigClass(self.text)  
-        
+        self.config=ConfigClass(self.text)
+
+        #PostprocessorClass initialisieren (Voreinstellungen aus Config)
+        self.postpro=PostprocessorClass(self.config,self.text)
+
         if DEBUG>0:
             self.text.config(height=15)
 
@@ -330,28 +334,16 @@ class Erstelle_Fenster:
         #Initial Status für den Export
         status=1
 
-        #PostprocessorClass initialisieren
-        postpro=PostprocessorClass(self.config)
-
-        #Config in einen kurzen Namen speichern
+        #Config & postpro in einen kurzen Namen speichern
         config=self.config
-        
-        #Daten aus den beiden Textfeldern in strings speichern        
-        s_begin=self.ExportParas.gcode_be.get(1.0,END)
-        s_end=self.ExportParas.gcode_en.get(1.0,END)
+        postpro=self.postpro
 
-        #Schreiben in einen String
-        str="(Generated with dxf2code)\n(Created from file: "+self.load_filename+")\n"
-        string=(str.encode("utf-8"))
-        string+=config.plane_selection
-        string+=" (Plane Selection from Ini File)\n"
-        string+=(s_begin.strip()+"\n")
+        #Schreiben der Standardwert am Anfang        
+        postpro.write_gcode_be(self.ExportParas,self.load_filename)
 
         #Maschine auf die Anfangshöhe bringen
-        #string+=("G0 %s%0.3f\n" %(axis3,))
-        string+=postpro.rap_pos_z(config.Axis3_retract.get())
+        postpro.rap_pos_z(config.axis3_retract.get())
 
-        
         #Bei 1 starten da 0 der Startpunkt ist
         for nr in range(1,len(self.TSP.opt_route)):
             shape=self.shapes_to_write[self.TSP.opt_route[nr]]
@@ -362,15 +354,15 @@ class Erstelle_Fenster:
             #Drucken falls die Shape nicht disabled ist
             if not(shape.nr in self.CanvasContent.Disabled):
                 #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
-                stat, string =shape.Write_GCode(string,config,postpro)
+                stat =shape.Write_GCode(config,postpro)
                 status=status*stat
 
         #Maschine auf den Endwert positinieren
-        #string+=("G0 %s%0.3f %s%0.3f\n" %(axis1,config.Axis1_st_en.get(),axis2,config.Axis2_st_en.get()
-        string+=postpro.rap_pos_xy(PointClass(x=config.Axis1_st_en.get(),\
-                                              y=config.Axis2_st_en.get()))
+        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
+                                              y=config.axis2_st_en.get()))
 
-        string+=(s_end.strip()+"\n")
+        #Schreiben der Standardwert am Ende        
+        string=postpro.write_gcode_en(self.ExportParas)
 
         if status==1:
             self.text.insert(END,("\nSuccessfully generated G-Code"))
@@ -380,7 +372,7 @@ class Erstelle_Fenster:
         self.text.yview(END)        
         
         #Drucken in den Stdout, speziell für EMC2 
-        if self.config.write_to_stdout:
+        if config.write_to_stdout:
             print(string)
             self.ende()     
         else:
@@ -416,8 +408,8 @@ class Erstelle_Fenster:
                 shapes_st_en_points.append(shape.get_st_en_points())
 
         #Hinzufügen des Start- Endpunkte ausserhalb der Geometrie
-        x_st=self.config.Axis1_st_en.get()
-        y_st=self.config.Axis2_st_en.get()
+        x_st=self.config.axis1_st_en.get()
+        y_st=self.config.axis2_st_en.get()
         start=PointClass(x=x_st,y=y_st)
         ende=PointClass(x=x_st,y=y_st)
         shapes_st_en_points.append([start,ende])
@@ -489,8 +481,6 @@ class ExportParasClass:
 
 
     def erstelle_eingabefelder(self,config):
-        #Funktion zum erhalten der Achsen Namen aus der Config Klasse
-        axis1,axis2,axis3=config.get_axis_names()
        
         f1=Frame(self.nb_f1,relief = GROOVE,bd = 2)
         f1.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
@@ -513,42 +503,42 @@ class ExportParasClass:
         Entry(f1,width=7,textvariable=config.start_rad)\
                 .grid(row=1,column=1,sticky=N+E)        
 
-        Label(f2, text=("Start at %s [mm]:" %axis1))\
+        Label(f2, text=("Start at %s [mm]:" %config.ax1_letter))\
                 .grid(row=0,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.Axis1_st_en)\
+        Entry(f2,width=7,textvariable=config.axis1_st_en)\
                 .grid(row=0,column=1,sticky=N+E)
 
-        Label(f2, text=("Start at %s [mm]:" %axis2))\
+        Label(f2, text=("Start at %s [mm]:" %config.ax2_letter))\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.Axis2_st_en)\
+        Entry(f2,width=7,textvariable=config.axis2_st_en)\
                 .grid(row=1,column=1,sticky=N+E)
 
-        Label(f2, text=("%s retraction area [mm]:" %axis3))\
+        Label(f2, text=("%s retraction area [mm]:" %config.ax3_letter))\
                 .grid(row=2,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.Axis3_retract)\
+        Entry(f2,width=7,textvariable=config.axis3_retract)\
                 .grid(row=2,column=1,sticky=N+E)
 
-        Label(f2, text=("%s safety margin [mm]:" %axis3))\
+        Label(f2, text=("%s safety margin [mm]:" %config.ax3_letter))\
                 .grid(row=3,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.Axis3_safe_margin)\
+        Entry(f2,width=7,textvariable=config.axis3_safe_margin)\
                 .grid(row=3,column=1,sticky=N+E)
 
-        Label(f2, text=("%s infeed depth [mm]:" %axis3))\
+        Label(f2, text=("%s infeed depth [mm]:" %config.ax3_letter))\
                 .grid(row=4,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.Axis3_slice_depth)\
+        Entry(f2,width=7,textvariable=config.axis3_slice_depth)\
                 .grid(row=4,column=1,sticky=N+E)
 
-        Label(f2, text=("%s mill depth [mm]:" %axis3))\
+        Label(f2, text=("%s mill depth [mm]:" %config.ax3_letter))\
                 .grid(row=5,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.Axis3_mill_depth)\
+        Entry(f2,width=7,textvariable=config.axis3_mill_depth)\
                 .grid(row=5,column=1,sticky=N+E)
 
-        Label(f3, text=("G1 feed %s-direction [mm/min]:" %axis3))\
+        Label(f3, text=("G1 feed %s-direction [mm/min]:" %config.ax3_letter))\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
         Entry(f3,width=7,textvariable=config.F_G1_Depth)\
                 .grid(row=1,column=1,sticky=N+E)
 
-        Label(f3, text=("G1 feed %s%s-direction [mm/min]:" %(axis1,axis2)))\
+        Label(f3, text=("G1 feed %s%s-direction [mm/min]:" %(config.ax1_letter,config.ax2_letter)))\
                 .grid(row=2,column=0,sticky=N+W,padx=4)
         Entry(f3,width=7,textvariable=config.F_G1_Plane)\
                 .grid(row=2,column=1,sticky=N+E)
@@ -1037,7 +1027,7 @@ class CanvasContentClass:
                 LayCon.Shapes.append(shape_nr)
                 return
 
-        #Falls er nicht gefunden wurde neuen erstellen      
+        #Falls er nicht gefunden wurde neuen erstellen
         LayerName=self.values.layers[lay_nr].name
         self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
         
@@ -1257,10 +1247,6 @@ class ConfigClass:
                              %os.path.join(self.folder,self.cfg_file_name)))
             text.yview(END) 
 
-
-        #Achsen Name Initialisieren
-        self.make_axis_names()
-
         #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
         self.get_all_vars()
 
@@ -1271,31 +1257,6 @@ class ConfigClass:
         if DEBUG:
             text.insert(END,'\n' +str(self))
             text.yview(END)
-
-
-        #Initialisieren der Ebenen Koordinaten
-    def make_axis_names(self):
-        plane_selection=self.parser.get('Plane Selection', 'gcode')
-        if plane_selection=='G17':
-            self.axis1='X'
-            self.axis2='Y'
-            self.axis3='Z'
-        elif plane_selection=='G18':
-            self.axis1='X'
-            self.axis2='Z'
-            self.axis3='Y'
-        elif plane_selection=='G19':
-            self.axis1='Y'
-            self.axis2='Z'
-            self.axis3='X'
-        else:
-            text.insert(END,'\nFAILURE UNKNOWN PLANE SELECTED ')
-            text.yview(END)
-            raise Exception, "Problem during plane selection from INI File "
-
-    #Die drei Achsen Namen zurück geben
-    def get_axis_names(self):
-        return self.axis1, self.axis2, self.axis3
 
     def get_settings_folder(self,appname): 
         # resolve settings folder 
@@ -1330,9 +1291,6 @@ class ConfigClass:
         self.parser.set('Tool Parameters', 'diameter', 2.0)
         self.parser.set('Tool Parameters', 'start_radius', 0.2)
 
-        self.parser.add_section('Plane Selection') 
-        self.parser.set('Plane Selection', 'gcode', 'G17')
-
         self.parser.add_section('Plane Coordinates') 
         self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
         self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
@@ -1347,20 +1305,59 @@ class ConfigClass:
         self.parser.set('Feed Rates', 'f_g1_depth', 150)
         self.parser.set('Feed Rates', 'f_g1_plane', 400)
 
-        self.parser.add_section('Standard Code')
-        self.parser.set('Standard Code', 'begin',\
+        self.parser.add_section('Axis letters')
+        self.parser.set('Axis letters', 'ax1_letter', 'X')
+        self.parser.set('Axis letters', 'ax2_letter', 'Y')
+        self.parser.set('Axis letters', 'ax3_letter', 'Z')
+
+        self.parser.add_section('Postprocessor general')
+        self.parser.set('Postprocessor general', 'abs_export', 1)
+        self.parser.set('Postprocessor general', 'code_begin',\
                         'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
                         +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
+                        +'\nG17'
                         +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
                         +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
                         +'\nS5000M03 (Spindle 5000rpm cw)')
-        
-        self.parser.set('Standard Code', 'end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
+        self.parser.set('Postprocessor general', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
 
-        self.parser.add_section('Postprocessor') 
-        self.parser.set('Postprocessor', 'abs_export', 1)
-        self.parser.set('Postprocessor', 'num_format', '%0.3f')
+        self.parser.add_section('Postprocessor number format')
+        self.parser.set('Postprocessor number format','pre_decimals',4)
+        self.parser.set('Postprocessor number format','post_decimals',2)
+        self.parser.set('Postprocessor number format','decimal_seperator','.')
+        self.parser.set('Postprocessor number format','pre_decimal_zero_padding',1)
+        self.parser.set('Postprocessor number format','post_decimal_zero_padding',0)
+        self.parser.set('Postprocessor number format','signed_values',0)
 
+        self.parser.add_section('Postprocessor line numbering')
+        self.parser.set('Postprocessor line numbering','use_line_nrs',0)
+        self.parser.set('Postprocessor line numbering','line_nrs_begin',10)
+        self.parser.set('Postprocessor line numbering','line_nrs_step',10)
+
+        self.parser.add_section('Postprocessor program')
+        self.parser.set('Postprocessor program','tool_change',\
+                        ('T%tool_nr M6%nl S%speed M3%nl'))
+        self.parser.set('Postprocessor program','feed_change',\
+                        ('F%feed%nl'))
+        self.parser.set('Postprocessor program','rap_pos_plane',\
+                        ('G0 X%X Y%Y%nl'))
+        self.parser.set('Postprocessor program','rap_pos_depth',\
+                        ('G0 Z%Z %nl'))
+        self.parser.set('Postprocessor program','lin_mov_plane',\
+                        ('G1 X%X Y%Y%nl'))
+        self.parser.set('Postprocessor program','lin_mov_depth',\
+                        ('G1 Z%Z%nl'))
+        self.parser.set('Postprocessor program','arc_int_cw',\
+                        ('G2 X%X Y%Y I%I J%J%nl'))
+        self.parser.set('Postprocessor program','arc_int_ccw',\
+                        ('G3 X%X Y%Y I%I J%J%nl'))
+        self.parser.set('Postprocessor program','cutter_comp_off',\
+                        ('G40%nl'))
+        self.parser.set('Postprocessor program','cutter_comp_left',\
+                        ('G41%nl'))
+        self.parser.set('Postprocessor program','cutter_comp_right',\
+                        ('G42%nl'))                      
+                        
         self.parser.add_section('Debug')
         self.parser.set('Debug', 'global_debug_level', 0)         
                 
@@ -1369,30 +1366,30 @@ class ConfigClass:
         open_file.close()
             
     def get_all_vars(self):
-        try:
+        try:               
             self.tool_dia=DoubleVar()
             self.tool_dia.set(float(self.parser.get('Tool Parameters','diameter')))
 
             self.start_rad=DoubleVar()
             self.start_rad.set(float(self.parser.get('Tool Parameters','start_radius')))        
            
-            self.Axis1_st_en=DoubleVar()
-            self.Axis1_st_en.set(float(self.parser.get('Plane Coordinates','axis1_start_end')))
+            self.axis1_st_en=DoubleVar()
+            self.axis1_st_en.set(float(self.parser.get('Plane Coordinates','axis1_start_end')))
 
-            self.Axis2_st_en=DoubleVar()
-            self.Axis2_st_en.set(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
+            self.axis2_st_en=DoubleVar()
+            self.axis2_st_en.set(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
             
-            self.Axis3_retract=DoubleVar()
-            self.Axis3_retract.set(float(self.parser.get('Depth Coordinates','axis3_retract')))
+            self.axis3_retract=DoubleVar()
+            self.axis3_retract.set(float(self.parser.get('Depth Coordinates','axis3_retract')))
             
-            self.Axis3_safe_margin=DoubleVar()
-            self.Axis3_safe_margin.set(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
+            self.axis3_safe_margin=DoubleVar()
+            self.axis3_safe_margin.set(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
 
-            self.Axis3_slice_depth=DoubleVar()
-            self.Axis3_slice_depth.set(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
+            self.axis3_slice_depth=DoubleVar()
+            self.axis3_slice_depth.set(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
 
-            self.Axis3_mill_depth=DoubleVar()
-            self.Axis3_mill_depth.set(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
+            self.axis3_mill_depth=DoubleVar()
+            self.axis3_mill_depth.set(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
             
             self.F_G1_Depth=DoubleVar()
             self.F_G1_Depth.set(float(self.parser.get('Feed Rates','f_g1_depth')))
@@ -1406,19 +1403,23 @@ class ConfigClass:
             self.fitting_tolerance=DoubleVar()
             self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
 
+
+            #Einstellungen wohin die Werte geschrieben werden
+            self.write_to_stdout=int(self.parser.get('Export Parameters', 'write_to_stdout'))
+
+            #Zuweisen der Werte am Anfang und am Ende des Files
+            self.gcode_be=self.parser.get('Postprocessor general', 'code_begin')
+            self.gcode_en=self.parser.get('Postprocessor general', 'code_end')
+
+            #Zuweisen der Axis Letters
+            self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
+            self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
+            self.ax3_letter=self.parser.get('Axis letters', 'ax3_letter')
+
             #Holen der restlichen Variablen
+            #Verzeichnisse
             self.load_path=self.parser.get('Paths','load_path')
-            self.save_path=self.parser.get('Paths','save_path')
-
-            self.abs_export=int(self.parser.get('Postprocessor','abs_export'))
-            self.num_format=self.parser.get('Postprocessor','num_format')
-
-            self.plane_selection=self.parser.get('Plane Selection', 'gcode')
-
-            self.write_to_stdout=int(self.parser.get('Export Parameters','write_to_stdout'))
-
-            self.gcode_be=self.parser.get('Standard Code','begin')
-            self.gcode_en=self.parser.get('Standard Code','end')            
+            self.save_path=self.parser.get('Paths','save_path')          
 
             #Setzen des Globalen Debug Levels
             self.debug=int(self.parser.get('Debug', 'global_debug_level'))
@@ -1441,69 +1442,214 @@ class ConfigClass:
         return str
 
 class PostprocessorClass:
-    def __init__(self,config=None):
-        #Die 3 Achsen Namen abhängig von Gewählten Ebene auswählen
-        self.axis1,self.axis2,self.axis3=config.get_axis_names()
+    def __init__(self,config=None,text=None):
+        self.string=''
+        self.text=text
+        try:
+            self.abs_export=int(config.parser.get('Postprocessor general', 'abs_export')) 
+
+            self.pre_dec=int(config.parser.get('Postprocessor number format','pre_decimals'))
+            self.post_dec=int(config.parser.get('Postprocessor number format','post_decimals'))
+            self.dec_sep=config.parser.get('Postprocessor number format','decimal_seperator')
+            self.pre_dec_z_pad=int(config.parser.get('Postprocessor number format','pre_decimal_zero_padding'))
+            self.post_dec_z_pad=int(config.parser.get('Postprocessor number format','post_decimal_zero_padding'))
+            self.signed_val=int(config.parser.get('Postprocessor number format','signed_values'))
+
+            self.use_line_nrs=int(config.parser.get('Postprocessor line numbering','use_line_nrs'))
+            self.line_nrs_begin=int(config.parser.get('Postprocessor line numbering','line_nrs_begin'))
+            self.line_nrs_step=int(config.parser.get('Postprocessor line numbering','line_nrs_step'))
+
+            self.tool_ch_str=config.parser.get('Postprocessor program','tool_change')
+            self.feed_ch_str=config.parser.get('Postprocessor program','feed_change')
+            self.rap_pos_plane_str=config.parser.get('Postprocessor program','rap_pos_plane')
+            self.rap_pos_depth_str=config.parser.get('Postprocessor program','rap_pos_depth')
+            self.lin_mov_plane_str=config.parser.get('Postprocessor program','lin_mov_plane')
+            self.lin_mov_depth_str=config.parser.get('Postprocessor program','lin_mov_depth')
+            self.arc_int_cw=config.parser.get('Postprocessor program','arc_int_cw')
+            self.arc_int_ccw=config.parser.get('Postprocessor program','arc_int_ccw')
+            self.cut_comp_off_str=config.parser.get('Postprocessor program','cutter_comp_off')
+            self.cut_comp_left_str=config.parser.get('Postprocessor program','cutter_comp_left')
+            self.cut_comp_right_str=config.parser.get('Postprocessor program','cutter_comp_right')                        
+                            
+            self.feed=0
+            self.x=config.axis1_st_en.get()
+            self.y=config.axis2_st_en.get()
+            self.z=config.axis3_retract.get()
+            self.lx=self.x
+            self.ly=self.y
+            self.lz=self.z
+            self.i=0.0
+            self.j=0.0
+
+            self.vars={"%feed":'self.iprint(self.feed)',\
+                       "%nl":'self.nlprint()',\
+                       "%X":'self.fnprint(self.x)',\
+                       "%-X":'self.fnprint(-self.x)',\
+                       "%Y":'self.fnprint(self.y)',\
+                       "%-Y":'self.fnprint(-self.y)',\
+                       "%Z":'self.fnprint(self.z)',\
+                       "%-Z":'self.fnprint(-self.z)',\
+                       "%I":'self.fnprint(self.i)',\
+                       "%-I":'self.fnprint(-self.i)',\
+                       "%J":'self.fnprint(self.j)',\
+                       "%-J":'self.fnprint(-self.j)'}
+
+        except:
+            showerror("Error during reading INI File", "Please delete or correct\n %s"\
+                      %(os.path.join(config.folder,config.cfg_file_name)))
+            raise Exception, "Problem during import from INI File" 
+
+
+    def write_gcode_be(self,ExportParas,load_filename):
+        #Schreiben in einen String
+        str=("(Generated with dxf2code)\n(Created from file: %s\n" %load_filename)
+        self.string=(str.encode("utf-8"))
         
-        #Art des exports Absolut or Inkremental
-        self.abs_export=config.abs_export
-        self.num_format=config.num_format
+        #Daten aus dem Textfelder an string anhängen
+        self.string+=("%s\n" %ExportParas.gcode_be.get(1.0,END).strip())
 
-        #Die letze Positionen in X,Y und Z zuweisen (Startwerte für relative Positionierung)
-        if not(self.abs_export):
-            self.lastpos=PointClass(x=config.Axis1_st_en.get(),\
-                                    y=config.Axis2_st_en.get())
-            self.lastdepth=config.Axis3_retract.get()
+    def write_gcode_en(self,ExportParas):
+        #Daten aus dem Textfelder an string anhängen   
+        self.string+=ExportParas.gcode_en.get(1.0,END)
 
+        self.make_line_numbers()        
+        
+        return self.string
+
+    def make_line_numbers(self):
+        line_format='N%i ' 
+        if self.use_line_nrs:
+            nr=0
+            line_nr=self.line_nrs_begin
+            self.string=((line_format+'%s') %(line_nr,self.string))
+            nr=self.string.find('\n',nr)
+            while not(nr==-1):
+                line_nr+=self.line_nrs_step  
+                self.string=(('%s'+line_format+'%s') %(self.string[0:nr+1],\
+                                          line_nr,\
+                                          self.string[nr+1:len(self.string)]))
+                
+                nr=self.string.find('\n',nr+len(((line_format) %line_nr))+2)
+                          
+            
+            
+    def chg_feed_rate(self,feed):
+        self.feed=feed
+        self.string+=self.make_print_str(self.feed_ch_str) 
+        
+    def set_cut_cor(self,cut_cor):
+        self.cut_cor=cut_cor
+        if cut_cor==40:
+            self.string+=self.make_print_str(self.cut_comp_off_str)
+        elif cut_cor==41:
+            self.string+=self.make_print_str(self.cut_comp_left_str)
+        elif cut_cor==42:
+            self.string+=self.make_print_str(self.cut_comp_right_str)
+               
     def lin_pol_arc(self,dir,ende,IJ):
         if not(self.abs_export):
-            val=ende-self.lastpos
-            self.lastpos=ende
+            self.x=ende.x-self.lx
+            self.y=ende.y-self.lx
+            self.lx=ende.x
+            self.ly=ende.y
         else:
-            val=ende
-            
-        if dir=="cw":
-            gcode="G2"
-        elif dir=="ccw":
-            gcode="G3"
-         
-        return (("%s %s"+self.num_format+" %s"+self.num_format+\
-                " I"+self.num_format+" J"+self.num_format+"\n") \
-                %(gcode,self.axis1,val.x,self.axis2,val.y,IJ.x,IJ.y))            
+            self.x=ende.x
+            self.y=ende.y
 
-            
+        self.i=IJ.x
+        self.j=IJ.y
+
+        if dir=='cw':
+            self.string+=self.make_print_str(self.arc_int_cw)
+        else:
+            self.string+=self.make_print_str(self.arc_int_ccw)
+
+          
     def rap_pos_z(self,z_pos):
-        return self.feed_pos_z("G0",z_pos)
+        if not(self.abs_export):
+            self.z=z_pos-self.lz
+            self.lz=z_pos
+        else:
+            self.z=z_pos
 
+        self.string+=self.make_print_str(self.rap_pos_depth_str)           
+         
     def rap_pos_xy(self,newpos):
-        return self.feed_pos_xy("G0",newpos)
+        if not(self.abs_export):
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
+        else:
+            self.x=newpos.x
+            self.y=newpos.y
 
+        self.string+=self.make_print_str(self.rap_pos_plane_str)         
+    
     def lin_pol_z(self,z_pos):
-        return self.feed_pos_z("G1",z_pos)
+        if not(self.abs_export):
+            self.z=z_pos-self.lz
+            self.lz=z_pos
+        else:
+            self.z=z_pos
 
+        self.string+=self.make_print_str(self.lin_mov_depth_str)      
     def lin_pol_xy(self,newpos):
-        return self.feed_pos_xy("G1",newpos)
-
-    def feed_pos_z(self,feed_art,z_pos):
         if not(self.abs_export):
-            val=z_pos-self.lastdepth
-            self.lastdepth=z_pos
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
         else:
-            val=z_pos
-            
-        return (("%s %s "+self.num_format+"\n") %(feed_art,self.axis3,val))
-            
-    def feed_pos_xy(self,feed_art,newpos):        
-        if not(self.abs_export):
-            val=newpos-self.lastpos
-            self.lastpos=newpos
-        else:
-            val=newpos
-            
-        return (("%s %s"+self.num_format+" %s"+self.num_format+"\n")\
-                %(feed_art,self.axis1,val.x,self.axis2,val.y))
-               
+            self.x=newpos.x
+            self.y=newpos.y
 
+        self.string+=self.make_print_str(self.lin_mov_plane_str)       
+
+    def make_print_str(self,string):
+        new_string=string
+        for key_nr in range(len(self.vars.keys())):
+            new_string=new_string.replace(self.vars.keys()[key_nr],\
+                                          eval(self.vars.values()[key_nr]))
+        return new_string
+
+    #Funktion welche den Wert als formatierter integer zurück gibt
+    def iprint(self,interger):
+        return ('%i' %interger)
+
+    #Funktion gibt den String für eine neue Linie zurück
+    def nlprint(self):
+        return '\n'
+
+    #Funktion welche die Formatierte Number  zurück gibt
+    def fnprint(self,number):
+        string=''
+        #+ oder - Zeichen Falls nötig/erwünscht und Leading 0er
+        if (self.signed_val)and(self.pre_dec_z_pad):
+            numstr=(('%+0'+str(self.pre_dec+self.post_dec+1)+\
+                     '.'+str(self.post_dec)+'f') %number)
+        elif (self.signed_val==0)and(self.pre_dec_z_pad):
+            numstr=(('%0'+str(self.pre_dec+self.post_dec+1)+\
+                    '.'+str(self.post_dec)+'f') %number)
+        elif (self.signed_val)and(self.pre_dec_z_pad==0):
+            numstr=(('%+'+str(self.pre_dec+self.post_dec+1)+\
+                    '.'+str(self.post_dec)+'f') %number)
+        elif (self.signed_val==0)and(self.pre_dec_z_pad==0):
+            numstr=(('%'+str(self.pre_dec+self.post_dec+1)+\
+                    '.'+str(self.post_dec)+'f') %number)
+
+        #Setzen des zugehörigen Dezimal Trennzeichens            
+        string+=numstr[0:-(self.post_dec+1)]
+        string+=self.dec_sep
+        string+=numstr[-(self.post_dec):]
+
+        #Falls die 0er am Ende entfernt werden sollen
+        if self.post_dec_z_pad==0:
+            while (string[-1]=='0')or(string[-1]==self.dec_sep):
+                string=string[0:-1]
+                
+        return string
+        
 class Show_About_Info(Toplevel):
     def __init__(self, parent):
         Toplevel.__init__(self, parent)
@@ -1574,7 +1720,7 @@ class Show_About_Info(Toplevel):
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
         text.insert(END, "You are using DXF2GCODE")
-        text.insert(END, "\nVersion b01 from the 23th May 2008")
+        text.insert(END, "\nVersion b01 from the 07th Juli 2008")
         text.insert(END, "\nFor more information und updates about")
         text.insert(END, "\nplease visit my homepage at:")
         text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
