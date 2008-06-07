@@ -201,13 +201,13 @@ class ShapeClass:
             start_rad=ArcGeo(Pa=Pa_ein,Pe=start_cont,O=Oein,r=start_rad+tool_rad,dir=0)
             self.st_move.append(start_rad)
     
-    def Write_GCode(self,string,config,postpro):
+    def Write_GCode(self,config,postpro):
 
         #Erneutes erstellen der Einlaufgeometrien
         self.make_start_moves(config)
         
-        depth=config.Axis3_mill_depth.get()
-        max_slice=config.Axis3_slice_depth.get()
+        depth=config.axis3_mill_depth.get()
+        max_slice=config.axis3_slice_depth.get()
 
         #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
         if -abs(max_slice)<=depth:
@@ -217,34 +217,29 @@ class ShapeClass:
 
 
         #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-        string+=self.st_move[0].Write_GCode([1,1,1],\
-                                            PointClass(x=0,y=0),\
-                                            postpro)
+        self.st_move[0].Write_GCode([1,1,1],\
+                                    PointClass(x=0,y=0),\
+                                    postpro)
         
-        #string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-        string+=postpro.rap_pos_z(config.Axis3_safe_margin.get())
-        
-        string+=("F%0.0f\n" %config.F_G1_Depth.get())
-        
-        #string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-        string+=postpro.lin_pol_z(mom_depth)
-        
-        string+=("F%0.0f\n" %config.F_G1_Plane.get())
+        postpro.rap_pos_z(config.axis3_safe_margin.get())
+        postpro.chg_feed_rate(config.F_G1_Depth.get())
+        postpro.lin_pol_z(mom_depth)
+        postpro.chg_feed_rate(config.F_G1_Plane.get())
 
         #Wenn G41 oder G42 an ist Fräsradiuskorrektur        
         if self.cut_cor!=40:
-            string+=("G%i \n" %self.cut_cor)
-            string+=self.st_move[1].Write_GCode([1,1,1],\
-                                                PointClass(x=0,y=0),\
-                                                postpro)
+            postpro.set_cut_cor(self.cut_cor)
+            self.st_move[1].Write_GCode([1,1,1],\
+                                        PointClass(x=0,y=0),\
+                                        postpro)
             
-            string+=self.st_move[2].Write_GCode([1,1,1],\
-                                                PointClass(x=0,y=0),\
-                                                postpro)
+            self.st_move[2].Write_GCode([1,1,1],\
+                                        PointClass(x=0,y=0),\
+                                        postpro)
 
         #Schreiben der Geometrien für den ersten Schnitt
         for geo in self.geos:
-            string+=geo.Write_GCode(self.sca,self.p0,postpro)
+            geo.Write_GCode(self.sca,self.p0,postpro)
 
         #Zählen der Schleifen
         snr=0
@@ -256,10 +251,9 @@ class ShapeClass:
                 mom_depth=depth                
 
             #Erneutes Eintauchen
-            string+=("F%0.0f\n" %config.F_G1_Depth.get())
-            #string+=("G1 %s%0.3f \n" %(axis3,mom_depth))
-            string+=postpro.lin_pol_z(mom_depth)
-            string+=("F%0.0f\n" %config.F_G1_Plane.get())
+            postpro.chg_feed_rate(config.F_G1_Depth.get())
+            postpro.lin_pol_z(mom_depth)
+            postpro.chg_feed_rate(config.F_G1_Plane.get())
 
             #Falls es keine geschlossene Kontur ist    
             if self.closed==0:
@@ -268,10 +262,10 @@ class ShapeClass:
                 
                 #Falls cut correction eingeschaltet ist diese umdrehen.
                 if not(self.cut_cor==40):
-                    string+=("G"+str(self.cut_cor)+" \n")
+                    postpro.set_cut_cor(self.cut_cor)
                 
             for geo_nr in range(len(self.geos)):
-                string+=self.geos[geo_nr].Write_GCode(self.sca,self.p0,postpro)
+                self.geos[geo_nr].Write_GCode(self.sca,self.p0,postpro)
 
         #Anfangswert für Direction wieder herstellen falls nötig
         if (snr%2)>0:
@@ -279,10 +273,8 @@ class ShapeClass:
             self.switch_cut_cor()
 
         #Fertig und Zurückziehen des Werkzeugs
-        #string+=("G1 %s%0.3f \n" %(axis3,config.Axis3_safe_margin.get()))
-        string+=postpro.lin_pol_z(config.Axis3_safe_margin.get())
-        #string+=("G0 %s%0.3f \n" %(axis3,config.Axis3_retract.get()))
-        string+=postpro.rap_pos_z(config.Axis3_retract.get())
-        string+=("G40\n")
+        postpro.lin_pol_z(config.axis3_safe_margin.get())
+        postpro.rap_pos_z(config.axis3_retract.get())
+        postpro.set_cut_cor(40)
 
-        return 1, string      
+        return 1      

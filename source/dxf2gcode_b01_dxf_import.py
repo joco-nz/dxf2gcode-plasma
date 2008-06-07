@@ -104,8 +104,8 @@ class Load_DXF:
 
         except:
             
-            showwarning("Read Linepairs",("Found Failure in Line %0.0f \nstopping to read lines" %(line)))
-            self.text.insert(END,("\nFound Failure in Line %0.0f" %(line)))
+            showwarning("Warning reading linepairs",("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" %(line)))
+            self.text.insert(END,("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " %(line)))
             
             
         line_pairs.nrs=len(line_pairs.line_pair)
@@ -303,11 +303,13 @@ class Load_DXF:
 
     #Findet die Nr. des Geometrie Layers
     def Get_Layer_Nr(self,Layer_Name):
-        layer_nr=-1
         for i in range(len(self.layers)):
             if (find(self.layers[i].name,Layer_Name)==0):
                 layer_nr=i
-                break  
+                return layer_nr
+        layer_nr=len(self.layers)
+        self.layers.append(LayerClass(layer_nr))
+        self.layers[-1].name=Layer_Name
         return layer_nr
     
     #Findet die Nr. des Blocks
