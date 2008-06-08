@@ -1321,7 +1321,7 @@ class ConfigClass:
 
         self.parser.add_section('Postprocessor number format')
         self.parser.set('Postprocessor number format','pre_decimals',4)
-        self.parser.set('Postprocessor number format','post_decimals',2)
+        self.parser.set('Postprocessor number format','post_decimals',3)
         self.parser.set('Postprocessor number format','decimal_seperator','.')
         self.parser.set('Postprocessor number format','pre_decimal_zero_padding',0)
         self.parser.set('Postprocessor number format','post_decimal_zero_padding',1)
@@ -1500,7 +1500,7 @@ class PostprocessorClass:
 
     def write_gcode_be(self,ExportParas,load_filename):
         #Schreiben in einen String
-        str=("(Generated with dxf2code)\n(Created from file: %s\n" %load_filename)
+        str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
         self.string=(str.encode("utf-8"))
         
         #Daten aus dem Textfelder an string anhängen
