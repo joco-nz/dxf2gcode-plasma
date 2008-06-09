@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_b01.py
-#Programmer: Christian Kohloeffel
-#E-mail:     n/A
-#
-#Copyright 2007-2008 Christian Kohlöffel
+#dxf2gcode_v01.py
+#Programmers:   Christian Kohlöffel
+#               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
 #
@@ -25,7 +23,7 @@
 
 #About Dialog
 #First Version of dxf2gcode Hopefully all works as it should
-#Compiled with --onefile --noconsole --upx --tk dxf2gcode_b01.py
+#Compiled with --onefile --noconsole --upx --tk dxf2gcode_v01.py
 
 #Löschen aller Module aus dem Speicher
 import sys
@@ -37,10 +35,10 @@ else:
 
 
 import sys, os, string, ConfigParser
-from dxf2gcode_b01_point import PointClass
-from dxf2gcode_b01_shape import ShapeClass
-import dxf2gcode_b01_dxf_import as dxf_import 
-import dxf2gcode_b01_tsp_opt as tsp
+from dxf2gcode_v01_point import PointClass
+from dxf2gcode_v01_shape import ShapeClass
+import dxf2gcode_v01_dxf_import as dxf_import 
+import dxf2gcode_v01_tsp_opt as tsp
 
 
 import webbrowser
@@ -56,7 +54,7 @@ from math import radians, cos, sin
 
 # Globale "Konstanten"
 DEBUG = 0
-APPNAME = "dxf2gcode_b01"
+APPNAME = "dxf2gcode_v01"
 
 class Erstelle_Fenster:
     def __init__(self, master = None, load_filename=None ):
@@ -105,10 +103,10 @@ class Erstelle_Fenster:
 
         self.textscr.config(command=self.text.yview)
         self.text.config(yscrollcommand=self.textscr.set)
-        self.text.insert(END,'Program started\nVersion 0.1\nCoded by C. Kohlöffel')
+        self.text.insert(END,'\nProgram started\nVersion 0.1\nCoded by V. Schulz and C. Kohlöffel')
 
         #Erstellen de Eingabefelder und des Canvas
-        self.ExportParas =ExportParasClass(self.frame_l,self.config)
+        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
         self.Canvas =CanvasClass(self.frame_c,self)
 
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
@@ -197,7 +195,7 @@ class Erstelle_Fenster:
 
     def Load_File(self,filename):
    
-        self.text.delete(4.0,END)
+        self.text.delete(7.0,END)
         self.text.insert(END,'\nLoading file: '+filename)
         self.text.yview(END)
         
@@ -370,7 +368,7 @@ class Erstelle_Fenster:
         self.text.yview(END)        
         
         #Drucken in den Stdout, speziell für EMC2 
-        if config.write_to_stdout:
+        if postpro.write_to_stdout:
             print(string)
             self.ende()     
         else:
@@ -447,7 +445,7 @@ class Erstelle_Fenster:
         popup.post(event.x_root, event.y_root)
         
     def text_delete_entries(self):
-        self.text.delete(4.0,END)
+        self.text.delete(7.0,END)
         self.text.yview(END)   
   
     def ende(self):
@@ -455,7 +453,7 @@ class Erstelle_Fenster:
         self.master.quit()
 
 class ExportParasClass:
-    def __init__(self,master=None,config=None):
+    def __init__(self,master=None,config=None,postpro=None):
         self.master=master
   
         self.nb = NotebookClass(self.master,width=240)
@@ -474,8 +472,8 @@ class ExportParasClass:
         self.erstelle_eingabefelder(config)
         self.erstelle_textfelder(config)
 
-        self.gcode_be.insert(END,config.gcode_be)
-        self.gcode_en.insert(END,config.gcode_en)
+        self.gcode_be.insert(END,postpro.gcode_be)
+        self.gcode_en.insert(END,postpro.gcode_en)
 
 
     def erstelle_eingabefelder(self,config):
@@ -1230,7 +1228,7 @@ class ConfigClass:
 
         # eine ConfigParser Instanz öffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
-        self.cfg_file_name=APPNAME+'.cfg'
+        self.cfg_file_name=APPNAME+'_config.cfg'
         self.parser.read(os.path.join(self.folder,self.cfg_file_name))
 
         # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
@@ -1241,7 +1239,7 @@ class ConfigClass:
                              %os.path.join(self.folder,self.cfg_file_name)))
             text.yview(END)
         else:
-            text.insert(END,('\nLoading config file: %s' \
+            text.insert(END,('Loading config file: %s' \
                              %os.path.join(self.folder,self.cfg_file_name)))
             text.yview(END) 
 
@@ -1306,55 +1304,7 @@ class ConfigClass:
         self.parser.add_section('Axis letters')
         self.parser.set('Axis letters', 'ax1_letter', 'X')
         self.parser.set('Axis letters', 'ax2_letter', 'Y')
-        self.parser.set('Axis letters', 'ax3_letter', 'Z')
-
-        self.parser.add_section('Postprocessor general')
-        self.parser.set('Postprocessor general', 'abs_export', 1)
-        self.parser.set('Postprocessor general', 'code_begin',\
-                        'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
-                        +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
-                        +'\nG17'
-                        +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
-                        +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
-                        +'\nS5000M03 (Spindle 5000rpm cw)')
-        self.parser.set('Postprocessor general', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
-
-        self.parser.add_section('Postprocessor number format')
-        self.parser.set('Postprocessor number format','pre_decimals',4)
-        self.parser.set('Postprocessor number format','post_decimals',3)
-        self.parser.set('Postprocessor number format','decimal_seperator','.')
-        self.parser.set('Postprocessor number format','pre_decimal_zero_padding',0)
-        self.parser.set('Postprocessor number format','post_decimal_zero_padding',1)
-        self.parser.set('Postprocessor number format','signed_values',0)
-
-        self.parser.add_section('Postprocessor line numbering')
-        self.parser.set('Postprocessor line numbering','use_line_nrs',0)
-        self.parser.set('Postprocessor line numbering','line_nrs_begin',10)
-        self.parser.set('Postprocessor line numbering','line_nrs_step',10)
-
-        self.parser.add_section('Postprocessor program')
-        self.parser.set('Postprocessor program','tool_change',\
-                        ('T%tool_nr M6%nl S%speed M3%nl'))
-        self.parser.set('Postprocessor program','feed_change',\
-                        ('F%feed%nl'))
-        self.parser.set('Postprocessor program','rap_pos_plane',\
-                        ('G0 X%X Y%Y%nl'))
-        self.parser.set('Postprocessor program','rap_pos_depth',\
-                        ('G0 Z%Z %nl'))
-        self.parser.set('Postprocessor program','lin_mov_plane',\
-                        ('G1 X%X Y%Y%nl'))
-        self.parser.set('Postprocessor program','lin_mov_depth',\
-                        ('G1 Z%Z%nl'))
-        self.parser.set('Postprocessor program','arc_int_cw',\
-                        ('G2 X%X Y%Y I%I J%J%nl'))
-        self.parser.set('Postprocessor program','arc_int_ccw',\
-                        ('G3 X%X Y%Y I%I J%J%nl'))
-        self.parser.set('Postprocessor program','cutter_comp_off',\
-                        ('G40%nl'))
-        self.parser.set('Postprocessor program','cutter_comp_left',\
-                        ('G41%nl'))
-        self.parser.set('Postprocessor program','cutter_comp_right',\
-                        ('G42%nl'))                      
+        self.parser.set('Axis letters', 'ax3_letter', 'Z')                  
                         
         self.parser.add_section('Debug')
         self.parser.set('Debug', 'global_debug_level', 0)         
@@ -1401,14 +1351,6 @@ class ConfigClass:
             self.fitting_tolerance=DoubleVar()
             self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
 
-
-            #Einstellungen wohin die Werte geschrieben werden
-            self.write_to_stdout=int(self.parser.get('Export Parameters', 'write_to_stdout'))
-
-            #Zuweisen der Werte am Anfang und am Ende des Files
-            self.gcode_be=self.parser.get('Postprocessor general', 'code_begin')
-            self.gcode_en=self.parser.get('Postprocessor general', 'code_end')
-
             #Zuweisen der Axis Letters
             self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
             self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
@@ -1426,7 +1368,7 @@ class ConfigClass:
                 DEBUG=self.debug
             
         except:
-            showerror("Error during reading INI File", "Please delete or correct\n %s"\
+            showerror("Error during reading config file", "Please delete or correct\n %s"\
                       %(os.path.join(self.folder,self.cfg_file_name)))
             raise Exception, "Problem during import from INI File" 
             
@@ -1443,59 +1385,141 @@ class PostprocessorClass:
     def __init__(self,config=None,text=None):
         self.string=''
         self.text=text
-        try:
-            self.abs_export=int(config.parser.get('Postprocessor general', 'abs_export')) 
+        self.config=config
 
-            self.pre_dec=int(config.parser.get('Postprocessor number format','pre_decimals'))
-            self.post_dec=int(config.parser.get('Postprocessor number format','post_decimals'))
-            self.dec_sep=config.parser.get('Postprocessor number format','decimal_seperator')
-            self.pre_dec_z_pad=int(config.parser.get('Postprocessor number format','pre_decimal_zero_padding'))
-            self.post_dec_z_pad=int(config.parser.get('Postprocessor number format','post_decimal_zero_padding'))
-            self.signed_val=int(config.parser.get('Postprocessor number format','signed_values'))
+        # eine ConfigParser Instanz öffnen und evt. vorhandenes Config File Laden        
+        self.parser = ConfigParser.ConfigParser()
+        self.postpro_file_name=APPNAME+'_postprocessor.cfg'
+        self.parser.read(os.path.join(config.folder,self.postpro_file_name))
 
-            self.use_line_nrs=int(config.parser.get('Postprocessor line numbering','use_line_nrs'))
-            self.line_nrs_begin=int(config.parser.get('Postprocessor line numbering','line_nrs_begin'))
-            self.line_nrs_step=int(config.parser.get('Postprocessor line numbering','line_nrs_step'))
+        # Falls kein Postprocessor File vorhanden ist oder File leer ist neue File anlegen und neu laden
+        if len(self.parser.sections())==0:
+            self.make_new_postpro_file()
+            self.parser.read(os.path.join(config.folder,self.postpro_file_name))
+            text.insert(END,('\nNo postprocessor file found generated new on at: %s' \
+                             %os.path.join(config.folder,self.postpro_file_name)))
+            text.yview(END)
+        else:
+            text.insert(END,('\nLoading postprocessor file: %s' \
+                             %os.path.join(self.config.folder,self.postpro_file_name)))
+            text.yview(END)
 
-            self.tool_ch_str=config.parser.get('Postprocessor program','tool_change')
-            self.feed_ch_str=config.parser.get('Postprocessor program','feed_change')
-            self.rap_pos_plane_str=config.parser.get('Postprocessor program','rap_pos_plane')
-            self.rap_pos_depth_str=config.parser.get('Postprocessor program','rap_pos_depth')
-            self.lin_mov_plane_str=config.parser.get('Postprocessor program','lin_mov_plane')
-            self.lin_mov_depth_str=config.parser.get('Postprocessor program','lin_mov_depth')
-            self.arc_int_cw=config.parser.get('Postprocessor program','arc_int_cw')
-            self.arc_int_ccw=config.parser.get('Postprocessor program','arc_int_ccw')
-            self.cut_comp_off_str=config.parser.get('Postprocessor program','cutter_comp_off')
-            self.cut_comp_left_str=config.parser.get('Postprocessor program','cutter_comp_left')
-            self.cut_comp_right_str=config.parser.get('Postprocessor program','cutter_comp_right')                        
-                            
-            self.feed=0
-            self.x=config.axis1_st_en.get()
-            self.y=config.axis2_st_en.get()
-            self.z=config.axis3_retract.get()
-            self.lx=self.x
-            self.ly=self.y
-            self.lz=self.z
-            self.i=0.0
-            self.j=0.0
+        #Variablen erstellen zur späteren Verwendung im Postprozessor        
+        self.get_all_vars()            
 
-            self.vars={"%feed":'self.iprint(self.feed)',\
-                       "%nl":'self.nlprint()',\
-                       "%X":'self.fnprint(self.x)',\
-                       "%-X":'self.fnprint(-self.x)',\
-                       "%Y":'self.fnprint(self.y)',\
-                       "%-Y":'self.fnprint(-self.y)',\
-                       "%Z":'self.fnprint(self.z)',\
-                       "%-Z":'self.fnprint(-self.z)',\
-                       "%I":'self.fnprint(self.i)',\
-                       "%-I":'self.fnprint(-self.i)',\
-                       "%J":'self.fnprint(self.j)',\
-                       "%-J":'self.fnprint(-self.j)'}
+    def get_all_vars(self):
+        #try:
+        self.abs_export=int(self.parser.get('General', 'abs_export'))
+        self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
+        self.gcode_be=self.parser.get('General', 'code_begin')
+        self.gcode_en=self.parser.get('General', 'code_end')
 
-        except:
-            showerror("Error during reading INI File", "Please delete or correct\n %s"\
-                      %(os.path.join(config.folder,config.cfg_file_name)))
-            raise Exception, "Problem during import from INI File" 
+        self.pre_dec=int(self.parser.get('Number format','pre_decimals'))
+        self.post_dec=int(self.parser.get('Number format','post_decimals'))
+        self.dec_sep=self.parser.get('Number format','decimal_seperator')
+        self.pre_dec_z_pad=int(self.parser.get('Number format','pre_decimal_zero_padding'))
+        self.post_dec_z_pad=int(self.parser.get('Number format','post_decimal_zero_padding'))
+        self.signed_val=int(self.parser.get('Number format','signed_values'))
+
+        self.use_line_nrs=int(self.parser.get('Line numbers','use_line_nrs'))
+        self.line_nrs_begin=int(self.parser.get('Line numbers','line_nrs_begin'))
+        self.line_nrs_step=int(self.parser.get('Line numbers','line_nrs_step'))
+
+        self.tool_ch_str=self.parser.get('Program','tool_change')
+        self.feed_ch_str=self.parser.get('Program','feed_change')
+        self.rap_pos_plane_str=self.parser.get('Program','rap_pos_plane')
+        self.rap_pos_depth_str=self.parser.get('Program','rap_pos_depth')
+        self.lin_mov_plane_str=self.parser.get('Program','lin_mov_plane')
+        self.lin_mov_depth_str=self.parser.get('Program','lin_mov_depth')
+        self.arc_int_cw=self.parser.get('Program','arc_int_cw')
+        self.arc_int_ccw=self.parser.get('Program','arc_int_ccw')
+        self.cut_comp_off_str=self.parser.get('Program','cutter_comp_off')
+        self.cut_comp_left_str=self.parser.get('Program','cutter_comp_left')
+        self.cut_comp_right_str=self.parser.get('Program','cutter_comp_right')                        
+                        
+        self.feed=0
+        self.x=self.config.axis1_st_en.get()
+        self.y=self.config.axis2_st_en.get()
+        self.z=self.config.axis3_retract.get()
+        self.lx=self.x
+        self.ly=self.y
+        self.lz=self.z
+        self.i=0.0
+        self.j=0.0
+
+        self.vars={"%feed":'self.iprint(self.feed)',\
+                   "%nl":'self.nlprint()',\
+                   "%X":'self.fnprint(self.x)',\
+                   "%-X":'self.fnprint(-self.x)',\
+                   "%Y":'self.fnprint(self.y)',\
+                   "%-Y":'self.fnprint(-self.y)',\
+                   "%Z":'self.fnprint(self.z)',\
+                   "%-Z":'self.fnprint(-self.z)',\
+                   "%I":'self.fnprint(self.i)',\
+                   "%-I":'self.fnprint(-self.i)',\
+                   "%J":'self.fnprint(self.j)',\
+                   "%-J":'self.fnprint(-self.j)'}
+
+##        except:
+##            showerror("Error during reading postprocessor file", "Please delete or correct\n %s"\
+##                      %(os.path.join(self.config.folder,self.postpro_file_name)))
+##            raise Exception, "Problem during import from INI File" 
+
+    def make_new_postpro_file(self):
+            
+        self.parser.add_section('General')
+        self.parser.set('General', 'abs_export', 1)
+        self.parser.set('General', 'write_to_stdout', 0)
+        self.parser.set('General', 'code_begin',\
+                        'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
+                        +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
+                        +'\nG17'
+                        +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
+                        +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
+                        +'\nS5000M03 (Spindle 5000rpm cw)')
+        self.parser.set('General', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
+
+        self.parser.add_section('Number format')
+        self.parser.set('Number format','pre_decimals',4)
+        self.parser.set('Number format','post_decimals',3)
+        self.parser.set('Number format','decimal_seperator','.')
+        self.parser.set('Number format','pre_decimal_zero_padding',0)
+        self.parser.set('Number format','post_decimal_zero_padding',1)
+        self.parser.set('Number format','signed_values',0)
+
+        self.parser.add_section('Line numbers')
+        self.parser.set('Line numbers','use_line_nrs',0)
+        self.parser.set('Line numbers','line_nrs_begin',10)
+        self.parser.set('Line numbers','line_nrs_step',10)
+
+        self.parser.add_section('Program')
+        self.parser.set('Program','tool_change',\
+                        ('T%tool_nr M6%nl S%speed M3%nl'))
+        self.parser.set('Program','feed_change',\
+                        ('F%feed%nl'))
+        self.parser.set('Program','rap_pos_plane',\
+                        ('G0 X%X Y%Y%nl'))
+        self.parser.set('Program','rap_pos_depth',\
+                        ('G0 Z%Z %nl'))
+        self.parser.set('Program','lin_mov_plane',\
+                        ('G1 X%X Y%Y%nl'))
+        self.parser.set('Program','lin_mov_depth',\
+                        ('G1 Z%Z%nl'))
+        self.parser.set('Program','arc_int_cw',\
+                        ('G2 X%X Y%Y I%I J%J%nl'))
+        self.parser.set('Program','arc_int_ccw',\
+                        ('G3 X%X Y%Y I%I J%J%nl'))
+        self.parser.set('Program','cutter_comp_off',\
+                        ('G40%nl'))
+        self.parser.set('Program','cutter_comp_left',\
+                        ('G41%nl'))
+        self.parser.set('Program','cutter_comp_right',\
+                        ('G42%nl'))                      
+                        
+                
+        open_file = open(os.path.join(self.config.folder,self.postpro_file_name), "w") 
+        self.parser.write(open_file) 
+        open_file.close()
 
 
     def write_gcode_be(self,ExportParas,load_filename):
@@ -1718,7 +1742,7 @@ class Show_About_Info(Toplevel):
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
         text.insert(END, "You are using DXF2GCODE")
-        text.insert(END, "\nVersion b01 from the 07th Juli 2008")
+        text.insert(END, "\nVersion v01 from the 09th Juli 2008")
         text.insert(END, "\nFor more information und updates about")
         text.insert(END, "\nplease visit my homepage at:")
         text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))

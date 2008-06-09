@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_b01_ent_polyline
-#Programmer: Christian Kohlöffel
-#E-mail:     n/A
-#
-#Copyright 2008 Christian Kohlöffel
+#dxf2gcode_v01_geoent_insert
+#Programmers:   Christian Kohlöffel
+#               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
 #
@@ -23,7 +21,7 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from dxf2gcode_b01_point import PointClass, ContourClass
+from dxf2gcode_v01_point import PointClass, ContourClass
 
 class InsertClass:
     def __init__(self,Nr=0,caller=None):

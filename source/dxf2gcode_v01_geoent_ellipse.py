@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_b01_ent_ellipse
-#Programmer: Christian Kohlöffel
-#E-mail:     n/A
-#
-#Copyright 2008 Christian Kohlöffel
+#dxf2gcode_v01_geoent_ellipse
+#Programmers:   Christian Kohlöffel
+#               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
 #
@@ -25,7 +23,7 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b01_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass
+from dxf2gcode_v01_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass
 
 
 class EllipseClass:

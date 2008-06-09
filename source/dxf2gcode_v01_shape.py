@@ -1,11 +1,9 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_b01_shape.py
-#Programmer: Christian Kohloeffel
-#E-mail:     n/A
-#
-#Copyright 2007-2008 Christian Kohlöffel
+#dxf2gcode_v01_shape.py
+#Programmers:   Christian Kohlöffel
+#               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
 #
@@ -26,7 +24,7 @@
 #Main Class Shape
 
 import sys, os, string, ConfigParser 
-from   dxf2gcode_b01_point import PointClass, LineGeo, ArcGeo
+from   dxf2gcode_v01_point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
 from Canvas import Line
 
