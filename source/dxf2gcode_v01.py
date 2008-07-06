@@ -53,13 +53,12 @@ from copy import copy
 from math import radians, cos, sin
 
 # Globale "Konstanten"
-DEBUG = 0
 APPNAME = "dxf2gcode_v01"
 
 class Erstelle_Fenster:
     def __init__(self, master = None, load_filename=None ):
         
-        self.master=master
+        self.master=master     
 
         #Uebergabe des load_filenames falls von EMC gestartet
         self.load_filename=load_filename
@@ -75,42 +74,27 @@ class Erstelle_Fenster:
         #Unterer Rahmen erstellen mit der Lisbox + Scrollbar zur Darstellung der Ereignisse.
         self.frame_u=Frame(master) 
         self.frame_u.grid(row=1,column=1,padx=4,sticky=N+E+W+S)
-        
+        #Erstellen des Statusfenster
+        self.textbox=TextboxClass(frame=self.frame_u,master=self.master)
+
+        #Voreininstellungen für das Programm laden
+        self.config=ConfigClass(self.textbox)
+
+        #PostprocessorClass initialisieren (Voreinstellungen aus Config)
+        self.postpro=PostprocessorClass(self.config,self.textbox)
+
         self.master.columnconfigure(0,weight=0)
         self.master.columnconfigure(1,weight=1)
         self.master.rowconfigure(0,weight=1)
         self.master.rowconfigure(1,weight=0)
             
-        self.text = Text(self.frame_u,height=7)
-        self.textscr = Scrollbar(self.frame_u)
-        self.text.grid(row=0,column=0,pady=4,sticky=E+W)
-        self.textscr.grid(row=0,column=1,pady=4,sticky=N+S)
-        self.frame_u.columnconfigure(0,weight=1)
-        self.frame_u.columnconfigure(1,weight=0)
-
-
-        #Voreininstellungen für das Programm laden
-        self.config=ConfigClass(self.text)
-
-        #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.postpro=PostprocessorClass(self.config,self.text)
-
-        if DEBUG>0:
-            self.text.config(height=15)
-
-        #Binding für Contextmenu
-        self.text.bind("<Button-3>", self.text_contextmenu)
-
-        self.textscr.config(command=self.text.yview)
-        self.text.config(yscrollcommand=self.textscr.set)
-        self.text.insert(END,'\nProgram started\nVersion 0.1\nCoded by V. Schulz and C. Kohlöffel')
 
         #Erstellen de Eingabefelder und des Canvas
         self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
         self.Canvas =CanvasClass(self.frame_c,self)
 
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
-        self.CanvasContent=CanvasContentClass(self.Canvas,self.text,self.config)
+        self.CanvasContent=CanvasContentClass(self.Canvas,self.textbox,self.config)
         self.Canvas.Content=self.CanvasContent
 
         #Erstellen des Fenster Menus
@@ -195,27 +179,25 @@ class Erstelle_Fenster:
 
     def Load_File(self,filename):
    
-        self.text.delete(7.0,END)
-        self.text.insert(END,'\nLoading file: '+filename)
-        self.text.yview(END)
+        self.textbox.text.delete(7.0,END)
+        self.textbox.prt('\nLoading file: %s ' %filename)
         
-        self.values=dxf_import.Load_DXF(filename,self.config,self.text)
+        self.values=dxf_import.Load_DXF(filename,self.config,self.textbox)
         
         #Ausgabe der Informationen im Text Fenster
-        self.text.insert(END,'\nLoaded layers: ' +str(len(self.values.layers)))
-        self.text.insert(END,'\nLoaded blocks: ' +str(len(self.values.blocks.Entities)))
+        self.textbox.prt('\nLoaded layers: ' +str(len(self.values.layers)))
+        self.textbox.prt('\nLoaded blocks: ' +str(len(self.values.blocks.Entities)))
         for i in range(len(self.values.blocks.Entities)):
             layers=self.values.blocks.Entities[i].get_used_layers()
-            self.text.insert(END,'\nBlock ' +str(i) +' includes '+str(len(self.values.blocks.Entities[i].geo))\
+            self.textbox.prt('\nBlock ' +str(i) +' includes '+str(len(self.values.blocks.Entities[i].geo))\
                              +' Geometries, reduced to ' +str(len(self.values.blocks.Entities[i].cont)) \
                              +' Contours, used layers: ' +str(layers))
         layers=self.values.entities.get_used_layers()
         insert_nr=self.values.entities.get_insert_nr()
-        self.text.insert(END,'\nLoaded ' +str(len(self.values.entities.geo))\
+        self.textbox.prt('\nLoaded ' +str(len(self.values.entities.geo))\
                              +' Entities geometries, reduced to ' +str(len(self.values.entities.cont))\
                              +' Contours, used layers: ' +str(layers)\
                              +' ,Number of inserts: ' +str(insert_nr))
-        self.text.yview(END)
 
         #Skalierung der Kontur
         self.cont_scale=1.0
@@ -258,7 +240,7 @@ class Erstelle_Fenster:
         if self.load_filename==None:
             return
         self.Load_File(self.load_filename)
-        self.text.insert(END,("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file"\
+        self.textbox.prt(("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file"\
                               %(dialog.result[0],dialog.result[1])))
         self.text.yview(END)
         
@@ -275,7 +257,7 @@ class Erstelle_Fenster:
         self.cont_scale=value
 
         #Falls noch kein File geladen wurde nichts machen
-        self.text.insert(END,("\nScaled Contours by factor %0.3f" %self.cont_scale))
+        self.textbox.prt(("\nScaled Contours by factor %0.3f" %self.cont_scale))
         self.text.yview(END)
 
         self.Canvas.scale_contours(self.cont_scale/old_scale)        
@@ -295,7 +277,7 @@ class Erstelle_Fenster:
         self.cont_dy=dialog.result[1]
 
         #Falls noch kein File geladen wurde nichts machen
-        self.text.insert(END,("\nWorpiece zero offset: %s %0.2f; %s %0.2f" \
+        self.textbox.prt(("\nWorpiece zero offset: %s %0.2f; %s %0.2f" \
                               %(self.config.ax1_letter,self.cont_dx,
                                 self.config.ax2_letter,self.cont_dy)))
         self.text.yview(END)
@@ -343,9 +325,9 @@ class Erstelle_Fenster:
         #Bei 1 starten da 0 der Startpunkt ist
         for nr in range(1,len(self.TSP.opt_route)):
             shape=self.shapes_to_write[self.TSP.opt_route[nr]]
-            if DEBUG:
-                self.text.insert(END,("\nWriting Shape: %s" %shape))
-                self.text.yview(END)
+            self.textbox.prt(("\nWriting Shape: %s" %shape),1)
+                
+
 
             #Drucken falls die Shape nicht disabled ist
             if not(shape.nr in self.CanvasContent.Disabled):
@@ -361,12 +343,14 @@ class Erstelle_Fenster:
         string=postpro.write_gcode_en(self.ExportParas)
 
         if status==1:
-            self.text.insert(END,("\nSuccessfully generated G-Code"))
+            self.textbox.prt(("\nSuccessfully generated G-Code"))
+            self.master.update_idletasks()
+
         else:
-            self.text.insert(END,("\nError during G-Code Generation"))
-            
-        self.text.yview(END)        
-        
+            self.textbox.prt(("\nError during G-Code Generation"))
+            self.master.update_idletasks()
+
+                    
         #Drucken in den Stdout, speziell für EMC2 
         if postpro.write_to_stdout:
             print(string)
@@ -391,7 +375,10 @@ class Erstelle_Fenster:
             
 
     def opt_export_route(self):
-                
+        
+        #Errechnen der Iterationen
+        iter =min(self.config.max_iterations,len(self.CanvasContent.Shapes)*20)
+        
         #Anfangswerte für das Sortieren der Shapes
         self.shapes_to_write=[]
         shapes_st_en_points=[]
@@ -402,6 +389,7 @@ class Erstelle_Fenster:
             if not(shape.nr in self.CanvasContent.Disabled):
                 self.shapes_to_write.append(shape)
                 shapes_st_en_points.append(shape.get_st_en_points())
+                
 
         #Hinzufügen des Start- Endpunkte ausserhalb der Geometrie
         x_st=self.config.axis1_st_en.get()
@@ -410,18 +398,28 @@ class Erstelle_Fenster:
         ende=PointClass(x=x_st,y=y_st)
         shapes_st_en_points.append([start,ende])
 
-        #Optimieren der Reihenfolge            
-        self.TSP=tsp.TSPoptimize(shapes_st_en_points,self.text,DEBUG)
+        #Optimieren der Reihenfolge
+        self.textbox.prt(("\nTSP Starting"),1)
+                
+        self.TSP=tsp.TSPoptimize(shapes_st_en_points,self.textbox,self.master,self.config)
+        self.textbox.prt(("\nTSP start values initialised"),1)
+        #self.CanvasContent.path_hdls=[]
+        #self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
 
-        for it_nr in range(20):
-            self.TSP.start_optimisation()
-            for hdl in self.CanvasContent.path_hdls:
-                self.Canvas.canvas.delete(hdl)
-            self.CanvasContent.path_hdls=[]
-            self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
+        for it_nr in range(iter):
+            #Jeden 10ten Schrit rausdrucken
+            if (it_nr%10)==0:
+                self.textbox.prt(("\nTSP Iteration nr: %i" %it_nr),1)
+                for hdl in self.CanvasContent.path_hdls:
+                    self.Canvas.canvas.delete(hdl)
+                self.CanvasContent.path_hdls=[]
+                self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
+                self.master.update_idletasks()
+                
+            self.TSP.calc_next_iteration()
             
-        self.text.insert(END,("\n%s" %self.TSP))
-        self.text.yview(END)
+        self.textbox.prt(("\nTSP done with result:"),1)
+        self.textbox.prt(("\n%s" %self.TSP),1)
 
         self.viewmenu.entryconfig(6,state=NORMAL)        
 
@@ -435,6 +433,44 @@ class Erstelle_Fenster:
     def Show_About(self):
         Show_About_Info(self.master)
   
+    def ende(self):
+        self.master.destroy()
+        self.master.quit()
+
+class TextboxClass:
+    def __init__(self,frame=None,master=None,DEBUG=0):
+            
+        self.DEBUG=DEBUG
+        self.master=master
+        self.text = Text(frame,height=7)
+        
+        self.textscr = Scrollbar(frame)
+        self.text.grid(row=0,column=0,pady=4,sticky=E+W)
+        self.textscr.grid(row=0,column=1,pady=4,sticky=N+S)
+        frame.columnconfigure(0,weight=1)
+        frame.columnconfigure(1,weight=0)
+
+        
+        #Binding für Contextmenu
+        self.text.bind("<Button-3>", self.text_contextmenu)
+
+        #Anfangstext einfügen
+        self.textscr.config(command=self.text.yview)
+        self.text.config(yscrollcommand=self.textscr.set)
+        self.prt('Program started\nVersion V0.1\nCoded by V. Schulz and C. Kohlöffel')
+
+    def set_debuglevel(self,DEBUG=0):
+        self.DEBUG=DEBUG
+        if DEBUG:
+            self.text.config(height=15)
+
+    def prt(self,txt='',DEBUGLEVEL=0):
+
+        if self.DEBUG>=DEBUGLEVEL:
+            self.text.insert(END,txt)
+            self.text.yview(END)
+            self.master.update_idletasks()
+            
 
     #Contextmenu Text mit Bindings beim Rechtsklick
     def text_contextmenu(self,event):
@@ -446,11 +482,7 @@ class Erstelle_Fenster:
         
     def text_delete_entries(self):
         self.text.delete(7.0,END)
-        self.text.yview(END)   
-  
-    def ende(self):
-        self.master.destroy()
-        self.master.quit()
+        self.text.yview(END)           
 
 class ExportParasClass:
     def __init__(self,master=None,config=None,postpro=None):
@@ -1068,7 +1100,7 @@ class CanvasContentClass:
                     self.Selected.append(tag)
 
                     if DEBUG:
-                        self.text.insert(END,'\n\nAdded shape to selection:'\
+                        self.textbox.prt('\n\nAdded shape to selection:'\
                                          +str(self.Shapes[tag]))
                         self.text.yview(END)
                     if mode=='single':
@@ -1091,7 +1123,7 @@ class CanvasContentClass:
         self.plot_cut_info()
 
         if DEBUG:
-            self.text.insert(END,'\nInverting Selection')
+            self.textbox.prt('\nInverting Selection')
             self.text.yview(END)        
         
 
@@ -1124,7 +1156,7 @@ class CanvasContentClass:
         for shape_nr in self.Selected:
             self.Shapes[shape_nr].reverse()
             if DEBUG:
-                self.text.insert(END,'\n\nSwitched Direction at Shape:'\
+                self.textbox.prt('\n\nSwitched Direction at Shape:'\
                                  +str(self.Shapes[shape_nr]))
                 self.text.yview(END)
         self.plot_cut_info()
@@ -1133,7 +1165,7 @@ class CanvasContentClass:
         for shape_nr in self.Selected: 
             self.Shapes[shape_nr].cut_cor=correction
             if DEBUG:
-                self.text.insert(END,'\n\nChanged Cutter Correction at Shape:'\
+                self.textbox.prt('\n\nChanged Cutter Correction at Shape:'\
                                  +str(self.Shapes[shape_nr]))
                 self.text.yview(END)       
         self.plot_cut_info() 
@@ -1222,7 +1254,7 @@ class EntitieContentClass:
                +'\nShapes ->'+str(self.Shapes)
 
 class ConfigClass:
-    def __init__(self,text):
+    def __init__(self,textbox):
         # Das Standard App Verzeichniss für das Betriebssystem abfragen
         self.folder=self.get_settings_folder(str(APPNAME))
 
@@ -1235,24 +1267,20 @@ class ConfigClass:
         if len(self.parser.sections())==0:
             self.make_new_Config_file()
             self.parser.read(os.path.join(self.folder,self.cfg_file_name))
-            text.insert(END,('\nNo config file found generated new on at: %s' \
+            textbox.prt(('\nNo config file found generated new on at: %s' \
                              %os.path.join(self.folder,self.cfg_file_name)))
-            text.yview(END)
         else:
-            text.insert(END,('Loading config file: %s' \
+            textbox.prt(('\nLoading config file:%s' \
                              %os.path.join(self.folder,self.cfg_file_name)))
-            text.yview(END) 
 
         #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
         self.get_all_vars()
 
         #DEBUG INFORMATIONEN
-        text.insert(END,'\nDebug Level: ' +str(DEBUG))
-        text.yview(END) 
-
-        if DEBUG:
-            text.insert(END,'\n' +str(self))
-            text.yview(END)
+        #Übergeben des geladenen Debug Level
+        textbox.set_debuglevel(DEBUG=self.debug)
+        textbox.prt('\nDebug Level: ' +str(self.debug),1)
+        textbox.prt(str(self),1)
 
     def get_settings_folder(self,appname): 
         # resolve settings folder 
@@ -1305,7 +1333,13 @@ class ConfigClass:
         self.parser.set('Axis letters', 'ax1_letter', 'X')
         self.parser.set('Axis letters', 'ax2_letter', 'Y')
         self.parser.set('Axis letters', 'ax3_letter', 'Z')                  
-                        
+
+        self.parser.add_section('Route Optimisation')
+        self.parser.set('Route Optimisation', 'Begin art','random')
+        self.parser.set('Route Optimisation', 'Max. population', 20)
+        self.parser.set('Route Optimisation', 'Max. iterations', 200)  
+        self.parser.set('Route Optimisation', 'Mutation Rate', 0.95)
+                     
         self.parser.add_section('Debug')
         self.parser.set('Debug', 'global_debug_level', 0)         
                 
@@ -1351,6 +1385,12 @@ class ConfigClass:
             self.fitting_tolerance=DoubleVar()
             self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
 
+            #Zuweisen der Werte für die TSP Optimierung
+            self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
+            self.max_population=int((int(self.parser.get('Route Optimisation', 'Max. population'))/4)*4)
+            self.max_iterations=int(self.parser.get('Route Optimisation', 'Max. iterations'))  
+            self.mutate_rate=float(self.parser.get('Route Optimisation', 'Mutation Rate', 0.95))
+
             #Zuweisen der Axis Letters
             self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
             self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
@@ -1363,9 +1403,7 @@ class ConfigClass:
 
             #Setzen des Globalen Debug Levels
             self.debug=int(self.parser.get('Debug', 'global_debug_level'))
-            if self.debug>0:
-                global DEBUG
-                DEBUG=self.debug
+            
             
         except:
             showerror("Error during reading config file", "Please delete or correct\n %s"\
@@ -1382,9 +1420,9 @@ class ConfigClass:
         return str
 
 class PostprocessorClass:
-    def __init__(self,config=None,text=None):
+    def __init__(self,config=None,textbox=None):
         self.string=''
-        self.text=text
+        self.textbox=textbox
         self.config=config
 
         # eine ConfigParser Instanz öffnen und evt. vorhandenes Config File Laden        
@@ -1396,16 +1434,16 @@ class PostprocessorClass:
         if len(self.parser.sections())==0:
             self.make_new_postpro_file()
             self.parser.read(os.path.join(config.folder,self.postpro_file_name))
-            text.insert(END,('\nNo postprocessor file found generated new on at: %s' \
+            textbox.prt(('\nNo postprocessor file found generated new on at: %s' \
                              %os.path.join(config.folder,self.postpro_file_name)))
-            text.yview(END)
         else:
-            text.insert(END,('\nLoading postprocessor file: %s' \
+            textbox.prt(('\nLoading postprocessor file: %s' \
                              %os.path.join(self.config.folder,self.postpro_file_name)))
-            text.yview(END)
 
         #Variablen erstellen zur späteren Verwendung im Postprozessor        
-        self.get_all_vars()            
+        self.get_all_vars()
+
+        textbox.prt(str(self),1)        
 
     def get_all_vars(self):
         #try:
@@ -1671,6 +1709,15 @@ class PostprocessorClass:
             while (len(string_end)>0)and((string_end[-1]=='0')or(string_end[-1]==self.dec_sep)):
                 string_end=string_end[0:-1]                
         return string+string_end
+    
+    def __str__(self):
+
+        str=''
+        for section in self.parser.sections(): 
+            str= str +"\nSection: "+section 
+            for option in self.parser.options(section): 
+                str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
+        return str
         
 class Show_About_Info(Toplevel):
     def __init__(self, parent):
@@ -1741,11 +1788,11 @@ class Show_About_Info(Toplevel):
 
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
-        text.insert(END, "You are using DXF2GCODE")
-        text.insert(END, "\nVersion v01 from the 09th Juli 2008")
-        text.insert(END, "\nFor more information und updates about")
-        text.insert(END, "\nplease visit my homepage at:")
-        text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
+        textbox.prt( "You are using DXF2GCODE")
+        textbox.prt( "\nVersion v01 from the 09th Juli 2008")
+        textbox.prt( "\nFor more information und updates about")
+        textbox.prt( "\nplease visit my homepage at:")
+        textbox.prt( "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
 
 
 

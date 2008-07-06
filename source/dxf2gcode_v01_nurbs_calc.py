@@ -326,7 +326,7 @@ class Spline2Arcs:
 
         #Schleife für die einzelnen Abschnitte        
         for u_sect in u_sections:
-            BiarcCurve, PtsVec=self.calc_Biarc_section(u_sect,self.epsilon_high)
+            BiarcCurve, PtsVec=self.calc_Biarc_section(u_sect,self.epsilon,self.epsilon_high)
             BiarcCurves.append(BiarcCurve)
             PtsVecs.append(PtsVec)
         return BiarcCurves, PtsVecs
@@ -369,7 +369,7 @@ class Spline2Arcs:
                 u_sections.append([u_beg,u_end])
         return u_sections
 
-    def calc_Biarc_section(self,u_sect,max_tol):
+    def calc_Biarc_section(self,u_sect,nom_tol,max_tol):
         min_u=1e-9
         BiarcCurve=[]
         cur_step=self.max_step
@@ -389,7 +389,7 @@ class Spline2Arcs:
             PtVec=self.NURBS.NURBS_evaluate(n=1,u=u)
 
             #Aus den letzten 2 Punkten den nächsten Biarc berechnen
-            Biarc=(BiarcClass(PtsVec[-1][0],PtsVec[-1][1],PtVec[0],PtVec[1]))
+            Biarc=(BiarcClass(PtsVec[-1][0],PtsVec[-1][1],PtVec[0],PtVec[1],nom_tol*0.5))
 
             if Biarc.shape=="Zero":
                 self.cur_step=min([cur_step*2,self.max_step])
@@ -412,10 +412,11 @@ class Spline2Arcs:
         return BiarcCurve, PtsVec
     
 class BiarcClass:
-    def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[]):
+    def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[],min_r=5e-4):
         min_len=1e-9        #Min Abstand für doppelten Punkt
         min_alpha=1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
         max_r=5e3           #Max Radius ab welchem Gerade angenommen wird (10m)
+        min_r=min_r         #Min Radius ab welchem nichts gemacht wird
         
         self.Pa=Pa
         self.tan_a=tan_a
@@ -437,6 +438,8 @@ class BiarcClass:
         if(self.l<min_len):
             self.shape="Zero"
             pass
+        
+            
         elif(self.shape=="LineGeo"):
             #Erstellen der Geometrie
             self.shape="LineGeo"
@@ -449,7 +452,11 @@ class BiarcClass:
                 #Erstellen der Geometrie
                 self.shape="LineGeo"
                 self.geos.append(LineGeo(self.Pa,self.Pb))
-                return 
+                return
+            
+            elif (abs(r1)<min_r)or(abs(r2)<min_r):
+                self.shape="Zero"
+                return
           
             O1, O2, k =self.calc_O1_O2_k(r1,r2,self.tan_a,self.teta)
             

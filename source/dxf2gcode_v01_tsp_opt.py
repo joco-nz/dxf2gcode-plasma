@@ -30,58 +30,145 @@ from math import floor, ceil
 from Tkconstants import END
 
 
-#Distance Matrix Class
-class ClassDistanceMatrix:
-    def __init__(self,matrix=[],size=[0,0]):
-        self.matrix=matrix
-        
-    def generate_matrix(self,st_end_points):
-        x_vals=range(len(st_end_points));
-        self.matrix=[]
-        for nr_y in range(len(st_end_points)):
-            for nr_x in range(len(st_end_points)):
-                x_vals[nr_x]=st_end_points[nr_y][1].distance(st_end_points[nr_x][0])
-            self.matrix.append(copy(x_vals[:]))
-        self.size=[len(st_end_points),len(st_end_points)]
-        
-    def __str__(self):
-        string=("Distance Matrix; size: %i X %i" %(self.size[0],self.size[1]))
-        for line_x in self.matrix:
-            string+="\n"
-            for x_vals in line_x:
-                string+=("%8.2f" %x_vals)
-        return string
+          
+class TSPoptimize:
+    def __init__(self,st_end_points=[],textbox=[],master=[],config=[]):
+        self.shape_nrs=len(st_end_points)        
+        self.iterations=int(self.shape_nrs)*2
+        self.pop_nr=min(int(ceil(self.shape_nrs/8.0)*4.0),config.max_population)
+        self.mutate_rate=config.mutate_rate
+        self.opt_route=[]
+        self.order=[]
+        self.st_end_points=st_end_points
+        self.config=config
+ 
+        #Creating Lines    
+        #Generating the Distance Matrix
+        self.DistanceMatrix=ClassDistanceMatrix()
+        self.DistanceMatrix.generate_matrix(st_end_points)
 
+        #Generation Population 
+        self.Population=ClassPopulation(textbox=textbox,master=master,config=config)
+        self.Population.ini_population(size=[self.shape_nrs,self.pop_nr],dmatrix=self.DistanceMatrix.matrix)
+
+        #Initialisieren der Result Class
+        self.Fittness=ClassFittness(population=self.Population,cur_fittness=range(self.Population.size[1]))
+        self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,range(self.shape_nrs))
+        self.Fittness.order=self.order
+
+        #Anfang der Reihenfolge immer auf den letzen Punkt legen
+        self.Fittness.set_startpoint()
+
+        #Korrektur Funktion um die Reihenfolge der Elemente zu korrigieren
+        self.Fittness.correct_constrain_order()
+        
+        #Erstellen der ersten Ergebnisse
+        self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
+        self.Fittness.select_best_fittness()
+        self.opt_route=self.Population.pop[self.Fittness.best_route]
+
+        #ERstellen der 2 opt Optimierungs Klasse
+        #self.optmove=ClassOptMove(dmatrix=self.DistanceMatrix.matrix,nei_nr=int(round(self.shape_nrs/10)))
+             
+    def calc_next_iteration(self):
+        #Algorithmus ausfürhen
+        self.Population.genetic_algorithm(Result=self.Fittness,mutate_rate=self.mutate_rate)
+        #Für die Anzahl der Tours die Tours nach dem 2-opt Verfahren optimieren
+##        for pop_nr in range(len(self.Population.pop)):
+##            #print ("Vorher: %0.2f" %self.calc_tour_length(tours[tour_nr]))
+##            self.Population.pop[pop_nr]=self.optmove.do2optmove(self.Population.pop[pop_nr])
+##            #print ("Nachher: %0.2f" %self.calc_tour_length(tours[tour_nr]))
+        #Anfang der Reihenfolge immer auf den letzen Punkt legen
+        self.Fittness.set_startpoint()
+        #Korrektur Funktion um die Reihenfolge der Elemente zu korrigieren
+        self.Fittness.correct_constrain_order()
+        #Fittness der jeweiligen Routen ausrechen
+        self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
+        #Straffunktion falls die Route nicht der gewünschten Reihenfolge entspricht
+        #Beste Route auswählen
+        self.Fittness.select_best_fittness()
+        self.opt_route=self.Population.pop[self.Fittness.best_route]
+
+    def __str__(self):
+        #res=self.Population.pop
+        return ("Iteration nrs:    %i" %(self.iterations*10)) +\
+               ("\nShape nrs:      %i" %self.shape_nrs) +\
+               ("\nPopulation:     %i" %self.pop_nr) +\
+               ("\nMutate rate:    %0.2f" %self.mutate_rate) +\
+               ("\norder:          %s" %self.order) +\
+               ("\nStart length:   %0.1f" %self.Fittness.best_fittness[0]) +\
+               ("\nOpt. length:    %0.1f" %self.Fittness.best_fittness[-1]) +\
+               ("\nOpt. route:     %s" %self.opt_route)
+    
+def print_matrix(matrix=[],format='%6.2f'):
+    str=''
+    for line in matrix:
+        str+='\n'
+        for wert in line:
+            str+=(format %(wert))
+    return str
 #Population Class
 class ClassPopulation:
-    def __init__(self,pop=[],rot=[],order=[],size=[0,0],mutate_rate=0.95):
+    def __init__(self,pop=[],rot=[],order=[],size=[0,0],mutate_rate=0.95,textbox=[],master=[],config=[]):
         self.pop=pop
         self.rot=rot
         self.size=size
         self.mutate_rate=mutate_rate
+        self.textbox=textbox
+        self.master=master
+        self.config=config
         
-    def ini_random_pop(self,size=[5,8],dmatrix=[]):
+    def ini_population(self,size=[5,8],dmatrix=[]):
         self.size=size
         self.pop=[]
-        for pop_nr in range(size[1]):
-            tour=[]
-            tour.append(int(floor(random()*len(dmatrix[0]))))
-            for tp_nr in range(len(dmatrix[0])-1):
-                tour.append(self.heurestic_find_next(tour,dmatrix))
-            self.pop.append(tour[:])
-                
+        for pop_nr in range(size[1]/2):
+            self.textbox.prt(("\n======= TSP initializing population nr %i =======" %pop_nr),1)
+            
+            if self.config.begin_art=='ordered':
+                self.pop.append(range(size[0]))
+            elif self.config.begin_art=='random':
+                self.pop.append(self.random_begin(size[0]))
+            elif self.config.begin_art=='heurestic':
+                self.pop.append(self.heurestic_begin(dmatrix[:]))
+
+        #Duplizieren der Anfangswerte um Zeit zu sparen bei heurestic           
+        for pop_nr in range(size[1]/2):
+            self.pop.append(self.pop[pop_nr][:])
+            
         for rot_nr in range(size[0] ):
             self.rot.append(0)  
-            
-    def heurestic_find_next(self,tour=[],dmatrix=[]):
+
+    def random_begin(self,size):
+        tour=range(size)
+        shuffle(tour)
+        return tour
+
+    def heurestic_begin(self,dmatrix=[]):
+        tour=[]
+        possibilities=range(len(dmatrix[0]))
+        start_nr=int(floor(random()*len(dmatrix[0])))
+
+        #Hinzufügen der Nr und entfernen aus possibilies        
+        tour.append(start_nr)
+        possibilities.pop(possibilities.index(tour[-1]))
+        counter=0
+        
+        while len(possibilities):
+            counter+=1
+            tour.append(self.heurestic_find_next(tour[-1],possibilities,dmatrix))
+            possibilities.pop(possibilities.index(tour[-1]))
+
+            if (counter%10)==0:
+                self.textbox.prt(("\nTSP heurestic searching nr %i" %counter),1)
+        return tour
+          
+    def heurestic_find_next(self,start=1,possibilities=[],dmatrix=[]):
         #Auswahl der Entfernungen des nächsten Punkts
         min_dist=1e99
-        min_point=0
-        darray=dmatrix[tour[-1]]
+        darray=dmatrix[start]
         
-        for pnr in range(len(darray)):
-            if not(pnr in tour):
-                if (darray[pnr]<min_dist):
+        for pnr in possibilities:
+            if (darray[pnr]<min_dist):
                     min_point=pnr
                     min_dist=darray[pnr]
         return min_point
@@ -190,6 +277,99 @@ class ClassPopulation:
             string+='\n'+str(line)
         return string
 
+
+
+#Distance Matrix Class
+class ClassDistanceMatrix:
+    def __init__(self,matrix=[],size=[0,0]):
+        self.matrix=matrix
+        
+    def generate_matrix(self,st_end_points):
+        x_vals=range(len(st_end_points));
+        self.matrix=[]
+        for nr_y in range(len(st_end_points)):
+            for nr_x in range(len(st_end_points)):
+                x_vals[nr_x]=st_end_points[nr_y][1].distance(st_end_points[nr_x][0])
+            self.matrix.append(copy(x_vals[:]))
+        self.size=[len(st_end_points),len(st_end_points)]
+        
+    def __str__(self):
+        string=("Distance Matrix; size: %i X %i" %(self.size[0],self.size[1]))
+        for line_x in self.matrix:
+            string+="\n"
+            for x_vals in line_x:
+                string+=("%8.2f" %x_vals)
+        return string
+
+class ClassFittness:
+    def __init__(self,population=[],cur_fittness=[],best_fittness=[],best_route=[]):
+        self.population=population
+        self.cur_fittness=cur_fittness
+        self.best_fittness=best_fittness
+        self.best_route=best_route
+
+    def calc_st_fittness(self,matrix,st_pop):
+        dis=matrix[st_pop[-1]][st_pop[0]]
+        for nr in range(1,len(st_pop)):
+            dis+=matrix[st_pop[nr-1]][st_pop[nr]]
+
+        self.best_fittness.append(dis)
+
+    def calc_cur_fittness(self,matrix):
+        for pop_nr in range(len(self.population.pop)):
+            pop=self.population.pop[pop_nr]
+
+            dis=matrix[pop[-1]][pop[0]]
+            for nr in range(1,len(pop)):
+                dis+=matrix[pop[nr-1]][pop[nr]]
+            self.cur_fittness[pop_nr]=dis
+            
+        
+    #Erste Möglichkeite um die Reihenfolge festzulegen (Straffunktion=Passiv)   
+    def calc_constrain_fittness(self):
+        for pop_nr in range(len(self.population.pop)):
+            pop=self.population.pop[pop_nr]
+            order_index=[]
+            for val_nr in range(len(self.order)):
+                oorder_index=self.get_pop_index_list(self.population.pop[pop_nr])
+                if val_nr>0:
+                    if order_index[-2]>order_index[-1]:
+                        self.cur_fittness[pop_nr]=self.cur_fittness[pop_nr]*2
+                        
+    #2te Möglichkeit die Reihenfolge festzulegen (Korrekturfunktion=Aktiv)                
+    def correct_constrain_order(self):
+        for pop_nr in range(len(self.population.pop)):
+            #Suchen der momentanen Reihenfolge
+            order_index=self.get_pop_index_list(self.population.pop[pop_nr])
+            #Momentane Reihenfolge der indexe sortieren
+            order_index.sort()
+            #Indexe nach soll Reihenfolge korrigieren
+            for ind_nr in range(len(order_index)):
+                self.population.pop[pop_nr][order_index[ind_nr]]=self.order[ind_nr]
+                
+    def set_startpoint(self):
+        n_pts=len(self.population.pop[-1])
+        for pop_nr in range(len(self.population.pop)):
+            pop=self.population.pop[pop_nr]
+            st_pt_nr=pop.index(n_pts-1)
+            #Kontur so anordnen das Startpunkt am Anfang liegt
+            self.population.pop[pop_nr]=pop[st_pt_nr:n_pts]+pop[0:st_pt_nr]
+
+    def get_pop_index_list(self,pop):
+        pop_index_list=[]
+        for val_nr in range(len(self.order)):
+            pop_index_list.append(pop.index(self.order[val_nr]))
+        return pop_index_list
+
+    def select_best_fittness(self):      
+        self.best_fittness.append(min(self.cur_fittness))
+        self.best_route=self.cur_fittness.index(self.best_fittness[-1])
+
+ 
+    def __str__(self):
+        return ("\nBest Fittness: %s \nBest Route: %s \nBest Pop: %s" \
+                %(self.best_fittness[-1],self.best_route,self.population.pop[self.best_route]))
+
 ##class ClassOptMove:
 ##    def __init__(self,dmatrix=[],nei_nr=5):
 ##        self.dmatrix=dmatrix
@@ -262,165 +442,3 @@ class ClassPopulation:
 ##            iter+=1
 ##            pos+=1
 ##        return tour
-
-
-class ClassFittness:
-    def __init__(self,population=[],cur_fittness=[],best_fittness=[],best_route=[]):
-        self.population=population
-        self.cur_fittness=cur_fittness
-        self.best_fittness=best_fittness
-        self.best_route=best_route
-
-    def calc_st_fittness(self,matrix,st_pop):
-        dis=matrix[st_pop[-1]][st_pop[0]]
-        for nr in range(1,len(st_pop)):
-            dis+=matrix[st_pop[nr-1]][st_pop[nr]]
-
-        self.best_fittness.append(dis)
-
-    def calc_cur_fittness(self,matrix):
-        for pop_nr in range(len(self.population.pop)):
-            pop=self.population.pop[pop_nr]
-
-            dis=matrix[pop[-1]][pop[0]]
-            for nr in range(1,len(pop)):
-                dis+=matrix[pop[nr-1]][pop[nr]]
-            self.cur_fittness[pop_nr]=dis
-            
-        
-    #Erste Möglichkeite um die Reihenfolge festzulegen (Straffunktion=Passiv)   
-    def calc_constrain_fittness(self):
-        for pop_nr in range(len(self.population.pop)):
-            pop=self.population.pop[pop_nr]
-            order_index=[]
-            for val_nr in range(len(self.order)):
-                oorder_index=self.get_pop_index_list(self.population.pop[pop_nr])
-                if val_nr>0:
-                    if order_index[-2]>order_index[-1]:
-                        self.cur_fittness[pop_nr]=self.cur_fittness[pop_nr]*2
-                        
-    #2te Möglichkeit die Reihenfolge festzulegen (Korrekturfunktion=Aktiv)                
-    def correct_constrain_order(self):
-        for pop_nr in range(len(self.population.pop)):
-            #Suchen der momentanen Reihenfolge
-            order_index=self.get_pop_index_list(self.population.pop[pop_nr])
-            #Momentane Reihenfolge der indexe sortieren
-            order_index.sort()
-            #Indexe nach soll Reihenfolge korrigieren
-            for ind_nr in range(len(order_index)):
-                self.population.pop[pop_nr][order_index[ind_nr]]=self.order[ind_nr]
-                
-    def set_startpoint(self):
-        n_pts=len(self.population.pop[-1])
-        for pop_nr in range(len(self.population.pop)):
-            pop=self.population.pop[pop_nr]
-            st_pt_nr=pop.index(n_pts-1)
-            #Kontur so anordnen das Startpunkt am Anfang liegt
-            self.population.pop[pop_nr]=pop[st_pt_nr:n_pts]+pop[0:st_pt_nr]
-
-    def get_pop_index_list(self,pop):
-        pop_index_list=[]
-        for val_nr in range(len(self.order)):
-            pop_index_list.append(pop.index(self.order[val_nr]))
-        return pop_index_list
-
-    def select_best_fittness(self):      
-        self.best_fittness.append(min(self.cur_fittness))
-        self.best_route=self.cur_fittness.index(self.best_fittness[-1])
-
- 
-    def __str__(self):
-        return ("\nBest Fittness: %s \nBest Route: %s \nBest Pop: %s" \
-                %(self.best_fittness[-1],self.best_route,self.population.pop[self.best_route]))
-          
-class TSPoptimize:
-    def __init__(self,st_end_points=[],text=[],debug=0):
-        self.shape_nrs=len(st_end_points)        
-        self.iterations=int(self.shape_nrs)*2
-        self.pop_nr=int(ceil(self.shape_nrs/8.0)*4.0)
-        self.mutate_rate=0.95
-        self.opt_route=[]
-        self.order=[]
-        self.st_end_points=st_end_points
-        self.text=text
- 
-        #Creating Lines    
-        #Generating the Distance Matrix
-        self.DistanceMatrix=ClassDistanceMatrix()
-        self.DistanceMatrix.generate_matrix(st_end_points)
-
-        #Generation Population 
-        self.Population=ClassPopulation()
-        self.Population.ini_random_pop(size=[self.shape_nrs,self.pop_nr],dmatrix=self.DistanceMatrix.matrix)
-
-        #Initialisieren der Result Class
-        self.Fittness=ClassFittness(population=self.Population,cur_fittness=range(self.Population.size[1]))
-        self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,range(self.shape_nrs))
-        self.Fittness.order=self.order
-
-        #Anfang der Reihenfolge immer auf den letzen Punkt legen
-        self.Fittness.set_startpoint()
-
-        #Korrektur Funktion um die Reihenfolge der Elemente zu korrigieren
-        self.Fittness.correct_constrain_order()
-        
-        
-        #Erstellen der ersten Ergebnisse
-        self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
-        self.Fittness.select_best_fittness()
-        self.opt_route=self.Population.pop[self.Fittness.best_route]
-
-        #ERstellen der 2 opt Optimierungs Klasse
-        #self.optmove=ClassOptMove(dmatrix=self.DistanceMatrix.matrix,nei_nr=int(round(self.shape_nrs/10)))
-
-        #ERstellen des Plotfensters
-        #self.plot=ClassPlotFigure(self)
-        
-##        self.start_optimisation()
-##
-##        self.text.insert(END,("\n%s" %self))
-##        self.text.yview(END)
-
-    def start_optimisation(self):
-        for nr in range(self.iterations):
-            self.calc_next_iteration()
-##            if((nr)%(self.iterations/40))==0:
-##                self.plot.update_plot()
-                
-    def calc_next_iteration(self):
-        #Algorithmus ausfürhen
-        self.Population.genetic_algorithm(Result=self.Fittness,mutate_rate=self.mutate_rate)
-        #Für die Anzahl der Tours die Tours nach dem 2-opt Verfahren optimieren
-##        for pop_nr in range(len(self.Population.pop)):
-##            #print ("Vorher: %0.2f" %self.calc_tour_length(tours[tour_nr]))
-##            self.Population.pop[pop_nr]=self.optmove.do2optmove(self.Population.pop[pop_nr])
-##            #print ("Nachher: %0.2f" %self.calc_tour_length(tours[tour_nr]))
-        #Anfang der Reihenfolge immer auf den letzen Punkt legen
-        self.Fittness.set_startpoint()
-        #Korrektur Funktion um die Reihenfolge der Elemente zu korrigieren
-        self.Fittness.correct_constrain_order()
-        #Fittness der jeweiligen Routen ausrechen
-        self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
-        #Straffunktion falls die Route nicht der gewünschten Reihenfolge entspricht
-        #Beste Route auswählen
-        self.Fittness.select_best_fittness()
-        self.opt_route=self.Population.pop[self.Fittness.best_route]
-
-    def __str__(self):
-        res=self.Population.pop
-        return ("Iteration nrs:    %i" %(self.iterations*20)) +\
-               ("\nShape nrs:      %i" %self.shape_nrs) +\
-               ("\nPopulation:     %i" %self.pop_nr) +\
-               ("\nMutate rate:    %0.2f" %self.mutate_rate) +\
-               ("\norder:          %s" %self.order) +\
-               ("\nStart length:   %0.1f" %self.Fittness.best_fittness[0]) +\
-               ("\nOpt. length:    %0.1f" %self.Fittness.best_fittness[-1]) +\
-               ("\nOpt. route:     %s" %self.opt_route)
-    
-def print_matrix(matrix=[],format='%6.2f'):
-    str=''
-    for line in matrix:
-        str+='\n'
-        for wert in line:
-            str+=(format %(wert))
-    return str
