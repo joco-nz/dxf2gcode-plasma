@@ -45,25 +45,19 @@ from math import sqrt, sin, cos, atan2, radians, degrees
 
 class Load_DXF:
     #Initialisierung der Klasse
-    def __init__(self, filename=None,config=None,text=None):
+    def __init__(self, filename=None,config=None,textbox=None):
 
-        self.text=text
+        self.textbox=textbox
         self.config=config        
-
-        #Setzen des Globalen Debug Levels
-        global DEBUG
-        DEBUG=self.config.debug
 
         #Laden der Kontur und speichern der Werte in die Klassen  
         str=self.Read_File(filename)
 
         self.line_pairs=self.Get_Line_Pairs(str)        
 
-        if DEBUG:
-            self.text.insert(END,("\n\nFile has   %0.0f Lines" %len(str)))
-            self.text.yview(END)        
-            self.text.insert(END,("\nFile has   %0.0f Linepairs" %self.line_pairs.nrs))
-            self.text.yview(END)        
+        #Debug Informationen 
+        self.textbox.prt(("\n\nFile has   %0.0f Lines" %len(str)),1)
+        self.textbox.prt(("\nFile has   %0.0f Linepairs" %self.line_pairs.nrs),1)
 
         sections_pos=self.Get_Sections_pos()
         self.layers=self.Read_Layers(sections_pos)
@@ -105,7 +99,7 @@ class Load_DXF:
         except:
             
             showwarning("Warning reading linepairs",("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" %(line)))
-            self.text.insert(END,("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " %(line)))
+            self.textbox.prt(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " %(line)))
             
             
         line_pairs.nrs=len(line_pairs.line_pair)
@@ -133,11 +127,9 @@ class Load_DXF:
             
             start=self.line_pairs.index_both(0,"SECTION",end)
             
-        if DEBUG:
-            self.text.insert(END,("\n\nSections found:" ))
-            for sect in sections:
-                self.text.insert(END,str(sect))
-            self.text.yview(END)      
+        self.textbox.prt(("\n\nSections found:" ),1)
+        for sect in sections:
+            self.textbox.prt(str(sect),1)
                 
         return sections
 
@@ -162,11 +154,9 @@ class Load_DXF:
                     layers.append(LayerClass(len(layers)))
                     layers[-1].name=self.line_pairs.line_pair[start].value
                     
-        if DEBUG:
-            self.text.insert(END,("\n\nLayers found:" ))
-            for lay in layers:
-                self.text.insert(END,str(lay))
-            self.text.yview(END)
+        self.textbox.prt(("\n\nLayers found:" ),1)
+        for lay in layers:
+            self.textbox.prt(str(lay),1)
             
         return layers
                     
@@ -193,11 +183,9 @@ class Load_DXF:
                 blocks[-1].end=end
                 start=self.line_pairs.index_both(0,"BLOCK",end+1,blocks_section.end)
 
-        if DEBUG:
-            self.text.insert(END,("\n\nBlocks found:" ))
-            for bl in blocks:
-                self.text.insert(END,str(bl))
-            self.text.yview(END)
+        self.textbox.prt(("\n\nBlocks found:" ),1)
+        for bl in blocks:
+            self.textbox.prt(str(bl),1)
             
         return blocks
 
@@ -205,9 +193,7 @@ class Load_DXF:
     def Read_Blocks(self,blocks_pos):
         blocks=BlocksClass([])
         for block_nr in range(len(blocks_pos)):
-            if DEBUG:
-                self.text.insert(END,("\n\nReading Block Nr: %0.0f" % block_nr ))
-                self.text.yview(END)
+            self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr ),1)
             blocks.Entities.append(EntitiesClass(block_nr,blocks_pos[block_nr].name,[]))
             blocks.Entities[-1].geo=self.Get_Geo(blocks_pos[block_nr].begin+1, blocks_pos[block_nr].end-1)
         return blocks
@@ -215,9 +201,7 @@ class Load_DXF:
     def Read_Entities(self,sections):
         for section_nr in range(len(sections)):
             if (find(sections[section_nr-1].name,"ENTITIES") == 0):
-                if DEBUG:
-                    self.text.insert(END,"\n\nReading Entities")
-                    self.text.yview(END)
+                self.textbox.prt("\n\nReading Entities",1)
                 entities=EntitiesClass(0,'Entities',[])
                 entities.geo=self.Get_Geo(sections[section_nr-1].begin+1, sections[section_nr-1].end-1)
         return entities
@@ -244,18 +228,15 @@ class Load_DXF:
             self.start=self.line_pairs.index_code(0,self.start,end)            
 
             #Debug Informationen anzeigen falls erwünscht                        
-            if DEBUG:
-                if self.start==None:
-                    self.text.insert(END,("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                            %(name, old_start,old_start*2+4,end*2+4)))
-                else:
-                    self.text.insert(END,("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                            %(name, old_start,old_start*2+4,self.start*2+4)))
-                self.text.yview(END)
+            if self.start==None:
+                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        %(name, old_start,old_start*2+4,end*2+4)),1)
+            else:
+                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        %(name, old_start,old_start*2+4,self.start*2+4)),1)
 
-            if (DEBUG>2)and(len(geos)>0):
-                self.text.insert(END,str(geos[-1]))
-                self.text.yview(END)
+            if len(geos)>0:
+                self.textbox.prt(str(geos[-1]),2)
 
             old_start=self.start
 
@@ -294,7 +275,7 @@ class Load_DXF:
         elif (name=="LWPOLYLINE"):
             geo=LWPolylineClass(geo_nr,self)
         else:  
-            self.text.insert(END,("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
+            self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
             self.text.yview(END)
             self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
             return [],1
