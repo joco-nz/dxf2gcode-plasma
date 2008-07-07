@@ -121,7 +121,7 @@ class ClassPopulation:
     def ini_population(self,size=[5,8],dmatrix=[]):
         self.size=size
         self.pop=[]
-        for pop_nr in range(size[1]/2):
+        for pop_nr in range(size[1]):
             self.textbox.prt(("\n======= TSP initializing population nr %i =======" %pop_nr),1)
             
             if self.config.begin_art=='ordered':
@@ -130,11 +130,7 @@ class ClassPopulation:
                 self.pop.append(self.random_begin(size[0]))
             elif self.config.begin_art=='heurestic':
                 self.pop.append(self.heurestic_begin(dmatrix[:]))
-
-        #Duplizieren der Anfangswerte um Zeit zu sparen bei heurestic           
-        for pop_nr in range(size[1]/2):
-            self.pop.append(self.pop[pop_nr][:])
-            
+          
         for rot_nr in range(size[0] ):
             self.rot.append(0)  
 
