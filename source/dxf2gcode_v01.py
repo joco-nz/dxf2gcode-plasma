@@ -1788,14 +1788,11 @@ class Show_About_Info(Toplevel):
 
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
-        textbox.prt( "You are using DXF2GCODE")
-        textbox.prt( "\nVersion v01 from the 09th Juli 2008")
-        textbox.prt( "\nFor more information und updates about")
-        textbox.prt( "\nplease visit my homepage at:")
-        textbox.prt( "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
-
-
-
+        text.insert(END, "You are using DXF2GCODE")
+        text.insert(END, "\nVersion v01 from the 27th Juli 2008")
+        text.insert(END, "\nFor more information und updates about")
+        text.insert(END, "\nplease visit my homepage at:")
+        text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
 
 class NotebookClass:    
     # initialization. receives the master widget
@@ -1932,14 +1929,11 @@ class Tkinter_Variable_Dialog(Toplevel):
         for tkintervar in self.tkintervars:
             self.result.append(tkintervar.get())
 
-
-
-
 #Hauptfunktion zum Aufruf des Fensters und Mainloop     
 if __name__ == "__main__":
    
     master = Tk()
-    master.title("DXF 2 G-Code, Version Beta 0.1")
+    master.title("DXF 2 G-Code, Version 0.1")
 
     #Falls das Programm mit Parametern von EMC gestartet wurde
     if len(sys.argv) > 1:

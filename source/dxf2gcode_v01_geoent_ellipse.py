@@ -22,8 +22,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_v01_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass
+from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi
+from dxf2gcode_v01_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
 
 
 class EllipseClass:
@@ -32,39 +32,40 @@ class EllipseClass:
         self.Nr = Nr
         #Initialisieren der Werte        
         self.Layer_Nr = 0
-        self.Center = PointClass(0,0) #Mittelpunkt der Geometrie
-        self.Vektor = PointClass(1,0) #Vektor A = groﬂe Halbachse a, = Drehung der Ellipse
+        self.center = PointClass(0,0) #Mittelpunkt der Geometrie
+        self.vector = PointClass(1,0) #Vektor A = groﬂe Halbachse a, = Drehung der Ellipse
                                       # http://de.wikipedia.org/wiki/Gro%C3%9Fe_Halbachse
-        self.Ratio = 1                #Verh‰ltnis der kleinen zur groﬂen Halbachse (b/a)
+        self.ratio = 1                #Verh‰ltnis der kleinen zur groﬂen Halbachse (b/a)
         self.AngS = 0                 #Startwinkel beim zeichnen eines Ellipsensegments
         self.AngE = radians(360)      #Endwinkel (Winkel im DXF als Radians!)
         #Die folgenden Grundwerte werden sp‰ter ein mal berechnet
-        self.Rotation = 0
-        self.a = 1
-        self.b = 1
+
         self.length = 0
         self.Points=[]
-        self.Points.append(self.Center)
+        self.Points.append(self.center)
         #Lesen der Geometrie
         self.Read(caller)
 
         #Zuweisen der Toleranz f¸rs Fitting
-        tol=caller.config.fitting_tolerance.get() #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! VINZ IST F‹R DIE TOLERANZ DES FITTINGS WIE IN SPLINE AUCH 
-        self.Ellipse_2_Polyline(tol)
+        tol=caller.config.fitting_tolerance.get()
+
+        #Errechnen der Ellipse
+        self.Ellipse_Grundwerte()
+        self.Ellipse_2_Arcs(tol)
 
     def __str__(self):
         # how to print the object #Geht auch so ellegant wie sprintf in C oder Matlab usw. siehe erste zeile  !!!!!!!!!!!!!!!!!!!!!!
         s=('Typ: Ellipse\n')+ \
         ('Nr:     %i \n' %(self.Nr))+\
         'Layer:  '+str(self.Layer_Nr) +'\n' + \
-        'Center: '+str(self.Center) +'\n' + \
-        'Vektor: '+str(self.Vektor) +'\n' + \
-        'Ratio:  '+str(self.Ratio) +'\n' + \
-        'Winkel: '+str(degrees(self.AngS))+' -> '+str(degrees(self.AngE))+'\n' + \
+        'center: '+str(self.center) +'\n' + \
+        'vector: '+str(self.vector) +'\n' + \
+        'ratio:  '+str(self.ratio) +'\n' + \
+        'angles: '+str(degrees(self.AngS))+' -> '+str(degrees(self.AngE))+'\n' + \
         'a:      '+str(self.a) +'\n' + \
         'b:      '+str(self.b) +'\n' + \
-        'Length: '+str(self.length) +\
-        ("\nNr. of Lines: %i" %len(self.geo))
+        'length: '+str(self.length) +\
+        ("\nNr. of arcs: %i" %len(self.geo))
         return s
 
     def reverse(self):
@@ -73,12 +74,9 @@ class EllipseClass:
             geo.reverse()    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
-        #Ich nehm das mal wˆrtlich und berechne die Punkte erst hier,
-        # ... weil ich hier auch die tol habe
-        #self.Ellipse_2_Polyline(tol) #Hab ich oben mit andere Toleranz gemacht -----------------------
         #Hinzuf¸gen falls es keine geschlossene Polyline ist
         if self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
-            #self.analyse_and_opt() Braucht man nicht??-------------------------------------------------
+            self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
         else:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
@@ -98,16 +96,16 @@ class EllipseClass:
         x0=float(lp.line_pair[s].value)
         s=lp.index_code(20,s+1)
         y0=float(lp.line_pair[s].value)
-        self.Center=PointClass(x0,y0)
+        self.center=PointClass(x0,y0)
         #XWert, YWert. Vektor, relativ zum Zentrum, Groﬂe Halbachse
         s=lp.index_code(11,s+1)
         x1=float(lp.line_pair[s].value)
         s=lp.index_code(21,s+1)
         y1=float(lp.line_pair[s].value)
-        self.Vektor=PointClass(x1,y1)
+        self.vector=PointClass(x1,y1)
         #Ratio minor to major axis
         s=lp.index_code(40,s+1)
-        self.Ratio = float(lp.line_pair[s].value)
+        self.ratio = float(lp.line_pair[s].value)
         #Start Winkel - Achtung, ist als rad (0-2pi) im dxf
         s=lp.index_code(41,s+1)
         self.Start_Ang=float(lp.line_pair[s].value)
@@ -116,30 +114,22 @@ class EllipseClass:
         self.End_Ang=float(lp.line_pair[s].value)
         #Neuen Startwert f¸r die n‰chste Geometrie zur¸ckgeben
         caller.start=e
-        #Ellipse-spezifische Funktionen
-        self.Ellipse_Grundwerte()
 
-#GEht noch nicht ------------------------------------------------------------------------------------------------------       
-##    def analyse_and_opt(self):
-##        summe=0
-##        #Berechnung der Fl‰ch nach Gauﬂ-Elling Positive Wert bedeutet CW
-##        #negativer Wert bedeutet CCW geschlossenes Polygon            
-##        for p_nr in range(1,len(self.Points)):
-##            summe+=(self.Points[p_nr-1].x*self.Points[p_nr].y-self.Points[p_nr].x*self.Points[p_nr-1].y)/2
-##        if summe>0.0:
-##            self.Points.reverse()
-##        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-##        min_point=self.Points[0]
-##        min_p_nr=0
-##        del(self.Points[-1])
-##        for p_nr in range(1,len(self.Points)):
-##            #Geringster Abstand nach unten Unten Links
-##            if (min_point.x+min_point.y)>=(self.Points[p_nr].x+self.Points[p_nr].y):
-##                min_point=self.Points[p_nr]
-##                min_p_nr=p_nr
-##        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-##        self.Points=self.Points[min_p_nr:len(self.Points)]+self.Points[0:min_p_nr]+[self.Points[min_p_nr]]
-   
+    def analyse_and_opt(self):
+        #Richtung in welcher der Anfang liegen soll (unten links)        
+        Popt=PointClass(x=-1e3,y=-1e6)
+        
+        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
+        min_distance=self.geo[0].Pa.distance(Popt)
+        min_geo_nr=0
+        for geo_nr in range(1,len(self.geo)):
+            if (self.geo[geo_nr].Pa.distance(Popt)<min_distance):
+                min_distance=self.geo[geo_nr].Pa.distance(Popt)
+                min_geo_nr=geo_nr
+
+        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
+        self.geo=self.geo[min_geo_nr:len(self.geo)]+self.geo[0:min_geo_nr]
+        
     def get_start_end_points(self,direction=0):
         if not(direction):
             punkt, angle=self.geo[0].get_start_end_points(direction)
@@ -147,35 +137,76 @@ class EllipseClass:
             punkt, angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
     
-    def Ellipse_2_Polyline(self, tol):
-        self.geo=[]
-        angle = self.AngS
-        Pa = self.Ellipse_Point(self.Center, self.a, self.b, self.Rotation, angle)
-        step=(self.AngE-self.AngS)/60
+    def Ellipse_2_Arcs(self, tol):
 
-        
-        #while(angle < self.AngE): # kein <= weil wir den Endpunkt auf jeden Fall anh‰ngen m¸ssen
-        for nr in range(60):
-            angle += step
-            Pe=self.Ellipse_Point(self.Center, self.a, self.b, self.Rotation, angle)
-            self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+        #Anfangswert f¸r Anzahl Elemente
+        num_elements=2
+        intol=False   
+
+        while not(intol):
+            intol=True
             
-            Pa=Pe
+            #Anfangswete Ausrechnen
+            angle = self.AngS
+            Pa = self.Ellipse_Point(angle)
+            tana= self.Ellipse_Tangent(angle)
 
-        # letzter Winkel muss genau der Endwinkel sein und keine Tol-Betrachtung            
-        #Pe=self.Ellipse_Point(self.Center, self.a, self.b, self.Rotation, self.AngE)            
-        #self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+            self.geo=[]
+            self.PtsVec=[]
+            self.PtsVec.append([Pa,tana])
+            
+            for sec in range(num_elements*2):
+                #Neuer Winkel errechnen
+                angle+=-(2*pi)/num_elements/2
+
+                #Endwerte errechnen            
+                Pb = self.Ellipse_Point(angle)
+                tanb= self.Ellipse_Tangent(angle)
+
+                #Biarc erstellen und an geo anh‰ngen        
+                biarcs=BiarcClass(Pa,tana,Pb,tanb,tol/100)
+                self.geo+=biarcs.geos[:]             
+
+                #Letzer Wert = Startwert
+                Pa=Pb
+                tana=tanb
+                
+                self.PtsVec.append([Pa,tana])
+
+                if not(self.check_ellipse_fitting_tolerance(biarcs,tol,angle,angle+(2*pi)/num_elements/2)):
+                    intol=False
+                    num_elements+=1
+                    break
+                      
+    def check_ellipse_fitting_tolerance(self,biarc,tol,ang0,ang1):
+        check_step=(ang1-ang0)/4
+        check_ang=[]
+        check_Pts=[]
+        fit_error=[]
         
+        for i in range(1,4):
+            check_ang.append(ang0+check_step*i)
+            check_Pts.append(self.Ellipse_Point(check_ang[-1]))
+            fit_error.append(biarc.get_biarc_fitting_error(check_Pts[-1]))
+
+        if max(fit_error)>=tol:
+            return 0
+        else:
+            return 1            
 
     def Ellipse_Grundwerte(self):
         #Weitere Grundwerte der Ellipse, die nur einmal ausgerechnet werden m¸ssen
-        self.Rotation = atan2(self.Vektor.y, self.Vektor.x)
-        self.a = sqrt(self.Vektor.x**2 + self.Vektor.y**2)
-        self.b = self.a * self.Ratio
+        self.rotation = atan2(self.vector.y, self.vector.x)
+        self.a = sqrt(self.vector.x**2 + self.vector.y**2)
+        self.b = self.a * self.ratio
 
-
-    def Ellipse_Point(self, Pcenter=None, a=1, b=1, rot=0, alfa=0):#PointClass(0,0)
-        #groﬂe Halbachse, kleine Halbachse, Rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
-        Ex = a*cos(alfa) * cos(rot) - b*sin(alfa) * sin(rot);
-        Ey = a*cos(alfa) * sin(rot) + b*sin(alfa) * cos(rot);
-        return PointClass(Pcenter.x+Ex, Pcenter.y+Ey)
+    def Ellipse_Point(self, alpha=0):#PointClass(0,0)
+        #groﬂe Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
+        Ex = self.a*cos(alpha) * cos(self.rotation) - self.b*sin(alpha) * sin(self.rotation);
+        Ey = self.a*cos(alpha) * sin(self.rotation) + self.b*sin(alpha) * cos(self.rotation);
+        return PointClass(self.center.x+Ex, self.center.y+Ey)
+    
+    def Ellipse_Tangent(self, alpha=0):#PointClass(0,0)
+        #groﬂe Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
+        phi=atan2(self.a*sin(alpha),self.b*cos(alpha))+self.rotation-pi/2
+        return phi
