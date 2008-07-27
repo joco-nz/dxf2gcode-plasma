@@ -1307,10 +1307,7 @@ class ConfigClass:
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
         self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
-
-        self.parser.add_section('Export Parameters')
-        self.parser.set('Export Parameters', 'write_to_stdout', 0)               
-        
+                   
         self.parser.add_section('Tool Parameters') 
         self.parser.set('Tool Parameters', 'diameter', 2.0)
         self.parser.set('Tool Parameters', 'start_radius', 0.2)
@@ -1335,9 +1332,9 @@ class ConfigClass:
         self.parser.set('Axis letters', 'ax3_letter', 'Z')                  
 
         self.parser.add_section('Route Optimisation')
-        self.parser.set('Route Optimisation', 'Begin art','random')
+        self.parser.set('Route Optimisation', 'Begin art','heurestic')
         self.parser.set('Route Optimisation', 'Max. population', 20)
-        self.parser.set('Route Optimisation', 'Max. iterations', 200)  
+        self.parser.set('Route Optimisation', 'Max. iterations', 300)  
         self.parser.set('Route Optimisation', 'Mutation Rate', 0.95)
                      
         self.parser.add_section('Debug')
