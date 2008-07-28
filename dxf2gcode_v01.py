@@ -242,7 +242,6 @@ class Erstelle_Fenster:
         self.Load_File(self.load_filename)
         self.textbox.prt(("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file"\
                               %(dialog.result[0],dialog.result[1])))
-        self.text.yview(END)
         
     def Get_Cont_Scale(self):
         #Abspeichern der alten Werte
@@ -258,7 +257,6 @@ class Erstelle_Fenster:
 
         #Falls noch kein File geladen wurde nichts machen
         self.textbox.prt(("\nScaled Contours by factor %0.3f" %self.cont_scale))
-        self.text.yview(END)
 
         self.Canvas.scale_contours(self.cont_scale/old_scale)        
         
@@ -273,6 +271,11 @@ class Erstelle_Fenster:
                ("Offset %s axis by mm:" %self.config.ax2_letter))
         value=(self.cont_dx,self.cont_dy)
         dialog=Tkinter_Variable_Dialog(self.master,title,label,value)
+
+        #Abbruch wenn nicht übergeben wurde
+        if dialog.result==False:
+            return
+        
         self.cont_dx=dialog.result[0]
         self.cont_dy=dialog.result[1]
 
@@ -280,7 +283,6 @@ class Erstelle_Fenster:
         self.textbox.prt(("\nWorpiece zero offset: %s %0.2f; %s %0.2f" \
                               %(self.config.ax1_letter,self.cont_dx,
                                 self.config.ax2_letter,self.cont_dy)))
-        self.text.yview(END)
 
         #Verschieben des Canvas WP zero
         self.Canvas.move_wp_zero(self.cont_dx-old_dx,self.cont_dy-old_dy)
@@ -865,23 +867,18 @@ class CanvasClass:
         self.dx=self.dx-delta_dx
         self.dy=self.dy-delta_dy
 
-        self.Content.plot_cut_info() 
-        self.Content.plot_wp_zero()
-
-        #Schreiben der neuen WErte simulierne auf Curser Punkt 0, 0
-        event=PointClass(x=0,y=0)
-        self.moving(event)
-
-        #Verschieben der Shapes
+        #Verschieben der Shapes 
         for shape in self.Content.Shapes:
-            shape.p0.x=shape.p0.x-delta_dx
-            shape.p0.y=shape.p0.y-delta_dy
+            shape.p0-=PointClass(x=delta_dx,y=delta_dy)
+
+        #Update des Nullpunkts auf neue Koordinaten
+        self.Content.plot_wp_zero()
         
 #Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
 class CanvasContentClass:
-    def __init__(self,Canvas,text,config):
+    def __init__(self,Canvas,textbox,config):
         self.Canvas=Canvas
-        self.text=text
+        self.textbox=textbox
         self.config=config
         self.Shapes=[]
         self.LayerContents=[]
@@ -1099,10 +1096,9 @@ class CanvasContentClass:
                 if not(tag in self.Selected):
                     self.Selected.append(tag)
 
-                    if DEBUG:
-                        self.textbox.prt('\n\nAdded shape to selection:'\
-                                         +str(self.Shapes[tag]))
-                        self.text.yview(END)
+                    self.textbox.prt('\n\nAdded shape to selection:'\
+                                     +str(self.Shapes[tag]),3)
+                    
                     if mode=='single':
                         break
             except:
@@ -1122,9 +1118,7 @@ class CanvasContentClass:
         self.set_shapes_color(self.Selected,'selected')
         self.plot_cut_info()
 
-        if DEBUG:
-            self.textbox.prt('\nInverting Selection')
-            self.text.yview(END)        
+        self.textbox.prt('\nInverting Selection',3)
         
 
     def disable_selection(self):
@@ -1155,19 +1149,16 @@ class CanvasContentClass:
     def switch_shape_dir(self):
         for shape_nr in self.Selected:
             self.Shapes[shape_nr].reverse()
-            if DEBUG:
-                self.textbox.prt('\n\nSwitched Direction at Shape:'\
-                                 +str(self.Shapes[shape_nr]))
-                self.text.yview(END)
+            self.textbox.prt('\n\nSwitched Direction at Shape:'\
+                             +str(self.Shapes[shape_nr]),3)
         self.plot_cut_info()
         
     def set_cut_cor(self,correction):
         for shape_nr in self.Selected: 
             self.Shapes[shape_nr].cut_cor=correction
-            if DEBUG:
-                self.textbox.prt('\n\nChanged Cutter Correction at Shape:'\
-                                 +str(self.Shapes[shape_nr]))
-                self.text.yview(END)       
+            
+            self.textbox.prt('\n\nChanged Cutter Correction at Shape:'\
+                             +str(self.Shapes[shape_nr]),3)
         self.plot_cut_info() 
         
     def set_shapes_color(self,shape_nrs,state):
@@ -1790,6 +1781,7 @@ class Show_About_Info(Toplevel):
         text.insert(END, "\nFor more information und updates about")
         text.insert(END, "\nplease visit my homepage at:")
         text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
+        text.insert(END, "\nHotfix 1")
 
 class NotebookClass:    
     # initialization. receives the master widget
@@ -1863,7 +1855,7 @@ class Tkinter_Variable_Dialog(Toplevel):
         #Eingabewerte in self speichern
         self.label=label
         self.value=value
-        self.result=self
+        self.result=False
 
         Toplevel.__init__(self, parent)
         self.transient(parent)
