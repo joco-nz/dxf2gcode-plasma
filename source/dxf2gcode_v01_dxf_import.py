@@ -276,7 +276,6 @@ class Load_DXF:
             geo=LWPolylineClass(geo_nr,self)
         else:  
             self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
-            self.text.yview(END)
             self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
             return [],1
             
