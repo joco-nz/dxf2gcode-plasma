@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_geoent_arc
+#dxf2gcode_b02_geoent_line
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #
@@ -23,33 +23,32 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_v01_point import PointClass, PointsClass, ArcGeo, ContourClass
+from dxf2gcode_b02_point import PointClass, LineGeo, PointsClass, ContourClass
 
-class ArcClass:
+class LineClass:
     def __init__(self,Nr=0,caller=None):
-        self.Typ='Arc'
+        self.Typ='Line'
         self.Nr = Nr
         self.Layer_Nr = 0
-        self.length=0
-        self.geo=[]
+        self.geo = []
+        self.length= 0
 
         #Lesen der Geometrie
         self.Read(caller)
 
     def __str__(self):
         # how to print the object
-        return("\nTyp: Arc ")+\
+        return("\nTyp: Line")+\
               ("\nNr: %i" %self.Nr)+\
-              ("\nLayer Nr:%i" %self.Layer_Nr)+\
+              ("\nLayer Nr: %i" %self.Layer_Nr)+\
               str(self.geo[-1])
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         points.append(PointsClass(point_nr=len(points),geo_nr=i,\
-                          Layer_Nr=self.Layer_Nr,\
-                          be=self.geo[-1].Pa,\
-                          en=self.geo[-1].Pe,\
-                          be_cp=[],en_cp=[]))        
-    
+                                  Layer_Nr=self.Layer_Nr,\
+                                  be=self.geo[-1].Pa,
+                                  en=self.geo[-1].Pe,be_cp=[],en_cp=[]))      
+        
     def Read(self, caller):
         #Kürzere Namen zuweisen
         lp=caller.line_pairs
@@ -63,32 +62,27 @@ class ArcClass:
         #YWert
         s=lp.index_code(20,s+1)
         y0=float(lp.line_pair[s].value)
-        O=PointClass(x0,y0)
-        #Radius
-        s=lp.index_code(40,s+1)
-        r= float(lp.line_pair[s].value)
-        #Start Winkel
-        s=lp.index_code(50,s+1)
-        s_ang= radians(float(lp.line_pair[s].value))
-        #End Winkel
-        s=lp.index_code(51,s+1)
-        e_ang= radians(float(lp.line_pair[s].value))
+        #XWert2
+        s=lp.index_code(11,s+1)
+        x1 = float(lp.line_pair[s].value)
+        #YWert2
+        s=lp.index_code(21,s+1)
+        y1 = float(lp.line_pair[s].value)
 
-        #Berechnen der Start und Endwerte des Arcs
-        Pa=PointClass(x=cos(s_ang)*r,y=sin(s_ang)*r)+O
-        Pe=PointClass(x=cos(e_ang)*r,y=sin(e_ang)*r)+O
+        Pa=PointClass(x0,y0)
+        Pe=PointClass(x1,y1)               
 
-        #Anhängen der ArcGeo Klasse für die Geometrie
-        self.geo.append(ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r,s_ang=s_ang,e_ang=e_ang,dir=1))
+        #Anhängen der LineGeo Klasse für die Geometrie
+        self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
 
         #Länge entspricht der Länge des Kreises
         self.length=self.geo[-1].length
-
-        #Neuen Startwerd für die nächste Geometrie zurückgeben        
+        
+        #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=s
 
     def get_start_end_points(self,direction):
         punkt,angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
-
             
+

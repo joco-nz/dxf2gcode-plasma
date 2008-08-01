@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_dxf_import
+#dxf2gcode_b02_dxf_import
 #Programmer: Christian Kohlöffel
 #E-mail:     n/A
 #
@@ -24,16 +24,16 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from dxf2gcode_v01_point import PointClass, PointsClass, ContourClass
+from dxf2gcode_b02_point import PointClass, PointsClass, ContourClass
 
-from dxf2gcode_v01_geoent_arc import ArcClass
-from dxf2gcode_v01_geoent_circle import CircleClass
-from dxf2gcode_v01_geoent_insert import InsertClass
-from dxf2gcode_v01_geoent_line import LineClass
-from dxf2gcode_v01_geoent_polyline import PolylineClass
-from dxf2gcode_v01_geoent_spline import SplineClass
-from dxf2gcode_v01_geoent_ellipse import EllipseClass
-from dxf2gcode_v01_geoent_lwpolyline import LWPolylineClass
+from dxf2gcode_b02_geoent_arc import ArcClass
+from dxf2gcode_b02_geoent_circle import CircleClass
+from dxf2gcode_b02_geoent_insert import InsertClass
+from dxf2gcode_b02_geoent_line import LineClass
+from dxf2gcode_b02_geoent_polyline import PolylineClass
+from dxf2gcode_b02_geoent_spline import SplineClass
+from dxf2gcode_b02_geoent_ellipse import EllipseClass
+from dxf2gcode_b02_geoent_lwpolyline import LWPolylineClass
 
 import sys, os
 from Tkconstants import END

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_point
+#dxf2gcode_b02_point
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #

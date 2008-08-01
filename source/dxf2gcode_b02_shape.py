@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_shape.py
+#dxf2gcode_b02_shape.py
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #
@@ -24,7 +24,7 @@
 #Main Class Shape
 
 import sys, os, string, ConfigParser 
-from   dxf2gcode_v01_point import PointClass, LineGeo, ArcGeo
+from   dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
 from Canvas import Line
 
@@ -204,6 +204,9 @@ class ShapeClass:
         #Erneutes erstellen der Einlaufgeometrien
         self.make_start_moves(config)
         
+        #Werkzeugdurchmesser in Radius umrechnen        
+        tool_rad=config.tool_dia.get()/2
+        
         depth=config.axis3_mill_depth.get()
         max_slice=config.axis3_slice_depth.get()
 
@@ -239,6 +242,16 @@ class ShapeClass:
         for geo in self.geos:
             geo.Write_GCode(self.sca,self.p0,postpro)
 
+        #Ausschalten der Fräsradiuskorrektur
+        if not(self.cut_cor==40):
+            en_point, en_angle=self.geos[-1].get_start_end_points(-1)
+            end_cont=(en_point*self.sca)+self.p0
+            if self.cut_cor==41:
+                pos_cut_out=end_cont.get_arc_point(en_angle-90,tool_rad)
+            elif self.cut_cor==42:
+                pos_cut_out=end_cont.get_arc_point(en_angle+90,tool_rad)         
+            postpro.deactivate_cut_cor(pos_cut_out)            
+
         #Zählen der Schleifen
         snr=0
         #Schleifen für die Anzahl der Schnitte
@@ -247,6 +260,8 @@ class ShapeClass:
             mom_depth=mom_depth-abs(max_slice)
             if mom_depth<depth:
                 mom_depth=depth                
+
+            
 
             #Erneutes Eintauchen
             postpro.chg_feed_rate(config.F_G1_Depth.get())
@@ -258,12 +273,22 @@ class ShapeClass:
                 self.reverse()
                 self.switch_cut_cor()
                 
-                #Falls cut correction eingeschaltet ist diese umdrehen.
-                if not(self.cut_cor==40):
-                    postpro.set_cut_cor(self.cut_cor)
+            #Falls cut correction eingeschaltet ist diese einschalten.
+            if not(self.cut_cor==40):
+                postpro.set_cut_cor(self.cut_cor)
                 
             for geo_nr in range(len(self.geos)):
                 self.geos[geo_nr].Write_GCode(self.sca,self.p0,postpro)
+
+            #Ausschalten der Fräsradiuskorrektur
+            if not(self.cut_cor==40):
+                en_point, en_angle=self.geos[-1].get_start_end_points(-1)
+                end_cont=(en_point*self.sca)+self.p0
+                if self.cut_cor==41:
+                    pos_cut_out=end_cont.get_arc_point(en_angle-90,tool_rad)
+                elif self.cut_cor==42:
+                    pos_cut_out=end_cont.get_arc_point(en_angle+90,tool_rad)         
+                postpro.deactivate_cut_cor(pos_cut_out)
 
         #Anfangswert für Direction wieder herstellen falls nötig
         if (snr%2)>0:
@@ -273,6 +298,5 @@ class ShapeClass:
         #Fertig und Zurückziehen des Werkzeugs
         postpro.lin_pol_z(config.axis3_safe_margin.get())
         postpro.rap_pos_z(config.axis3_retract.get())
-        postpro.set_cut_cor(40)
 
         return 1      

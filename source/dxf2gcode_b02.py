@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01.py
+#dxf2gcode_b02.py
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #
@@ -23,7 +23,7 @@
 
 #About Dialog
 #First Version of dxf2gcode Hopefully all works as it should
-#Compiled with --onefile --noconsole --upx --tk dxf2gcode_v01.py
+#Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
 #Löschen aller Module aus dem Speicher
 import sys
@@ -35,10 +35,10 @@ else:
 
 
 import sys, os, string, ConfigParser
-from dxf2gcode_v01_point import PointClass
-from dxf2gcode_v01_shape import ShapeClass
-import dxf2gcode_v01_dxf_import as dxf_import 
-import dxf2gcode_v01_tsp_opt as tsp
+from dxf2gcode_b02_point import PointClass
+from dxf2gcode_b02_shape import ShapeClass
+import dxf2gcode_b02_dxf_import as dxf_import 
+import dxf2gcode_b02_tsp_opt as tsp
 
 
 import webbrowser
@@ -53,7 +53,7 @@ from copy import copy
 from math import radians, cos, sin
 
 # Globale "Konstanten"
-APPNAME = "dxf2gcode_v01"
+APPNAME = "dxf2gcode_b02"
 
 class Erstelle_Fenster:
     def __init__(self, master = None, load_filename=None ):
@@ -1536,7 +1536,7 @@ class PostprocessorClass:
         self.parser.set('Program','arc_int_ccw',\
                         ('G3 X%X Y%Y I%I J%J%nl'))
         self.parser.set('Program','cutter_comp_off',\
-                        ('G40%nl'))
+                        ('G40 X%X Y%Y%nl'))
         self.parser.set('Program','cutter_comp_left',\
                         ('G41%nl'))
         self.parser.set('Program','cutter_comp_right',\
@@ -1587,13 +1587,25 @@ class PostprocessorClass:
         
     def set_cut_cor(self,cut_cor):
         self.cut_cor=cut_cor
-        if cut_cor==40:
-            self.string+=self.make_print_str(self.cut_comp_off_str)
-        elif cut_cor==41:
+
+        if cut_cor==41:
             self.string+=self.make_print_str(self.cut_comp_left_str)
         elif cut_cor==42:
             self.string+=self.make_print_str(self.cut_comp_right_str)
-               
+        else:
+            raise Exception, "Gehört hier nicht her" 
+
+    def deactivate_cut_cor(self,newpos):
+        if not(self.abs_export):
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
+        else:
+            self.x=newpos.x
+            self.y=newpos.y   
+        self.string+=self.make_print_str(self.cut_comp_off_str)
+            
     def lin_pol_arc(self,dir,ende,IJ):
         if not(self.abs_export):
             self.x=ende.x-self.lx
@@ -1777,11 +1789,10 @@ class Show_About_Info(Toplevel):
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
         text.insert(END, "You are using DXF2GCODE")
-        text.insert(END, "\nVersion v01 from the 27th Juli 2008")
+        text.insert(END, "\nVersion Beta 02 from the 01st August 2008")
         text.insert(END, "\nFor more information und updates about")
         text.insert(END, "\nplease visit my homepage at:")
         text.insert(END, "\nwww.christian-kohloeffel.homepage.t-online.de", ("a", "href:"+href))
-        text.insert(END, "\nHotfix 1")
 
 class NotebookClass:    
     # initialization. receives the master widget
@@ -1922,7 +1933,7 @@ class Tkinter_Variable_Dialog(Toplevel):
 if __name__ == "__main__":
    
     master = Tk()
-    master.title("DXF 2 G-Code, Version 0.1")
+    master.title("DXF 2 G-Code, Version Beta 0.2")
 
     #Falls das Programm mit Parametern von EMC gestartet wurde
     if len(sys.argv) > 1:
