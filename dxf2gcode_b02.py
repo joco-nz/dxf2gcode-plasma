@@ -1437,6 +1437,7 @@ class PostprocessorClass:
         #try:
         self.abs_export=int(self.parser.get('General', 'abs_export'))
         self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
+        self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
         self.gcode_be=self.parser.get('General', 'code_begin')
         self.gcode_en=self.parser.get('General', 'code_end')
 
@@ -1496,6 +1497,8 @@ class PostprocessorClass:
         self.parser.add_section('General')
         self.parser.set('General', 'abs_export', 1)
         self.parser.set('General', 'write_to_stdout', 0)
+        self.parser.set('General', 'cancel_cc_for_depth', 1)
+   
         self.parser.set('General', 'code_begin',\
                         'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
                         +'\nG64 P0.01 (Exact Path 0.001 tol.)'\

@@ -248,7 +248,7 @@ class ShapeClass:
             geo.Write_GCode(self.sca,self.p0,postpro)
 
         #Ausschalten der Fräsradiuskorrektur
-        if not(self.cut_cor==40):
+        if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
             en_point, en_angle=self.geos[-1].get_start_end_points(-1)
             end_cont=(en_point*self.sca)+self.p0
             if self.cut_cor==41:
@@ -266,8 +266,6 @@ class ShapeClass:
             if mom_depth<depth:
                 mom_depth=depth                
 
-            
-
             #Erneutes Eintauchen
             postpro.chg_feed_rate(config.F_G1_Depth.get())
             postpro.lin_pol_z(mom_depth)
@@ -279,7 +277,7 @@ class ShapeClass:
                 self.switch_cut_cor()
                 
             #Falls cut correction eingeschaltet ist diese einschalten.
-            if not(self.cut_cor==40):
+            if ((not(self.cut_cor==40))&(self.closed==0))or(postpro.cancel_cc_for_depth==1):
                 #Errechnen des Startpunkts ohne Werkzeug Kompensation
                 #und einschalten der Kompensation     
                 st_point, st_angle=self.geos[0].get_start_end_points(0)
@@ -289,16 +287,18 @@ class ShapeClass:
             for geo_nr in range(len(self.geos)):
                 self.geos[geo_nr].Write_GCode(self.sca,self.p0,postpro)
 
-            #Ausschalten der Fräsradiuskorrektur
-            if not(self.cut_cor==40):
-                en_point, en_angle=self.geos[-1].get_start_end_points(-1)
-                end_cont=(en_point*self.sca)+self.p0
-                if self.cut_cor==41:
-                    pos_cut_out=end_cont.get_arc_point(en_angle-90,tool_rad)
-                elif self.cut_cor==42:
-                    pos_cut_out=end_cont.get_arc_point(en_angle+90,tool_rad)         
-                postpro.deactivate_cut_cor(pos_cut_out)
+            #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
+            en_point, en_angle=self.geos[-1].get_start_end_points(-1)
+            en_point=(en_point*self.sca)+self.p0
+            if self.cut_cor==41:
+                en_point=en_point.get_arc_point(en_angle-90,tool_rad)
+            elif self.cut_cor==42:
+                en_point=en_point.get_arc_point(en_angle+90,tool_rad)
 
+            #Ausschalten der Fräsradiuskorrektur falls benötigt          
+            if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):         
+                postpro.deactivate_cut_cor(en_point)
+     
         #Anfangswert für Direction wieder herstellen falls nötig
         if (snr%2)>0:
             self.reverse()
@@ -307,5 +307,9 @@ class ShapeClass:
         #Fertig und Zurückziehen des Werkzeugs
         postpro.lin_pol_z(config.axis3_safe_margin.get())
         postpro.rap_pos_z(config.axis3_retract.get())
+
+        #Falls Fräsradius Korrektur noch nicht ausgeschaltet ist ausschalten.
+        if (not(self.cut_cor==40))&(not(postpro.cancel_cc_for_depth)):
+            postpro.deactivate_cut_cor(en_point)        
 
         return 1      
