@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_nurbs_calc
+#dxf2gcode_b02_nurbs_calc
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #
@@ -22,7 +22,7 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from dxf2gcode_v01_point import PointClass, ArcGeo, LineGeo, BiarcClass
+from dxf2gcode_b02_point import PointClass, ArcGeo, LineGeo, BiarcClass
 
 import sys, os, string
 from math import radians, cos, sin,tan, atan2, sqrt, pow, pi, ceil

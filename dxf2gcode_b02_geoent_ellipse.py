@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_geoent_ellipse
+#dxf2gcode_b02_geoent_ellipse
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #
@@ -23,7 +23,7 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi
-from dxf2gcode_v01_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
+from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
 
 
 class EllipseClass:

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_tsp_opt
+#dxf2gcode_b02_tsp_opt
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #

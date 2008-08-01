@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
 #
-#dxf2gcode_v01_geoent_spline
+#dxf2gcode_b02_geoent_spline
 #Programmers:   Christian Kohlöffel
 #               Vinzenz Schulz
 #
@@ -22,8 +22,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_v01_nurbs_calc import Spline2Arcs
-from dxf2gcode_v01_point import PointClass, PointsClass, ContourClass
+from dxf2gcode_b02_nurbs_calc import Spline2Arcs
+from dxf2gcode_b02_point import PointClass, PointsClass, ContourClass
 
 class SplineClass:
     def __init__(self,Nr=0,caller=None):
