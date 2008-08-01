@@ -1538,9 +1538,9 @@ class PostprocessorClass:
         self.parser.set('Program','cutter_comp_off',\
                         ('G40 X%X Y%Y%nl'))
         self.parser.set('Program','cutter_comp_left',\
-                        ('G41%nl'))
+                        ('G41 X%X Y%Y%nl'))
         self.parser.set('Program','cutter_comp_right',\
-                        ('G42%nl'))                      
+                        ('G42 X%X Y%Y%nl'))                      
                         
                 
         open_file = open(os.path.join(self.config.folder,self.postpro_file_name), "w") 
@@ -1585,8 +1585,17 @@ class PostprocessorClass:
         self.feed=feed
         self.string+=self.make_print_str(self.feed_ch_str) 
         
-    def set_cut_cor(self,cut_cor):
+    def set_cut_cor(self,cut_cor,newpos):
         self.cut_cor=cut_cor
+
+        if not(self.abs_export):
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
+        else:
+            self.x=newpos.x
+            self.y=newpos.y  
 
         if cut_cor==41:
             self.string+=self.make_print_str(self.cut_comp_left_str)

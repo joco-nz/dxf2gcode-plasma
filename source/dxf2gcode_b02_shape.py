@@ -229,7 +229,12 @@ class ShapeClass:
 
         #Wenn G41 oder G42 an ist Fräsradiuskorrektur        
         if self.cut_cor!=40:
-            postpro.set_cut_cor(self.cut_cor)
+            
+            #Errechnen des Startpunkts ohne Werkzeug Kompensation
+            #und einschalten der Kompensation     
+            start_cor, st_angle=self.st_move[1].get_start_end_points(0)
+            postpro.set_cut_cor(self.cut_cor,start_cor)
+            
             self.st_move[1].Write_GCode([1,1,1],\
                                         PointClass(x=0,y=0),\
                                         postpro)
@@ -275,7 +280,11 @@ class ShapeClass:
                 
             #Falls cut correction eingeschaltet ist diese einschalten.
             if not(self.cut_cor==40):
-                postpro.set_cut_cor(self.cut_cor)
+                #Errechnen des Startpunkts ohne Werkzeug Kompensation
+                #und einschalten der Kompensation     
+                st_point, st_angle=self.geos[0].get_start_end_points(0)
+                start_cor=(st_point*self.sca)+self.p0
+                postpro.set_cut_cor(self.cut_cor,start_cor)
                 
             for geo_nr in range(len(self.geos)):
                 self.geos[geo_nr].Write_GCode(self.sca,self.p0,postpro)
