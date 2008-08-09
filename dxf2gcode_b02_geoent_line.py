@@ -24,6 +24,8 @@
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
 from dxf2gcode_b02_point import PointClass, LineGeo, PointsClass, ContourClass
+from tkMessageBox import showwarning
+
 
 class LineClass:
     def __init__(self,Nr=0,caller=None):
@@ -44,10 +46,15 @@ class LineClass:
               str(self.geo[-1])
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
-        points.append(PointsClass(point_nr=len(points),geo_nr=i,\
-                                  Layer_Nr=self.Layer_Nr,\
-                                  be=self.geo[-1].Pa,
-                                  en=self.geo[-1].Pe,be_cp=[],en_cp=[]))      
+        if abs(self.length)>tol:
+            points.append(PointsClass(point_nr=len(points),geo_nr=i,\
+                                      Layer_Nr=self.Layer_Nr,\
+                                      be=self.geo[-1].Pa,
+                                      en=self.geo[-1].Pe,be_cp=[],en_cp=[]))
+        else:
+            showwarning("Short Arc Elemente", ("Length of Line geometrie too short!"\
+                                               "\nLenght must be greater then tolerance."\
+                                               "\nSkipping Line Geometrie"))
         
     def Read(self, caller):
         #Kürzere Namen zuweisen

@@ -383,7 +383,7 @@ class Load_DXF:
                 #Common Endpunkt
                 else:
                     points[p_list[l_nr][-2]].en_cp.append(p_list[int_p][3:5])
-        
+
         return points
 
     #Suchen nach den besten zusammenhängenden Konturen
