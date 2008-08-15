@@ -39,8 +39,7 @@ from dxf2gcode_b02_shape import ShapeClass
 import dxf2gcode_b02_dxf_import as dxf_import 
 import dxf2gcode_b02_tsp_opt as tsp
 
-
-import webbrowser,gettext, ConfigParser
+import webbrowser,gettext, ConfigParser, tempfile
 from Tkconstants import END, INSERT, ALL, N, S, E, W, RAISED, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
 from tkMessageBox import showwarning, showerror
 from Tkinter import Tk, Canvas, Menu, Frame, Grid, DoubleVar, IntVar, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
@@ -54,6 +53,8 @@ from math import radians, cos, sin
 APPNAME = "dxf2gcode_b02"
 
 # Config Verzeichniss
+
+
 if os.name == 'posix': 
     FOLDER = os.path.join(os.environ.get('HOME'), "." + APPNAME.lower()) 
 elif os.name == 'nt': 
@@ -119,7 +120,7 @@ class Erstelle_Fenster:
         if not(self.load_filename==None):
             #Zuerst alle ausstehenden Events und Callbacks ausführen (sonst klappts beim Laden nicht)
             self.Canvas.canvas.update()
-            self.Load_File(self.load_filename)
+            self.Load_File()
 
     def erstelle_menu(self): 
         self.menu = Menu(self.master)
@@ -181,21 +182,45 @@ class Erstelle_Fenster:
     def Get_Load_File(self):
         #Auswahl des zu ladenden Files
         myFormats = [(_('AutoCAD / QCAD Drawing'),'*.dxf'),\
+                     (_('Postscript File'),'.ps'),\
+                     (_('PDF File'),'.pdf'),\
         (_('All File'),'*.*') ]
         inidir=self.config.load_path
         filename = askopenfile(initialdir=inidir,\
                                filetypes=myFormats)
+        #Falls abgebrochen wurde
         if not filename:
             return
         else:
             self.load_filename=filename.name
-            
-        self.Load_File(self.load_filename)
 
-    def Load_File(self,filename):
-   
+        self.Load_File()
+
+    def Load_File(self):
+
+        #Dateiendung prüfen
+        (name,ext)=os.path.splitext(self.load_filename)
+
+        if ext==".dxf":
+            filename=self.load_filename
+            
+        elif (ext==".ps")or(ext==".pdf"):
+            self.textbox.prt(_("\nSending Postscript/PDF to pstoedit"))
+            
+            # temporäre Datei erzeugen
+            tempFile=os.path.join(tempfile.gettempdir(),'test.dxf')
+            
+            pstoedit_cmd=self.config.pstoedit_cmd #"C:\Program Files (x86)\pstoedit\pstoedit"
+            pstoedit_opt=self.config.pstoedit_opt #"-f dxf"
+            
+            # Aufrüf von pstoedit
+            Befehl='"%s" %s "%s" "%s"' %(pstoedit_cmd,pstoedit_opt,self.load_filename,tempFile)
+            Befehl=Befehl.encode("cp1252")
+            os.system(Befehl)
+            filename=tempFile
+
         self.textbox.text.delete(7.0,END)
-        self.textbox.prt(_('\nLoading file: %s') %filename)
+        self.textbox.prt(_('\nLoading file: %s') %self.load_filename)
         
         self.values=dxf_import.Load_DXF(filename,self.config,self.textbox)
         
@@ -1328,6 +1353,10 @@ class ConfigClass:
         self.parser.set('Route Optimisation', 'Max. population', 20)
         self.parser.set('Route Optimisation', 'Max. iterations', 300)  
         self.parser.set('Route Optimisation', 'Mutation Rate', 0.95)
+
+        self.parser.add_section('Filters')
+        self.parser.set('Filters', 'pstoedit_cmd','C:\Program Files (x86)\pstoedit\pstoedit')
+        self.parser.set('Filters', 'pstoedit_opt', '-f dxf')
                      
         self.parser.add_section('Debug')
         self.parser.set('Debug', 'global_debug_level', 0)         
@@ -1388,7 +1417,11 @@ class ConfigClass:
             #Holen der restlichen Variablen
             #Verzeichnisse
             self.load_path=self.parser.get('Paths','load_path')
-            self.save_path=self.parser.get('Paths','save_path')          
+            self.save_path=self.parser.get('Paths','save_path')
+
+            #Holen der Commandos für pstoedit
+            self.pstoedit_cmd=self.parser.get('Filters','pstoedit_cmd')
+            self.pstoedit_opt=self.parser.get('Filters','pstoedit_opt')
 
             #Setzen des Globalen Debug Levels
             self.debug=int(self.parser.get('Debug', 'global_debug_level'))
