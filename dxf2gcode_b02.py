@@ -39,7 +39,7 @@ from dxf2gcode_b02_shape import ShapeClass
 import dxf2gcode_b02_dxf_import as dxf_import 
 import dxf2gcode_b02_tsp_opt as tsp
 
-import webbrowser,gettext, ConfigParser, tempfile
+import webbrowser,gettext, ConfigParser, tempfile, subprocess
 from Tkconstants import END, INSERT, ALL, N, S, E, W, RAISED, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
 from tkMessageBox import showwarning, showerror
 from Tkinter import Tk, Canvas, Menu, Frame, Grid, DoubleVar, IntVar, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
@@ -61,15 +61,15 @@ elif os.name == 'nt':
     FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()) 
 
 # Übersetzung
-#try:
-trans=gettext.translation('dxf2gcode_b02', localedir = 'languages',languages=["de"] )
-trans.install()
+try:
+    trans=gettext.translation('dxf2gcode_b02', localedir = 'languages',languages=["de"] )
+    trans.install()
 
-##except:
-##    def _(transstring):
-##        """Dummy method, created and called when no locale is found.
-##        Uses the fallback language (called C; means english) then."""
-##        return transstring
+except:
+    def _(transstring):
+        """Dummy method, created and called when no locale is found.
+        Uses the fallback language (called C; means english) then."""
+        return transstring
 
 class Erstelle_Fenster:
     def __init__(self, master = None, load_filename=None ):
@@ -181,10 +181,11 @@ class Erstelle_Fenster:
     # Callback des Menu Punkts File Laden
     def Get_Load_File(self):
         #Auswahl des zu ladenden Files
-        myFormats = [(_('AutoCAD / QCAD Drawing'),'*.dxf'),\
+        myFormats = [(_('Supported files'),'*.dxf *.ps *.pdf'),\
+                     (_('AutoCAD / QCAD Drawing'),'*.dxf'),\
                      (_('Postscript File'),'.ps'),\
                      (_('PDF File'),'.pdf'),\
-        (_('All File'),'*.*') ]
+                     (_('All File'),'*.*') ]
         inidir=self.config.load_path
         filename = askopenfile(initialdir=inidir,\
                                filetypes=myFormats)
@@ -208,16 +209,20 @@ class Erstelle_Fenster:
             self.textbox.prt(_("\nSending Postscript/PDF to pstoedit"))
             
             # temporäre Datei erzeugen
-            tempFile=os.path.join(tempfile.gettempdir(),'test.dxf')
+            filename=os.path.join(tempfile.gettempdir(),'dxf2gcode_temp.dxf').encode("cp1252")
             
-            pstoedit_cmd=self.config.pstoedit_cmd #"C:\Program Files (x86)\pstoedit\pstoedit"
-            pstoedit_opt=self.config.pstoedit_opt #"-f dxf"
-            
-            # Aufrüf von pstoedit
-            Befehl='"%s" %s "%s" "%s"' %(pstoedit_cmd,pstoedit_opt,self.load_filename,tempFile)
-            Befehl=Befehl.encode("cp1252")
-            os.system(Befehl)
-            filename=tempFile
+            pstoedit_cmd=self.config.pstoedit_cmd.encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
+            pstoedit_opt=eval(self.config.pstoedit_opt) #['-f','dxf','-mm']
+            print pstoedit_opt
+            ps_filename=os.path.normcase(self.load_filename.encode("cp1252"))
+
+            cmd=[(('%s')%pstoedit_cmd)]+pstoedit_opt+[(('%s')%ps_filename),(('%s')%filename)]
+
+            print cmd
+    
+            retcode=subprocess.call(cmd)
+            print retcode
+
 
         self.textbox.text.delete(7.0,END)
         self.textbox.prt(_('\nLoading file: %s') %self.load_filename)
@@ -276,7 +281,7 @@ class Erstelle_Fenster:
         #Falls noch kein File geladen wurde nichts machen
         if self.load_filename==None:
             return
-        self.Load_File(self.load_filename)
+        self.Load_File()
         self.textbox.prt(_("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file")\
                               %(dialog.result[0],dialog.result[1]))
         
@@ -1356,7 +1361,7 @@ class ConfigClass:
 
         self.parser.add_section('Filters')
         self.parser.set('Filters', 'pstoedit_cmd','C:\Program Files (x86)\pstoedit\pstoedit')
-        self.parser.set('Filters', 'pstoedit_opt', '-f dxf')
+        self.parser.set('Filters', 'pstoedit_opt', ['-f','dxf','-mm'])
                      
         self.parser.add_section('Debug')
         self.parser.set('Debug', 'global_debug_level', 0)         
