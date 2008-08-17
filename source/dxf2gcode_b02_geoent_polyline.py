@@ -63,6 +63,16 @@ class PolylineClass:
                                       be=self.geo[0].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))      
 
+##            if abs(self.length)>tol:
+##                points.append(PointsClass(point_nr=len(points),geo_nr=i,\
+##                                          Layer_Nr=self.Layer_Nr,\
+##                                          be=self.geo[0].Pa,
+##                                          en=self.geo[-1].Pe,be_cp=[],en_cp=[])) 
+##            else:
+##                showwarning("Short Polyline Elemente", ("Length of Line geometrie too short!"\
+##                                                   "\nLenght must be greater then tolerance."\
+##                                                   "\nSkipping Line Geometrie"))
+            
     def analyse_and_opt(self):
         summe=0
 
