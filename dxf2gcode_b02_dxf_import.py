@@ -307,6 +307,8 @@ class Load_DXF:
 
         points=self.App_Cont_or_Calc_IntPts(entities.geo,cont)
         points=self.Find_Common_Points(points)
+        points=self.Remove_Redundant_Geos(points)
+
         cont=self.Search_Contours(entities.geo,points,cont)
         
         return cont    
@@ -385,6 +387,13 @@ class Load_DXF:
                     points[p_list[l_nr][-2]].en_cp.append(p_list[int_p][3:5])
 
         return points
+    def Remove_Redundant_Geos(self,points=None):
+
+        for p in points:
+            print p
+
+        return points        
+
 
     #Suchen nach den besten zusammenhängenden Konturen
     def Search_Contours(self,geo=None,all_points=None,cont=None):
