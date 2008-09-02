@@ -201,11 +201,12 @@ class Erstelle_Fenster:
 
         #Dateiendung prüfen
         (name,ext)=os.path.splitext(self.load_filename)
+        print ext
 
-        if ext==".dxf":
+        if ext.lower()==".dxf":
             filename=self.load_filename
             
-        elif (ext==".ps")or(ext==".pdf"):
+        elif (ext.lower()==".ps")or(ext.lower()==".pdf"):
             self.textbox.prt(_("\nSending Postscript/PDF to pstoedit"))
             
             # temporäre Datei erzeugen
