@@ -2,10 +2,10 @@
 # -*- coding: cp1252 -*-
 #
 #dxf2gcode_b02_dxf_import
-#Programmer: Christian Kohlöffel
+#Programmer: Christian Kohloeffel
 #E-mail:     n/A
 #
-#Copyright 2008 Christian Kohlöffel
+#Copyright 2008 Christian Kohloeffel
 #
 #Distributed under the terms of the GPL (GNU Public License)
 #
