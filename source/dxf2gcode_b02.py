@@ -2,7 +2,7 @@
 # -*- coding: cp1252 -*-
 #
 #dxf2gcode_b02.py
-#Programmers:   Christian Kohlöffel
+#Programmers:   Christian Kohloeffel
 #               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
@@ -25,7 +25,7 @@
 #First Version of dxf2gcode Hopefully all works as it should
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
-#Löschen aller Module aus dem Speicher
+#Loeschen aller Module aus dem Speicher
 import sys, os, string
 
 if globals().has_key('init_modules'):
@@ -38,16 +38,17 @@ from dxf2gcode_b02_point import PointClass
 from dxf2gcode_b02_shape import ShapeClass
 import dxf2gcode_b02_dxf_import as dxf_import 
 import dxf2gcode_b02_tsp_opt as tsp
+import locale
+
 
 import webbrowser,gettext, ConfigParser, tempfile, subprocess
-from Tkconstants import END, INSERT, ALL, N, S, E, W, RAISED, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
+from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
 from tkMessageBox import showwarning, showerror
-from Tkinter import Tk, Canvas, Menu, Frame, Grid, DoubleVar, IntVar, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
+from Tkinter import Tk, Canvas, Menu, Frame, DoubleVar, IntVar, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
 from copy import copy
-from math import radians, cos, sin
 
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
@@ -60,21 +61,52 @@ if os.name == 'posix':
 elif os.name == 'nt': 
     FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()) 
 
-# Übersetzung
-try:
-    trans=gettext.translation('dxf2gcode_b02', localedir = 'languages',languages=["de"] )
-    trans.install()
+#Das momentane Verzeichnis herausfinden
+local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
-except:
-    def _(transstring):
-        """Dummy method, created and called when no locale is found.
-        Uses the fallback language (called C; means english) then."""
-        return transstring
+# Liste der unterstützuden Sprachen anlegen.
+langs = []
+
+#Default Sprache des Systems herausfinden
+lc, encoding = locale.getdefaultlocale()
+
+if (lc):
+	#Wenn wir eine haben diese als Default setzen
+	langs = [lc]
+
+# Herausfinden welche sprachen wir haben
+language = os.environ.get('LANGUAGE', None)
+if (language):
+	"""langage comes back something like en_CA:en_US:en_GB:en
+	on linuxy systems, on Win32 it's nothing, so we need to
+	split it up into a list"""
+	langs += language.split(":")
+
+"""Now add on to the back of the list the translations that we
+know that we have, our defaults"""
+langs += []
+
+"""Now langs is a list of all of the languages that we are going
+to try to use.  First we check the default, then what the system
+told us, and finally the 'known' list"""
+
+gettext.bindtextdomain(APPNAME, local_path)
+gettext.textdomain(APPNAME)
+# Get the language to use
+trans = gettext.translation(APPNAME, localedir='languages', languages=langs, fallback = True)
+trans.install()
 
 class Erstelle_Fenster:
     def __init__(self, master = None, load_filename=None ):
         
-        self.master=master     
+        self.master=master
+        self.menu=None
+        self.filemenu=None
+        self.exportmenu=None
+        self.optionmenu=None
+        self.helpmenu=None
+        self.viewemnu=None
+            
 
         #Uebergabe des load_filenames falls von EMC gestartet
         self.load_filename=load_filename
@@ -93,7 +125,7 @@ class Erstelle_Fenster:
         #Erstellen des Statusfenster
         self.textbox=TextboxClass(frame=self.frame_u,master=self.master)
 
-        #Voreininstellungen für das Programm laden
+        #Voreininstellungen fuer das Programm laden
         self.config=ConfigClass(self.textbox)
 
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
@@ -117,8 +149,8 @@ class Erstelle_Fenster:
         self.erstelle_menu()        
         
         #Falls ein load_filename_uebergeben wurde
-        if not(self.load_filename==None):
-            #Zuerst alle ausstehenden Events und Callbacks ausführen (sonst klappts beim Laden nicht)
+        if not(self.load_filename is None):
+            #Zuerst alle ausstehenden Events und Callbacks ausfuehren (sonst klappts beim Laden nicht)
             self.Canvas.canvas.update()
             self.Load_File()
 
@@ -153,7 +185,7 @@ class Erstelle_Fenster:
         self.viewmenu.add_separator()
         self.viewmenu.add_command(label=_('Autoscale'),command=self.Canvas.autoscale)
 
-        #Menupunkt einfügen zum löschen der Route
+        #Menupunkt einfuegen zum loeschen der Route
         self.viewmenu.add_separator()
         self.viewmenu.add_command(label=_('Delete Route'),command=self.del_route_and_menuentry)         
 
@@ -199,7 +231,7 @@ class Erstelle_Fenster:
 
     def Load_File(self):
 
-        #Dateiendung prüfen
+        #Dateiendung pruefen
         (name,ext)=os.path.splitext(self.load_filename)
         print ext
 
@@ -219,11 +251,10 @@ class Erstelle_Fenster:
 
             cmd=[(('%s')%pstoedit_cmd)]+pstoedit_opt+[(('%s')%ps_filename),(('%s')%filename)]
 
-            print cmd
+            #print cmd
     
             retcode=subprocess.call(cmd)
-            print retcode
-
+            #print retcode
 
         self.textbox.text.delete(7.0,END)
         self.textbox.prt(_('\nLoading file: %s') %self.load_filename)
@@ -265,12 +296,12 @@ class Erstelle_Fenster:
         #Ausdrucken der Werte        
         self.CanvasContent.makeplot(self.values)
 
-        #Löschen alter Route Menues
+        #Loeschen alter Route Menues
         self.del_route_and_menuentry()
             
     def Get_Cont_Tol(self):
 
-        #Dialog für die Toleranzvoreinstellungen öffnen      
+        #Dialog fuer die Toleranzvoreinstellungen oeffnen      
         title=_('Contour tolerances')
         label=(_("Tolerance for common points [mm]:"),\
                _("Tolerance for curve fitting [mm]:"))
@@ -280,7 +311,7 @@ class Erstelle_Fenster:
         self.config.fitting_tolerance.set(dialog.result[1])
         
         #Falls noch kein File geladen wurde nichts machen
-        if self.load_filename==None:
+        if self.load_filename is None:
             return
         self.Load_File()
         self.textbox.prt(_("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file")\
@@ -292,8 +323,8 @@ class Erstelle_Fenster:
                 
         value=askfloat(_('Scale Contours'),_('Set the scale factor'),\
                                 initialvalue=self.cont_scale)
-        #Abfrage ob Cancel gedrückt wurde
-        if value==None:
+        #Abfrage ob Cancel gedrueckt wurde
+        if value is None:
             return
         
         self.cont_scale=value
@@ -304,18 +335,18 @@ class Erstelle_Fenster:
         self.Canvas.scale_contours(self.cont_scale/old_scale)        
         
     def Move_WP_zero(self):
-        #Die alten Werte zwischenspeichern für das verschieben des Canvas
+        #Die alten Werte zwischenspeichern fuer das verschieben des Canvas
         old_dx=self.cont_dx
         old_dy=self.cont_dy
 
-        #Dialog mit den definierten Parametern öffnen       
+        #Dialog mit den definierten Parametern oeffnen       
         title=_('Workpiece zero offset')
         label=((_("Offset %s axis by mm:") %self.config.ax1_letter),\
                (_("Offset %s axis by mm:") %self.config.ax2_letter))
         value=(self.cont_dx,self.cont_dy)
         dialog=Tkinter_Variable_Dialog(self.master,title,label,value)
 
-        #Abbruch wenn nicht übergeben wurde
+        #Abbruch wenn nicht uebergeben wurde
         if dialog.result==False:
             return
         
@@ -354,7 +385,7 @@ class Erstelle_Fenster:
         #Funktion zum optimieren des Wegs aufrufen
         self.opt_export_route()
 
-        #Initial Status für den Export
+        #Initial Status fuer den Export
         status=1
 
         #Config & postpro in einen kurzen Namen speichern
@@ -364,7 +395,7 @@ class Erstelle_Fenster:
         #Schreiben der Standardwert am Anfang        
         postpro.write_gcode_be(self.ExportParas,self.load_filename)
 
-        #Maschine auf die Anfangshöhe bringen
+        #Maschine auf die Anfangshoehe bringen
         postpro.rap_pos_z(config.axis3_retract.get())
 
         #Bei 1 starten da 0 der Startpunkt ist
@@ -396,7 +427,7 @@ class Erstelle_Fenster:
             self.master.update_idletasks()
 
                     
-        #Drucken in den Stdout, speziell für EMC2 
+        #Drucken in den Stdout, speziell fuer EMC2 
         if postpro.write_to_stdout:
             print(string)
             self.ende()     
@@ -406,11 +437,11 @@ class Erstelle_Fenster:
                     #Abfrage des Namens um das File zu speichern
                     self.Get_Save_File()
                     
-                    #Wenn Cancel gedrückt wurde
+                    #Wenn Cancel gedrueckt wurde
                     if not self.save_filename:
                         return
                     
-                    #Das File öffnen und schreiben    
+                    #Das File oeffnen und schreiben    
                     f = open(self.save_filename, "w")
                     f.write(string)
                     f.close()    
@@ -424,7 +455,7 @@ class Erstelle_Fenster:
         #Errechnen der Iterationen
         iter =min(self.config.max_iterations,len(self.CanvasContent.Shapes)*20)
         
-        #Anfangswerte für das Sortieren der Shapes
+        #Anfangswerte fuer das Sortieren der Shapes
         self.shapes_to_write=[]
         shapes_st_en_points=[]
         
@@ -436,7 +467,7 @@ class Erstelle_Fenster:
                 shapes_st_en_points.append(shape.get_st_en_points())
                 
 
-        #Hinzufügen des Start- Endpunkte ausserhalb der Geometrie
+        #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
         x_st=self.config.axis1_st_en.get()
         y_st=self.config.axis2_st_en.get()
         start=PointClass(x=x_st,y=y_st)
@@ -496,13 +527,13 @@ class TextboxClass:
         frame.columnconfigure(1,weight=0)
 
         
-        #Binding für Contextmenu
+        #Binding fuer Contextmenu
         self.text.bind("<Button-3>", self.text_contextmenu)
 
-        #Anfangstext einfügen
+        #Anfangstext einfuegen
         self.textscr.config(command=self.text.yview)
         self.text.config(yscrollcommand=self.textscr.set)
-        self.prt(_('Program started\nVersion V0.1\nCoded by V. Schulz and C. Kohlöffel'))
+        self.prt(_('Program started\nVersion V0.1\nCoded by V. Schulz and C. Kohloeffel'))
 
     def set_debuglevel(self,DEBUG=0):
         self.DEBUG=DEBUG
@@ -659,23 +690,23 @@ class CanvasClass:
         self.dy=0.0
         self.scale=1.0
 
-        #Wird momentan nicht benötigt, eventuell für Beschreibung von Aktionen im Textfeld #self.text=text
+        #Wird momentan nicht benoetigt, eventuell fuer Beschreibung von Aktionen im Textfeld #self.text=text
 
-        #Erstellen des Labels am Unteren Rand für Status Leiste        
+        #Erstellen des Labels am Unteren Rand fuer Status Leiste        
         self.label=Label(self.master, text=_("Curser Coordinates: X=0.0, Y=0.0, Scale: 1.00"),bg="white",anchor="w")
         self.label.grid(row=1,column=0,sticky=E+W)
 
-        #Canvas Erstellen und Fenster ausfüllen        
+        #Canvas Erstellen und Fenster ausfuellen        
         self.canvas=Canvas(self.master,width=650,height=500, bg = "white")
         self.canvas.grid(row=0,column=0,sticky=N+E+S+W)
         self.master.columnconfigure(0,weight=1)
         self.master.rowconfigure(0,weight=1)
 
 
-        #Binding für die Bewegung des Mousezeigers
+        #Binding fuer die Bewegung des Mousezeigers
         self.canvas.bind("<Motion>", self.moving)
 
-        #Bindings für Selektieren
+        #Bindings fuer Selektieren
         self.canvas.bind("<Button-1>", self.select_cont)
         
         #Eventuell mit Abfrage probieren???????????????????????????????????????????
@@ -683,10 +714,10 @@ class CanvasClass:
         self.canvas.bind("<B1-Motion>", self.select_rectangle)
         self.canvas.bind("<ButtonRelease-1>", self.select_release)
 
-        #Binding für Contextmenu
+        #Binding fuer Contextmenu
         self.canvas.bind("<Button-3>", self.make_contextmenu)
 
-        #Bindings für Zoom und Bewegen des Bilds        
+        #Bindings fuer Zoom und Bewegen des Bilds        
         self.canvas.bind("<Control-Button-1>", self.mouse_move)
         self.canvas.bind("<Control-B1-Motion>", self.mouse_move_motion)
         self.canvas.bind("<Control-ButtonRelease-1>", self.mouse_move_release)
@@ -694,7 +725,7 @@ class CanvasClass:
         self.canvas.bind("<Control-B3-Motion>", self.mouse_zoom_motion)
         self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)   
 
-    #Callback für das Bewegen der Mouse mit Darstellung in untere Leiste
+    #Callback fuer das Bewegen der Mouse mit Darstellung in untere Leiste
     def moving(self,event):
         x=self.dx+(event.x/self.scale)
         y=self.dy+(self.canvas.winfo_height()-event.y)/self.scale
@@ -710,9 +741,9 @@ class CanvasClass:
             self.label['text']=(_("Curser Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f") \
                                 %(x,y,self.scale))
         
-    #Callback für das Auswählen von Elementen
+    #Callback fuer das Auswählen von Elementen
     def select_cont(self,event):
-        #Abfrage ob ein Contextfenster offen ist, speziell für Linux
+        #Abfrage ob ein Contextfenster offen ist, speziell fuer Linux
         self.schliesse_contextmenu()
         
         self.moving(event)
@@ -721,7 +752,7 @@ class CanvasClass:
         self.lastevent=event
 
     def multiselect_cont(self,event):
-        #Abfrage ob ein Contextfenster offen ist, speziell für Linux
+        #Abfrage ob ein Contextfenster offen ist, speziell fuer Linux
         self.schliesse_contextmenu()
         
         self.sel_rect_hdl=Rectangle(self.canvas,event.x,event.y,event.x,event.y,outline="grey") 
@@ -738,7 +769,7 @@ class CanvasClass:
         dy=self.lastevent.y-event.y
         self.canvas.delete(self.sel_rect_hdl)
         
-        #Beim Auswählen sollen die Direction Pfeile gelöscht werden!!!!!!!!!!!!!!!!!!        
+        #Beim Auswählen sollen die Direction Pfeile geloescht werden!!!!!!!!!!!!!!!!!!        
         #self.Content.delete_opt_path()   
         
         #Wenn mehr als 6 Pixel gezogen wurde Enclosed        
@@ -752,7 +783,7 @@ class CanvasClass:
             
         self.Content.addselection(items,mode)
 
-    #Callback für Bewegung des Bildes
+    #Callback fuer Bewegung des Bildes
     def mouse_move(self,event):
         self.master.config(cursor="fleur")
         self.lastevent=event
@@ -769,7 +800,7 @@ class CanvasClass:
     def mouse_move_release(self,event):
         self.master.config(cursor="")      
 
-    #Callback für das Zoomen des Bildes     
+    #Callback fuer das Zoomen des Bildes     
     def mouse_zoom(self,event):
         self.canvas.focus_set()
         self.master.config(cursor="sizing")
@@ -799,7 +830,7 @@ class CanvasClass:
     def make_contextmenu(self,event):
         self.lastevent=event
 
-        #Abfrage ob das Contextfenster schon existiert, speziell für Linux
+        #Abfrage ob das Contextfenster schon existiert, speziell fuer Linux
         self.schliesse_contextmenu()
             
         #Contextmenu erstellen zu der Geometrie        
@@ -812,7 +843,7 @@ class CanvasClass:
         popup.add_separator()
         popup.add_command(label=_('Switch Direction'),command=self.Content.switch_shape_dir)
         
-        #Untermenu für die Fräserkorrektur
+        #Untermenu fuer die Fräserkorrektur
         self.dir_var.set(self.Content.calc_dir_var())
         cut_cor_menu = Menu(popup,tearoff=0)
         cut_cor_menu.add_checkbutton(label=_("G40 No correction"),\
@@ -836,7 +867,7 @@ class CanvasClass:
 
         popup.post(event.x_root, event.y_root)
         
-    #Speziell für Linux falls das Contextmenu offen ist dann schliessen
+    #Speziell fuer Linux falls das Contextmenu offen ist dann schliessen
     def schliesse_contextmenu(self):
         try:
             self.popup.destroy()
@@ -933,7 +964,7 @@ class CanvasContentClass:
         self.path_hdls=[]
         
 
-        #Anfangswert für das Ansicht Toggle Menu
+        #Anfangswert fuer das Ansicht Toggle Menu
         self.toggle_wp_zero=IntVar()
         self.toggle_wp_zero.set(1)
 
@@ -966,15 +997,15 @@ class CanvasContentClass:
     def makeplot(self,values):
         self.values=values
 
-        #Löschen des Inhalts
+        #Loeschen des Inhalts
         self.Canvas.canvas.delete(ALL)
         
-        #Standardwerte für scale, dx, dy zuweisen
+        #Standardwerte fuer scale, dx, dy zuweisen
         self.Canvas.scale=1
         self.Canvas.dx=0
         self.Canvas.dy=-self.Canvas.canvas.winfo_height()
 
-        #Zurücksetzen der Konturen
+        #Zuruecksetzen der Konturen
         self.Shapes=[]
         self.LayerContents=[]
         self.EntitieContents=[]
@@ -1001,14 +1032,14 @@ class CanvasContentClass:
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
         ent_geos=entities.geo
         cont=entities.cont
-        #Schleife für die Anzahl der Konturen 
+        #Schleife fuer die Anzahl der Konturen 
         for c_nr in range(len(cont)):
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
             if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
                 ent_geo=ent_geos[cont[c_nr].order[0][0]]
                 self.make_shapes(ent_geo.Block,ent_geo.Point,ent_geo.Scale)
             else:
-                #Schleife für die Anzahl der Geometrien
+                #Schleife fuer die Anzahl der Geometrien
                 self.Shapes.append(ShapeClass(len(self.Shapes),ent_nr,c_nr,cont[c_nr].closed,p0,sca[:],40,cont[c_nr].length*sca[0],[],[]))
                 for ent_geo_nr in range(len(cont[c_nr].order)):
                     ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
@@ -1031,7 +1062,7 @@ class CanvasContentClass:
         for shape in self.Shapes:
             shape.plot2can(self.Canvas.canvas)
             
-    #Drucken des Werkstücknullpunkts
+    #Drucken des Werkstuecknullpunkts
     def plot_wp_zero(self):
         for hdl in self.wp_zero_hdls:
             self.Canvas.canvas.delete(hdl) 
@@ -1087,7 +1118,7 @@ class CanvasContentClass:
         self.Canvas.canvas.update()
 
 
-    #Hinzufügen der Kontur zum Layer        
+    #Hinzufuegen der Kontur zum Layer        
     def addtoLayerContents(self,shape_nr,lay_nr):
         #Abfrage of der gesuchte Layer schon existiert
         for LayCon in self.LayerContents:
@@ -1099,7 +1130,7 @@ class CanvasContentClass:
         LayerName=self.values.layers[lay_nr].name
         self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
         
-    #Hinzufügen der Kontur zu den Entities
+    #Hinzufuegen der Kontur zu den Entities
     def addtoEntitieContents(self,shape_nr,ent_nr,c_nr):
         
         for EntCon in self.EntitieContents:
@@ -1288,10 +1319,10 @@ class EntitieContentClass:
 
 class ConfigClass:
     def __init__(self,textbox):
-        # Das Standard App Verzeichniss für das Betriebssystem abfragen
+        # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
         self.make_settings_folder()
 
-        # eine ConfigParser Instanz öffnen und evt. vorhandenes Config File Laden        
+        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
         self.cfg_file_name=APPNAME+'_config.cfg'
         self.parser.read(os.path.join(FOLDER,self.cfg_file_name))
@@ -1324,8 +1355,8 @@ class ConfigClass:
 
     def make_new_Config_file(self):
         self.parser.add_section('Paths') 
-        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohlöffel\Documents\DXF2GCODE\trunk\dxf')
-        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohlöffel\Documents')
+        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohloeffel\Documents\DXF2GCODE\trunk\dxf')
+        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohloeffel\Documents')
 
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
@@ -1409,7 +1440,7 @@ class ConfigClass:
             self.fitting_tolerance=DoubleVar()
             self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
 
-            #Zuweisen der Werte für die TSP Optimierung
+            #Zuweisen der Werte fuer die TSP Optimierung
             self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
             self.max_population=int((int(self.parser.get('Route Optimisation', 'Max. population'))/4)*4)
             self.max_iterations=int(self.parser.get('Route Optimisation', 'Max. iterations'))  
@@ -1425,7 +1456,7 @@ class ConfigClass:
             self.load_path=self.parser.get('Paths','load_path')
             self.save_path=self.parser.get('Paths','save_path')
 
-            #Holen der Commandos für pstoedit
+            #Holen der Commandos fuer pstoedit
             self.pstoedit_cmd=self.parser.get('Filters','pstoedit_cmd')
             self.pstoedit_opt=self.parser.get('Filters','pstoedit_opt')
 
@@ -1453,7 +1484,7 @@ class PostprocessorClass:
         self.textbox=textbox
         self.config=config
 
-        # eine ConfigParser Instanz öffnen und evt. vorhandenes Config File Laden        
+        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
         self.postpro_file_name=APPNAME+'_postprocessor.cfg'
         self.parser.read(os.path.join(FOLDER,self.postpro_file_name))
@@ -1721,18 +1752,18 @@ class PostprocessorClass:
                                           eval(self.vars.values()[key_nr]))
         return new_string
 
-    #Funktion welche den Wert als formatierter integer zurück gibt
+    #Funktion welche den Wert als formatierter integer zurueck gibt
     def iprint(self,interger):
         return ('%i' %interger)
 
-    #Funktion gibt den String für eine neue Linie zurück
+    #Funktion gibt den String fuer eine neue Linie zurueck
     def nlprint(self):
         return '\n'
 
-    #Funktion welche die Formatierte Number  zurück gibt
+    #Funktion welche die Formatierte Number  zurueck gibt
     def fnprint(self,number):
         string=''
-        #+ oder - Zeichen Falls nötig/erwünscht und Leading 0er
+        #+ oder - Zeichen Falls noetig/erwuenscht und Leading 0er
         if (self.signed_val)and(self.pre_dec_z_pad):
             numstr=(('%+0'+str(self.pre_dec+self.post_dec+1)+\
                      '.'+str(self.post_dec)+'f') %number)
@@ -1746,7 +1777,7 @@ class PostprocessorClass:
             numstr=(('%'+str(self.pre_dec+self.post_dec+1)+\
                     '.'+str(self.post_dec)+'f') %number)
             
-        #Setzen des zugehörigen Dezimal Trennzeichens            
+        #Setzen des zugehoerigen Dezimal Trennzeichens            
         string+=numstr[0:-(self.post_dec+1)]
         
         string_end=self.dec_sep
