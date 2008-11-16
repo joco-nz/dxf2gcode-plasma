@@ -387,10 +387,11 @@ class Load_DXF:
                     points[p_list[l_nr][-2]].en_cp.append(p_list[int_p][3:5])
 
         return points
+    
     def Remove_Redundant_Geos(self,points=None):
-
-        for p in points:
-            print p
+        pass
+        #for p in points:
+        #    print p
 
         return points        
 

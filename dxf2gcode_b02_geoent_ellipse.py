@@ -22,7 +22,7 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi
+from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi, floor
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
 
 
@@ -52,6 +52,7 @@ class EllipseClass:
         #Errechnen der Ellipse
         self.Ellipse_Grundwerte()
         self.Ellipse_2_Arcs(tol)
+        
 
     def __str__(self):
         # how to print the object #Geht auch so ellegant wie sprintf in C oder Matlab usw. siehe erste zeile  !!!!!!!!!!!!!!!!!!!!!!
@@ -62,6 +63,7 @@ class EllipseClass:
         'vector: '+str(self.vector) +'\n' + \
         'ratio:  '+str(self.ratio) +'\n' + \
         'angles: '+str(degrees(self.AngS))+' -> '+str(degrees(self.AngE))+'\n' + \
+        'extend: '+str(degrees(self.ext))+ '\n' +\
         'a:      '+str(self.a) +'\n' + \
         'b:      '+str(self.b) +'\n' + \
         'length: '+str(self.length) +\
@@ -140,8 +142,9 @@ class EllipseClass:
     def Ellipse_2_Arcs(self, tol):
 
         #Anfangswert für Anzahl Elemente
-        num_elements=2
+        num_elements=1
         intol=False   
+        
 
         while not(intol):
             intol=True
@@ -157,7 +160,7 @@ class EllipseClass:
             
             for sec in range(num_elements*2):
                 #Neuer Winkel errechnen
-                angle+=-(2*pi)/num_elements/2
+                angle+=-(self.ext)/num_elements/2
 
                 #Endwerte errechnen            
                 Pb = self.Ellipse_Point(angle)
@@ -173,7 +176,7 @@ class EllipseClass:
                 
                 self.PtsVec.append([Pa,tana])
 
-                if not(self.check_ellipse_fitting_tolerance(biarcs,tol,angle,angle+(2*pi)/num_elements/2)):
+                if not(self.check_ellipse_fitting_tolerance(biarcs,tol,angle,angle+(self.ext)/num_elements/2)):
                     intol=False
                     num_elements+=1
                     break
@@ -199,7 +202,12 @@ class EllipseClass:
         self.rotation = atan2(self.vector.y, self.vector.x)
         self.a = sqrt(self.vector.x**2 + self.vector.y**2)
         self.b = self.a * self.ratio
-
+        
+        #Aus dem Vorzeichen von dir den extend ausrechnen
+        self.ext=self.AngE-self.AngS
+        #self.ext=self.ext%(-2*pi)
+        #self.ext-=floor(self.ext/(2*pi))*(2*pi)
+   
     def Ellipse_Point(self, alpha=0):#PointClass(0,0)
         #große Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         Ex = self.a*cos(alpha) * cos(self.rotation) - self.b*sin(alpha) * sin(self.rotation);
