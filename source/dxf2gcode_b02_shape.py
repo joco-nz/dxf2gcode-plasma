@@ -24,19 +24,20 @@
 #Main Class Shape
 
 import sys, os, string, ConfigParser 
-from   dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
+from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
 from Canvas import Line
 
 class ShapeClass:
     def __init__(self,nr='None',ent_nr='None',ent_cnr='None',closed=0,\
-                 p0=PointClass(x=0,y=0),sca=[],cut_cor=40,length=0.0,geos=[],geos_hdls=[]):
+                 p0=PointClass(x=0.0,y=0.0),sca=[],rot=0.0,cut_cor=40,length=0.0,geos=[],geos_hdls=[]):
         self.nr=nr
         self.ent_nr=ent_nr
         self.ent_cnr=ent_cnr
         self.closed=closed
         self.p0=p0
         self.sca=sca
+        self.rot=rot
         self.cut_cor=40
         self.length=length
         self.geos=geos
@@ -49,6 +50,7 @@ class ShapeClass:
                ('\nclosed:      %i' %self.closed)+\
                ('\np0:          %s' %self.p0)+\
                ('\nsca:         %s' %self.sca)+\
+               ('\nrot:         %s' %self.rot)+\
                ('\ncut_cor:     %s' %self.cut_cor)+\
                ('\nlen(geos):   %i' %len(self.geos))+\
                ('\nlength:      %0.2f' %self.length)+\
@@ -76,7 +78,7 @@ class ShapeClass:
 
     def plot2can(self,canvas):
         for geo in self.geos:
-            self.geos_hdls+=geo.plot2can(canvas,self.p0,self.sca,self.nr)
+            self.geos_hdls+=geo.plot2can(canvas,self.p0,self.sca,self.rot,self.nr)
             
     def plot_cut_info(self,CanvasClass,config):
         hdls=[]
@@ -220,6 +222,7 @@ class ShapeClass:
         #Positionieren des Werkzeugs über dem Anfang und Eintauchen
         self.st_move[0].Write_GCode([1,1,1],\
                                     PointClass(x=0,y=0),\
+                                    0.0,\
                                     postpro)
         
         postpro.rap_pos_z(config.axis3_safe_margin.get())
@@ -237,15 +240,17 @@ class ShapeClass:
             
             self.st_move[1].Write_GCode([1,1,1],\
                                         PointClass(x=0,y=0),\
+                                        0.0,\
                                         postpro)
             
             self.st_move[2].Write_GCode([1,1,1],\
                                         PointClass(x=0,y=0),\
+                                        0.0,\
                                         postpro)
 
         #Schreiben der Geometrien für den ersten Schnitt
         for geo in self.geos:
-            geo.Write_GCode(self.sca,self.p0,postpro)
+            geo.Write_GCode(self.sca,self.p0,self.rot,postpro)
 
         #Ausschalten der Fräsradiuskorrektur
         if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
@@ -285,7 +290,7 @@ class ShapeClass:
                 postpro.set_cut_cor(self.cut_cor,start_cor)
                 
             for geo_nr in range(len(self.geos)):
-                self.geos[geo_nr].Write_GCode(self.sca,self.p0,postpro)
+                self.geos[geo_nr].Write_GCode(self.sca,self.p0,self.rot,postpro)
 
             #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
             en_point, en_angle=self.geos[-1].get_start_end_points(-1)
