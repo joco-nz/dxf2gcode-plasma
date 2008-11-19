@@ -36,8 +36,8 @@ class EllipseClass:
         self.vector = PointClass(1,0) #Vektor A = große Halbachse a, = Drehung der Ellipse
                                       # http://de.wikipedia.org/wiki/Gro%C3%9Fe_Halbachse
         self.ratio = 1                #Verhältnis der kleinen zur großen Halbachse (b/a)
-        self.AngS = 0                 #Startwinkel beim zeichnen eines Ellipsensegments
-        self.AngE = radians(360)      #Endwinkel (Winkel im DXF als Radians!)
+        #self.AngS = 0                 #Startwinkel beim zeichnen eines Ellipsensegments
+        #self.AngE = radians(360)      #Endwinkel (Winkel im DXF als Radians!)
         #Die folgenden Grundwerte werden später ein mal berechnet
 
         self.length = 0
@@ -48,7 +48,7 @@ class EllipseClass:
 
         #Zuweisen der Toleranz fürs Fitting
         tol=caller.config.fitting_tolerance.get()
-
+        
         #Errechnen der Ellipse
         self.Ellipse_Grundwerte()
         self.Ellipse_2_Arcs(tol)
@@ -110,12 +110,13 @@ class EllipseClass:
         self.ratio = float(lp.line_pair[s].value)
         #Start Winkel - Achtung, ist als rad (0-2pi) im dxf
         s=lp.index_code(41,s+1)
-        self.Start_Ang=float(lp.line_pair[s].value)
+        self.AngS=float(lp.line_pair[s].value)
         #End Winkel - Achtung, ist als rad (0-2pi) im dxf
         s=lp.index_code(42,s+1)
-        self.End_Ang=float(lp.line_pair[s].value)
+        self.AngE=float(lp.line_pair[s].value)
         #Neuen Startwert für die nächste Geometrie zurückgeben
         caller.start=e
+        
 
     def analyse_and_opt(self):
         #Richtung in welcher der Anfang liegen soll (unten links)        
@@ -145,6 +146,8 @@ class EllipseClass:
         num_elements=1
         intol=False   
         
+        #print degrees(self.AngS)
+        print tol
 
         while not(intol):
             intol=True
@@ -158,16 +161,18 @@ class EllipseClass:
             self.PtsVec=[]
             self.PtsVec.append([Pa,tana])
             
-            for sec in range(num_elements*2):
-                #Neuer Winkel errechnen
-                angle+=-(self.ext)/num_elements/2
-
+            for sec in range(num_elements):
+                #Schrittweite errechnen
+                step=self.ext/num_elements
+                
+                #print degrees(step)
+                
                 #Endwerte errechnen            
-                Pb = self.Ellipse_Point(angle)
-                tanb= self.Ellipse_Tangent(angle)
+                Pb = self.Ellipse_Point(angle+step)
+                tanb= self.Ellipse_Tangent(angle+step)
 
                 #Biarc erstellen und an geo anhängen        
-                biarcs=BiarcClass(Pa,tana,Pb,tanb,tol/100)
+                biarcs=BiarcClass(Pb,tanb,Pa,tana,tol/100)
                 self.geo+=biarcs.geos[:]             
 
                 #Letzer Wert = Startwert
@@ -176,10 +181,17 @@ class EllipseClass:
                 
                 self.PtsVec.append([Pa,tana])
 
-                if not(self.check_ellipse_fitting_tolerance(biarcs,tol,angle,angle+(self.ext)/num_elements/2)):
+                if not(self.check_ellipse_fitting_tolerance(biarcs,tol,angle,angle+step)):
                     intol=False
                     num_elements+=1
                     break
+                
+                #Neuer Winkel errechnen
+                angle+=step
+        #print degrees(angle)
+        #print self
+        
+        
                       
     def check_ellipse_fitting_tolerance(self,biarc,tol,ang0,ang1):
         check_step=(ang1-ang0)/4

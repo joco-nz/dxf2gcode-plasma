@@ -22,6 +22,7 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from dxf2gcode_b02_point import PointClass, ContourClass
+from math import degrees, radians
 
 class InsertClass:
     def __init__(self,Nr=0,caller=None):
@@ -33,17 +34,22 @@ class InsertClass:
         self.Block = ''
         self.Point = []
         self.Scale=[1,1,1]
+        self.rot=0.0
         self.length=0.0
 
         #Lesen der Geometrie
-        self.Read(caller)         
+        self.Read(caller)    
+        print self     
         
     def __str__(self):
         # how to print the object
-        return '\nTyp: Insert\nNr ->'+str(self.Nr)\
-            +'\nLayer Nr: ->'+str(self.Layer_Nr)+'\nBlock ->' +str(self.Block) \
-            +str(self.Point) \
-            +'\nScale ->'+str(self.Scale) 
+        return '\nTyp:     Insert'+\
+                '\nNr:      %i' %self.Nr +\
+                '\nLayer Nr:%i' %self.Layer_Nr +\
+                '\nBlock:   %s' %self.Block +\
+                '\nPoint:   %s' %self.Point +\
+                '\nrot:     %0.2f' %degrees(self.rot) +\
+                '\nScale:   %s' %self.Scale 
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         cont.append(ContourClass(len(cont),0,[[i,0]],0))
@@ -55,6 +61,7 @@ class InsertClass:
 
         #Block Name        
         ind=lp.index_code(2,caller.start+1,e)
+        print lp.line_pair[ind].value ####################################################################
         self.Block=caller.Get_Block_Nr(lp.line_pair[ind].value)
         #Layer zuweisen        
         s=lp.index_code(8,caller.start+1,e)
@@ -79,6 +86,12 @@ class InsertClass:
         s_temp=lp.index_code(43,s+1,e)
         if s_temp!=None:
             self.Scale[2]=float(lp.line_pair[s_temp].value)
+            
+        #Rotation
+        s_temp=lp.index_code(50,s+1,e)
+        if s_temp!=None:
+            self.rot=radians(float(lp.line_pair[s_temp].value))
+
 
         #Neuen Startwert für die nächste Geometrie zurückgeben
         caller.start=e      

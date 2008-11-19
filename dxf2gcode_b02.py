@@ -1016,7 +1016,7 @@ class CanvasContentClass:
         self.path_hdls=[]
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1])
+        self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0)
         self.plot_shapes()
         self.LayerContents.sort()
         self.EntitieContents.sort()
@@ -1024,7 +1024,7 @@ class CanvasContentClass:
         #Autoscale des Canvas        
         self.Canvas.autoscale()
 
-    def make_shapes(self,ent_nr=-1,p0=PointClass(x=0,y=0),sca=[1,1,1]):
+    def make_shapes(self,ent_nr=-1,p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
         if ent_nr==-1:
             entities=self.values.entities
         else:
@@ -1037,10 +1037,23 @@ class CanvasContentClass:
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
             if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
                 ent_geo=ent_geos[cont[c_nr].order[0][0]]
-                self.make_shapes(ent_geo.Block,ent_geo.Point,ent_geo.Scale)
+                self.make_shapes(ent_geo.Block,\
+                                    ent_geo.Point,\
+                                    ent_geo.Scale,\
+                                    ent_geo.rot)
             else:
                 #Schleife fuer die Anzahl der Geometrien
-                self.Shapes.append(ShapeClass(len(self.Shapes),ent_nr,c_nr,cont[c_nr].closed,p0,sca[:],40,cont[c_nr].length*sca[0],[],[]))
+                self.Shapes.append(ShapeClass(len(self.Shapes),\
+                                                ent_nr,\
+                                                c_nr,\
+                                                cont[c_nr].closed,\
+                                                p0,\
+                                                sca[:],\
+                                                rot,\
+                                                40,\
+                                                cont[c_nr].length*sca[0],\
+                                                [],\
+                                                []))
                 for ent_geo_nr in range(len(cont[c_nr].order)):
                     ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
                     if cont[c_nr].order[ent_geo_nr][1]:

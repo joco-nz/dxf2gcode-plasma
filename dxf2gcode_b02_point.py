@@ -259,7 +259,7 @@ class ArcGeo:
         self.s_ang=s_ang
         self.e_ang=e_ang
 
-    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],tag=None,col='black'):
+    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0,tag=None,col='black'):
 
         #Das Plotten mit Tkinter hat Probleme für kleine Kreissegmente     
 ##        xy=p0.x+(self.O.x-abs(self.r))*sca[0],-p0.y-(self.O.y-abs(self.r))*sca[1],\
@@ -289,7 +289,7 @@ class ArcGeo:
             angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
         return punkt,angle
     
-    def Write_GCode(self,sca,p0,postpro):
+    def Write_GCode(self,sca,p0,rot,postpro):
         st_point, st_angle=self.get_start_end_points(0)
         IJ=(self.O-st_point)*sca
         
@@ -330,7 +330,7 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],tag=None,col='black'):
+    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0,tag=None,col='black'):
         anf=p0+self.Pa*sca
         ende=p0+self.Pe*sca
         hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col)
@@ -345,7 +345,7 @@ class LineGeo:
             angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
     
-    def Write_GCode(self,sca,p0,postpro):
+    def Write_GCode(self,sca,p0,rot,postpro):
         en_point, en_angle=self.get_start_end_points(1)
         ende=en_point*sca+p0
         #return("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
