@@ -73,8 +73,7 @@ class PointClass:
                           y=self.y+sin(radians(ang))*r)
 
     def Write_GCode(self,sca,p0,postpro):
-        point=self*sca+p0
-        #return("G0 %s%0.3f %s%0.3f\n" %(axis1,point.x,axis2,point.y))
+        point=self.rot_sca_abs(sca=sca,p0=p0,rot=0.0)
         return postpro.rap_pos_xy(point)
     
     def triangle_height(self,other1,other2):
@@ -82,7 +81,16 @@ class PointClass:
         a=self.distance(other1)
         b=other1.distance(other2)
         c=self.distance(other2)
-        return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))                
+        return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))  
+      
+    def rot_sca_abs(self,sca,p0,rot):
+        rot1=rot
+        rot=0.0
+        rotx=(self.x*cos(rot)+self.y*sin(rot))*sca[0]
+        roty=(self.x*sin(rot)+self.y*cos(rot))*sca[1]
+        p1= PointClass(x=rotx+p0.x,y=roty+p0.y)
+        print("Self: %s; P0: %s; rot: %0.1f; P1: %s" %(self,p0,degrees(rot1),p1))
+        return p1
       
 class PointsClass:
     #Initialisieren der Klasse
@@ -331,8 +339,8 @@ class LineGeo:
         return LineGeo(Pa=Pa,Pe=Pe)
         
     def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0,tag=None,col='black'):
-        anf=p0+self.Pa*sca
-        ende=p0+self.Pe*sca
+        anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,rot=rot)
+        ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,rot=rot)
         hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col)
         return [hdl]
 
