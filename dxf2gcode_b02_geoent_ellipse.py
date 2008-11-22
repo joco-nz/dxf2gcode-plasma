@@ -143,11 +143,11 @@ class EllipseClass:
     def Ellipse_2_Arcs(self, tol):
 
         #Anfangswert für Anzahl Elemente
-        num_elements=1
+        num_elements=2
         intol=False   
         
         #print degrees(self.AngS)
-        print tol
+        #print tol
 
         while not(intol):
             intol=True
@@ -161,11 +161,12 @@ class EllipseClass:
             self.PtsVec=[]
             self.PtsVec.append([Pa,tana])
             
+            
             for sec in range(num_elements):
                 #Schrittweite errechnen
                 step=self.ext/num_elements
                 
-                #print degrees(step)
+                print degrees(step)
                 
                 #Endwerte errechnen            
                 Pb = self.Ellipse_Point(angle+step)

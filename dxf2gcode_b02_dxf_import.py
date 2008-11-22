@@ -195,7 +195,23 @@ class Load_DXF:
         for block_nr in range(len(blocks_pos)):
             self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr ),1)
             blocks.Entities.append(EntitiesClass(block_nr,blocks_pos[block_nr].name,[]))
-            blocks.Entities[-1].geo=self.Get_Geo(blocks_pos[block_nr].begin+1, blocks_pos[block_nr].end-1)
+            #Lesen der BasisWerte für den Block
+            s=blocks_pos[block_nr].begin+1
+            e=blocks_pos[block_nr].end-1
+            lp=self.line_pairs
+            #XWert
+            s=lp.index_code(10,s+1,e)
+            blocks.Entities[-1].basep.x=float(lp.line_pair[s].value)
+            #YWert
+            s=lp.index_code(20,s+1,e)
+            blocks.Entities[-1].basep.y=float(lp.line_pair[s].value)
+            
+            #Lesen der Geometrien
+            blocks.Entities[-1].geo=self.Get_Geo(s,e)
+            
+            #Im Debug Modus 2 mehr Infos zum Block drucken
+            self.textbox.prt(("\n %s" %blocks.Entities[-1] ),2)
+            
         return blocks
     #Lesen der Entities Geometrien
     def Read_Entities(self,sections):
@@ -625,13 +641,18 @@ class EntitiesClass:
     def __init__(self,Nr=0, Name='',geo=[],cont=[]):
         self.Nr= Nr
         self.Name = Name
+        self.basep = PointClass(x=0.0,y=0.0)
         self.geo=geo
         self.cont=cont
+        
     def __str__(self):
         # how to print the object
-        return '\nNr ->'+str(self.Nr)+'\nName ->'+self.Name\
-               +'\nNumber or Geometries ->'+str(len(self.geo))\
-               +'\nNumber of Contours ->'+str(len(self.cont))\
+        return '\nNr:      %s' %(self.Nr) +\
+                '\nName:    %s' %(self.Name)+\
+                '\nBasep:   %s' %(self.basep)+\
+                '\nNumber or Geometries: %i' %(len(self.geo))+\
+                '\nNumber of Contours:   %i'  %(len(self.cont))
+                
                
     def __len__(self):
         return self.__len__
