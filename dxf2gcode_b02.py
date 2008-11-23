@@ -1032,6 +1032,8 @@ class CanvasContentClass:
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
         ent_geos=entities.geo
         cont=entities.cont
+        basep=entities.basep
+        
         #Schleife fuer die Anzahl der Konturen 
         for c_nr in range(len(cont)):
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
@@ -1048,6 +1050,7 @@ class CanvasContentClass:
                                                 c_nr,\
                                                 cont[c_nr].closed,\
                                                 p0,\
+                                                basep,\
                                                 sca[:],\
                                                 rot,\
                                                 40,\
