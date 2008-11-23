@@ -83,13 +83,12 @@ class PointClass:
         c=self.distance(other2)
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))  
       
-    def rot_sca_abs(self,sca,p0,rot):
-        rot1=rot
-        rot=0.0
-        rotx=(self.x*cos(rot)+self.y*sin(rot))*sca[0]
-        roty=(self.x*sin(rot)+self.y*cos(rot))*sca[1]
+    def rot_sca_abs(self,sca,p0,pb,rot):
+        rot=rot*-1
+        rotx=((self.x-pb.x)*cos(rot)+(self.y-pb.y)*sin(rot))*sca[0]
+        roty=((self.x-pb.x)*sin(rot)+(self.y-pb.y)*cos(rot))*sca[1]
         p1= PointClass(x=rotx+p0.x,y=roty+p0.y)
-        print("Self: %s; P0: %s; rot: %0.1f; P1: %s" %(self,p0,degrees(rot1),p1))
+        print("Self: %s; P0: %s; rot: %0.1f; P1: %s" %(self,p0,degrees(rot),p1))
         return p1
       
 class PointsClass:
@@ -267,7 +266,9 @@ class ArcGeo:
         self.s_ang=s_ang
         self.e_ang=e_ang
 
-    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0,tag=None,col='black'):
+    def plot2can(self,canvas=None,p0=PointClass(x=0.0,y=0.0),\
+                    pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
+                    rot=0.0,tag=None,col='black'):
 
         #Das Plotten mit Tkinter hat Probleme für kleine Kreissegmente     
 ##        xy=p0.x+(self.O.x-abs(self.r))*sca[0],-p0.y-(self.O.y-abs(self.r))*sca[1],\
@@ -338,9 +339,11 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0,tag=None,col='black'):
-        anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,rot=rot)
-        ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,rot=rot)
+    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),\
+                    pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
+                    rot=0.0,tag=None,col='black'):
+        anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
+        ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
         hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col)
         return [hdl]
 

@@ -30,12 +30,13 @@ from Canvas import Line
 
 class ShapeClass:
     def __init__(self,nr='None',ent_nr='None',ent_cnr='None',closed=0,\
-                 p0=PointClass(x=0.0,y=0.0),sca=[],rot=0.0,cut_cor=40,length=0.0,geos=[],geos_hdls=[]):
+                 p0=PointClass(x=0.0,y=0.0),pb=PointClass(x=0.0,y=0.0),sca=[],rot=0.0,cut_cor=40,length=0.0,geos=[],geos_hdls=[]):
         self.nr=nr
         self.ent_nr=ent_nr
         self.ent_cnr=ent_cnr
         self.closed=closed
         self.p0=p0
+        self.pb=pb
         self.sca=sca
         self.rot=rot
         self.cut_cor=40
@@ -49,6 +50,7 @@ class ShapeClass:
                ('\nent_cnr:      %i' %self.ent_cnr)+\
                ('\nclosed:      %i' %self.closed)+\
                ('\np0:          %s' %self.p0)+\
+               ('\npb:          %s' %self.pb)+\
                ('\nsca:         %s' %self.sca)+\
                ('\nrot:         %s' %self.rot)+\
                ('\ncut_cor:     %s' %self.cut_cor)+\
@@ -78,7 +80,7 @@ class ShapeClass:
 
     def plot2can(self,canvas):
         for geo in self.geos:
-            self.geos_hdls+=geo.plot2can(canvas,self.p0,self.sca,self.rot,self.nr)
+            self.geos_hdls+=geo.plot2can(canvas,self.p0,self.pb,self.sca,self.rot,self.nr)
             
     def plot_cut_info(self,CanvasClass,config):
         hdls=[]
