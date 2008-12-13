@@ -31,25 +31,26 @@ class InsertClass:
 
         #Initialisieren der Werte        
         self.Layer_Nr = 0
-        self.Block = ''
+        self.BlockName = ''
         self.Point = []
         self.Scale=[1,1,1]
         self.rot=0.0
         self.length=0.0
 
         #Lesen der Geometrie
-        self.Read(caller)    
-        print self     
+        self.Read(caller)   
+        
+        print self
         
     def __str__(self):
         # how to print the object
-        return '\nTyp:     Insert'+\
-                '\nNr:      %i' %self.Nr +\
-                '\nLayer Nr:%i' %self.Layer_Nr +\
-                '\nBlock:   %s' %self.Block +\
-                '\nPoint:   %s' %self.Point +\
-                '\nrot:     %0.2f' %degrees(self.rot) +\
-                '\nScale:   %s' %self.Scale 
+        return '\nTyp:          Insert'+\
+                '\nNr:          %i' %self.Nr +\
+                '\nLayer Nr:    %i' %self.Layer_Nr +\
+                '\nBlockName:   %s' %self.BlockName +\
+                '\nPoint:       %s' %self.Point +\
+                '\nrot:         %0.2f' %degrees(self.rot) +\
+                '\nScale:       %s' %self.Scale 
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         cont.append(ContourClass(len(cont),0,[[i,0]],0))
@@ -61,8 +62,8 @@ class InsertClass:
 
         #Block Name        
         ind=lp.index_code(2,caller.start+1,e)
-        print lp.line_pair[ind].value ####################################################################
-        self.Block=caller.Get_Block_Nr(lp.line_pair[ind].value)
+        #print lp.line_pair[ind].value ####################################################################
+        self.BlockName=lp.line_pair[ind].value
         #Layer zuweisen        
         s=lp.index_code(8,caller.start+1,e)
         self.Layer_Nr=caller.Get_Layer_Nr(lp.line_pair[s].value)

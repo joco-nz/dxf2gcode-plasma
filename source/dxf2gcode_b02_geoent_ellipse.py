@@ -166,7 +166,7 @@ class EllipseClass:
                 #Schrittweite errechnen
                 step=self.ext/num_elements
                 
-                print degrees(step)
+                #print degrees(step)
                 
                 #Endwerte errechnen            
                 Pb = self.Ellipse_Point(angle+step)

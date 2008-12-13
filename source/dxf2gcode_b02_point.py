@@ -84,11 +84,20 @@ class PointClass:
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))  
       
     def rot_sca_abs(self,sca,p0,pb,rot):
-        rot=rot*-1
-        rotx=((self.x-pb.x)*cos(rot)+(self.y-pb.y)*sin(rot))*sca[0]
-        roty=((self.x-pb.x)*sin(rot)+(self.y-pb.y)*cos(rot))*sca[1]
-        p1= PointClass(x=rotx+p0.x,y=roty+p0.y)
-        print("Self: %s; P0: %s; rot: %0.1f; P1: %s" %(self,p0,degrees(rot),p1))
+        pc=self-pb
+        rot=rot
+        rotx=(pc.x*cos(rot)+pc.y*sin(rot))*sca[0]
+        roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
+        p1= PointClass(x=rotx+p0.x,y=roty+p0.y)+pb
+        
+#        print(("Self:    %s\n" %self)+\
+#                ("P0:      %s\n" %p0)+\
+#                ("Pb:      %s\n" %pb)+\
+#                ("Pc:      %s\n" %pc)+\
+#                ("rot:     %0.1f\n" %degrees(rot))+\
+#                ("sca:     %s\n" %sca)+\
+#                ("P1:      %s\n\n" %p1))
+        
         return p1
       
 class PointsClass:
@@ -269,24 +278,24 @@ class ArcGeo:
     def plot2can(self,canvas=None,p0=PointClass(x=0.0,y=0.0),\
                     pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
                     rot=0.0,tag=None,col='black'):
-
-        #Das Plotten mit Tkinter hat Probleme für kleine Kreissegmente     
-##        xy=p0.x+(self.O.x-abs(self.r))*sca[0],-p0.y-(self.O.y-abs(self.r))*sca[1],\
-##            p0.x+(self.O.x+abs(self.r))*sca[0],-p0.y-(self.O.y+abs(self.r))*sca[1]
-##
-##        hdl=Arc(canvas,xy,start=degrees(self.s_ang),extent=degrees(self.ext),style="arc",\
-##            tag=tag)
-
+                        
         x=[]; y=[]; hdl=[]
-        #Alle 6 Grad ein Segment => 60 Segmente für einen Kreis !!
-        segments=int((abs(degrees(self.ext))//6)+1)
+        #Alle 3 Grad ein Segment => 120 Segmente für einen Kreis !!
+        segments=int((abs(degrees(self.ext))//3)+1)
+        
         for i in range(segments+1):
+            
             ang=self.s_ang+i*self.ext/segments
-            x.append(p0.x+(self.O.x+cos(ang)*abs(self.r))*sca[0])
-            y.append(p0.y+(self.O.y+sin(ang)*abs(self.r))*sca[1])
-
+            p_cur=PointClass(x=(self.O.x+cos(ang)*abs(self.r)),\
+                       y=(self.O.y+sin(ang)*abs(self.r)))
+                    
+            p_cur_rot=p_cur.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
+            x.append(p_cur_rot.x)
+            y.append(p_cur_rot.y)
+            
             if i>=1:
                 hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag,fill=col))       
+         
         return hdl        
 
     def get_start_end_points(self,direction):
@@ -522,6 +531,3 @@ class BiarcClass:
         for geo in self.geos:
             s+=str(geo)
         return s
-    
-     
-    
