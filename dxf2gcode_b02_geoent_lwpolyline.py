@@ -118,10 +118,23 @@ class LWPolylineClass:
             s=lp.index_code(20,s+1,e)
             y=float(lp.line_pair[s].value)
             Pe=PointClass(x=x,y=y)
+            #Bulge
+            bulge=0
+            s_temp=lp.index_code(42,s+1,min(e,lp.index_code(10,s+1,e)))
+            #print('stemp: %s, e: %s, next 10: %s' %(s_temp,e,lp.index_code(10,s+1,e)))
+            if s_temp!=None:
+                bulge=float(lp.line_pair[s].value)
+                s=s_temp
+            
             
             #Zuweisen der Geometrien für die Polyline
             if not(type(Pa)==type(None)):
-                self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                if bulge==0:
+                    self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                else:
+                    self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                    #print 'keine Linie'
+                    
                 self.length+=self.geo[-1].length
             Pa=Pe
                    
@@ -139,5 +152,3 @@ class LWPolylineClass:
         elif direction:
             punkt, angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
-    
-    

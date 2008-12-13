@@ -43,6 +43,7 @@ class ShapeClass:
         self.length=length
         self.geos=geos
         self.geos_hdls=geos_hdls
+        print self
         
     def __str__(self):
         return ('\nnr:          %i' %self.nr)+\

@@ -71,16 +71,16 @@ langs = []
 lc, encoding = locale.getdefaultlocale()
 
 if (lc):
-	#Wenn wir eine haben diese als Default setzen
-	langs = [lc]
+    #Wenn wir eine haben diese als Default setzen
+    langs = [lc]
 
 # Herausfinden welche sprachen wir haben
 language = os.environ.get('LANGUAGE', None)
 if (language):
-	"""langage comes back something like en_CA:en_US:en_GB:en
-	on linuxy systems, on Win32 it's nothing, so we need to
-	split it up into a list"""
-	langs += language.split(":")
+    """langage comes back something like en_CA:en_US:en_GB:en
+    on linuxy systems, on Win32 it's nothing, so we need to
+    split it up into a list"""
+    langs += language.split(":")
 
 """Now add on to the back of the list the translations that we
 know that we have, our defaults"""
@@ -233,7 +233,6 @@ class Erstelle_Fenster:
 
         #Dateiendung pruefen
         (name,ext)=os.path.splitext(self.load_filename)
-        print ext
 
         if ext.lower()==".dxf":
             filename=self.load_filename
@@ -246,7 +245,9 @@ class Erstelle_Fenster:
             
             pstoedit_cmd=self.config.pstoedit_cmd.encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
             pstoedit_opt=eval(self.config.pstoedit_opt) #['-f','dxf','-mm']
-            print pstoedit_opt
+            
+            #print pstoedit_opt
+            
             ps_filename=os.path.normcase(self.load_filename.encode("cp1252"))
 
             cmd=[(('%s')%pstoedit_cmd)]+pstoedit_opt+[(('%s')%ps_filename),(('%s')%filename)]
@@ -429,7 +430,7 @@ class Erstelle_Fenster:
                     
         #Drucken in den Stdout, speziell fuer EMC2 
         if postpro.write_to_stdout:
-            print(string)
+            #print(string)
             self.ende()     
         else:
             #Exportieren der Daten
@@ -1024,10 +1025,13 @@ class CanvasContentClass:
         #Autoscale des Canvas        
         self.Canvas.autoscale()
 
-    def make_shapes(self,ent_nr=-1,p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
-        if ent_nr==-1:
+    def make_shapes(self,EntName="Entities",p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
+
+        if EntName=="Entities":
+            ent_nr=-1
             entities=self.values.entities
         else:
+            ent_nr=self.values.Get_Block_Nr(EntName)
             entities=self.values.blocks.Entities[ent_nr]
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
         ent_geos=entities.geo
@@ -1039,9 +1043,9 @@ class CanvasContentClass:
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
             if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
                 ent_geo=ent_geos[cont[c_nr].order[0][0]]
-                self.make_shapes(ent_geo.Block,\
-                                    ent_geo.Point,\
-                                    ent_geo.Scale,\
+                self.make_shapes(ent_geo.BlockName,\
+                                    p0-basep+ent_geo.Point,\
+                                    [ent_geo.Scale[0]*sca[0],ent_geo.Scale[1]*sca[1],ent_geo.Scale[2]*sca[2]],\
                                     ent_geo.rot)
             else:
                 #Schleife fuer die Anzahl der Geometrien
