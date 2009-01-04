@@ -47,7 +47,7 @@ class EllipseClass:
         self.Read(caller)
 
         #Zuweisen der Toleranz fürs Fitting
-        tol=caller.config.fitting_tolerance.get()
+        tol=caller.config.fitting_tolerance
         
         #Errechnen der Ellipse
         self.Ellipse_Grundwerte()

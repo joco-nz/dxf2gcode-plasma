@@ -25,42 +25,52 @@
 #First Version of dxf2gcode Hopefully all works as it should
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
-#Loeschen aller Module aus dem Speicher
-import sys, os, string
+# Globale Konstanten
+APPNAME = "dxf2gcode"
+VERSION = "2.0 beta1"
+DEBUG   = 3
 
+#Loeschen aller Module aus dem Speicher---------------------------------------------------------------
+import sys, os, string
 if globals().has_key('init_modules'):
     for m in [x for x in sys.modules.keys() if x not in init_modules]:
         del(sys.modules[m]) 
 else:
     init_modules = sys.modules.keys()
+    
 
+#Importieren der Module beginnt hier-----------------------------------------------------------------
+
+
+#Schauen ob das numpy Modul geladen werden kann
+try:
+    import numpy as N
+    haveNumpy = True
+except ImportError:
+            # numpy isn't there
+            print ("The FloatCanvas requires the numpy module, version 1.* \n\n"
+            "You can get info about it at:\n"
+            "http://numpy.scipy.org/\n\n")
+      
 import wx
+import wx.aui
 from wx.lib.wordwrap import wordwrap
+
+from wx.lib.floatcanvas import NavCanvas, FloatCanvas, Resources
+import wx.lib.colourdb
 
 import locale
 import gettext, ConfigParser, tempfile, subprocess
 from copy import copy
 
-#from dxf2gcode_b02_point import PointClass
-#from dxf2gcode_b02_shape import ShapeClass
-#import dxf2gcode_b02_dxf_import as dxf_import 
-#import dxf2gcode_b02_tsp_opt as tsp
+from dxf2gcode_b02_point import PointClass
+from dxf2gcode_b02_shape import ShapeClass
+import dxf2gcode_b02_dxf_import as dxfimport 
+import dxf2gcode_b02_tsp_opt as tsp
 
-#from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
-#from tkMessageBox import showwarning, showerror
-#from Tkinter import Tk, Canvas, Menu, Frame, DoubleVar, IntVar, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
-#from tkFileDialog import askopenfile, asksaveasfilename
-#from tkSimpleDialog import askfloat
-#from Canvas import Rectangle, Line, Oval, Arc
+import time, random
 
-
-# Globale "Konstanten"
-APPNAME = "dxf2gcode"
-VERSION = "2.0 beta1"
-
-# Config Verzeichniss
-
-
+# Config Verzeichnisse----------------------------------------------------------------------------------
 if os.name == 'posix': 
     FOLDER = os.path.join(os.environ.get('HOME'), "." + APPNAME.lower()) 
 elif os.name == 'nt': 
@@ -69,8 +79,10 @@ elif os.name == 'nt':
 #Das momentane Verzeichnis herausfinden
 local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
+
+#Übersetzungen initialisieren----------------------------------------------------------------------------
 # Liste der unterstützuden Sprachen anlegen.
-langs = []
+langs = ['DE_de']
 
 #Default Sprache des Systems herausfinden
 lc, encoding = locale.getdefaultlocale()
@@ -98,56 +110,75 @@ told us, and finally the 'known' list"""
 gettext.bindtextdomain(APPNAME, local_path)
 gettext.textdomain(APPNAME)
 # Get the language to use
+print langs
 trans = gettext.translation(APPNAME, localedir='languages', languages=langs, fallback = True)
 trans.install()
 
 
-class Erstelle_Fenster(wx.App):
-    def __init__(self, load_filename=None):
-        wx.App.__init__(self, False, None)
+class MyFrameClass(wx.Frame):
+    def __init__(self, parent, load_filename=None,id=-1, title='%s, Version: %s' %(APPNAME.capitalize(),VERSION),
+                 pos=wx.DefaultPosition, size=(1024, 768),
+                 style=wx.DEFAULT_FRAME_STYLE):
 
-        #Erstellen des Fensters in der angegebenen Größe
-        self.frame=wx.Frame(None,-1,'%s, Version: %s' %(APPNAME,VERSION),\
-                            wx.DefaultPosition,wx.Size(1024, 768))
                             
         #Erstellen der verschiedenen Verzeichnisse
-        self.get_foldernames()
-
-        #Erstellen der Status Bar am unteren Ende
-        self.frame.CreateStatusBar()
-        self.frame.SetStatusText("This is the statusbar")       
-
-        #Erstellen des Fenster Menus
-        self.erstelle_menu()      
-       
+        self.GetFoldernames()
+        
         #Uebergabe des load_filenames falls von EMC gestartet
         self.load_filename=load_filename
         
-#        #Linker Rahmen erstellen, in welchen später die Eingabefelder kommen       
-#        self.frame_l=Frame(master) 
-#        self.frame_l.grid(row=0,column=0,rowspan=2,padx=4,pady=4,sticky=N+E+W)
-#        
-#        #Erstellen des Canvas Rahmens
-#        self.frame_c=Frame(master,relief = RIDGE,bd = 2)
-#        self.frame_c.grid(row=0,column=1,padx=4,pady=4,sticky=N+E+S+W)
-#        
-#        #Unterer Rahmen erstellen mit der Lisbox + Scrollbar zur Darstellung der Ereignisse.
-#        self.frame_u=Frame(master) 
-#        self.frame_u.grid(row=1,column=1,padx=4,sticky=N+E+W+S)
-#        #Erstellen des Statusfenster
-#        self.textbox=TextboxClass(frame=self.frame_u,master=self.master)
-#
-#        #Voreininstellungen fuer das Programm laden
-#        self.config=ConfigClass(self.textbox)
-#
-#        #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-#        self.postpro=PostprocessorClass(self.config,self.textbox)
-#
-#        self.master.columnconfigure(0,weight=0)
-#        self.master.columnconfigure(1,weight=1)
-#        self.master.rowconfigure(0,weight=1)
-#        self.master.rowconfigure(1,weight=0)
-#            
+        #Erstellen des Fenster
+        wx.Frame.__init__(self, parent, id, title, pos, size, style)
+
+        self._mgr = wx.aui.AuiManager(self)
+
+        #Erstellen der Status Bar am unteren Ende
+        self.CreateStatusBar()
+        self.SetStatusText("This is the statusbar")       
+
+        #Erstellen des Fenster Menus
+        self.CreateMenues()
+        self.BindMenuEvents()
+        self.DisableAllMenues()
+            
+        #Erstellen des Baums für die Entities
+        self.MyEntTree = MyTreeClass(self, wx.ID_ANY)   
+
+        #Erstellen der Messagebox für die Meldungen
+        self.MyMessages = MyMessagesClass(self, -1)
+        
+        #Erstellen des Rahmens für die verwendeten Layers
+        self.MyLayers = MyLayersClass(self, -1)
+
+        #Erstellen des Zeichenbereichs (früher Canvas?!)
+        self.MyGraphic = MyGraphicClass(self,-1)
+                        
+        #Die Verschiedeneen Objecte zum Sizer AUIManager hinzufügen
+        self._mgr.AddPane(self.MyEntTree, wx.aui.AuiPaneInfo(). 
+                          Caption("Entities").Floatable(False).
+                          Left().CloseButton(False))            
+        self._mgr.AddPane(self.MyLayers,wx.aui.AuiPaneInfo(). 
+                          Caption("Layers").Floatable(False). 
+                          Left().CloseButton(False))
+        self._mgr.AddPane(self.MyMessages, wx.aui.AuiPaneInfo(). 
+                          Caption("Messages").Floatable(False).
+                          Bottom().CloseButton(False))
+        self._mgr.AddPane(self.MyGraphic, wx.aui.AuiPaneInfo(). 
+                          CaptionVisible(False). 
+                          Center())
+
+        #Dem Manager sagen er soll alles auf Stand bringen
+        self._mgr.Update()
+
+        #Den Event Schliessen hinzufügen
+        self.Bind(wx.EVT_CLOSE, self.CloseWindow)
+        
+        #Voreininstellungen fuer das Programm laden
+        self.config=MyConfigClass(self.MyMessages)
+
+        #PostprocessorClass initialisieren (Voreinstellungen aus Config)
+        self.postpro=MyPostprocessorClass(self.config,self.MyMessages)
+            
 #        #Erstellen de Eingabefelder und des Canvas
 #        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
 #        self.Canvas =CanvasClass(self.frame_c,self)
@@ -157,127 +188,156 @@ class Erstelle_Fenster(wx.App):
 #        self.Canvas.Content=self.CanvasContent
 # 
 #        
-#        #Falls ein load_filename_uebergeben wurde
-#        if not(self.load_filename is None):
-#            #Zuerst alle ausstehenden Events und Callbacks ausfuehren (sonst klappts beim Laden nicht)
-#            self.Canvas.canvas.update()
-#            self.Load_File()
+        #Falls ein load_filename_uebergeben wurde
+        if not(self.load_filename is None):
+            #Zuerst alle ausstehenden Events und Callbacks ausfuehren (sonst klappts beim Laden nicht)
+            self.Load_File()
 
-        self.frame.Show()
-        self.SetTopWindow(self.frame)
-
-    def get_foldernames(self):
+    def GetFoldernames(self):
         self.programdirectory = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
         self.bitmapdirectory = self.programdirectory + "/bitmaps"
-        
-    def erstelle_menu(self):
-        #Erstellen des Fenster Menus
-        self.menuBar = wx.MenuBar()
-        
+       
+    def CreateMenues(self):
         #Filemenu erstellen
-        self.filemenu = wx.Menu()
-        self.filemenu.Append(101, _("Read DXF"), _("Import a dxf file"))
-        self.filemenu.AppendSeparator()
-        quit=wx.MenuItem(self.filemenu,102, _("&Quit\tCtrl+Q"), _("Close this frame"))
+        menuBar = wx.MenuBar()
+        self.filemenu=filemenu = wx.Menu()
+        open=wx.MenuItem(filemenu,101,_("Open DXF"), _("Import a dxf file"))
+        open.SetBitmap(wx.Bitmap(self.bitmapdirectory + "/open.png"))
+        filemenu.AppendItem(open)
+        
+        filemenu.AppendSeparator()
+        quit=wx.MenuItem(filemenu,102, _("&Quit\tCtrl+Q"), _("Close this frame"))
         quit.SetBitmap(wx.Bitmap(self.bitmapdirectory + "/exit.png"))
-        self.filemenu.AppendItem(quit)
-        self.menuBar.Append(self.filemenu, _("File"))
+        filemenu.AppendItem(quit)
+        menuBar.Append(filemenu, _("File"))
              
-        self.Bind(wx.EVT_MENU, self.Get_Load_File, id=101)
-        self.Bind(wx.EVT_MENU, self.CloseWindow, id=102)
 
         #Exportmenu erstellen
-        self.exportmenu = wx.Menu()
-        self.exportmenu.Append(201, _("Write G-Code"), _("Write G-Code in file / stdout to EMC"))
-        self.exportmenu.Enable(201,False)
+        self.exportmenu=exportmenu = wx.Menu()
+        export=wx.MenuItem(exportmenu,201, _("Write G-Code"), _("Write G-Code in file / stdout to EMC"))
+        export.SetBitmap(wx.Bitmap(self.bitmapdirectory + "/export.png"))
+        exportmenu.AppendItem(export)
+        menuBar.Append(exportmenu, _("Export"))
         
-        self.menuBar.Append(self.exportmenu, _("Export"))
-        
-        self.Bind(wx.EVT_MENU, self.Write_GCode, id=201)
-
-
         #Viewmenu erstellen
-        self.viewmenu= wx.Menu()
-        self.shwpz = self.viewmenu.Append(301, _("Show workpiece zero"),\
+        self.viewmenu=viewmenu= wx.Menu()
+        shwpz = viewmenu.Append(301, _("Show workpiece zero"),\
                     _("Show a symbol for the workpiece zero in the drawing"), kind=wx.ITEM_CHECK)
-        self.viewmenu.Check(301, True)
-        self.viewmenu.Enable(301,False)
-        
-        self.shapd = self.viewmenu.Append(302, _("Show all path directions"),\
+        viewmenu.Check(301, True)
+        shapd = viewmenu.Append(302, _("Show all path directions"),\
                     _("Show the path direction of all shapes"), kind=wx.ITEM_CHECK)
-        self.viewmenu.Check(302, False)
-        self.viewmenu.Enable(302,False)
+        viewmenu.Check(302, False)
+
         
-        self.shsds = self.viewmenu.Append(303, _("Show disabled shapes"),\
+        shsds = viewmenu.Append(303, _("Show disabled shapes"),\
                     _("Show the disabled shapes grayed out"), kind=wx.ITEM_CHECK)
-        self.viewmenu.Check(303, True)
-        self.viewmenu.Enable(303,False)
+        viewmenu.Check(303, True) 
+        viewmenu.AppendSeparator()
+        viewmenu.Append(304, _("Autoscale"), _("Fit the drawing to the screen"))
+        viewmenu.AppendSeparator()
+        viewmenu.Append(305, _("Delete Route"), _("Delete the route which was drawn during export"))               
+        menuBar.Append(viewmenu, _("View"))
         
-        self.viewmenu.AppendSeparator()
-        self.viewmenu.Append(304, _("Autoscale"), _("Fit the drawing to the screen"))
-        self.viewmenu.Enable(304,False)
+        self.optionmenu=optionmenu= wx.Menu()
+        optionmenu.Append(401, _("Set tolerances"), _("Set the tolerances for the dxf import"))
+        optionmenu.AppendSeparator()
+        optionmenu.Append(402, _("Move workpiece zero"), _("Offset the workpiece zero of the drawing"))
         
-        self.viewmenu.AppendSeparator()
-        self.viewmenu.Append(305, _("Delete Route"), _("Delete the route which was drawn during export"))
-        self.viewmenu.Enable(305,False)
-                            
-        self.menuBar.Append(self.viewmenu, _("View"))
+        menuBar.Append(optionmenu, _("Options"))
+                
+        helpmenu = wx.Menu()
+        helpmenu.Append(501, "About", "Show the About dialog")
+        menuBar.Append(helpmenu, "Help")    
+
+        self.SetMenuBar(menuBar)
         
+    def BindMenuEvents(self):
+        #Filemenu 
+        self.Bind(wx.EVT_MENU, self.GetLoadFile, id=101)
+        self.Bind(wx.EVT_MENU, self.CloseWindow, id=102)
+        
+        #Exportmenu
+        self.Bind(wx.EVT_MENU, self.WriteGCode, id=201)
+        
+        #Viewmenu
         #self.Bind(wx.EVT_MENU, self.CanvasContent.plot_wp_zero, id=301)
         #self.Bind(wx.EVT_MENU, self.CanvasContent.plot_cut_info, id=302)
         #self.Bind(wx.EVT_MENU, self.CanvasContent.show_disabled, id=303)
         #self.Bind(wx.EVT_MENU, self.Canvas.autoscale, id=304)
         #self.Bind(wx.EVT_MENU, self.del_route_and_menuentry, id=305)
         
-        self.optionmenu= wx.Menu()
-        self.optionmenu.Append(401, _("Set tolerances"), _("Set the tolerances for the dxf import"))
+        #Optionsmenu
+        self.Bind(wx.EVT_MENU, self.GetContTol, id=401)
+        self.Bind(wx.EVT_MENU, self.MoveWpZero, id=402)
+        
+        #Helpmenu
+        self.Bind(wx.EVT_MENU, self.ShowAbout, id=501)
+        
+    def DisableAllMenues(self):
+        
+        #Exportmenu
+        self.exportmenu.Enable(201,False)
+        
+        #Viewmenu
+        self.viewmenu.Enable(301,False)
+        self.viewmenu.Enable(302,False)
+        self.viewmenu.Enable(303,False)
+        self.viewmenu.Enable(304,False)
+        self.viewmenu.Enable(305,False)
+        
+        #Optionsmenu
         self.optionmenu.Enable(401,False)
-        self.optionmenu.AppendSeparator()
-        self.optionmenu.Append(402, _("Move workpiece zero"), _("Offset the workpiece zero of the drawing"))
         self.optionmenu.Enable(402,False)
-        self.menuBar.Append(self.optionmenu, _("Options"))
         
-         #self.Bind(wx.EVT_MENU, self.Get_Cont_Tol, id=401)
-         #self.Bind(wx.EVT_MENU, self.Move_WP_zero, id=402)
-              
-        self.helpmenu = wx.Menu()
-        self.helpmenu.Append(501, "About", "Show the About dialog")
-        self.menuBar.Append(self.helpmenu, "Help")    
-        self.Bind(wx.EVT_MENU, self.Show_About, id=501)
-
-        self.frame.SetMenuBar(self.menuBar)
+    def EnableAllMenues(self):
+        #Exportmenu
+        self.exportmenu.Enable(201,True)
         
+        #Viewmenu
+        self.viewmenu.Enable(301,True)
+        self.viewmenu.Enable(302,True)
+        self.viewmenu.Enable(303,True)
+        self.viewmenu.Enable(304,True)
+        #self.viewmenu.Enable(305,True)
+        
+        #Optionsmenu
+        self.optionmenu.Enable(401,True)
+        self.optionmenu.Enable(402,True)
     # Callback des Menu Punkts File Laden
-    def Get_Load_File(self):
-            pass
-        
-#        #Auswahl des zu ladenden Files
-#        myFormats = [(_('Supported files'),'*.dxf *.ps *.pdf'),\
-#                     (_('AutoCAD / QCAD Drawing'),'*.dxf'),\
-#                     (_('Postscript File'),'.ps'),\
-#                     (_('PDF File'),'.pdf'),\
-#                     (_('All File'),'*.*') ]
-#        inidir=self.config.load_path
-#        filename = askopenfile(initialdir=inidir,\
-#                               filetypes=myFormats)
-#        #Falls abgebrochen wurde
-#        if not filename:
-#            return
-#        else:
-#            self.load_filename=filename.name
-#
-#        self.Load_File()
-#
-#    def Load_File(self):
-#
-#        #Dateiendung pruefen
-#        (name,ext)=os.path.splitext(self.load_filename)
-#
-#        if ext.lower()==".dxf":
-#            filename=self.load_filename
-#            
-#        elif (ext.lower()==".ps")or(ext.lower()==".pdf"):
-#            self.textbox.prt(_("\nSending Postscript/PDF to pstoedit"))
+    def GetLoadFile(self,event):
+                
+        #Auswahl des zu ladenden Files
+        myFormats = _('Supported files')+'|*.dxf;*.ps;*.pdf|'+ \
+                     _('AutoCAD / QCAD Drawing')+'|*.dxf|'+\
+                     _('Postscript File')+'|*.ps|'+\
+                     _('PDF File')+'|*.pdf|'+\
+                     _('All File')+'|*.*' 
+                          
+        dlg = wx.FileDialog(
+            self, message="Choose a file",
+            defaultDir=os.getcwd(), 
+            defaultFile="",
+            wildcard=myFormats,
+            style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
+
+        # Wenn OK dann weiter ausführen
+        if dlg.ShowModal() == wx.ID_OK:
+            # This returns a Python list of files that were selected.
+            paths = dlg.GetPaths()
+            
+            self.load_filename=paths[0]
+            self.LoadFile()
+
+    def LoadFile(self):
+
+        #Dateiendung pruefen
+        (name,ext)=os.path.splitext(self.load_filename)
+
+        if ext.lower()==".dxf":
+            filename=self.load_filename
+            
+        elif (ext.lower()==".ps")or(ext.lower()==".pdf"):
+            self.textbox.prt(_("\nSending Postscript/PDF to pstoedit"))
 #            
 #            # temporäre Datei erzeugen
 #            filename=os.path.join(tempfile.gettempdir(),'dxf2gcode_temp.dxf').encode("cp1252")
@@ -296,50 +356,41 @@ class Erstelle_Fenster(wx.App):
 #            retcode=subprocess.call(cmd)
 #            #print retcode
 #
-#        self.textbox.text.delete(7.0,END)
-#        self.textbox.prt(_('\nLoading file: %s') %self.load_filename)
-#        
-#        self.values=dxf_import.Load_DXF(filename,self.config,self.textbox)
-#        
-#        #Ausgabe der Informationen im Text Fenster
-#        self.textbox.prt(_('\nLoaded layers: %s') %len(self.values.layers))
-#        self.textbox.prt(_('\nLoaded blocks: %s') %len(self.values.blocks.Entities))
-#        for i in range(len(self.values.blocks.Entities)):
-#            layers=self.values.blocks.Entities[i].get_used_layers()
-#            self.textbox.prt(_('\nBlock %i includes %i Geometries, reduced to %i Contours, used layers: %s ')\
-#                               %(i,len(self.values.blocks.Entities[i].geo),len(self.values.blocks.Entities[i].cont),layers))
-#        layers=self.values.entities.get_used_layers()
-#        insert_nr=self.values.entities.get_insert_nr()
-#        self.textbox.prt(_('\nLoaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
-#                             %(len(self.values.entities.geo),len(self.values.entities.cont),layers,insert_nr))
-#
-#        #Skalierung der Kontur
-#        self.cont_scale=1.0
-#        
-#        #Verschiebung der Kontur
-#        self.cont_dx=0.0
-#        self.cont_dy=0.0
-#
-#        #Disabled bis was gelesen wurde
-#        self.viewmenu.entryconfig(0,state=NORMAL)
-#        self.viewmenu.entryconfig(1,state=NORMAL)
-#        self.viewmenu.entryconfig(2,state=NORMAL)
-#        self.viewmenu.entryconfig(4,state=NORMAL)
-#
-#        #Disabled bis was gelesen wurde
-#        self.exportmenu.entryconfig(0,state=NORMAL)
-#
-#        #Disabled bis was gelesen wurde
-#        self.optionmenu.entryconfig(2,state=NORMAL)
-#        self.optionmenu.entryconfig(3,state=NORMAL)        
-#
-#        #Ausdrucken der Werte        
-#        self.CanvasContent.makeplot(self.values)
-#
-#        #Loeschen alter Route Menues
-#        self.del_route_and_menuentry()
-#            
-#    def Get_Cont_Tol(self):
+        self.MyMessages.TextDelete(None)
+        self.MyMessages.prt(_('\nLoading file: %s') %self.load_filename)
+        
+        self.values=dxfimport.LoadDXF(filename,self.config,self.MyMessages)
+        
+        #Ausgabe der Informationen im Text Fenster
+        self.MyMessages.prt(_('\nLoaded layers: %s') %len(self.values.layers))
+        self.MyMessages.prt(_('\nLoaded blocks: %s') %len(self.values.blocks.Entities))
+        for i in range(len(self.values.blocks.Entities)):
+            layers=self.values.blocks.Entities[i].get_used_layers()
+            self.MyMessages.prt(_('\nBlock %i includes %i Geometries, reduced to %i Contours, used layers: %s ')\
+                               %(i,len(self.values.blocks.Entities[i].geo),len(self.values.blocks.Entities[i].cont),layers))
+        layers=self.values.entities.get_used_layers()
+        insert_nr=self.values.entities.get_insert_nr()
+        self.MyMessages.prt(_('\nLoaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
+                             %(len(self.values.entities.geo),len(self.values.entities.cont),layers,insert_nr))
+
+        #Skalierung der Kontur
+        self.cont_scale=1.0
+        
+        #Verschiebung der Kontur
+        self.cont_dx=0.0
+        self.cont_dy=0.0
+        
+        #Einschalten der disabled Menus
+        self.EnableAllMenues()
+
+        #Ausdrucken der Werte        
+        #self.CanvasContent.makeplot(self.values)
+
+        #Loeschen alter Route Menues
+        #self.del_route_and_menuentry()
+            
+    def GetContTol(self):
+        pass
 #
 #        #Dialog fuer die Toleranzvoreinstellungen oeffnen      
 #        title=_('Contour tolerances')
@@ -374,7 +425,8 @@ class Erstelle_Fenster(wx.App):
 #
 #        self.Canvas.scale_contours(self.cont_scale/old_scale)        
 #        
-#    def Move_WP_zero(self):
+    def MoveWpZero(self):
+        pass
 #        #Die alten Werte zwischenspeichern fuer das verschieben des Canvas
 #        old_dx=self.cont_dx
 #        old_dy=self.cont_dy
@@ -420,7 +472,7 @@ class Erstelle_Fenster(wx.App):
 #                               initialfile=fileBaseName +'.ngc',filetypes=myFormats)
 #
     # Callback des Menu Punkts Exportieren
-    def Write_GCode(self):
+    def WriteGCode(self):
         pass
 #        #Funktion zum optimieren des Wegs aufrufen
 #        self.opt_export_route()
@@ -546,58 +598,380 @@ class Erstelle_Fenster(wx.App):
 #        except:
 #            pass
 #        
-    def Show_About(self, event):
-        Show_About_Info(self) 
+    def ShowAbout(self,event):
+        ShowAboutInfoClass(self) 
 
-    def CloseWindow(self, event):
-        self.frame.Close()
+    def CloseWindow(self,event):
+        #Framemanager deinitialisieren
+        self._mgr.UnInit()
+        #Den Frame löschen
+        self.Destroy()
+      
+        
+class MyTreeClass(wx.TreeCtrl):
+    def __init__(self,parent,id):
+        wx.TreeCtrl.__init__(self, parent, id,wx.DefaultPosition, wx.Size(200,150))
+        self.AddElements()
+    
+    def AddElements(self):
+    
+        root = self.AddRoot("AUI Project") 
+        for i in range(5): 
+            item = self.AppendItem(root, "Item " + str(i)) 
+            for ii in range(5): 
+                self.AppendItem(item, "Subitem " + str(ii)) 
+        
+        self.Expand(root) 
+        
+        
+class MyMessagesClass(wx.TextCtrl):
+    def __init__(self,parent,id):
+        wx.TextCtrl.__init__(self,parent,id,'',
+                            wx.DefaultPosition, wx.Size(200,100),
+                            wx.SUNKEN_BORDER | wx.TE_MULTILINE | wx.TE_READONLY)
+                            
 
-#class TextboxClass:
-#    def __init__(self,frame=None,master=None,DEBUG=0):
-#            
-#        self.DEBUG=DEBUG
-#        self.master=master
-#        self.text = Text(frame,height=7)
-#        
-#        self.textscr = Scrollbar(frame)
-#        self.text.grid(row=0,column=0,pady=4,sticky=E+W)
-#        self.textscr.grid(row=0,column=1,pady=4,sticky=N+S)
-#        frame.columnconfigure(0,weight=1)
-#        frame.columnconfigure(1,weight=0)
-#
-#        
-#        #Binding fuer Contextmenu
-#        self.text.bind("<Button-3>", self.text_contextmenu)
-#
-#        #Anfangstext einfuegen
-#        self.textscr.config(command=self.text.yview)
-#        self.text.config(yscrollcommand=self.textscr.set)
-#        self.prt(_('Program started\nVersion V0.1\nCoded by V. Schulz and C. Kohloeffel'))
-#
-#    def set_debuglevel(self,DEBUG=0):
-#        self.DEBUG=DEBUG
+        self.DEBUG=DEBUG
+                            
+
+        
+        self.prt(_('%s, Version: %s' %(APPNAME.capitalize(),VERSION)))
+        self.begpos=self.GetLastPosition()
+
+  
+        #Binding fuer Contextmenu
+        self.Bind(wx.EVT_RIGHT_DOWN, self.TextContextmenu)
+
+    def SetDebuglevel(self,DEBUG=0):
+        self.DEBUG=DEBUG
 #        if DEBUG:
-#            self.text.config(height=15)
-#
-#    def prt(self,txt='',DEBUGLEVEL=0):
-#
-#        if self.DEBUG>=DEBUGLEVEL:
-#            self.text.insert(END,txt)
-#            self.text.yview(END)
-#            self.master.update_idletasks()
-#            
-#
-#    #Contextmenu Text mit Bindings beim Rechtsklick
-#    def text_contextmenu(self,event):
-#
-#        #Contextmenu erstellen zu der Geometrie        
-#        popup = Menu(self.text,tearoff=0)        
-#        popup.add_command(label='Delete text entries',command=self.text_delete_entries)
-#        popup.post(event.x_root, event.y_root)
-#        
-#    def text_delete_entries(self):
-#        self.text.delete(7.0,END)
-#        self.text.yview(END)           
+#            self.MyMessages.config(height=15)
+            
+    def prt(self,text='',DEBUGLEVEL=0):
+
+        if self.DEBUG>=DEBUGLEVEL:
+            self.AppendText(text) 
+            
+    #Contextmenu Text mit Bindings beim Rechtsklick
+    def TextContextmenu(self,event):
+
+        # only do this part the first time so the events are only bound once
+        # Yet another anternate way to do IDs. Some prefer them up top to
+        # avoid clutter, some prefer them close to the object of interest
+        # for clarity. 
+        if not hasattr(self, "popupID1"):
+            self.popupID1 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.TextDelete, id=self.popupID1)
+
+        # make a menu
+        menu = wx.Menu()
+        menu.Append(self.popupID1, _('Delete text entries'),_('Delete all messages up to line one'))
+        # Popup the menu.  If an item is selected then its handler
+        # will be called before PopupMenu returns.
+        self.PopupMenu(menu)
+        menu.Destroy()
+     
+    def TextDelete(self,event):    
+        self.Remove(self.begpos,self.GetLastPosition())
+
+
+class MyLayersClass(wx.TextCtrl):
+    def __init__(self,parent,id):
+        wx.TextCtrl.__init__(self,parent,id,'Layers - sample text',
+                            wx.DefaultPosition, wx.Size(200,50),
+                            wx.NO_BORDER | wx.TE_MULTILINE)
+
+
+
+class MyGraphicClass(wx.ScrolledWindow):
+    def __init__(self, parent, id):
+        wx.ScrolledWindow.__init__(self, parent, id, (0, 0), size=wx.Size(600,150), style=wx.SUNKEN_BORDER)
+
+        
+        # vars for handling mouse clicks
+        self.SetVirtualSize((2000, 2000))
+        self.SetScrollRate(20,20)
+        
+
+        # Add the Canvas
+        NC = NavCanvas.NavCanvas(self,
+                                     Debug = 0,
+                                     BackgroundColor = "WHITE")
+
+        self.Canvas = NC.Canvas # reference the contained FloatCanvas
+
+        self.MsgWindow = wx.TextCtrl(self, wx.ID_ANY,
+                                     "Look Here for output from events\n",
+                                     style = (wx.TE_MULTILINE |
+                                              wx.TE_READONLY |
+                                              wx.SUNKEN_BORDER))
+                                            
+        MainSizer = wx.BoxSizer(wx.VERTICAL)
+        MainSizer.Add(NC, 6, wx.EXPAND)
+        MainSizer.Add(self.MsgWindow, 1, wx.EXPAND | wx.ALL, 5)
+
+        self.SetSizer(MainSizer)
+
+        self.Canvas.Bind(FloatCanvas.EVT_MOTION, self.OnMove) 
+        self.Canvas.Bind(FloatCanvas.EVT_MOUSEWHEEL, self.OnWheel) 
+
+        self.EventsAreBound = False
+        
+        self.BindAllMouseEvents()
+        
+        ## getting all the colors for random objects
+        wx.lib.colourdb.updateColourDB()
+        self.colors = wx.lib.colourdb.getColourList()
+        
+        self.DrawTest(None)
+        
+        return None
+
+    def Log(self, text):
+        self.MsgWindow.AppendText(text)
+        if not text[-1] == "\n":
+            self.MsgWindow.AppendText("\n")
+        
+
+    def BindAllMouseEvents(self):
+        if not self.EventsAreBound:
+            ## Here is how you catch FloatCanvas mouse events
+            self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.OnLeftDown) 
+            self.Canvas.Bind(FloatCanvas.EVT_LEFT_UP, self.OnLeftUp)
+            self.Canvas.Bind(FloatCanvas.EVT_LEFT_DCLICK, self.OnLeftDouble) 
+
+            self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_DOWN, self.OnMiddleDown) 
+            self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_UP, self.OnMiddleUp) 
+            self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_DCLICK, self.OnMiddleDouble) 
+
+            self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DOWN, self.OnRightDown) 
+            self.Canvas.Bind(FloatCanvas.EVT_RIGHT_UP, self.OnRightUp) 
+            self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DCLICK, self.OnRightDouble) 
+
+        self.EventsAreBound = True
+
+
+    def UnBindAllMouseEvents(self):
+        ## Here is how you unbind FloatCanvas mouse events
+        self.Canvas.Unbind(FloatCanvas.EVT_LEFT_DOWN)
+        self.Canvas.Unbind(FloatCanvas.EVT_LEFT_UP)
+        self.Canvas.Unbind(FloatCanvas.EVT_LEFT_DCLICK)
+
+        self.Canvas.Unbind(FloatCanvas.EVT_MIDDLE_DOWN)
+        self.Canvas.Unbind(FloatCanvas.EVT_MIDDLE_UP)
+        self.Canvas.Unbind(FloatCanvas.EVT_MIDDLE_DCLICK)
+
+        self.Canvas.Unbind(FloatCanvas.EVT_RIGHT_DOWN)
+        self.Canvas.Unbind(FloatCanvas.EVT_RIGHT_UP)
+        self.Canvas.Unbind(FloatCanvas.EVT_RIGHT_DCLICK)
+
+        self.EventsAreBound = False
+
+
+    def PrintCoords(self,event):
+        self.Log("coords are: %s"%(event.Coords,))
+        self.Log("pixel coords are: %s\n"%(event.GetPosition(),))
+
+    def OnSavePNG(self, event=None):
+        import os
+        dlg = wx.FileDialog(
+            self, message="Save file as ...", defaultDir=os.getcwd(), 
+            defaultFile="", wildcard="*.png", style=wx.SAVE
+            )
+        if dlg.ShowModal() == wx.ID_OK:
+            path = dlg.GetPath()
+            if not(path[-4:].lower() == ".png"):
+                path = path+".png"
+            self.Canvas.SaveAsImage(path)
+
+                
+    def OnLeftDown(self, event):
+        self.Log("LeftDown")
+        self.PrintCoords(event)
+
+    def OnLeftUp(self, event):
+        self.Log("LeftUp")
+        self.PrintCoords(event)
+
+    def OnLeftDouble(self, event):
+        self.Log("LeftDouble")
+        self.PrintCoords(event)
+
+    def OnMiddleDown(self, event):
+        self.Log("MiddleDown")
+        self.PrintCoords(event)
+
+    def OnMiddleUp(self, event):
+        self.Log("MiddleUp")
+        self.PrintCoords(event)
+
+    def OnMiddleDouble(self, event):
+        self.Log("MiddleDouble")
+        self.PrintCoords(event)
+
+    def OnRightDown(self, event):
+        self.Log("RightDown")
+        self.PrintCoords(event)
+
+    def OnRightUp(self, event):
+        self.Log("RightUp")
+        self.PrintCoords(event)
+
+    def OnRightDouble(self, event):
+        self.Log("RightDouble")
+        self.PrintCoords(event)
+
+    def OnWheel(self, event):
+        self.Log("Mouse Wheel")
+        self.PrintCoords(event)
+        Rot = event.GetWheelRotation()
+        Rot = Rot / abs(Rot) * 0.1
+        if event.ControlDown(): # move left-right
+            self.Canvas.MoveImage( (Rot, 0), "Panel" )
+        else: # move up-down
+            self.Canvas.MoveImage( (0, Rot), "Panel" )
+            
+    def OnMove(self, event):
+        """
+        Updates the status bar with the world coordinates
+        """
+        #self.SetStatusText("%.2f, %.2f"%tuple(event.Coords))
+        event.Skip()
+
+
+    def ZoomToFit(self,event):
+        self.Canvas.ZoomToBB()
+
+    def Clear(self,event = None):
+        self.UnBindAllMouseEvents()
+        self.Canvas.InitAll()
+        self.Canvas.Draw()
+
+    def OnQuit(self,event):
+        self.Close(True)
+
+    def OnCloseWindow(self, event):
+        self.Destroy()
+
+    def DrawTest(self,event=None):
+        """
+        This demo draws a few of everything
+
+        """
+        
+        wx.GetApp().Yield(True)
+
+        Range = (-10,10)
+        colors = self.colors
+
+        Canvas = self.Canvas
+
+        Canvas.InitAll()
+        #            
+        ## these set the limits for how much you can zoom in and out
+        Canvas.MinScale = 14
+        Canvas.MaxScale = 500
+        
+
+        ############# Random tests of everything ##############
+
+        # Rectangles
+        for i in range(3):
+            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+            lw = random.randint(1,5)
+            cf = random.randint(0,len(colors)-1)
+            wh = (random.randint(1,5), random.randint(1,5))
+            Canvas.AddRectangle(xy, wh, LineWidth = lw, FillColor = colors[cf])
+
+        # Ellipses
+        for i in range(3):
+            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+            lw = random.randint(1,5)
+            cf = random.randint(0,len(colors)-1)
+            h = random.randint(1,5)
+            w = random.randint(1,5)
+            Canvas.AddEllipse(xy, (h,w), LineWidth = lw,FillColor = colors[cf])
+
+        # Points
+        for i in range(5):
+            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+            D = random.randint(1,50)
+            cf = random.randint(0,len(colors)-1)
+            Canvas.AddPoint(xy, Color = colors[cf], Diameter = D)
+
+        # SquarePoints
+        for i in range(500):
+            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+            S = random.randint(1, 50)
+            cf = random.randint(0,len(colors)-1)
+            Canvas.AddSquarePoint(xy, Color = colors[cf], Size = S)
+
+        # Circles
+        for i in range(5):
+            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+            D = random.randint(1,5)
+            lw = random.randint(1,5)
+            cf = random.randint(0,len(colors)-1)
+            cl = random.randint(0,len(colors)-1)
+            Canvas.AddCircle(xy, D, LineWidth = lw, LineColor = colors[cl], FillColor = colors[cf])
+            Canvas.AddText("Circle # %i"%(i), xy, Size = 12, BackgroundColor = None, Position = "cc")
+        # Lines
+        for i in range(5):
+            points = []
+            for j in range(random.randint(2,10)):
+                point = (random.randint(Range[0],Range[1]),random.randint(Range[0],Range[1]))
+                points.append(point)
+            lw = random.randint(1,10)
+            cf = random.randint(0,len(colors)-1)
+            cl = random.randint(0,len(colors)-1)
+            Canvas.AddLine(points, LineWidth = lw, LineColor = colors[cl])
+        # Polygons
+        for i in range(3):
+            points = []
+            for j in range(random.randint(2,6)):
+                point = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+                points.append(point)
+            lw = random.randint(1,6)
+            cf = random.randint(0,len(colors)-1)
+            cl = random.randint(0,len(colors)-1)
+            Canvas.AddPolygon(points,
+                                   LineWidth = lw,
+                                   LineColor = colors[cl],
+                                   FillColor = colors[cf],
+                                   FillStyle = 'Solid')
+
+
+        # Text
+        String = "Unscaled text"
+        for i in range(3):
+            ts = random.randint(10,40)
+            cf = random.randint(0,len(colors)-1)
+            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+            Canvas.AddText(String, xy, Size = ts, Color = colors[cf], Position = "cc")
+
+        # Scaled Text
+        String = "Scaled text"
+        for i in range(3):
+            ts = random.random()*3 + 0.2
+            cf = random.randint(0,len(colors)-1)
+            Point = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
+            Canvas.AddScaledText(String, Point, Size = ts, Color = colors[cf], Position = "cc")
+
+
+        # ArrowLines
+        for i in range(5):
+            points = []
+            for j in range(random.randint(2,10)):
+                point = (random.randint(Range[0],Range[1]),random.randint(Range[0],Range[1]))
+                points.append(point)
+            lw = random.randint(1,10)
+            cf = random.randint(0,len(colors)-1)
+            cl = random.randint(0,len(colors)-1)
+            Canvas.AddArrowLine(points, LineWidth = lw, LineColor = colors[cl], ArrowHeadSize= 16)
+
+
+        Canvas.ZoomToBB()
+
 #
 #class ExportParasClass:
 #    def __init__(self,master=None,config=None,postpro=None):
@@ -1375,488 +1749,479 @@ class Erstelle_Fenster(wx.App):
 #        return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
 #               +'\nShapes ->'+str(self.Shapes)
 #
-#class ConfigClass:
-#    def __init__(self,textbox):
-#        # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
-#        self.make_settings_folder()
-#
-#        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
-#        self.parser = ConfigParser.ConfigParser()
-#        self.cfg_file_name=APPNAME+'_config.cfg'
-#        self.parser.read(os.path.join(FOLDER,self.cfg_file_name))
-#
-#        # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
-#        if len(self.parser.sections())==0:
-#            self.make_new_Config_file()
-#            self.parser.read(os.path.join(FOLDER,self.cfg_file_name))
-#            textbox.prt((_('\nNo config file found generated new on at: %s') \
-#                             %os.path.join(FOLDER,self.cfg_file_name)))
-#        else:
-#            textbox.prt((_('\nLoading config file:%s') \
-#                             %os.path.join(FOLDER,self.cfg_file_name)))
-#
-#        #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
-#        self.get_all_vars()
-#
-#        #DEBUG INFORMATIONEN
-#        #Übergeben des geladenen Debug Level
-#        textbox.set_debuglevel(DEBUG=self.debug)
-#        textbox.prt(_('\nDebug Level: %i') %(self.debug),1)
-#        textbox.prt(str(self),1)
-#
-#    def make_settings_folder(self): 
-#        # create settings folder if necessary 
-#        try: 
-#            os.mkdir(FOLDER) 
-#        except OSError: 
-#            pass 
-#
-#    def make_new_Config_file(self):
-#        self.parser.add_section('Paths') 
-#        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohloeffel\Documents\DXF2GCODE\trunk\dxf')
-#        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohloeffel\Documents')
-#
-#        self.parser.add_section('Import Parameters') 
-#        self.parser.set('Import Parameters', 'point_tolerance', 0.01)
-#        self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
-#                   
-#        self.parser.add_section('Tool Parameters') 
-#        self.parser.set('Tool Parameters', 'diameter', 2.0)
-#        self.parser.set('Tool Parameters', 'start_radius', 0.2)
-#
-#        self.parser.add_section('Plane Coordinates') 
-#        self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
-#        self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
-#
-#        self.parser.add_section('Depth Coordinates') 
-#        self.parser.set('Depth Coordinates', 'axis3_retract', 15)
-#        self.parser.set('Depth Coordinates', 'axis3_safe_margin', 3.0)
-#        self.parser.set('Depth Coordinates', 'axis3_mill_depth', -3.0)
-#        self.parser.set('Depth Coordinates', 'axis3_slice_depth', -1.5)
-#
-#        self.parser.add_section('Feed Rates')
-#        self.parser.set('Feed Rates', 'f_g1_depth', 150)
-#        self.parser.set('Feed Rates', 'f_g1_plane', 400)
-#
-#        self.parser.add_section('Axis letters')
-#        self.parser.set('Axis letters', 'ax1_letter', 'X')
-#        self.parser.set('Axis letters', 'ax2_letter', 'Y')
-#        self.parser.set('Axis letters', 'ax3_letter', 'Z')                  
-#
-#        self.parser.add_section('Route Optimisation')
-#        self.parser.set('Route Optimisation', 'Begin art','heurestic')
-#        self.parser.set('Route Optimisation', 'Max. population', 20)
-#        self.parser.set('Route Optimisation', 'Max. iterations', 300)  
-#        self.parser.set('Route Optimisation', 'Mutation Rate', 0.95)
-#
-#        self.parser.add_section('Filters')
-#        self.parser.set('Filters', 'pstoedit_cmd','C:\Program Files (x86)\pstoedit\pstoedit')
-#        self.parser.set('Filters', 'pstoedit_opt', ['-f','dxf','-mm'])
-#                     
-#        self.parser.add_section('Debug')
-#        self.parser.set('Debug', 'global_debug_level', 0)         
-#                
-#        open_file = open(os.path.join(FOLDER,self.cfg_file_name), "w") 
-#        self.parser.write(open_file) 
-#        open_file.close()
-#            
-#    def get_all_vars(self):
-#        try:               
-#            self.tool_dia=DoubleVar()
-#            self.tool_dia.set(float(self.parser.get('Tool Parameters','diameter')))
-#
-#            self.start_rad=DoubleVar()
-#            self.start_rad.set(float(self.parser.get('Tool Parameters','start_radius')))        
-#           
-#            self.axis1_st_en=DoubleVar()
-#            self.axis1_st_en.set(float(self.parser.get('Plane Coordinates','axis1_start_end')))
-#
-#            self.axis2_st_en=DoubleVar()
-#            self.axis2_st_en.set(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
-#            
-#            self.axis3_retract=DoubleVar()
-#            self.axis3_retract.set(float(self.parser.get('Depth Coordinates','axis3_retract')))
-#            
-#            self.axis3_safe_margin=DoubleVar()
-#            self.axis3_safe_margin.set(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
-#
-#            self.axis3_slice_depth=DoubleVar()
-#            self.axis3_slice_depth.set(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
-#
-#            self.axis3_mill_depth=DoubleVar()
-#            self.axis3_mill_depth.set(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
-#            
-#            self.F_G1_Depth=DoubleVar()
-#            self.F_G1_Depth.set(float(self.parser.get('Feed Rates','f_g1_depth')))
-#
-#            self.F_G1_Plane=DoubleVar()
-#            self.F_G1_Plane.set(float(self.parser.get('Feed Rates','f_g1_plane')))
-#
-#            self.points_tolerance=DoubleVar()
-#            self.points_tolerance.set(float(self.parser.get('Import Parameters','point_tolerance')))
-#
-#            self.fitting_tolerance=DoubleVar()
-#            self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
-#
-#            #Zuweisen der Werte fuer die TSP Optimierung
-#            self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
-#            self.max_population=int((int(self.parser.get('Route Optimisation', 'Max. population'))/4)*4)
-#            self.max_iterations=int(self.parser.get('Route Optimisation', 'Max. iterations'))  
-#            self.mutate_rate=float(self.parser.get('Route Optimisation', 'Mutation Rate', 0.95))
-#
-#            #Zuweisen der Axis Letters
-#            self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
-#            self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
-#            self.ax3_letter=self.parser.get('Axis letters', 'ax3_letter')
-#
-#            #Holen der restlichen Variablen
-#            #Verzeichnisse
-#            self.load_path=self.parser.get('Paths','load_path')
-#            self.save_path=self.parser.get('Paths','save_path')
-#
-#            #Holen der Commandos fuer pstoedit
-#            self.pstoedit_cmd=self.parser.get('Filters','pstoedit_cmd')
-#            self.pstoedit_opt=self.parser.get('Filters','pstoedit_opt')
-#
-#            #Setzen des Globalen Debug Levels
-#            self.debug=int(self.parser.get('Debug', 'global_debug_level'))
-#            
-#            
-#        except:
-#            showerror(_("Error during reading config file"), _("Please delete or correct\n %s")\
-#                      %(os.path.join(FOLDER,self.cfg_file_name)))
-#            raise Exception, _("Problem during import from INI File") 
-#            
-#    def __str__(self):
-#
-#        str=''
-#        for section in self.parser.sections(): 
-#            str= str +"\nSection: "+section 
-#            for option in self.parser.options(section): 
-#                str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
-#        return str
-#
-#class PostprocessorClass:
-#    def __init__(self,config=None,textbox=None):
-#        self.string=''
-#        self.textbox=textbox
-#        self.config=config
-#
-#        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
-#        self.parser = ConfigParser.ConfigParser()
-#        self.postpro_file_name=APPNAME+'_postprocessor.cfg'
-#        self.parser.read(os.path.join(FOLDER,self.postpro_file_name))
-#
-#        # Falls kein Postprocessor File vorhanden ist oder File leer ist neue File anlegen und neu laden
-#        if len(self.parser.sections())==0:
-#            self.make_new_postpro_file()
-#            self.parser.read(os.path.join(FOLDER,self.postpro_file_name))
-#            textbox.prt((_('\nNo postprocessor file found generated new on at: %s') \
-#                             %os.path.join(FOLDER,self.postpro_file_name)))
-#        else:
-#            textbox.prt((_('\nLoading postprocessor file: %s') \
-#                             %os.path.join(FOLDER,self.postpro_file_name)))
-#
-#        #Variablen erstellen zur späteren Verwendung im Postprozessor        
-#        self.get_all_vars()
-#
-#        textbox.prt(str(self),1)        
-#
-#    def get_all_vars(self):
-#        try:
-#            self.abs_export=int(self.parser.get('General', 'abs_export'))
-#            self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
-#            self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
-#            self.gcode_be=self.parser.get('General', 'code_begin')
-#            self.gcode_en=self.parser.get('General', 'code_end')
-#
-#            self.pre_dec=int(self.parser.get('Number format','pre_decimals'))
-#            self.post_dec=int(self.parser.get('Number format','post_decimals'))
-#            self.dec_sep=self.parser.get('Number format','decimal_seperator')
-#            self.pre_dec_z_pad=int(self.parser.get('Number format','pre_decimal_zero_padding'))
-#            self.post_dec_z_pad=int(self.parser.get('Number format','post_decimal_zero_padding'))
-#            self.signed_val=int(self.parser.get('Number format','signed_values'))
-#
-#            self.use_line_nrs=int(self.parser.get('Line numbers','use_line_nrs'))
-#            self.line_nrs_begin=int(self.parser.get('Line numbers','line_nrs_begin'))
-#            self.line_nrs_step=int(self.parser.get('Line numbers','line_nrs_step'))
-#
-#            self.tool_ch_str=self.parser.get('Program','tool_change')
-#            self.feed_ch_str=self.parser.get('Program','feed_change')
-#            self.rap_pos_plane_str=self.parser.get('Program','rap_pos_plane')
-#            self.rap_pos_depth_str=self.parser.get('Program','rap_pos_depth')
-#            self.lin_mov_plane_str=self.parser.get('Program','lin_mov_plane')
-#            self.lin_mov_depth_str=self.parser.get('Program','lin_mov_depth')
-#            self.arc_int_cw=self.parser.get('Program','arc_int_cw')
-#            self.arc_int_ccw=self.parser.get('Program','arc_int_ccw')
-#            self.cut_comp_off_str=self.parser.get('Program','cutter_comp_off')
-#            self.cut_comp_left_str=self.parser.get('Program','cutter_comp_left')
-#            self.cut_comp_right_str=self.parser.get('Program','cutter_comp_right')                        
-#                            
-#            self.feed=0
-#            self.x=self.config.axis1_st_en.get()
-#            self.y=self.config.axis2_st_en.get()
-#            self.z=self.config.axis3_retract.get()
-#            self.lx=self.x
-#            self.ly=self.y
-#            self.lz=self.z
-#            self.i=0.0
-#            self.j=0.0
-#
-#            self.vars={"%feed":'self.iprint(self.feed)',\
-#                       "%nl":'self.nlprint()',\
-#                       "%X":'self.fnprint(self.x)',\
-#                       "%-X":'self.fnprint(-self.x)',\
-#                       "%Y":'self.fnprint(self.y)',\
-#                       "%-Y":'self.fnprint(-self.y)',\
-#                       "%Z":'self.fnprint(self.z)',\
-#                       "%-Z":'self.fnprint(-self.z)',\
-#                       "%I":'self.fnprint(self.i)',\
-#                       "%-I":'self.fnprint(-self.i)',\
-#                       "%J":'self.fnprint(self.j)',\
-#                       "%-J":'self.fnprint(-self.j)'}
-#
-#        except:
-#            showerror(_("Error during reading postprocessor file"), _("Please delete or correct\n %s")\
-#                      %(os.path.join(FOLDER,self.postpro_file_name)))
-#            raise Exception, _("Problem during import from postprocessor File") 
-#
-#    def make_new_postpro_file(self):
-#            
-#        self.parser.add_section('General')
-#        self.parser.set('General', 'abs_export', 1)
-#        self.parser.set('General', 'write_to_stdout', 0)
-#        self.parser.set('General', 'cancel_cc_for_depth', 0)
-#   
-#        self.parser.set('General', 'code_begin',\
-#                        'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
-#                        +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
-#                        +'\nG17'
-#                        +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
-#                        +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
-#                        +'\nS5000M03 (Spindle 5000rpm cw)')
-#        self.parser.set('General', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
-#
-#        self.parser.add_section('Number format')
-#        self.parser.set('Number format','pre_decimals',4)
-#        self.parser.set('Number format','post_decimals',3)
-#        self.parser.set('Number format','decimal_seperator','.')
-#        self.parser.set('Number format','pre_decimal_zero_padding',0)
-#        self.parser.set('Number format','post_decimal_zero_padding',1)
-#        self.parser.set('Number format','signed_values',0)
-#
-#        self.parser.add_section('Line numbers')
-#        self.parser.set('Line numbers','use_line_nrs',0)
-#        self.parser.set('Line numbers','line_nrs_begin',10)
-#        self.parser.set('Line numbers','line_nrs_step',10)
-#
-#        self.parser.add_section('Program')
-#        self.parser.set('Program','tool_change',\
-#                        ('T%tool_nr M6%nl S%speed M3%nl'))
-#        self.parser.set('Program','feed_change',\
-#                        ('F%feed%nl'))
-#        self.parser.set('Program','rap_pos_plane',\
-#                        ('G0 X%X Y%Y%nl'))
-#        self.parser.set('Program','rap_pos_depth',\
-#                        ('G0 Z%Z %nl'))
-#        self.parser.set('Program','lin_mov_plane',\
-#                        ('G1 X%X Y%Y%nl'))
-#        self.parser.set('Program','lin_mov_depth',\
-#                        ('G1 Z%Z%nl'))
-#        self.parser.set('Program','arc_int_cw',\
-#                        ('G2 X%X Y%Y I%I J%J%nl'))
-#        self.parser.set('Program','arc_int_ccw',\
-#                        ('G3 X%X Y%Y I%I J%J%nl'))
-#        self.parser.set('Program','cutter_comp_off',\
-#                        ('G40%nl'))
-#        self.parser.set('Program','cutter_comp_left',\
-#                        ('G41%nl'))
-#        self.parser.set('Program','cutter_comp_right',\
-#                        ('G42%nl'))                      
-#                        
-#        open_file = open(os.path.join(FOLDER,self.postpro_file_name), "w") 
-#        self.parser.write(open_file) 
-#        open_file.close()
-#
-#    def write_gcode_be(self,ExportParas,load_filename):
-#        #Schreiben in einen String
-#        str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
-#        self.string=(str.encode("utf-8"))
-#        
-#        #Daten aus dem Textfelder an string anhängen
-#        self.string+=("%s\n" %ExportParas.gcode_be.get(1.0,END).strip())
-#
-#    def write_gcode_en(self,ExportParas):
-#        #Daten aus dem Textfelder an string anhängen   
-#        self.string+=ExportParas.gcode_en.get(1.0,END)
-#
-#        self.make_line_numbers()        
-#        
-#        return self.string
-#
-#    def make_line_numbers(self):
-#        line_format='N%i ' 
-#        if self.use_line_nrs:
-#            nr=0
-#            line_nr=self.line_nrs_begin
-#            self.string=((line_format+'%s') %(line_nr,self.string))
-#            nr=self.string.find('\n',nr)
-#            while not(nr==-1):
-#                line_nr+=self.line_nrs_step  
-#                self.string=(('%s'+line_format+'%s') %(self.string[0:nr+1],\
-#                                          line_nr,\
-#                                          self.string[nr+1:len(self.string)]))
-#                
-#                nr=self.string.find('\n',nr+len(((line_format) %line_nr))+2)
-#                          
-#            
-#            
-#    def chg_feed_rate(self,feed):
-#        self.feed=feed
-#        self.string+=self.make_print_str(self.feed_ch_str) 
-#        
-#    def set_cut_cor(self,cut_cor,newpos):
-#        self.cut_cor=cut_cor
-#
-#        if not(self.abs_export):
-#            self.x=newpos.x-self.lx
-#            self.lx=newpos.x
-#            self.y=newpos.y-self.ly
-#            self.ly=newpos.y
-#        else:
-#            self.x=newpos.x
-#            self.y=newpos.y  
-#
-#        if cut_cor==41:
-#            self.string+=self.make_print_str(self.cut_comp_left_str)
-#        elif cut_cor==42:
-#            self.string+=self.make_print_str(self.cut_comp_right_str)
-#
-#    def deactivate_cut_cor(self,newpos):
-#        if not(self.abs_export):
-#            self.x=newpos.x-self.lx
-#            self.lx=newpos.x
-#            self.y=newpos.y-self.ly
-#            self.ly=newpos.y
-#        else:
-#            self.x=newpos.x
-#            self.y=newpos.y   
-#        self.string+=self.make_print_str(self.cut_comp_off_str)
-#            
-#    def lin_pol_arc(self,dir,ende,IJ):
-#        if not(self.abs_export):
-#            self.x=ende.x-self.lx
-#            self.y=ende.y-self.lx
-#            self.lx=ende.x
-#            self.ly=ende.y
-#        else:
-#            self.x=ende.x
-#            self.y=ende.y
-#
-#        self.i=IJ.x
-#        self.j=IJ.y
-#
-#        if dir=='cw':
-#            self.string+=self.make_print_str(self.arc_int_cw)
-#        else:
-#            self.string+=self.make_print_str(self.arc_int_ccw)
-#
-#          
-#    def rap_pos_z(self,z_pos):
-#        if not(self.abs_export):
-#            self.z=z_pos-self.lz
-#            self.lz=z_pos
-#        else:
-#            self.z=z_pos
-#
-#        self.string+=self.make_print_str(self.rap_pos_depth_str)           
-#         
-#    def rap_pos_xy(self,newpos):
-#        if not(self.abs_export):
-#            self.x=newpos.x-self.lx
-#            self.lx=newpos.x
-#            self.y=newpos.y-self.ly
-#            self.ly=newpos.y
-#        else:
-#            self.x=newpos.x
-#            self.y=newpos.y
-#
-#        self.string+=self.make_print_str(self.rap_pos_plane_str)         
-#    
-#    def lin_pol_z(self,z_pos):
-#        if not(self.abs_export):
-#            self.z=z_pos-self.lz
-#            self.lz=z_pos
-#        else:
-#            self.z=z_pos
-#
-#        self.string+=self.make_print_str(self.lin_mov_depth_str)      
-#    def lin_pol_xy(self,newpos):
-#        if not(self.abs_export):
-#            self.x=newpos.x-self.lx
-#            self.lx=newpos.x
-#            self.y=newpos.y-self.ly
-#            self.ly=newpos.y
-#        else:
-#            self.x=newpos.x
-#            self.y=newpos.y
-#
-#        self.string+=self.make_print_str(self.lin_mov_plane_str)       
-#
-#    def make_print_str(self,string):
-#        new_string=string
-#        for key_nr in range(len(self.vars.keys())):
-#            new_string=new_string.replace(self.vars.keys()[key_nr],\
-#                                          eval(self.vars.values()[key_nr]))
-#        return new_string
-#
-#    #Funktion welche den Wert als formatierter integer zurueck gibt
-#    def iprint(self,interger):
-#        return ('%i' %interger)
-#
-#    #Funktion gibt den String fuer eine neue Linie zurueck
-#    def nlprint(self):
-#        return '\n'
-#
-#    #Funktion welche die Formatierte Number  zurueck gibt
-#    def fnprint(self,number):
-#        string=''
-#        #+ oder - Zeichen Falls noetig/erwuenscht und Leading 0er
-#        if (self.signed_val)and(self.pre_dec_z_pad):
-#            numstr=(('%+0'+str(self.pre_dec+self.post_dec+1)+\
-#                     '.'+str(self.post_dec)+'f') %number)
-#        elif (self.signed_val==0)and(self.pre_dec_z_pad):
-#            numstr=(('%0'+str(self.pre_dec+self.post_dec+1)+\
-#                    '.'+str(self.post_dec)+'f') %number)
-#        elif (self.signed_val)and(self.pre_dec_z_pad==0):
-#            numstr=(('%+'+str(self.pre_dec+self.post_dec+1)+\
-#                    '.'+str(self.post_dec)+'f') %number)
-#        elif (self.signed_val==0)and(self.pre_dec_z_pad==0):
-#            numstr=(('%'+str(self.pre_dec+self.post_dec+1)+\
-#                    '.'+str(self.post_dec)+'f') %number)
-#            
-#        #Setzen des zugehoerigen Dezimal Trennzeichens            
-#        string+=numstr[0:-(self.post_dec+1)]
-#        
-#        string_end=self.dec_sep
-#        string_end+=numstr[-(self.post_dec):]
-#
-#        #Falls die 0er am Ende entfernt werden sollen
-#        if self.post_dec_z_pad==0:
-#            while (len(string_end)>0)and((string_end[-1]=='0')or(string_end[-1]==self.dec_sep)):
-#                string_end=string_end[0:-1]                
-#        return string+string_end
-#    
-#    def __str__(self):
-#
-#        str=''
-#        for section in self.parser.sections(): 
-#            str= str +"\nSection: "+section 
-#            for option in self.parser.options(section): 
-#                str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
-#        return str
+class MyConfigClass:
+    def __init__(self,MyMessages):
+        # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
+        self.make_settings_folder()
 
-class Show_About_Info:
+        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
+        self.parser = ConfigParser.ConfigParser()
+        self.cfg_file_name=APPNAME+'_config.cfg'
+        self.parser.read(os.path.join(FOLDER,self.cfg_file_name))
+
+        # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
+        if len(self.parser.sections())==0:
+            self.make_new_Config_file()
+            self.parser.read(os.path.join(FOLDER,self.cfg_file_name))
+            MyMessages.prt((_('\nNo config file found generated new on at: %s') \
+                             %os.path.join(FOLDER,self.cfg_file_name)))
+        else:
+            MyMessages.prt((_('\nLoading config file:%s') \
+                             %os.path.join(FOLDER,self.cfg_file_name)))
+
+        #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
+        self.get_all_vars()
+
+        #DEBUG INFORMATIONEN
+        #Übergeben des geladenen Debug Level
+        MyMessages.SetDebuglevel(DEBUG=self.debug)
+        MyMessages.prt(_('\nDebug Level: %i') %(self.debug),1)
+        MyMessages.prt(str(self),1)
+
+    def make_settings_folder(self): 
+        # create settings folder if necessary 
+        try: 
+            os.mkdir(FOLDER) 
+        except OSError: 
+            pass 
+
+    def make_new_Config_file(self):
+        self.parser.add_section('Paths') 
+        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohloeffel\Documents\DXF2GCODE\trunk\dxf')
+        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohloeffel\Documents')
+
+        self.parser.add_section('Import Parameters') 
+        self.parser.set('Import Parameters', 'point_tolerance', 0.01)
+        self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
+                   
+        self.parser.add_section('Tool Parameters') 
+        self.parser.set('Tool Parameters', 'diameter', 2.0)
+        self.parser.set('Tool Parameters', 'start_radius', 0.2)
+
+        self.parser.add_section('Plane Coordinates') 
+        self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
+        self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
+
+        self.parser.add_section('Depth Coordinates') 
+        self.parser.set('Depth Coordinates', 'axis3_retract', 15)
+        self.parser.set('Depth Coordinates', 'axis3_safe_margin', 3.0)
+        self.parser.set('Depth Coordinates', 'axis3_mill_depth', -3.0)
+        self.parser.set('Depth Coordinates', 'axis3_slice_depth', -1.5)
+
+        self.parser.add_section('Feed Rates')
+        self.parser.set('Feed Rates', 'f_g1_depth', 150)
+        self.parser.set('Feed Rates', 'f_g1_plane', 400)
+
+        self.parser.add_section('Axis letters')
+        self.parser.set('Axis letters', 'ax1_letter', 'X')
+        self.parser.set('Axis letters', 'ax2_letter', 'Y')
+        self.parser.set('Axis letters', 'ax3_letter', 'Z')                  
+
+        self.parser.add_section('Route Optimisation')
+        self.parser.set('Route Optimisation', 'Begin art','heurestic')
+        self.parser.set('Route Optimisation', 'Max. population', 20)
+        self.parser.set('Route Optimisation', 'Max. iterations', 300)  
+        self.parser.set('Route Optimisation', 'Mutation Rate', 0.95)
+
+        self.parser.add_section('Filters')
+        self.parser.set('Filters', 'pstoedit_cmd','C:\Program Files (x86)\pstoedit\pstoedit')
+        self.parser.set('Filters', 'pstoedit_opt', ['-f','dxf','-mm'])
+                     
+        self.parser.add_section('Debug')
+        self.parser.set('Debug', 'global_debug_level', 0)         
+                
+        open_file = open(os.path.join(FOLDER,self.cfg_file_name), "w") 
+        self.parser.write(open_file) 
+        open_file.close()
+            
+    def get_all_vars(self):
+        try:               
+            self.tool_dia=(float(self.parser.get('Tool Parameters','diameter')))
+
+            self.start_rad=(float(self.parser.get('Tool Parameters','start_radius')))        
+           
+            self.axis1_st_en=(float(self.parser.get('Plane Coordinates','axis1_start_end')))
+
+            self.axis2_st_en=(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
+            
+            self.axis3_retract=(float(self.parser.get('Depth Coordinates','axis3_retract')))
+            
+            self.axis3_safe_margin=(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
+
+            self.axis3_slice_depth=(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
+
+            self.axis3_mill_depth=(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
+            
+            self.F_G1_Depth=(float(self.parser.get('Feed Rates','f_g1_depth')))
+
+            self.F_G1_Plane=(float(self.parser.get('Feed Rates','f_g1_plane')))
+
+            self.points_tolerance=(float(self.parser.get('Import Parameters','point_tolerance')))
+
+            self.fitting_tolerance=(float(self.parser.get('Import Parameters','fitting_tolerance')))
+
+            #Zuweisen der Werte fuer die TSP Optimierung
+            self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
+            self.max_population=int((int(self.parser.get('Route Optimisation', 'Max. population'))/4)*4)
+            self.max_iterations=int(self.parser.get('Route Optimisation', 'Max. iterations'))  
+            self.mutate_rate=float(self.parser.get('Route Optimisation', 'Mutation Rate', 0.95))
+
+            #Zuweisen der Axis Letters
+            self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
+            self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
+            self.ax3_letter=self.parser.get('Axis letters', 'ax3_letter')
+
+            #Holen der restlichen Variablen
+            #Verzeichnisse
+            self.load_path=self.parser.get('Paths','load_path')
+            self.save_path=self.parser.get('Paths','save_path')
+
+            #Holen der Commandos fuer pstoedit
+            self.pstoedit_cmd=self.parser.get('Filters','pstoedit_cmd')
+            self.pstoedit_opt=self.parser.get('Filters','pstoedit_opt')
+
+            #Setzen des Globalen Debug Levels
+            self.debug=int(self.parser.get('Debug', 'global_debug_level'))
+            
+        except:
+            dial=wx.MessageDialog(None, _("Please delete or correct\n %s")\
+                      %(os.path.join(FOLDER,self.cfg_file_name)),_("Error during reading config file"), wx.OK | 
+            wx.ICON_ERROR)
+            dial.ShowModal()
+
+            raise Exception, _("Problem during import from INI File") 
+            
+    def __str__(self):
+
+        str=''
+        for section in self.parser.sections(): 
+            str= str +"\nSection: "+section 
+            for option in self.parser.options(section): 
+                str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
+        return str
+class MyPostprocessorClass:
+    def __init__(self,config=None,MyMessages=None):
+        self.string=''
+        self.MyMessages=MyMessages
+        self.config=config
+
+        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
+        self.parser = ConfigParser.ConfigParser()
+        self.postpro_file_name=APPNAME+'_postprocessor.cfg'
+        self.parser.read(os.path.join(FOLDER,self.postpro_file_name))
+
+        # Falls kein Postprocessor File vorhanden ist oder File leer ist neue File anlegen und neu laden
+        if len(self.parser.sections())==0:
+            self.make_new_postpro_file()
+            self.parser.read(os.path.join(FOLDER,self.postpro_file_name))
+            MyMessages.prt((_('\nNo postprocessor file found generated new on at: %s') \
+                             %os.path.join(FOLDER,self.postpro_file_name)))
+        else:
+            MyMessages.prt((_('\nLoading postprocessor file: %s') \
+                             %os.path.join(FOLDER,self.postpro_file_name)))
+
+        #Variablen erstellen zur späteren Verwendung im Postprozessor        
+        self.get_all_vars()
+
+        MyMessages.prt(str(self),1)        
+
+    def get_all_vars(self):
+        try:
+            self.abs_export=int(self.parser.get('General', 'abs_export'))
+            self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
+            self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
+            self.gcode_be=self.parser.get('General', 'code_begin')
+            self.gcode_en=self.parser.get('General', 'code_end')
+
+            self.pre_dec=int(self.parser.get('Number format','pre_decimals'))
+            self.post_dec=int(self.parser.get('Number format','post_decimals'))
+            self.dec_sep=self.parser.get('Number format','decimal_seperator')
+            self.pre_dec_z_pad=int(self.parser.get('Number format','pre_decimal_zero_padding'))
+            self.post_dec_z_pad=int(self.parser.get('Number format','post_decimal_zero_padding'))
+            self.signed_val=int(self.parser.get('Number format','signed_values'))
+
+            self.use_line_nrs=int(self.parser.get('Line numbers','use_line_nrs'))
+            self.line_nrs_begin=int(self.parser.get('Line numbers','line_nrs_begin'))
+            self.line_nrs_step=int(self.parser.get('Line numbers','line_nrs_step'))
+
+            self.tool_ch_str=self.parser.get('Program','tool_change')
+            self.feed_ch_str=self.parser.get('Program','feed_change')
+            self.rap_pos_plane_str=self.parser.get('Program','rap_pos_plane')
+            self.rap_pos_depth_str=self.parser.get('Program','rap_pos_depth')
+            self.lin_mov_plane_str=self.parser.get('Program','lin_mov_plane')
+            self.lin_mov_depth_str=self.parser.get('Program','lin_mov_depth')
+            self.arc_int_cw=self.parser.get('Program','arc_int_cw')
+            self.arc_int_ccw=self.parser.get('Program','arc_int_ccw')
+            self.cut_comp_off_str=self.parser.get('Program','cutter_comp_off')
+            self.cut_comp_left_str=self.parser.get('Program','cutter_comp_left')
+            self.cut_comp_right_str=self.parser.get('Program','cutter_comp_right')                        
+                            
+            self.feed=0
+            self.x=self.config.axis1_st_en
+            self.y=self.config.axis2_st_en
+            self.z=self.config.axis3_retract
+            self.lx=self.x
+            self.ly=self.y
+            self.lz=self.z
+            self.i=0.0
+            self.j=0.0
+
+            self.vars={"%feed":'self.iprint(self.feed)',\
+                       "%nl":'self.nlprint()',\
+                       "%X":'self.fnprint(self.x)',\
+                       "%-X":'self.fnprint(-self.x)',\
+                       "%Y":'self.fnprint(self.y)',\
+                       "%-Y":'self.fnprint(-self.y)',\
+                       "%Z":'self.fnprint(self.z)',\
+                       "%-Z":'self.fnprint(-self.z)',\
+                       "%I":'self.fnprint(self.i)',\
+                       "%-I":'self.fnprint(-self.i)',\
+                       "%J":'self.fnprint(self.j)',\
+                       "%-J":'self.fnprint(-self.j)'}
+
+        except:
+            dial=wx.MessageDialog(None, _("Please delete or correct\n %s")\
+                      %(os.path.join(FOLDER,self.postpro_file_name)),_("Error during reading postprocessor file"), wx.OK | 
+            wx.ICON_ERROR)
+            dial.ShowModal()
+            raise Exception, _("Problem during import from postprocessor File") 
+
+    def make_new_postpro_file(self):
+            
+        self.parser.add_section('General')
+        self.parser.set('General', 'abs_export', 1)
+        self.parser.set('General', 'write_to_stdout', 0)
+        self.parser.set('General', 'cancel_cc_for_depth', 0)
+   
+        self.parser.set('General', 'code_begin',\
+                        'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
+                        +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
+                        +'\nG17'
+                        +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
+                        +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
+                        +'\nS5000M03 (Spindle 5000rpm cw)')
+        self.parser.set('General', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
+
+        self.parser.add_section('Number format')
+        self.parser.set('Number format','pre_decimals',4)
+        self.parser.set('Number format','post_decimals',3)
+        self.parser.set('Number format','decimal_seperator','.')
+        self.parser.set('Number format','pre_decimal_zero_padding',0)
+        self.parser.set('Number format','post_decimal_zero_padding',1)
+        self.parser.set('Number format','signed_values',0)
+
+        self.parser.add_section('Line numbers')
+        self.parser.set('Line numbers','use_line_nrs',0)
+        self.parser.set('Line numbers','line_nrs_begin',10)
+        self.parser.set('Line numbers','line_nrs_step',10)
+
+        self.parser.add_section('Program')
+        self.parser.set('Program','tool_change',\
+                        ('T%tool_nr M6%nl S%speed M3%nl'))
+        self.parser.set('Program','feed_change',\
+                        ('F%feed%nl'))
+        self.parser.set('Program','rap_pos_plane',\
+                        ('G0 X%X Y%Y%nl'))
+        self.parser.set('Program','rap_pos_depth',\
+                        ('G0 Z%Z %nl'))
+        self.parser.set('Program','lin_mov_plane',\
+                        ('G1 X%X Y%Y%nl'))
+        self.parser.set('Program','lin_mov_depth',\
+                        ('G1 Z%Z%nl'))
+        self.parser.set('Program','arc_int_cw',\
+                        ('G2 X%X Y%Y I%I J%J%nl'))
+        self.parser.set('Program','arc_int_ccw',\
+                        ('G3 X%X Y%Y I%I J%J%nl'))
+        self.parser.set('Program','cutter_comp_off',\
+                        ('G40%nl'))
+        self.parser.set('Program','cutter_comp_left',\
+                        ('G41%nl'))
+        self.parser.set('Program','cutter_comp_right',\
+                        ('G42%nl'))                      
+                        
+        open_file = open(os.path.join(FOLDER,self.postpro_file_name), "w") 
+        self.parser.write(open_file) 
+        open_file.close()
+
+    def write_gcode_be(self,ExportParas,load_filename):
+        #Schreiben in einen String
+        str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
+        self.string=(str.encode("utf-8"))
+        
+        #Daten aus dem Textfelder an string anhängen
+        self.string+=("%s\n" %ExportParas.gcode_be.get(1.0,END).strip())
+
+    def write_gcode_en(self,ExportParas):
+        #Daten aus dem Textfelder an string anhängen   
+        self.string+=ExportParas.gcode_en.get(1.0,END)
+
+        self.make_line_numbers()        
+        
+        return self.string
+
+    def make_line_numbers(self):
+        line_format='N%i ' 
+        if self.use_line_nrs:
+            nr=0
+            line_nr=self.line_nrs_begin
+            self.string=((line_format+'%s') %(line_nr,self.string))
+            nr=self.string.find('\n',nr)
+            while not(nr==-1):
+                line_nr+=self.line_nrs_step  
+                self.string=(('%s'+line_format+'%s') %(self.string[0:nr+1],\
+                                          line_nr,\
+                                          self.string[nr+1:len(self.string)]))
+                
+                nr=self.string.find('\n',nr+len(((line_format) %line_nr))+2)
+                          
+            
+            
+    def chg_feed_rate(self,feed):
+        self.feed=feed
+        self.string+=self.make_print_str(self.feed_ch_str) 
+        
+    def set_cut_cor(self,cut_cor,newpos):
+        self.cut_cor=cut_cor
+
+        if not(self.abs_export):
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
+        else:
+            self.x=newpos.x
+            self.y=newpos.y  
+
+        if cut_cor==41:
+            self.string+=self.make_print_str(self.cut_comp_left_str)
+        elif cut_cor==42:
+            self.string+=self.make_print_str(self.cut_comp_right_str)
+
+    def deactivate_cut_cor(self,newpos):
+        if not(self.abs_export):
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
+        else:
+            self.x=newpos.x
+            self.y=newpos.y   
+        self.string+=self.make_print_str(self.cut_comp_off_str)
+            
+    def lin_pol_arc(self,dir,ende,IJ):
+        if not(self.abs_export):
+            self.x=ende.x-self.lx
+            self.y=ende.y-self.lx
+            self.lx=ende.x
+            self.ly=ende.y
+        else:
+            self.x=ende.x
+            self.y=ende.y
+
+        self.i=IJ.x
+        self.j=IJ.y
+
+        if dir=='cw':
+            self.string+=self.make_print_str(self.arc_int_cw)
+        else:
+            self.string+=self.make_print_str(self.arc_int_ccw)
+
+          
+    def rap_pos_z(self,z_pos):
+        if not(self.abs_export):
+            self.z=z_pos-self.lz
+            self.lz=z_pos
+        else:
+            self.z=z_pos
+
+        self.string+=self.make_print_str(self.rap_pos_depth_str)           
+         
+    def rap_pos_xy(self,newpos):
+        if not(self.abs_export):
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
+        else:
+            self.x=newpos.x
+            self.y=newpos.y
+
+        self.string+=self.make_print_str(self.rap_pos_plane_str)         
+    
+    def lin_pol_z(self,z_pos):
+        if not(self.abs_export):
+            self.z=z_pos-self.lz
+            self.lz=z_pos
+        else:
+            self.z=z_pos
+
+        self.string+=self.make_print_str(self.lin_mov_depth_str)      
+    def lin_pol_xy(self,newpos):
+        if not(self.abs_export):
+            self.x=newpos.x-self.lx
+            self.lx=newpos.x
+            self.y=newpos.y-self.ly
+            self.ly=newpos.y
+        else:
+            self.x=newpos.x
+            self.y=newpos.y
+
+        self.string+=self.make_print_str(self.lin_mov_plane_str)       
+
+    def make_print_str(self,string):
+        new_string=string
+        for key_nr in range(len(self.vars.keys())):
+            new_string=new_string.replace(self.vars.keys()[key_nr],\
+                                          eval(self.vars.values()[key_nr]))
+        return new_string
+
+    #Funktion welche den Wert als formatierter integer zurueck gibt
+    def iprint(self,interger):
+        return ('%i' %interger)
+
+    #Funktion gibt den String fuer eine neue Linie zurueck
+    def nlprint(self):
+        return '\n'
+
+    #Funktion welche die Formatierte Number  zurueck gibt
+    def fnprint(self,number):
+        string=''
+        #+ oder - Zeichen Falls noetig/erwuenscht und Leading 0er
+        if (self.signed_val)and(self.pre_dec_z_pad):
+            numstr=(('%+0'+str(self.pre_dec+self.post_dec+1)+\
+                     '.'+str(self.post_dec)+'f') %number)
+        elif (self.signed_val==0)and(self.pre_dec_z_pad):
+            numstr=(('%0'+str(self.pre_dec+self.post_dec+1)+\
+                    '.'+str(self.post_dec)+'f') %number)
+        elif (self.signed_val)and(self.pre_dec_z_pad==0):
+            numstr=(('%+'+str(self.pre_dec+self.post_dec+1)+\
+                    '.'+str(self.post_dec)+'f') %number)
+        elif (self.signed_val==0)and(self.pre_dec_z_pad==0):
+            numstr=(('%'+str(self.pre_dec+self.post_dec+1)+\
+                    '.'+str(self.post_dec)+'f') %number)
+            
+        #Setzen des zugehoerigen Dezimal Trennzeichens            
+        string+=numstr[0:-(self.post_dec+1)]
+        
+        string_end=self.dec_sep
+        string_end+=numstr[-(self.post_dec):]
+
+        #Falls die 0er am Ende entfernt werden sollen
+        if self.post_dec_z_pad==0:
+            while (len(string_end)>0)and((string_end[-1]=='0')or(string_end[-1]==self.dec_sep)):
+                string_end=string_end[0:-1]                
+        return string+string_end
+    
+    def __str__(self):
+
+        str=''
+        for section in self.parser.sections(): 
+            str= str +"\nSection: "+section 
+            for option in self.parser.options(section): 
+                str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
+        return str
+
+class ShowAboutInfoClass:
     def __init__(self,master):
 
         info = wx.AboutDialogInfo()
@@ -1869,7 +2234,7 @@ class Show_About_Info:
             "which means the depth can not be read from the dxf-file. A special feature " +\
             "of the software ist that it converts Splines and Ellipses into Arc Elements " +\
             "and not into Line Elements like the most softwares",
-            450, wx.ClientDC(master.frame))
+            450, wx.ClientDC(master))
             
         info.WebSite = ("www.christian-kohloeffel.homepage.t-online.de", "The Home of DXF2GCODE")
         info.Developers = [ "Vinzenz Schulz",
@@ -1889,94 +2254,22 @@ class Show_About_Info:
                         "along with this program; if not, write to the Free Software "+\
                         "Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA "
                         
-        info.License = wordwrap(licenseText, 450, wx.ClientDC(master.frame))
+        info.License = wordwrap(licenseText, 450, wx.ClientDC(master))
 
         # Then we call wx.AboutBox giving it that info object
         wx.AboutBox(info)
 
 
-#class Tkinter_Variable_Dialog(Toplevel):
-#    def __init__(self, parent=None,title='Test Dialog',label=('label1','label2'),value=(0.0,0.0)):
-#        if not(len(label)==len(value)):
-#            raise Exception, "Number of labels different to number of values"
-#
-#        #Eingabewerte in self speichern
-#        self.label=label
-#        self.value=value
-#        self.result=False
-#
-#        Toplevel.__init__(self, parent)
-#        self.transient(parent)
-#
-#        self.title(title)
-#        self.parent = parent
-#
-#        body = Frame(self)
-#        self.initial_focus = self.body(body)
-#        body.pack(padx=5, pady=5)
-#
-#        self.buttonbox()
-#        self.grab_set()
-#
-#        if not self.initial_focus:
-#            self.initial_focus = self
-#
-#        self.protocol("WM_DELETE_WINDOW", self.cancel)
-#        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
-#                                  parent.winfo_rooty()+50))
-#
-#        self.initial_focus.focus_set()
-#        self.wait_window(self)
-#
-#    def buttonbox(self):
-#        
-#        box = Frame(self)
-#
-#        w = Button(box, text=_("OK"), width=10, command=self.ok, default=ACTIVE)
-#        w.pack(side=LEFT, padx=5, pady=5)
-#        w = Button(box, text=_("Cancel"), width=10, command=self.cancel)
-#        w.pack(side=LEFT, padx=5, pady=5)
-#
-#        self.bind("<Return>", self.ok)
-#        self.bind("<Escape>", self.cancel)
-#
-#        box.pack()
-#
-#    def ok(self, event=None):   
-#        self.withdraw()
-#        self.update_idletasks()
-#        self.apply()
-#        self.cancel()
-#
-#    def cancel(self, event=None):
-#        self.parent.focus_set()
-#        self.destroy()
-#
-#    def body(self, master):
-#        #Die Werte den Tkintervarialben zuweisen
-#        self.tkintervars=[]
-#        for row_nr in range(len(self.label)):
-#            self.tkintervars.append(DoubleVar())
-#            self.tkintervars[-1].set(self.value[row_nr])
-#            Label(master, text=self.label[row_nr]).grid(row=row_nr,padx=4,sticky=N+W)
-#            Entry(master,textvariable=self.tkintervars[row_nr],width=10).grid(row=row_nr, column=1,padx=4,sticky=N+W)
-#
-#    def apply(self):
-#        self.result=[]
-#        for tkintervar in self.tkintervars:
-#            self.result.append(tkintervar.get())
-
-
-
 ##Hauptfunktion zum Aufruf des Fensters und Mainloop     
 if __name__ == '__main__':  
     
+    app = wx.App(False,None)
     #Falls das Programm mit Parametern von EMC gestartet wurde
     if len(sys.argv) > 1:
-        app=Erstelle_Fenster(sys.argv[1])
+        frame=FrameClass(None,load_filename=sys.argv[1])
     else:
-        app=Erstelle_Fenster()
+        frame=MyFrameClass(None)
 
+    frame.Show()
     app.MainLoop()
 
-    

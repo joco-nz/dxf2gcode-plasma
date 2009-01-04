@@ -43,7 +43,7 @@ from copy import deepcopy, copy
 from string import find, strip
 from math import sqrt, sin, cos, atan2, radians, degrees
 
-class Load_DXF:
+class LoadDXF:
     #Initialisierung der Klasse
     def __init__(self, filename=None,config=None,textbox=None):
 
@@ -331,7 +331,7 @@ class Load_DXF:
     
     #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
     def App_Cont_or_Calc_IntPts(self,geo=None,cont=None):
-        tol=self.config.points_tolerance.get()
+        tol=self.config.points_tolerance
 
         points=[]
         for i in range(len(geo)) :
@@ -340,7 +340,7 @@ class Load_DXF:
 
     #Suchen von gemeinsamen Punkten
     def Find_Common_Points(self,points=None):
-        tol=self.config.points_tolerance.get()
+        tol=self.config.points_tolerance
 
         p_list=[]
         
