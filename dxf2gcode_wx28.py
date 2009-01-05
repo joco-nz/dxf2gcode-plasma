@@ -23,7 +23,6 @@
 
 #About Dialog
 #First Version of dxf2gcode Hopefully all works as it should
-#Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
 # Globale Konstanten
 APPNAME = "dxf2gcode"
@@ -40,8 +39,6 @@ else:
     
 
 #Importieren der Module beginnt hier-----------------------------------------------------------------
-
-
 #Schauen ob das numpy Modul geladen werden kann
 try:
     import numpy as N
