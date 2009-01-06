@@ -96,19 +96,10 @@ if (language):
     split it up into a list"""
     langs += language.split(":")
 
-"""Now add on to the back of the list the translations that we
-know that we have, our defaults"""
-langs += []
 
-"""Now langs is a list of all of the languages that we are going
-to try to use.  First we check the default, then what the system
-told us, and finally the 'known' list"""
-
-gettext.bindtextdomain(APPNAME, local_path)
-gettext.textdomain(APPNAME)
-# Get the language to use
-print langs
-trans = gettext.translation(APPNAME, localedir='languages', languages=langs, fallback = True)
+gettext.bindtextdomain("dxf2gcode", local_path)
+gettext.textdomain("dxf2gcode")
+trans = gettext.translation("dxf2gcode", localedir='languages', languages=langs, fallback = True)
 trans.install()
 
 
@@ -334,26 +325,26 @@ class MyFrameClass(wx.Frame):
             filename=self.load_filename
             
         elif (ext.lower()==".ps")or(ext.lower()==".pdf"):
-            self.textbox.prt(_("\nSending Postscript/PDF to pstoedit"))
-#            
-#            # temporäre Datei erzeugen
-#            filename=os.path.join(tempfile.gettempdir(),'dxf2gcode_temp.dxf').encode("cp1252")
-#            
-#            pstoedit_cmd=self.config.pstoedit_cmd.encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
-#            pstoedit_opt=eval(self.config.pstoedit_opt) #['-f','dxf','-mm']
-#            
-#            #print pstoedit_opt
-#            
-#            ps_filename=os.path.normcase(self.load_filename.encode("cp1252"))
-#
-#            cmd=[(('%s')%pstoedit_cmd)]+pstoedit_opt+[(('%s')%ps_filename),(('%s')%filename)]
-#
-#            #print cmd
-#    
-#            retcode=subprocess.call(cmd)
-#            #print retcode
-#
-        self.MyMessages.TextDelete(None)
+            self.MyMessages.prt(_("\nSending Postscript/PDF to pstoedit"))
+            
+            # temporäre Datei erzeugen
+            filename=os.path.join(tempfile.gettempdir(),'dxf2gcode_temp.dxf').encode("cp1252")
+            
+            pstoedit_cmd=self.config.pstoedit_cmd.encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
+            pstoedit_opt=eval(self.config.pstoedit_opt) #['-f','dxf','-mm']
+            
+            #print pstoedit_opt
+            
+            ps_filename=os.path.normcase(self.load_filename.encode("cp1252"))
+
+            cmd=[(('%s')%pstoedit_cmd)]+pstoedit_opt+[(('%s')%ps_filename),(('%s')%filename)]
+
+            print cmd
+    
+            retcode=subprocess.call(cmd)
+            print retcode
+            
+        #self.MyMessages.TextDelete(None)
         self.MyMessages.prt(_('\nLoading file: %s') %self.load_filename)
         
         self.values=dxfimport.LoadDXF(filename,self.config,self.MyMessages)
@@ -680,16 +671,11 @@ class MyLayersClass(wx.TextCtrl):
 
 
 
-class MyGraphicClass(wx.ScrolledWindow):
+class MyGraphicClass(wx.Panel):
     def __init__(self, parent, id):
-        wx.ScrolledWindow.__init__(self, parent, id, (0, 0), size=wx.Size(600,150), style=wx.SUNKEN_BORDER)
+        wx.Panel.__init__(self, parent, id,  style=wx.SUNKEN_BORDER)
 
-        
-        # vars for handling mouse clicks
-        self.SetVirtualSize((2000, 2000))
-        self.SetScrollRate(20,20)
-        
-
+  
         # Add the Canvas
         NC = NavCanvas.NavCanvas(self,
                                      Debug = 0,

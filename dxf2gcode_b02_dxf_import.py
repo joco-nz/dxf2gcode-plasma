@@ -36,12 +36,14 @@ from dxf2gcode_b02_geoent_ellipse import EllipseClass
 from dxf2gcode_b02_geoent_lwpolyline import LWPolylineClass
 
 import sys, os
-from Tkconstants import END
-from tkMessageBox import showwarning
-from Canvas import Oval, Arc, Line
 from copy import deepcopy, copy
 from string import find, strip
 from math import sqrt, sin, cos, atan2, radians, degrees
+
+#from Tkconstants import END
+#from tkMessageBox import showwarning
+#from Canvas import Oval, Arc, Line
+import wx
 
 class LoadDXF:
     #Initialisierung der Klasse
@@ -98,7 +100,11 @@ class LoadDXF:
 
         except:
             
-            showwarning("Warning reading linepairs",("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" %(line)))
+            dial=wx.MessageDialog(None, ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" \
+            %(line)),_("Warning reading linepairs"), wx.OK |
+            wx.ICON_ERROR)
+            dial.ShowModal()
+            
             self.textbox.prt(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " %(line)))
             
             
@@ -257,8 +263,10 @@ class LoadDXF:
             old_start=self.start
 
         if warn:
-            showwarning("Import Warning","Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
-            
+            dial=wx.MessageDialog(None, ("Found unsupported or only\npartly supported geometry.\nFor details see status messages!"),_("Import Warning"), wx.OK |
+            wx.ICON_ERROR)
+            dial.ShowModal()
+           
         del(self.start)
         return geos
 
