@@ -78,7 +78,7 @@ local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
 
 #Übersetzungen initialisieren----------------------------------------------------------------------------
-# Liste der unterstützuden Sprachen anlegen.
+# Liste der unterstützuden Sprachen anlegen und die dementsprchende Reihenfolge der default Sprachen
 langs = ['DE_de']
 
 #Default Sprache des Systems herausfinden
@@ -91,12 +91,11 @@ if (lc):
 # Herausfinden welche sprachen wir haben
 language = os.environ.get('LANGUAGE', None)
 if (language):
-    """langage comes back something like en_CA:en_US:en_GB:en
-    on linuxy systems, on Win32 it's nothing, so we need to
-    split it up into a list"""
+    #Die sprachen kommen in folgender Form vom Linzy System zurück:
+    #en_CA:en_US:en_GB:en bei Windows nichts. Für Linux muß beim : gespliete werden
     langs += language.split(":")
 
-
+# "Installieren" der Übersetzung fpr die Funktion _(string)
 gettext.bindtextdomain("dxf2gcode", local_path)
 gettext.textdomain("dxf2gcode")
 trans = gettext.translation("dxf2gcode", localedir='languages', languages=langs, fallback = True)
@@ -162,20 +161,18 @@ class MyFrameClass(wx.Frame):
         self.Bind(wx.EVT_CLOSE, self.CloseWindow)
         
         #Voreininstellungen fuer das Programm laden
-        self.config=MyConfigClass(self.MyMessages)
+        self.MyConfig=MyConfigClass(self.MyMessages)
 
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.postpro=MyPostprocessorClass(self.config,self.MyMessages)
+        self.postpro=MyPostprocessorClass(self.MyConfig,self.MyMessages)
             
 #        #Erstellen de Eingabefelder und des Canvas
 #        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
-#        self.Canvas =CanvasClass(self.frame_c,self)
-#
-#        #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
-#        self.CanvasContent=CanvasContentClass(self.Canvas,self.textbox,self.config)
-#        self.Canvas.Content=self.CanvasContent
-# 
-#        
+
+        #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
+        self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic.Canvas,self.MyMessages,self.MyConfig)
+ 
+        
         #Falls ein load_filename_uebergeben wurde
         if not(self.load_filename is None):
             #Zuerst alle ausstehenden Events und Callbacks ausfuehren (sonst klappts beim Laden nicht)
@@ -347,7 +344,7 @@ class MyFrameClass(wx.Frame):
         #self.MyMessages.TextDelete(None)
         self.MyMessages.prt(_('\nLoading file: %s') %self.load_filename)
         
-        self.values=dxfimport.LoadDXF(filename,self.config,self.MyMessages)
+        self.values=dxfimport.LoadDXF(filename,self.MyConfig,self.MyMessages)
         
         #Ausgabe der Informationen im Text Fenster
         self.MyMessages.prt(_('\nLoaded layers: %s') %len(self.values.layers))
@@ -372,7 +369,7 @@ class MyFrameClass(wx.Frame):
         self.EnableAllMenues()
 
         #Ausdrucken der Werte        
-        #self.CanvasContent.makeplot(self.values)
+        self.MyCanvasContent.makeplot(self.values)
 
         #Loeschen alter Route Menues
         #self.del_route_and_menuentry()
@@ -701,12 +698,9 @@ class MyGraphicClass(wx.Panel):
         self.EventsAreBound = False
         
         self.BindAllMouseEvents()
+              
         
-        ## getting all the colors for random objects
-        wx.lib.colourdb.updateColourDB()
-        self.colors = wx.lib.colourdb.getColourList()
-        
-        self.DrawTest(None)
+        #self.DrawTest(None)    
         
         return None
 
@@ -830,33 +824,16 @@ class MyGraphicClass(wx.Panel):
         self.Canvas.InitAll()
         self.Canvas.Draw()
 
-    def OnQuit(self,event):
-        self.Close(True)
 
-    def OnCloseWindow(self, event):
-        self.Destroy()
 
     def DrawTest(self,event=None):
-        """
-        This demo draws a few of everything
-
-        """
-        
-        wx.GetApp().Yield(True)
-
-        Range = (-10,10)
-        colors = self.colors
-
-        Canvas = self.Canvas
-
-        Canvas.InitAll()
-        #            
-        ## these set the limits for how much you can zoom in and out
-        Canvas.MinScale = 14
-        Canvas.MaxScale = 500
-        
-
+ 
         ############# Random tests of everything ##############
+        wx.GetApp().Yield(True)
+        colors = self.colors
+        Range = (-10,10)
+        
+        Canvas = self.Canvas
 
         # Rectangles
         for i in range(3):
@@ -904,6 +881,8 @@ class MyGraphicClass(wx.Panel):
             for j in range(random.randint(2,10)):
                 point = (random.randint(Range[0],Range[1]),random.randint(Range[0],Range[1]))
                 points.append(point)
+                
+            print points
             lw = random.randint(1,10)
             cf = random.randint(0,len(colors)-1)
             cl = random.randint(0,len(colors)-1)
@@ -951,9 +930,6 @@ class MyGraphicClass(wx.Panel):
             cf = random.randint(0,len(colors)-1)
             cl = random.randint(0,len(colors)-1)
             Canvas.AddArrowLine(points, LineWidth = lw, LineColor = colors[cl], ArrowHeadSize= 16)
-
-
-        Canvas.ZoomToBB()
 
 #
 #class ExportParasClass:
@@ -1273,44 +1249,11 @@ class MyGraphicClass(wx.Panel):
 #
 #    def autoscale(self):
 #
-#        #Rand der um die Extreme des Elemente dargestellt wird        
-#        rand=20
-#
-#        #Alles auf die 0 Koordinaten verschieben, dass später DX und DY Berechnung richtig erfolgt       
-#        self.canvas.move(ALL,self.dx*self.scale,-self.canvas.winfo_height()-self.dy*self.scale)
-#        self.dx=0;
-#        self.dy=-self.canvas.winfo_height()/self.scale
-#
-#        #Umriss aller Elemente
-#        d=self.canvas.bbox(ALL)
-#        cx=(d[0]+d[2])/2
-#        cy=(d[1]+d[3])/2
-#        dx=d[2]-d[0]
-#        dy=d[3]-d[1]
-#
-#        #Skalierung des Canvas errechnen
-#        xs=float(dx)/(self.canvas.winfo_width()-rand)
-#        ys=float(dy)/(self.canvas.winfo_height()-rand)
-#        scale=1/max(xs,ys)
-#        
-#        #Skalieren der Elemente        
-#        self.canvas.scale( ALL,0,0,scale,scale)
-#        self.scale=self.scale*scale
-#
-#        #Verschieben der Elemente zum Mittelpunkt        
-#        dx=self.canvas.winfo_width()/2-cx*scale
-#        dy=self.canvas.winfo_height()/2-cy*scale
-#        self.dy=self.dy/scale
-#        self.dx=self.dx/scale
-#        self.canvas.move(ALL,dx,dy)
-#        
-#        #Mouse Position errechnen
-#        self.dx=self.dx-dx/self.scale
-#        self.dy=self.dy+dy/self.scale
+
 #
 #        self.Content.plot_cut_info()
 #        self.Content.plot_wp_zero()
-#        
+        
 #    def get_can_coordinates(self,x_st,y_st):
 #        x_ca=(x_st-self.dx)*self.scale
 #        y_ca=(y_st-self.dy)*self.scale-self.canvas.winfo_height()
@@ -1345,22 +1288,22 @@ class MyGraphicClass(wx.Panel):
 #        self.Content.plot_wp_zero()
 #        
 ##Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
-#class CanvasContentClass:
-#    def __init__(self,Canvas,textbox,config):
-#        self.Canvas=Canvas
-#        self.textbox=textbox
-#        self.config=config
-#        self.Shapes=[]
-#        self.LayerContents=[]
-#        self.EntitieContents=[]
-#        self.Selected=[]
-#        self.Disabled=[]
-#        self.wp_zero_hdls=[]
-#        self.dir_hdls=[]
-#        self.path_hdls=[]
-#        
-#
-#        #Anfangswert fuer das Ansicht Toggle Menu
+class MyCanvasContentClass:
+    def __init__(self,Canvas,MyMessages,MyConfig):
+        self.Canvas=Canvas
+        self.MyMessages=MyMessages
+        self.config=MyConfig
+        self.Shapes=[]
+        self.LayerContents=[]
+        self.EntitieContents=[]
+        self.Selected=[]
+        self.Disabled=[]
+        self.wp_zero_hdls=[]
+        self.dir_hdls=[]
+        self.path_hdls=[]
+        
+
+        #Anfangswert fuer das Ansicht Toggle Menu
 #        self.toggle_wp_zero=IntVar()
 #        self.toggle_wp_zero.set(1)
 #
@@ -1369,17 +1312,17 @@ class MyGraphicClass(wx.Panel):
 #
 #        self.toggle_show_disabled=IntVar()
 #        self.toggle_show_disabled.set(0)  
-#        
-#    def __str__(self):
-#        s='\nNr. of Shapes -> %s' %len(self.Shapes)
-#        for lay in self.LayerContents:
-#            s=s+'\n'+str(lay)
-#        for ent in self.EntitieContents:
-#            s=s+'\n'+str(ent)
-#        s=s+'\nSelected -> %s'%(self.Selected)\
-#           +'\nDisabled -> %s'%(self.Disabled)
-#        return s
-#
+        
+    def __str__(self):
+        s='\nNr. of Shapes -> %s' %len(self.Shapes)
+        for lay in self.LayerContents:
+            s=s+'\n'+str(lay)
+        for ent in self.EntitieContents:
+            s=s+'\n'+str(ent)
+        s=s+'\nSelected -> %s'%(self.Selected)\
+           +'\nDisabled -> %s'%(self.Disabled)
+        return s
+    
 #    def calc_dir_var(self):
 #        if len(self.Selected)==0:
 #            return -1
@@ -1389,94 +1332,97 @@ class MyGraphicClass(wx.Panel):
 #                return -1   
 #        return dir-40
 #                
-#    #Erstellen des Gesamten Ausdrucks      
-#    def makeplot(self,values):
-#        self.values=values
-#
-#        #Loeschen des Inhalts
-#        self.Canvas.canvas.delete(ALL)
-#        
-#        #Standardwerte fuer scale, dx, dy zuweisen
-#        self.Canvas.scale=1
-#        self.Canvas.dx=0
-#        self.Canvas.dy=-self.Canvas.canvas.winfo_height()
-#
-#        #Zuruecksetzen der Konturen
-#        self.Shapes=[]
-#        self.LayerContents=[]
-#        self.EntitieContents=[]
-#        self.Selected=[]
-#        self.Disabled=[]
-#        self.wp_zero_hdls=[]
-#        self.dir_hdls=[]
-#        self.path_hdls=[]
-#
-#        #Start mit () bedeutet zuweisen der Entities -1 = Standard
-#        self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0)
-#        self.plot_shapes()
-#        self.LayerContents.sort()
-#        self.EntitieContents.sort()
-#
-#        #Autoscale des Canvas        
-#        self.Canvas.autoscale()
-#
-#    def make_shapes(self,EntName="Entities",p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
-#
-#        if EntName=="Entities":
-#            ent_nr=-1
-#            entities=self.values.entities
-#        else:
-#            ent_nr=self.values.Get_Block_Nr(EntName)
-#            entities=self.values.blocks.Entities[ent_nr]
-#        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
-#        ent_geos=entities.geo
-#        cont=entities.cont
-#        basep=entities.basep
-#        
-#        #Schleife fuer die Anzahl der Konturen 
-#        for c_nr in range(len(cont)):
-#            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-#            if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
-#                ent_geo=ent_geos[cont[c_nr].order[0][0]]
-#                self.make_shapes(ent_geo.BlockName,\
-#                                    p0-basep+ent_geo.Point,\
-#                                    [ent_geo.Scale[0]*sca[0],ent_geo.Scale[1]*sca[1],ent_geo.Scale[2]*sca[2]],\
-#                                    ent_geo.rot)
-#            else:
-#                #Schleife fuer die Anzahl der Geometrien
-#                self.Shapes.append(ShapeClass(len(self.Shapes),\
-#                                                ent_nr,\
-#                                                c_nr,\
-#                                                cont[c_nr].closed,\
-#                                                p0,\
-#                                                basep,\
-#                                                sca[:],\
-#                                                rot,\
-#                                                40,\
-#                                                cont[c_nr].length*sca[0],\
-#                                                [],\
-#                                                []))
-#                for ent_geo_nr in range(len(cont[c_nr].order)):
-#                    ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
-#                    if cont[c_nr].order[ent_geo_nr][1]:
-#                        ent_geo.geo.reverse()
-#                        for geo in ent_geo.geo:
-#                            geo=copy(geo)
-#                            geo.reverse()
-#                            self.Shapes[-1].geos.append(geo)
-#
-#                        ent_geo.geo.reverse()
-#                    else:
-#                        for geo in ent_geo.geo:
-#                            self.Shapes[-1].geos.append(copy(geo))
-#                        
-#                self.addtoLayerContents(self.Shapes[-1].nr,ent_geo.Layer_Nr)
-#                self.addtoEntitieContents(self.Shapes[-1].nr,ent_nr,c_nr)
-#
-#    def plot_shapes(self):
-#        for shape in self.Shapes:
-#            shape.plot2can(self.Canvas.canvas)
-#            
+    #Erstellen des Gesamten Ausdrucks      
+    def makeplot(self,values):
+        self.values=values
+
+        #Loeschen des Inhalts     
+        self.Canvas.InitAll()
+        
+        #Standardwerte fuer scale, dx, dy zuweisen
+        ## these set the limits for how much you can zoom in and out
+        #self.Canvas.MinScale = 14
+        #self.Canvas.MaxScale = 500
+
+        #Zuruecksetzen der Konturen
+        self.Shapes=[]
+        self.LayerContents=[]
+        self.EntitieContents=[]
+        self.Selected=[]
+        self.Disabled=[]
+        self.wp_zero_hdls=[]
+        self.dir_hdls=[]
+        self.path_hdls=[]
+
+        #Start mit () bedeutet zuweisen der Entities -1 = Standard
+        self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0)
+        self.plot_shapes()
+        
+        #Autoskalieren des Canvas Bereichs
+        self.Canvas.ZoomToBB()
+        
+        #Sortieren der Listen mit den Layers
+        self.LayerContents.sort()
+        self.EntitieContents.sort()
+
+
+    def make_shapes(self,EntName="Entities",p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
+
+        if EntName=="Entities":
+            ent_nr=-1
+            entities=self.values.entities
+        else:
+            ent_nr=self.values.Get_Block_Nr(EntName)
+            entities=self.values.blocks.Entities[ent_nr]
+        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
+        ent_geos=entities.geo
+        cont=entities.cont
+        basep=entities.basep
+        
+        #Schleife fuer die Anzahl der Konturen 
+        for c_nr in range(len(cont)):
+            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
+            if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
+                ent_geo=ent_geos[cont[c_nr].order[0][0]]
+                self.make_shapes(ent_geo.BlockName,\
+                                    p0-basep+ent_geo.Point,\
+                                    [ent_geo.Scale[0]*sca[0],ent_geo.Scale[1]*sca[1],ent_geo.Scale[2]*sca[2]],\
+                                    ent_geo.rot)
+            else:
+                #Schleife fuer die Anzahl der Geometrien
+                self.Shapes.append(ShapeClass(len(self.Shapes),\
+                                                ent_nr,\
+                                                c_nr,\
+                                                cont[c_nr].closed,\
+                                                p0,\
+                                                basep,\
+                                                sca[:],\
+                                                rot,\
+                                                40,\
+                                                cont[c_nr].length*sca[0],\
+                                                [],\
+                                                []))
+                for ent_geo_nr in range(len(cont[c_nr].order)):
+                    ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
+                    if cont[c_nr].order[ent_geo_nr][1]:
+                        ent_geo.geo.reverse()
+                        for geo in ent_geo.geo:
+                            geo=copy(geo)
+                            geo.reverse()
+                            self.Shapes[-1].geos.append(geo)
+
+                        ent_geo.geo.reverse()
+                    else:
+                        for geo in ent_geo.geo:
+                            self.Shapes[-1].geos.append(copy(geo))
+                        
+                self.addtoLayerContents(self.Shapes[-1].nr,ent_geo.Layer_Nr)
+                self.addtoEntitieContents(self.Shapes[-1].nr,ent_nr,c_nr)
+
+    def plot_shapes(self):
+        for shape in self.Shapes:
+            shape.plot2can(self.Canvas)
+            
 #    #Drucken des Werkstuecknullpunkts
 #    def plot_wp_zero(self):
 #        for hdl in self.wp_zero_hdls:
@@ -1507,9 +1453,9 @@ class MyGraphicClass(wx.Panel):
 #               
 #        for shape_nr in draw_list:
 #            if not(shape_nr in self.Disabled):
-#                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas,self.config)
+#                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas,self.MyConfig)
 #
-#
+
 #    def plot_opt_route(self,shapes_st_en_points,route):
 #        #Ausdrucken der optimierten Route
 #        for en_nr in range(len(route)):
@@ -1533,37 +1479,37 @@ class MyGraphicClass(wx.Panel):
 #        self.Canvas.canvas.update()
 #
 #
-#    #Hinzufuegen der Kontur zum Layer        
-#    def addtoLayerContents(self,shape_nr,lay_nr):
-#        #Abfrage of der gesuchte Layer schon existiert
-#        for LayCon in self.LayerContents:
-#            if LayCon.LayerNr==lay_nr:
-#                LayCon.Shapes.append(shape_nr)
-#                return
-#
-#        #Falls er nicht gefunden wurde neuen erstellen
-#        LayerName=self.values.layers[lay_nr].name
-#        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
-#        
-#    #Hinzufuegen der Kontur zu den Entities
-#    def addtoEntitieContents(self,shape_nr,ent_nr,c_nr):
-#        
-#        for EntCon in self.EntitieContents:
-#            if EntCon.EntNr==ent_nr:
-#                if c_nr==0:
-#                    EntCon.Shapes.append([])
-#                
-#                EntCon.Shapes[-1].append(shape_nr)
-#                return
-#
-#        #Falls er nicht gefunden wurde neuen erstellen
-#        if ent_nr==-1:
-#            EntName='Entities'
-#        else:
-#            EntName=self.values.blocks.Entities[ent_nr].Name
-#            
-#        self.EntitieContents.append(EntitieContentClass(ent_nr,EntName,[[shape_nr]]))
-#
+    #Hinzufuegen der Kontur zum Layer        
+    def addtoLayerContents(self,shape_nr,lay_nr):
+        #Abfrage of der gesuchte Layer schon existiert
+        for LayCon in self.LayerContents:
+            if LayCon.LayerNr==lay_nr:
+                LayCon.Shapes.append(shape_nr)
+                return
+
+        #Falls er nicht gefunden wurde neuen erstellen
+        LayerName=self.values.layers[lay_nr].name
+        self.LayerContents.append(MyLayerContentClass(lay_nr,LayerName,[shape_nr]))
+        
+    #Hinzufuegen der Kontur zu den Entities
+    def addtoEntitieContents(self,shape_nr,ent_nr,c_nr):
+        
+        for EntCon in self.EntitieContents:
+            if EntCon.EntNr==ent_nr:
+                if c_nr==0:
+                    EntCon.Shapes.append([])
+                
+                EntCon.Shapes[-1].append(shape_nr)
+                return
+
+        #Falls er nicht gefunden wurde neuen erstellen
+        if ent_nr==-1:
+            EntName='Entities'
+        else:
+            EntName=self.values.blocks.Entities[ent_nr].Name
+            
+        self.EntitieContents.append(MyEntitieContentClass(ent_nr,EntName,[[shape_nr]]))
+        
 #    def delete_opt_path(self):
 #        for hdl in self.path_hdls:
 #            self.Canvas.canvas.delete(hdl)
@@ -1706,31 +1652,31 @@ class MyGraphicClass(wx.Panel):
 #        return hdls      
 #                                       
 #       
-#class LayerContentClass:
-#    def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
-#        self.LayerNr=LayerNr
-#        self.LayerName=LayerName
-#        self.Shapes=Shapes
-#        
-#    def __cmp__(self, other):
-#         return cmp(self.LayerNr, other.LayerNr)
-#
-#    def __str__(self):
-#        return '\nLayerNr ->'+str(self.LayerNr)+'\nLayerName ->'+str(self.LayerName)\
-#               +'\nShapes ->'+str(self.Shapes)
-#    
-#class EntitieContentClass:
-#    def __init__(self,EntNr=None,EntName='',Shapes=[]):
-#        self.EntNr=EntNr
-#        self.EntName=EntName
-#        self.Shapes=Shapes
-#
-#    def __cmp__(self, other):
-#         return cmp(self.EntNr, other.EntNr)        
-#        
-#    def __str__(self):
-#        return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
-#               +'\nShapes ->'+str(self.Shapes)
+class MyLayerContentClass:
+    def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
+        self.LayerNr=LayerNr
+        self.LayerName=LayerName
+        self.Shapes=Shapes
+        
+    def __cmp__(self, other):
+         return cmp(self.LayerNr, other.LayerNr)
+
+    def __str__(self):
+        return '\nLayerNr ->'+str(self.LayerNr)+'\nLayerName ->'+str(self.LayerName)\
+               +'\nShapes ->'+str(self.Shapes)
+    
+class MyEntitieContentClass:
+    def __init__(self,EntNr=None,EntName='',Shapes=[]):
+        self.EntNr=EntNr
+        self.EntName=EntName
+        self.Shapes=Shapes
+
+    def __cmp__(self, other):
+         return cmp(self.EntNr, other.EntNr)        
+        
+    def __str__(self):
+        return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
+               +'\nShapes ->'+str(self.Shapes)
 #
 class MyConfigClass:
     def __init__(self,MyMessages):

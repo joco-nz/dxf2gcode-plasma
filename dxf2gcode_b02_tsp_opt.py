@@ -27,9 +27,6 @@ from copy import copy
 from random import random, shuffle
 from math import floor, ceil
 
-from Tkconstants import END
-
-
           
 class TSPoptimize:
     def __init__(self,st_end_points=[],textbox=[],master=[],config=[]):

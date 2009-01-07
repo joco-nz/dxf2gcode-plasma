@@ -23,10 +23,9 @@
 #
 #Main Class Shape
 
-import sys, os, string, ConfigParser 
+#import sys, os, string, ConfigParser 
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
-from Canvas import Line
 
 class ShapeClass:
     def __init__(self,nr='None',ent_nr='None',ent_cnr='None',closed=0,\
