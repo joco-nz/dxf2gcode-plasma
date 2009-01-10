@@ -23,6 +23,7 @@
 
 
 from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil
+from wx.lib.floatcanvas import FloatCanvas
 
 class PointClass:
     def __init__(self,x=0,y=0):
@@ -71,8 +72,8 @@ class PointClass:
         return PointClass(x=self.x+cos(radians(ang))*r,\
                           y=self.y+sin(radians(ang))*r)
 
-    def Write_GCode(self,sca,p0,postpro):
-        point=self.rot_sca_abs(sca=sca,p0=p0,rot=0.0)
+    def Write_GCode(self,sca,p0,rot,postpro):
+        point=self.rot_sca_abs(sca=sca,p0=p0,pb=PointClass(0,0),rot=0.0)
         return postpro.rap_pos_xy(point)
     
     def triangle_height(self,other1,other2):
@@ -274,9 +275,9 @@ class ArcGeo:
         self.s_ang=s_ang
         self.e_ang=e_ang
 
-    def plot2can(self,Canvas=None,p0=PointClass(x=0.0,y=0.0),\
+    def plot2can(self,p0=PointClass(x=0.0,y=0.0),\
                     pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0,tag=None,col='Black'):
+                    rot=0.0):
                         
         points=[]; hdl=[]
         #Alle 3 Grad ein Segment => 120 Segmente für einen Kreis !!
@@ -291,35 +292,9 @@ class ArcGeo:
             p_cur_rot=p_cur.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
             points.append((p_cur_rot.x,p_cur_rot.y))
 
-        Canvas.AddLine(points, LineWidth = 2, LineColor = col)
-        
-        
-        return [0]        
-
-#        # Lines
-#        for i in range(5):
-#            points = []
-#            for j in range(random.randint(2,10)):
-#                point = (random.randint(Range[0],Range[1]),random.randint(Range[0],Range[1]))
-#                points.append(point)
-#            lw = random.randint(1,10)
-#            cf = random.randint(0,len(colors)-1)
-#            cl = random.randint(0,len(colors)-1)
-#            Canvas.AddLine(points, LineWidth = lw, LineColor = colors[cl])
-#        # Polygons
-#        for i in range(3):
-#            points = []
-#            for j in range(random.randint(2,6)):
-#                point = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-#                points.append(point)
-#            lw = random.randint(1,6)
-#            cf = random.randint(0,len(colors)-1)
-#            cl = random.randint(0,len(colors)-1)
-#            Canvas.AddPolygon(points,
-#                                   LineWidth = lw,
-#                                   LineColor = colors[cl],
-#                                   FillColor = colors[cf],
-#                                   FillStyle = 'Solid')
+        return points
+        #A=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
+        #return A      
 
 
     def get_start_end_points(self,direction):
@@ -372,15 +347,16 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,Canvas=None,p0=PointClass(x=0,y=0),\
+    def plot2can(self,p0=PointClass(x=0,y=0),\
                     pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0,tag=None,col='Black'):
+                    rot=0.0):
 
         anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
         ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
         
-        Canvas.AddLine([(anf.x,anf.y),(ende.x,ende.y)], LineWidth = 2, LineColor = col)
-        return [0]
+        return [(anf.x,anf.y),(ende.x,ende.y)]
+        #L=Canvas.AddLine([(anf.x,anf.y),(ende.x,ende.y)], LineWidth = 2, LineColor = col)
+        #return L
 
     def get_start_end_points(self,direction):
         if not(direction):

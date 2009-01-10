@@ -122,22 +122,23 @@ class LWPolylineClass:
             s_temp=lp.index_code(42,s+1,min(e,lp.index_code(10,s+1,e)))
             #print('stemp: %s, e: %s, next 10: %s' %(s_temp,e,lp.index_code(10,s+1,e)))
             if s_temp!=None:
-                bulge=float(lp.line_pair[s].value)
+                bulge=float(lp.line_pair[s_temp].value)
                 s=s_temp
-            
-            
+                
+                    
             #Zuweisen der Geometrien für die Polyline
             if not(type(Pa)==type(None)):
                 if bulge==0:
                     self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
                 else:
-                    self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
-                    #print 'keine Linie'
+                    print bulge
+                    self.geo.append(self.bulge2arc(Pa,Pe,bulge))
                     
                 self.length+=self.geo[-1].length
             Pa=Pe
                    
         if (LWPLClosed==1):
+            print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
             self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
             self.length+=self.geo[-1].length
             
@@ -151,3 +152,7 @@ class LWPolylineClass:
         elif direction:
             punkt, angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
+    
+    def bulge2arc(self,Pa,Pe,bulge):
+        print("LWpolyline %0.2f" %bulge)
+        return LineGeo(Pa=Pa,Pe=Pe)    

@@ -42,8 +42,7 @@ class ShapeClass:
         self.length=length
         self.geos=geos
         self.geos_hdls=geos_hdls
-        print self
-        
+
     def __str__(self):
         return ('\nnr:          %i' %self.nr)+\
                ('\nent_nr:      %i' %self.ent_nr)+\
@@ -78,10 +77,18 @@ class ShapeClass:
         ende=en_point*self.sca+self.p0
         return [start,ende]
 
-    def plot2can(self,canvas):
-        for geo in self.geos:
-            self.geos_hdls+=geo.plot2can(canvas,self.p0,self.pb,self.sca,self.rot,self.nr)
-            
+    def plot2can(self,Canvas=None,tag=None,col='Black'):
+        
+        for i in range(len(self.geos)):
+            cur_pts=self.geos[i].plot2can(self.p0,self.pb,self.sca,self.rot)
+            if i==0:
+                points=cur_pts
+            else:
+                points+=cur_pts[1:len(cur_pts)]
+                       
+        L=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
+        self.geos_hdls.append(L)
+        
     def plot_cut_info(self,CanvasClass,config):
         hdls=[]
         hdls.append(self.plot_start(CanvasClass))
@@ -146,11 +153,11 @@ class ShapeClass:
         self.st_move=[]
 
         #Einlaufradius und Versatz 
-        start_rad=config.start_rad.get()
+        start_rad=config.start_rad
         start_ver=start_rad
 
         #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad=config.tool_dia.get()/2
+        tool_rad=config.tool_dia/2
     
         #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
         st_point, st_angle=self.geos[0].get_start_end_points(0)
@@ -209,10 +216,10 @@ class ShapeClass:
         self.make_start_moves(config)
         
         #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad=config.tool_dia.get()/2
+        tool_rad=config.tool_dia/2
         
-        depth=config.axis3_mill_depth.get()
-        max_slice=config.axis3_slice_depth.get()
+        depth=config.axis3_mill_depth
+        max_slice=config.axis3_slice_depth
 
         #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
         if -abs(max_slice)<=depth:
@@ -227,10 +234,10 @@ class ShapeClass:
                                     0.0,\
                                     postpro)
         
-        postpro.rap_pos_z(config.axis3_safe_margin.get())
-        postpro.chg_feed_rate(config.F_G1_Depth.get())
+        postpro.rap_pos_z(config.axis3_safe_margin)
+        postpro.chg_feed_rate(config.F_G1_Depth)
         postpro.lin_pol_z(mom_depth)
-        postpro.chg_feed_rate(config.F_G1_Plane.get())
+        postpro.chg_feed_rate(config.F_G1_Plane)
 
         #Wenn G41 oder G42 an ist Fräsradiuskorrektur        
         if self.cut_cor!=40:
@@ -274,9 +281,9 @@ class ShapeClass:
                 mom_depth=depth                
 
             #Erneutes Eintauchen
-            postpro.chg_feed_rate(config.F_G1_Depth.get())
+            postpro.chg_feed_rate(config.F_G1_Depth)
             postpro.lin_pol_z(mom_depth)
-            postpro.chg_feed_rate(config.F_G1_Plane.get())
+            postpro.chg_feed_rate(config.F_G1_Plane)
 
             #Falls es keine geschlossene Kontur ist    
             if self.closed==0:
@@ -312,8 +319,8 @@ class ShapeClass:
             self.switch_cut_cor()
 
         #Fertig und Zurückziehen des Werkzeugs
-        postpro.lin_pol_z(config.axis3_safe_margin.get())
-        postpro.rap_pos_z(config.axis3_retract.get())
+        postpro.lin_pol_z(config.axis3_safe_margin)
+        postpro.rap_pos_z(config.axis3_retract)
 
         #Falls Fräsradius Korrektur noch nicht ausgeschaltet ist ausschalten.
         if (not(self.cut_cor==40))&(not(postpro.cancel_cc_for_depth)):

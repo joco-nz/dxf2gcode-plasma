@@ -125,7 +125,6 @@ class MyFrameClass(wx.Frame):
 
         #Erstellen des Fenster Menus
         self.CreateMenues()
-        self.BindMenuEvents()
         self.DisableAllMenues()
             
         #Erstellen des Baums für die Entities
@@ -142,13 +141,13 @@ class MyFrameClass(wx.Frame):
                         
         #Die Verschiedeneen Objecte zum Sizer AUIManager hinzufügen
         self._mgr.AddPane(self.MyEntTree, wx.aui.AuiPaneInfo(). 
-                          Caption("Entities").Floatable(False).
+                          Caption(_("Entities")).Floatable(False).
                           Left().CloseButton(False))            
         self._mgr.AddPane(self.MyLayers,wx.aui.AuiPaneInfo(). 
-                          Caption("Layers").Floatable(False). 
+                          Caption(_("Layers")).Floatable(False). 
                           Left().CloseButton(False))
         self._mgr.AddPane(self.MyMessages, wx.aui.AuiPaneInfo(). 
-                          Caption("Messages").Floatable(False).
+                          Caption(_("Messages")).Floatable(False).
                           Bottom().CloseButton(False))
         self._mgr.AddPane(self.MyGraphic, wx.aui.AuiPaneInfo(). 
                           CaptionVisible(False). 
@@ -164,13 +163,16 @@ class MyFrameClass(wx.Frame):
         self.MyConfig=MyConfigClass(self.MyMessages)
 
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.postpro=MyPostprocessorClass(self.MyConfig,self.MyMessages)
+        self.MyPostpro=MyPostprocessorClass(self.MyConfig,self.MyMessages)
             
 #        #Erstellen de Eingabefelder und des Canvas
 #        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
 
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
         self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic.Canvas,self.MyMessages,self.MyConfig)
+        
+        #Erstellen der Bindings fürs gesamte Fenster
+        self.BindMenuEvents()
  
         
         #Falls ein load_filename_uebergeben wurde
@@ -231,8 +233,8 @@ class MyFrameClass(wx.Frame):
         menuBar.Append(optionmenu, _("Options"))
                 
         helpmenu = wx.Menu()
-        helpmenu.Append(501, "About", "Show the About dialog")
-        menuBar.Append(helpmenu, "Help")    
+        helpmenu.Append(501, _("About"),_("Show the About dialog"))
+        menuBar.Append(helpmenu, _("Help"))    
 
         self.SetMenuBar(menuBar)
         
@@ -242,14 +244,14 @@ class MyFrameClass(wx.Frame):
         self.Bind(wx.EVT_MENU, self.CloseWindow, id=102)
         
         #Exportmenu
-        self.Bind(wx.EVT_MENU, self.WriteGCode, id=201)
+        self.Bind(wx.EVT_MENU, self.GetSaveFile, id=201)
         
         #Viewmenu
-        #self.Bind(wx.EVT_MENU, self.CanvasContent.plot_wp_zero, id=301)
-        #self.Bind(wx.EVT_MENU, self.CanvasContent.plot_cut_info, id=302)
-        #self.Bind(wx.EVT_MENU, self.CanvasContent.show_disabled, id=303)
-        #self.Bind(wx.EVT_MENU, self.Canvas.autoscale, id=304)
-        #self.Bind(wx.EVT_MENU, self.del_route_and_menuentry, id=305)
+        self.Bind(wx.EVT_MENU, self.MyCanvasContent.plot_wp_zero, id=301)
+        self.Bind(wx.EVT_MENU, self.MyCanvasContent.plot_cut_info, id=302)
+        self.Bind(wx.EVT_MENU, self.MyCanvasContent.show_disabled, id=303)
+        self.Bind(wx.EVT_MENU, self.MyCanvasContent.autoscale, id=304)
+        self.Bind(wx.EVT_MENU, self.del_route_and_menuentry, id=305)
         
         #Optionsmenu
         self.Bind(wx.EVT_MENU, self.GetContTol, id=401)
@@ -283,7 +285,6 @@ class MyFrameClass(wx.Frame):
         self.viewmenu.Enable(302,True)
         self.viewmenu.Enable(303,True)
         self.viewmenu.Enable(304,True)
-        #self.viewmenu.Enable(305,True)
         
         #Optionsmenu
         self.optionmenu.Enable(401,True)
@@ -300,7 +301,7 @@ class MyFrameClass(wx.Frame):
                           
         dlg = wx.FileDialog(
             self, message="Choose a file",
-            defaultDir=os.getcwd(), 
+            defaultDir=self.MyConfig.load_path, 
             defaultFile="",
             wildcard=myFormats,
             style=wx.OPEN | wx.MULTIPLE | wx.CHANGE_DIR)
@@ -327,19 +328,12 @@ class MyFrameClass(wx.Frame):
             # temporäre Datei erzeugen
             filename=os.path.join(tempfile.gettempdir(),'dxf2gcode_temp.dxf').encode("cp1252")
             
-            pstoedit_cmd=self.config.pstoedit_cmd.encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
-            pstoedit_opt=eval(self.config.pstoedit_opt) #['-f','dxf','-mm']
-            
-            #print pstoedit_opt
+            pstoedit_cmd=self.MyConfig.pstoedit_cmd.encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
+            pstoedit_opt=eval(self.MyConfig.pstoedit_opt) #['-f','dxf','-mm']
             
             ps_filename=os.path.normcase(self.load_filename.encode("cp1252"))
-
             cmd=[(('%s')%pstoedit_cmd)]+pstoedit_opt+[(('%s')%ps_filename),(('%s')%filename)]
-
-            print cmd
-    
             retcode=subprocess.call(cmd)
-            print retcode
             
         #self.MyMessages.TextDelete(None)
         self.MyMessages.prt(_('\nLoading file: %s') %self.load_filename)
@@ -372,7 +366,7 @@ class MyFrameClass(wx.Frame):
         self.MyCanvasContent.makeplot(self.values)
 
         #Loeschen alter Route Menues
-        #self.del_route_and_menuentry()
+        self.del_route_and_menuentry()
             
     def GetContTol(self):
         pass
@@ -438,151 +432,157 @@ class MyFrameClass(wx.Frame):
 #        #Verschieben des Canvas WP zero
 #        self.Canvas.move_wp_zero(self.cont_dx-old_dx,self.cont_dy-old_dy)
 #
-#    def Get_Save_File(self):
-#
-#        #Abbruch falls noch kein File geladen wurde.
-#        if self.load_filename==None:
-#            showwarning(_("Export G-Code"), _("Nothing to export!"))
-#            return
-#        
-#        #Auswahl des zu ladenden Files
-#        myFormats = [(_('G-Code for EMC2'),'*.ngc'),\
-#        (_('All File'),'*.*') ]
-#
-#        (beg, ende)=os.path.split(self.load_filename)
-#        (fileBaseName, fileExtension)=os.path.splitext(ende)
-#
-#        inidir=self.config.save_path
-#        self.save_filename = asksaveasfilename(initialdir=inidir,\
-#                               initialfile=fileBaseName +'.ngc',filetypes=myFormats)
-#
+    def GetSaveFile(self,event):
+        
+        if not(self.MyPostpro.write_to_stdout):     
+
+            #Abbruch falls noch kein File geladen wurde.
+            if self.load_filename==None:
+                showwarning(_("Export G-Code"), _("Nothing to export!"))
+                return
+            
+            saveformat = _('EMC2 GCode Files')+'|ngc.*' 
+
+            (beg, ende)=os.path.split(self.load_filename)
+            (fileBaseName, fileExtension)=os.path.splitext(ende)
+          
+            dlg = wx.FileDialog(
+                self, message=_("Save file as ..."), defaultDir=self.MyConfig.load_path, 
+                defaultFile=fileBaseName +'.ngc', wildcard=saveformat, style=wx.SAVE)
+
+            # This sets the default filter that the user will initially see. Otherwise,
+            # the first filter in the list will be used by default.
+            #dlg.SetFilterIndex(2)
+
+            # Show the dialog and retrieve the user response. If it is the OK response, 
+            # process the data.
+            if dlg.ShowModal() == wx.ID_OK:
+                paths = dlg.GetPaths()
+                self.save_filename=paths[0]
+            else:
+                return
+            
+            self.WriteGCode()
+
     # Callback des Menu Punkts Exportieren
     def WriteGCode(self):
         pass
-#        #Funktion zum optimieren des Wegs aufrufen
-#        self.opt_export_route()
-#
-#        #Initial Status fuer den Export
-#        status=1
-#
-#        #Config & postpro in einen kurzen Namen speichern
-#        config=self.config
-#        postpro=self.postpro
-#
-#        #Schreiben der Standardwert am Anfang        
-#        postpro.write_gcode_be(self.ExportParas,self.load_filename)
-#
-#        #Maschine auf die Anfangshoehe bringen
-#        postpro.rap_pos_z(config.axis3_retract.get())
-#
-#        #Bei 1 starten da 0 der Startpunkt ist
-#        for nr in range(1,len(self.TSP.opt_route)):
-#            shape=self.shapes_to_write[self.TSP.opt_route[nr]]
-#            self.textbox.prt((_("\nWriting Shape: %s") %shape),1)
-#                
-#
-#
-#            #Drucken falls die Shape nicht disabled ist
-#            if not(shape.nr in self.CanvasContent.Disabled):
-#                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
-#                stat =shape.Write_GCode(config,postpro)
-#                status=status*stat
-#
-#        #Maschine auf den Endwert positinieren
-#        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
-#                                              y=config.axis2_st_en.get()))
-#
-#        #Schreiben der Standardwert am Ende        
-#        string=postpro.write_gcode_en(self.ExportParas)
-#
-#        if status==1:
-#            self.textbox.prt(_("\nSuccessfully generated G-Code"))
-#            self.master.update_idletasks()
-#
-#        else:
-#            self.textbox.prt(_("\nError during G-Code Generation"))
-#            self.master.update_idletasks()
-#
-#                    
-#        #Drucken in den Stdout, speziell fuer EMC2 
-#        if postpro.write_to_stdout:
-#            #print(string)
-#            self.ende()     
-#        else:
-#            #Exportieren der Daten
-#                try:
-#                    #Abfrage des Namens um das File zu speichern
-#                    self.Get_Save_File()
-#                    
-#                    #Wenn Cancel gedrueckt wurde
-#                    if not self.save_filename:
-#                        return
-#                    
-#                    #Das File oeffnen und schreiben    
-#                    f = open(self.save_filename, "w")
-#                    f.write(string)
-#                    f.close()    
-#                      
-#                except IOError:
-#                    showwarning(_("Save As"), _("Cannot save the file."))
-#            
-#
-#    def opt_export_route(self):
-#        
-#        #Errechnen der Iterationen
-#        iter =min(self.config.max_iterations,len(self.CanvasContent.Shapes)*20)
-#        
-#        #Anfangswerte fuer das Sortieren der Shapes
-#        self.shapes_to_write=[]
-#        shapes_st_en_points=[]
-#        
-#        #Alle Shapes die geschrieben werden zusammenfassen
-#        for shape_nr in range(len(self.CanvasContent.Shapes)):
-#            shape=self.CanvasContent.Shapes[shape_nr]
-#            if not(shape.nr in self.CanvasContent.Disabled):
-#                self.shapes_to_write.append(shape)
-#                shapes_st_en_points.append(shape.get_st_en_points())
-#                
-#
-#        #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
-#        x_st=self.config.axis1_st_en.get()
-#        y_st=self.config.axis2_st_en.get()
-#        start=PointClass(x=x_st,y=y_st)
-#        ende=PointClass(x=x_st,y=y_st)
-#        shapes_st_en_points.append([start,ende])
-#
-#        #Optimieren der Reihenfolge
-#        self.textbox.prt(_("\nTSP Starting"),1)
-#                
-#        self.TSP=tsp.TSPoptimize(shapes_st_en_points,self.textbox,self.master,self.config)
-#        self.textbox.prt(_("\nTSP start values initialised"),1)
-#        #self.CanvasContent.path_hdls=[]
-#        #self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
-#
-#        for it_nr in range(iter):
-#            #Jeden 10ten Schrit rausdrucken
-#            if (it_nr%10)==0:
-#                self.textbox.prt((_("\nTSP Iteration nr: %i") %it_nr),1)
-#                for hdl in self.CanvasContent.path_hdls:
-#                    self.Canvas.canvas.delete(hdl)
-#                self.CanvasContent.path_hdls=[]
-#                self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
-#                self.master.update_idletasks()
-#                
-#            self.TSP.calc_next_iteration()
-#            
-#        self.textbox.prt(_("\nTSP done with result:"),1)
-#        self.textbox.prt(("\n%s" %self.TSP),1)
-#
-#        self.viewmenu.entryconfig(6,state=NORMAL)        
-#
-#    def del_route_and_menuentry(self):
-#        try:
-#            self.viewmenu.entryconfig(6,state=DISABLED)
-#            self.CanvasContent.delete_opt_path()
-#        except:
-#            pass
-#        
+        #Funktion zum optimieren des Wegs aufrufen
+        self.opt_export_route()
+
+        #Initial Status fuer den Export
+        status=1
+
+        #Config & postpro in einen kurzen Namen speichern
+        config=self.MyConfig
+        postpro=self.MyPostpro
+
+        #Schreiben der Standardwert am Anfang        
+        postpro.write_gcode_be(self.load_filename)
+
+        #Maschine auf die Anfangshoehe bringen
+        postpro.rap_pos_z(config.axis3_retract)
+
+        #Bei 1 starten da 0 der Startpunkt ist
+        for nr in range(1,len(self.TSP.opt_route)):
+            shape=self.shapes_to_write[self.TSP.opt_route[nr]]
+            self.MyMessages.prt((_("\nWriting Shape: %s") %shape),1)
+                
+
+
+            #Drucken falls die Shape nicht disabled ist
+            if not(shape.nr in self.MyCanvasContent.Disabled):
+                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
+                stat =shape.Write_GCode(config,postpro)
+                status=status*stat
+
+        #Maschine auf den Endwert positinieren
+        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en,\
+                                      y=config.axis2_st_en))
+
+        #Schreiben der Standardwert am Ende        
+        string=postpro.write_gcode_en()
+
+        if status==1:
+            self.MyMessages.prt(_("\nSuccessfully generated G-Code"))
+
+        else:
+            self.MyMessages.prt(_("\nError during G-Code Generation"))
+
+                    
+        #Drucken in den Stdout, speziell fuer EMC2 
+        if postpro.write_to_stdout:
+            self.ende()     
+        else:
+            try:
+                #Das File oeffnen und schreiben    
+                f = open(self.save_filename, "w")
+                f.write(string)
+                f.close()       
+            except IOError:
+                dial=wx.MessageDialog(None, _("Cannot save the file."),
+                        _("Error during saving"), wx.OK |
+                        wx.ICON_ERROR)
+                dial.ShowModal()
+            
+    def opt_export_route(self):
+        
+        #Errechnen der Iterationen
+        iter =min(self.MyConfig.max_iterations,len(self.MyCanvasContent.Shapes)*20)
+        
+        #Anfangswerte fuer das Sortieren der Shapes
+        self.shapes_to_write=[]
+        shapes_st_en_points=[]
+        
+        #Alle Shapes die geschrieben werden zusammenfassen
+        for shape_nr in range(len(self.MyCanvasContent.Shapes)):
+            shape=self.MyCanvasContent.Shapes[shape_nr]
+            if not(shape.nr in self.MyCanvasContent.Disabled):
+                self.shapes_to_write.append(shape)
+                shapes_st_en_points.append(shape.get_st_en_points())
+                
+
+        #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
+        x_st=self.MyConfig.axis1_st_en
+        y_st=self.MyConfig.axis2_st_en
+        start=PointClass(x=x_st,y=y_st)
+        ende=PointClass(x=x_st,y=y_st)
+        shapes_st_en_points.append([start,ende])
+
+        #Optimieren der Reihenfolge
+        self.MyMessages.prt(_("\nTSP Starting"),1)
+                
+        self.TSP=tsp.TSPoptimize(shapes_st_en_points,self.MyMessages,self.MyConfig)
+        self.MyMessages.prt(_("\nTSP start values initialised"),1)
+        
+        self.MyCanvasContent.path_hdls=[]
+        self.MyCanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
+        
+        for it_nr in range(iter):
+            #Jeden 10ten Schrit rausdrucken
+            if (it_nr%10)==0:
+                self.MyMessages.prt((_("\nTSP Iteration nr: %i") %it_nr),1)
+                #for hdl in self.MyCanvasContent.path_hdls:
+                #    self.Canvas.canvas.delete(hdl)
+                self.MyCanvasContent.path_hdls=[]
+                self.MyCanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
+                
+            self.TSP.calc_next_iteration()
+            
+        self.MyMessages.prt(_("\nTSP done with result:"),1)
+        self.MyMessages.prt(("\n%s" %self.TSP),1)
+            
+        #Einschlaten des Menupunkts zum löschen des optimierten Pfads.
+        self.viewmenu.Enable(305,True)
+
+    def del_route_and_menuentry(self):
+        pass
+        try:
+            self.viewmenu.Enable(305,False)
+            self.MyCanvasContent.delete_opt_path()
+        except:
+            pass
+        
     def ShowAbout(self,event):
         ShowAboutInfoClass(self) 
 
@@ -600,7 +600,7 @@ class MyTreeClass(wx.TreeCtrl):
     
     def AddElements(self):
     
-        root = self.AddRoot("AUI Project") 
+        root = self.AddRoot(_("AUI Project")) 
         for i in range(5): 
             item = self.AppendItem(root, "Item " + str(i)) 
             for ii in range(5): 
@@ -662,7 +662,7 @@ class MyMessagesClass(wx.TextCtrl):
 
 class MyLayersClass(wx.TextCtrl):
     def __init__(self,parent,id):
-        wx.TextCtrl.__init__(self,parent,id,'Layers - sample text',
+        wx.TextCtrl.__init__(self,parent,id,_('Layers - sample text'),
                             wx.DefaultPosition, wx.Size(200,50),
                             wx.NO_BORDER | wx.TE_MULTILINE)
 
@@ -672,7 +672,8 @@ class MyGraphicClass(wx.Panel):
     def __init__(self, parent, id):
         wx.Panel.__init__(self, parent, id,  style=wx.SUNKEN_BORDER)
 
-  
+        wx.GetApp().Yield(True)  
+
         # Add the Canvas
         NC = NavCanvas.NavCanvas(self,
                                      Debug = 0,
@@ -681,7 +682,7 @@ class MyGraphicClass(wx.Panel):
         self.Canvas = NC.Canvas # reference the contained FloatCanvas
 
         self.MsgWindow = wx.TextCtrl(self, wx.ID_ANY,
-                                     "Look Here for output from events\n",
+                                     _("Look Here for output from events")+"\n",
                                      style = (wx.TE_MULTILINE |
                                               wx.TE_READONLY |
                                               wx.SUNKEN_BORDER))
@@ -752,9 +753,8 @@ class MyGraphicClass(wx.Panel):
     def OnSavePNG(self, event=None):
         import os
         dlg = wx.FileDialog(
-            self, message="Save file as ...", defaultDir=os.getcwd(), 
-            defaultFile="", wildcard="*.png", style=wx.SAVE
-            )
+            self, message=_("Save file as ...)"), defaultDir=os.getcwd(), 
+            defaultFile="", wildcard="*.png", style=wx.SAVE)
         if dlg.ShowModal() == wx.ID_OK:
             path = dlg.GetPath()
             if not(path[-4:].lower() == ".png"):
@@ -816,121 +816,12 @@ class MyGraphicClass(wx.Panel):
         event.Skip()
 
 
-    def ZoomToFit(self,event):
-        self.Canvas.ZoomToBB()
 
     def Clear(self,event = None):
         self.UnBindAllMouseEvents()
         self.Canvas.InitAll()
         self.Canvas.Draw()
-
-
-
-    def DrawTest(self,event=None):
- 
-        ############# Random tests of everything ##############
-        wx.GetApp().Yield(True)
-        colors = self.colors
-        Range = (-10,10)
-        
-        Canvas = self.Canvas
-
-        # Rectangles
-        for i in range(3):
-            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-            lw = random.randint(1,5)
-            cf = random.randint(0,len(colors)-1)
-            wh = (random.randint(1,5), random.randint(1,5))
-            Canvas.AddRectangle(xy, wh, LineWidth = lw, FillColor = colors[cf])
-
-        # Ellipses
-        for i in range(3):
-            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-            lw = random.randint(1,5)
-            cf = random.randint(0,len(colors)-1)
-            h = random.randint(1,5)
-            w = random.randint(1,5)
-            Canvas.AddEllipse(xy, (h,w), LineWidth = lw,FillColor = colors[cf])
-
-        # Points
-        for i in range(5):
-            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-            D = random.randint(1,50)
-            cf = random.randint(0,len(colors)-1)
-            Canvas.AddPoint(xy, Color = colors[cf], Diameter = D)
-
-        # SquarePoints
-        for i in range(500):
-            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-            S = random.randint(1, 50)
-            cf = random.randint(0,len(colors)-1)
-            Canvas.AddSquarePoint(xy, Color = colors[cf], Size = S)
-
-        # Circles
-        for i in range(5):
-            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-            D = random.randint(1,5)
-            lw = random.randint(1,5)
-            cf = random.randint(0,len(colors)-1)
-            cl = random.randint(0,len(colors)-1)
-            Canvas.AddCircle(xy, D, LineWidth = lw, LineColor = colors[cl], FillColor = colors[cf])
-            Canvas.AddText("Circle # %i"%(i), xy, Size = 12, BackgroundColor = None, Position = "cc")
-        # Lines
-        for i in range(5):
-            points = []
-            for j in range(random.randint(2,10)):
-                point = (random.randint(Range[0],Range[1]),random.randint(Range[0],Range[1]))
-                points.append(point)
-                
-            print points
-            lw = random.randint(1,10)
-            cf = random.randint(0,len(colors)-1)
-            cl = random.randint(0,len(colors)-1)
-            Canvas.AddLine(points, LineWidth = lw, LineColor = colors[cl])
-        # Polygons
-        for i in range(3):
-            points = []
-            for j in range(random.randint(2,6)):
-                point = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-                points.append(point)
-            lw = random.randint(1,6)
-            cf = random.randint(0,len(colors)-1)
-            cl = random.randint(0,len(colors)-1)
-            Canvas.AddPolygon(points,
-                                   LineWidth = lw,
-                                   LineColor = colors[cl],
-                                   FillColor = colors[cf],
-                                   FillStyle = 'Solid')
-
-
-        # Text
-        String = "Unscaled text"
-        for i in range(3):
-            ts = random.randint(10,40)
-            cf = random.randint(0,len(colors)-1)
-            xy = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-            Canvas.AddText(String, xy, Size = ts, Color = colors[cf], Position = "cc")
-
-        # Scaled Text
-        String = "Scaled text"
-        for i in range(3):
-            ts = random.random()*3 + 0.2
-            cf = random.randint(0,len(colors)-1)
-            Point = (random.uniform(Range[0],Range[1]),random.uniform(Range[0],Range[1]))
-            Canvas.AddScaledText(String, Point, Size = ts, Color = colors[cf], Position = "cc")
-
-
-        # ArrowLines
-        for i in range(5):
-            points = []
-            for j in range(random.randint(2,10)):
-                point = (random.randint(Range[0],Range[1]),random.randint(Range[0],Range[1]))
-                points.append(point)
-            lw = random.randint(1,10)
-            cf = random.randint(0,len(colors)-1)
-            cl = random.randint(0,len(colors)-1)
-            Canvas.AddArrowLine(points, LineWidth = lw, LineColor = colors[cl], ArrowHeadSize= 16)
-
+  
 #
 #class ExportParasClass:
 #    def __init__(self,master=None,config=None,postpro=None):
@@ -1359,12 +1250,17 @@ class MyCanvasContentClass:
         self.plot_shapes()
         
         #Autoskalieren des Canvas Bereichs
-        self.Canvas.ZoomToBB()
+        self.autoscale()
+        #self.canvas.SetMode(GUIMode.GUIMouse(self.canvas))
+        
+        #wx.CallAfter(self.autoscale())
         
         #Sortieren der Listen mit den Layers
         self.LayerContents.sort()
         self.EntitieContents.sort()
 
+    def autoscale(self):
+        self.Canvas.ZoomToBB()
 
     def make_shapes(self,EntName="Entities",p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
 
@@ -1422,13 +1318,26 @@ class MyCanvasContentClass:
     def plot_shapes(self):
         for shape in self.Shapes:
             shape.plot2can(self.Canvas)
+            for hdl in shape.geos_hdls:
+                hdl.Name = shape   
+                hdl.HitLineWidth=15
+                hdl.Bind(FloatCanvas.EVT_FC_LEFT_DOWN, self.RectGotHit)
+
+
+        return [0]
+    
+    def RectGotHit(self, Object):
+        self.MyMessages.prt("%s\n Got Hit\n" %Object.Name,3)
+        print dir(Object)
+
             
-#    #Drucken des Werkstuecknullpunkts
-#    def plot_wp_zero(self):
+    #Drucken des Werkstuecknullpunkts
+    def plot_wp_zero(self):
+        pass
 #        for hdl in self.wp_zero_hdls:
 #            self.Canvas.canvas.delete(hdl) 
 #        self.wp_zero_hdls=[]
-#        if self.toggle_wp_zero.get(): 
+#        if self.toggle_wp_zero: 
 #            x_zero,y_zero=self.Canvas.get_can_coordinates(0,0)
 #            xy=x_zero-8,-y_zero-8,x_zero+8,-y_zero+8
 #            hdl=Oval(self.Canvas.canvas,xy,outline="gray")
@@ -1441,12 +1350,13 @@ class MyCanvasContentClass:
 #            self.wp_zero_hdls.append(hdl)
 #            hdl=Arc(self.Canvas.canvas,xy,start=270,extent=90,style="pieslice",outline="gray",fill="gray")
 #            self.wp_zero_hdls.append(hdl)
-#    def plot_cut_info(self):
+    def plot_cut_info(self):
+        pass
 #        for hdl in self.dir_hdls:
 #            self.Canvas.canvas.delete(hdl) 
 #        self.dir_hdls=[]
 #
-#        if not(self.toggle_start_stop.get()):
+#        if not(self.toggle_start_stop):
 #            draw_list=self.Selected[:]
 #        else:
 #            draw_list=range(len(self.Shapes))
@@ -1456,8 +1366,9 @@ class MyCanvasContentClass:
 #                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas,self.MyConfig)
 #
 
-#    def plot_opt_route(self,shapes_st_en_points,route):
-#        #Ausdrucken der optimierten Route
+    def plot_opt_route(self,shapes_st_en_points,route):
+        #Ausdrucken der optimierten Route
+        pass
 #        for en_nr in range(len(route)):
 #            if en_nr==0:
 #                st_nr=-1
@@ -1510,7 +1421,8 @@ class MyCanvasContentClass:
             
         self.EntitieContents.append(MyEntitieContentClass(ent_nr,EntName,[[shape_nr]]))
         
-#    def delete_opt_path(self):
+    def delete_opt_path(self):
+        pass
 #        for hdl in self.path_hdls:
 #            self.Canvas.canvas.delete(hdl)
 #            
@@ -1519,7 +1431,7 @@ class MyCanvasContentClass:
 #    def deselect(self): 
 #        self.set_shapes_color(self.Selected,'deselected')
 #        
-#        if not(self.toggle_start_stop.get()):
+#        if not(self.toggle_start_stop):
 #            for hdl in self.dir_hdls:
 #                self.Canvas.canvas.delete(hdl) 
 #            self.dir_hdls=[]
@@ -1572,13 +1484,13 @@ class MyCanvasContentClass:
 #        self.Selected=[]
 #        self.plot_cut_info()
 #
-#    def show_disabled(self):
-#        if (self.toggle_show_disabled.get()==1):
-#            self.set_hdls_normal(self.Disabled)
-#            self.show_dis=1
-#        else:
-#            self.set_hdls_hidden(self.Disabled)
-#            self.show_dis=0
+    def show_disabled(self):
+        if (self.toggle_show_disabled==1):
+            #self.set_hdls_normal(self.Disabled)
+            self.show_dis=1
+        else:
+            #self.set_hdls_hidden(self.Disabled)
+            self.show_dis=0
 #
 #    def switch_shape_dir(self):
 #        for shape_nr in self.Selected:
@@ -1621,7 +1533,7 @@ class MyCanvasContentClass:
 #        self.set_color(s_hdls,s_color)
 #        self.set_color(d_hdls,d_color)
 #
-#        if (self.toggle_show_disabled.get()==0):
+#        if (self.toggle_show_disabled==0):
 #            self.set_hdls_hidden(d_shape_nrs)
 #        
 #    def set_color(self,hdls,color):
@@ -1972,17 +1884,17 @@ class MyPostprocessorClass:
         self.parser.write(open_file) 
         open_file.close()
 
-    def write_gcode_be(self,ExportParas,load_filename):
+    def write_gcode_be(self,load_filename):
         #Schreiben in einen String
         str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
         self.string=(str.encode("utf-8"))
         
         #Daten aus dem Textfelder an string anhängen
-        self.string+=("%s\n" %ExportParas.gcode_be.get(1.0,END).strip())
+        self.string+=("%s\n" %self.gcode_be)
 
-    def write_gcode_en(self,ExportParas):
+    def write_gcode_en(self):
         #Daten aus dem Textfelder an string anhängen   
-        self.string+=ExportParas.gcode_en.get(1.0,END)
+        self.string+=self.gcode_en
 
         self.make_line_numbers()        
         
