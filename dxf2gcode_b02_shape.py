@@ -55,8 +55,8 @@ class ShapeClass:
                ('\ncut_cor:     %s' %self.cut_cor)+\
                ('\nlen(geos):   %i' %len(self.geos))+\
                ('\nlength:      %0.2f' %self.length)+\
-               ('\ngeos:        %s' %self.geos)
-    
+               ('\ngeos:        %s' %self.geos)+\
+               ('\ngeo_hdl:     %s' %self.geo_hdl)           
 
     def reverse(self):
         self.geos.reverse()
@@ -86,8 +86,8 @@ class ShapeClass:
             else:
                 points+=cur_pts[1:len(cur_pts)]
                        
-        L=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
-        self.geos_hdls.append(L)
+        self.geo_hdl=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
+        
         
     def plot_cut_info(self,CanvasClass,config):
         hdls=[]

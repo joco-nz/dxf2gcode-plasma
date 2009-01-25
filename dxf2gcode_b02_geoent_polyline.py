@@ -24,7 +24,6 @@
 from math import sqrt, sin, cos, atan2, radians, degrees
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass
 
-
 class PolylineClass:
     def __init__(self,Nr=0,caller=None):
         self.Typ='Polyline'
@@ -52,8 +51,17 @@ class PolylineClass:
             geo.reverse()
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+        if abs(self.length)<tol:
+            import wx
+            dial=wx.MessageDialog(None,_("Length of geometrie too short! "
+                                       "\nLenght must be greater then tolerance."
+                                       "\nSkipping Geometrie"),
+                                        _("Short Polyline Geometrie"), wx.OK |
+                                        wx.ICON_ERROR)
+            dial.ShowModal()
+            
         #Hinzufügen falls es keine geschlossene Polyline ist
-        if self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
+        elif self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
         else:            
@@ -61,17 +69,7 @@ class PolylineClass:
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[0].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))      
-
-##            if abs(self.length)>tol:
-##                points.append(PointsClass(point_nr=len(points),geo_nr=i,\
-##                                          Layer_Nr=self.Layer_Nr,\
-##                                          be=self.geo[0].Pa,
-##                                          en=self.geo[-1].Pe,be_cp=[],en_cp=[])) 
-##            else:
-##                showwarning("Short Polyline Elemente", ("Length of Line geometrie too short!"\
-##                                                   "\nLenght must be greater then tolerance."\
-##                                                   "\nSkipping Line Geometrie"))
-            
+           
     def analyse_and_opt(self):
         summe=0
 
@@ -110,8 +108,13 @@ class PolylineClass:
         Pa=None
           
         #Polyline flag 
-        #s=lp.index_code(70,s+1,e)
-        #PolyLineFlag=int(lp.line_pair[s].value)
+        s_temp=lp.index_code(70,s+1,e)
+        if s_temp==None:
+            PolyLineFlag=0
+        else:
+            PolyLineFlag=int(lp.line_pair[s_temp].value)
+            s=s_temp
+            
         #print("PolylineFlag: %i" %PolyLineFlag)
              
         while 1: #and not(s==None):
@@ -141,21 +144,34 @@ class PolylineClass:
                 s=s_temp
                 
             #Vertex flag (bit-coded); default is 0; 1 = Closed; 128 = Plinegen
-            #s=lp.index_code(70,s+1,e_vertex)
-            #PolyLineFlag=int(lp.line_pair[s].value)
+            s_temp=lp.index_code(70,s+1,e_vertex)
+            if s_temp==None:
+                VertexFlag=0
+            else:
+                VertexFlag=int(lp.line_pair[s_temp].value)
+                s=s_temp
+                
             #print("Vertex Flag: %i" %PolyLineFlag)
             
             #Zuweisen der Geometrien für die Polyline
-            if not(type(Pa)==type(None)):
-                if bulge==0:
-                    self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
-                else:
-                    #self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
-                    #print bulge
-                    self.geo.append(self.bulge2arc(Pa,Pe,bulge))
+            if (VertexFlag!=16):
+                if type(Pa)!=type(None):
+                    if next_bulge==0:
+                        self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                    else:
+                        #self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                        #print bulge
+                        self.geo.append(self.bulge2arc(Pa,Pe,next_bulge))
                     
-                self.length+=self.geo[-1].length
-            Pa=Pe
+                    #Länge drauf rechnen wenns eine Geometrie ist
+                    self.length+=self.geo[-1].length
+                        
+                #Der Bulge wird immer für den und den nächsten Punkt angegeben
+                next_bulge=bulge
+                Pa=Pe
+                    
+            
+
 
                    
         #Neuen Startwert für die nächste Geometrie zurückgeben        
@@ -180,5 +196,10 @@ class PolylineClass:
         #Kontrolle ob beide gleich sind (passt ...)
         #r=O.distance(Pe)
 
-        #return LineGeo(Pa=Pa,Pe=Pe)  
-        return ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r)  
+        #Unterscheidung für den Öffnungswinkel.
+        if bulge>0:
+            return ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r)  
+        else:
+            arc=ArcGeo(Pa=Pe,Pe=Pa,O=O,r=r)
+            arc.reverse()
+            return arc
