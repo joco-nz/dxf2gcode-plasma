@@ -21,10 +21,9 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
 from dxf2gcode_b02_point import PointClass, PointsClass, ArcGeo, ContourClass
-from tkMessageBox import showwarning
+import wx
 
 class ArcClass:
     def __init__(self,Nr=0,caller=None):
@@ -52,9 +51,12 @@ class ArcClass:
                               en=self.geo[-1].Pe,\
                               be_cp=[],en_cp=[]))
         else:
-            showwarning("Short Arc Elemente", ("Length of Arc Element too short!"\
-                                               "\nLenght must be greater then tolerance."\
-                                               "\nSkipping Arc Geometrie"))
+            dial=wx.MessageDialog(None, ("Length of Arc geometrie too short!"\
+                       "\nLenght must be greater then tolerance."\
+                       "\nSkipping Arc Geometrie"),_("Short Arc Elemente"), wx.OK |
+            wx.ICON_ERROR)
+            dial.ShowModal()
+
 
     
     def Read(self, caller):
@@ -97,5 +99,3 @@ class ArcClass:
     def get_start_end_points(self,direction):
         punkt,angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
-
-            

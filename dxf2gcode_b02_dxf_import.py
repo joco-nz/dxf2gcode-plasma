@@ -36,14 +36,16 @@ from dxf2gcode_b02_geoent_ellipse import EllipseClass
 from dxf2gcode_b02_geoent_lwpolyline import LWPolylineClass
 
 import sys, os
-from Tkconstants import END
-from tkMessageBox import showwarning
-from Canvas import Oval, Arc, Line
 from copy import deepcopy, copy
 from string import find, strip
 from math import sqrt, sin, cos, atan2, radians, degrees
 
-class Load_DXF:
+#from Tkconstants import END
+#from tkMessageBox import showwarning
+#from Canvas import Oval, Arc, Line
+import wx
+
+class LoadDXF:
     #Initialisierung der Klasse
     def __init__(self, filename=None,config=None,textbox=None):
 
@@ -98,7 +100,11 @@ class Load_DXF:
 
         except:
             
-            showwarning("Warning reading linepairs",("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" %(line)))
+            dial=wx.MessageDialog(None, ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" \
+            %(line)),_("Warning reading linepairs"), wx.OK |
+            wx.ICON_ERROR)
+            dial.ShowModal()
+            
             self.textbox.prt(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " %(line)))
             
             
@@ -192,6 +198,7 @@ class Load_DXF:
     #Lesen der Blocks Geometrien
     def Read_Blocks(self,blocks_pos):
         blocks=BlocksClass([])
+        warn=0
         for block_nr in range(len(blocks_pos)):
             self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr ),1)
             blocks.Entities.append(EntitiesClass(block_nr,blocks_pos[block_nr].name,[]))
@@ -207,19 +214,35 @@ class Load_DXF:
             blocks.Entities[-1].basep.y=float(lp.line_pair[s].value)
             
             #Lesen der Geometrien
-            blocks.Entities[-1].geo=self.Get_Geo(s,e)
+            (blocks.Entities[-1].geo,geo_warn)=self.Get_Geo(s,e)
+            warn+=geo_warn
             
             #Im Debug Modus 2 mehr Infos zum Block drucken
             self.textbox.prt(("\n %s" %blocks.Entities[-1] ),2)
             
+        if warn:
+            dial=wx.MessageDialog(None, _("Found unsupported Geometrie during import of Blocks\n") +\
+                _("for the warning message refer to Messagebox"),_("Warning DXF import"), wx.OK |
+            wx.ICON_ERROR)
+            dial.ShowModal()
+            
         return blocks
     #Lesen der Entities Geometrien
     def Read_Entities(self,sections):
+        warn=0
         for section_nr in range(len(sections)):
             if (find(sections[section_nr-1].name,"ENTITIES") == 0):
                 self.textbox.prt("\n\nReading Entities",1)
                 entities=EntitiesClass(0,'Entities',[])
-                entities.geo=self.Get_Geo(sections[section_nr-1].begin+1, sections[section_nr-1].end-1)
+                (entities.geo,geo_warn)=self.Get_Geo(sections[section_nr-1].begin+1, sections[section_nr-1].end-1)
+                warn+=geo_warn
+                
+        if warn:
+            dial=wx.MessageDialog(None, _("Found unsupported Geometrie during import of Entities\n") +\
+                _("for the warning message refer to Messagebox"),_("Warning DXF import"), wx.OK |
+            wx.ICON_ERROR)
+            dial.ShowModal()
+        
         return entities
 
     #Lesen der Geometrien von Blöcken und Entities         
@@ -236,7 +259,7 @@ class Load_DXF:
 
             #Hinzufügen der Werte oder auch nicht
             if ent_warn:
-                warn=1
+                warn+=ent_warn
             else:
                 geos.append(entitie_geo)
             
@@ -255,12 +278,9 @@ class Load_DXF:
                 self.textbox.prt(str(geos[-1]),2)
 
             old_start=self.start
-
-        if warn:
-            showwarning("Import Warning","Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
-            
+        
         del(self.start)
-        return geos
+        return (geos,warn)
 
     #Verteiler für die Geo-Instanzen
     # wird in def Get_Geo aufgerufen
@@ -331,7 +351,7 @@ class Load_DXF:
     
     #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
     def App_Cont_or_Calc_IntPts(self,geo=None,cont=None):
-        tol=self.config.points_tolerance.get()
+        tol=self.config.points_tolerance
 
         points=[]
         for i in range(len(geo)) :
@@ -340,7 +360,7 @@ class Load_DXF:
 
     #Suchen von gemeinsamen Punkten
     def Find_Common_Points(self,points=None):
-        tol=self.config.points_tolerance.get()
+        tol=self.config.points_tolerance
 
         p_list=[]
         
