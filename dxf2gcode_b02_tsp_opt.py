@@ -27,12 +27,9 @@ from copy import copy
 from random import random, shuffle
 from math import floor, ceil
 
-from Tkconstants import END
-
-
           
 class TSPoptimize:
-    def __init__(self,st_end_points=[],textbox=[],master=[],config=[]):
+    def __init__(self,st_end_points=[],textbox=[],config=[]):
         self.shape_nrs=len(st_end_points)        
         self.iterations=int(self.shape_nrs)*2
         self.pop_nr=min(int(ceil(self.shape_nrs/8.0)*4.0),config.max_population)
@@ -48,7 +45,7 @@ class TSPoptimize:
         self.DistanceMatrix.generate_matrix(st_end_points)
 
         #Generation Population 
-        self.Population=ClassPopulation(textbox=textbox,master=master,config=config)
+        self.Population=ClassPopulation(textbox=textbox,config=config)
         self.Population.ini_population(size=[self.shape_nrs,self.pop_nr],dmatrix=self.DistanceMatrix.matrix)
 
         #Initialisieren der Result Class
@@ -115,7 +112,6 @@ class ClassPopulation:
         self.size=size
         self.mutate_rate=mutate_rate
         self.textbox=textbox
-        self.master=master
         self.config=config
         
     def ini_population(self,size=[5,8],dmatrix=[]):

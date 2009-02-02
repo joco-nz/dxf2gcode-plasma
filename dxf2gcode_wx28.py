@@ -719,7 +719,7 @@ class MyGraphicClass(wx.Panel):
         ## Here is how you catch FloatCanvas mouse events
         #self.Canvas.Bind(FloatCanvas.EVT_MTIN, self.was)
         #print dir(wx)
-        #self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.OnLeftDown) 
+        self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.OnLeftDown) 
         #self.Canvas.Bind(FloatCanvas.EVT_LEFT_UP, self.OnLeftUp)
         #self.Canvas.Bind(FloatCanvas.EVT_LEFT_DCLICK, self.OnLeftDouble) 
 
@@ -733,9 +733,6 @@ class MyGraphicClass(wx.Panel):
         
         self.Canvas.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Canvas.Bind(wx.EVT_KEY_UP , self.OnKeyUp)
-        
-        self.RBBox = GUI.RubberBandBox(self.Canvas, self.NewRect)
-        self.RBBox.Enable()
 
         self.SetFocus()
 
@@ -782,20 +779,18 @@ class MyGraphicClass(wx.Panel):
 
     def NewRect(self, rect): 
         print rect
-        #self.RBBox.Disable()
         #self.Rects.append(self.Canvas.AddRectangle(*rect))
-        self.Canvas.Draw(True) 
+        #self.Canvas.Draw(True) 
 
     
     def OnLeftDown(self, event):
-        self.RBBox.Enable()
-        
+        self.RBBox = GUI.RubberBandBox(self.Canvas, self.NewRect) 
+        self.RBBox.Enable() 
+
         self.Log("LeftDown")
         self.PrintCoords(event)
 
     def OnLeftUp(self, event):
-        self.RBBox.Disable()
-        
         self.Log("LeftUp")
         self.PrintCoords(event)
 
@@ -838,6 +833,8 @@ class MyGraphicClass(wx.Panel):
             self.Canvas.MoveImage( (0, Rot), "Panel" )
             
     def OnMove(self, event):
+        
+        print event.Dragging()
         
         scale=self.Canvas.Scale/DOT_PER_MM
         
@@ -1380,9 +1377,6 @@ class MyCanvasContentClass:
         return [0]
     
     def ShapeGotHit(self, Object):
-
-        #self.MyGraphic.RBBox.Disable()
-        #self.MyGraphic.RBBox.Enable()
         self.change_selection([Object.Name])
              
     #Drucken des Werkstuecknullpunkts

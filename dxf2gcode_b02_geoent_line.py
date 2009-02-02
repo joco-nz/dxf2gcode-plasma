@@ -21,11 +21,9 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
 from dxf2gcode_b02_point import PointClass, LineGeo, PointsClass, ContourClass
-from tkMessageBox import showwarning
-
+import wx
 
 class LineClass:
     def __init__(self,Nr=0,caller=None):
@@ -52,9 +50,12 @@ class LineClass:
                                       be=self.geo[-1].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))
         else:
-            showwarning("Short Arc Elemente", ("Length of Line geometrie too short!"\
-                                               "\nLenght must be greater then tolerance."\
-                                               "\nSkipping Line Geometrie"))
+            dial=wx.MessageDialog(None, ("Length of Line geometrie too short!"\
+                                   "\nLenght must be greater then tolerance."\
+                                   "\nSkipping Line Geometrie"),_("Short Line Elemente"), wx.OK |
+            wx.ICON_ERROR)
+            dial.ShowModal()
+            
         
     def Read(self, caller):
         #Kürzere Namen zuweisen
