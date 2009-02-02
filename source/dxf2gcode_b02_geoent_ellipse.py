@@ -21,7 +21,7 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
+
 from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi, floor
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
 
@@ -47,7 +47,7 @@ class EllipseClass:
         self.Read(caller)
 
         #Zuweisen der Toleranz fürs Fitting
-        tol=caller.config.fitting_tolerance.get()
+        tol=caller.config.fitting_tolerance
         
         #Errechnen der Ellipse
         self.Ellipse_Grundwerte()

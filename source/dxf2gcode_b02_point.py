@@ -22,8 +22,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil
+from wx.lib.floatcanvas import FloatCanvas
 
 class PointClass:
     def __init__(self,x=0,y=0):
@@ -72,8 +72,8 @@ class PointClass:
         return PointClass(x=self.x+cos(radians(ang))*r,\
                           y=self.y+sin(radians(ang))*r)
 
-    def Write_GCode(self,sca,p0,postpro):
-        point=self.rot_sca_abs(sca=sca,p0=p0,rot=0.0)
+    def Write_GCode(self,sca,p0,rot,postpro):
+        point=self.rot_sca_abs(sca=sca,p0=p0,pb=PointClass(0,0),rot=0.0)
         return postpro.rap_pos_xy(point)
     
     def triangle_height(self,other1,other2):
@@ -275,11 +275,11 @@ class ArcGeo:
         self.s_ang=s_ang
         self.e_ang=e_ang
 
-    def plot2can(self,canvas=None,p0=PointClass(x=0.0,y=0.0),\
+    def plot2can(self,p0=PointClass(x=0.0,y=0.0),\
                     pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0,tag=None,col='black'):
+                    rot=0.0):
                         
-        x=[]; y=[]; hdl=[]
+        points=[]; hdl=[]
         #Alle 3 Grad ein Segment => 120 Segmente für einen Kreis !!
         segments=int((abs(degrees(self.ext))//3)+1)
         
@@ -290,13 +290,12 @@ class ArcGeo:
                        y=(self.O.y+sin(ang)*abs(self.r)))
                     
             p_cur_rot=p_cur.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
-            x.append(p_cur_rot.x)
-            y.append(p_cur_rot.y)
-            
-            if i>=1:
-                hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag,fill=col))       
-         
-        return hdl        
+            points.append((p_cur_rot.x,p_cur_rot.y))
+
+        return points
+        #A=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
+        #return A      
+
 
     def get_start_end_points(self,direction):
         if not(direction):
@@ -348,13 +347,16 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),\
+    def plot2can(self,p0=PointClass(x=0,y=0),\
                     pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0,tag=None,col='black'):
+                    rot=0.0):
+
         anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
         ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
-        hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col)
-        return [hdl]
+        
+        return [(anf.x,anf.y),(ende.x,ende.y)]
+        #L=Canvas.AddLine([(anf.x,anf.y),(ende.x,ende.y)], LineWidth = 2, LineColor = col)
+        #return L
 
     def get_start_end_points(self,direction):
         if not(direction):
