@@ -21,9 +21,9 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
+#from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b02_point import PointClass, LineGeo, PointsClass, ContourClass
+from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass
 
 
 class PolylineClass:
@@ -53,8 +53,11 @@ class PolylineClass:
             geo.reverse()
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+        if abs(self.length)<tol:
+            pass
+            
         #Hinzufügen falls es keine geschlossene Polyline ist
-        if self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
+        elif self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
         else:            
@@ -103,15 +106,24 @@ class PolylineClass:
         #Kürzere Namen zuweisen        
         lp=caller.line_pairs
         e=lp.index_both(0,"SEQEND",caller.start+1)+1
-
         #Layer zuweisen        
         s=lp.index_code(8,caller.start+1)
         self.Layer_Nr=caller.Get_Layer_Nr(lp.line_pair[s].value)
 
         #Pa=None für den ersten Punkt
         Pa=None
-        
-        while 1:
+          
+        #Polyline flag 
+        s_temp=lp.index_code(70,s+1,e)
+        if s_temp==None:
+            PolyLineFlag=0
+        else:
+            PolyLineFlag=int(lp.line_pair[s_temp].value)
+            s=s_temp
+            
+        #print("PolylineFlag: %i" %PolyLineFlag)
+             
+        while 1: #and not(s==None):
             s=lp.index_both(0,"VERTEX",s+1,e)
             if s==None:
                 break
@@ -124,12 +136,48 @@ class PolylineClass:
             y=float(lp.line_pair[s].value)
             Pe=PointClass(x=x,y=y)
 
+            #Bulge
+            bulge=0
+            
+            e_vertex=lp.index_both(0,"VERTEX",s+1,e)
+            if e_vertex==None:
+                e_vertex=e
+                
+            s_temp=lp.index_code(42,s+1,e_vertex)
+            #print('stemp: %s, e: %s, next 10: %s' %(s_temp,e,lp.index_both(0,"VERTEX",s+1,e)))
+            if s_temp!=None:
+                bulge=float(lp.line_pair[s_temp].value)
+                s=s_temp
+                
+            #Vertex flag (bit-coded); default is 0; 1 = Closed; 128 = Plinegen
+            s_temp=lp.index_code(70,s+1,e_vertex)
+            if s_temp==None:
+                VertexFlag=0
+            else:
+                VertexFlag=int(lp.line_pair[s_temp].value)
+                s=s_temp
+                
+            #print("Vertex Flag: %i" %PolyLineFlag)
+            
             #Zuweisen der Geometrien für die Polyline
-            if not(type(Pa)==type(None)):
-                self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
-                self.length+=self.geo[-1].length
+            if (VertexFlag!=16):
+                if type(Pa)!=type(None):
+                    if next_bulge==0:
+                        self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                    else:
+                        #self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                        #print bulge
+                        self.geo.append(self.bulge2arc(Pa,Pe,next_bulge))
+                    
+                    #Länge drauf rechnen wenns eine Geometrie ist
+                    self.length+=self.geo[-1].length
+                        
+                #Der Bulge wird immer für den und den nächsten Punkt angegeben
+                next_bulge=bulge
+                Pa=Pe
+                    
+            
 
-            Pa=Pe
 
                    
         #Neuen Startwert für die nächste Geometrie zurückgeben        
@@ -142,3 +190,22 @@ class PolylineClass:
             punkt, angle=self.geo[-1].get_start_end_points(direction)
         return punkt,angle
     
+    def bulge2arc(self,Pa,Pe,bulge):
+        c=(1/bulge-bulge)/2
+        
+        #Berechnung des Mittelpunkts (Formel von Mickes!
+        O=PointClass(x=(Pa.x+Pe.x-(Pe.y-Pa.y)*c)/2,\
+                     y=(Pa.y+Pe.y+(Pe.x-Pa.x)*c)/2)
+                    
+        #Abstand zwischen dem Mittelpunkt und PA ist der Radius
+        r=O.distance(Pa)
+        #Kontrolle ob beide gleich sind (passt ...)
+        #r=O.distance(Pe)
+
+        #Unterscheidung für den Öffnungswinkel.
+        if bulge>0:
+            return ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r)  
+        else:
+            arc=ArcGeo(Pa=Pe,Pe=Pa,O=O,r=r)
+            arc.reverse()
+            return arc

@@ -72,8 +72,8 @@ class PointClass:
         return PointClass(x=self.x+cos(radians(ang))*r,\
                           y=self.y+sin(radians(ang))*r)
 
-    def Write_GCode(self,sca,p0,postpro):
-        point=self.rot_sca_abs(sca=sca,p0=p0,rot=0.0)
+    def Write_GCode(self,sca,p0,rot,postpro):
+        point=self.rot_sca_abs(sca=sca,p0=p0,pb=PointClass(0,0),rot=0.0)
         return postpro.rap_pos_xy(point)
     
     def triangle_height(self,other1,other2):

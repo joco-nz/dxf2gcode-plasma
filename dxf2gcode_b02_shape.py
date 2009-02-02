@@ -23,7 +23,7 @@
 #
 #Main Class Shape
 
-import sys, os, string, ConfigParser 
+#import sys, os, string, ConfigParser 
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
 from Canvas import Line
@@ -43,8 +43,7 @@ class ShapeClass:
         self.length=length
         self.geos=geos
         self.geos_hdls=geos_hdls
-        print self
-        
+
     def __str__(self):
         return ('\nnr:          %i' %self.nr)+\
                ('\nent_nr:      %i' %self.ent_nr)+\
