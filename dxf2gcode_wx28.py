@@ -54,7 +54,8 @@ import wx
 import wx.aui
 from wx.lib.wordwrap import wordwrap
 
-from wx.lib.floatcanvas import NavCanvas, FloatCanvas, Resources
+from wx.lib.floatcanvas import FloatCanvas, Resources
+import dxf2gcode_b02_FloatCanvas_mod as NavCanvas
 import wx_lib_floatcanvas_Utilities as GUI
 import wx.lib.colourdb
 
@@ -682,10 +683,10 @@ class MyGraphicClass(wx.Panel):
         self.lastkey=0
         
         # Add the Canvas
-        NC = NavCanvas.NavCanvas(self,
+        NC = NavCanvas.NavCanvas(self,self.dabinich,
                                      Debug = 0,
                                      BackgroundColor = "WHITE")
-
+                                    
         self.Canvas = NC.Canvas # reference the contained FloatCanvas
 
         self.MsgWindow = wx.TextCtrl(self, wx.ID_ANY,
@@ -701,6 +702,9 @@ class MyGraphicClass(wx.Panel):
         self.SetSizer(MainSizer)
 
         self.BindAllEvents()
+        
+        #self.RBBox = GUI.RubberBandBox(self.Canvas, self.MultiSelect) 
+        #self.RBBox.Enable()      
 
         return None
 
@@ -713,13 +717,23 @@ class MyGraphicClass(wx.Panel):
     def BindAllEvents(self):             
         
         self.Canvas.Bind(FloatCanvas.EVT_MOTION, self.OnMove) 
-        self.Canvas.Bind(FloatCanvas.EVT_MOUSEWHEEL, self.OnWheel) 
         self.Canvas.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
+        
+        self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DOWN, self.GraphicContextmenu)
+        self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.dabinich) 
+        
+        self.Canvas.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+        self.Canvas.Bind(wx.EVT_KEY_UP , self.OnKeyUp)
+
+        self.SetFocus()
+        
+
+
         
         ## Here is how you catch FloatCanvas mouse events
         #self.Canvas.Bind(FloatCanvas.EVT_MTIN, self.was)
         #print dir(wx)
-        self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.OnLeftDown) 
+        #self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.OnLeftDown) 
         #self.Canvas.Bind(FloatCanvas.EVT_LEFT_UP, self.OnLeftUp)
         #self.Canvas.Bind(FloatCanvas.EVT_LEFT_DCLICK, self.OnLeftDouble) 
 
@@ -727,14 +741,13 @@ class MyGraphicClass(wx.Panel):
         #self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_UP, self.OnMiddleUp) 
         #self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_DCLICK, self.OnMiddleDouble) 
 
-        self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DOWN, self.GraphicContextmenu) 
+        
         #self.Canvas.Bind(FloatCanvas.EVT_RIGHT_UP, self.OnRightUp) 
         #self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DCLICK, self.OnRightDouble) 
+         #self.Canvas.Bind(FloatCanvas.EVT_MOUSEWHEEL, self.OnWheel) 
         
-        self.Canvas.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
-        self.Canvas.Bind(wx.EVT_KEY_UP , self.OnKeyUp)
-
-        self.SetFocus()
+    def dabinich(self,event):
+        print event     
 
     def GraphicContextmenu(self,event):
 
@@ -753,10 +766,6 @@ class MyGraphicClass(wx.Panel):
         # will be called before PopupMenu returns.
         self.PopupMenu(menu)
         menu.Destroy()
-
-    def PrintCoords(self,event):
-        self.Log("coords are: %s"%(event.Coords,))
-        self.Log("pixel coords are: %s\n"%(event.GetPosition(),))
 
     def OnSavePNG(self, event=None):
         import os
@@ -777,64 +786,10 @@ class MyGraphicClass(wx.Panel):
     def OnKeyUp(self, event):
         self.lastkey=0
 
-    def NewRect(self, rect): 
-        print rect
-        #self.Rects.append(self.Canvas.AddRectangle(*rect))
-        #self.Canvas.Draw(True) 
-
-    
-    def OnLeftDown(self, event):
-        self.RBBox = GUI.RubberBandBox(self.Canvas, self.NewRect) 
-        self.RBBox.Enable() 
-
-        self.Log("LeftDown")
-        self.PrintCoords(event)
-
-    def OnLeftUp(self, event):
-        self.Log("LeftUp")
-        self.PrintCoords(event)
-
-    def OnLeftDouble(self, event):
-        self.Log("LeftDouble")
-        self.PrintCoords(event)
-
-    def OnMiddleDown(self, event):
-        self.Log("MiddleDown")
-        self.PrintCoords(event)
-
-    def OnMiddleUp(self, event):
-        self.Log("MiddleUp")
-        self.PrintCoords(event)
-
-    def OnMiddleDouble(self, event):
-        self.Log("MiddleDouble")
-        self.PrintCoords(event)
-
-    def OnRightDown(self, event):
-        self.Log("RightDown")
-        self.PrintCoords(event)
-
-    def OnRightUp(self, event):
-        self.Log("RightUp")
-        self.PrintCoords(event)
-
-    def OnRightDouble(self, event):
-        self.Log("RightDouble")
-        self.PrintCoords(event)
-
-    def OnWheel(self, event):
-        self.Log("Mouse Wheel")
-        self.PrintCoords(event)
-        Rot = event.GetWheelRotation()
-        Rot = Rot / abs(Rot) * 0.1
-        if event.ControlDown(): # move left-right
-            self.Canvas.MoveImage( (Rot, 0), "Panel" )
-        else: # move up-down
-            self.Canvas.MoveImage( (0, Rot), "Panel" )
             
     def OnMove(self, event):
         
-        print event.Dragging()
+        #print event.Dragging()
         
         scale=self.Canvas.Scale/DOT_PER_MM
         
@@ -1224,7 +1179,9 @@ class MyGraphicClass(wx.Panel):
 #        #Update des Nullpunkts auf neue Koordinaten
 #        self.Content.plot_wp_zero()
 #        
-##Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
+
+
+
 class MyCanvasContentClass:
     def __init__(self,MyGraphic,MyMessages,MyConfig):
         self.MyGraphic=MyGraphic
@@ -1378,6 +1335,7 @@ class MyCanvasContentClass:
     
     def ShapeGotHit(self, Object):
         self.change_selection([Object.Name])
+        #self.Canvas._RaiseMouseEvent(event, EventType)
              
     #Drucken des Werkstuecknullpunkts
     def plot_wp_zero(self):
