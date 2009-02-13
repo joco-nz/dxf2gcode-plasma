@@ -112,17 +112,18 @@ class GUIMouseNew(GUIMode.GUIBase):
 
     # Handlers
     def OnLeftDown(self, event):
-        self.StartRBBox = N.array( event.GetPosition() )
-        self.PrevRBBox = None
-        self.Canvas.CaptureMouse()
-#
-#        EventType = FloatCanvas.EVT_FC_LEFT_DOWN
-#        #print 'habs gekriegt'
-#        if not self.Canvas.HitTest(event, EventType):
-#            self.Canvas._RaiseMouseEvent(event, EventType)
+        if not self.Callback is None:
+            self.StartRBBox = N.array( event.GetPosition() )
+            self.PrevRBBox = None
+            self.Canvas.CaptureMouse()
+        else:
+
+            EventType = FloatCanvas.EVT_FC_LEFT_DOWN
+            if not self.Canvas.HitTest(event, EventType):
+                self.Canvas._RaiseMouseEvent(event, EventType)
 
     def OnLeftUp(self, event):
-        if event.LeftUp() and not self.StartRBBox is None:
+        if event.LeftUp() and not self.StartRBBox is None and not self.Callback is None:
             self.PrevRBBox = None
             EndRBBox = event.GetPosition()
             StartRBBox = self.StartRBBox
@@ -136,15 +137,18 @@ class GUIMouseNew(GUIMode.GUIBase):
                             (max(EndRBBox[0],StartRBBox[0]),
                                 max(EndRBBox[1],StartRBBox[1]))),N.float_)
                 self.Callback(BB)
-                #self.Canvas.ZoomToBB(BB)
             else:
-                #Center = self.Canvas.PixelToWorld(StartRBBox)
                 EventType = FloatCanvas.EVT_FC_LEFT_UP
                 #print 'habs auch gekriegt'
                 if not self.Canvas.HitTest(event, EventType):
                     self.Canvas._RaiseMouseEvent(event, EventType)
             self.StartRBBox = None
-
+        if self.Callback is None:
+                EventType = FloatCanvas.EVT_FC_LEFT_UP
+                #print 'habs auch gekriegt'
+                if not self.Canvas.HitTest(event, EventType):
+                    self.Canvas._RaiseMouseEvent(event, EventType)
+            
 
 
     def OnLeftDouble(self, event):
