@@ -55,8 +55,9 @@ import wx.aui
 from wx.lib.wordwrap import wordwrap
 
 from wx.lib.floatcanvas import FloatCanvas, Resources
+from wx.lib.floatcanvas.Utilities import BBox
 import dxf2gcode_b02_FloatCanvas_mod as NavCanvas
-import wx_lib_floatcanvas_Utilities as GUI
+#import wx_lib_floatcanvas_Utilities as GUI
 import wx.lib.colourdb
 
 import locale
@@ -683,44 +684,36 @@ class MyGraphicClass(wx.Panel):
         self.lastkey=0
         
         # Add the Canvas
-        NC = NavCanvas.NavCanvas(self,self.dabinich,
+        NC = NavCanvas.NavCanvas(self,self.MultiSelect,
                                      Debug = 0,
                                      BackgroundColor = "WHITE")
                                     
         self.Canvas = NC.Canvas # reference the contained FloatCanvas
 
-        self.MsgWindow = wx.TextCtrl(self, wx.ID_ANY,
-                                     _("Look Here for output from events")+"\n",
-                                     style = (wx.TE_MULTILINE |
-                                              wx.TE_READONLY |
-                                              wx.SUNKEN_BORDER))
+#        self.MsgWindow = wx.TextCtrl(self, wx.ID_ANY,
+#                                     _("Look Here for output from events")+"\n",
+#                                     style = (wx.TE_MULTILINE |
+#                                              wx.TE_READONLY |
+#                                              wx.SUNKEN_BORDER))
                                             
         MainSizer = wx.BoxSizer(wx.VERTICAL)
         MainSizer.Add(NC, 6, wx.EXPAND)
-        MainSizer.Add(self.MsgWindow, 1, wx.EXPAND | wx.ALL, 5)
+        #MainSizer.Add(self.MsgWindow, 1, wx.EXPAND | wx.ALL, 5)
 
         self.SetSizer(MainSizer)
 
         self.BindAllEvents()
         
-        #self.RBBox = GUI.RubberBandBox(self.Canvas, self.MultiSelect) 
-        #self.RBBox.Enable()      
-
         return None
 
-    def Log(self, text):
-        self.MsgWindow.AppendText(text)
-        if not text[-1] == "\n":
-            self.MsgWindow.AppendText("\n")
-        
-
     def BindAllEvents(self):             
+        
+        self.Canvas.Bind(FloatCanvas.EVT_LEFT_UP, self.OnLeftUp)
         
         self.Canvas.Bind(FloatCanvas.EVT_MOTION, self.OnMove) 
         self.Canvas.Bind(wx.EVT_LEAVE_WINDOW, self.OnLeave)
         
         self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DOWN, self.GraphicContextmenu)
-        self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.dabinich) 
         
         self.Canvas.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
         self.Canvas.Bind(wx.EVT_KEY_UP , self.OnKeyUp)
@@ -746,8 +739,11 @@ class MyGraphicClass(wx.Panel):
         #self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DCLICK, self.OnRightDouble) 
          #self.Canvas.Bind(FloatCanvas.EVT_MOUSEWHEEL, self.OnWheel) 
         
-    def dabinich(self,event):
-        print event     
+    def MultiSelect(self,BB):
+        self.MyCanvasContent.ShapesInBB(BB)   
+        
+    def OnLeftUp(self,event):
+        self.MyCanvasContent.NothingGotHit()
 
     def GraphicContextmenu(self,event):
 
@@ -757,11 +753,19 @@ class MyGraphicClass(wx.Panel):
         # for clarity. 
         if not hasattr(self, "popupID1"):
             self.popupID1 = wx.NewId()
-            #self.Bind(wx.EVT_MENU, self.TextDelete, id=self.popupID1)
+            self.Bind(wx.EVT_MENU, self.MyCanvasContent.invert_selection, id=self.popupID1)
+            
+            self.popupID2 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.MyCanvasContent.disable_selection, id=self.popupID2)
+            
+            self.popupID3 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.MyCanvasContent.enable_selection, id=self.popupID3)
 
         # make a menu
         menu = wx.Menu()
-        menu.Append(self.popupID1, _('Delete text entries'),_('Delete all messages up to line one'))
+        menu.Append(self.popupID1, _('Invert Selection'),_('Invert Selection'))
+        menu.Append(self.popupID2, _('Disable Selection'),_('Disable Selection'))
+        menu.Append(self.popupID3, _('Enable Selection'),_('Enable Selection'))
         # Popup the menu.  If an item is selected then its handler
         # will be called before PopupMenu returns.
         self.PopupMenu(menu)
@@ -1252,6 +1256,7 @@ class MyCanvasContentClass:
         self.wp_zero_hdls=[]
         self.dir_hdls=[]
         self.path_hdls=[]
+        self.show_dis=1
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
         self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0)
@@ -1336,6 +1341,17 @@ class MyCanvasContentClass:
     def ShapeGotHit(self, Object):
         self.change_selection([Object.Name])
         #self.Canvas._RaiseMouseEvent(event, EventType)
+        
+    def NothingGotHit(self):
+        self.change_selection([])
+        
+    def ShapesInBB(self,BB):
+        InsideList=[]
+        BB=BBox.asBBox(BB)
+        for shape in self.Shapes:
+            if BB.Inside(shape.geo_hdl.BoundingBox):
+                InsideList.append(shape)
+        self.change_selection(InsideList)
              
     #Drucken des Werkstuecknullpunkts
     def plot_wp_zero(self):
@@ -1459,54 +1475,57 @@ class MyCanvasContentClass:
 
     def deselect(self): 
         self.set_shapes_color(self.Deselected,'deselected')
-        #if not(self.toggle_start_stop):
-        #    pass
-            #for hdl in self.dir_hdls:
-                #self.Canvas.canvas.delete(hdl) 
-            #self.dir_hdls=[]
         self.Deselected=[]
             
     def select(self):
         self.set_shapes_color(self.Selected,'selected')
-        #self.plot_cut_info()
-
+    
+    def disable(self):
+        self.set_shapes_color(self.Disabled,'disabled')
+        if (self.show_dis==0):
+            self.set_hdls_hidden(self.Disabled)
+            
  
-    def invert_selection(self):
+    def invert_selection(self,event):
         new_sel=[]
-        for shape_nr in range(len(self.Shapes)):
-            if (not(shape_nr in self.Disabled)) & (not(shape_nr in self.Selected)):
-                new_sel.append(shape_nr)
+        for shape in self.Shapes:
+            if (not(shape in self.Disabled)) & (not(shape in self.Selected)):
+                new_sel.append(shape)
 
         self.deselect()
+        self.Deselected=self.Selected[:]
         self.Selected=new_sel
-        self.set_shapes_color(self.Selected,'selected')
-        self.plot_cut_info()
 
-        self.textbox.prt(_('\nInverting Selection'),3)
+        self.deselect()
+        self.select()
+        
+        self.Canvas.Draw(Force=True)
+
+        self.MyMessages.prt(_('\nInverting Selection'),3)
         
 
-    def disable_selection(self):
+    def disable_selection(self,event):
         for shape in self.Selected:
             if not(shape in self.Disabled):
                 self.Disabled.append(shape)
-        self.set_shapes_color(self.Selected,'disabled')
-        self.Selected=[]
-        self.plot_cut_info()
+        self.disable()
+        #self.Selected=[]
+        self.Canvas.Draw(Force=True)
 
-    def enable_selection(self):
+    def enable_selection(self,event):
         for shape in self.Selected:
             if shape in self.Disabled:
                 nr=self.Disabled.index(shape)
                 del(self.Disabled[nr])
-        self.set_shapes_color(self.Selected,'deselected')
-        self.Selected=[]
-        self.plot_cut_info()
+        self.select()
+        self.Canvas.Draw(Force=True)
+
     def show_disabled(self):
         if (self.toggle_show_disabled==1):
-            #self.set_hdls_normal(self.Disabled)
+            self.set_hdls_normal(self.Disabled)
             self.show_dis=1
         else:
-            #self.set_hdls_hidden(self.Disabled)
+            self.set_hdls_hidden(self.Disabled)
             self.show_dis=0
 #
 #    def switch_shape_dir(self):
@@ -1550,35 +1569,19 @@ class MyCanvasContentClass:
         self.set_color(s_shapes,s_color)
         
 
-#        if (self.toggle_show_disabled==0):
-#            self.set_hdls_hidden(d_shape_nrs)
-        
+
     def set_color(self,shapes,color):
         for shape in shapes:
             shape.geo_hdl.SetLineColor(color)
 
+    def set_hdls_hidden(self,shapes):
+        for shape in shapes:
+            shape.geo_hdl.Visible = False
 
-#    def set_hdls_hidden(self,shape_nrs):
-#        hdls=self.get_shape_hdls(shape_nrs)
-#        for hdl in hdls:
-#            self.Canvas.canvas.itemconfig(hdl,state='hidden')
-#
-#    def set_hdls_normal(self,shape_nrs):
-#        hdls=self.get_shape_hdls(shape_nrs)
-#        for hdl in hdls:
-#            self.Canvas.canvas.itemconfig(hdl,state='normal')            
-#        
-#    def get_shape_hdls(self,shape_nrs):        
-#        hdls=[]
-#        for s_nr in shape_nrs:
-#            if type(self.Shapes[s_nr].geos_hdls[0]) is list:
-#                for subcont in self.Shapes[s_nr].geos_hdls:
-#                    hdls=hdls+subcont
-#            else:
-#                hdls=hdls+self.Shapes[s_nr].geos_hdls
-#        return hdls      
-#                                       
-#       
+    def set_hdls_normal(self,shapes):
+        for shape in shapes:
+            shape.geo_hdl.Visible = True           
+      
 class MyLayerContentClass:
     def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
         self.LayerNr=LayerNr
