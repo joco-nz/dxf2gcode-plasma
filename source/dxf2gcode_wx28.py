@@ -493,10 +493,8 @@ class MyFrameClass(wx.Frame):
             shape=self.shapes_to_write[self.TSP.opt_route[nr]]
             self.MyMessages.prt((_("\nWriting Shape: %s") %shape),1)
                 
-
-
             #Drucken falls die Shape nicht disabled ist
-            if not(shape.nr in self.MyCanvasContent.Disabled):
+            if not(shape in self.MyCanvasContent.Disabled):
                 #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
                 stat =shape.Write_GCode(config,postpro)
                 status=status*stat
@@ -690,15 +688,8 @@ class MyGraphicClass(wx.Panel):
                                     
         self.Canvas = NC.Canvas # reference the contained FloatCanvas
 
-#        self.MsgWindow = wx.TextCtrl(self, wx.ID_ANY,
-#                                     _("Look Here for output from events")+"\n",
-#                                     style = (wx.TE_MULTILINE |
-#                                              wx.TE_READONLY |
-#                                              wx.SUNKEN_BORDER))
-                                            
         MainSizer = wx.BoxSizer(wx.VERTICAL)
         MainSizer.Add(NC, 6, wx.EXPAND)
-        #MainSizer.Add(self.MsgWindow, 1, wx.EXPAND | wx.ALL, 5)
 
         self.SetSizer(MainSizer)
 
@@ -719,25 +710,6 @@ class MyGraphicClass(wx.Panel):
         self.Canvas.Bind(wx.EVT_KEY_UP , self.OnKeyUp)
 
         self.SetFocus()
-        
-
-
-        
-        ## Here is how you catch FloatCanvas mouse events
-        #self.Canvas.Bind(FloatCanvas.EVT_MTIN, self.was)
-        #print dir(wx)
-        #self.Canvas.Bind(FloatCanvas.EVT_LEFT_DOWN, self.OnLeftDown) 
-        #self.Canvas.Bind(FloatCanvas.EVT_LEFT_UP, self.OnLeftUp)
-        #self.Canvas.Bind(FloatCanvas.EVT_LEFT_DCLICK, self.OnLeftDouble) 
-
-        #self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_DOWN, self.OnMiddleDown) 
-        #self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_UP, self.OnMiddleUp) 
-        #self.Canvas.Bind(FloatCanvas.EVT_MIDDLE_DCLICK, self.OnMiddleDouble) 
-
-        
-        #self.Canvas.Bind(FloatCanvas.EVT_RIGHT_UP, self.OnRightUp) 
-        #self.Canvas.Bind(FloatCanvas.EVT_RIGHT_DCLICK, self.OnRightDouble) 
-         #self.Canvas.Bind(FloatCanvas.EVT_MOUSEWHEEL, self.OnWheel) 
         
     def MultiSelect(self,BB):
         self.MyCanvasContent.ShapesInBB(BB)   
@@ -760,12 +732,52 @@ class MyGraphicClass(wx.Panel):
             
             self.popupID3 = wx.NewId()
             self.Bind(wx.EVT_MENU, self.MyCanvasContent.enable_selection, id=self.popupID3)
+            
+            self.popupID4 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.MyCanvasContent.switch_shape_dir, id=self.popupID4)
+            
+            self.popupID5 = wx.NewId()
+            
+            self.popupID6 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.MyCanvasContent.set_cor_40, id=self.popupID6)
+            
+            self.popupID7 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.MyCanvasContent.set_cor_41, id=self.popupID7)
+            
+            self.popupID8 = wx.NewId()
+            self.Bind(wx.EVT_MENU, self.MyCanvasContent.set_cor_42, id=self.popupID8)
 
-        # make a menu
+        #Erstellen des Menus
         menu = wx.Menu()
         menu.Append(self.popupID1, _('Invert Selection'),_('Invert Selection'))
         menu.Append(self.popupID2, _('Disable Selection'),_('Disable Selection'))
         menu.Append(self.popupID3, _('Enable Selection'),_('Enable Selection'))
+        menu.AppendSeparator()
+        menu.Append(self.popupID4, _('Switch Direction'),_('Switch Direction'))
+        
+        #Submenu mit der Fräsradienkorrektur
+        sm = wx.Menu()
+        sm.Append(self.popupID6, _("G40 No correction"),_("G40 No correction"),wx.ITEM_CHECK)
+        sm.Append(self.popupID7, _("G41 Cutting left"),_("G41 Cutting left"),wx.ITEM_CHECK)
+        sm.Append(self.popupID8, _("G42 Cutting right"),_("G42 Cutting right"),wx.ITEM_CHECK)
+        
+        #Zuweisen ob nur eine CutterCorrection ausgewählt ist und darstellen
+        x=self.MyCanvasContent.calc_dir_var()
+        sm.Check(self.popupID6, 0==40-x)
+        sm.Check(self.popupID7, 0==41-x)
+        sm.Check(self.popupID8, 0==42-x)
+        
+        menu.AppendMenu(self.popupID5, _('Set Cutter Correction'), sm)
+        
+        #Menus Disablen wenn nicht ausgewählt wurde        
+        if len(self.MyCanvasContent.Selected)==0:
+            menu.Enable(self.popupID1,False)
+            menu.Enable(self.popupID2,False)
+            menu.Enable(self.popupID3,False)
+            menu.Enable(self.popupID4,False)
+            menu.Enable(self.popupID5,False)
+                  
+        
         # Popup the menu.  If an item is selected then its handler
         # will be called before PopupMenu returns.
         self.PopupMenu(menu)
@@ -789,12 +801,9 @@ class MyGraphicClass(wx.Panel):
   
     def OnKeyUp(self, event):
         self.lastkey=0
-
-            
+      
     def OnMove(self, event):
-        
-        #print event.Dragging()
-        
+                
         scale=self.Canvas.Scale/DOT_PER_MM
         
         if scale<1:
@@ -827,7 +836,6 @@ class MyGraphicClass(wx.Panel):
         self.Canvas.InitAll()
         self.Canvas.Draw()
   
-#
 #class ExportParasClass:
 #    def __init__(self,master=None,config=None,postpro=None):
 #        self.master=master
@@ -942,247 +950,8 @@ class MyGraphicClass(wx.Panel):
 #        f22.rowconfigure(1,weight=0)
 #        f22.rowconfigure(3,weight=0)
 #         
-##Klasse zum Erstellen des Plots
-#class CanvasClass:
-#    def __init__(self, master = None,text=None):
-#        
-#        #Übergabe der Funktionswerte
-#        self.master=master
-#        self.Content=[]
-#
-#        #Erstellen der Standardwerte
-#        self.lastevent=[]
-#        self.sel_rect_hdl=[]
-#        self.dir_var = IntVar()
-#        self.dx=0.0
-#        self.dy=0.0
-#        self.scale=1.0
-#
-#        #Wird momentan nicht benoetigt, eventuell fuer Beschreibung von Aktionen im Textfeld #self.text=text
-#
-#        #Erstellen des Labels am Unteren Rand fuer Status Leiste        
-#        self.label=Label(self.master, text=_("Curser Coordinates: X=0.0, Y=0.0, Scale: 1.00"),bg="white",anchor="w")
-#        self.label.grid(row=1,column=0,sticky=E+W)
-#
-#        #Canvas Erstellen und Fenster ausfuellen        
-#        self.canvas=Canvas(self.master,width=650,height=500, bg = "white")
-#        self.canvas.grid(row=0,column=0,sticky=N+E+S+W)
-#        self.master.columnconfigure(0,weight=1)
-#        self.master.rowconfigure(0,weight=1)
-#
-#
-#        #Binding fuer die Bewegung des Mousezeigers
-#        self.canvas.bind("<Motion>", self.moving)
-#
-#        #Bindings fuer Selektieren
-#        self.canvas.bind("<Button-1>", self.select_cont)
-#        
-#        #Eventuell mit Abfrage probieren???????????????????????????????????????????
-#        self.canvas.bind("<Shift-Button-1>", self.multiselect_cont)
-#        self.canvas.bind("<B1-Motion>", self.select_rectangle)
-#        self.canvas.bind("<ButtonRelease-1>", self.select_release)
-#
-#        #Binding fuer Contextmenu
-#        self.canvas.bind("<Button-3>", self.make_contextmenu)
-#
-#        #Bindings fuer Zoom und Bewegen des Bilds        
-#        self.canvas.bind("<Control-Button-1>", self.mouse_move)
-#        self.canvas.bind("<Control-B1-Motion>", self.mouse_move_motion)
-#        self.canvas.bind("<Control-ButtonRelease-1>", self.mouse_move_release)
-#        self.canvas.bind("<Control-Button-3>", self.mouse_zoom)
-#        self.canvas.bind("<Control-B3-Motion>", self.mouse_zoom_motion)
-#        self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)   
-#
-#    #Callback fuer das Bewegen der Mouse mit Darstellung in untere Leiste
-#    def moving(self,event):
-#        x=self.dx+(event.x/self.scale)
-#        y=self.dy+(self.canvas.winfo_height()-event.y)/self.scale
-#
-#        if self.scale<1:
-#            self.label['text']=(_("Curser Coordinates: X= %5.0f Y= %5.0f , Scale: %5.3f") \
-#                                %(x,y,self.scale))
-#            
-#        elif (self.scale>=1)and(self.scale<10):      
-#            self.label['text']=(_("Curser Coordinates: X= %5.1f Y= %5.1f , Scale: %5.2f") \
-#                                %(x,y,self.scale))
-#        elif self.scale>=10:      
-#            self.label['text']=(_("Curser Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f") \
-#                                %(x,y,self.scale))
-#        
-#    #Callback fuer das Auswählen von Elementen
-#    def select_cont(self,event):
-#        #Abfrage ob ein Contextfenster offen ist, speziell fuer Linux
-#        self.schliesse_contextmenu()
-#        
-#        self.moving(event)
-#        self.Content.deselect()
-#        self.sel_rect_hdl=Rectangle(self.canvas,event.x,event.y,event.x,event.y,outline="grey") 
-#        self.lastevent=event
-#
-#    def multiselect_cont(self,event):
-#        #Abfrage ob ein Contextfenster offen ist, speziell fuer Linux
-#        self.schliesse_contextmenu()
-#        
-#        self.sel_rect_hdl=Rectangle(self.canvas,event.x,event.y,event.x,event.y,outline="grey") 
-#        self.lastevent=event
-#
-#    def select_rectangle(self,event):
-#        self.moving(event)
-#        self.canvas.coords(self.sel_rect_hdl,self.lastevent.x,self.lastevent.y,\
-#                           event.x,event.y)
-#
-#    def select_release(self,event):
-# 
-#        dx=self.lastevent.x-event.x
-#        dy=self.lastevent.y-event.y
-#        self.canvas.delete(self.sel_rect_hdl)
-#        
-#        #Beim Auswählen sollen die Direction Pfeile geloescht werden!!!!!!!!!!!!!!!!!!        
-#        #self.Content.delete_opt_path()   
-#        
-#        #Wenn mehr als 6 Pixel gezogen wurde Enclosed        
-#        if (abs(dx)+abs(dy))>6:
-#            items=self.canvas.find_overlapping(event.x,event.y,event.x+dx,event.y+dy)
-#            mode='multi'
-#        else:
-#            #items=self.canvas.find_closest(event.x, event.y)
-#            items=self.canvas.find_overlapping(event.x-3,event.y-3,event.x+3,event.y+3)
-#            mode='single'
-#            
-#        self.Content.addselection(items,mode)
-#
-#    #Callback fuer Bewegung des Bildes
-#    def mouse_move(self,event):
-#        self.master.config(cursor="fleur")
-#        self.lastevent=event
-#
-#    def mouse_move_motion(self,event):
-#        self.moving(event)
-#        dx=event.x-self.lastevent.x
-#        dy=event.y-self.lastevent.y
-#        self.dx=self.dx-dx/self.scale
-#        self.dy=self.dy+dy/self.scale
-#        self.canvas.move(ALL,dx,dy)
-#        self.lastevent=event
-#
-#    def mouse_move_release(self,event):
-#        self.master.config(cursor="")      
-#
-#    #Callback fuer das Zoomen des Bildes     
-#    def mouse_zoom(self,event):
-#        self.canvas.focus_set()
-#        self.master.config(cursor="sizing")
-#        self.firstevent=event
-#        self.lastevent=event
-#
-#    def mouse_zoom_motion(self,event):
-#        self.moving(event)
-#        dy=self.lastevent.y-event.y
-#        sca=(1+(dy*3)/float(self.canvas.winfo_height()))
-#       
-#        self.dx=(self.firstevent.x+((-self.dx*self.scale)-self.firstevent.x)*sca)/sca/-self.scale
-#        eventy=self.canvas.winfo_height()-self.firstevent.y
-#        self.dy=(eventy+((-self.dy*self.scale)-eventy)*sca)/sca/-self.scale
-#        
-#        self.scale=self.scale*sca
-#        self.canvas.scale( ALL, self.firstevent.x,self.firstevent.y,sca,sca)
-#        self.lastevent=event
-#
-#        self.Content.plot_cut_info() 
-#        self.Content.plot_wp_zero()
-#
-#    def mouse_zoom_release(self,event):
-#        self.master.config(cursor="")
-#                
-#    #Contextmenu mit Bindings beim Rechtsklick
-#    def make_contextmenu(self,event):
-#        self.lastevent=event
-#
-#        #Abfrage ob das Contextfenster schon existiert, speziell fuer Linux
-#        self.schliesse_contextmenu()
-#            
-#        #Contextmenu erstellen zu der Geometrie        
-#        popup = Menu(self.canvas,tearoff=0)
-#        self.popup=popup
-#        popup.add_command(label=_('Invert Selection'),command=self.Content.invert_selection)
-#        popup.add_command(label=_('Disable Selection'),command=self.Content.disable_selection)
-#        popup.add_command(label=_('Enable Selection'),command=self.Content.enable_selection)
-#
-#        popup.add_separator()
-#        popup.add_command(label=_('Switch Direction'),command=self.Content.switch_shape_dir)
-#        
-#        #Untermenu fuer die Fräserkorrektur
-#        self.dir_var.set(self.Content.calc_dir_var())
-#        cut_cor_menu = Menu(popup,tearoff=0)
-#        cut_cor_menu.add_checkbutton(label=_("G40 No correction"),\
-#                                     variable=self.dir_var,onvalue=0,\
-#                                     command=lambda:self.Content.set_cut_cor(40))
-#        cut_cor_menu.add_checkbutton(label=_("G41 Cutting left"),\
-#                                     variable=self.dir_var,onvalue=1,\
-#                                     command=lambda:self.Content.set_cut_cor(41))
-#        cut_cor_menu.add_checkbutton(label=_("G42 Cutting right"),\
-#                                     variable=self.dir_var,onvalue=2,\
-#                                     command=lambda:self.Content.set_cut_cor(42))
-#        popup.add_cascade(label=_('Set Cutter Correction'),menu=cut_cor_menu)
-#
-#        #Menus Disablen wenn nicht ausgewählt wurde        
-#        if len(self.Content.Selected)==0:
-#            popup.entryconfig(0,state=DISABLED)
-#            popup.entryconfig(1,state=DISABLED)
-#            popup.entryconfig(2,state=DISABLED)
-#            popup.entryconfig(4,state=DISABLED)
-#            popup.entryconfig(5,state=DISABLED)
-#
-#        popup.post(event.x_root, event.y_root)
-#        
-#    #Speziell fuer Linux falls das Contextmenu offen ist dann schliessen
-#    def schliesse_contextmenu(self):
-#        try:
-#            self.popup.destroy()
-#            del(self.popup)
-#        except:
-#            pass
-#
-#    def autoscale(self):
 #
 
-#
-#        self.Content.plot_cut_info()
-#        self.Content.plot_wp_zero()
-        
-#    def get_can_coordinates(self,x_st,y_st):
-#        x_ca=(x_st-self.dx)*self.scale
-#        y_ca=(y_st-self.dy)*self.scale-self.canvas.winfo_height()
-#        return x_ca, y_ca
-#
-#    def scale_contours(self,delta_scale):     
-#        self.scale=self.scale/delta_scale
-#        self.dx=self.dx*delta_scale
-#        self.dy=self.dy*delta_scale
-#
-#        #Schreiben der neuen WErte simulierne auf Curser Punkt 0, 0
-#        event=PointClass(x=0,y=0)
-#        self.moving(event)
-#
-#        #Skalieren der Shapes
-#        for shape in self.Content.Shapes:
-#            shape.sca[0]=shape.sca[0]*delta_scale
-#            shape.sca[1]=shape.sca[1]*delta_scale
-#            shape.sca[2]=shape.sca[2]*delta_scale
-#            
-#            shape.p0=shape.p0*[delta_scale,delta_scale]
-#
-#    def move_wp_zero(self,delta_dx,delta_dy):
-#        self.dx=self.dx-delta_dx
-#        self.dy=self.dy-delta_dy
-#
-#        #Verschieben der Shapes 
-#        for shape in self.Content.Shapes:
-#            shape.p0-=PointClass(x=delta_dx,y=delta_dy)
-#
-#        #Update des Nullpunkts auf neue Koordinaten
-#        self.Content.plot_wp_zero()
-#        
 
 
 
@@ -1229,10 +998,10 @@ class MyCanvasContentClass:
         if len(self.Selected)==0:
             return -1
         dir=self.Selected[0].cut_cor
-        for shape_nr in self.Selected[1:len(self.Selected)]: 
-            if not(dir==self.Selected[shape_nr].cut_cor):
+        for shape in self.Selected: 
+            if not(dir==shape.cut_cor):
                 return -1   
-        return dir-40
+        return dir
                 
     #Erstellen des Gesamten Ausdrucks      
     def makeplot(self,values):
@@ -1527,21 +1296,29 @@ class MyCanvasContentClass:
         else:
             self.set_hdls_hidden(self.Disabled)
             self.show_dis=0
-#
-#    def switch_shape_dir(self):
-#        for shape_nr in self.Selected:
-#            self.Shapes[shape_nr].reverse()
-#            self.textbox.prt(_('\n\nSwitched Direction at Shape: %s')\
-#                             %(self.Shapes[shape_nr]),3)
-#        self.plot_cut_info()
-#        
-#    def set_cut_cor(self,correction):
-#        for shape_nr in self.Selected: 
-#            self.Shapes[shape_nr].cut_cor=correction
-#            
-#            self.textbox.prt(_('\n\nChanged Cutter Correction at Shape: %s')\
-#                             %(self.Shapes[shape_nr]),3)
-#        self.plot_cut_info() 
+
+    def switch_shape_dir(self,event):
+        for shape in self.Selected:
+            shape.reverse()
+            self.MyMessages.prt(_('\n\nSwitched Direction at Shape: %s')\
+                             %(shape),3)
+        self.plot_cut_info()
+        
+    def set_cor_40(self,event):
+        self.set_cut_cor(40)
+        
+    def set_cor_41(self,event):
+        self.set_cut_cor(41)
+        
+    def set_cor_42(self,event):
+        self.set_cut_cor(42)
+        
+    def set_cut_cor(self,correction):
+        for shape in self.Selected: 
+            shape.cut_cor=correction
+            self.MyMessages.prt(_('\n\nChanged Cutter Correction at Shape: %s')\
+                             %(shape),3)
+        self.plot_cut_info() 
         
     def set_shapes_color(self,shapes,state):
         s_shapes=[]
@@ -1580,7 +1357,21 @@ class MyCanvasContentClass:
 
     def set_hdls_normal(self,shapes):
         for shape in shapes:
-            shape.geo_hdl.Visible = True           
+            shape.geo_hdl.Visible = True   
+            
+    #
+#    def move_wp_zero(self,delta_dx,delta_dy):
+#        self.dx=self.dx-delta_dx
+#        self.dy=self.dy-delta_dy
+#
+#        #Verschieben der Shapes 
+#        for shape in self.Content.Shapes:
+#            shape.p0-=PointClass(x=delta_dx,y=delta_dy)
+#
+#        #Update des Nullpunkts auf neue Koordinaten
+#        self.Content.plot_wp_zero()
+#        
+
       
 class MyLayerContentClass:
     def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
