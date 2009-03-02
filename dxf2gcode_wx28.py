@@ -64,6 +64,7 @@ import locale
 import gettext, ConfigParser, tempfile, subprocess
 from copy import copy
 
+from dxf2gcode_inputdlg import VarDlg
 from dxf2gcode_b02_point import PointClass
 from dxf2gcode_b02_shape import ShapeClass
 import dxf2gcode_b02_dxf_import as dxfimport 
@@ -223,7 +224,7 @@ class MyFrameClass(wx.Frame):
         
         shsds = viewmenu.Append(303, _("Show disabled shapes"),\
                     _("Show the disabled shapes grayed out"), kind=wx.ITEM_CHECK)
-        viewmenu.Check(303, True) 
+        viewmenu.Check(303, False) 
         viewmenu.AppendSeparator()
         viewmenu.Append(304, _("Autoscale"), _("Fit the drawing to the screen"))
         viewmenu.AppendSeparator()
@@ -233,7 +234,8 @@ class MyFrameClass(wx.Frame):
         self.optionmenu=optionmenu= wx.Menu()
         optionmenu.Append(401, _("Set tolerances"), _("Set the tolerances for the dxf import"))
         optionmenu.AppendSeparator()
-        optionmenu.Append(402, _("Move workpiece zero"), _("Offset the workpiece zero of the drawing"))
+        optionmenu.Append(402,_("Scale contours"), _("Scale all elements by factor"))
+        optionmenu.Append(403, _("Move workpiece zero"), _("Offset the workpiece zero of the drawing"))
         
         menuBar.Append(optionmenu, _("Options"))
                 
@@ -260,7 +262,8 @@ class MyFrameClass(wx.Frame):
         
         #Optionsmenu
         self.Bind(wx.EVT_MENU, self.GetContTol, id=401)
-        self.Bind(wx.EVT_MENU, self.MoveWpZero, id=402)
+        self.Bind(wx.EVT_MENU, self.GetContScale, id=402)
+        self.Bind(wx.EVT_MENU, self.MoveWpZero, id=403)
         
         #Helpmenu
         self.Bind(wx.EVT_MENU, self.ShowAbout, id=501)
@@ -280,6 +283,7 @@ class MyFrameClass(wx.Frame):
         #Optionsmenu
         self.optionmenu.Enable(401,False)
         self.optionmenu.Enable(402,False)
+        self.optionmenu.Enable(403,False)
         
     def EnableAllMenues(self):
         #Exportmenu
@@ -294,6 +298,7 @@ class MyFrameClass(wx.Frame):
         #Optionsmenu
         self.optionmenu.Enable(401,True)
         self.optionmenu.Enable(402,True)
+        self.optionmenu.Enable(403,True)
     # Callback des Menu Punkts File Laden
     def GetLoadFile(self,event):
                 
@@ -371,9 +376,9 @@ class MyFrameClass(wx.Frame):
         self.MyCanvasContent.makeplot(self.values)
 
         #Loeschen alter Route Menues
-        self.del_route_and_menuentry()
+        self.del_route_and_menuentry(None)
             
-    def GetContTol(self):
+    def GetContTol(self,event):
         pass
 #
 #        #Dialog fuer die Toleranzvoreinstellungen oeffnen      
@@ -392,23 +397,27 @@ class MyFrameClass(wx.Frame):
 #        self.textbox.prt(_("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file")\
 #                              %(dialog.result[0],dialog.result[1]))
 #        
-#    def Get_Cont_Scale(self):
-#        #Abspeichern der alten Werte
-#        old_scale=self.cont_scale
-#                
-#        value=askfloat(_('Scale Contours'),_('Set the scale factor'),\
-#                                initialvalue=self.cont_scale)
-#        #Abfrage ob Cancel gedrueckt wurde
-#        if value is None:
-#            return
-#        
-#        self.cont_scale=value
-#
-#        #Falls noch kein File geladen wurde nichts machen
-#        self.textbox.prt(_("\nScaled Contours by factor %0.3f") %self.cont_scale)
-#
-#        self.Canvas.scale_contours(self.cont_scale/old_scale)        
-#        
+    def GetContScale(self,event):
+
+
+        chform = VarDlg(None, -1, _('Scale Contours'),[_('Set the scale factor')],[("%0.3f") %self.cont_scale])
+        chform.ShowModal()
+        
+        #Abbruch falls Cancel gedrückt wurde
+        if chform.ReturnCode==wx.ID_CANCEL:
+            print "Cancel"
+            return
+        
+        chform.GetValue()
+
+        
+        self.cont_scale=1
+
+        #Falls noch kein File geladen wurde nichts machen
+        self.MyMessages.prt(_("\nScaled Contours by factor %0.3f") %self.cont_scale)
+
+        self.MyGraphic.scale_contours(self.cont_scale/old_scale)        
+       
     def MoveWpZero(self):
         pass
 #        #Die alten Werte zwischenspeichern fuer das verschieben des Canvas
@@ -565,9 +574,7 @@ class MyFrameClass(wx.Frame):
             #Jeden 10ten Schrit rausdrucken
             if (it_nr%10)==0:
                 self.MyMessages.prt((_("\nTSP Iteration nr: %i") %it_nr),1)
-                #for hdl in self.MyCanvasContent.path_hdls:
-                #    self.Canvas.canvas.delete(hdl)
-                self.MyCanvasContent.path_hdls=[]
+                self.MyCanvasContent.delete_opt_path()
                 self.MyCanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
                 
             self.TSP.calc_next_iteration()
@@ -578,13 +585,13 @@ class MyFrameClass(wx.Frame):
         #Einschlaten des Menupunkts zum löschen des optimierten Pfads.
         self.viewmenu.Enable(305,True)
 
-    def del_route_and_menuentry(self):
-        pass
-        try:
-            self.viewmenu.Enable(305,False)
-            self.MyCanvasContent.delete_opt_path()
-        except:
-            pass
+    def del_route_and_menuentry(self,event):
+        #try:
+        self.viewmenu.Enable(305,False)
+        self.MyCanvasContent.delete_opt_path()
+        self.MyGraphic.Canvas.Draw(Force=True)
+        #except:
+        #    pass
         
     def ShowAbout(self,event):
         ShowAboutInfoClass(self) 
@@ -595,7 +602,7 @@ class MyFrameClass(wx.Frame):
         #Den Frame löschen
         self.Destroy()
       
-        
+
 class MyTreeClass(wx.TreeCtrl):
     def __init__(self,parent,id):
         wx.TreeCtrl.__init__(self, parent, id,wx.DefaultPosition, wx.Size(200,150))
@@ -1025,7 +1032,7 @@ class MyCanvasContentClass:
         self.wp_zero_hdls=[]
         self.dir_hdls=[]
         self.path_hdls=[]
-        self.show_dis=1
+        self.show_dis=0
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
         self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0)
@@ -1141,7 +1148,7 @@ class MyCanvasContentClass:
 #            self.wp_zero_hdls.append(hdl)
 #            hdl=Arc(self.Canvas.canvas,xy,start=270,extent=90,style="pieslice",outline="gray",fill="gray")
 #            self.wp_zero_hdls.append(hdl)
-    def plot_cut_info(self):
+    def plot_cut_info(self,event):
         pass
 #        for hdl in self.dir_hdls:
 #            self.Canvas.canvas.delete(hdl) 
@@ -1155,32 +1162,44 @@ class MyCanvasContentClass:
 #        for shape_nr in draw_list:
 #            if not(shape_nr in self.Disabled):
 #                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas,self.MyConfig)
-#
+
+    def show_disabled(self,event):
+        if (event.IsChecked()):
+            self.set_hdls_normal(self.Disabled)
+            self.show_dis=1
+        else:
+            self.set_hdls_hidden(self.Disabled)
+            self.show_dis=0
+        self.Canvas.Draw(Force=True)
 
     def plot_opt_route(self,shapes_st_en_points,route):
         #Ausdrucken der optimierten Route
-        pass
-#        for en_nr in range(len(route)):
-#            if en_nr==0:
-#                st_nr=-1
-#                col='gray'
-#            elif en_nr==1:
-#                st_nr=en_nr-1
-#                col='gray'
-#            else:
-#                st_nr=en_nr-1
-#                col='peru'
-#                
-#            st=shapes_st_en_points[route[st_nr]][1]
-#            en=shapes_st_en_points[route[en_nr]][0]
-#
-#            x_ca_s,y_ca_s=self.Canvas.get_can_coordinates(st.x,st.y)
-#            x_ca_e,y_ca_e=self.Canvas.get_can_coordinates(en.x,en.y)
-#
-#            self.path_hdls.append(Line(self.Canvas.canvas,x_ca_s,-y_ca_s,x_ca_e,-y_ca_e,fill=col,arrow='last'))
-#        self.Canvas.canvas.update()
-#
-#
+        for en_nr in range(len(route)):
+            if en_nr==0:
+                st_nr=-1
+                col='Grey'
+            elif en_nr==1:
+                st_nr=en_nr-1
+                col='Grey'
+            else:
+                st_nr=en_nr-1
+                col=(225, 176, 98)
+                
+            st=shapes_st_en_points[route[st_nr]][1]
+            en=shapes_st_en_points[route[en_nr]][0]
+
+            self.path_hdls.append(self.Canvas.AddArrowLine([(st.x,st.y),
+                                    (en.x,en.y)],
+                                    LineWidth = 1, LineColor = col,
+                                    ArrowHeadSize = 18,
+                                    ArrowHeadAngle = 18))
+                                    
+        self.Canvas.Draw(Force=True)
+        
+    def delete_opt_path(self):
+        self.Canvas.RemoveObjects(self.path_hdls)
+        self.path_hdls=[]
+
     #Hinzufuegen der Kontur zum Layer        
     def addtoLayerContents(self,shape_nr,lay_nr):
         #Abfrage of der gesuchte Layer schon existiert
@@ -1212,12 +1231,7 @@ class MyCanvasContentClass:
             
         self.EntitieContents.append(MyEntitieContentClass(ent_nr,EntName,[[shape_nr]]))
         
-    def delete_opt_path(self):
-        pass
-#        for hdl in self.path_hdls:
-#            self.Canvas.canvas.delete(hdl)
-#            
-#        self.path_hdls=[]
+
   
     def change_selection(self,sel_shapes):
         if self.MyGraphic.lastkey==0:
@@ -1288,14 +1302,6 @@ class MyCanvasContentClass:
                 del(self.Disabled[nr])
         self.select()
         self.Canvas.Draw(Force=True)
-
-    def show_disabled(self):
-        if (self.toggle_show_disabled==1):
-            self.set_hdls_normal(self.Disabled)
-            self.show_dis=1
-        else:
-            self.set_hdls_hidden(self.Disabled)
-            self.show_dis=0
 
     def switch_shape_dir(self,event):
         for shape in self.Selected:
