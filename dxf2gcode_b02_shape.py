@@ -71,10 +71,10 @@ class ShapeClass:
 
     def get_st_en_points(self):
         st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=(st_point*self.sca)+self.p0
+        start=st_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
         
         en_point, en_angle=self.geos[-1].get_start_end_points(1)
-        ende=en_point*self.sca+self.p0
+        ende=en_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
         return [start,ende]
 
     def plot2can(self,Canvas=None,tag=None,col='Black'):
@@ -88,44 +88,40 @@ class ShapeClass:
                        
         self.geo_hdl=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
         
-        
-    def plot_cut_info(self,CanvasClass,config):
-        hdls=[]
-        hdls.append(self.plot_start(CanvasClass))
-        hdls.append(self.plot_end(CanvasClass))
-        if self.cut_cor>40:
-            hdls.append(self.plot_cut_cor(CanvasClass))
 
-            #Versatz des Zeichnens durch Position
-            P0=PointClass(x=-CanvasClass.dx*CanvasClass.scale,\
-                          y=-CanvasClass.dy*CanvasClass.scale-CanvasClass.canvas.winfo_height())
-            
-            #Korrektur der Skalierung
-            sca=[CanvasClass.scale]*3
-            
+        
+    def plot_cut_info(self,Canvas,config,length):
+        hdls=[]
+        hdls.append(self.plot_start(Canvas,length))
+        hdls.append(self.plot_end(Canvas,length))
+        if self.cut_cor>40:
+            hdls.append(self.plot_cut_cor(Canvas,length))
+               
             self.make_start_moves(config)
-            hdls+=self.st_move[1].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
-            hdls+=self.st_move[2].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
+            #hdls+=self.st_move[1].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
+            #hdls+=self.st_move[2].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
         return hdls
             
-    def plot_start(self,CanvasClass):
+    def plot_start(self,Canvas=None,length=20):
         st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=(st_point*self.sca)+self.p0
+        start=st_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
         
-        x_ca,y_ca=CanvasClass.get_can_coordinates(start.x,start.y)
-        length=20
         dx=cos(radians(st_angle))*length
         dy=sin(radians(st_angle))*length
 
-        hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='SteelBlue3',arrow='last')
+        hdl=Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
+                                LineWidth=2, 
+                                LineColor= "BLUE",
+                                ArrowHeadSize = 18,
+                                ArrowHeadAngle = 18)
         return hdl
+    
+    
 
-    def plot_cut_cor(self,CanvasClass):
+    def plot_cut_cor(self,Canvas=None,length=20):
         st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=(st_point*self.sca)+self.p0
-        x_ca,y_ca=CanvasClass.get_can_coordinates(start.x,start.y)
-        length=20
-        
+        start=st_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
+
         if self.cut_cor==41:
             st_angle=st_angle+90
         else:
@@ -134,19 +130,25 @@ class ShapeClass:
         dx=cos(radians(st_angle))*length
         dy=sin(radians(st_angle))*length
 
-        hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='SteelBlue3',arrow='last')
+        hdl=Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
+                                LineWidth=2,
+                                LineColor= "BLUE",
+                                ArrowHeadSize = 18,
+                                ArrowHeadAngle = 18)
         return hdl
 
-    def plot_end(self,CanvasClass):
+    def plot_end(self,Canvas=None,length=20):
         en_point, en_angle=self.geos[-1].get_start_end_points(1)
-        ende=(en_point*self.sca)+self.p0
+        ende=en_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
         
-        x_ca,y_ca=CanvasClass.get_can_coordinates(ende.x,ende.y)
-        length=20
         dx=cos(radians(en_angle))*length
         dy=sin(radians(en_angle))*length
 
-        hdl=Line(CanvasClass.canvas,x_ca,-y_ca,x_ca+dx,-y_ca-dy,fill='PaleGreen2',arrow='first')
+        hdl=Canvas.AddArrowLine([[ende.x+dx,ende.y+dy],[ende.x,ende.y]],
+                                LineWidth=2,
+                                LineColor= "GREEN",
+                                ArrowHeadSize = 18,
+                                ArrowHeadAngle = 18)
         return hdl
 
     def make_start_moves(self,config):
@@ -160,8 +162,8 @@ class ShapeClass:
         tool_rad=config.tool_dia/2
     
         #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
-        st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start_cont=(st_point*self.sca)+self.p0
+        sp, sa=self.geos[0].get_start_end_points(0)
+        start_cont=(sp*self.sca)+self.p0
       
         if self.cut_cor==40:              
             self.st_move.append(start_cont)
@@ -169,14 +171,14 @@ class ShapeClass:
         #Fräsradiuskorrektur Links        
         elif self.cut_cor==41:
             #Mittelpunkts für Einlaufradius
-            Oein=start_cont.get_arc_point(st_angle+90,start_rad+tool_rad)
+            Oein=start_cont.get_arc_point(sa+90,start_rad+tool_rad)
             #Startpunkts für Einlaufradius
-            Pa_ein=Oein.get_arc_point(st_angle+180,start_rad+tool_rad)
+            Pa_ein=Oein.get_arc_point(sa+180,start_rad+tool_rad)
             #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(st_angle+90,start_ver)
+            Pg_ein=Pa_ein.get_arc_point(sa+90,start_ver)
             
             #Eintauchpunkts errechnete Korrektur
-            start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
+            start_ein=Pg_ein.get_arc_point(sa,tool_rad)
             self.st_move.append(start_ein)
 
             #Einlaufgerade mit Korrektur
@@ -191,15 +193,15 @@ class ShapeClass:
         elif self.cut_cor==42:
 
             #Mittelpunkt für Einlaufradius
-            Oein=start_cont.get_arc_point(st_angle-90,start_rad+tool_rad)
+            Oein=start_cont.get_arc_point(sa-90,start_rad+tool_rad)
             #Startpunkt für Einlaufradius
-            Pa_ein=Oein.get_arc_point(st_angle+180,start_rad+tool_rad)
+            Pa_ein=Oein.get_arc_point(sa+180,start_rad+tool_rad)
             IJ=Oein-Pa_ein
             #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(st_angle-90,start_ver)
+            Pg_ein=Pa_ein.get_arc_point(sa-90,start_ver)
             
             #Eintauchpunkts errechnete Korrektur
-            start_ein=Pg_ein.get_arc_point(st_angle,tool_rad)
+            start_ein=Pg_ein.get_arc_point(sa,tool_rad)
             self.st_move.append(start_ein)
 
             #Einlaufgerade mit Korrektur
@@ -244,7 +246,7 @@ class ShapeClass:
             
             #Errechnen des Startpunkts ohne Werkzeug Kompensation
             #und einschalten der Kompensation     
-            start_cor, st_angle=self.st_move[1].get_start_end_points(0)
+            start_cor, sa=self.st_move[1].get_start_end_points(0)
             postpro.set_cut_cor(self.cut_cor,start_cor)
             
             self.st_move[1].Write_GCode([1,1,1],\
@@ -294,8 +296,8 @@ class ShapeClass:
             if ((not(self.cut_cor==40))&(self.closed==0))or(postpro.cancel_cc_for_depth==1):
                 #Errechnen des Startpunkts ohne Werkzeug Kompensation
                 #und einschalten der Kompensation     
-                st_point, st_angle=self.geos[0].get_start_end_points(0)
-                start_cor=(st_point*self.sca)+self.p0
+                sp, sa=self.geos[0].get_start_end_points(0)
+                start_cor=(sp*self.sca)+self.p0
                 postpro.set_cut_cor(self.cut_cor,start_cor)
                 
             for geo_nr in range(len(self.geos)):
