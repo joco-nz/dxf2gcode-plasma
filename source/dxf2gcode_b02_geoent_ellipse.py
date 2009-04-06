@@ -173,7 +173,7 @@ class EllipseClass:
                 tanb= self.Ellipse_Tangent(angle+step)
 
                 #Biarc erstellen und an geo anh‰ngen        
-                biarcs=BiarcClass(Pb,tanb,Pa,tana,tol/100)
+                biarcs=BiarcClass(Pa,tana,Pb,tanb,tol/100)
                 self.geo+=biarcs.geos[:]             
 
                 #Letzer Wert = Startwert
@@ -229,5 +229,5 @@ class EllipseClass:
     
     def Ellipse_Tangent(self, alpha=0):#PointClass(0,0)
         #groﬂe Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
-        phi=atan2(self.a*sin(alpha),self.b*cos(alpha))+self.rotation-pi/2
+        phi=atan2(self.a*sin(alpha),self.b*cos(alpha))+self.rotation+pi/2
         return phi
