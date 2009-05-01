@@ -75,7 +75,7 @@ from copy import copy
 
 from dxf2gcode_inputdlg import VarDlg
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
-from dxf2gcode_b02_shape import ShapeClass
+from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
 import dxf2gcode_b02_dxf_import as dxfimport 
 import dxf2gcode_b02_tsp_opt as tsp
 
@@ -115,156 +115,6 @@ gettext.textdomain("dxf2gcode")
 trans = gettext.translation("dxf2gcode", localedir='languages', languages=langs, fallback = True)
 trans.install()
 
-penstyle = ["wx.SOLID", "wx.TRANSPARENT", "wx.DOT", "wx.LONG_DASH", "wx.DOT_DASH", "wx.USER_DASH",
-           "wx.BDIAGONAL_HATCH", "wx.CROSSDIAG_HATCH", "wx.FDIAGONAL_HATCH", "wx.CROSS_HATCH",
-           "wx.HORIZONTAL_HATCH", "wx.VERTICAL_HATCH"]
-
-ArtIDs = [ "None",
-           "wx.ART_ADD_BOOKMARK",
-           "wx.ART_DEL_BOOKMARK",
-           "wx.ART_HELP_SIDE_PANEL",
-           "wx.ART_HELP_SETTINGS",
-           "wx.ART_HELP_BOOK",
-           "wx.ART_HELP_FOLDER",
-           "wx.ART_HELP_PAGE",
-           "wx.ART_GO_BACK",
-           "wx.ART_GO_FORWARD",
-           "wx.ART_GO_UP",
-           "wx.ART_GO_DOWN",
-           "wx.ART_GO_TO_PARENT",
-           "wx.ART_GO_HOME",
-           "wx.ART_FILE_OPEN",
-           "wx.ART_PRINT",
-           "wx.ART_HELP",
-           "wx.ART_TIP",
-           "wx.ART_REPORT_VIEW",
-           "wx.ART_LIST_VIEW",
-           "wx.ART_NEW_DIR",
-           "wx.ART_HARDDISK",
-           "wx.ART_FLOPPY",
-           "wx.ART_CDROM",
-           "wx.ART_REMOVABLE",
-           "wx.ART_FOLDER",
-           "wx.ART_FOLDER_OPEN",
-           "wx.ART_GO_DIR_UP",
-           "wx.ART_EXECUTABLE_FILE",
-           "wx.ART_NORMAL_FILE",
-           "wx.ART_TICK_MARK",
-           "wx.ART_CROSS_MARK",
-           "wx.ART_ERROR",
-           "wx.ART_QUESTION",
-           "wx.ART_WARNING",
-           "wx.ART_INFORMATION",
-           "wx.ART_MISSING_IMAGE",
-           "SmileBitmap"
-           ]
-
-keyMap = {
-    wx.WXK_BACK : "WXK_BACK",
-    wx.WXK_TAB : "WXK_TAB",
-    wx.WXK_RETURN : "WXK_RETURN",
-    wx.WXK_ESCAPE : "WXK_ESCAPE",
-    wx.WXK_SPACE : "WXK_SPACE",
-    wx.WXK_DELETE : "WXK_DELETE",
-    wx.WXK_START : "WXK_START",
-    wx.WXK_LBUTTON : "WXK_LBUTTON",
-    wx.WXK_RBUTTON : "WXK_RBUTTON",
-    wx.WXK_CANCEL : "WXK_CANCEL",
-    wx.WXK_MBUTTON : "WXK_MBUTTON",
-    wx.WXK_CLEAR : "WXK_CLEAR",
-    wx.WXK_SHIFT : "WXK_SHIFT",
-    wx.WXK_ALT : "WXK_ALT",
-    wx.WXK_CONTROL : "WXK_CONTROL",
-    wx.WXK_MENU : "WXK_MENU",
-    wx.WXK_PAUSE : "WXK_PAUSE",
-    wx.WXK_CAPITAL : "WXK_CAPITAL",
-    wx.WXK_PRIOR : "WXK_PRIOR",
-    wx.WXK_NEXT : "WXK_NEXT",
-    wx.WXK_END : "WXK_END",
-    wx.WXK_HOME : "WXK_HOME",
-    wx.WXK_LEFT : "WXK_LEFT",
-    wx.WXK_UP : "WXK_UP",
-    wx.WXK_RIGHT : "WXK_RIGHT",
-    wx.WXK_DOWN : "WXK_DOWN",
-    wx.WXK_SELECT : "WXK_SELECT",
-    wx.WXK_PRINT : "WXK_PRINT",
-    wx.WXK_EXECUTE : "WXK_EXECUTE",
-    wx.WXK_SNAPSHOT : "WXK_SNAPSHOT",
-    wx.WXK_INSERT : "WXK_INSERT",
-    wx.WXK_HELP : "WXK_HELP",
-    wx.WXK_NUMPAD0 : "WXK_NUMPAD0",
-    wx.WXK_NUMPAD1 : "WXK_NUMPAD1",
-    wx.WXK_NUMPAD2 : "WXK_NUMPAD2",
-    wx.WXK_NUMPAD3 : "WXK_NUMPAD3",
-    wx.WXK_NUMPAD4 : "WXK_NUMPAD4",
-    wx.WXK_NUMPAD5 : "WXK_NUMPAD5",
-    wx.WXK_NUMPAD6 : "WXK_NUMPAD6",
-    wx.WXK_NUMPAD7 : "WXK_NUMPAD7",
-    wx.WXK_NUMPAD8 : "WXK_NUMPAD8",
-    wx.WXK_NUMPAD9 : "WXK_NUMPAD9",
-    wx.WXK_MULTIPLY : "WXK_MULTIPLY",
-    wx.WXK_ADD : "WXK_ADD",
-    wx.WXK_SEPARATOR : "WXK_SEPARATOR",
-    wx.WXK_SUBTRACT : "WXK_SUBTRACT",
-    wx.WXK_DECIMAL : "WXK_DECIMAL",
-    wx.WXK_DIVIDE : "WXK_DIVIDE",
-    wx.WXK_F1 : "WXK_F1",
-    wx.WXK_F2 : "WXK_F2",
-    wx.WXK_F3 : "WXK_F3",
-    wx.WXK_F4 : "WXK_F4",
-    wx.WXK_F5 : "WXK_F5",
-    wx.WXK_F6 : "WXK_F6",
-    wx.WXK_F7 : "WXK_F7",
-    wx.WXK_F8 : "WXK_F8",
-    wx.WXK_F9 : "WXK_F9",
-    wx.WXK_F10 : "WXK_F10",
-    wx.WXK_F11 : "WXK_F11",
-    wx.WXK_F12 : "WXK_F12",
-    wx.WXK_F13 : "WXK_F13",
-    wx.WXK_F14 : "WXK_F14",
-    wx.WXK_F15 : "WXK_F15",
-    wx.WXK_F16 : "WXK_F16",
-    wx.WXK_F17 : "WXK_F17",
-    wx.WXK_F18 : "WXK_F18",
-    wx.WXK_F19 : "WXK_F19",
-    wx.WXK_F20 : "WXK_F20",
-    wx.WXK_F21 : "WXK_F21",
-    wx.WXK_F22 : "WXK_F22",
-    wx.WXK_F23 : "WXK_F23",
-    wx.WXK_F24 : "WXK_F24",
-    wx.WXK_NUMLOCK : "WXK_NUMLOCK",
-    wx.WXK_SCROLL : "WXK_SCROLL",
-    wx.WXK_PAGEUP : "WXK_PAGEUP",
-    wx.WXK_PAGEDOWN : "WXK_PAGEDOWN",
-    wx.WXK_NUMPAD_SPACE : "WXK_NUMPAD_SPACE",
-    wx.WXK_NUMPAD_TAB : "WXK_NUMPAD_TAB",
-    wx.WXK_NUMPAD_ENTER : "WXK_NUMPAD_ENTER",
-    wx.WXK_NUMPAD_F1 : "WXK_NUMPAD_F1",
-    wx.WXK_NUMPAD_F2 : "WXK_NUMPAD_F2",
-    wx.WXK_NUMPAD_F3 : "WXK_NUMPAD_F3",
-    wx.WXK_NUMPAD_F4 : "WXK_NUMPAD_F4",
-    wx.WXK_NUMPAD_HOME : "WXK_NUMPAD_HOME",
-    wx.WXK_NUMPAD_LEFT : "WXK_NUMPAD_LEFT",
-    wx.WXK_NUMPAD_UP : "WXK_NUMPAD_UP",
-    wx.WXK_NUMPAD_RIGHT : "WXK_NUMPAD_RIGHT",
-    wx.WXK_NUMPAD_DOWN : "WXK_NUMPAD_DOWN",
-    wx.WXK_NUMPAD_PRIOR : "WXK_NUMPAD_PRIOR",
-    wx.WXK_NUMPAD_PAGEUP : "WXK_NUMPAD_PAGEUP",
-    wx.WXK_NUMPAD_NEXT : "WXK_NUMPAD_NEXT",
-    wx.WXK_NUMPAD_PAGEDOWN : "WXK_NUMPAD_PAGEDOWN",
-    wx.WXK_NUMPAD_END : "WXK_NUMPAD_END",
-    wx.WXK_NUMPAD_BEGIN : "WXK_NUMPAD_BEGIN",
-    wx.WXK_NUMPAD_INSERT : "WXK_NUMPAD_INSERT",
-    wx.WXK_NUMPAD_DELETE : "WXK_NUMPAD_DELETE",
-    wx.WXK_NUMPAD_EQUAL : "WXK_NUMPAD_EQUAL",
-    wx.WXK_NUMPAD_MULTIPLY : "WXK_NUMPAD_MULTIPLY",
-    wx.WXK_NUMPAD_ADD : "WXK_NUMPAD_ADD",
-    wx.WXK_NUMPAD_SEPARATOR : "WXK_NUMPAD_SEPARATOR",
-    wx.WXK_NUMPAD_SUBTRACT : "WXK_NUMPAD_SUBTRACT",
-    wx.WXK_NUMPAD_DECIMAL : "WXK_NUMPAD_DECIMAL",
-    wx.WXK_NUMPAD_DIVIDE : "WXK_NUMPAD_DIVIDE"
-    }
-
 
 class MyFrameClass(wx.Frame):
     def __init__(self, parent, load_filename=None,id=-1, title='%s, Version: %s' %(APPNAME.capitalize(),VERSION),
@@ -288,18 +138,39 @@ class MyFrameClass(wx.Frame):
         self.CreateMenues()
         self.DisableAllMenues()
             
-        #Erstellen des Baums für die Entities
-        self.MyEntTree = MyTreeClass(self, wx.ID_ANY)   
-
         #Erstellen der Messagebox für die Meldungen
         self.MyMessages = MyMessagesClass(self, -1)
         
-        #Erstellen des Rahmens für die verwendeten Layers
-        self.MyLayersTree = MyLayersTreeClass(self, -1)
-
         #Erstellen des Zeichenbereichs (früher Canvas?!)
         self.MyGraphic = MyGraphicClass(self,-1)
-                        
+        
+        #Voreininstellungen fuer das Programm laden
+        self.MyConfig=MyConfigClass(self.MyMessages)
+
+        #PostprocessorClass initialisieren (Voreinstellungen aus Config)
+        self.MyPostpro=MyPostprocessorClass(self.MyConfig,self.MyMessages)
+            
+#        #Erstellen de Eingabefelder und des Canvas
+#        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
+     
+        #Erstellen des Baums für die Entities
+        self.MyEntTree = MyEntitieTreeClass(self, wx.ID_ANY)   
+        
+        #Erstellen des Baums für die verwendeten Layers
+        self.MyLayersTree = MyLayersTreeClass(self, -1)
+
+        #Erstellen des Baums für die verwendeten Layers
+        self.MyLayersTree2 = MyLayersTreeClass(self, -1)
+        
+        #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
+        self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic,self.MyMessages,
+                                                self.MyConfig,
+                                                self.MyLayersTree,
+                                                self.MyEntTree)
+        
+        #Erstellen der Bindings fürs gesamte Fenster
+        self.BindMenuEvents()
+        
         #Die Verschiedeneen Objecte zum Sizer AUIManager hinzufügen
         self._mgr.AddPane(self.MyEntTree, wx.aui.AuiPaneInfo(). 
                           Caption(_("Entities")).
@@ -308,6 +179,10 @@ class MyFrameClass(wx.Frame):
                           Caption(_("Layers")).Floatable(True). 
                           Resizable(False).
                           Left().CloseButton(False))
+        self._mgr.AddPane(self.MyLayersTree2,wx.aui.AuiPaneInfo(). 
+                          Caption(_("Selection Info")).Floatable(True). 
+                          Resizable(False).
+                          Left().Bottom().CloseButton(False))
         self._mgr.AddPane(self.MyMessages, wx.aui.AuiPaneInfo(). 
                           Caption(_("Messages")).Floatable(False).
                           Bottom().CloseButton(False))
@@ -320,22 +195,6 @@ class MyFrameClass(wx.Frame):
 
         #Den Event Schliessen hinzufügen
         self.Bind(wx.EVT_CLOSE, self.CloseWindow)
-        
-        #Voreininstellungen fuer das Programm laden
-        self.MyConfig=MyConfigClass(self.MyMessages)
-
-        #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.MyPostpro=MyPostprocessorClass(self.MyConfig,self.MyMessages)
-            
-#        #Erstellen de Eingabefelder und des Canvas
-#        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
-
-        #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
-        self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic,self.MyMessages,self.MyConfig,self.MyLayersTree)
-        
-        #Erstellen der Bindings fürs gesamte Fenster
-        self.BindMenuEvents()
- 
         
         #Falls ein load_filename_uebergeben wurde
         if not(self.load_filename is None):
@@ -524,7 +383,9 @@ class MyFrameClass(wx.Frame):
         self.EnableAllMenues()
 
         #Ausdrucken der Werte        
-        self.MyCanvasContent.makeplot(self.values,p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+        self.MyCanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(x=0,y=0),
                                     sca=[self.cont_scale,self.cont_scale,self.cont_scale],
                                     rot=0.0)
 
@@ -606,7 +467,9 @@ class MyFrameClass(wx.Frame):
         #Falls noch kein File geladen wurde nichts machen
         if self.load_filename is None:
             return
-        self.MyCanvasContent.makeplot(self.values,p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+        self.MyCanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(x=0,y=0),
                                     sca=[self.cont_scale,self.cont_scale,self.cont_scale],
                                     rot=0.0)
         
@@ -773,242 +636,7 @@ class MyFrameClass(wx.Frame):
       
 
 
-class MyTreeClass(CT.CustomTreeCtrl):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.Size(200,500),
-                 style=wx.SUNKEN_BORDER | CT.TR_HAS_BUTTONS | CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS):
 
-        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
-
-
-        self.item = None
-        
-        il = wx.ImageList(16, 16)
-
-        for items in ArtIDs[1:-1]:
-            bmp = wx.ArtProvider_GetBitmap(eval(items), wx.ART_TOOLBAR, (16, 16))
-            il.Add(bmp)
-
-        
-        #smileidx = il.Add(images.Smiles.GetBitmap())
-        numicons = il.GetImageCount()
-
-        self.AssignImageList(il)
-        self.count = 0
-        
-
-        #self.AssignImageList(il)
-        self.count = 0
-
-        # NOTE:  For some reason tree items have to have a data object in
-        #        order to be sorted.  Since our compare just uses the labels
-        #        we don't need any real data, so we'll just use None below for
-        #        the item data.
-
-        self.root = self.AddRoot("The Root Item")
-
-        self.SetPyData(self.root, None)
-        self.SetItemImage(self.root, 24, CT.TreeItemIcon_Normal)
-        self.SetItemImage(self.root, 13, CT.TreeItemIcon_Expanded)
-
-        textctrl = wx.TextCtrl(self, -1, "I Am A Simple\nMultiline wx.TexCtrl", style=wx.TE_MULTILINE)
-        self.gauge = wx.Gauge(self, -1, 50, style=wx.GA_HORIZONTAL|wx.GA_SMOOTH)
-        self.gauge.SetValue(0)
-        combobox = wx.ComboBox(self, -1, choices=["That", "Was", "A", "Nice", "Holyday!"], style=wx.CB_READONLY|wx.CB_DROPDOWN)
-
-#        textctrl.Bind(wx.EVT_CHAR, self.OnTextCtrl)
-#        combobox.Bind(wx.EVT_COMBOBOX, self.OnComboBox)
-
-        for x in range(15):
-            if x == 1:
-                child = self.AppendItem(self.root, "Item %d" % x + "\nHello World\nHappy wxPython-ing!")
-                self.SetItemBold(child, True)
-            else:
-                child = self.AppendItem(self.root, "Item %d" % x)
-            self.SetPyData(child, None)
-            self.SetItemImage(child, 24, CT.TreeItemIcon_Normal)
-            self.SetItemImage(child, 13, CT.TreeItemIcon_Expanded)
-
-            for y in range(5):
-                if y == 0 and x == 1:
-                    last = self.AppendItem(child, "item %d-%s" % (x, chr(ord("a")+y)), ct_type=2, wnd=self.gauge)
-                elif y == 1 and x == 2:
-                    last = self.AppendItem(child, "Item %d-%s" % (x, chr(ord("a")+y)), ct_type=1, wnd=textctrl)
-                elif 2 < y < 4:
-                    last = self.AppendItem(child, "item %d-%s" % (x, chr(ord("a")+y)))
-                elif y == 4 and x == 1:
-                    last = self.AppendItem(child, "item %d-%s" % (x, chr(ord("a")+y)), wnd=combobox)
-                else:
-                    last = self.AppendItem(child, "item %d-%s" % (x, chr(ord("a")+y)), ct_type=2)
-                    
-                self.SetPyData(last, None)
-                self.SetItemImage(last, 24, CT.TreeItemIcon_Normal)
-                self.SetItemImage(last, 13, CT.TreeItemIcon_Expanded)
-                    
-                for z in range(5):
-                    if z > 2:
-                        item = self.AppendItem(last,  "item %d-%s-%d" % (x, chr(ord("a")+y), z), ct_type=1)
-                    elif 0 < z <= 2:
-                        item = self.AppendItem(last,  "item %d-%s-%d" % (x, chr(ord("a")+y), z), ct_type=2)
-                    elif z == 0:
-                        item = self.AppendItem(last,  "item %d-%s-%d" % (x, chr(ord("a")+y), z))
-                        self.SetItemHyperText(item, True)
-                    self.SetPyData(item, None)
-                    self.SetItemImage(item, 28, CT.TreeItemIcon_Normal)
-                    self.SetItemImage(item, numicons-1, CT.TreeItemIcon_Selected)
-
-        self.Bind(wx.EVT_LEFT_DCLICK, self.OnLeftDClick)
-        self.Bind(wx.EVT_IDLE, self.OnIdle)
-
-
-        self.eventdict = {'EVT_TREE_ITEM_RIGHT_CLICK': self.OnRightDown,
-                        'EVT_TREE_SEL_CHANGED': self.OnSelChanged,'EVT_TREE_SEL_CHANGING': self.OnSelChanging}
-
-        mainframe = wx.GetTopLevelParent(self)
-        
-        if not hasattr(mainframe, "leftpanel"):
-            self.Bind(CT.EVT_TREE_ITEM_EXPANDED, self.OnItemExpanded)
-            self.Bind(CT.EVT_TREE_ITEM_COLLAPSED, self.OnItemCollapsed)
-            self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
-            self.Bind(CT.EVT_TREE_SEL_CHANGING, self.OnSelChanging)
-            self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
-            self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-        else:
-            for combos in mainframe.treeevents:
-                self.BindEvents(combos)
-
-        if hasattr(mainframe, "leftpanel"):
-            self.ChangeStyle(mainframe.treestyles)
-
-        if not(self.GetTreeStyle() & CT.TR_HIDE_ROOT):
-            self.SelectItem(self.root)
-            self.Expand(self.root)
-
-
-    def BindEvents(self, choice, recreate=False):
-
-        value = choice.GetValue()
-        text = choice.GetLabel()
-        
-        evt = "CT." + text
-        binder = self.eventdict[text]
-
-        if value == 1:
-            if evt == "CT.EVT_TREE_BEGIN_RDRAG":
-                self.Bind(wx.EVT_RIGHT_DOWN, None)
-                self.Bind(wx.EVT_RIGHT_UP, None)
-            self.Bind(eval(evt), binder)
-        else:
-            self.Bind(eval(evt), None)
-            if evt == "CT.EVT_TREE_BEGIN_RDRAG":
-                self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
-                self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-
-
-    def OnIdle(self, event):
-
-        if self.gauge:
-            try:
-                if self.gauge.IsEnabled() and self.gauge.IsShown():
-                    self.count = self.count + 1
-
-                    if self.count >= 50:
-                        self.count = 0
-
-                    self.gauge.SetValue(self.count)
-
-            except:
-                self.gauge = None
-
-        event.Skip()
-
-
-    def OnRightDown(self, event):
-        pt = event.GetPosition()
-        item, flags = self.HitTest(pt)
-
-        if item:
-            self.item = item
-            self.SelectItem(item)
-
-
-    def OnRightUp(self, event):
-
-        item = self.item
-        
-        if not item:
-            event.Skip()
-            return
-
-        if not self.IsItemEnabled(item):
-            event.Skip()
-            return
-
-        # Item Text Appearance
-        ishtml = self.IsItemHyperText(item)
-        back = self.GetItemBackgroundColour(item)
-        fore = self.GetItemTextColour(item)
-        isbold = self.IsBold(item)
-        font = self.GetItemFont(item)
-
-        # Icons On Item
-        normal = self.GetItemImage(item, CT.TreeItemIcon_Normal)
-        selected = self.GetItemImage(item, CT.TreeItemIcon_Selected)
-        expanded = self.GetItemImage(item, CT.TreeItemIcon_Expanded)
-        selexp = self.GetItemImage(item, CT.TreeItemIcon_SelectedExpanded)
-
-        # Enabling/Disabling Windows Associated To An Item
-        haswin = self.GetItemWindow(item)
-
-        # Enabling/Disabling Items
-        enabled = self.IsItemEnabled(item)
-
-        # Generic Item's Info
-        children = self.GetChildrenCount(item)
-        itemtype = self.GetItemType(item)
-        text = self.GetItemText(item)
-        pydata = self.GetPyData(item)
-             
-        #Contextmenu zu den ausgewählten Items
-        menu = wx.Menu()
-        item1 = menu.Append(wx.ID_ANY, "Change Item Background Colour")
-        item2 = menu.Append(wx.ID_ANY, "Modify Item Text Colour")
-        self.PopupMenu(menu)
-        menu.Destroy()
-        
-
-  
-
-    def OnDisableItem(self, event):
-        self.EnableItem(self.current, False)
-        
-
-    def OnLeftDClick(self, event):
-        pass              
-
-    def OnItemExpanded(self, event):
-        pass
-
-
-    def OnItemExpanding(self, event):
-        pass
-        
-        
-    def OnItemCollapsed(self, event):
-        pass
-
-    def OnItemCollapsing(self, event):
-        pass
-        
-    def OnSelChanged(self, event):
-        pass
-
-
-    def OnSelChanging(self, event):
-        pass
-
-
-  
         
 class MyMessagesClass(wx.TextCtrl):
     def __init__(self,parent,id):
@@ -1060,41 +688,188 @@ class MyMessagesClass(wx.TextCtrl):
     def TextDelete(self,event):    
         self.Remove(self.begpos,self.GetLastPosition())
 
-
-class MyLayersTreeClass(CT.CustomTreeCtrl):
+class MyEntitieTreeClass(CT.CustomTreeCtrl):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.Size(200,180),
+                size=wx.Size(250,180),
                  style=wx.SUNKEN_BORDER |  
                  CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
                  CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
-                 CT.TR_MULTIPLE):
+                 CT.TR_MULTIPLE |CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS):
 
-        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
+        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)      
         
         il = wx.ImageList(16, 16)
         il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Layer.ico"))
+        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Polylinie.ico"))
+        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Linie.ico"))
+        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Bogen.ico"))
 
         self.AssignImageList(il)
-        self.root = self.AddRoot("The Root Item")
+        #self.root = self.AddRoot("The Root Item")
 
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
         self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
 
-    def MakeLayerList(self,Layers=None):
-        for x in range(15):
+    def MakeEntitieList(self,EntitieContents=None):
+        self.DeleteAllItems()
+        self.root = self.AddRoot("The Root Item")
+        self.AddEntitietoList(EntitieContents,self.root)
+        
+
+    def AddEntitietoList(self,EntitieContents,parent):
+        
+        #Darstellen der Werte für das jeweilige Entitie
+        textctrl=EntitieContents.MakeTreeText(self)
+        treechild = self.AppendItem(parent,'', wnd=textctrl)
+        self.EnableItem(treechild,False)
+        
+        for Entitie in EntitieContents.children:
+            
+            #Wenn es ein Insert ist
+            if Entitie.type=="Entitie":
+                treechild = self.AppendItem(parent,('Insert: %s' %(Entitie.Name)))
+                self.SetPyData(treechild, Entitie)
+                self.SetItemImage(treechild, 0, CT.TreeItemIcon_Normal)
+                self.SetItemImage(treechild, 0, CT.TreeItemIcon_Expanded)
+
+                
+                #Nochmalier Aufruf für die darunter liegenden Entities
+                self.AddEntitietoList(Entitie,treechild)
+                
+            #Wenn es ein Shape ist
+            else:
+                treechild = self.AppendItem(parent,'%s Nr: %i' %(Entitie.type,Entitie.nr))
+                self.SetPyData(treechild, Entitie)
+                self.SetItemImage(treechild, 1, CT.TreeItemIcon_Normal)
+                self.SetItemImage(treechild, 1, CT.TreeItemIcon_Expanded)
+                
+                for geo in Entitie.geos:             
+                    if geo.type=='LineGeo':
+                             
+                        #textctrl=geo.MakeTreeText(self)
+                        
+                        
+                        treechild1 = self.AppendItem(treechild,'%s' %(geo.type))
+                        #child2 = self.AppendItem(child,'', wnd=textctrl)
+                        self.SetPyData(treechild1, geo)
+                        
+                        self.SetItemImage(treechild1, 2, CT.TreeItemIcon_Normal)
+                        self.SetItemImage(treechild1, 2, CT.TreeItemIcon_Expanded)
+                        self.EnableItem(treechild1,False)
+                        
+                        
+                    else:
+                        #textctrl=geo.MakeTreeText(self)
+                        
+                        
+                        treechild1 = self.AppendItem(treechild,'%s' %(geo.type))
+                        #child2 = self.AppendItem(child,'', wnd=textctrl)
+                        self.SetPyData(treechild1, geo)
+                        
+                        self.SetItemImage(treechild1, 3, CT.TreeItemIcon_Normal)
+                        self.SetItemImage(treechild1, 3, CT.TreeItemIcon_Expanded)
+                        self.EnableItem(treechild1,False)
+
            
-            child = self.AppendItem(self.root, "Item %d" % x)
+#            for Shape in EntitieContent.Shapes:
+#                print Shape
+#                last = self.AppendItem(child,('Shape Nr: %i' %Shape.nr))  
+#                self.SetPyData(last, None)
+#                self.SetItemImage(last, 0, CT.TreeItemIcon_Normal)
+#                self.SetItemImage(last, 0, CT.TreeItemIcon_Expanded)
+    
+#                    
+
+    #Item hinzufügen falls es noch nicht selektiert ist
+    def OnRightDown(self, event):
+        pt = event.GetPosition()
+        self.item, flags = self.HitTest(pt)
+
+        if not(self.item in self.GetSelections()) and not(self.item==None):
+            self.SelectItem(self.item)
+     
+    #Menu aufmachen falls ein Item selektiert ist
+    def OnRightUp(self, event):
+
+        item = self.item
+        
+        if item==None:
+            event.Skip()
+            return
+
+#        if not self.IsItemEnabled(item):
+#            event.Skip()
+#            return
+
+        #Contextmenu zu den ausgewählten Items
+        menu = wx.Menu()
+        item1 = menu.Append(wx.ID_ANY, "Change Item Background Colour")
+        item2 = menu.Append(wx.ID_ANY, "Modify Item Text Colour")
+        self.PopupMenu(menu)
+        menu.Destroy()
+        
+
+    def OnDisableItem(self, event):
+        self.EnableItem(self.current,False)
+        
+        
+    def OnSelChanged(self, event):
+        #print dir(self.GetSelections()[0])
+        sel_items=[]
+        for selection in self.GetSelections():
+            #print selection
+            #print self.GetItemPyData(selection)
+            item=self.GetItemPyData(selection)
+            
+            if item.type=="Shape":
+                sel_items.append(item)
+                
+            if item.type=="Entitie":
+                sel_items+=item.children
+            
+            
+        self.MyCanvasContent.change_selection(sel_items)
+        print 'Selection Changed'
+        
+class MyLayersTreeClass(CT.CustomTreeCtrl):
+    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
+                 size=wx.Size(250,180),
+                 style=wx.SUNKEN_BORDER |  
+                 CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
+                 CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
+                 CT.TR_MULTIPLE |CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS):
+
+        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
+        
+        il = wx.ImageList(16, 16)
+        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Layer.ico"))
+        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Polylinie.ico"))
+
+        self.AssignImageList(il)
+        #self.root = self.AddRoot("The Root Item")
+
+        self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
+        self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
+        self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
+
+    def MakeLayerList(self,LayerContents=None):
+        self.DeleteAllItems()
+        self.root = self.AddRoot("The Root Item")
+        for LayerContent in LayerContents:
+            child = self.AppendItem(self.root,('Layer Nr: %i, %s' 
+                                    %(LayerContent.LayerNr, LayerContent.LayerName)))
             self.SetPyData(child, None)
             self.SetItemImage(child, 0, CT.TreeItemIcon_Normal)
             self.SetItemImage(child, 0, CT.TreeItemIcon_Expanded)
 
-            for y in range(5):
+
+            for Shape in LayerContent.Shapes:
                 
-                last = self.AppendItem(child, "item %d-%s" % (x, chr(ord("a")+y)), ct_type=2)  
+                last = self.AppendItem(child,('Shape Nr: %i' %Shape.nr))  
                 self.SetPyData(last, None)
-                self.SetItemImage(last, 0, CT.TreeItemIcon_Normal)
-                self.SetItemImage(last, 0, CT.TreeItemIcon_Expanded)
+                self.SetItemImage(last, 1, CT.TreeItemIcon_Normal)
+                self.SetItemImage(last, 1, CT.TreeItemIcon_Expanded)
                     
 
     #Item hinzufügen falls es noch nicht selektiert ist
@@ -1103,7 +878,7 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
         self.item, flags = self.HitTest(pt)
 
         if not(self.item in self.GetSelections()) and not(self.item==None):
-            self.SelectItem(item)
+            self.SelectItem(self.item)
      
     #Menu aufmachen falls ein Item selektiert ist
     def OnRightUp(self, event):
@@ -1426,15 +1201,17 @@ class MyGraphicClass(wx.Panel):
 
 
 class MyCanvasContentClass:
-    def __init__(self,MyGraphic,MyMessages,MyConfig,MyLayersTree):
+    def __init__(self,MyGraphic,MyMessages,MyConfig,MyLayersTree, MyEntTree):
         self.MyGraphic=MyGraphic
         self.Canvas=MyGraphic.Canvas
         self.MyMessages=MyMessages
         self.MyConfig=MyConfig
         self.MyLayersTree=MyLayersTree
+        self.MyEntTree=MyEntTree
         self.Shapes=[]
         self.LayerContents=[]
-        self.EntitieContents=[]
+        self.EntitiesRoot=EntitieContentClass()
+        self.BaseEntities=EntitieContentClass()
         self.Selected=[]
         self.Disabled=[]
         self.wp_zero_hdls=[]
@@ -1443,6 +1220,8 @@ class MyCanvasContentClass:
         
         #Zuweisen der Verbindung zwischen den zwei Klassen
         MyGraphic.MyCanvasContent=self
+        MyEntTree.MyCanvasContent=self
+        MyLayersTree.MyCanvasContent=self
 
 
         #Anfangswert fuer das Ansicht Toggle Menu
@@ -1471,7 +1250,7 @@ class MyCanvasContentClass:
         return dir
                 
     #Erstellen des Gesamten Ausdrucks      
-    def makeplot(self,values,p0,sca,rot):
+    def makeplot(self,values,p0,pb,sca,rot):
         self.values=values
 
         #Loeschen des Inhalts     
@@ -1488,7 +1267,8 @@ class MyCanvasContentClass:
         #Zuruecksetzen der Konturen
         self.Shapes=[]
         self.LayerContents=[]
-        self.EntitieContents=[]
+        self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
+                                            p0=p0,pb=pb,sca=sca,rot=rot)
         self.Selected=[]
         self.Deselected=[]
         self.Disabled=[]
@@ -1497,8 +1277,9 @@ class MyCanvasContentClass:
         self.path_hdls=[]
         self.show_dis=0
 
+
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.make_shapes(p0=p0,sca=sca,rot=rot)
+        self.makeshapes(parent=self.EntitiesRoot)
         self.plot_shapes()
         
         #Erstellen des Werkstücknullpunkts
@@ -1510,57 +1291,66 @@ class MyCanvasContentClass:
        
         #Sortieren der Listen mit den Layers
         self.LayerContents.sort()
-        self.EntitieContents.sort()
-        
-        for LayerContent in self.LayerContents:
-            print LayerContent
-        
+         
         #Erstellen der Layers Liste (Tree)
-        self.MyLayersTree.MakeLayerList()
+        self.MyLayersTree.MakeLayerList(self.LayerContents)
+        self.MyEntTree.MakeEntitieList(self.EntitiesRoot)
         
-
     def autoscale(self):
         self.Canvas.ZoomToBB()
 
-    def make_shapes(self,EntName="Entities",p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
+    def makeshapes(self,parent=None,ent_nr=-1):
 
-        if EntName=="Entities":
-            ent_nr=-1
+        if parent.Name=="Entities":      
             entities=self.values.entities
         else:
-            ent_nr=self.values.Get_Block_Nr(EntName)
+            ent_nr=self.values.Get_Block_Nr(parent.Name)
             entities=self.values.blocks.Entities[ent_nr]
+            
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
         ent_geos=entities.geo
-        cont=entities.cont
-        basep=entities.basep
+
+        pb=entities.basep-parent.pb
+        
         
         #Schleife fuer die Anzahl der Konturen 
-        for c_nr in range(len(cont)):
+        for cont in entities.cont:
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-            if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
-                ent_geo=ent_geos[cont[c_nr].order[0][0]]
-                self.make_shapes(ent_geo.BlockName,\
-                                    p0-basep+ent_geo.Point,\
-                                    [ent_geo.Scale[0]*sca[0],ent_geo.Scale[1]*sca[1],ent_geo.Scale[2]*sca[2]],\
-                                    ent_geo.rot)
+            if ent_geos[cont.order[0][0]].Typ=="Insert":
+                ent_geo=ent_geos[cont.order[0][0]]
+                
+                newp0=parent.p0+ent_geos[cont.order[0][0]].Point.rot_sca_abs(parent=parent)
+#                print parent.p0
+#                print ent_geos[cont.order[0][0]].Point
+#                print newp0
+#                print "\n"
+                newsca=[parent.sca[0]*ent_geos[cont.order[0][0]].Scale[0],
+                        parent.sca[1]*ent_geos[cont.order[0][0]].Scale[1],
+                        parent.sca[2]*ent_geos[cont.order[0][0]].Scale[2]]
+
+                newrot=ent_geos[cont.order[0][0]].rot+parent.rot
+                
+                #Erstellen des neuen Entitie Contents für das Insert
+                
+                NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
+                                        parent=parent,children=[],
+                                        p0=newp0,pb=pb,sca=newsca,rot=newrot)
+
+                parent.addchild(NewEntitieContent)
+                
+                self.makeshapes(NewEntitieContent,ent_nr)
             else:
                 #Schleife fuer die Anzahl der Geometrien
                 self.Shapes.append(ShapeClass(len(self.Shapes),\
-                                                ent_nr,\
-                                                c_nr,\
-                                                cont[c_nr].closed,\
-                                                p0,\
-                                                basep,\
-                                                sca[:],\
-                                                rot,\
+                                                cont.closed,\
                                                 40,\
-                                                cont[c_nr].length*sca[0],\
+                                                0.0,\
+                                                parent,\
                                                 [],\
                                                 []))
-                for ent_geo_nr in range(len(cont[c_nr].order)):
-                    ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
-                    if cont[c_nr].order[ent_geo_nr][1]:
+                for ent_geo_nr in range(len(cont.order)):
+                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
+                    if cont.order[ent_geo_nr][1]:
                         ent_geo.geo.reverse()
                         for geo in ent_geo.geo:
                             geo=copy(geo)
@@ -1573,7 +1363,7 @@ class MyCanvasContentClass:
                             self.Shapes[-1].geos.append(copy(geo))
                         
                 self.addtoLayerContents(self.Shapes[-1],ent_geo.Layer_Nr)
-                self.addtoEntitieContents(self.Shapes[-1],ent_nr,c_nr)
+                parent.addchild(self.Shapes[-1])
 
     def plot_shapes(self):
         for shape in self.Shapes:
@@ -1624,8 +1414,10 @@ class MyCanvasContentClass:
             arc3=ArcGeo(Pa=P2,Pe=P3,O=O,r=radius,dir=1)
             arc4=ArcGeo(Pa=P1,Pe=P4,O=O,r=radius,dir=-1)
             
-            points1=arc1.plot2can()+arc2.plot2can()
-            points2=arc3.plot2can()+arc4.plot2can()
+            points1=arc1.plot2can(self.BaseEntities)+\
+                    arc2.plot2can(self.BaseEntities)
+            points2=arc3.plot2can(self.BaseEntities)+\
+                    arc4.plot2can(self.BaseEntities)
         
             hdl1=self.Canvas.AddPolygon(points1,
                                LineWidth = 2,
@@ -1719,25 +1511,7 @@ class MyCanvasContentClass:
         LayerName=self.values.layers[lay_nr].name
         self.LayerContents.append(MyLayerContentClass(lay_nr,LayerName,[shape_nr]))
         
-    #Hinzufuegen der Kontur zu den Entities
-    def addtoEntitieContents(self,shape_nr,ent_nr,c_nr):
-        
-        for EntCon in self.EntitieContents:
-            if EntCon.EntNr==ent_nr:
-                if c_nr==0:
-                    EntCon.Shapes.append([])
-                
-                EntCon.Shapes[-1].append(shape_nr)
-                return
 
-        #Falls er nicht gefunden wurde neuen erstellen
-        if ent_nr==-1:
-            EntName='Entities'
-        else:
-            EntName=self.values.blocks.Entities[ent_nr].Name
-            
-        self.EntitieContents.append(MyEntitieContentClass(ent_nr,EntName,[[shape_nr]]))
-        
 
   
     def change_selection(self,sel_shapes):
@@ -1747,6 +1521,11 @@ class MyCanvasContentClass:
             self.Selected=sel_shapes[:]
 
             self.MyMessages.prt(_('\nAdded all shapes to selection'),3)
+            for shape in sel_shapes:
+                self.MyMessages.prt(_('\n%s:')%(shape),3)
+                #for geo in shape.geos:
+                #    print geo
+            
         else:
             self.Deselected=[]
             for shape in sel_shapes:
@@ -1903,19 +1682,9 @@ class MyLayerContentClass:
         return '\nLayerNr ->'+str(self.LayerNr)+'\nLayerName ->'+str(self.LayerName)\
                +'\nShapes ->'+str(self.Shapes)
     
-class MyEntitieContentClass:
-    def __init__(self,EntNr=None,EntName='',Shapes=[]):
-        self.EntNr=EntNr
-        self.EntName=EntName
-        self.Shapes=Shapes
 
-    def __cmp__(self, other):
-         return cmp(self.EntNr, other.EntNr)        
-        
-    def __str__(self):
-        return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
-               +'\nShapes ->'+str(self.Shapes)
-#
+
+
 class MyConfigClass:
     def __init__(self,MyMessages):
         # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
