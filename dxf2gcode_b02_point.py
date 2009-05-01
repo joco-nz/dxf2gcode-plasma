@@ -24,6 +24,8 @@
 
 from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil
 from wx.lib.floatcanvas import FloatCanvas
+import wx
+from wx.lib.expando import ExpandoTextCtrl
 
 class PointClass:
     def __init__(self,x=0,y=0):
@@ -83,12 +85,18 @@ class PointClass:
         c=self.distance(other2)
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))  
       
-    def rot_sca_abs(self,sca,p0,pb,rot):
+    def rot_sca_abs(self,sca=None,p0=None,pb=None,rot=None,parent=None):
+        if sca==None:
+            p0=parent.p0
+            pb=parent.pb
+            sca=parent.sca
+            rot=parent.rot
+        
         pc=self-pb
         rot=rot
-        rotx=(pc.x*cos(rot)+pc.y*sin(rot))*sca[0]
+        rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
         roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
-        p1= PointClass(x=rotx+p0.x,y=roty+p0.y)+pb
+        p1= PointClass(x=rotx,y=roty)+p0
         
 #        print(("Self:    %s\n" %self)+\
 #                ("P0:      %s\n" %p0)+\
@@ -275,9 +283,13 @@ class ArcGeo:
         self.s_ang=s_ang
         self.e_ang=e_ang
 
-    def plot2can(self,p0=PointClass(x=0.0,y=0.0),\
-                    pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0):
+    def plot2can(self,EntitieContent):
+        
+        p0=EntitieContent.p0
+        pb=EntitieContent.pb
+        sca=EntitieContent.sca
+        rot=EntitieContent.rot
+        
                         
         points=[]; hdl=[]
         #Alle 3 Grad ein Segment => 120 Segmente für einen Kreis !!
@@ -320,7 +332,26 @@ class ArcGeo:
         else:
             #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
             string=postpro.lin_pol_arc("cw",ende,IJ)
-        return string      
+        return string  
+    
+    def MakeTreeText(self,parent):
+        
+        font1 = wx.Font(8,wx.SWISS, wx.NORMAL, wx.NORMAL)
+        textctrl = ExpandoTextCtrl(parent, -1, "", 
+                            size=wx.Size(160,55))
+                            
+        
+        textctrl.SetFont(font1)
+                                
+        #dastyle = wx.TextAttr()
+        #dastyle.SetTabs([100, 120])
+        #textctrl.SetDefaultStyle(dastyle)
+        textctrl.AppendText('Center: X:%0.2f Y%0.2f\n' %(self.O.x, self.O.y))
+        textctrl.AppendText('Radius: %0.2f \n' %self.r)
+        textctrl.AppendText('Start: %0.1fdeg End: %0.1fdeg' %(degrees(self.s_ang), degrees(self.e_ang)))
+        return textctrl
+
+        
     
 class LineGeo:
     def __init__(self,Pa,Pe):
@@ -347,9 +378,12 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,p0=PointClass(x=0,y=0),\
-                    pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0):
+    def plot2can(self,EntitieContent):
+        
+        p0=EntitieContent.p0
+        pb=EntitieContent.pb
+        sca=EntitieContent.sca
+        rot=EntitieContent.rot
 
         anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
         ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
@@ -372,6 +406,17 @@ class LineGeo:
         ende=en_point*sca+p0
         #return("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
         return postpro.lin_pol_xy(ende)
+    
+    def MakeTreeText(self,parent):
+        textctrl = wx.TextCtrl(parent, -1, "", 
+                            size=wx.Size(160,60),
+                            style=wx.TE_MULTILINE)
+                                
+        dastyle = wx.TextAttr()
+        dastyle.SetTabs([60,80])
+        textctrl.SetDefaultStyle(dastyle)
+        textctrl.AppendText('Point \tX:\tY:')
+        return textctrl
         
     def distance2point(self,point):
         try:

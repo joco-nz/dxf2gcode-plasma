@@ -26,37 +26,35 @@
 #import sys, os, string, ConfigParser 
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
+import wx
+from wx.lib.expando import ExpandoTextCtrl
 
 class ShapeClass:
-    def __init__(self,nr='None',ent_nr='None',ent_cnr='None',closed=0,\
-                 p0=PointClass(x=0.0,y=0.0),pb=PointClass(x=0.0,y=0.0),sca=[],rot=0.0,cut_cor=40,length=0.0,geos=[],geos_hdls=[]):
+    def __init__(self,nr='None',closed=0,
+                cut_cor=40,length=0.0,
+                parent=None,
+                geos=[],geos_hdls=[]):
+                    
+        self.type="Shape"
         self.nr=nr
-        self.ent_nr=ent_nr
-        self.ent_cnr=ent_cnr
         self.closed=closed
-        self.p0=p0
-        self.pb=pb
-        self.sca=sca
-        self.rot=rot
         self.cut_cor=40
         self.length=length
+        self.parent=parent
         self.geos=geos
         self.geos_hdls=geos_hdls
 
     def __str__(self):
-        return ('\nnr:          %i' %self.nr)+\
-               ('\nent_nr:      %i' %self.ent_nr)+\
-               ('\nent_cnr:      %i' %self.ent_cnr)+\
+        return ('\ntype:        %s' %self.type)+\
+               ('\nnr:          %i' %self.nr)+\
                ('\nclosed:      %i' %self.closed)+\
-               ('\np0:          %s' %self.p0)+\
-               ('\npb:          %s' %self.pb)+\
-               ('\nsca:         %s' %self.sca)+\
-               ('\nrot:         %s' %self.rot)+\
                ('\ncut_cor:     %s' %self.cut_cor)+\
                ('\nlen(geos):   %i' %len(self.geos))+\
                ('\nlength:      %0.2f' %self.length)+\
                ('\ngeos:        %s' %self.geos)+\
-               ('\ngeo_hdl:     %s' %self.geo_hdl)           
+               ('\ngeos_hdls:   %s' %self.geos_hdls)
+               #+\
+               #('\nparent: %s' %self.parent)
 
     def reverse(self):
         self.geos.reverse()
@@ -71,16 +69,17 @@ class ShapeClass:
 
     def get_st_en_points(self):
         st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=st_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
+        start=st_point.rot_sca_abs(self.EntitieContent)
         
         en_point, en_angle=self.geos[-1].get_start_end_points(1)
-        ende=en_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
+        ende=en_point.rot_sca_abs(self.EntitieContent)
         return [start,ende]
 
     def plot2can(self,Canvas=None,tag=None,col='Black'):
         
         for i in range(len(self.geos)):
-            cur_pts=self.geos[i].plot2can(self.p0,self.pb,self.sca,self.rot)
+            cur_pts=self.geos[i].plot2can(self.parent)
+
             if i==0:
                 points=cur_pts
             else:
@@ -104,7 +103,8 @@ class ShapeClass:
             
     def plot_start(self,Canvas=None,length=20):
         st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=st_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
+                
+        start=st_point.rot_sca_abs(parent=self.parent)
         
         dx=cos(radians(st_angle))*length
         dy=sin(radians(st_angle))*length
@@ -120,7 +120,7 @@ class ShapeClass:
 
     def plot_cut_cor(self,Canvas=None,length=20):
         st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=st_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
+        start=st_point.rot_sca_abs(parent=self.parent)
 
         if self.cut_cor==41:
             st_angle=st_angle+90
@@ -139,7 +139,8 @@ class ShapeClass:
 
     def plot_end(self,Canvas=None,length=20):
         en_point, en_angle=self.geos[-1].get_start_end_points(1)
-        ende=en_point.rot_sca_abs(self.sca,self.p0,self.pb,self.rot)
+           
+        ende=en_point.rot_sca_abs(parent=self.parent)
         
         dx=cos(radians(en_angle))*length
         dy=sin(radians(en_angle))*length
@@ -163,7 +164,7 @@ class ShapeClass:
     
         #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
         sp, sa=self.geos[0].get_start_end_points(0)
-        start_cont=(sp*self.sca)+self.p0
+        start_cont=(sp*self.parent.sca)+self.parent.p0
       
         if self.cut_cor==40:              
             self.st_move.append(start_cont)
@@ -233,6 +234,7 @@ class ShapeClass:
         #Positionieren des Werkzeugs über dem Anfang und Eintauchen
         self.st_move[0].Write_GCode([1,1,1],\
                                     PointClass(x=0,y=0),\
+                                    PointClass(x=0,y=0),
                                     0.0,\
                                     postpro)
         
@@ -250,14 +252,16 @@ class ShapeClass:
             postpro.set_cut_cor(self.cut_cor,start_cor)
             
             self.st_move[1].Write_GCode([1,1,1],\
-                                        PointClass(x=0,y=0),\
-                                        0.0,\
-                                        postpro)
+                                    PointClass(x=0,y=0),\
+                                    PointClass(x=0,y=0),
+                                    0.0,\
+                                    postpro)
             
             self.st_move[2].Write_GCode([1,1,1],\
-                                        PointClass(x=0,y=0),\
-                                        0.0,\
-                                        postpro)
+                                    PointClass(x=0,y=0),\
+                                    PointClass(x=0,y=0),
+                                    0.0,\
+                                    postpro)
 
         #Schreiben der Geometrien für den ersten Schnitt
         for geo in self.geos:
@@ -301,7 +305,9 @@ class ShapeClass:
                 postpro.set_cut_cor(self.cut_cor,start_cor)
                 
             for geo_nr in range(len(self.geos)):
-                self.geos[geo_nr].Write_GCode(self.sca,self.p0,self.rot,postpro)
+                self.geos[geo_nr].Write_GCode(self.entitie.sca,self.entitie.p0,
+                                                self.entitie.pb,
+                                                self.entitie.rot,postpro)
 
             #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
             en_point, en_angle=self.geos[-1].get_start_end_points(-1)
@@ -328,4 +334,51 @@ class ShapeClass:
         if (not(self.cut_cor==40))&(not(postpro.cancel_cc_for_depth)):
             postpro.deactivate_cut_cor(en_point)        
 
-        return 1      
+        return 1    
+    
+class EntitieContentClass:
+    def __init__(self,type="Entitie",Nr=None,Name='',parent=None,children=[],
+                p0=PointClass(x=0.0,y=0.0),pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],rot=0.0):
+                    
+        self.type=type
+        self.Nr=Nr
+        self.Name=Name
+        self.children=children
+        self.p0=p0
+        self.pb=pb
+        self.sca=sca
+        self.rot=rot
+        self.parent=parent
+
+    def __cmp__(self, other):
+         return cmp(self.EntNr, other.EntNr)        
+        
+    def __str__(self):
+        return ('\ntype:        %s' %self.type) +\
+               ('\nNr :      %i' %self.Nr) +\
+               ('\nName:     %s' %self.Name)+\
+               ('\np0:          %s' %self.p0)+\
+               ('\npb:          %s' %self.pb)+\
+               ('\nsca:         %s' %self.sca)+\
+               ('\nrot:         %s' %self.rot)+\
+               ('\nchildren:    %s' %self.children)
+            
+    #Hinzufuegen der Kontur zu den Entities
+    def addchild(self,child):
+        self.children.append(child)
+        
+    def MakeTreeText(self,parent):
+        #font1 = wx.Font(8,wx.SWISS, wx.NORMAL, wx.NORMAL)
+        textctrl = ExpandoTextCtrl(parent, -1, "", 
+                            size=wx.Size(160,55))
+                            
+        
+        #textctrl.SetFont(font1)
+                                
+        #dastyle = wx.TextAttr()
+        #dastyle.SetTabs([100, 120])
+        #textctrl.SetDefaultStyle(dastyle)
+        textctrl.AppendText('Point:  X:%0.2f Y%0.2f\n' %(self.p0.x, self.p0.y))
+        textctrl.AppendText('Offset: X:%0.2f Y%0.2f\n' %(self.pb.x, self.pb.y))
+        textctrl.AppendText('rot: %0.1fdeg sca: %s' %(degrees(self.rot), self.sca))
+        return textctrl
