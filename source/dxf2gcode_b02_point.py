@@ -239,7 +239,45 @@ class ArcGeo:
         self.Pe=Pe
         self.O=O
         self.r=abs(r)
+        self.nva=PointClass(0.0,0.0)	
+        self.nve=PointClass(0.0,0.0)	
+        O=PointClass(0.0, 0.0)
 
+        # Kreismittelpunkt bestimmen wenn Pa,Pe,r,und dir bekannt
+        if type(O)==type(None):
+            if (type(Pa)!=type(None)) and (type(Pe)!=type(None)) and (type(dir)!=type(None)):
+            
+                arc=self.Pe.norm_angle(Pa)-pi/2
+                Ve=Pe-Pa
+                m=Pa.distance(Pe)/2
+                lo=sqrt(pow(r, 2)-pow(m, 2))
+                if dir>0:
+                    d=-1
+                else:
+                    d=1
+                O=Pa
+                O.x+=Ve.x/2+lo*sin(arc)*d
+                O.y+=Ve.y/2+lo*cos(arc)*d
+                self.O=O
+            
+        # Falls nicht übergeben Mittelpunkt ausrechnen  
+            elif (type(s_ang)!=type(None)) and (type(e_ang)!=type(None)):
+                O.x=Pa.x-r*cos(s_ang)
+                O.y=Pa.y-r*sin(s_ang)
+                self.O=O
+            else:
+                print('Fehlende Angabe für Kreis')
+                self.O=O
+        #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
+        if type(s_ang)==type(None):
+            s_ang=O.norm_angle(Pa)
+        if type(e_ang)==type(None):
+            e_ang=O.norm_angle(Pe)
+        
+        self.nva.x=sin(s_ang)
+        self.nva.y=cos(s_ang)
+        self.nva.x=sin(e_ang)
+        self.nva.y=cos(e_ang)
         #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
         if type(s_ang)==type(None):
             s_ang=O.norm_angle(Pa)
@@ -359,7 +397,34 @@ class LineGeo:
         self.Pa=Pa
         self.Pe=Pe
         self.length=self.Pa.distance(self.Pe)
-
+        Va=PointClass(0.0,0.0)
+         
+        Ve=self.Pe-self.Pa            # Richtungsabhängiger Normalenvektor
+        if (abs(Ve.x)>abs(Ve.y)):
+            if(Ve.x>0):
+                Va.y=-1
+            else:
+                Va.y=1
+            if(Ve.y!=0):
+                Va.x=-Ve.y*Va.y/Ve.x
+            else:
+                Va.x=0;
+        else:
+            if(Ve.y>0):
+                Va.x=1
+            else:
+                Va.x=-1
+            if(Ve.y!=0):
+                Va.y=-Ve.x*Va.x/Ve.y
+            else:
+                Va.y=0
+            
+        betrag=Va.distance()
+               
+        self.nve=1/betrag*Va
+        self.nva=self.nve
+       
+        
     def __str__(self):
         return ("\nLineGeo")+\
                ("\nPa : %s" %self.Pa)+\
