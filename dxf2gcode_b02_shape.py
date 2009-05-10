@@ -34,6 +34,7 @@ class ShapeClass:
                 cut_cor=40,length=0.0,
                 parent=None,
                 geos=[],geos_hdls=[]):
+                
                     
         self.type="Shape"
         self.nr=nr
@@ -75,19 +76,24 @@ class ShapeClass:
         ende=en_point.rot_sca_abs(self.EntitieContent)
         return [start,ende]
 
+#    def plot2can(self,Canvas=None,tag=None,col='Black'):
+#        
+#        for i in range(len(self.geos)):
+#            cur_pts=self.geos[i].plot2can(self.parent)
+#
+#            if i==0:
+#                points=cur_pts
+#            else:
+#                points+=cur_pts[1:len(cur_pts)]
+#                       
+#        self.geo_hdl=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
     def plot2can(self,Canvas=None,tag=None,col='Black'):
         
         for i in range(len(self.geos)):
             cur_pts=self.geos[i].plot2can(self.parent)
-
-            if i==0:
-                points=cur_pts
-            else:
-                points+=cur_pts[1:len(cur_pts)]
-                       
-        self.geo_hdl=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
-        
-
+            col=self.geos[i].col #################### Entfernen
+           
+            self.geo_hdl=Canvas.AddLine(cur_pts, LineWidth = 2, LineColor = col)
         
     def plot_cut_info(self,Canvas,config,length):
         hdls=[]
