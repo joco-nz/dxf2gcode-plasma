@@ -206,12 +206,12 @@ class MyFrameClass(wx.Frame):
         menuBar = wx.MenuBar()
         self.filemenu=filemenu = wx.Menu()
         open=wx.MenuItem(filemenu,101,_("Open DXF"), _("Import a dxf file"))
-        open.SetBitmap(wx.Bitmap(BITMAPDIRECTORY + "/open.png"))
+        open.SetBitmap(wx.Bitmap(BITMAPDIRECTORY + "/Open.png"))
         filemenu.AppendItem(open)
         
         filemenu.AppendSeparator()
         quit=wx.MenuItem(filemenu,102, _("&Quit\tCtrl+Q"), _("Close this frame"))
-        quit.SetBitmap(wx.Bitmap(BITMAPDIRECTORY + "/exit.png"))
+        quit.SetBitmap(wx.Bitmap(BITMAPDIRECTORY + "/Exit.png"))
         filemenu.AppendItem(quit)
         menuBar.Append(filemenu, _("File"))
              
@@ -219,7 +219,7 @@ class MyFrameClass(wx.Frame):
         #Exportmenu erstellen
         self.exportmenu=exportmenu = wx.Menu()
         export=wx.MenuItem(exportmenu,201, _("Write G-Code"), _("Write G-Code in file / stdout to EMC"))
-        export.SetBitmap(wx.Bitmap(BITMAPDIRECTORY + "/export.png"))
+        export.SetBitmap(wx.Bitmap(BITMAPDIRECTORY + "/Export.png"))
         exportmenu.AppendItem(export)
         menuBar.Append(exportmenu, _("Export"))
         
