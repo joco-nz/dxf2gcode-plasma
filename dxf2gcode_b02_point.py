@@ -239,27 +239,29 @@ class ArcGeo:
         self.Pe=Pe
         self.O=O
         self.r=abs(r)
+        self.col='Black'
         self.nva=PointClass(0.0,0.0)	
         self.nve=PointClass(0.0,0.0)	
-        O=PointClass(0.0, 0.0)
-
+        
+       
         # Kreismittelpunkt bestimmen wenn Pa,Pe,r,und dir bekannt
         if type(O)==type(None):
+           
             if (type(Pa)!=type(None)) and (type(Pe)!=type(None)) and (type(dir)!=type(None)):
-            
+               
                 arc=self.Pe.norm_angle(Pa)-pi/2
                 Ve=Pe-Pa
-                m=Pa.distance(Pe)/2
+                m=(sqrt(pow(Ve.x, 2)+pow(Ve.y, 2)))/2
                 lo=sqrt(pow(r, 2)-pow(m, 2))
-                if dir>0:
+                if dir<0:
                     d=-1
                 else:
                     d=1
-                O=Pa
-                O.x+=Ve.x/2+lo*sin(arc)*d
-                O.y+=Ve.y/2+lo*cos(arc)*d
+                O=Pa+0.5*Ve
+                O.y+=lo*sin(arc)*d
+                O.x+=lo*cos(arc)*d
                 self.O=O
-            
+              
         # Falls nicht übergeben Mittelpunkt ausrechnen  
             elif (type(s_ang)!=type(None)) and (type(e_ang)!=type(None)):
                 O.x=Pa.x-r*cos(s_ang)
@@ -308,6 +310,24 @@ class ArcGeo:
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
                ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 
+    def gen_origin(self, Pa, Pe, r, dir):
+        return
+        self.Pa=Pa
+        self.Pe=Pe
+        arc=Pe.norm_angle(Pa)-pi/2
+        Ve=Pe-Pa
+        m=Pa.distance(Pe)/2
+        lo=sqrt(pow(r, 2)-pow(m, 2))
+        if dir>0:
+            d=-1
+        else:
+            d=1
+        O=Pa
+        O.x+=Ve.x/2+lo*sin(arc)*d
+        O.y+=Ve.y/2+lo*cos(arc)*d
+        self.O=O
+        
+        
     def reverse(self):
         Pa=self.Pa
         Pe=self.Pe
@@ -320,7 +340,10 @@ class ArcGeo:
         self.ext=ext*-1
         self.s_ang=s_ang
         self.e_ang=e_ang
+        
 
+        
+        
     def plot2can(self,EntitieContent):
         
         p0=EntitieContent.p0
@@ -396,6 +419,7 @@ class LineGeo:
         self.type="LineGeo"
         self.Pa=Pa
         self.Pe=Pe
+        self.col='Black'
         self.length=self.Pa.distance(self.Pe)
         Va=PointClass(0.0,0.0)
          
