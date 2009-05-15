@@ -1551,6 +1551,11 @@ class MyCanvasContentClass:
         self.plot_cut_info()
     
     def disable(self):
+        
+        #Vorhandene Direction Pfeile löschen aus Canvas
+        self.Canvas.RemoveObjects(self.dir_hdls)
+        self.dir_hdls=[]
+        
         self.set_shapes_color(self.Disabled,'disabled')
         if (self.show_dis==0):
             self.set_hdls_hidden(self.Disabled)
