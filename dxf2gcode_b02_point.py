@@ -310,23 +310,31 @@ class ArcGeo:
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
                ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 
-    def gen_origin(self, Pa, Pe, r, dir):
-        return
-        self.Pa=Pa
-        self.Pe=Pe
-        arc=Pe.norm_angle(Pa)-pi/2
-        Ve=Pe-Pa
-        m=Pa.distance(Pe)/2
-        lo=sqrt(pow(r, 2)-pow(m, 2))
-        if dir>0:
-            d=-1
+    def dif_ang(self, P1, P2):
+        sa=self.O.norm_angle(P1)
+       
+        if(sa<0):
+            sa+=2*pi
+        print('s_ang', sa)
+        ea=self.O.norm_angle(P2)
+        if(ea<0):
+            ea+=2*pi
+        print('e_ang', ea)
+        if(self.ext>0):
+            if(sa>ea):
+                ang=-(2*pi-sa+ea)
+            else:
+                ang=-(ea-sa)
         else:
-            d=1
-        O=Pa
-        O.x+=Ve.x/2+lo*sin(arc)*d
-        O.y+=Ve.y/2+lo*cos(arc)*d
-        self.O=O
+            if(ea>sa):
+                ang=(sa+2*pi-ea)
+            else:
+                ang=(sa-ea)
+        print('ang', ang)
+        return(ang)
         
+            
+            
         
     def reverse(self):
         Pa=self.Pa
