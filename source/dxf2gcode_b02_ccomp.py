@@ -18,7 +18,7 @@ class Polylines:
         self.closed=0
         self.col=[]
         self.geos=[]
-        self.cut_cor=30
+        self.cut_cor=40
         self.nr=0
         self.r=0
         
@@ -56,10 +56,13 @@ class InterSectionPoint:
             print(pos,shapes.geos[pos].type)
         
         return
-    def do_compensation(self, shapes, radius):
+    def do_compensation(self, shapes, radius, dir):
         pline=Polylines()
+        
         pline=self.CorNextInterSect(shapes)
+        pline.cut_cor=dir
         pline=self.GenRawCompData(pline,radius)
+        pline=self.compsteplines(pline)
         return(pline)
 #--------------------------------------------------------------------------------------------------------------------------------
 # adds additional segment if seg n intersects with seg n+1
@@ -205,11 +208,11 @@ class InterSectionPoint:
         num_elements=len(ins.geos)
         pos=0;   
         pnew=0 
-        ins.cut_cor=30 ##########################################################
+        
         while pos<num_elements:
             
             if(ins.geos[pos].type=='LineGeo'):
-                if(ins.cut_cor!=31):
+                if(ins.cut_cor!=41):
                     Pan=ins.geos[pos].Pa
                     Pen=ins.geos[pos].Pe
                     Pan.x-=ins.geos[pos].nva.x*radius
@@ -232,7 +235,7 @@ class InterSectionPoint:
                 o=ins.geos[pos].O
                 s_ang=ins.geos[pos].s_ang
                 e_ang=ins.geos[pos].e_ang
-                if(ins.cut_cor!=31):
+                if(ins.cut_cor!=41):
                     if(ins.geos[pos].ext<0):
                         rn=ins.geos[pos].r+radius
                         Pan=ins.geos[pos].Pa
@@ -369,14 +372,14 @@ class InterSectionPoint:
                         pos+=1
                         num_elements+=1
             # ------------- line / arc -------------------           
-            if(outs.geos[pos].type=='LineGeo' and outs.geos[npos].type=='ArcGeo'):
+            elif(outs.geos[pos].type=='LineGeo' and outs.geos[npos].type=='ArcGeo'):
                 self.CheckIntersectLineArc(outs.geos[pos],outs.geos[npos])
                 if self.num==0:
                     print('found LineArc none')
                     Pa=outs.geos[pos].Pe
                     Pe=outs.geos[npos].Pa
                     r=outs.r
-                    dir=-1
+                    dir=outs.geos[npos]
                     outs.geos.insert(npos, ArcGeo(Pa=outs.geos[pos].Pe, Pe=outs.geos[npos].Pa, r=r, dir=dir))
                     outs.geos[pos].col='Blue'
                     outs.geos[npos].col='Blue'
@@ -445,14 +448,14 @@ class InterSectionPoint:
                         
             
             # ------------- arc / line -------------------           
-            if(outs.geos[pos].type=='ArcGeo' and outs.geos[npos].type=='LineGeo'):
+            elif(outs.geos[pos].type=='ArcGeo' and outs.geos[npos].type=='LineGeo'):
                 self.CheckIntersectArcLine(outs.geos[pos],outs.geos[npos])
                 if self.num==0:
                     print('found Arc/Line none')
                     Pa=outs.geos[pos].Pe
                     Pe=outs.geos[npos].Pa
                     r=outs.r
-                    dir=-1
+                    dir=outs.geos[pos]
                     outs.geos.insert(npos, ArcGeo(Pa=outs.geos[pos].Pe, Pe=outs.geos[npos].Pa, r=r, dir=dir))
                     outs.geos[pos].col='Blue'
                     outs.geos[npos].col='Blue'
@@ -522,14 +525,14 @@ class InterSectionPoint:
                     #    pos+=1
                     #    num_elements+=1
                # ------------- arc / arc -------------------           
-            if(outs.geos[pos].type=='ArcGeo' and outs.geos[npos].type=='LineGeo'):
-                self.CheckIntersectArcLine(outs.geos[pos],outs.geos[npos])
+            elif(outs.geos[pos].type=='ArcGeo' and outs.geos[npos].type=='ArcGeo'):
+                self.CheckIntersectArcArc(outs.geos[pos],outs.geos[npos])
                 if self.num==0:
-                    print('found Arc/Line none')
+                    print('found Arc/Arc none')
                     Pa=outs.geos[pos].Pe
                     Pe=outs.geos[npos].Pa
                     r=outs.r
-                    dir=-1
+                    dir=outs.geos[npos]
                     outs.geos.insert(npos, ArcGeo(Pa=outs.geos[pos].Pe, Pe=outs.geos[npos].Pa, r=r, dir=dir))
                     outs.geos[pos].col='Blue'
                     outs.geos[npos].col='Blue'
@@ -537,57 +540,57 @@ class InterSectionPoint:
                     num_elements+=1
                 else:
                     bw=0
-                    print('Step1:arc/line intersect', self.ISPstatus1a, self.ISPstatus1b,self.ISPstatus2a, self.ISPstatus2b)
+                    print('Step1:arc/arc intersect', self.ISPstatus1a, self.ISPstatus1b,self.ISPstatus2a, self.ISPstatus2b)
                     bw=0
                     if((self.ISPstatus1a=='between' or self.ISPstatus1a=='at_start' or self.ISPstatus1a=='at_end') and (self.ISPstatus1b=='between' or self.ISPstatus1b=='at_start' or self.ISPstatus1b=='at_end')and (bw==0)):
-                        print('found arc/line between/between')
+                        print('found arc/arc between/between')
                         bw=1
                                              
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P1, r=outs.geos[pos].r,dir=outs.geos[pos].ext)
-                        outs.geos[npos]=LineGeo(Pa=self.P1, Pe=outs.geos[npos].Pe)
+                        outs.geos[npos]=ArcGeo(Pa=self.P1, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r,dir=outs.geos[npos].ext)
                         outs.geos[pos].col='Blue'
                       
                     if((self.ISPstatus2a=='between' or self.ISPstatus2a=='at_start' or self.ISPstatus2a=='at_end') and (self.ISPstatus2b=='between' or self.ISPstatus2b=='at_start' or self.ISPstatus2b=='at_end')and (bw==0)):
-                        print('found arc/line between/between')
+                        print('found arc/arc between/between')
                         bw=1                      
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P2, r=outs.geos[pos].r,dir=outs.geos[pos].ext)
-                        outs.geos[npos]=LineGeo(Pa=self.P2, Pe=outs.geos[npos].Pe)
+                        outs.geos[npos]=ArcGeo(Pa=self.P2, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r,dir=outs.geos[npos].ext)
                         outs.geos[pos].col='Blue'
                         
                     if((self.ISPstatus1a=='above') and (self.ISPstatus1b=='under') and (bw==0)):
-                        print('found arc/line above/under')
+                        print('found arc/arc above/under')
                         bw=1
                         Pen=self.P1
                         rn=outs.geos[pos].r
                         dirn=outs.geos[pos].ext
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=Pen, r=rn, dir=dirn)
-                        outs.geos[npos]=LineGeo(Pa=Pen, Pe=outs.geos[npos].Pe)
+                        outs.geos[npos]=ArcGeo(Pa=Pen, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r,dir=outs.geos[npos].ext)
                         outs.geos[pos].col='Blue'
                        
                         
                     if((self.ISPstatus2a=='above') and (self.ISPstatus2b=='under')and (bw==0)):
-                        print('found arc/line above/under')
+                        print('found arc/arc above/under')
                         bw=1
                         Pen=self.P2
                         rn=outs.geos[pos].r
                         dirn=outs.geos[pos].ext
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=Pen, r=rn, dir=dirn)
-                        outs.geos[npos]=LineGeo(Pa=Pen, Pe=outs.geos[npos].Pe)
+                        outs.geos[npos]=ArcGeo(Pa=Pen, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r,dir=outs.geos[npos].ext)
                         outs.geos[pos].col='Blue'
                         
                     if((self.ISPstatus1a=='between' or self.ISPstatus1a=='at_end') and self.ISPstatus1b=='under'and (bw==0)):
-                        print('found arc/line between/under')
+                        print('found arc/arc between/under')
                         bw=1
                         
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P1, r=outs.geos[pos].r, dir=outs.geos[pos].ext)
-                        outs.geos[npos]=LineGeo(Pa=self.P1, Pe=outs.geos[npos].Pe)
+                        outs.geos[npos]=ArcGeo(Pa=self.P1, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r,dir=outs.geos[npos].ext)
                         outs.geos[pos].col='Blue'
                     if((self.ISPstatus2a=='between' or self.ISPstatus1a=='at_end') and self.ISPstatus2b=='under'and (bw==0)):
-                        print('found arc/line between/under')
+                        print('found arc/arc between/under')
                         bw=1
                         
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P2, r=outs.geos[pos].r, dir=outs.geos[pos].ext)
-                        outs.geos[npos]=LineGeo(Pa=self.P2, Pe=outs.geos[npos].Pe)
+                        outs.geos[npos]=ArcGeo(Pa=self.P2, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r,dir=outs.geos[npos].ext)
                         outs.geos[pos].col='Blue'
                         
                         
@@ -738,8 +741,8 @@ class InterSectionPoint:
         self.v2=v2
             
       
-        i_ext=K1.dif_ang(K1.Pa, self.P1)
-        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        i_ext=K1.dif_ang(K1.Pa, self.P1, K1.ext)
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
         
         self.P1_ext_a=i_ext
         delta= i_ext/s_ext
@@ -756,10 +759,10 @@ class InterSectionPoint:
         else:
             self.ISPstatus1b='under'
         
-        i_ext=K1.dif_ang(K1.Pa, self.P2)
+        i_ext=K1.dif_ang(K1.Pa, self.P2, K1.ext)
         self.P2_ext_a=i_ext
         
-        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
         delta= i_ext/s_ext   
         print('delta2',delta)
         
@@ -822,18 +825,18 @@ class InterSectionPoint:
         print('check arc/arc')
         r1 = abs(K1.r);
         r2 = abs(K2.r);
-
+        print('K1.r, K2.r, K1.O.x, K1.O.y, K2.O.x.K2.O.y, K1.Pe.x, K1.Pe.y, K2.Pa.x, K2.Pa.y', K1.r, K2.r, K1.O.x, K1.O.y, K2.O.x, K2.O.y, K1.Pe.x, K1.Pe.y, K2.Pa.x, K2.Pa.y)
         res = sqrt(pow(abs(K2.O.x - K1.O.x),2)+pow(abs(K2.O.y - K1.O.y),2));
       
 
         if(res <= abs(r1-r2)):
-            return (result)
+            return 
 
         if(res > abs(r1 + r2)):
-            return (result)
+            return 
             
         if((K1.O.x - K2.O.x == 0) and (K1.O.y - K2.O.y == 0)):
-            return (result)
+            return 
 
         if(K1.O.x == K2.O.x):
             d1 = (K1.O.x - K2.O.x)/(K2.O.y - K1.O.y)
@@ -866,10 +869,10 @@ class InterSectionPoint:
             self.num=2
 
     
-        i_ext=K1.dif_ang(K1.Pa, self.P1)
+        i_ext=K1.dif_ang(K1.Pa, self.P1, K1.ext)
         self.P1_ext_a=i_ext
         
-        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
         delta= i_ext/s_ext   
         print('delta1',delta)
       
@@ -886,10 +889,10 @@ class InterSectionPoint:
         
             
 
-        i_ext=K1.dif_ang(K1.Pa, self.P2)
+        i_ext=K1.dif_ang(K1.Pa, self.P2, K1.ext)
         self.P2_ext_a=i_ext
        
-        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
         delta= i_ext/s_ext   
         print('delta2',delta)
        
@@ -906,12 +909,12 @@ class InterSectionPoint:
         
             
             
-        i_ext=K2.dif_ang(K2.Pa, self.P1)
+        i_ext=K2.dif_ang(K2.Pe, self.P1, -K2.ext)
         self.P1_ext_a=i_ext
-        
-        s_ext=K2.dif_ang(K2.Pa, K2.Pe)
+        print ('K2.ext', K2.ext)
+        s_ext=K2.dif_ang(K2.Pe, K2.Pa, -K2.ext)
         delta= i_ext/s_ext   
-        print('delta1',delta)
+        print('*delta1',delta)
       
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus1b='between'             
@@ -920,18 +923,18 @@ class InterSectionPoint:
         elif -0.00001<delta and delta<0.00001:
             self.ISPstatus1b='at_start'    
         elif delta>1.00001:
-            self.ISPstatus1b='above'
-        else:
             self.ISPstatus1b='under'
+        else:
+            self.ISPstatus1b='above'
         
             
 
-        i_ext=K2.dif_ang(K2.Pa, self.P2)
+        i_ext=K2.dif_ang(K2.Pe, self.P2, -K2.ext)
         self.P2_ext_a=i_ext
         
-        s_ext=K2.dif_ang(K2.Pa, K2.Pe)
+        s_ext=K2.dif_ang(K2.Pe, K2.Pa, -K2.ext)
         delta= i_ext/s_ext   
-        print('delta2',delta)
+        print('*delta2',delta)
        
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus2b='between'             
@@ -940,9 +943,9 @@ class InterSectionPoint:
         elif -0.00001<delta and delta<0.00001:
             self.ISPstatus2b='at_start'    
         elif delta>1.00001:
-            self.ISPstatus2b='above'
-        else:
             self.ISPstatus2b='under'
+        else:
+            self.ISPstatus2b='above'
         
         
         print ('num,x1,y1,x2,y2, K1.ext, K2.ext',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y, K1.ext, K2.ext)
@@ -999,10 +1002,10 @@ class InterSectionPoint:
         self.v1=v1
         self.v2=v2
 
-        i_ext=K1.dif_ang(K1.Pa, self.P1)
+        i_ext=K1.dif_ang(K1.Pa, self.P1, K1.ext)
         self.P1_ext_a=i_ext
        
-        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
         delta= i_ext/s_ext   
         print('delta1', delta)
         
@@ -1017,10 +1020,10 @@ class InterSectionPoint:
         else:
             self.ISPstatus1a='under'
         
-        i_ext=K1.dif_ang(K1.Pa, self.P2)
+        i_ext=K1.dif_ang(K1.Pa, self.P2, K1.ext)
         self.P2_ext_a=i_ext
         
-        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
         delta= i_ext/s_ext   
         print('delta2',delta)
         

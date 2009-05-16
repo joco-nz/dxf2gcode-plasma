@@ -75,7 +75,7 @@ from copy import copy
 
 from dxf2gcode_inputdlg import VarDlg
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
-from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
+from dxf2gcode_b02_shape_mod import ShapeClass, EntitieContentClass
 import dxf2gcode_b02_dxf_import as dxfimport 
 import dxf2gcode_b02_tsp_opt as tsp
 
@@ -1285,17 +1285,11 @@ class MyCanvasContentClass:
         pl=Polylines()
         
         for nr in range(len(self.Shapes)):
-            ISP.show(self.Shapes[nr])
-           
-            pl=ISP.CorNextInterSect(self.Shapes[nr])
-            self.Shapes[nr].geos=pl.geos
-            self.Shapes[nr].col=pl.col
             self.plot_shapes()
-            print('NR:', nr)
-            pl=ISP.GenRawCompData(pl,10)
-            pl=ISP.compsteplines(pl)
+            pl=ISP.do_compensation(self.Shapes[nr], 2, 42)
+           # self.Shapes[nr].col=pl.col
             self.Shapes[nr].geos=pl.geos
-            self.Shapes[nr].col=pl.col
+            
         self.plot_shapes()
         self.Shapes=[]
         
