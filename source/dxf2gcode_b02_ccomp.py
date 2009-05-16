@@ -392,7 +392,7 @@ class InterSectionPoint:
                         outs.geos[npos]=ArcGeo(Pa=self.P1, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r, dir=outs.geos[npos].ext)
                         outs.geos[pos].col='Blue'
                       
-                    if((self.ISPstatus2a=='between' or self.ISPstatus2a=='at_start' or self.ISPstatus2a=='at_end') and (self.ISPstatus2b=='between' or self.ISPstatus2b=='at_start' or self.ISPstatus2b=='at_end')):
+                    if(bw==0 and (self.ISPstatus2a=='between' or self.ISPstatus2a=='at_start' or self.ISPstatus2a=='at_end') and (self.ISPstatus2b=='between' or self.ISPstatus2b=='at_start' or self.ISPstatus2b=='at_end')):
                         print('found LineArc between/between')
                         bw=1
                         outs.geos[pos]=LineGeo(Pa=outs.geos[pos].Pa, Pe=self.P2)
@@ -401,6 +401,7 @@ class InterSectionPoint:
                         
                     if((self.ISPstatus1a=='above') and (self.ISPstatus1b=='under')and (bw==0)):
                         print('found LineArc above/under')
+                        bw=1
                         Pa=outs.geos[pos].Pa
                         Pe=self.P1
                         outs.geos[pos]=LineGeo(Pa=Pa, Pe=Pe)
@@ -414,6 +415,7 @@ class InterSectionPoint:
                         
                     if((self.ISPstatus2a=='above') and (self.ISPstatus2b=='under')and (bw==0)):
                         print('found LineArc above/under')
+                        bw=1
                         Pa=outs.geos[pos].Pa
                         Pe=self.P2
                         outs.geos[pos]=LineGeo(Pa=Pa, Pe=Pe)
@@ -426,6 +428,7 @@ class InterSectionPoint:
                         
                     if((self.ISPstatus1a=='above' and self.ISPstatus1b=='between')or (self.ISPstatus2a=='above' and self.ISPstatus2b=='between')and (bw==0)):
                         print('found LineArc above/between')
+                        bw=1
                         outs.geos.insert(npos, LineGeo(Pa=outs.geos[pos].Pa, Pe=outs.geos[npos].Pa))
                         outs.geos[pos].col='Blue'
                         outs.geos[npos].col='Blue'
@@ -456,9 +459,10 @@ class InterSectionPoint:
                     pos+=1
                     num_elements+=1
                 else:
+                    bw=0
                     print('Step1:arc/line intersect', self.ISPstatus1a, self.ISPstatus1b,self.ISPstatus2a, self.ISPstatus2b)
                     bw=0
-                    if((self.ISPstatus1a=='between' or self.ISPstatus1a=='at_start' or self.ISPstatus1a=='at_end') and (self.ISPstatus1b=='between' or self.ISPstatus1b=='at_start' or self.ISPstatus1b=='at_end')):
+                    if((self.ISPstatus1a=='between' or self.ISPstatus1a=='at_start' or self.ISPstatus1a=='at_end') and (self.ISPstatus1b=='between' or self.ISPstatus1b=='at_start' or self.ISPstatus1b=='at_end')and (bw==0)):
                         print('found arc/line between/between')
                         bw=1
                                              
@@ -466,7 +470,7 @@ class InterSectionPoint:
                         outs.geos[npos]=LineGeo(Pa=self.P1, Pe=outs.geos[npos].Pe)
                         outs.geos[pos].col='Blue'
                       
-                    if((self.ISPstatus2a=='between' or self.ISPstatus2a=='at_start' or self.ISPstatus2a=='at_end') and (self.ISPstatus2b=='between' or self.ISPstatus2b=='at_start' or self.ISPstatus2b=='at_end')):
+                    if((self.ISPstatus2a=='between' or self.ISPstatus2a=='at_start' or self.ISPstatus2a=='at_end') and (self.ISPstatus2b=='between' or self.ISPstatus2b=='at_start' or self.ISPstatus2b=='at_end')and (bw==0)):
                         print('found arc/line between/between')
                         bw=1                      
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P2, r=outs.geos[pos].r,dir=outs.geos[pos].ext)
@@ -475,6 +479,7 @@ class InterSectionPoint:
                         
                     if((self.ISPstatus1a=='above') and (self.ISPstatus1b=='under') and (bw==0)):
                         print('found arc/line above/under')
+                        bw=1
                         Pen=self.P1
                         rn=outs.geos[pos].r
                         dirn=outs.geos[pos].ext
@@ -485,6 +490,7 @@ class InterSectionPoint:
                         
                     if((self.ISPstatus2a=='above') and (self.ISPstatus2b=='under')and (bw==0)):
                         print('found arc/line above/under')
+                        bw=1
                         Pen=self.P2
                         rn=outs.geos[pos].r
                         dirn=outs.geos[pos].ext
@@ -494,12 +500,14 @@ class InterSectionPoint:
                         
                     if((self.ISPstatus1a=='between' or self.ISPstatus1a=='at_end') and self.ISPstatus1b=='under'and (bw==0)):
                         print('found arc/line between/under')
+                        bw=1
                         
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P1, r=outs.geos[pos].r, dir=outs.geos[pos].ext)
                         outs.geos[npos]=LineGeo(Pa=self.P1, Pe=outs.geos[npos].Pe)
                         outs.geos[pos].col='Blue'
                     if((self.ISPstatus2a=='between' or self.ISPstatus1a=='at_end') and self.ISPstatus2b=='under'and (bw==0)):
                         print('found arc/line between/under')
+                        bw=1
                         
                         outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P2, r=outs.geos[pos].r, dir=outs.geos[pos].ext)
                         outs.geos[npos]=LineGeo(Pa=self.P2, Pe=outs.geos[npos].Pe)
@@ -513,7 +521,84 @@ class InterSectionPoint:
                     #    outs.geos[npos].col='Blue'
                     #    pos+=1
                     #    num_elements+=1
+               # ------------- arc / arc -------------------           
+            if(outs.geos[pos].type=='ArcGeo' and outs.geos[npos].type=='LineGeo'):
+                self.CheckIntersectArcLine(outs.geos[pos],outs.geos[npos])
+                if self.num==0:
+                    print('found Arc/Line none')
+                    Pa=outs.geos[pos].Pe
+                    Pe=outs.geos[npos].Pa
+                    r=outs.r
+                    dir=-1
+                    outs.geos.insert(npos, ArcGeo(Pa=outs.geos[pos].Pe, Pe=outs.geos[npos].Pa, r=r, dir=dir))
+                    outs.geos[pos].col='Blue'
+                    outs.geos[npos].col='Blue'
+                    pos+=1
+                    num_elements+=1
+                else:
+                    bw=0
+                    print('Step1:arc/line intersect', self.ISPstatus1a, self.ISPstatus1b,self.ISPstatus2a, self.ISPstatus2b)
+                    bw=0
+                    if((self.ISPstatus1a=='between' or self.ISPstatus1a=='at_start' or self.ISPstatus1a=='at_end') and (self.ISPstatus1b=='between' or self.ISPstatus1b=='at_start' or self.ISPstatus1b=='at_end')and (bw==0)):
+                        print('found arc/line between/between')
+                        bw=1
+                                             
+                        outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P1, r=outs.geos[pos].r,dir=outs.geos[pos].ext)
+                        outs.geos[npos]=LineGeo(Pa=self.P1, Pe=outs.geos[npos].Pe)
+                        outs.geos[pos].col='Blue'
+                      
+                    if((self.ISPstatus2a=='between' or self.ISPstatus2a=='at_start' or self.ISPstatus2a=='at_end') and (self.ISPstatus2b=='between' or self.ISPstatus2b=='at_start' or self.ISPstatus2b=='at_end')and (bw==0)):
+                        print('found arc/line between/between')
+                        bw=1                      
+                        outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P2, r=outs.geos[pos].r,dir=outs.geos[pos].ext)
+                        outs.geos[npos]=LineGeo(Pa=self.P2, Pe=outs.geos[npos].Pe)
+                        outs.geos[pos].col='Blue'
                         
+                    if((self.ISPstatus1a=='above') and (self.ISPstatus1b=='under') and (bw==0)):
+                        print('found arc/line above/under')
+                        bw=1
+                        Pen=self.P1
+                        rn=outs.geos[pos].r
+                        dirn=outs.geos[pos].ext
+                        outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=Pen, r=rn, dir=dirn)
+                        outs.geos[npos]=LineGeo(Pa=Pen, Pe=outs.geos[npos].Pe)
+                        outs.geos[pos].col='Blue'
+                       
+                        
+                    if((self.ISPstatus2a=='above') and (self.ISPstatus2b=='under')and (bw==0)):
+                        print('found arc/line above/under')
+                        bw=1
+                        Pen=self.P2
+                        rn=outs.geos[pos].r
+                        dirn=outs.geos[pos].ext
+                        outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=Pen, r=rn, dir=dirn)
+                        outs.geos[npos]=LineGeo(Pa=Pen, Pe=outs.geos[npos].Pe)
+                        outs.geos[pos].col='Blue'
+                        
+                    if((self.ISPstatus1a=='between' or self.ISPstatus1a=='at_end') and self.ISPstatus1b=='under'and (bw==0)):
+                        print('found arc/line between/under')
+                        bw=1
+                        
+                        outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P1, r=outs.geos[pos].r, dir=outs.geos[pos].ext)
+                        outs.geos[npos]=LineGeo(Pa=self.P1, Pe=outs.geos[npos].Pe)
+                        outs.geos[pos].col='Blue'
+                    if((self.ISPstatus2a=='between' or self.ISPstatus1a=='at_end') and self.ISPstatus2b=='under'and (bw==0)):
+                        print('found arc/line between/under')
+                        bw=1
+                        
+                        outs.geos[pos]=ArcGeo(Pa=outs.geos[pos].Pa, Pe=self.P2, r=outs.geos[pos].r, dir=outs.geos[pos].ext)
+                        outs.geos[npos]=LineGeo(Pa=self.P2, Pe=outs.geos[npos].Pe)
+                        outs.geos[pos].col='Blue'
+                        
+                        
+                   # if((self.ISPstatus1a=='between' and ( self.ISPstatus1b=='above' or self.ISPstatus1b=='under' ))or (self.ISPstatus2a=='above' and ( self.ISPstatus2b=='above' or self.ISPstatus2b=='under' ))):
+                    #    print('found LineArc bw/ab-un')
+                    #    outs.geos.insert(npos, LineGeo(Pa=outs.geos[pos].Pa, Pe=outs.geos[npos].Pa))
+                    #    outs.geos[pos].col='Blue'
+                    #    outs.geos[npos].col='Blue'
+                    #    pos+=1
+                    #    num_elements+=1
+                                 
             pos+=1
         #outs.geos[0]=outs.geos[pos]
         outs.geos[0].col='Yellow'
@@ -637,6 +722,7 @@ class InterSectionPoint:
 
         v1=(-b+sqrt(udw))/(2*a)
         v2=(-b-sqrt(udw))/(2*a)
+        
         self.P1.x=x1+v1*vx
         self.P1.y=y1+v1*vy
         self.P2.x=x1+v2*vx
@@ -646,26 +732,18 @@ class InterSectionPoint:
             self.num=1
         else:
             self.num=2
+            
+        dist1=L1.Pe.distance(self.P1)
         self.v1=v1
         self.v2=v2
             
       
-        i_ext=atan2(self.P1.y-K1.O.y,self.P1.x-K1.O.x)-K1.s_ang
-        if K1.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
+        i_ext=K1.dif_ang(K1.Pa, self.P1)
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        
         self.P1_ext_a=i_ext
-        delta= i_ext/K1.ext
-       
+        delta= i_ext/s_ext
+        print('delta1',delta)
         
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus1b='between'             
@@ -678,23 +756,12 @@ class InterSectionPoint:
         else:
             self.ISPstatus1b='under'
         
-        i_ext=atan2(self.P2.y-K1.O.y,self.P2.x-K1.O.x)-K1.s_ang
-        if K1.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-      
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
+        i_ext=K1.dif_ang(K1.Pa, self.P2)
         self.P2_ext_a=i_ext
-        delta= i_ext/K1.ext    
-   
+        
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        delta= i_ext/s_ext   
+        print('delta2',delta)
         
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus2b='between'             
@@ -798,22 +865,13 @@ class InterSectionPoint:
         else:
             self.num=2
 
-        i_ext=atan2(self.P1.y-K1.O.y,self.P1.x-K1.O.x)-K1.s_ang
-        if K1.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
+    
+        i_ext=K1.dif_ang(K1.Pa, self.P1)
         self.P1_ext_a=i_ext
-  
-        delta= i_ext/K1.ext
+        
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        delta= i_ext/s_ext   
+        print('delta1',delta)
       
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus1a='between'             
@@ -828,22 +886,12 @@ class InterSectionPoint:
         
             
 
-        i_ext=atan2(self.P2.y-K1.O.y,self.P2.x-K1.O.x)-K1.s_ang
-        if K1.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
+        i_ext=K1.dif_ang(K1.Pa, self.P2)
         self.P2_ext_a=i_ext
-        
-        delta= i_ext/K1.ext
+       
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        delta= i_ext/s_ext   
+        print('delta2',delta)
        
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus2a='between'             
@@ -858,22 +906,12 @@ class InterSectionPoint:
         
             
             
-        i_ext=atan2(self.P1.y-K2.O.y,self.P1.x-K2.O.x)-K2.s_ang
-        if K2.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
-        self.P1_ext_b=i_ext
-
-        delta= i_ext/K2.ext
+        i_ext=K2.dif_ang(K2.Pa, self.P1)
+        self.P1_ext_a=i_ext
+        
+        s_ext=K2.dif_ang(K2.Pa, K2.Pe)
+        delta= i_ext/s_ext   
+        print('delta1',delta)
       
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus1b='between'             
@@ -888,22 +926,12 @@ class InterSectionPoint:
         
             
 
-        i_ext=atan2(self.P2.y-K2.O.y,self.P2.x-K2.O.x)-K2.s_ang
-        if K2.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
-        self.P2_ext_b=i_ext
+        i_ext=K2.dif_ang(K2.Pa, self.P2)
+        self.P2_ext_a=i_ext
         
-        delta= i_ext/K2.ext
+        s_ext=K2.dif_ang(K2.Pa, K2.Pe)
+        delta= i_ext/s_ext   
+        print('delta2',delta)
        
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus2b='between'             
@@ -918,7 +946,7 @@ class InterSectionPoint:
         
         
         print ('num,x1,y1,x2,y2, K1.ext, K2.ext',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y, K1.ext, K2.ext)
-        print ('st1a,st1b,st2a,st2b,v1,v2',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2, )
+        print ('st1a,st1b,st2a,st2b,v1,v2',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2 )
 
 #---------------------------------------------------------------------------------------------
 # Check for intersection between an arc and a line
@@ -937,7 +965,7 @@ class InterSectionPoint:
         self.P2_ext=0.0
         self.P1_v1=0.0
         self.P2_v2=0.0
-
+        return
         print('check arc/line')
         y1=L1.Pa.y
         y2=L1.Pe.y
@@ -971,23 +999,13 @@ class InterSectionPoint:
         self.v1=v1
         self.v2=v2
 
-        i_ext=atan2(self.P1.y-K1.O.y,self.P1.x-K1.O.x)-K1.s_ang
-        if K1.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
+        i_ext=K1.dif_ang(K1.Pa, self.P1)
         self.P1_ext_a=i_ext
-            
-        delta=i_ext/K1.ext
        
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        delta= i_ext/s_ext   
+        print('delta1', delta)
+        
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus1a='between'             
         elif 0.9999<delta and delta<1.00001:
@@ -999,22 +1017,13 @@ class InterSectionPoint:
         else:
             self.ISPstatus1a='under'
         
-        i_ext=atan2(self.P2.y-K1.O.y,self.P2.x-K1.O.x)-K1.s_ang
-        if K1.ext>0:
-             i_ext=i_ext%(-2*pi)
-             i_ext-=floor(i_ext/(2*pi))*(2*pi)
-        else:
-            i_ext=i_ext%(-2*pi)
-            i_ext+=ceil(i_ext/(2*pi))*(2*pi)
-        if(2*pi-abs(i_ext))<0.00001:
-            i_ext=0
-        if(i_ext<-pi):
-            i_ext+=2*pi
-        if(i_ext>pi):
-            i_ext-=2*pi
+        i_ext=K1.dif_ang(K1.Pa, self.P2)
         self.P2_ext_a=i_ext
-        delta=i_ext/K1.ext
-       
+        
+        s_ext=K1.dif_ang(K1.Pa, K1.Pe)
+        delta= i_ext/s_ext   
+        print('delta2',delta)
+        
         if 0.00001<delta and delta<0.9999:
             self.ISPstatus2a='between'             
         elif 0.9999<delta and delta<1.00001:
@@ -1051,7 +1060,7 @@ class InterSectionPoint:
 
 
         print ('num,x1,y1,x2,y2, K1.ext,',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y, K1.ext)
-        print ('st1a,st1b,st2a,st2b,v1,v2',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2, )
+        print ('st1a,st1b,st2a,st2b,v1,v2,P1_ext,P2_ext',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2,self.P1_ext_a, self.P2_ext_a )
 
         return 
     
