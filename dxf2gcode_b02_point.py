@@ -310,7 +310,7 @@ class ArcGeo:
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
                ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 
-    def dif_ang(self, P1, P2):
+    def dif_ang(self, P1, P2, dir):
         sa=self.O.norm_angle(P1)
        
         if(sa<0):
@@ -320,11 +320,11 @@ class ArcGeo:
         if(ea<0):
             ea+=2*pi
         print('e_ang', ea)
-        if(self.ext>0):
+        if(dir>0):     # GU
             if(sa>ea):
-                ang=-(2*pi-sa+ea)
+                ang=(2*pi-sa+ea)
             else:
-                ang=-(ea-sa)
+                ang=(ea-sa)
         else:
             if(ea>sa):
                 ang=(sa+2*pi-ea)
