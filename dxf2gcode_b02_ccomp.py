@@ -62,7 +62,7 @@ class InterSectionPoint:
         pline=self.CorNextInterSect(shapes)
         pline.cut_cor=dir
         pline=self.GenRawCompData(pline,radius)
-        pline=self.compsteplines(pline)
+        #pline=self.compsteplines(pline)
         return(pline)
 #--------------------------------------------------------------------------------------------------------------------------------
 # adds additional segment if seg n intersects with seg n+1
@@ -245,7 +245,7 @@ class InterSectionPoint:
                         Pen.y+=sin(e_ang)*radius
                         Pen.x+=cos(e_ang)*radius
                         ext=ins.geos[pos].ext
-                        outs.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext, s_ang=s_ang, e_ang=e_ang, O=o))
+                        outs.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext))
                         outs.geos[-1].col='Green'
                       
                     else:
@@ -318,6 +318,7 @@ class InterSectionPoint:
             outs.geos.append(ins.geos[pos])
             pos+=1
         pos=0
+        
         outs.r=ins.r
         # # WED hier die Unterscheidung zwischen geschlossenen und nicht geschlossenen Kurven einfügen
         #if ins.closed==0:
@@ -328,6 +329,7 @@ class InterSectionPoint:
             npos=pos+1
             if(npos>=num_elements):
                 npos=0
+            print('#',len(outs.geos),pos,npos,num_elements)
             # ------------ line / line --------------
             if(outs.geos[pos].type=='LineGeo' and outs.geos[npos].type=='LineGeo'):
                 self.CheckIntersectLineLine(outs.geos[pos],outs.geos[npos])
@@ -350,6 +352,7 @@ class InterSectionPoint:
                         outs.geos[pos]=LineGeo(Pa=outs.geos[pos].Pa, Pe=self.P1)
                         outs.geos[npos]=LineGeo(Pa=self.P1, Pe=outs.geos[npos].Pe)
                         outs.geos[pos].col='Blue'
+                        print('1')
                         
                     if(self.ISPstatus1a=='between' and self.ISPstatus1b=='at_start'):
                         print('found between/at_start')
@@ -432,11 +435,12 @@ class InterSectionPoint:
                     if((self.ISPstatus1a=='above' and self.ISPstatus1b=='between')or (self.ISPstatus2a=='above' and self.ISPstatus2b=='between')and (bw==0)):
                         print('found LineArc above/between')
                         bw=1
-                        outs.geos.insert(npos, LineGeo(Pa=outs.geos[pos].Pa, Pe=outs.geos[npos].Pa))
+                        outs.geos[pos]=LineGeo(Pa=outs.geos[pos].Pa, Pe=self.P1)
+                        outs.geos[npos]=ArcGeo(Pa=self.P1, Pe=outs.geos[npos].Pe, r=outs.geos[npos].r, dir=outs.geos[npos].ext)
+                        #outs.geos.insert(npos, LineGeo(Pa=outs.geos[pos].Pa, Pe=outs.geos[npos].Pa))
                         outs.geos[pos].col='Blue'
                         outs.geos[npos].col='Blue'
-                        pos+=1
-                        num_elements+=1
+                        
                         
                    # if((self.ISPstatus1a=='between' and ( self.ISPstatus1b=='above' or self.ISPstatus1b=='under' ))or (self.ISPstatus2a=='above' and ( self.ISPstatus2b=='above' or self.ISPstatus2b=='under' ))):
                     #    print('found LineArc bw/ab-un')
@@ -603,7 +607,10 @@ class InterSectionPoint:
                     #    num_elements+=1
                                  
             pos+=1
-        #outs.geos[0]=outs.geos[pos]
+        print('2')
+        outs.geos[0]=outs.geos[npos]
+        print('3')
+        print(len(outs.geos))
         outs.geos[0].col='Yellow'
         return (outs)
 #---------------------------------------------------------------------------------------------
@@ -968,7 +975,7 @@ class InterSectionPoint:
         self.P2_ext=0.0
         self.P1_v1=0.0
         self.P2_v2=0.0
-        return
+        
         print('check arc/line')
         y1=L1.Pa.y
         y2=L1.Pe.y

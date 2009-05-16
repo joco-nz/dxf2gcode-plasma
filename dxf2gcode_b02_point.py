@@ -315,11 +315,11 @@ class ArcGeo:
        
         if(sa<0):
             sa+=2*pi
-        print('s_ang', sa)
+        
         ea=self.O.norm_angle(P2)
         if(ea<0):
             ea+=2*pi
-        print('e_ang', ea)
+        
         if(dir>0):     # GU
             if(sa>ea):
                 ang=(2*pi-sa+ea)
@@ -330,7 +330,7 @@ class ArcGeo:
                 ang=(sa+2*pi-ea)
             else:
                 ang=(sa-ea)
-        print('ang', ang)
+        
         return(ang)
         
             

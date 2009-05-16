@@ -1286,7 +1286,7 @@ class MyCanvasContentClass:
         
         for nr in range(len(self.Shapes)):
             self.plot_shapes()
-            pl=ISP.do_compensation(self.Shapes[nr], 2, 42)
+            pl=ISP.do_compensation(self.Shapes[nr], 2, 41)
            # self.Shapes[nr].col=pl.col
             self.Shapes[nr].geos=pl.geos
             
