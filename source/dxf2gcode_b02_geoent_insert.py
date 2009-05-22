@@ -39,8 +39,7 @@ class InsertClass:
 
         #Lesen der Geometrie
         self.Read(caller)   
-        
-        print self
+
         
     def __str__(self):
         # how to print the object

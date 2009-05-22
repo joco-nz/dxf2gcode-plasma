@@ -1309,36 +1309,35 @@ class MyCanvasContentClass:
             
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
         ent_geos=entities.geo
-
-        pb=entities.basep-parent.pb
-        
-        
+               
         #Schleife fuer die Anzahl der Konturen 
         for cont in entities.cont:
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
             if ent_geos[cont.order[0][0]].Typ=="Insert":
                 ent_geo=ent_geos[cont.order[0][0]]
                 
-                newp0=parent.p0+ent_geos[cont.order[0][0]].Point.rot_sca_abs(parent=parent)
-#                print parent.p0
-#                print ent_geos[cont.order[0][0]].Point
-#                print newp0
-#                print "\n"
-                newsca=[parent.sca[0]*ent_geos[cont.order[0][0]].Scale[0],
-                        parent.sca[1]*ent_geos[cont.order[0][0]].Scale[1],
-                        parent.sca[2]*ent_geos[cont.order[0][0]].Scale[2]]
-
-                newrot=ent_geos[cont.order[0][0]].rot+parent.rot
+                #Zuweisen des Basispunkts für den Block
+                new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
+                new_entities=self.values.blocks.Entities[new_ent_nr]
+                pb=new_entities.basep
+                
+                #Skalierung usw. des Blocks zuweisen
+                p0=ent_geos[cont.order[0][0]].Point
+                sca=ent_geos[cont.order[0][0]].Scale
+                rot=ent_geos[cont.order[0][0]].rot
                 
                 #Erstellen des neuen Entitie Contents für das Insert
-                
                 NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
                                         parent=parent,children=[],
-                                        p0=newp0,pb=pb,sca=newsca,rot=newrot)
+                                        p0=p0,
+                                        pb=pb,
+                                        sca=sca,
+                                        rot=rot)
 
                 parent.addchild(NewEntitieContent)
+            
+                self.makeshapes(parent=NewEntitieContent,ent_nr=ent_nr)
                 
-                self.makeshapes(NewEntitieContent,ent_nr)
             else:
                 #Schleife fuer die Anzahl der Geometrien
                 self.Shapes.append(ShapeClass(len(self.Shapes),\

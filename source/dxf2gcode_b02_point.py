@@ -91,12 +91,24 @@ class PointClass:
             pb=parent.pb
             sca=parent.sca
             rot=parent.rot
+            
+            pc=self-pb
+            rot=rot
+            rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
+            roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
+            p1= PointClass(x=rotx,y=roty)+p0
+            
+            #Rekursive Schleife falls selbst eingefügt
+            if type(parent.parent)!=type(None):
+                p1=p1.rot_sca_abs(parent=parent.parent)
+            
+        else:
+            pc=self-pb
+            rot=rot
+            rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
+            roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
+            p1= PointClass(x=rotx,y=roty)+p0
         
-        pc=self-pb
-        rot=rot
-        rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
-        roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
-        p1= PointClass(x=rotx,y=roty)+p0
         
 #        print(("Self:    %s\n" %self)+\
 #                ("P0:      %s\n" %p0)+\
@@ -331,10 +343,7 @@ class ArcGeo:
             else:
                 ang=(sa-ea)
         
-        return(ang)
-        
-            
-            
+        return(ang)        
         
     def reverse(self):
         Pa=self.Pa
@@ -348,35 +357,22 @@ class ArcGeo:
         self.ext=ext*-1
         self.s_ang=s_ang
         self.e_ang=e_ang
-        
-
-        
-        
-    def plot2can(self,EntitieContent):
-        
-        p0=EntitieContent.p0
-        pb=EntitieContent.pb
-        sca=EntitieContent.sca
-        rot=EntitieContent.rot
-        
+           
+    def plot2can(self,EntitieContent):  
                         
         points=[]; hdl=[]
         #Alle 3 Grad ein Segment => 120 Segmente für einen Kreis !!
         segments=int((abs(degrees(self.ext))//3)+1)
         
-        for i in range(segments+1):
-            
+        for i in range(segments+1):    
             ang=self.s_ang+i*self.ext/segments
             p_cur=PointClass(x=(self.O.x+cos(ang)*abs(self.r)),\
                        y=(self.O.y+sin(ang)*abs(self.r)))
                     
-            p_cur_rot=p_cur.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
+            p_cur_rot=p_cur.rot_sca_abs(parent=EntitieContent)
             points.append((p_cur_rot.x,p_cur_rot.y))
 
         return points
-        #A=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
-        #return A      
-
 
     def get_start_end_points(self,direction):
         if not(direction):
@@ -477,17 +473,11 @@ class LineGeo:
         
     def plot2can(self,EntitieContent):
         
-        p0=EntitieContent.p0
-        pb=EntitieContent.pb
-        sca=EntitieContent.sca
-        rot=EntitieContent.rot
-
-        anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
-        ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
+        anf=self.Pa.rot_sca_abs(parent=EntitieContent)
+        ende=self.Pe.rot_sca_abs(parent=EntitieContent)
         
         return [(anf.x,anf.y),(ende.x,ende.y)]
-        #L=Canvas.AddLine([(anf.x,anf.y),(ende.x,ende.y)], LineWidth = 2, LineColor = col)
-        #return L
+
 
     def get_start_end_points(self,direction):
         if not(direction):
