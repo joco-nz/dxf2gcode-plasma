@@ -68,13 +68,17 @@ class ShapeClass:
         elif self.cut_cor==42:
             self.cut_cor=41
 
-    def get_st_en_points(self):
-        st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=st_point.rot_sca_abs(self.EntitieContent)
+    def get_st_en_points(self,dir=None):
+        start, start_ang=self.geos[0].get_start_end_points(0,self.parent)
+        ende, end_ang=self.geos[-1].get_start_end_points(1,self.parent)
         
-        en_point, en_angle=self.geos[-1].get_start_end_points(1)
-        ende=en_point.rot_sca_abs(self.EntitieContent)
-        return [start,ende]
+        if dir==None:
+            return start,ende
+        elif dir==0:
+            return start,start_ang
+        elif dir==1:
+            return ende, end_ang
+        
 
     def plot2can(self,Canvas=None,tag=None,col='Black'):
         
@@ -105,20 +109,18 @@ class ShapeClass:
         hdls.append(self.plot_start(Canvas,length))
         hdls.append(self.plot_end(Canvas,length))
         if self.cut_cor>40:
-            hdls.append(self.plot_cut_cor(Canvas,length))
-               
+            hdls.append(self.plot_cut_cor(Canvas,length))         
             self.make_start_moves(config)
-            #hdls+=self.st_move[1].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
-            #hdls+=self.st_move[2].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
+     
         return hdls
             
     def plot_start(self,Canvas=None,length=20):
-        st_point, st_angle=self.geos[0].get_start_end_points(0)
+        #st_point, st_angle=self.geos[0].get_start_end_points(0,parent)
                 
-        start=st_point.rot_sca_abs(parent=self.parent)
+        start,start_ang=self.get_st_en_points(0)
         
-        dx=cos(radians(st_angle))*length
-        dy=sin(radians(st_angle))*length
+        dx=cos(radians(start_ang))*length
+        dy=sin(radians(start_ang))*length
 
         hdl=Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
                                 LineWidth=2, 
@@ -130,16 +132,15 @@ class ShapeClass:
     
 
     def plot_cut_cor(self,Canvas=None,length=20):
-        st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=st_point.rot_sca_abs(parent=self.parent)
+        start,start_ang=self.get_st_en_points(0)
 
         if self.cut_cor==41:
-            st_angle=st_angle+90
+            start_ang=start_ang+90
         else:
-            st_angle=st_angle-90
+            start_ang=start_ang-90
             
-        dx=cos(radians(st_angle))*length
-        dy=sin(radians(st_angle))*length
+        dx=cos(radians(start_ang))*length
+        dy=sin(radians(start_ang))*length
 
         hdl=Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
                                 LineWidth=2,
@@ -149,10 +150,8 @@ class ShapeClass:
         return hdl
 
     def plot_end(self,Canvas=None,length=20):
-        en_point, en_angle=self.geos[-1].get_start_end_points(1)
-           
-        ende=en_point.rot_sca_abs(parent=self.parent)
-        
+        ende,en_angle=self.get_st_en_points(1)
+      
         dx=cos(radians(en_angle))*length
         dy=sin(radians(en_angle))*length
 
