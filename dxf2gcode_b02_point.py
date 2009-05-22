@@ -86,7 +86,7 @@ class PointClass:
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))  
       
     def rot_sca_abs(self,sca=None,p0=None,pb=None,rot=None,parent=None):
-        if sca==None:
+        if type(sca)==type(None) and type(parent)!=type(None):
             p0=parent.p0
             pb=parent.pb
             sca=parent.sca
@@ -102,6 +102,17 @@ class PointClass:
             if type(parent.parent)!=type(None):
                 p1=p1.rot_sca_abs(parent=parent.parent)
             
+        elif type(parent)==type(None) and type(sca)==type(None):
+            p0=PointClass(0,0)
+            pb=PointClass(0,0)
+            sca=[0,0,0]
+            rot=0
+            
+            pc=self-pb
+            rot=rot
+            rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
+            roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
+            p1= PointClass(x=rotx,y=roty)+p0
         else:
             pc=self-pb
             rot=rot
@@ -374,15 +385,26 @@ class ArcGeo:
 
         return points
 
-    def get_start_end_points(self,direction):
+    def get_start_end_points(self,direction,parent=None):
         if not(direction):
-            punkt=self.Pa
-            angle=degrees(self.s_ang)+90*self.ext/abs(self.ext)
+            punkt=self.Pa.rot_sca_abs(parent=parent)
+            angle=self.rot_angle(degrees(self.s_ang)+90*self.ext/abs(self.ext),parent)
         elif direction:
-            punkt=self.Pe
-            angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
+            punkt=self.Pe.rot_sca_abs(parent=parent)
+            angle=self.rot_angle(degrees(self.e_ang)-90*self.ext/abs(self.ext),parent)
         return punkt,angle
     
+   
+    def rot_angle(self,angle,parent):
+        rot_ang=angle
+    
+        #Rekursive Schleife falls mehrfach verschachtelt.
+        if type(parent)!=type(None):
+            rot_ang=angle+degrees(parent.rot)
+            rot_ang=self.rot_angle(rot_ang,parent.parent)
+                
+        return rot_ang
+
     def Write_GCode(self,sca,p0,rot,postpro):
         st_point, st_angle=self.get_start_end_points(0)
         IJ=(self.O-st_point)*sca
@@ -471,21 +493,23 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,EntitieContent):
+    def plot2can(self,parent):
         
-        anf=self.Pa.rot_sca_abs(parent=EntitieContent)
-        ende=self.Pe.rot_sca_abs(parent=EntitieContent)
+        anf=self.Pa.rot_sca_abs(parent=parent)
+        ende=self.Pe.rot_sca_abs(parent=parent)
         
         return [(anf.x,anf.y),(ende.x,ende.y)]
 
 
-    def get_start_end_points(self,direction):
+    def get_start_end_points(self,direction,parent=None):
         if not(direction):
-            punkt=self.Pa
-            angle=degrees(self.Pa.norm_angle(self.Pe))
+            punkt=self.Pa.rot_sca_abs(parent=parent)
+            punkt_e=self.Pe.rot_sca_abs(parent=parent)
+            angle=degrees(punkt.norm_angle(punkt_e))
         elif direction:
-            punkt=self.Pe
-            angle=degrees(self.Pe.norm_angle(self.Pa))
+            punkt_a=self.Pa.rot_sca_abs(parent=parent)
+            punkt=self.Pe.rot_sca_abs(parent=parent)
+            angle=degrees(punkt.norm_angle(punkt_a))
         return punkt, angle
     
     def Write_GCode(self,sca,p0,rot,postpro):

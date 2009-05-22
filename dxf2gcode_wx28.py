@@ -815,22 +815,25 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
         
         
     def OnSelChanged(self, event):
-        #print dir(self.GetSelections()[0])
         sel_items=[]
         for selection in self.GetSelections():
-            #print selection
-            #print self.GetItemPyData(selection)
             item=self.GetItemPyData(selection)
-            
-            if item.type=="Shape":
-                sel_items.append(item)
-                
-            if item.type=="Entitie":
-                sel_items+=item.children
-            
-            
+            sel_items+=self.GetItemShapes(item)
+
+                  
         self.MyCanvasContent.change_selection(sel_items)
-        print 'Selection Changed'
+    
+    def GetItemShapes(self,item):
+        SelShapes=[]
+        if item.type=="Shape":
+            SelShapes.append(item)
+            
+        elif item.type=="Entitie":
+            for child in item.children:
+                SelShapes+=self.GetItemShapes(child)
+          
+        return SelShapes
+        
         
 class MyLayersTreeClass(CT.CustomTreeCtrl):
     def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
