@@ -76,25 +76,30 @@ class ShapeClass:
         ende=en_point.rot_sca_abs(self.EntitieContent)
         return [start,ende]
 
-#    def plot2can(self,Canvas=None,tag=None,col='Black'):
-#        
-#        for i in range(len(self.geos)):
-#            cur_pts=self.geos[i].plot2can(self.parent)
-#
-#            if i==0:
-#                points=cur_pts
-#            else:
-#                points+=cur_pts[1:len(cur_pts)]
-#                       
-#        self.geo_hdl=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
     def plot2can(self,Canvas=None,tag=None,col='Black'):
         
         for i in range(len(self.geos)):
             cur_pts=self.geos[i].plot2can(self.parent)
-            col=self.geos[i].col #################### Entfernen
-           
-            self.geo_hdl=Canvas.AddLine(cur_pts, LineWidth = 2, LineColor = col)
-        
+
+            if i==0:
+                points=cur_pts
+            else:
+                points+=cur_pts[1:len(cur_pts)]
+                       
+        self.geo_hdl=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
+#    def plot2can(self,Canvas=None,tag=None,col='Black'):
+#        
+#        for i in range(len(self.geos)):
+#            cur_pts=self.geos[i].plot2can(self.parent)
+#            col=self.geos[i].col #################### Entfernen
+#           
+#            self.geo_hdl=Canvas.AddLine(cur_pts, LineWidth = 2, LineColor = col)
+#        
+#        print self.geo_hdl  ###Das Format von GeoHdl hat sich verändert 
+        ###und somit sind die Linien nicht mehr anklickbar nur wenn ich die erste Linie einer 
+        ###Kontur anklicke funzt das noch. Sollte alle Linien beinhalten Das ganze oben hab ich gemacht um 
+        ###keinen Doppelten punkte bei zusammengesetzten Shapes zu erhalten. Somit ergibt sich daraus eine 
+        ###gesamte Polyline für eine zusammengesetze Kontur. Grund dafür sind auch Performance Gründe beim Ausdrucken.
     def plot_cut_info(self,Canvas,config,length):
         hdls=[]
         hdls.append(self.plot_start(Canvas,length))
