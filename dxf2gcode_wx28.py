@@ -436,7 +436,9 @@ class MyFrameClass(wx.Frame):
         #Falls noch kein File geladen wurde nichts machen
         if self.load_filename is None:
             return
-        self.MyCanvasContent.makeplot(self.values,p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+        self.MyCanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(0,0),
                                     sca=[self.cont_scale,self.cont_scale,self.cont_scale],
                                     rot=0.0)
         self.MyMessages.prt(_("\nScaled Contours by factor %0.3f") %self.cont_scale)

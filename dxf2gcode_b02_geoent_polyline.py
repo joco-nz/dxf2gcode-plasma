@@ -115,7 +115,7 @@ class PolylineClass:
             PolyLineFlag=int(lp.line_pair[s_temp].value)
             s=s_temp
             
-        #print("PolylineFlag: %i" %PolyLineFlag)
+        print("PolylineFlag: %i" %PolyLineFlag)
              
         while 1: #and not(s==None):
             s=lp.index_both(0,"VERTEX",s+1,e)
@@ -159,21 +159,25 @@ class PolylineClass:
                     if next_bulge==0:
                         self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
                     else:
-                        #self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
-                        #print bulge
                         self.geo.append(self.bulge2arc(Pa,Pe,next_bulge))
-                    
                     #Länge drauf rechnen wenns eine Geometrie ist
                     self.length+=self.geo[-1].length
+                    
                         
                 #Der Bulge wird immer für den und den nächsten Punkt angegeben
                 next_bulge=bulge
                 Pa=Pe
                     
-            
-
-
-                   
+        #Es ist eine geschlossene Polyline
+        if PolyLineFlag==1:
+            print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
+            if next_bulge==0:
+                self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
+            else:
+                self.geo.append(self.bulge2arc(Pa,self.geo[0].Pa,next_bulge))
+            #Länge drauf rechnen wenns eine Geometrie ist   
+            self.length+=self.geo[-1].length
+      
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=e
     
