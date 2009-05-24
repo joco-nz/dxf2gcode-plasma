@@ -115,7 +115,7 @@ class PolylineClass:
             PolyLineFlag=int(lp.line_pair[s_temp].value)
             s=s_temp
             
-        print("PolylineFlag: %i" %PolyLineFlag)
+        #print("PolylineFlag: %i" %PolyLineFlag)
              
         while 1: #and not(s==None):
             s=lp.index_both(0,"VERTEX",s+1,e)

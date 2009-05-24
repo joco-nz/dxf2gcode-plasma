@@ -61,6 +61,8 @@ if wx.VERSION<(2, 8, 9, 1, ''):
     
 import wx.aui
 import wx.lib.customtreectrl as CT
+import  wx.lib.mixins.listctrl  as  listmix
+
 from wx.lib.wordwrap import wordwrap
 
 from wx.lib.floatcanvas import FloatCanvas, Resources
@@ -72,6 +74,7 @@ import wx.lib.colourdb
 import locale
 import gettext, ConfigParser, tempfile, subprocess
 from copy import copy
+from math import radians, degrees
 
 from dxf2gcode_inputdlg import VarDlg
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
@@ -119,7 +122,17 @@ trans.install()
 class MyFrameClass(wx.Frame):
     def __init__(self, parent, load_filename=None,id=-1, title='%s, Version: %s' %(APPNAME.capitalize(),VERSION),
                  pos=wx.DefaultPosition, size=(1024, 768),
-                 style=wx.DEFAULT_FRAME_STYLE):       
+                 style=wx.DEFAULT_FRAME_STYLE):  
+                
+         #Skalierung der Kontur
+        self.cont_scale=1.0
+        
+        #Verschiebung der Kontur
+        self.cont_dx=0.0
+        self.cont_dy=0.0
+        
+        #Rotieren um den WP zero
+        self.rotate=0.0
         
         #Uebergabe des load_filenames falls von EMC gestartet
         self.load_filename=load_filename
@@ -160,7 +173,17 @@ class MyFrameClass(wx.Frame):
         self.MyLayersTree = MyLayersTreeClass(self, -1)
 
         #Erstellen des Baums für die verwendeten Layers
-        self.MyLayersTree2 = MyLayersTreeClass(self, -1)
+        self.MySelectionInfo = MySelectionInfoClass(self, wx.ID_ANY,
+                                 style=wx.LC_REPORT 
+                                 #| wx.BORDER_SUNKEN
+                                 | wx.BORDER_NONE
+                                 | wx.LC_EDIT_LABELS
+                                 | wx.LC_SORT_ASCENDING
+                                 #| wx.LC_NO_HEADER
+                                 #| wx.LC_VRULES
+                                 #| wx.LC_HRULES
+                                 #| wx.LC_SINGLE_SEL
+                                 )
         
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
         self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic,self.MyMessages,
@@ -179,7 +202,7 @@ class MyFrameClass(wx.Frame):
                           Caption(_("Layers")).Floatable(True). 
                           Resizable(False).
                           Left().CloseButton(False))
-        self._mgr.AddPane(self.MyLayersTree2,wx.aui.AuiPaneInfo(). 
+        self._mgr.AddPane(self.MySelectionInfo,wx.aui.AuiPaneInfo(). 
                           Caption(_("Selection Info")).Floatable(True). 
                           Resizable(False).
                           Left().Bottom().CloseButton(False))
@@ -247,6 +270,7 @@ class MyFrameClass(wx.Frame):
         optionmenu.AppendSeparator()
         optionmenu.Append(402,_("Scale contours"), _("Scale all elements by factor"))
         optionmenu.Append(403, _("Move workpiece zero"), _("Offset the workpiece zero of the drawing"))
+        optionmenu.Append(404, _("Rotate workpiece zero"), _("Rotate all elements about workpiece zero"))
         
         menuBar.Append(optionmenu, _("Options"))
                 
@@ -274,6 +298,7 @@ class MyFrameClass(wx.Frame):
         self.Bind(wx.EVT_MENU, self.GetContTol, id=401)
         self.Bind(wx.EVT_MENU, self.GetContScale, id=402)
         self.Bind(wx.EVT_MENU, self.MoveWpZero, id=403)
+        self.Bind(wx.EVT_MENU, self.RotateWpZero, id=404)
         
         #Helpmenu
         self.Bind(wx.EVT_MENU, self.ShowAbout, id=501)
@@ -294,6 +319,7 @@ class MyFrameClass(wx.Frame):
         self.optionmenu.Enable(401,False)
         self.optionmenu.Enable(402,False)
         self.optionmenu.Enable(403,False)
+        self.optionmenu.Enable(404,False)
         
     def EnableAllMenues(self):
         #Exportmenu
@@ -309,6 +335,7 @@ class MyFrameClass(wx.Frame):
         self.optionmenu.Enable(401,True)
         self.optionmenu.Enable(402,True)
         self.optionmenu.Enable(403,True)
+        self.optionmenu.Enable(404,True)
     # Callback des Menu Punkts File Laden
     def GetLoadFile(self,event):
                 
@@ -371,14 +398,7 @@ class MyFrameClass(wx.Frame):
         insert_nr=self.values.entities.get_insert_nr()
         self.MyMessages.prt(_('\nLoaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
                              %(len(self.values.entities.geo),len(self.values.entities.cont),layers,insert_nr))
-
-        #Skalierung der Kontur
-        self.cont_scale=1.0
-        
-        #Verschiebung der Kontur
-        self.cont_dx=0.0
-        self.cont_dy=0.0
-        
+ 
         #Einschalten der disabled Menus
         self.EnableAllMenues()
 
@@ -387,7 +407,7 @@ class MyFrameClass(wx.Frame):
                                     p0=PointClass(x=self.cont_dx,y=self.cont_dy),
                                     pb=PointClass(x=0,y=0),
                                     sca=[self.cont_scale,self.cont_scale,self.cont_scale],
-                                    rot=0.0)
+                                    rot=self.rotate)
 
         #Loeschen alter Route Menues
         self.del_route_and_menuentry(None)
@@ -440,7 +460,7 @@ class MyFrameClass(wx.Frame):
                                     p0=PointClass(x=self.cont_dx,y=self.cont_dy),
                                     pb=PointClass(0,0),
                                     sca=[self.cont_scale,self.cont_scale,self.cont_scale],
-                                    rot=0.0)
+                                    rot=self.rotate)
         self.MyMessages.prt(_("\nScaled Contours by factor %0.3f") %self.cont_scale)
       
        
@@ -473,12 +493,44 @@ class MyFrameClass(wx.Frame):
                                     p0=PointClass(x=self.cont_dx,y=self.cont_dy),
                                     pb=PointClass(x=0,y=0),
                                     sca=[self.cont_scale,self.cont_scale,self.cont_scale],
-                                    rot=0.0)
+                                    rot=self.rotate)
         
         self.MyMessages.prt(_("\nMoved worpiece zero  by offset: %s %0.2f; %s %0.2f") \
                               %(self.MyConfig.ax1_letter,self.cont_dx,
                                 self.MyConfig.ax2_letter,self.cont_dy))
 
+    def RotateWpZero(self,event):
+  
+        title=_('Rotate about WP zero')
+        label=[_("Rotate by deg:")]
+        value=["%0.2f" %degrees(self.rotate)]
+
+        chform = VarDlg(None, -1,title,label,value)
+        chform.ShowModal()
+        
+        #Abbruch falls Cancel gedrückt wurde
+        if chform.ReturnCode==wx.ID_CANCEL:
+            return
+        
+        values=chform.GetValue()
+
+        self.rotate=radians(float(values[0]))
+
+        #Falls noch kein File geladen wurde nichts machen
+        if self.load_filename is None:
+            return
+  
+        #Falls noch kein File geladen wurde nichts machen
+        if self.load_filename is None:
+            return
+        self.MyCanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(x=0,y=0),
+                                    sca=[self.cont_scale,self.cont_scale,self.cont_scale],
+                                    rot=self.rotate)
+        
+        self.MyMessages.prt(_("\nRotated about WP zero: %0.2fdeg") \
+                              %(degrees(self.rotate)))
 
     def GetSaveFile(self,event):
         
@@ -788,6 +840,10 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
         pt = event.GetPosition()
         self.item, flags = self.HitTest(pt)
 
+        #Wenn nicht mit Ctrl gedrück den Rest aus Selection nehmen
+        if not(event.ControlDown()):
+            self.UnselectAll()
+
         if not(self.item in self.GetSelections()) and not(self.item==None):
             self.SelectItem(self.item)
      
@@ -799,10 +855,6 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
         if item==None:
             event.Skip()
             return
-
-#        if not self.IsItemEnabled(item):
-#            event.Skip()
-#            return
 
         #Contextmenu zu den ausgewählten Items
         menu = wx.Menu()
@@ -864,7 +916,7 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
         for LayerContent in LayerContents:
             child = self.AppendItem(self.root,('Layer Nr: %i, %s' 
                                     %(LayerContent.LayerNr, LayerContent.LayerName)))
-            self.SetPyData(child, None)
+            self.SetPyData(child, LayerContent)
             self.SetItemImage(child, 0, CT.TreeItemIcon_Normal)
             self.SetItemImage(child, 0, CT.TreeItemIcon_Expanded)
 
@@ -872,7 +924,7 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
             for Shape in LayerContent.Shapes:
                 
                 last = self.AppendItem(child,('Shape Nr: %i' %Shape.nr))  
-                self.SetPyData(last, None)
+                self.SetPyData(last, Shape)
                 self.SetItemImage(last, 1, CT.TreeItemIcon_Normal)
                 self.SetItemImage(last, 1, CT.TreeItemIcon_Expanded)
                     
@@ -881,6 +933,10 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
     def OnRightDown(self, event):
         pt = event.GetPosition()
         self.item, flags = self.HitTest(pt)
+
+        #Wenn nicht mit Ctrl gedrück den Rest aus Selection nehmen
+        if not(event.ControlDown()):
+            self.UnselectAll()
 
         if not(self.item in self.GetSelections()) and not(self.item==None):
             self.SelectItem(self.item)
@@ -911,9 +967,24 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
         
         
     def OnSelChanged(self, event):
-        print self.GetSelections() 
-        print 'Selection Changed'
+        sel_items=[]
+        for selection in self.GetSelections():
+            item=self.GetItemPyData(selection)
+            sel_items+=self.GetItemShapes(item)
+
+                  
+        self.MyCanvasContent.change_selection(sel_items)
         
+    def GetItemShapes(self,item):
+        SelShapes=[]
+        if item.type=="Shape":
+            SelShapes.append(item)
+            
+        elif item.type=="Layer":
+            for shape in item.Shapes:
+                SelShapes+=self.GetItemShapes(shape)
+          
+        return SelShapes
 
 class MyGraphicClass(wx.Panel):
     def __init__(self, parent, id):
@@ -1513,7 +1584,9 @@ class MyCanvasContentClass:
 
         #Falls er nicht gefunden wurde neuen erstellen
         LayerName=self.values.layers[lay_nr].name
-        self.LayerContents.append(MyLayerContentClass(lay_nr,LayerName,[shape_nr]))
+        self.LayerContents.append(MyLayerContentClass(LayerNr=lay_nr,
+                                                    LayerName=LayerName,
+                                                    Shapes=[shape_nr]))
         
 
 
@@ -1679,7 +1752,8 @@ class MyCanvasContentClass:
 
       
 class MyLayerContentClass:
-    def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
+    def __init__(self,type='Layer',LayerNr=None,LayerName='',Shapes=[]):
+        self.type=type
         self.LayerNr=LayerNr
         self.LayerName=LayerName
         self.Shapes=Shapes
@@ -1688,11 +1762,25 @@ class MyLayerContentClass:
          return cmp(self.LayerNr, other.LayerNr)
 
     def __str__(self):
-        return '\nLayerNr ->'+str(self.LayerNr)+'\nLayerName ->'+str(self.LayerName)\
-               +'\nShapes ->'+str(self.Shapes)
-    
+        return ('\ntype:        %s' %self.type) +\
+               ('\nLayerNr :      %i' %self.LayerNr) +\
+               ('\nLayerName:     %s' %self.LayerName)+\
+               ('\nShapes:    %s' %self.Shapes)
 
+class MySelectionInfoClass(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
+    def __init__(self, parent, ID, pos=wx.DefaultPosition,
+                 size=wx.Size(300,150), style=0):
+        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
+        listmix.ListCtrlAutoWidthMixin.__init__(self)
+        
+        self.InsertColumn(0, "Entitie Type")
+        self.InsertColumn(1, "Name:")
+        self.InsertColumn(2, "Name:")
 
+        #print help(self)
+        
+        self.Append(('bla1','bla2','bla3'))
+        
 
 class MyConfigClass:
     def __init__(self,MyMessages):
