@@ -7,8 +7,6 @@ class VarDlg(wx.Dialog):
     def __init__(self, parent, id, title,Caption, String):
         wx.Dialog.__init__(self, parent, id, title)
         
-        print Caption
-        print String
         #if not(len(Caption)==len(String)):
         #    raise Exception, "Number of labels different to number of values"
         
@@ -25,6 +23,7 @@ class VarDlg(wx.Dialog):
         btnSizer        = wx.BoxSizer(wx.HORIZONTAL)
 
         for i in range(len(Caption)):
+
             self.label.append(wx.StaticText(self.panel, wx.ID_ANY, Caption[i],size=(-1,-1)))
             self.inputTxt.append(wx.TextCtrl(self.panel, wx.ID_ANY, String[i],size=(60,-1)))
             
