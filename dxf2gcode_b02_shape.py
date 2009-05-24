@@ -103,15 +103,16 @@ class ShapeClass:
         ###und somit sind die Linien nicht mehr anklickbar nur wenn ich die erste Linie einer 
         ###Kontur anklicke funzt das noch. Sollte alle Linien beinhalten Das ganze oben hab ich gemacht um 
         ###keinen Doppelten punkte bei zusammengesetzten Shapes zu erhalten. Somit ergibt sich daraus eine 
-        ###gesamte Polyline für eine zusammengesetze Kontur. Grund dafür sind auch Performance Gründe beim Ausdrucken.
+        ###gesamte Polyline für eine zusammengesetze Kontur. 
+        ###Grund dafür sind auch Performance Gründe beim Ausdrucken.
     def plot_cut_info(self,Canvas,config,length):
         hdls=[]
         hdls.append(self.plot_start(Canvas,length))
         hdls.append(self.plot_end(Canvas,length))
         if self.cut_cor>40:
-            hdls.append(self.plot_cut_cor(Canvas,length))         
             self.make_start_moves(config)
-     
+            hdls+=self.plot_cut_cor(Canvas,length)         
+
         return hdls
             
     def plot_start(self,Canvas=None,length=20):
@@ -130,9 +131,18 @@ class ShapeClass:
         return hdl
     
     
-
+    #Funktion zum drucken der zu fräsenden Kontur mit den Richtungspfeilen usw.
     def plot_cut_cor(self,Canvas=None,length=20):
         start,start_ang=self.get_st_en_points(0)
+
+        #BaseEntitie erstellen um auf oberster Ebene zu Fräsen
+        BaseEntitie=EntitieContentClass(Nr=-1,Name='BaseEntitie',
+                                        parent=None,
+                                        children=[],
+                                        p0=PointClass(x=0.0,y=0.0),
+                                        pb=PointClass(x=0.0,y=0.0),
+                                        sca=[1,1,1],
+                                        rot=0.0)
 
         if self.cut_cor==41:
             start_ang=start_ang+90
@@ -142,13 +152,25 @@ class ShapeClass:
         dx=cos(radians(start_ang))*length
         dy=sin(radians(start_ang))*length
 
-        hdl=Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
+        hdl=[Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
                                 LineWidth=2,
                                 LineColor= "BLUE",
                                 ArrowHeadSize = 18,
-                                ArrowHeadAngle = 18)
+                                ArrowHeadAngle = 18)]
+          
+        points=[]
+        for geo_nr in range(len(self.st_move)):
+            cur_pts=self.st_move[geo_nr].plot2can(BaseEntitie)    
+            if cur_pts==None:
+                pass
+            else:
+                points+=cur_pts[1:len(cur_pts)]
+                
+        if len(self.st_move)>0:
+            hdl.append(Canvas.AddLine(points, LineWidth = 2))
+            
         return hdl
-
+            
     def plot_end(self,Canvas=None,length=20):
         ende,en_angle=self.get_st_en_points(1)
       
@@ -162,6 +184,8 @@ class ShapeClass:
                                 ArrowHeadAngle = 18)
         return hdl
 
+    #Funktion zum erstellen der Einlaufradien usw. Hier könnte man später auch die Fräs
+    #radienkorrektur unterbringen?!
     def make_start_moves(self,config):
         self.st_move=[]
 
@@ -173,23 +197,22 @@ class ShapeClass:
         tool_rad=config.tool_dia/2
     
         #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
-        sp, sa=self.geos[0].get_start_end_points(0)
-        start_cont=(sp*self.parent.sca)+self.parent.p0
+        start,start_ang=self.get_st_en_points(0)
       
         if self.cut_cor==40:              
-            self.st_move.append(start_cont)
+            self.st_move.append(start)
 
         #Fräsradiuskorrektur Links        
         elif self.cut_cor==41:
             #Mittelpunkts für Einlaufradius
-            Oein=start_cont.get_arc_point(sa+90,start_rad+tool_rad)
+            Oein=start.get_arc_point(start_ang+90,start_rad+tool_rad)
             #Startpunkts für Einlaufradius
-            Pa_ein=Oein.get_arc_point(sa+180,start_rad+tool_rad)
+            Pa_ein=Oein.get_arc_point(start_ang+180,start_rad+tool_rad)
             #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(sa+90,start_ver)
+            Pg_ein=Pa_ein.get_arc_point(start_ang+90,start_ver)
             
-            #Eintauchpunkts errechnete Korrektur
-            start_ein=Pg_ein.get_arc_point(sa,tool_rad)
+            #Eintauchpunkt errechnete Korrektur
+            start_ein=Pg_ein.get_arc_point(start_ang,tool_rad)
             self.st_move.append(start_ein)
 
             #Einlaufgerade mit Korrektur
@@ -197,22 +220,22 @@ class ShapeClass:
             self.st_move.append(start_line)
 
             #Einlaufradius mit Korrektur
-            start_rad=ArcGeo(Pa=Pa_ein,Pe=start_cont,O=Oein,r=start_rad+tool_rad,dir=1)
+            start_rad=ArcGeo(Pa=Pa_ein,Pe=start,O=Oein,r=start_rad+tool_rad,dir=1)
             self.st_move.append(start_rad)
             
         #Fräsradiuskorrektur Rechts        
         elif self.cut_cor==42:
 
             #Mittelpunkt für Einlaufradius
-            Oein=start_cont.get_arc_point(sa-90,start_rad+tool_rad)
+            Oein=start.get_arc_point(start_ang-90,start_rad+tool_rad)
             #Startpunkt für Einlaufradius
-            Pa_ein=Oein.get_arc_point(sa+180,start_rad+tool_rad)
-            IJ=Oein-Pa_ein
+            Pa_ein=Oein.get_arc_point(start_ang+180,start_rad+tool_rad)
+            #IJ=Oein-Pa_ein
             #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(sa-90,start_ver)
+            Pg_ein=Pa_ein.get_arc_point(start_ang-90,start_ver)
             
             #Eintauchpunkts errechnete Korrektur
-            start_ein=Pg_ein.get_arc_point(sa,tool_rad)
+            start_ein=Pg_ein.get_arc_point(start_ang,tool_rad)
             self.st_move.append(start_ein)
 
             #Einlaufgerade mit Korrektur
@@ -220,7 +243,7 @@ class ShapeClass:
             self.st_move.append(start_line)
 
             #Einlaufradius mit Korrektur
-            start_rad=ArcGeo(Pa=Pa_ein,Pe=start_cont,O=Oein,r=start_rad+tool_rad,dir=0)
+            start_rad=ArcGeo(Pa=Pa_ein,Pe=start,O=Oein,r=start_rad+tool_rad,dir=0)
             self.st_move.append(start_rad)
     
     def Write_GCode(self,config,postpro):
@@ -230,6 +253,15 @@ class ShapeClass:
         
         #Werkzeugdurchmesser in Radius umrechnen        
         tool_rad=config.tool_dia/2
+        
+        #BaseEntitie erstellen um auf oberster Ebene zu Fräsen
+        BaseEntitie=EntitieContentClass(Nr=-1,Name='BaseEntitie',
+                                        parent=None,
+                                        children=[],
+                                        p0=PointClass(x=0.0,y=0.0),
+                                        pb=PointClass(x=0.0,y=0.0),
+                                        sca=[1,1,1],
+                                        rot=0.0)
         
         depth=config.axis3_mill_depth
         max_slice=config.axis3_slice_depth
@@ -242,11 +274,7 @@ class ShapeClass:
 
 
         #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-        self.st_move[0].Write_GCode([1,1,1],\
-                                    PointClass(x=0,y=0),\
-                                    PointClass(x=0,y=0),
-                                    0.0,\
-                                    postpro)
+        self.st_move[0].Write_GCode(parent=BaseEntitie,postpro=postpro)
         
         postpro.rap_pos_z(config.axis3_safe_margin)
         postpro.chg_feed_rate(config.F_G1_Depth)
@@ -258,29 +286,19 @@ class ShapeClass:
             
             #Errechnen des Startpunkts ohne Werkzeug Kompensation
             #und einschalten der Kompensation     
-            start_cor, sa=self.st_move[1].get_start_end_points(0)
-            postpro.set_cut_cor(self.cut_cor,start_cor)
+            start,start_ang=self.get_st_en_points(0)
+            postpro.set_cut_cor(self.cut_cor,start)
             
-            self.st_move[1].Write_GCode([1,1,1],\
-                                    PointClass(x=0,y=0),\
-                                    PointClass(x=0,y=0),
-                                    0.0,\
-                                    postpro)
-            
-            self.st_move[2].Write_GCode([1,1,1],\
-                                    PointClass(x=0,y=0),\
-                                    PointClass(x=0,y=0),
-                                    0.0,\
-                                    postpro)
+            self.st_move[1].Write_GCode(parent=BaseEntitie,postpro=postpro)
+            self.st_move[2].Write_GCode(parent=BaseEntitie,postpro=postpro)
 
         #Schreiben der Geometrien für den ersten Schnitt
         for geo in self.geos:
-            geo.Write_GCode(self.sca,self.p0,self.rot,postpro)
+            geo.Write_GCode(BaseEntitie,postpro)
 
         #Ausschalten der Fräsradiuskorrektur
         if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
-            en_point, en_angle=self.geos[-1].get_start_end_points(-1)
-            end_cont=(en_point*self.sca)+self.p0
+            ende,en_angle=self.get_st_en_points(1)
             if self.cut_cor==41:
                 pos_cut_out=end_cont.get_arc_point(en_angle-90,tool_rad)
             elif self.cut_cor==42:
@@ -310,22 +328,16 @@ class ShapeClass:
             if ((not(self.cut_cor==40))&(self.closed==0))or(postpro.cancel_cc_for_depth==1):
                 #Errechnen des Startpunkts ohne Werkzeug Kompensation
                 #und einschalten der Kompensation     
-                sp, sa=self.geos[0].get_start_end_points(0)
-                start_cor=(sp*self.sca)+self.p0
-                postpro.set_cut_cor(self.cut_cor,start_cor)
+                postpro.set_cut_cor(self.cut_cor,start)
                 
             for geo_nr in range(len(self.geos)):
-                self.geos[geo_nr].Write_GCode(self.entitie.sca,self.entitie.p0,
-                                                self.entitie.pb,
-                                                self.entitie.rot,postpro)
+                self.geos[geo_nr].Write_GCode(BaseEntitie,postpro)
 
             #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
-            en_point, en_angle=self.geos[-1].get_start_end_points(-1)
-            en_point=(en_point*self.sca)+self.p0
             if self.cut_cor==41:
-                en_point=en_point.get_arc_point(en_angle-90,tool_rad)
+                ende=en_point.get_arc_point(en_angle-90,tool_rad)
             elif self.cut_cor==42:
-                en_point=en_point.get_arc_point(en_angle+90,tool_rad)
+                ende=en_point.get_arc_point(en_angle+90,tool_rad)
 
             #Ausschalten der Fräsradiuskorrektur falls benötigt          
             if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):         

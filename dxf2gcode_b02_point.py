@@ -74,9 +74,12 @@ class PointClass:
         return PointClass(x=self.x+cos(radians(ang))*r,\
                           y=self.y+sin(radians(ang))*r)
 
-    def Write_GCode(self,sca,p0,rot,postpro):
-        point=self.rot_sca_abs(sca=sca,p0=p0,pb=PointClass(0,0),rot=0.0)
+    def Write_GCode(self,parent=None,postpro=None):
+        point=self.rot_sca_abs(parent=parent)
         return postpro.rap_pos_xy(point)
+    
+    def plot2can(self,EntitieContent):
+        pass
     
     def triangle_height(self,other1,other2):
         #Die 3 Längen des Dreiecks ausrechnen
@@ -405,12 +408,11 @@ class ArcGeo:
                 
         return rot_ang
 
-    def Write_GCode(self,sca,p0,rot,postpro):
-        st_point, st_angle=self.get_start_end_points(0)
-        IJ=(self.O-st_point)*sca
+    def Write_GCode(self,parent=None,postpro=None):
+        st_point, st_angle=self.get_start_end_points(0,parent)
+        IJ=(self.O.rot_sca_abs(parent)-st_point)
         
-        en_point, en_angle=self.get_start_end_points(1)
-        ende=en_point*sca+p0
+        en_point, en_angle=self.get_start_end_points(1,parent)
         
         #Vorsicht geht nicht für Ovale
         if (self.ext>0):
@@ -512,10 +514,8 @@ class LineGeo:
             angle=degrees(punkt.norm_angle(punkt_a))
         return punkt, angle
     
-    def Write_GCode(self,sca,p0,rot,postpro):
-        en_point, en_angle=self.get_start_end_points(1)
-        ende=en_point*sca+p0
-        #return("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
+    def Write_GCode(self,parent=None,postpro=None):
+        ende, end_ang=self.get_start_end_points(1,parent)
         return postpro.lin_pol_xy(ende)
     
     def MakeTreeText(self,parent):
