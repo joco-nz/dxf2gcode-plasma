@@ -409,18 +409,24 @@ class ArcGeo:
         return rot_ang
 
     def Write_GCode(self,parent=None,postpro=None):
-        st_point, st_angle=self.get_start_end_points(0,parent)
-        IJ=(self.O.rot_sca_abs(parent)-st_point)
+        anf, anf_ang=self.get_start_end_points(0,parent)
+        O=self.O.rot_sca_abs(parent=parent)
+        IJ=(O-anf)
+        ende, en_ang=self.get_start_end_points(1,parent)
         
-        en_point, en_angle=self.get_start_end_points(1,parent)
+        s_ang=self.rot_angle(self.s_ang,parent)
+        e_ang=self.rot_angle(self.e_ang,parent)
         
+
         #Vorsicht geht nicht für Ovale
         if (self.ext>0):
             #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("ccw",ende,IJ)
-        else:
+            string=postpro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,O,IJ)
+        elif (self.ext<0) and not(postpro.export_ccw_arcs_only):
+            string=postpro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,O,(O-ende))
+        elif postpro.export_ccw_arcs_only:
             #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("cw",ende,IJ)
+            string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,O,IJ)
         return string  
     
     def MakeTreeText(self,parent):
@@ -515,8 +521,9 @@ class LineGeo:
         return punkt, angle
     
     def Write_GCode(self,parent=None,postpro=None):
+        anf, anf_ang=self.get_start_end_points(0,parent)
         ende, end_ang=self.get_start_end_points(1,parent)
-        return postpro.lin_pol_xy(ende)
+        return postpro.lin_pol_xy(anf,ende)
     
     def MakeTreeText(self,parent):
         textctrl = wx.TextCtrl(parent, -1, "", 

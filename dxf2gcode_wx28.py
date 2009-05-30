@@ -672,12 +672,12 @@ class MyFrameClass(wx.Frame):
         self.viewmenu.Enable(304,True)
 
     def del_route_and_menuentry(self,event):
-        #try:
-        self.viewmenu.Enable(304,False)
-        self.MyCanvasContent.delete_opt_path()
-        self.MyGraphic.Canvas.Draw(Force=True)
-        #except:
-        #    pass
+        try:
+            self.viewmenu.Enable(304,False)
+            self.MyCanvasContent.delete_opt_path()
+            self.MyGraphic.Canvas.Draw(Force=True)
+        except:
+            pass
         
     def ShowAbout(self,event):
         ShowAboutInfoClass(self) 
@@ -687,33 +687,25 @@ class MyFrameClass(wx.Frame):
         self._mgr.UnInit()
         #Den Frame löschen
         self.Destroy()
-      
-
-
-
-        
+              
 class MyMessagesClass(wx.TextCtrl):
     def __init__(self,parent,id):
         wx.TextCtrl.__init__(self,parent,id,'',
                             wx.DefaultPosition, wx.Size(200,100),
                             wx.SUNKEN_BORDER | wx.TE_MULTILINE | wx.TE_READONLY)
                             
-
         self.DEBUG=DEBUG
                             
-
         
         self.prt(_('%s, Version: %s' %(APPNAME.capitalize(),VERSION)))
         self.begpos=self.GetLastPosition()
-
-  
+        
         #Binding fuer Contextmenu
         self.Bind(wx.EVT_RIGHT_DOWN, self.TextContextmenu)
 
     def SetDebuglevel(self,DEBUG=0):
         self.DEBUG=DEBUG
-#        if DEBUG:
-#            self.MyMessages.config(height=15)
+
             
     def prt(self,text='',DEBUGLEVEL=0):
 
@@ -826,15 +818,6 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
                         self.EnableItem(treechild1,False)
 
            
-#            for Shape in EntitieContent.Shapes:
-#                print Shape
-#                last = self.AppendItem(child,('Shape Nr: %i' %Shape.nr))  
-#                self.SetPyData(last, None)
-#                self.SetItemImage(last, 0, CT.TreeItemIcon_Normal)
-#                self.SetItemImage(last, 0, CT.TreeItemIcon_Expanded)
-    
-#                    
-
     #Item hinzufügen falls es noch nicht selektiert ist
     def OnRightDown(self, event):
         pt = event.GetPosition()
@@ -949,10 +932,6 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
         if item==None:
             event.Skip()
             return
-
-#        if not self.IsItemEnabled(item):
-#            event.Skip()
-#            return
 
         #Contextmenu zu den ausgewählten Items
         menu = wx.Menu()
@@ -1588,9 +1567,6 @@ class MyCanvasContentClass:
                                                     LayerName=LayerName,
                                                     Shapes=[shape_nr]))
         
-
-
-  
     def change_selection(self,sel_shapes):
         if self.MyGraphic.lastkey==0:
             
@@ -1724,7 +1700,6 @@ class MyCanvasContentClass:
         self.set_color(s_shapes,s_color)
         
 
-
     def set_color(self,shapes,color):
         for shape in shapes:
             shape.geo_hdl.SetLineColor(color)
@@ -1737,19 +1712,6 @@ class MyCanvasContentClass:
         for shape in shapes:
             shape.geo_hdl.Visible = True   
             
-    #
-#    def move_wp_zero(self,delta_dx,delta_dy):
-#        self.dx=self.dx-delta_dx
-#        self.dy=self.dy-delta_dy
-#
-#        #Verschieben der Shapes 
-#        for shape in self.Content.Shapes:
-#            shape.p0-=PointClass(x=delta_dx,y=delta_dy)
-#
-#        #Update des Nullpunkts auf neue Koordinaten
-#        self.Content.plot_wp_zero()
-#        
-
       
 class MyLayerContentClass:
     def __init__(self,type='Layer',LayerNr=None,LayerName='',Shapes=[]):
@@ -1776,8 +1738,6 @@ class MySelectionInfoClass(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         self.InsertColumn(0, "Entitie Type")
         self.InsertColumn(1, "Name:")
         self.InsertColumn(2, "Name:")
-
-        #print help(self)
         
         self.Append(('bla1','bla2','bla3'))
         
@@ -1932,6 +1892,7 @@ class MyConfigClass:
             for option in self.parser.options(section): 
                 str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
         return str
+    
 class MyPostprocessorClass:
     def __init__(self,config=None,MyMessages=None):
         self.string=''
@@ -1963,6 +1924,7 @@ class MyPostprocessorClass:
             self.abs_export=int(self.parser.get('General', 'abs_export'))
             self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
             self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
+            self.export_ccw_arcs_only=int(self.parser.get('General', 'export_ccw_arcs_only'))
             self.gcode_be=self.parser.get('General', 'code_begin')
             self.gcode_en=self.parser.get('General', 'code_end')
 
@@ -1990,27 +1952,39 @@ class MyPostprocessorClass:
             self.cut_comp_right_str=self.parser.get('Program','cutter_comp_right')                        
                             
             self.feed=0
-            self.x=self.config.axis1_st_en
-            self.y=self.config.axis2_st_en
-            self.z=self.config.axis3_retract
-            self.lx=self.x
-            self.ly=self.y
-            self.lz=self.z
+            self.xe=self.config.axis1_st_en
+            self.ye=self.config.axis2_st_en
+            self.xa=self.config.axis1_st_en
+            self.ya=self.config.axis2_st_en
+            self.ze=self.config.axis3_retract
+            self.lx=self.xe
+            self.ly=self.ye
+            self.lz=self.ze
             self.i=0.0
             self.j=0.0
+            self.a_ang=0.0
+            self.e_ang=0.0
 
             self.vars={"%feed":'self.iprint(self.feed)',\
                        "%nl":'self.nlprint()',\
-                       "%X":'self.fnprint(self.x)',\
-                       "%-X":'self.fnprint(-self.x)',\
-                       "%Y":'self.fnprint(self.y)',\
-                       "%-Y":'self.fnprint(-self.y)',\
-                       "%Z":'self.fnprint(self.z)',\
-                       "%-Z":'self.fnprint(-self.z)',\
+                       "%XE":'self.fnprint(self.xe)',\
+                       "%-XE":'self.fnprint(-self.xe)',\
+                       "%XA":'self.fnprint(self.xa)',\
+                       "%-XA":'self.fnprint(-self.xa)',\
+                       "%YE":'self.fnprint(self.ye)',\
+                       "%-YE":'self.fnprint(-self.ye)',\
+                       "%YA":'self.fnprint(self.ya)',\
+                       "%-YA":'self.fnprint(-self.ya)',\
+                       "%ZE":'self.fnprint(self.ze)',\
+                       "%-ZE":'self.fnprint(-self.ze)',\
                        "%I":'self.fnprint(self.i)',\
                        "%-I":'self.fnprint(-self.i)',\
                        "%J":'self.fnprint(self.j)',\
-                       "%-J":'self.fnprint(-self.j)'}
+                       "%-J":'self.fnprint(-self.j)',\
+                       "%AngA":'self.fnprint(degrees(self.a_ang))',\
+                       "%-AngA":'self.fnprint(degrees(-self.a_ang))',\
+                       "%AngE":'self.fnprint(degrees(self.e_ang))',\
+                       "%-AngE":'self.fnprint(degrees(-self.e_ang))'}
 
         except:
             dial=wx.MessageDialog(None, _("Please delete or correct\n %s")\
@@ -2025,6 +1999,7 @@ class MyPostprocessorClass:
         self.parser.set('General', 'abs_export', 1)
         self.parser.set('General', 'write_to_stdout', 0)
         self.parser.set('General', 'cancel_cc_for_depth', 0)
+        self.parser.set('General', 'export_ccw_arcs_only',0)
    
         self.parser.set('General', 'code_begin',\
                         'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
@@ -2054,17 +2029,17 @@ class MyPostprocessorClass:
         self.parser.set('Program','feed_change',\
                         ('F%feed%nl'))
         self.parser.set('Program','rap_pos_plane',\
-                        ('G0 X%X Y%Y%nl'))
+                        ('G0 X%XE Y%YE%nl'))
         self.parser.set('Program','rap_pos_depth',\
-                        ('G0 Z%Z %nl'))
+                        ('G0 Z%ZE %nl'))
         self.parser.set('Program','lin_mov_plane',\
-                        ('G1 X%X Y%Y%nl'))
+                        ('G1 X%XE Y%YE%nl'))
         self.parser.set('Program','lin_mov_depth',\
-                        ('G1 Z%Z%nl'))
+                        ('G1 Z%ZE%nl'))
         self.parser.set('Program','arc_int_cw',\
-                        ('G2 X%X Y%Y I%I J%J%nl'))
+                        ('G2 X%XE Y%YE I%I J%J%nl'))
         self.parser.set('Program','arc_int_ccw',\
-                        ('G3 X%X Y%Y I%I J%J%nl'))
+                        ('G3 X%XE Y%YE I%I J%J%nl'))
         self.parser.set('Program','cutter_comp_off',\
                         ('G40%nl'))
         self.parser.set('Program','cutter_comp_left',\
@@ -2117,13 +2092,13 @@ class MyPostprocessorClass:
         self.cut_cor=cut_cor
 
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
+            self.xe=newpos.x-self.lx
             self.lx=newpos.x
-            self.y=newpos.y-self.ly
+            self.ye=newpos.y-self.ly
             self.ly=newpos.y
         else:
-            self.x=newpos.x
-            self.y=newpos.y  
+            self.xe=newpos.x
+            self.ye=newpos.y  
 
         if cut_cor==41:
             self.string+=self.make_print_str(self.cut_comp_left_str)
@@ -2132,27 +2107,36 @@ class MyPostprocessorClass:
 
     def deactivate_cut_cor(self,newpos):
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
+            self.xe=newpos.x-self.lx
             self.lx=newpos.x
-            self.y=newpos.y-self.ly
+            self.ye=newpos.y-self.ly
             self.ly=newpos.y
         else:
-            self.x=newpos.x
-            self.y=newpos.y   
+            self.xe=newpos.x
+            self.ye=newpos.y   
         self.string+=self.make_print_str(self.cut_comp_off_str)
             
-    def lin_pol_arc(self,dir,ende,IJ):
+    def lin_pol_arc(self,dir,anf,ende,a_ang,e_ang,O,IJ):
+        self.xO=O.x
+        self.yO=O.y
+        
+        self.i=IJ.x
+        self.j=IJ.y
+        
+        self.a_ang=a_ang
+        self.e_ang=e_ang
+        
+        self.xa=anf.x
+        self.ya=anf.y
+        
         if not(self.abs_export):
-            self.x=ende.x-self.lx
-            self.y=ende.y-self.lx
+            self.xe=ende.x-self.lx
+            self.ye=ende.y-self.lx
             self.lx=ende.x
             self.ly=ende.y
         else:
-            self.x=ende.x
-            self.y=ende.y
-
-        self.i=IJ.x
-        self.j=IJ.y
+            self.xe=ende.x
+            self.ye=ende.y
 
         if dir=='cw':
             self.string+=self.make_print_str(self.arc_int_cw)
@@ -2162,42 +2146,45 @@ class MyPostprocessorClass:
           
     def rap_pos_z(self,z_pos):
         if not(self.abs_export):
-            self.z=z_pos-self.lz
+            self.ze=z_pos-self.lz
             self.lz=z_pos
         else:
-            self.z=z_pos
+            self.ze=z_pos
 
         self.string+=self.make_print_str(self.rap_pos_depth_str)           
          
     def rap_pos_xy(self,newpos):
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
+            self.xe=newpos.x-self.lx
             self.lx=newpos.x
-            self.y=newpos.y-self.ly
+            self.ye=newpos.y-self.ly
             self.ly=newpos.y
         else:
-            self.x=newpos.x
-            self.y=newpos.y
+            self.xe=newpos.x
+            self.ye=newpos.y
 
         self.string+=self.make_print_str(self.rap_pos_plane_str)         
     
     def lin_pol_z(self,z_pos):
         if not(self.abs_export):
-            self.z=z_pos-self.lz
+            self.ze=z_pos-self.lz
             self.lz=z_pos
         else:
-            self.z=z_pos
+            self.ze=z_pos
 
-        self.string+=self.make_print_str(self.lin_mov_depth_str)      
-    def lin_pol_xy(self,newpos):
+        self.string+=self.make_print_str(self.lin_mov_depth_str)     
+        
+    def lin_pol_xy(self,start,ende):
+        self.xa=start.x
+        self.ya=start.y
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
-            self.lx=newpos.x
-            self.y=newpos.y-self.ly
-            self.ly=newpos.y
+            self.xe=ende.x-self.lx
+            self.lx=ende.x
+            self.ye=ende.y-self.ly
+            self.ly=ende.y
         else:
-            self.x=newpos.x
-            self.y=newpos.y
+            self.xe=ende.x
+            self.ye=ende.y
 
         self.string+=self.make_print_str(self.lin_mov_plane_str)       
 
