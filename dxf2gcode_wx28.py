@@ -1952,35 +1952,47 @@ class MyPostprocessorClass:
             self.cut_comp_right_str=self.parser.get('Program','cutter_comp_right')                        
                             
             self.feed=0
-            self.xe=self.config.axis1_st_en
-            self.ye=self.config.axis2_st_en
-            self.xa=self.config.axis1_st_en
-            self.ya=self.config.axis2_st_en
-            self.ze=self.config.axis3_retract
-            self.lx=self.xe
-            self.ly=self.ye
-            self.lz=self.ze
-            self.i=0.0
-            self.j=0.0
+            self.Pe=PointClass( x=self.config.axis1_st_en,
+                                y=self.config.axis2_st_en)
+            self.Pa=PointClass(  x=self.config.axis1_st_en,
+                                y=self.config.axis2_st_en)
+            
+            self.lPe=PointClass( x=self.config.axis1_st_en,
+                                y=self.config.axis2_st_en)
+                                
+            self.IJ=PointClass( x=0.0,y=0.0)
+            self.O=PointClass( x=0.0,y=0.0)
+            self.r=0.0
             self.a_ang=0.0
             self.e_ang=0.0
+            
+            self.ze=self.config.axis3_retract
+            self.lz=self.ze
+
+
+            
 
             self.vars={"%feed":'self.iprint(self.feed)',\
                        "%nl":'self.nlprint()',\
-                       "%XE":'self.fnprint(self.xe)',\
-                       "%-XE":'self.fnprint(-self.xe)',\
-                       "%XA":'self.fnprint(self.xa)',\
-                       "%-XA":'self.fnprint(-self.xa)',\
-                       "%YE":'self.fnprint(self.ye)',\
-                       "%-YE":'self.fnprint(-self.ye)',\
-                       "%YA":'self.fnprint(self.ya)',\
-                       "%-YA":'self.fnprint(-self.ya)',\
+                       "%XE":'self.fnprint(self.Pe.x)',\
+                       "%-XE":'self.fnprint(-self.Pe.x)',\
+                       "%XA":'self.fnprint(self.Pa.x)',\
+                       "%-XA":'self.fnprint(-self.Pa.x)',\
+                       "%YE":'self.fnprint(self.Pe.y)',\
+                       "%-YE":'self.fnprint(-self.Pe.y)',\
+                       "%YA":'self.fnprint(self.Pa.y)',\
+                       "%-YA":'self.fnprint(-self.Pa.y)',\
                        "%ZE":'self.fnprint(self.ze)',\
                        "%-ZE":'self.fnprint(-self.ze)',\
-                       "%I":'self.fnprint(self.i)',\
-                       "%-I":'self.fnprint(-self.i)',\
-                       "%J":'self.fnprint(self.j)',\
-                       "%-J":'self.fnprint(-self.j)',\
+                       "%I":'self.fnprint(self.IJ.x)',\
+                       "%-I":'self.fnprint(-self.IJ.x)',\
+                       "%J":'self.fnprint(self.IJ.y)',\
+                       "%-J":'self.fnprint(-self.IJ.y)',\
+                       "%XO":'self.fnprint(self.O.x)',\
+                       "%-XO":'self.fnprint(-self.O.x)',\
+                       "%YO":'self.fnprint(self.O.y)',\
+                       "%-YO":'self.fnprint(-self.O.y)',\
+                       "%R":'self.fnprint(self.r)',\
                        "%AngA":'self.fnprint(degrees(self.a_ang))',\
                        "%-AngA":'self.fnprint(degrees(-self.a_ang))',\
                        "%AngE":'self.fnprint(degrees(self.e_ang))',\
@@ -2092,51 +2104,40 @@ class MyPostprocessorClass:
         self.cut_cor=cut_cor
 
         if not(self.abs_export):
-            self.xe=newpos.x-self.lx
-            self.lx=newpos.x
-            self.ye=newpos.y-self.ly
-            self.ly=newpos.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.xe=newpos.x
-            self.ye=newpos.y  
+            self.Pe=Pe
 
         if cut_cor==41:
             self.string+=self.make_print_str(self.cut_comp_left_str)
         elif cut_cor==42:
             self.string+=self.make_print_str(self.cut_comp_right_str)
 
-    def deactivate_cut_cor(self,newpos):
+    def deactivate_cut_cor(self,Pe):
         if not(self.abs_export):
-            self.xe=newpos.x-self.lx
-            self.lx=newpos.x
-            self.ye=newpos.y-self.ly
-            self.ly=newpos.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.xe=newpos.x
-            self.ye=newpos.y   
+            self.Pe=Pe   
         self.string+=self.make_print_str(self.cut_comp_off_str)
             
-    def lin_pol_arc(self,dir,anf,ende,a_ang,e_ang,O,IJ):
-        self.xO=O.x
-        self.yO=O.y
+    def lin_pol_arc(self,dir,Pa,Pe,a_ang,e_ang,R,O,IJ):
+        self.O=O
         
-        self.i=IJ.x
-        self.j=IJ.y
+        self.IJ=IJ
         
         self.a_ang=a_ang
         self.e_ang=e_ang
         
-        self.xa=anf.x
-        self.ya=anf.y
+        self.Pa=Pa
+        self.r=R
         
         if not(self.abs_export):
-            self.xe=ende.x-self.lx
-            self.ye=ende.y-self.lx
-            self.lx=ende.x
-            self.ly=ende.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.xe=ende.x
-            self.ye=ende.y
+            self.Pe=Pe
 
         if dir=='cw':
             self.string+=self.make_print_str(self.arc_int_cw)
@@ -2153,15 +2154,12 @@ class MyPostprocessorClass:
 
         self.string+=self.make_print_str(self.rap_pos_depth_str)           
          
-    def rap_pos_xy(self,newpos):
+    def rap_pos_xy(self,Pe):
         if not(self.abs_export):
-            self.xe=newpos.x-self.lx
-            self.lx=newpos.x
-            self.ye=newpos.y-self.ly
-            self.ly=newpos.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.xe=newpos.x
-            self.ye=newpos.y
+            self.Pe=Pe
 
         self.string+=self.make_print_str(self.rap_pos_plane_str)         
     
@@ -2174,17 +2172,13 @@ class MyPostprocessorClass:
 
         self.string+=self.make_print_str(self.lin_mov_depth_str)     
         
-    def lin_pol_xy(self,start,ende):
-        self.xa=start.x
-        self.ya=start.y
+    def lin_pol_xy(self,Pa,Pe):
+        self.Pa=Pa
         if not(self.abs_export):
-            self.xe=ende.x-self.lx
-            self.lx=ende.x
-            self.ye=ende.y-self.ly
-            self.ly=ende.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.xe=ende.x
-            self.ye=ende.y
+            self.Pe=Pe
 
         self.string+=self.make_print_str(self.lin_mov_plane_str)       
 

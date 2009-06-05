@@ -421,12 +421,12 @@ class ArcGeo:
         #Vorsicht geht nicht für Ovale
         if (self.ext>0):
             #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,O,IJ)
+            string=postpro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,self.r,O,IJ)
         elif (self.ext<0) and not(postpro.export_ccw_arcs_only):
-            string=postpro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,O,(O-ende))
+            string=postpro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,self.r,O,(O-ende))
         elif postpro.export_ccw_arcs_only:
             #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,O,IJ)
+            string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,self.r,O,IJ)
         return string  
     
     def MakeTreeText(self,parent):
