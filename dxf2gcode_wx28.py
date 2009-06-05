@@ -534,21 +534,28 @@ class MyFrameClass(wx.Frame):
 
     def GetSaveFile(self,event):
         
+        if self.MyPostpro.output_format=='g-code':
+            format='.ngc'
+            saveformat = _('EMC2 GCode Files')+'|*.ngc'
+        elif self.MyPostpro.output_format=='dxf':
+            format='_simplified.dxf'
+            saveformat = _('DXF File')+'|*.dxf'
+        
         if not(self.MyPostpro.write_to_stdout):     
 
             #Abbruch falls noch kein File geladen wurde.
             if self.load_filename==None:
                 showwarning(_("Export G-Code"), _("Nothing to export!"))
                 return
-            
-            saveformat = _('EMC2 GCode Files')+'|ngc.*' 
-
+ 
             (beg, ende)=os.path.split(self.load_filename)
             (fileBaseName, fileExtension)=os.path.splitext(ende)
           
             dlg = wx.FileDialog(
                 self, message=_("Save file as ..."), defaultDir=self.MyConfig.load_path, 
-                defaultFile=fileBaseName +'.ngc', wildcard=saveformat, style=wx.SAVE)
+                defaultFile=fileBaseName + format, wildcard=saveformat, style=wx.SAVE)
+                
+            #dlg.SetFilterIndex(filterIndex) 
 
             # This sets the default filter that the user will initially see. Otherwise,
             # the first filter in the list will be used by default.
@@ -1921,6 +1928,7 @@ class MyPostprocessorClass:
 
     def get_all_vars(self):
         try:
+            self.output_format=self.parser.get('General', 'output_format')
             self.abs_export=int(self.parser.get('General', 'abs_export'))
             self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
             self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
@@ -2008,6 +2016,7 @@ class MyPostprocessorClass:
     def make_new_postpro_file(self):
             
         self.parser.add_section('General')
+        self.parser.set('General', 'output_format', 'g-code')
         self.parser.set('General', 'abs_export', 1)
         self.parser.set('General', 'write_to_stdout', 0)
         self.parser.set('General', 'cancel_cc_for_depth', 0)
@@ -2065,9 +2074,13 @@ class MyPostprocessorClass:
 
     def write_gcode_be(self,load_filename):
         #Schreiben in einen String
-        str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
+        if self.output_format=='g-code':
+            str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
+        elif self.output_format=='dxf':
+            str=''
+            
         self.string=(str.encode("utf-8"))
-        
+         
         #Daten aus dem Textfelder an string anhängen
         self.string+=("%s\n" %self.gcode_be)
 
