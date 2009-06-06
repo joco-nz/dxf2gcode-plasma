@@ -399,14 +399,22 @@ class ArcGeo:
     
    
     def rot_angle(self,angle,parent):
-        rot_ang=angle
-    
+
         #Rekursive Schleife falls mehrfach verschachtelt.
         if type(parent)!=type(None):
-            rot_ang=angle+degrees(parent.rot)
-            rot_ang=self.rot_angle(rot_ang,parent.parent)
+            angle=angle+degrees(parent.rot)
+            angle=self.rot_angle(angle,parent.parent)
                 
-        return rot_ang
+        return angle
+    
+    def scaleR(self,sR,parent):
+        
+        #Rekursive Schleife falls mehrfach verschachtelt.
+        if type(parent)!=type(None):
+            sR=sR*parent.sca[0]
+            sR=self.scaleR(sR,parent.parent)
+                
+        return sR
 
     def Write_GCode(self,parent=None,postpro=None):
         anf, anf_ang=self.get_start_end_points(0,parent)
@@ -417,16 +425,17 @@ class ArcGeo:
         s_ang=self.rot_angle(self.s_ang,parent)
         e_ang=self.rot_angle(self.e_ang,parent)
         
+        sR=self.scaleR(self.r,parent)
 
         #Vorsicht geht nicht für Ovale
         if (self.ext>0):
             #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,self.r,O,IJ)
+            string=postpro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,sR,O,IJ)
         elif (self.ext<0) and not(postpro.export_ccw_arcs_only):
-            string=postpro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,self.r,O,(O-ende))
+            string=postpro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,sR,O,(O-ende))
         elif postpro.export_ccw_arcs_only:
             #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,self.r,O,IJ)
+            string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,sR,O,IJ)
         return string  
     
     def MakeTreeText(self,parent):

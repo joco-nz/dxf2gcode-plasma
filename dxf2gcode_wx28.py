@@ -74,7 +74,7 @@ import wx.lib.colourdb
 import locale
 import gettext, ConfigParser, tempfile, subprocess
 from copy import copy
-from math import radians, degrees
+from math import radians, degrees, log, ceil
 
 from dxf2gcode_inputdlg import VarDlg
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
@@ -254,16 +254,18 @@ class MyFrameClass(wx.Frame):
         shapd = viewmenu.Append(302, _("Show all path directions"),\
                     _("Show the path direction of all shapes"), kind=wx.ITEM_CHECK)
         viewmenu.Check(302, False)
-
-        
-        shsds = viewmenu.Append(303, _("Show disabled shapes"),\
+        shgrid = viewmenu.Append(303, _("Show Grid"),\
+                    _("Show the Grid"), kind=wx.ITEM_CHECK)
+        viewmenu.Check(303, True)
+        shsds = viewmenu.Append(304, _("Show disabled shapes"),\
                     _("Show the disabled shapes grayed out"), kind=wx.ITEM_CHECK)
-        viewmenu.Check(303, False) 
+        viewmenu.Check(304, False) 
         viewmenu.AppendSeparator()
 #        viewmenu.Append(304, _("Autoscale"), _("Fit the drawing to the screen"))
 #        viewmenu.AppendSeparator()
-        viewmenu.Append(304, _("Delete Route"), _("Delete the route which was drawn during export"))               
+        viewmenu.Append(305, _("Delete Route"), _("Delete the route which was drawn during export"))               
         menuBar.Append(viewmenu, _("View"))
+        
         
         self.optionmenu=optionmenu= wx.Menu()
         optionmenu.Append(401, _("Set tolerances"), _("Set the tolerances for the dxf import"))
@@ -291,8 +293,9 @@ class MyFrameClass(wx.Frame):
         #Viewmenu
         self.Bind(wx.EVT_MENU, self.MyCanvasContent.plot_wp_zero, id=301)
         self.Bind(wx.EVT_MENU, self.MyCanvasContent.plot_cut_info, id=302)
-        self.Bind(wx.EVT_MENU, self.MyCanvasContent.show_disabled, id=303)
-        self.Bind(wx.EVT_MENU, self.del_route_and_menuentry, id=304)
+        self.Bind(wx.EVT_MENU, self.MyCanvasContent.plot_grid, id=303)
+        self.Bind(wx.EVT_MENU, self.MyCanvasContent.show_disabled, id=304)
+        self.Bind(wx.EVT_MENU, self.del_route_and_menuentry, id=305)
         
         #Optionsmenu
         self.Bind(wx.EVT_MENU, self.GetContTol, id=401)
@@ -312,8 +315,8 @@ class MyFrameClass(wx.Frame):
         self.viewmenu.Enable(301,False)
         self.viewmenu.Enable(302,False)
         self.viewmenu.Enable(303,False)
-        #self.viewmenu.Enable(304,False)
-
+        self.viewmenu.Enable(304,False)
+        self.viewmenu.Enable(305,False)
         
         #Optionsmenu
         self.optionmenu.Enable(401,False)
@@ -330,6 +333,7 @@ class MyFrameClass(wx.Frame):
         self.viewmenu.Enable(302,True)
         self.viewmenu.Enable(303,True)
         self.viewmenu.Enable(304,True)
+        self.viewmenu.Enable(305,True)
         
         #Optionsmenu
         self.optionmenu.Enable(401,True)
@@ -676,11 +680,11 @@ class MyFrameClass(wx.Frame):
         self.MyMessages.prt(("\n%s" %self.TSP),1)
             
         #Einschlaten des Menupunkts zum löschen des optimierten Pfads.
-        self.viewmenu.Enable(304,True)
+        self.viewmenu.Enable(305,True)
 
     def del_route_and_menuentry(self,event):
         try:
-            self.viewmenu.Enable(304,False)
+            self.viewmenu.Enable(305,False)
             self.MyCanvasContent.delete_opt_path()
             self.MyGraphic.Canvas.Draw(Force=True)
         except:
@@ -1020,6 +1024,7 @@ class MyGraphicClass(wx.Panel):
     def ZoomCallback(self):
         self.MyCanvasContent.plot_wp_zero()
         self.MyCanvasContent.plot_cut_info()
+        self.MyCanvasContent.plot_grid()
         
     def OnLeftUp(self,event):
         self.MyCanvasContent.NothingGotHit()
@@ -1325,6 +1330,7 @@ class MyCanvasContentClass:
 
         self.toggle_start_stop=0
         self.toggle_wp_zero=1
+        self.toggle_grid=1
 
         #Zuruecksetzen der Konturen
         self.Shapes=[]
@@ -1346,7 +1352,11 @@ class MyCanvasContentClass:
         
         #Erstellen des Werkstücknullpunkts
         self.autoscale()
+        
+        
+        
         self.plot_wp_zero()
+        self.plot_grid()
         
         #Autoskalieren des Canvas Bereichs
         self.autoscale()
@@ -1450,6 +1460,24 @@ class MyCanvasContentClass:
                 InsideList.append(shape)
         self.change_selection(InsideList)
              
+            
+    def plot_grid(self,event=None):
+        
+        if not(event==None):
+            self.toggle_grid=event.GetSelection()
+          
+        if self.toggle_grid:
+            space=100.0/pow(10,float(ceil(log(self.Canvas.Scale/DOT_PER_MM,10))))
+            Grid = FloatCanvas.DotGrid( Spacing=(space, space), Size=2, Color="Gray", Cross=True, CrossThickness=1)
+            self.Canvas.GridUnder = Grid
+        else:
+            Grid=None
+            self.Canvas.GridUnder = Grid
+        
+        #Nur neu malen wenn es aus dem Menu aufgerufen wurde
+        if not(event==None):
+            self.Canvas.Draw(Force=True)
+            
     #Drucken des Werkstuecknullpunkts
     def plot_wp_zero(self,event=None):
         
