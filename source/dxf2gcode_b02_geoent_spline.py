@@ -45,10 +45,12 @@ class SplineClass:
 
         #Zuweisen der Toleranz fürs Fitting
         tol=caller.config.fitting_tolerance
+        check=caller.config.spline_check
 
         #Umwandeln zu einem ArcSpline
         Spline2ArcsClass=Spline2Arcs(degree=self.degree,Knots=self.Knots,\
-                                Weights=self.Weights,CPoints=self.CPoints,tol=0.01)
+                                Weights=self.Weights,CPoints=self.CPoints,tol=tol,check=check)
+                                
 
         self.geo=Spline2ArcsClass.Curve
 
@@ -185,4 +187,3 @@ class SplineClass:
             punkt, angle=self.geo[-1].get_start_end_points(direction)
 
         return punkt,angle
-    
