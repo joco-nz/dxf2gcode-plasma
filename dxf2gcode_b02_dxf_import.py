@@ -253,6 +253,7 @@ class LoadDXF:
         old_start=self.start
         
         while self.start!=None:
+            
             #Laden der aktuell gefundenen Geometrie
             name=self.line_pairs.line_pair[self.start].value         
             entitie_geo,ent_warn = self.get_geo_entitie(len(geos),name)

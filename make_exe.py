@@ -4,10 +4,10 @@ import os
 import subprocess
 
 pyinpfad = "C:\Python25\pyinstaller_1.3"
-exemakepfad = "E:\dxf2gcode_exe"
+exemakepfad = "D:\dxf2gcode_exe"
 pyt = "C:\Python25\pythonw.exe"
-filepfad="E:/DXF2GCODE/trunk/source/"
-icon="DXF2GCODE-001.ico"
+filepfad="D:/dxf2gcode/trunk/source/"
+icon="D:/dxf2gcode/trunk/source/bitmaps/DXF2GCODE-001.ico"
 file = "dxf2gcode_wx28"
 
 
