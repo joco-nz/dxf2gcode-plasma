@@ -42,7 +42,7 @@ class LWPolylineClass:
         string=("\nTyp: LWPolyline")+\
                ("\nNr: %i" %self.Nr)+\
                ("\nLayer Nr: %i" %self.Layer_Nr)+\
-               ("\nNr. of Lines: %i" %len(self.geo))+\
+               ("\nNr. of geos: %i" %len(self.geo))+\
                ("\nlength: %0.3f" %self.length)
         
         return string
@@ -54,8 +54,8 @@ class LWPolylineClass:
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         if abs(self.length)<tol:
-        	pass
-            
+            pass
+        
         #Hinzufügen falls es keine geschlossene Polyline ist
         elif  self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
             self.analyse_and_opt()
@@ -158,7 +158,7 @@ class LWPolylineClass:
 
                    
         if (LWPLClosed==1):
-            print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
+            #print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
             self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
             self.length+=self.geo[-1].length
             

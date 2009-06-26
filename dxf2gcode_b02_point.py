@@ -72,9 +72,12 @@ class PointClass:
         return PointClass(x=self.x+cos(radians(ang))*r,\
                           y=self.y+sin(radians(ang))*r)
 
-    def Write_GCode(self,sca,p0,rot,postpro):
-        point=self.rot_sca_abs(sca=sca,p0=p0,pb=PointClass(0,0),rot=0.0)
+    def Write_GCode(self,parent=None,postpro=None):
+        point=self.rot_sca_abs(parent=parent)
         return postpro.rap_pos_xy(point)
+    
+    def plot2can(self,canvas=None,parent=None,tag=None,col='black'):
+        pass
     
     def triangle_height(self,other1,other2):
         #Die 3 Längen des Dreiecks ausrechnen
@@ -83,12 +86,39 @@ class PointClass:
         c=self.distance(other2)
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))  
       
-    def rot_sca_abs(self,sca,p0,pb,rot):
-        pc=self-pb
-        rot=rot
-        rotx=(pc.x*cos(rot)+pc.y*sin(rot))*sca[0]
-        roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
-        p1= PointClass(x=rotx+p0.x,y=roty+p0.y)+pb
+    def rot_sca_abs(self,sca=None,p0=None,pb=None,rot=None,parent=None):
+        if type(sca)==type(None) and type(parent)!=type(None):
+            p0=parent.p0
+            pb=parent.pb
+            sca=parent.sca
+            rot=parent.rot   
+            pc=self-pb
+            rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
+            roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
+            p1= PointClass(x=rotx,y=roty)+p0
+            
+            #Rekursive Schleife falls selbst eingefügt
+            if type(parent.parent)!=type(None):
+                p1=p1.rot_sca_abs(parent=parent.parent)
+            
+        elif type(parent)==type(None) and type(sca)==type(None):
+            p0=PointClass(0,0)
+            pb=PointClass(0,0)
+            sca=[0,0,0]
+            rot=0
+            
+            pc=self-pb
+            rot=rot
+            rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
+            roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
+            p1= PointClass(x=rotx,y=roty)+p0
+        else:
+            pc=self-pb
+            rot=rot
+            rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
+            roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
+            p1= PointClass(x=rotx,y=roty)+p0
+        
         
 #        print(("Self:    %s\n" %self)+\
 #                ("P0:      %s\n" %p0)+\
@@ -274,10 +304,8 @@ class ArcGeo:
         self.ext=ext*-1
         self.s_ang=s_ang
         self.e_ang=e_ang
-
-    def plot2can(self,canvas=None,p0=PointClass(x=0.0,y=0.0),\
-                    pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0,tag=None,col='black'):
+           
+    def plot2can(self,canvas=None,parent=None,tag=None,col='black'):
                         
         x=[]; y=[]; hdl=[]
         #Alle 3 Grad ein Segment => 120 Segmente für einen Kreis !!
@@ -289,7 +317,8 @@ class ArcGeo:
             p_cur=PointClass(x=(self.O.x+cos(ang)*abs(self.r)),\
                        y=(self.O.y+sin(ang)*abs(self.r)))
                     
-            p_cur_rot=p_cur.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
+            p_cur_rot=p_cur.rot_sca_abs(parent=parent)
+
             x.append(p_cur_rot.x)
             y.append(p_cur_rot.y)
             
@@ -298,22 +327,45 @@ class ArcGeo:
          
         return hdl        
 
-    def get_start_end_points(self,direction):
+    def get_start_end_points(self,direction,parent=None):
         if not(direction):
-            punkt=self.Pa
-            angle=degrees(self.s_ang)+90*self.ext/abs(self.ext)
+            punkt=self.Pa.rot_sca_abs(parent=parent)
+            angle=self.rot_angle(degrees(self.s_ang)+90*self.ext/abs(self.ext),parent)
         elif direction:
-            punkt=self.Pe
-            angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
+            punkt=self.Pe.rot_sca_abs(parent=parent)
+            angle=self.rot_angle(degrees(self.e_ang)-90*self.ext/abs(self.ext),parent)
         return punkt,angle
     
-    def Write_GCode(self,sca,p0,rot,postpro):
-        st_point, st_angle=self.get_start_end_points(0)
-        IJ=(self.O-st_point)*sca
+   
+    def rot_angle(self,angle,parent):
+
+        #Rekursive Schleife falls mehrfach verschachtelt.
+        if type(parent)!=type(None):
+            angle=angle+degrees(parent.rot)
+            angle=self.rot_angle(angle,parent.parent)
+                
+        return angle
+    
+    def scaleR(self,sR,parent):
         
-        en_point, en_angle=self.get_start_end_points(1)
-        ende=en_point*sca+p0
+        #Rekursive Schleife falls mehrfach verschachtelt.
+        if type(parent)!=type(None):
+            sR=sR*parent.sca[0]
+            sR=self.scaleR(sR,parent.parent)
+                
+        return sR
+
+    def Write_GCode(self,parent=None,postpro=None):
+        anf, anf_ang=self.get_start_end_points(0,parent)
+        O=self.O.rot_sca_abs(parent=parent)
+        IJ=(O-anf)
+        ende, en_ang=self.get_start_end_points(1,parent)
         
+        s_ang=self.rot_angle(self.s_ang,parent)
+        e_ang=self.rot_angle(self.e_ang,parent)
+        
+        sR=self.scaleR(self.r,parent)
+
         #Vorsicht geht nicht für Ovale
         if (self.ext>0):
             #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
@@ -348,27 +400,29 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,canvas=None,p0=PointClass(x=0,y=0),\
-                    pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],\
-                    rot=0.0,tag=None,col='black'):
-        anf=self.Pa.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
-        ende=self.Pe.rot_sca_abs(sca=sca,p0=p0,pb=pb,rot=rot)
+    def plot2can(self,canvas=None,parent=None,tag=None,col='black'):
+        
+        anf=self.Pa.rot_sca_abs(parent=parent)
+        ende=self.Pe.rot_sca_abs(parent=parent)
+
         hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col)
         return [hdl]
 
-    def get_start_end_points(self,direction):
+    def get_start_end_points(self,direction,parent=None):
         if not(direction):
-            punkt=self.Pa
-            angle=degrees(self.Pa.norm_angle(self.Pe))
+            punkt=self.Pa.rot_sca_abs(parent=parent)
+            punkt_e=self.Pe.rot_sca_abs(parent=parent)
+            angle=degrees(punkt.norm_angle(punkt_e))
         elif direction:
-            punkt=self.Pe
-            angle=degrees(self.Pe.norm_angle(self.Pa))
+            punkt_a=self.Pa.rot_sca_abs(parent=parent)
+            punkt=self.Pe.rot_sca_abs(parent=parent)
+            angle=degrees(punkt.norm_angle(punkt_a))
         return punkt, angle
     
-    def Write_GCode(self,sca,p0,rot,postpro):
-        en_point, en_angle=self.get_start_end_points(1)
-        ende=en_point*sca+p0
-        #return("G1 %s%0.3f %s%0.3f\n" %(axis1,ende.x,axis2,ende.y))
+    def Write_GCode(self,parent=None,postpro=None):
+        anf, anf_ang=self.get_start_end_points(0,parent)
+        ende, end_ang=self.get_start_end_points(1,parent)
+
         return postpro.lin_pol_xy(ende)
         
     def distance2point(self,point):

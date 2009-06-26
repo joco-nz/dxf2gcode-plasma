@@ -35,11 +35,12 @@ else:
     init_modules = sys.modules.keys()
 
 from dxf2gcode_b02_point import PointClass
-from dxf2gcode_b02_shape import ShapeClass
+from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
 import dxf2gcode_b02_dxf_import as dxf_import 
 import dxf2gcode_b02_tsp_opt as tsp
 import locale
 
+from math import radians, degrees
 
 import webbrowser,gettext, ConfigParser, tempfile, subprocess
 from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
@@ -52,6 +53,8 @@ from copy import copy
 
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
+VERSION= "TKINTER Beta 02"
+DATE=   "2009-06-26"
 
 # Config Verzeichniss
 
@@ -108,6 +111,16 @@ class Erstelle_Fenster:
         self.viewemnu=None
             
 
+         #Skalierung der Kontur
+        self.cont_scale=1.0
+        
+        #Verschiebung der Kontur
+        self.cont_dx=0.0
+        self.cont_dy=0.0
+        
+        #Rotieren um den WP zero
+        self.rotate=0.0
+        
         #Uebergabe des load_filenames falls von EMC gestartet
         self.load_filename=load_filename
 
@@ -202,8 +215,10 @@ class Erstelle_Fenster:
         self.optionmenu.add_separator()
         self.optionmenu.add_command(label=_("Scale contours"), command=self.Get_Cont_Scale)
         self.optionmenu.add_command(label=_("Move workpiece zero"), command=self.Move_WP_zero)
+        self.optionmenu.add_command(label=_("Rotate contours"), command=self.Rotate_Cont)
         self.optionmenu.entryconfig(2,state=DISABLED)
         self.optionmenu.entryconfig(3,state=DISABLED)
+        self.optionmenu.entryconfig(4,state=DISABLED)
         
         
         self.helpmenu = Menu(self.menu,tearoff=0)
@@ -280,6 +295,9 @@ class Erstelle_Fenster:
         #Verschiebung der Kontur
         self.cont_dx=0.0
         self.cont_dy=0.0
+        
+        #Rotieren um den WP zero
+        self.rotate=0.0
 
         #Disabled bis was gelesen wurde
         self.viewmenu.entryconfig(0,state=NORMAL)
@@ -292,10 +310,15 @@ class Erstelle_Fenster:
 
         #Disabled bis was gelesen wurde
         self.optionmenu.entryconfig(2,state=NORMAL)
-        self.optionmenu.entryconfig(3,state=NORMAL)        
+        self.optionmenu.entryconfig(3,state=NORMAL)     
+        self.optionmenu.entryconfig(4,state=NORMAL) 
 
         #Ausdrucken der Werte        
-        self.CanvasContent.makeplot(self.values)
+        self.CanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(x=0,y=0),
+                                    sca=[self.cont_scale,self.cont_scale,self.cont_scale],
+                                    rot=self.rotate)
 
         #Loeschen alter Route Menues
         self.del_route_and_menuentry()
@@ -329,16 +352,38 @@ class Erstelle_Fenster:
             return
         
         self.cont_scale=value
-
+        
         #Falls noch kein File geladen wurde nichts machen
         self.textbox.prt(_("\nScaled Contours by factor %0.3f") %self.cont_scale)
 
-        self.Canvas.scale_contours(self.cont_scale/old_scale)        
+        #Neu ausdrucken
+        self.CanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(x=0,y=0),
+                                    sca=[self.cont_scale,self.cont_scale,self.cont_scale],
+                                    rot=self.rotate)       
+    def Rotate_Cont(self):
+                
+        value=askfloat(_('Rotate Contours'),_('Set the Angle [deg]'),\
+                                initialvalue=degrees(self.rotate))
+        #Abfrage ob Cancel gedrueckt wurde
+        if value is None:
+            return
+        
+        self.rotate=radians(value)
+        
+        #Falls noch kein File geladen wurde nichts machen
+        self.textbox.prt(_("\nRotated Contours by %0.3f deg") %degrees(self.rotate))
+
+        #Neu ausdrucken
+        self.CanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(x=0,y=0),
+                                    sca=[self.cont_scale,self.cont_scale,self.cont_scale],
+                                    rot=self.rotate)       
+        
         
     def Move_WP_zero(self):
-        #Die alten Werte zwischenspeichern fuer das verschieben des Canvas
-        old_dx=self.cont_dx
-        old_dy=self.cont_dy
 
         #Dialog mit den definierten Parametern oeffnen       
         title=_('Workpiece zero offset')
@@ -359,8 +404,12 @@ class Erstelle_Fenster:
                               %(self.config.ax1_letter,self.cont_dx,
                                 self.config.ax2_letter,self.cont_dy))
 
-        #Verschieben des Canvas WP zero
-        self.Canvas.move_wp_zero(self.cont_dx-old_dx,self.cont_dy-old_dy)
+        #Neu ausdrucken
+        self.CanvasContent.makeplot(self.values,
+                                    p0=PointClass(x=self.cont_dx,y=self.cont_dy),
+                                    pb=PointClass(x=0,y=0),
+                                    sca=[self.cont_scale,self.cont_scale,self.cont_scale],
+                                    rot=self.rotate)
 
     def Get_Save_File(self):
 
@@ -534,7 +583,7 @@ class TextboxClass:
         #Anfangstext einfuegen
         self.textscr.config(command=self.text.yview)
         self.text.config(yscrollcommand=self.textscr.set)
-        self.prt(_('Program started\nVersion V0.1\nCoded by V. Schulz and C. Kohloeffel'))
+        self.prt(_('Program started\n %s %s \nCoded by V. Schulz and C. Kohloeffel' %(VERSION, DATE)))
 
     def set_debuglevel(self,DEBUG=0):
         self.DEBUG=DEBUG
@@ -921,33 +970,33 @@ class CanvasClass:
         y_ca=(y_st-self.dy)*self.scale-self.canvas.winfo_height()
         return x_ca, y_ca
 
-    def scale_contours(self,delta_scale):     
-        self.scale=self.scale/delta_scale
-        self.dx=self.dx*delta_scale
-        self.dy=self.dy*delta_scale
-
-        #Schreiben der neuen WErte simulierne auf Curser Punkt 0, 0
-        event=PointClass(x=0,y=0)
-        self.moving(event)
-
-        #Skalieren der Shapes
-        for shape in self.Content.Shapes:
-            shape.sca[0]=shape.sca[0]*delta_scale
-            shape.sca[1]=shape.sca[1]*delta_scale
-            shape.sca[2]=shape.sca[2]*delta_scale
-            
-            shape.p0=shape.p0*[delta_scale,delta_scale]
-
-    def move_wp_zero(self,delta_dx,delta_dy):
-        self.dx=self.dx-delta_dx
-        self.dy=self.dy-delta_dy
-
-        #Verschieben der Shapes 
-        for shape in self.Content.Shapes:
-            shape.p0-=PointClass(x=delta_dx,y=delta_dy)
-
-        #Update des Nullpunkts auf neue Koordinaten
-        self.Content.plot_wp_zero()
+#    def scale_contours(self,delta_scale):     
+#        self.scale=self.scale/delta_scale
+#        self.dx=self.dx*delta_scale
+#        self.dy=self.dy*delta_scale
+#
+#        #Schreiben der neuen WErte simulierne auf Curser Punkt 0, 0
+#        event=PointClass(x=0,y=0)
+#        self.moving(event)
+#
+#        #Skalieren der Shapes
+#        for shape in self.Content.Shapes:
+#            shape.sca[0]=shape.sca[0]*delta_scale
+#            shape.sca[1]=shape.sca[1]*delta_scale
+#            shape.sca[2]=shape.sca[2]*delta_scale
+#            
+#            shape.p0=shape.p0*[delta_scale,delta_scale]
+#
+#    def move_wp_zero(self,delta_dx,delta_dy):
+#        self.dx=self.dx-delta_dx
+#        self.dy=self.dy-delta_dy
+#
+#        #Verschieben der Shapes 
+#        for shape in self.Content.Shapes:
+#            shape.p0-=PointClass(x=delta_dx,y=delta_dy)
+#
+#        #Update des Nullpunkts auf neue Koordinaten
+#        self.Content.plot_wp_zero()
         
 #Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
 class CanvasContentClass:
@@ -957,7 +1006,8 @@ class CanvasContentClass:
         self.config=config
         self.Shapes=[]
         self.LayerContents=[]
-        self.EntitieContents=[]
+        self.EntitiesRoot=EntitieContentClass()
+        self.BaseEntities=EntitieContentClass()
         self.Selected=[]
         self.Disabled=[]
         self.wp_zero_hdls=[]
@@ -995,7 +1045,7 @@ class CanvasContentClass:
         return dir-40
                 
     #Erstellen des Gesamten Ausdrucks      
-    def makeplot(self,values):
+    def makeplot(self,values,p0,pb,sca,rot):
         self.values=values
 
         #Loeschen des Inhalts
@@ -1009,7 +1059,8 @@ class CanvasContentClass:
         #Zuruecksetzen der Konturen
         self.Shapes=[]
         self.LayerContents=[]
-        self.EntitieContents=[]
+        self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
+                                            p0=p0,pb=pb,sca=sca,rot=rot)
         self.Selected=[]
         self.Disabled=[]
         self.wp_zero_hdls=[]
@@ -1017,53 +1068,65 @@ class CanvasContentClass:
         self.path_hdls=[]
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.make_shapes(p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0)
+        self.makeshapes(parent=self.EntitiesRoot)
         self.plot_shapes()
         self.LayerContents.sort()
-        self.EntitieContents.sort()
+        #self.EntitieContents.sort()
 
         #Autoscale des Canvas        
         self.Canvas.autoscale()
 
-    def make_shapes(self,EntName="Entities",p0=PointClass(x=0,y=0),sca=[1,1,1],rot=0.0):
+    def makeshapes(self,parent=None,ent_nr=-1):
 
-        if EntName=="Entities":
-            ent_nr=-1
+        if parent.Name=="Entities":      
             entities=self.values.entities
         else:
-            ent_nr=self.values.Get_Block_Nr(EntName)
+            ent_nr=self.values.Get_Block_Nr(parent.Name)
             entities=self.values.blocks.Entities[ent_nr]
+            
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
         ent_geos=entities.geo
-        cont=entities.cont
-        basep=entities.basep
-        
+               
         #Schleife fuer die Anzahl der Konturen 
-        for c_nr in range(len(cont)):
+        for cont in entities.cont:
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-            if ent_geos[cont[c_nr].order[0][0]].Typ=="Insert":
-                ent_geo=ent_geos[cont[c_nr].order[0][0]]
-                self.make_shapes(ent_geo.BlockName,\
-                                    p0-basep+ent_geo.Point,\
-                                    [ent_geo.Scale[0]*sca[0],ent_geo.Scale[1]*sca[1],ent_geo.Scale[2]*sca[2]],\
-                                    ent_geo.rot)
+            if ent_geos[cont.order[0][0]].Typ=="Insert":
+                ent_geo=ent_geos[cont.order[0][0]]
+                
+                #Zuweisen des Basispunkts für den Block
+                new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
+                new_entities=self.values.blocks.Entities[new_ent_nr]
+                pb=new_entities.basep
+                
+                #Skalierung usw. des Blocks zuweisen
+                p0=ent_geos[cont.order[0][0]].Point
+                sca=ent_geos[cont.order[0][0]].Scale
+                rot=ent_geos[cont.order[0][0]].rot
+                
+                #Erstellen des neuen Entitie Contents für das Insert
+                NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
+                                        parent=parent,children=[],
+                                        p0=p0,
+                                        pb=pb,
+                                        sca=sca,
+                                        rot=rot)
+
+                parent.addchild(NewEntitieContent)
+            
+                self.makeshapes(parent=NewEntitieContent,ent_nr=ent_nr)
+                
             else:
                 #Schleife fuer die Anzahl der Geometrien
                 self.Shapes.append(ShapeClass(len(self.Shapes),\
-                                                ent_nr,\
-                                                c_nr,\
-                                                cont[c_nr].closed,\
-                                                p0,\
-                                                basep,\
-                                                sca[:],\
-                                                rot,\
+                                                cont.closed,\
                                                 40,\
-                                                cont[c_nr].length*sca[0],\
+                                                0.0,\
+                                                parent,\
                                                 [],\
                                                 []))
-                for ent_geo_nr in range(len(cont[c_nr].order)):
-                    ent_geo=ent_geos[cont[c_nr].order[ent_geo_nr][0]]
-                    if cont[c_nr].order[ent_geo_nr][1]:
+                for ent_geo_nr in range(len(cont.order)):
+                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
+                    if cont.order[ent_geo_nr][1]:
                         ent_geo.geo.reverse()
                         for geo in ent_geo.geo:
                             geo=copy(geo)
@@ -1075,8 +1138,8 @@ class CanvasContentClass:
                         for geo in ent_geo.geo:
                             self.Shapes[-1].geos.append(copy(geo))
                         
-                self.addtoLayerContents(self.Shapes[-1].nr,ent_geo.Layer_Nr)
-                self.addtoEntitieContents(self.Shapes[-1].nr,ent_nr,c_nr)
+                self.addtoLayerContents(self.Shapes[-1],ent_geo.Layer_Nr)
+                parent.addchild(self.Shapes[-1])
 
     def plot_shapes(self):
         for shape in self.Shapes:
@@ -1321,21 +1384,11 @@ class LayerContentClass:
          return cmp(self.LayerNr, other.LayerNr)
 
     def __str__(self):
-        return '\nLayerNr ->'+str(self.LayerNr)+'\nLayerName ->'+str(self.LayerName)\
-               +'\nShapes ->'+str(self.Shapes)
-    
-class EntitieContentClass:
-    def __init__(self,EntNr=None,EntName='',Shapes=[]):
-        self.EntNr=EntNr
-        self.EntName=EntName
-        self.Shapes=Shapes
+        return ('\ntype:        %s' %self.type) +\
+               ('\nLayerNr :      %i' %self.LayerNr) +\
+               ('\nLayerName:     %s' %self.LayerName)+\
+               ('\nShapes:    %s' %self.Shapes)
 
-    def __cmp__(self, other):
-         return cmp(self.EntNr, other.EntNr)        
-        
-    def __str__(self):
-        return '\nEntNr ->'+str(self.EntNr)+'\nEntName ->'+str(self.EntName)\
-               +'\nShapes ->'+str(self.Shapes)
 
 class ConfigClass:
     def __init__(self,textbox):
@@ -1888,7 +1941,7 @@ class Show_About_Info(Toplevel):
         #add a link with data
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
         text.insert(END, _("You are using DXF2GCODE"))
-        text.insert(END, ("\nVersion Beta 02 (2008-08-09)"))
+        text.insert(END, ("\nVersion %s (%s)" %(VERSION,DATE)))
         text.insert(END, _("\nFor more information und updates about"))
         text.insert(END, _("\nplease visit my homepage at:"))
         text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:"+href))
@@ -2032,7 +2085,7 @@ class Tkinter_Variable_Dialog(Toplevel):
 if __name__ == "__main__":
    
     master = Tk()
-    master.title("DXF 2 G-Code, Version Beta 0.2")
+    master.title("DXF2GCODE, Version: %s, Date: %s " %(VERSION,DATE))
 
     #Falls das Programm mit Parametern von EMC gestartet wurde
     if len(sys.argv) > 1:

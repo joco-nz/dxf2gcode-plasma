@@ -176,10 +176,16 @@ class PolylineClass:
                 next_bulge=bulge
                 Pa=Pe
                     
-            
-
-
-                   
+        #Es ist eine geschlossene Polyline
+        if PolyLineFlag==1:
+            #print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
+            if next_bulge==0:
+                self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
+            else:
+                self.geo.append(self.bulge2arc(Pa,self.geo[0].Pa,next_bulge))
+            #Länge drauf rechnen wenns eine Geometrie ist   
+            self.length+=self.geo[-1].length
+      
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=e
     
