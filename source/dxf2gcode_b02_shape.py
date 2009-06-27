@@ -119,7 +119,9 @@ class ShapeClass:
         #st_point, st_angle=self.geos[0].get_start_end_points(0,parent)
                 
         start,start_ang=self.get_st_en_points(0)
+
         
+
         dx=cos(radians(start_ang))*length
         dy=sin(radians(start_ang))*length
 
@@ -253,7 +255,7 @@ class ShapeClass:
         
         #Werkzeugdurchmesser in Radius umrechnen        
         tool_rad=config.tool_dia/2
-        
+
         #BaseEntitie erstellen um auf oberster Ebene zu Fräsen
         BaseEntitie=EntitieContentClass(Nr=-1,Name='BaseEntitie',
                                         parent=None,
@@ -263,6 +265,7 @@ class ShapeClass:
                                         sca=[1,1,1],
                                         rot=0.0)
         
+
         depth=config.axis3_mill_depth
         max_slice=config.axis3_slice_depth
 
@@ -294,7 +297,7 @@ class ShapeClass:
 
         #Schreiben der Geometrien für den ersten Schnitt
         for geo in self.geos:
-            geo.Write_GCode(BaseEntitie,postpro)
+            geo.Write_GCode(self.parent,postpro)
 
         #Ausschalten der Fräsradiuskorrektur
         if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
@@ -331,7 +334,7 @@ class ShapeClass:
                 postpro.set_cut_cor(self.cut_cor,start)
                 
             for geo_nr in range(len(self.geos)):
-                self.geos[geo_nr].Write_GCode(BaseEntitie,postpro)
+                self.geos[geo_nr].Write_GCode(self.parent,postpro)
 
             #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
             if self.cut_cor==41:

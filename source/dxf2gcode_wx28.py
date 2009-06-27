@@ -192,6 +192,17 @@ class MyFrameClass(wx.Frame):
                                                 self.MyLayersTree,
                                                 self.MyEntTree)
         
+        
+#        self.nb = wx.aui.AuiNotebook(self)
+#        page = wx.TextCtrl(self.nb, -1, 'asdfals', style=wx.TE_MULTILINE)
+#        self.nb.AddPage(page, "Welcome")
+#
+#        for num in range(1, 5):
+#            page = wx.TextCtrl(self.nb, -1, "This is page %d" % num ,
+#                               style=wx.TE_MULTILINE)
+#            self.nb.AddPage(page, "Tab Number %d" % num)
+        
+        
         #Erstellen der Bindings fürs gesamte Fenster
         self.BindMenuEvents()
         
