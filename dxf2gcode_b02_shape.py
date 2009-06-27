@@ -245,12 +245,6 @@ class ShapeClass:
         
 
 
-
-
-
-
-
-
         depth=config.axis3_mill_depth.get()
         max_slice=config.axis3_slice_depth.get()
 
@@ -282,7 +276,7 @@ class ShapeClass:
 
         #Schreiben der Geometrien für den ersten Schnitt
         for geo in self.geos:
-            geo.Write_GCode(BaseEntitie,postpro)
+            geo.Write_GCode(self.parent,postpro)
 
         #Ausschalten der Fräsradiuskorrektur
         if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
@@ -319,7 +313,7 @@ class ShapeClass:
                 postpro.set_cut_cor(self.cut_cor,start)
                 
             for geo_nr in range(len(self.geos)):
-                self.geos[geo_nr].Write_GCode(BaseEntitie,postpro)
+                self.geos[geo_nr].Write_GCode(self.parent,postpro)
 
             #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
             if self.cut_cor==41:
