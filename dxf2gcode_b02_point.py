@@ -384,6 +384,7 @@ class ArcGeo:
                        y=(self.O.y+sin(ang)*abs(self.r)))
                     
             p_cur_rot=p_cur.rot_sca_abs(parent=EntitieContent)
+
             points.append((p_cur_rot.x,p_cur_rot.y))
 
         return points
@@ -532,6 +533,7 @@ class LineGeo:
     def Write_GCode(self,parent=None,postpro=None):
         anf, anf_ang=self.get_start_end_points(0,parent)
         ende, end_ang=self.get_start_end_points(1,parent)
+
         return postpro.lin_pol_xy(anf,ende)
     
     def MakeTreeText(self,parent):
