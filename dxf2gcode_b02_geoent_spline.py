@@ -137,10 +137,11 @@ class SplineClass:
         self.degree=int(lp.line_pair[s].value)
 
         #Number of CPts
-        s=lp.index_code(73,s+1)
+        st=lp.index_code(73,s+1)
         nCPts=int(lp.line_pair[s].value)          
 
 
+        s=st
         #Lesen der Knoten
         while 1:
             #Knoten Wert
@@ -151,6 +152,7 @@ class SplineClass:
             s=sk
 
         #Lesen der Gewichtungen
+        s=st
         while 1:
             #Knoten Gewichtungen
             sg=lp.index_code(41,s+1,e)
@@ -164,6 +166,7 @@ class SplineClass:
                 self.Weights.append(1)
                 
         #Lesen der Kontrollpunkte
+        s=st
         while 1:  
             #XWert
             s=lp.index_code(10,s+1,e)
