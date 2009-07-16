@@ -28,7 +28,7 @@ import sys, os, string
 from math import radians, cos, sin,tan, atan2, sqrt, pow, pi, ceil
 
 class Spline2Arcs:
-    def __init__(self,degree=0,Knots=[],Weights=[],CPoints=[],tol=0.01):
+    def __init__(self,degree=0,Knots=[],Weights=[],CPoints=[],tol=0.01,check=1):
         #Max Abweichung für die Biarc Kurve
         self.epsilon=tol
         self.epsilon_high=self.epsilon*0.03
@@ -39,14 +39,13 @@ class Spline2Arcs:
 
         #Überprüfen der NURBS Parameter Überprüfung der NURBS Kontrollpunkte ob welche doppelt
         #Innerhalb der gegebenen Tolerans sind (=> Ignorieren)
-        self.NURBS.check_NURBSParameters(tol)
+        self.NURBS.check_NURBSParameters(tol,check)
 
         #High Accuracy Biarc fitting of NURBS        
         BiarcCurves, self.PtsVec=self.calc_high_accurancy_BiarcCurve()
 
         #Komprimieren der Biarc und der Linien
         self.Curve=self.analyse_and_compress(BiarcCurves)
-        
           
     def analyse_and_compress(self,BiarcCurves):
         #Compress all to one curve
@@ -445,14 +444,14 @@ class NURBSClass:
                                   Knots=self.Knots,\
                                   CPts=self.HCPts)
 
-        
 
-    def check_NURBSParameters(self,tol=1e-6):
+    def check_NURBSParameters(self,tol=1e-6,check=1):
         #Überprüfen des Knotenvektors
         #Suchen von mehrfachen Knotenpunkte (Anzahl über degree+1 => Fehler?!)
         knt_nr=1
         knt_vec=[[self.Knots[0]]]
         self.knt_m_change=[]
+        
         
         while knt_nr < len(self.Knots):
             if self.Knots[knt_nr]==knt_vec[-1][-1]:
@@ -461,18 +460,23 @@ class NURBSClass:
                 knt_vec.append([self.Knots[knt_nr]])
             knt_nr+=1
         
+
+    
         for knt_spts in knt_vec:
             if (len(knt_spts)>self.degree+1):
+
                 raise ValueError, "Same Knots Nr. bigger then degree+1"
             
             #Überprüfen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
-            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>0.0)and(knt_spts[-1]<1.0)):
+            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>0.0)and(knt_spts[-1]<1.0))and(check):
+
                 temp, tangent0=self.NURBS_evaluate(n=1,u=knt_spts[0]-1e-12)
                 temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
+
                 if abs(tangent0-tangent1)>1e-6:
                     self.knt_m_change.append(knt_spts[0])
                     
-                    
+       
         #Überprüfen der Kontrollpunkte
         #Suchen von mehrachen Kontrollpunkten (Anzahl über degree+2 => nicht errechnen
         ctlpt_nr=0
@@ -489,14 +493,16 @@ class NURBSClass:
             if (len(same_ctlpt)>self.degree+1):
                 self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
                                    self.Knots[same_ctlpt[-1]+self.degree/2]])
-##
-##        #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
-##        print("Same Controlpoints Nr. bigger then degree+2")
-##        for ignor in self.ignor:
-##            print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))    
-##        
-##        if len(self.knt_m_change):
-##            print("Non steady Angles between Knots: %s" %self.knt_m_change)
+
+        #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
+        print("Same Controlpoints Nr. bigger then degree+2")
+        for ignor in self.ignor:
+            print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))    
+        
+#        if len(self.knt_m_change):
+#            print("Non steady Angles between Knots: %s" %self.knt_m_change)
+
+
                                                
     #Berechnen von eine Anzahl gleichmässig verteilter Punkte und bis zur ersten Ableitung
     def calc_curve(self,n=0, cpts_nr=20):

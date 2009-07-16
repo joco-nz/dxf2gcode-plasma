@@ -159,9 +159,6 @@ class SplineClass:
             self.Weights.append(float(lp.line_pair[sg].value))
             s=sg
             
-        if len(self.Weights)==0:
-            for nr in range(nCPts):
-                self.Weights.append(1)
                 
         #Lesen der Kontrollpunkte
         s=st
@@ -179,7 +176,17 @@ class SplineClass:
 
             self.CPoints.append(PointClass(x,y))                
 
+        if len(self.Weights)==0:
+            for nr in range(len(self.CPoints)):
+                self.Weights.append(1)
+
+
         caller.start=e
+#        print nCPts
+#        print len(self.Knots)
+#        print len(self.Weights)
+#        print len(self.CPoints)
+#        print self
         
     def get_start_end_points(self,direction=0):
         if not(direction):
