@@ -174,23 +174,14 @@ class MyFrameClass(wx.Frame):
         self.MyLayersTree = MyLayersTreeClass(self, -1)
 
         #Erstellen des Baums für die verwendeten Layers
-        self.MySelectionInfo = MySelectionInfoClass(self, wx.ID_ANY,
-                                 style=wx.LC_REPORT 
-                                 #| wx.BORDER_SUNKEN
-                                 | wx.BORDER_NONE
-                                 | wx.LC_EDIT_LABELS
-                                 | wx.LC_SORT_ASCENDING
-                                 #| wx.LC_NO_HEADER
-                                 #| wx.LC_VRULES
-                                 #| wx.LC_HRULES
-                                 #| wx.LC_SINGLE_SEL
-                                 )
+        self.MySelectionInfo = MySelectionInfoClass(self, wx.ID_ANY)                                 
         
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
         self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic,self.MyMessages,
                                                 self.MyConfig,
                                                 self.MyLayersTree,
-                                                self.MyEntTree)
+                                                self.MyEntTree,
+                                                self.MySelectionInfo)
         
         
 #        self.nb = wx.aui.AuiNotebook(self)
@@ -882,6 +873,7 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
 
                   
         self.MyCanvasContent.change_selection(sel_items)
+        self.MySelectionInfo.change_selection(sel_items)
     
     def GetItemShapes(self,item):
         SelShapes=[]
@@ -976,6 +968,7 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
 
                   
         self.MyCanvasContent.change_selection(sel_items)
+        self.MySelectionInfo.change_selection(sel_items)
         
     def GetItemShapes(self,item):
         SelShapes=[]
@@ -1280,13 +1273,14 @@ class MyGraphicClass(wx.Panel):
 
 
 class MyCanvasContentClass:
-    def __init__(self,MyGraphic,MyMessages,MyConfig,MyLayersTree, MyEntTree):
+    def __init__(self,MyGraphic,MyMessages,MyConfig,MyLayersTree, MyEntTree, MySelectionInfo):
         self.MyGraphic=MyGraphic
         self.Canvas=MyGraphic.Canvas
         self.MyMessages=MyMessages
         self.MyConfig=MyConfig
         self.MyLayersTree=MyLayersTree
         self.MyEntTree=MyEntTree
+        self.MySelectionInfo=MySelectionInfo
         self.Shapes=[]
         self.LayerContents=[]
         self.EntitiesRoot=EntitieContentClass()
@@ -1301,7 +1295,11 @@ class MyCanvasContentClass:
         MyGraphic.MyCanvasContent=self
         MyEntTree.MyCanvasContent=self
         MyLayersTree.MyCanvasContent=self
+        MySelectionInfo.MyCanvasContent=self
 
+        self.MyEntTree.MySelectionInfo=MySelectionInfo
+        self.MyLayersTree.MySelectionInfo=MySelectionInfo
+        
 
         #Anfangswert fuer das Ansicht Toggle Menu
         self.toggle_wp_zero=1
@@ -1640,6 +1638,7 @@ class MyCanvasContentClass:
         self.deselect()
         self.select()
         
+        self.MySelectionInfo.change_selection(self.Selected)
         self.Canvas.Draw(Force=True)
 
     def deselect(self): 
@@ -1777,20 +1776,57 @@ class MyLayerContentClass:
                ('\nShapes:    %s' %self.Shapes)
 
 class MySelectionInfoClass(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, ID, pos=wx.DefaultPosition,
-                 size=wx.Size(300,150), style=0):
-        wx.ListCtrl.__init__(self, parent, ID, pos, size, style)
-        listmix.ListCtrlAutoWidthMixin.__init__(self)
+    def __init__(self, parent, ID, pos=wx.DefaultPosition,size=wx.Size(300,150)):
         
+        wx.ListCtrl.__init__(
+            self, parent, ID,size=size,pos=pos,
+            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_HRULES|wx.LC_VRULES
+            )
+            
         self.InsertColumn(0, "Entitie Type")
         self.InsertColumn(1, "Name:")
         self.InsertColumn(2, "Name:")
         
-        self.Append(('bla1','bla2','bla3'))
+        self.SetItemCount(100)
         
+        #self.Append(('bdsafsla1','blsda2','blasaf3'))
+        #self.Append(('blsa1','bla2','bla3'))
+
+        #self.SetStringItem(0,1, 'WO')
+        #self.SetStringItem(1,1, 'WO')
+        #self.SetStringItem(1,1, 'WO')
+
+        self.SelectionStr=[]
+        #self.InsertColumn(4, "Name:")
 
 
-
+    def change_selection(self,sel_shapes):
+        SelectionStr=[]
+        for shape in sel_shapes:
+            SelectionStr.append(shape.makeSelectionStr())
+            
+        self.SelectionStr=self.SelectionStr
+   
+    def OnGetItemText(self, item, col):
+        print item
+        print col
+        try:
+            strs=self.SelectionStr[col]
+            print strs
+            if item==1:
+                str=strs.Name
+            elif item==2:
+                str=strs.Type
+            elif item==3:
+                str=strs.Pa
+            elif item==4:
+                str=strs.Pe
+        except:
+            str='d'
+            
+        print str
+        return str
+    
 class ShowAboutInfoClass:
     def __init__(self,master):
 
