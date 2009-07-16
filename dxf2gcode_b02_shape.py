@@ -24,7 +24,7 @@
 #Main Class Shape
 
 #import sys, os, string, ConfigParser 
-from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
+from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, MySelectionStrClass
 from math import cos, sin, radians, degrees
 import wx
 from wx.lib.expando import ExpandoTextCtrl
@@ -56,6 +56,15 @@ class ShapeClass:
                ('\ngeos_hdls:   %s' %self.geos_hdls)
                #+\
                #('\nparent: %s' %self.parent)
+
+    def makeSelectionStr(self):
+        SelectionStr=[]
+        SelectionStr.append(MySelectionStrClass(Name=('Shape %s'%self.nr),\
+                                    Type=self.type,\
+                                    Closed=self.closed))
+        for geo in self.geos:
+            SelectionStr.append(geo.makeSelectionStr())
+        return SelectionStr
 
     def reverse(self):
         self.geos.reverse()

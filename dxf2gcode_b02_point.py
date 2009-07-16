@@ -456,7 +456,13 @@ class ArcGeo:
         textctrl.AppendText('Start: %0.1fdeg End: %0.1fdeg' %(degrees(self.s_ang), degrees(self.e_ang)))
         return textctrl
 
-        
+    def makeSelectionStr(self):
+    
+        return MySelectionStrClass(Name=('Arc'),\
+                                    Type=self.type,\
+                                    Pa=self.Pa,\
+                                    Pe=self.Pe,\
+                                    r=self.r)
     
 class LineGeo:
     def __init__(self,Pa,Pe):
@@ -546,7 +552,14 @@ class LineGeo:
         textctrl.SetDefaultStyle(dastyle)
         textctrl.AppendText('Point \tX:\tY:')
         return textctrl
-        
+    
+    def makeSelectionStr(self):
+    
+        return MySelectionStrClass(Name=('Line'),\
+                                    Type=self.type,\
+                                    Pa=self.Pa,\
+                                    Pe=self.Pe)
+    
     def distance2point(self,point):
         try:
             AE=self.Pa.distance(self.Pe)
@@ -706,4 +719,21 @@ class BiarcClass:
            ("\nteta: %0.3f, l: %0.3f" %(self.teta,self.l))
         for geo in self.geos:
             s+=str(geo)
+        return s
+
+class MySelectionStrClass:
+    def __init__(self,Name=0,Type='',Closed='',Pa='',Pe='',r=''):
+        self.Name=Name
+        self.Type=Type
+        self.Closed=Closed
+        self.Pa=Pa
+        self.Pe=Pe
+        self.r=r
+        
+    def __str__(self):
+        s= ("\nName: %s" %(self.Name))+\
+           ("\nType : %s" %(self.Type))+\
+           ("\nPa : %s" %(self.Pa))+\
+           ("\nPe: %s" %(self.Pe))+\
+           ("\nr: %s" %(self.r))
         return s
