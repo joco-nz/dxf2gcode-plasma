@@ -96,7 +96,6 @@ class PointClass:
             rot=parent.rot
             
             pc=self-pb
-            rot=rot
             rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
             roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
             p1= PointClass(x=rotx,y=roty)+p0
@@ -438,6 +437,7 @@ class ArcGeo:
             #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
             string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,sR,O,IJ)
         return string  
+
     
     def MakeTreeText(self,parent):
         
