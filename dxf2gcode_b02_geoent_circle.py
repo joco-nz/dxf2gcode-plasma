@@ -43,8 +43,9 @@ class CircleClass:
               ("\nLayer Nr:%i" %self.Layer_Nr)+\
               str(self.geo[-1])
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
+        return warning
         
     def Read(self, caller):
 

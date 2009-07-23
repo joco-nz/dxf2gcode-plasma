@@ -54,7 +54,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-06-26"
+DATE=   "2009-07-23"
 
 # Config Verzeichniss
 
@@ -413,21 +413,27 @@ class Erstelle_Fenster:
 
     def Get_Save_File(self):
 
+        if self.postpro.output_format=='g-code':
+            format='.ngc'
+            myFormats = [(_('G-Code for EMC2'),'*.ngc'),\
+                        (_('All File'),'*.*') ]
+        elif self.postpro.output_format=='dxf':
+            format='_simplified.dxf'
+            myFormats = [(_('Simplified DXF File'),'*.dxf'),\
+                    (_('All File'),'*.*') ]
+
         #Abbruch falls noch kein File geladen wurde.
         if self.load_filename==None:
             showwarning(_("Export G-Code"), _("Nothing to export!"))
             return
         
-        #Auswahl des zu ladenden Files
-        myFormats = [(_('G-Code for EMC2'),'*.ngc'),\
-        (_('All File'),'*.*') ]
 
         (beg, ende)=os.path.split(self.load_filename)
         (fileBaseName, fileExtension)=os.path.splitext(ende)
 
         inidir=self.config.save_path
         self.save_filename = asksaveasfilename(initialdir=inidir,\
-                               initialfile=fileBaseName +'.ngc',filetypes=myFormats)
+                               initialfile=fileBaseName + format,filetypes=myFormats)
 
     # Callback des Menu Punkts Exportieren
     def Write_GCode(self):
@@ -1579,9 +1585,11 @@ class PostprocessorClass:
 
     def get_all_vars(self):
         try:
+            self.output_format=self.parser.get('General', 'output_format')  
             self.abs_export=int(self.parser.get('General', 'abs_export'))
             self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
             self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
+            self.export_ccw_arcs_only=int(self.parser.get('General', 'export_ccw_arcs_only'))   
             self.gcode_be=self.parser.get('General', 'code_begin')
             self.gcode_en=self.parser.get('General', 'code_end')
 
@@ -1609,28 +1617,47 @@ class PostprocessorClass:
             self.cut_comp_right_str=self.parser.get('Program','cutter_comp_right')                        
                             
             self.feed=0
-            self.x=self.config.axis1_st_en.get()
-            self.y=self.config.axis2_st_en.get()
-            self.z=self.config.axis3_retract.get()
-            self.lx=self.x
-            self.ly=self.y
-            self.lz=self.z
-            self.i=0.0
-            self.j=0.0
+            self.Pe=PointClass( x=self.config.axis1_st_en.get(),
+                                y=self.config.axis2_st_en.get())
 
+            self.Pa=PointClass(x=self.config.axis1_st_en.get(),
+                                y=self.config.axis2_st_en.get())
+
+            self.lPe=PointClass( x=self.config.axis1_st_en.get(),
+                                y=self.config.axis2_st_en.get())
+               
+            self.IJ=PointClass( x=0.0,y=0.0)    
+            self.O=PointClass( x=0.0,y=0.0)    
+            self.r=0.0           
+            self.a_ang=0.0      
+            self.e_ang=0.0         
+            self.ze=self.config.axis3_retract.get()   
+            self.lz=self.ze
             self.vars={"%feed":'self.iprint(self.feed)',\
                        "%nl":'self.nlprint()',\
-                       "%X":'self.fnprint(self.x)',\
-                       "%-X":'self.fnprint(-self.x)',\
-                       "%Y":'self.fnprint(self.y)',\
-                       "%-Y":'self.fnprint(-self.y)',\
-                       "%Z":'self.fnprint(self.z)',\
-                       "%-Z":'self.fnprint(-self.z)',\
-                       "%I":'self.fnprint(self.i)',\
-                       "%-I":'self.fnprint(-self.i)',\
-                       "%J":'self.fnprint(self.j)',\
-                       "%-J":'self.fnprint(-self.j)'}
-
+                       "%XE":'self.fnprint(self.Pe.x)',\
+                       "%-XE":'self.fnprint(-self.Pe.x)',\
+                       "%XA":'self.fnprint(self.Pa.x)',\
+                       "%-XA":'self.fnprint(-self.Pa.x)',\
+                       "%YE":'self.fnprint(self.Pe.y)',\
+                       "%-YE":'self.fnprint(-self.Pe.y)',\
+                       "%YA":'self.fnprint(self.Pa.y)',\
+                       "%-YA":'self.fnprint(-self.Pa.y)',\
+                       "%ZE":'self.fnprint(self.ze)',\
+                       "%-ZE":'self.fnprint(-self.ze)',\
+                       "%I":'self.fnprint(self.IJ.x)',\
+                       "%-I":'self.fnprint(-self.IJ.x)',\
+                       "%J":'self.fnprint(self.IJ.y)',\
+                       "%-J":'self.fnprint(-self.IJ.y)',\
+                       "%XO":'self.fnprint(self.O.x)',\
+                       "%-XO":'self.fnprint(-self.O.x)',\
+                       "%YO":'self.fnprint(self.O.y)',\
+                       "%-YO":'self.fnprint(-self.O.y)',\
+                       "%R":'self.fnprint(self.r)',\
+                       "%AngA":'self.fnprint(degrees(self.a_ang))',\
+                       "%-AngA":'self.fnprint(degrees(-self.a_ang))',\
+                       "%AngE":'self.fnprint(degrees(self.e_ang))',\
+                       "%-AngE":'self.fnprint(degrees(-self.e_ang))'}
         except:
             showerror(_("Error during reading postprocessor file"), _("Please delete or correct\n %s")\
                       %(os.path.join(FOLDER,self.postpro_file_name)))
@@ -1639,10 +1666,11 @@ class PostprocessorClass:
     def make_new_postpro_file(self):
             
         self.parser.add_section('General')
+        self.parser.set('General', 'output_format', 'g-code')     
         self.parser.set('General', 'abs_export', 1)
         self.parser.set('General', 'write_to_stdout', 0)
         self.parser.set('General', 'cancel_cc_for_depth', 0)
-   
+        self.parser.set('General', 'export_ccw_arcs_only',0)   
         self.parser.set('General', 'code_begin',\
                         'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
                         +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
@@ -1671,17 +1699,17 @@ class PostprocessorClass:
         self.parser.set('Program','feed_change',\
                         ('F%feed%nl'))
         self.parser.set('Program','rap_pos_plane',\
-                        ('G0 X%X Y%Y%nl'))
+                        ('G0 X%XE Y%YE%nl'))
         self.parser.set('Program','rap_pos_depth',\
-                        ('G0 Z%Z %nl'))
+                        ('G0 Z%ZE %nl'))
         self.parser.set('Program','lin_mov_plane',\
-                        ('G1 X%X Y%Y%nl'))
+                        ('G1 X%XE Y%YE%nl'))
         self.parser.set('Program','lin_mov_depth',\
-                        ('G1 Z%Z%nl'))
+                        ('G1 Z%ZE%nl'))
         self.parser.set('Program','arc_int_cw',\
-                        ('G2 X%X Y%Y I%I J%J%nl'))
+                        ('G2 X%XE Y%YE I%I J%J%nl'))
         self.parser.set('Program','arc_int_ccw',\
-                        ('G3 X%X Y%Y I%I J%J%nl'))
+                        ('G3 X%XE Y%YE I%I J%J%nl'))
         self.parser.set('Program','cutter_comp_off',\
                         ('G40%nl'))
         self.parser.set('Program','cutter_comp_left',\
@@ -1730,46 +1758,41 @@ class PostprocessorClass:
         self.feed=feed
         self.string+=self.make_print_str(self.feed_ch_str) 
         
-    def set_cut_cor(self,cut_cor,newpos):
+    def set_cut_cor(self,cut_cor,Pe):
         self.cut_cor=cut_cor
 
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
-            self.lx=newpos.x
-            self.y=newpos.y-self.ly
-            self.ly=newpos.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.x=newpos.x
-            self.y=newpos.y  
+            self.Pe=Pe
 
         if cut_cor==41:
             self.string+=self.make_print_str(self.cut_comp_left_str)
         elif cut_cor==42:
             self.string+=self.make_print_str(self.cut_comp_right_str)
 
-    def deactivate_cut_cor(self,newpos):
+    def deactivate_cut_cor(self,Pe):
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
-            self.lx=newpos.x
-            self.y=newpos.y-self.ly
-            self.ly=newpos.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.x=newpos.x
-            self.y=newpos.y   
+            self.Pe=Pe   
         self.string+=self.make_print_str(self.cut_comp_off_str)
             
-    def lin_pol_arc(self,dir,ende,IJ):
+    def lin_pol_arc(self,dir,Pa,Pe,a_ang,e_ang,R,O,IJ):
+        self.O=O
+        self.IJ=IJ
+        self.a_ang=a_ang
+        self.e_ang=e_ang
+        self.Pa=Pa
+        self.r=R
+                
         if not(self.abs_export):
-            self.x=ende.x-self.lx
-            self.y=ende.y-self.lx
-            self.lx=ende.x
-            self.ly=ende.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.x=ende.x
-            self.y=ende.y
-
-        self.i=IJ.x
-        self.j=IJ.y
+            self.Pe=Pe
 
         if dir=='cw':
             self.string+=self.make_print_str(self.arc_int_cw)
@@ -1779,48 +1802,48 @@ class PostprocessorClass:
           
     def rap_pos_z(self,z_pos):
         if not(self.abs_export):
-            self.z=z_pos-self.lz
+            self.ze=z_pos-self.lz
             self.lz=z_pos
         else:
-            self.z=z_pos
+            self.ze=z_pos
 
         self.string+=self.make_print_str(self.rap_pos_depth_str)           
          
-    def rap_pos_xy(self,newpos):
+    def rap_pos_xy(self,Pe):
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
-            self.lx=newpos.x
-            self.y=newpos.y-self.ly
-            self.ly=newpos.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.x=newpos.x
-            self.y=newpos.y
+            self.Pe=Pe
 
         self.string+=self.make_print_str(self.rap_pos_plane_str)         
     
     def lin_pol_z(self,z_pos):
         if not(self.abs_export):
-            self.z=z_pos-self.lz
+            self.ze=z_pos-self.lz
             self.lz=z_pos
         else:
-            self.z=z_pos
+            self.ze=z_pos
+        self.make_print_str(self.lin_mov_depth_str)
 
-        self.string+=self.make_print_str(self.lin_mov_depth_str)      
-    def lin_pol_xy(self,newpos):
+        self.string+=self.make_print_str(self.lin_mov_depth_str)     
+        
+    def lin_pol_xy(self,Pa,Pe):
+        self.Pa=Pa
+        
         if not(self.abs_export):
-            self.x=newpos.x-self.lx
-            self.lx=newpos.x
-            self.y=newpos.y-self.ly
-            self.ly=newpos.y
+            self.Pe=Pe-self.lPe
+            self.lPe=Pe
         else:
-            self.x=newpos.x
-            self.y=newpos.y
+            self.Pe=Pe
 
         self.string+=self.make_print_str(self.lin_mov_plane_str)       
 
     def make_print_str(self,string):
+  
         new_string=string
         for key_nr in range(len(self.vars.keys())):
+
             new_string=new_string.replace(self.vars.keys()[key_nr],\
                                           eval(self.vars.values()[key_nr]))
         return new_string
@@ -1870,7 +1893,7 @@ class PostprocessorClass:
             for option in self.parser.options(section): 
                 str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
         return str
-        
+
 class Show_About_Info(Toplevel):
     def __init__(self, parent):
         Toplevel.__init__(self, parent)

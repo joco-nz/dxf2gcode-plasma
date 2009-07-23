@@ -52,7 +52,7 @@ class PolylineClass:
         for geo in self.geo:
             geo.reverse()
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         if abs(self.length)<tol:
             pass
             
@@ -64,7 +64,9 @@ class PolylineClass:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[0].Pa,
-                                      en=self.geo[-1].Pe,be_cp=[],en_cp=[]))      
+                                      en=self.geo[-1].Pe,be_cp=[],en_cp=[])) 
+                                    
+        return warning
 
 ##            if abs(self.length)>tol:
 ##                points.append(PointsClass(point_nr=len(points),geo_nr=i,\
