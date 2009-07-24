@@ -247,6 +247,10 @@ class ShapeClass:
 
         depth=config.axis3_mill_depth.get()
         max_slice=config.axis3_slice_depth.get()
+        
+        #Wenn Output Format DXF dann nur einmal Fräsen
+        if postpro.output_format=='dxf':
+            depth=max_slice
 
         #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
         if -abs(max_slice)<=depth:

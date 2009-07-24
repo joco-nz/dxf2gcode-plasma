@@ -72,6 +72,7 @@ class Load_DXF:
             # '\n'
             #print self.blocks.Entities[i]
             self.blocks.Entities[i].cont=self.Get_Contour(self.blocks.Entities[i])
+
         self.entities.cont=self.Get_Contour(self.entities)
    
     #Laden des ausgewählten DXF-Files
