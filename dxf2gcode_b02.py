@@ -2130,7 +2130,8 @@ class SysErrListener:
     def __init__(self):
         self.first = True
     def write(self, string):
-        f=open(os.path.join(FOLDER,dxf2gcode_err.txt), 'a')
+        
+        f=open(os.path.join(FOLDER,'dxf2gcode_err.txt'), 'a')
         if self.first:
             self.first = False
             f.write('\n\n' + time.ctime() + ':\n')
