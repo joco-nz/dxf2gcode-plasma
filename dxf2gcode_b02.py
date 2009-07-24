@@ -27,6 +27,7 @@
 
 #Loeschen aller Module aus dem Speicher
 import sys, os, string
+import time
 
 if globals().has_key('init_modules'):
     for m in [x for x in sys.modules.keys() if x not in init_modules]:
@@ -54,7 +55,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-07-23"
+DATE=   "2009-07-24"
 
 # Config Verzeichniss
 
@@ -1723,11 +1724,18 @@ class PostprocessorClass:
 
     def write_gcode_be(self,ExportParas,load_filename):
         #Schreiben in einen String
-        str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
+        if self.output_format=='g-code':
+            str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
+        elif self.output_format=='dxf':
+            str=''
+            
         self.string=(str.encode("utf-8"))
-        
+         
         #Daten aus dem Textfelder an string anhängen
         self.string+=("%s\n" %ExportParas.gcode_be.get(1.0,END).strip())
+
+
+
 
     def write_gcode_en(self,ExportParas):
         #Daten aus dem Textfelder an string anhängen   
@@ -2104,9 +2112,41 @@ class Tkinter_Variable_Dialog(Toplevel):
         for tkintervar in self.tkintervars:
             self.result.append(tkintervar.get())
 
+#class SysOutListener:
+#    def __init__(self):
+#        self.first = True
+#    def write(self, string):
+#        f=open('d:/dxf2gcode_out.txt', 'a')
+#        if self.first:
+#            self.first = False
+#            f.write('\n\n' + time.ctime() + ':\n')
+#        f.write(string)
+#        f.flush()
+#        f.close()
+#        sys.__stdout__.write(string)
+
+
+class SysErrListener:
+    def __init__(self):
+        self.first = True
+    def write(self, string):
+        f=open(os.path.join(FOLDER,dxf2gcode_err.txt), 'a')
+        if self.first:
+            self.first = False
+            f.write('\n\n' + time.ctime() + ':\n')
+        f.write(string)
+        f.flush()
+        f.close()
+        sys.__stderr__.write(string)
+
+
+
 #Hauptfunktion zum Aufruf des Fensters und Mainloop     
 if __name__ == "__main__":
    
+    #sys.stdout = SysOutListener()
+    sys.stderr = SysErrListener()
+
     master = Tk()
     master.title("DXF2GCODE, Version: %s, Date: %s " %(VERSION,DATE))
 
