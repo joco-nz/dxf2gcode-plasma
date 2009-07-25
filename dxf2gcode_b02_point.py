@@ -91,7 +91,8 @@ class PointClass:
             p0=parent.p0
             pb=parent.pb
             sca=parent.sca
-            rot=parent.rot   
+            rot=parent.rot
+            
             pc=self-pb
             rotx=(pc.x*cos(rot)+pc.y*-sin(rot))*sca[0]
             roty=(pc.x*sin(rot)+pc.y*cos(rot))*sca[1]
@@ -369,11 +370,15 @@ class ArcGeo:
         #Vorsicht geht nicht für Ovale
         if (self.ext>0):
             #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("ccw",ende,IJ)
-        else:
+            string=postpro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,sR,O,IJ)
+        elif (self.ext<0) and not(postpro.export_ccw_arcs_only):
+            string=postpro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,sR,O,(O-ende))
+        elif postpro.export_ccw_arcs_only:
             #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-            string=postpro.lin_pol_arc("cw",ende,IJ)
-        return string      
+            string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,sR,O,IJ)
+        return string  
+
+
     
 class LineGeo:
     def __init__(self,Pa,Pe):
@@ -423,8 +428,8 @@ class LineGeo:
         anf, anf_ang=self.get_start_end_points(0,parent)
         ende, end_ang=self.get_start_end_points(1,parent)
 
-        return postpro.lin_pol_xy(ende)
-        
+        return postpro.lin_pol_xy(anf,ende)
+
     def distance2point(self,point):
         try:
             AE=self.Pa.distance(self.Pe)

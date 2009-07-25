@@ -45,16 +45,18 @@ class LineClass:
               ("\nLayer Nr: %i" %self.Layer_Nr)+\
               str(self.geo[-1])
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         if abs(self.length)>tol:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[-1].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))
         else:
-            showwarning("Short Arc Elemente", ("Length of Line geometrie too short!"\
-                                               "\nLenght must be greater then tolerance."\
-                                               "\nSkipping Line Geometrie"))
+#            showwarning("Short Arc Elemente", ("Length of Line geometrie too short!"\
+#                                               "\nLenght must be greater then tolerance."\
+#                                               "\nSkipping Line Geometrie"))
+            warning=1
+        return warning
         
     def Read(self, caller):
         #Kürzere Namen zuweisen

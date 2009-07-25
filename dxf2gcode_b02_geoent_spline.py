@@ -48,7 +48,7 @@ class SplineClass:
 
         #Umwandeln zu einem ArcSpline
         Spline2ArcsClass=Spline2Arcs(degree=self.degree,Knots=self.Knots,\
-                                Weights=self.Weights,CPoints=self.CPoints,tol=0.01)
+                                Weights=self.Weights,CPoints=self.CPoints,tol=tol)
 
         self.geo=Spline2ArcsClass.Curve
 
@@ -79,7 +79,7 @@ class SplineClass:
         for geo in self.geo:
             geo.reverse()    
           
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         #Hinzufügen falls es keine geschlossener Spline ist
         if self.CPoints[0].isintol(self.CPoints[-1],tol):
             self.analyse_and_opt()
@@ -90,6 +90,7 @@ class SplineClass:
                                       be=self.geo[0].Pa,\
                                       en=self.geo[-1].Pe,\
                                       be_cp=[],en_cp=[]))
+        return warning
             
     def analyse_and_opt(self):
         summe=0
@@ -159,9 +160,6 @@ class SplineClass:
             self.Weights.append(float(lp.line_pair[sg].value))
             s=sg
             
-        if len(self.Weights)==0:
-            for nr in range(nCPts):
-                self.Weights.append(1)
                 
         #Lesen der Kontrollpunkte
         s=st
@@ -179,7 +177,17 @@ class SplineClass:
 
             self.CPoints.append(PointClass(x,y))                
 
+        if len(self.Weights)==0:
+            for nr in range(len(self.CPoints)):
+                self.Weights.append(1)
+
+
         caller.start=e
+#        print nCPts
+#        print len(self.Knots)
+#        print len(self.Weights)
+#        print len(self.CPoints)
+#        print self
         
     def get_start_end_points(self,direction=0):
         if not(direction):

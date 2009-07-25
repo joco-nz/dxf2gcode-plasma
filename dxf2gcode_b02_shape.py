@@ -247,6 +247,10 @@ class ShapeClass:
 
         depth=config.axis3_mill_depth.get()
         max_slice=config.axis3_slice_depth.get()
+        
+        #Wenn Output Format DXF dann nur einmal Fräsen
+        if postpro.output_format=='dxf':
+            depth=max_slice
 
         #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
         if -abs(max_slice)<=depth:
@@ -282,9 +286,9 @@ class ShapeClass:
         if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
             ende,en_angle=self.get_st_en_points(1)
             if self.cut_cor==41:
-                pos_cut_out=end_cont.get_arc_point(en_angle-90,tool_rad)
+                pos_cut_out=ende.get_arc_point(en_angle-90,tool_rad)
             elif self.cut_cor==42:
-                pos_cut_out=end_cont.get_arc_point(en_angle+90,tool_rad)         
+                pos_cut_out=ende.get_arc_point(en_angle+90,tool_rad)         
             postpro.deactivate_cut_cor(pos_cut_out)            
 
         #Zählen der Schleifen
@@ -316,14 +320,15 @@ class ShapeClass:
                 self.geos[geo_nr].Write_GCode(self.parent,postpro)
 
             #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
+            ende,en_angle=self.get_st_en_points(1)
             if self.cut_cor==41:
-                ende=en_point.get_arc_point(en_angle-90,tool_rad)
+                pos_cut_out=ende.get_arc_point(en_angle-90,tool_rad)
             elif self.cut_cor==42:
-                ende=en_point.get_arc_point(en_angle+90,tool_rad)
+                pos_cut_out=ende.get_arc_point(en_angle+90,tool_rad)
 
             #Ausschalten der Fräsradiuskorrektur falls benötigt          
             if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):         
-                postpro.deactivate_cut_cor(en_point)
+                postpro.deactivate_cut_cor(pos_cut_out)
      
         #Anfangswert für Direction wieder herstellen falls nötig
         if (snr%2)>0:
@@ -336,7 +341,7 @@ class ShapeClass:
 
         #Falls Fräsradius Korrektur noch nicht ausgeschaltet ist ausschalten.
         if (not(self.cut_cor==40))&(not(postpro.cancel_cc_for_depth)):
-            postpro.deactivate_cut_cor(en_point)        
+            postpro.deactivate_cut_cor(ende)        
 
         return 1    
     
