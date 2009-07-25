@@ -72,6 +72,7 @@ class Load_DXF:
             # '\n'
             #print self.blocks.Entities[i]
             self.blocks.Entities[i].cont=self.Get_Contour(self.blocks.Entities[i])
+
         self.entities.cont=self.Get_Contour(self.entities)
    
     #Laden des ausgewählten DXF-Files
@@ -192,6 +193,7 @@ class Load_DXF:
     #Lesen der Blocks Geometrien
     def Read_Blocks(self,blocks_pos):
         blocks=BlocksClass([])
+        warning=0
         for block_nr in range(len(blocks_pos)):
             self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr ),1)
             blocks.Entities.append(EntitiesClass(block_nr,blocks_pos[block_nr].name,[]))
@@ -207,36 +209,46 @@ class Load_DXF:
             blocks.Entities[-1].basep.y=float(lp.line_pair[s].value)
             
             #Lesen der Geometrien
-            blocks.Entities[-1].geo=self.Get_Geo(s,e)
+            (blocks.Entities[-1].geo,warning)=self.Get_Geo(s,e,warning)
             
             #Im Debug Modus 2 mehr Infos zum Block drucken
             self.textbox.prt(("\n %s" %blocks.Entities[-1] ),2)
             
+        if warning==1:
+            showwarning("Import Warning","Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+            
         return blocks
     #Lesen der Entities Geometrien
     def Read_Entities(self,sections):
+        warning=0
         for section_nr in range(len(sections)):
             if (find(sections[section_nr-1].name,"ENTITIES") == 0):
                 self.textbox.prt("\n\nReading Entities",1)
                 entities=EntitiesClass(0,'Entities',[])
-                entities.geo=self.Get_Geo(sections[section_nr-1].begin+1, sections[section_nr-1].end-1)
+                (entities.geo, warning)=self.Get_Geo(sections[section_nr-1].begin+1, 
+                                                    sections[section_nr-1].end-1,
+                                                    warning)
+    
+        if warning==1:
+            showwarning("Import Warning","Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+            
         return entities
 
     #Lesen der Geometrien von Blöcken und Entities         
-    def Get_Geo(self, begin, end):
+    def Get_Geo(self, begin, end, warning):
         geos= []
-        warn=0
         self.start=self.line_pairs.index_code(0,begin,end)
         old_start=self.start
         
         while self.start!=None:
             #Laden der aktuell gefundenen Geometrie
             name=self.line_pairs.line_pair[self.start].value         
-            entitie_geo,ent_warn = self.get_geo_entitie(len(geos),name)
+            entitie_geo,warning = self.get_geo_entitie(len(geos),name, warning)
 
-            #Hinzufügen der Werte oder auch nicht
-            if ent_warn:
-                warn=1
+            #Hinzufügen der Werte Wenn es gerade gefunden wurde
+            if warning==2:
+                #Zurücksetzen zu Warnung allgemein
+                warning=1
             else:
                 geos.append(entitie_geo)
             
@@ -256,16 +268,15 @@ class Load_DXF:
 
             old_start=self.start
 
-        if warn:
-            showwarning("Import Warning","Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+        
             
         del(self.start)
-        return geos
+        return geos, warning
 
     #Verteiler für die Geo-Instanzen
     # wird in def Get_Geo aufgerufen
     # für einen Release kann der ganze Code gerne wieder in einer Datei landen.
-    def get_geo_entitie(self, geo_nr, name):
+    def get_geo_entitie(self, geo_nr, name, warning):
         #Entities:
         # 3DFACE, 3DSOLID, ACAD_PROXY_ENTITY, ARC, ATTDEF, ATTRIB, BODY
         # CIRCLE, DIMENSTION, ELLIPSE, HATCH, IMAGE, INSERT, LEADER, LINE,
@@ -293,9 +304,10 @@ class Load_DXF:
         else:  
             self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
             self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
-            return [],1
+            warning=2
+            return [],warning
             
-        return geo,0
+        return geo,warning
 
     #Findet die Nr. des Geometrie Layers
     def Get_Layer_Nr(self,Layer_Name):
@@ -334,8 +346,16 @@ class Load_DXF:
         tol=self.config.points_tolerance.get()
 
         points=[]
+        warning=0
         for i in range(len(geo)) :
-            geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+            warning=geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
+        
+    
+        if warning:
+            showwarning("Short Elements", ("Length of some Elements too short!"\
+                                               "\nLenght must be greater then tolerance."\
+                                               "\nSkipped Geometries"))
+    
         return points
 
     #Suchen von gemeinsamen Punkten

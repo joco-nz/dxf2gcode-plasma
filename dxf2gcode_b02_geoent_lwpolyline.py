@@ -52,7 +52,7 @@ class LWPolylineClass:
         for geo in self.geo:
             geo.reverse()    
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         if abs(self.length)<tol:
             pass
         
@@ -65,6 +65,7 @@ class LWPolylineClass:
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[0].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))  
+        return warning
             
     def analyse_and_opt(self):
         summe=0
