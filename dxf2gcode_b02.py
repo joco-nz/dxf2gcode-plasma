@@ -35,6 +35,7 @@ if globals().has_key('init_modules'):
 else:
     init_modules = sys.modules.keys()
 
+from dxf2gcode_b02_config import ConfigClass, PostprocessorClass
 from dxf2gcode_b02_point import PointClass
 from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
 import dxf2gcode_b02_dxf_import as dxf_import 
@@ -43,10 +44,10 @@ import locale
 
 from math import radians, degrees
 
-import webbrowser,gettext, ConfigParser, tempfile, subprocess
+import webbrowser,gettext, tempfile, subprocess
 from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
 from tkMessageBox import showwarning, showerror
-from Tkinter import Tk, Canvas, Menu, Frame, DoubleVar, IntVar, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
+from Tkinter import Tk, IntVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
@@ -140,10 +141,10 @@ class Erstelle_Fenster:
         self.textbox=TextboxClass(frame=self.frame_u,master=self.master)
 
         #Voreininstellungen fuer das Programm laden
-        self.config=ConfigClass(self.textbox)
+        self.config=ConfigClass(self.textbox,FOLDER,APPNAME)
 
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.postpro=PostprocessorClass(self.config,self.textbox)
+        self.postpro=PostprocessorClass(self.config,self.textbox,FOLDER,APPNAME)
 
         self.master.columnconfigure(0,weight=0)
         self.master.columnconfigure(1,weight=1)
@@ -413,15 +414,12 @@ class Erstelle_Fenster:
                                     rot=self.rotate)
 
     def Get_Save_File(self):
-
-        if self.postpro.output_format=='g-code':
-            format='.ngc'
-            myFormats = [(_('G-Code for EMC2'),'*.ngc'),\
-                        (_('All File'),'*.*') ]
-        elif self.postpro.output_format=='dxf':
-            format='_simplified.dxf'
-            myFormats = [(_('Simplified DXF File'),'*.dxf'),\
-                    (_('All File'),'*.*') ]
+        MyFormats=[]
+        for i in range(len(self.postpro.output_format)):
+            name="%s" %eval(self.postpro.output_text[i])
+            format="*%s" %eval(self.postpro.output_format[i])
+            MyFormats.append((name,format ))
+            
 
         #Abbruch falls noch kein File geladen wurde.
         if self.load_filename==None:
@@ -434,20 +432,29 @@ class Erstelle_Fenster:
 
         inidir=self.config.save_path
         self.save_filename = asksaveasfilename(initialdir=inidir,\
-                               initialfile=fileBaseName + format,filetypes=myFormats)
+                               initialfile=fileBaseName,filetypes=MyFormats)
 
     # Callback des Menu Punkts Exportieren
     def Write_GCode(self):
+        
+       #Config & postpro in einen kurzen Namen speichern
+        config=self.config
+        postpro=self.postpro
 
+        if not(config.write_to_stdout):
+           
+                #Abfrage des Namens um das File zu speichern
+                self.Get_Save_File()
+                
+                #Wenn Cancel gedrueckt wurde
+                if not self.save_filename:
+                    return
+               
         #Funktion zum optimieren des Wegs aufrufen
         self.opt_export_route()
 
         #Initial Status fuer den Export
         status=1
-
-        #Config & postpro in einen kurzen Namen speichern
-        config=self.config
-        postpro=self.postpro
 
         #Schreiben der Standardwert am Anfang        
         postpro.write_gcode_be(self.ExportParas,self.load_filename)
@@ -486,23 +493,15 @@ class Erstelle_Fenster:
                     
         #Drucken in den Stdout, speziell fuer EMC2 
         if postpro.write_to_stdout:
-            #print(string)
+            print(string)
             self.ende()     
         else:
             #Exportieren der Daten
                 try:
-                    #Abfrage des Namens um das File zu speichern
-                    self.Get_Save_File()
-                    
-                    #Wenn Cancel gedrueckt wurde
-                    if not self.save_filename:
-                        return
-                    
                     #Das File oeffnen und schreiben    
                     f = open(self.save_filename, "w")
                     f.write(string)
-                    f.close()    
-                      
+                    f.close()       
                 except IOError:
                     showwarning(_("Save As"), _("Cannot save the file."))
             
@@ -625,20 +624,20 @@ class ExportParasClass:
 
         # uses the notebook's frame
         self.nb_f1 = Frame(self.nb())
-        self.nb_f2 = Frame(self.nb())
+        #self.nb_f2 = Frame(self.nb())
 
         # keeps the reference to the radiobutton (optional)
         self.nb.add_screen(self.nb_f1, _("Coordinates"))
-        self.nb.add_screen(self.nb_f2, _("File Beg. & End"))
+        #self.nb.add_screen(self.nb_f2, _("File Beg. & End"))
 
         self.nb_f1.columnconfigure(0,weight=1)
-        self.nb_f2.columnconfigure(0,weight=1)        
+        #self.nb_f2.columnconfigure(0,weight=1)        
     
         self.erstelle_eingabefelder(config)
-        self.erstelle_textfelder(config)
+        #self.erstelle_textfelder(config)
 
-        self.gcode_be.insert(END,postpro.gcode_be)
-        self.gcode_en.insert(END,postpro.gcode_en)
+        #self.gcode_be.insert(END,postpro.gcode_be)
+        #self.gcode_en.insert(END,postpro.gcode_en)
 
 
     def erstelle_eingabefelder(self,config):
@@ -1395,587 +1394,6 @@ class LayerContentClass:
                ('\nLayerNr :      %i' %self.LayerNr) +\
                ('\nLayerName:     %s' %self.LayerName)+\
                ('\nShapes:    %s' %self.Shapes)
-
-
-class ConfigClass:
-    def __init__(self,textbox):
-        # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
-        self.make_settings_folder()
-
-        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
-        self.parser = ConfigParser.ConfigParser()
-        self.cfg_file_name=APPNAME+'_config.cfg'
-        self.parser.read(os.path.join(FOLDER,self.cfg_file_name))
-
-        # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
-        if len(self.parser.sections())==0:
-            self.make_new_Config_file()
-            self.parser.read(os.path.join(FOLDER,self.cfg_file_name))
-            textbox.prt((_('\nNo config file found generated new on at: %s') \
-                             %os.path.join(FOLDER,self.cfg_file_name)))
-        else:
-            textbox.prt((_('\nLoading config file:%s') \
-                             %os.path.join(FOLDER,self.cfg_file_name)))
-
-        #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
-        self.get_all_vars()
-
-        #DEBUG INFORMATIONEN
-        #Übergeben des geladenen Debug Level
-        textbox.set_debuglevel(DEBUG=self.debug)
-        textbox.prt(_('\nDebug Level: %i') %(self.debug),1)
-        textbox.prt(str(self),1)
-
-    def make_settings_folder(self): 
-        # create settings folder if necessary 
-        try: 
-            os.mkdir(FOLDER) 
-        except OSError: 
-            pass 
-
-    def make_new_Config_file(self):
-        self.parser.add_section('Paths') 
-        self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohloeffel\Documents\DXF2GCODE\trunk\dxf')
-        self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohloeffel\Documents')
-
-        self.parser.add_section('Import Parameters') 
-        self.parser.set('Import Parameters', 'point_tolerance', 0.01)
-        self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
-                   
-        self.parser.add_section('Tool Parameters') 
-        self.parser.set('Tool Parameters', 'diameter', 2.0)
-        self.parser.set('Tool Parameters', 'start_radius', 0.2)
-
-        self.parser.add_section('Plane Coordinates') 
-        self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
-        self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
-
-        self.parser.add_section('Depth Coordinates') 
-        self.parser.set('Depth Coordinates', 'axis3_retract', 15)
-        self.parser.set('Depth Coordinates', 'axis3_safe_margin', 3.0)
-        self.parser.set('Depth Coordinates', 'axis3_mill_depth', -3.0)
-        self.parser.set('Depth Coordinates', 'axis3_slice_depth', -1.5)
-
-        self.parser.add_section('Feed Rates')
-        self.parser.set('Feed Rates', 'f_g1_depth', 150)
-        self.parser.set('Feed Rates', 'f_g1_plane', 400)
-
-        self.parser.add_section('Axis letters')
-        self.parser.set('Axis letters', 'ax1_letter', 'X')
-        self.parser.set('Axis letters', 'ax2_letter', 'Y')
-        self.parser.set('Axis letters', 'ax3_letter', 'Z')                  
-
-        self.parser.add_section('Route Optimisation')
-        self.parser.set('Route Optimisation', 'Begin art','heurestic')
-        self.parser.set('Route Optimisation', 'Max. population', 20)
-        self.parser.set('Route Optimisation', 'Max. iterations', 300)  
-        self.parser.set('Route Optimisation', 'Mutation Rate', 0.95)
-
-        self.parser.add_section('Filters')
-        self.parser.set('Filters', 'pstoedit_cmd','C:\Program Files (x86)\pstoedit\pstoedit')
-        self.parser.set('Filters', 'pstoedit_opt', ['-f','dxf','-mm'])
-                     
-        self.parser.add_section('Debug')
-        self.parser.set('Debug', 'global_debug_level', 0)         
-                
-        open_file = open(os.path.join(FOLDER,self.cfg_file_name), "w") 
-        self.parser.write(open_file) 
-        open_file.close()
-            
-    def get_all_vars(self):
-        try:               
-            self.tool_dia=DoubleVar()
-            self.tool_dia.set(float(self.parser.get('Tool Parameters','diameter')))
-
-            self.start_rad=DoubleVar()
-            self.start_rad.set(float(self.parser.get('Tool Parameters','start_radius')))        
-           
-            self.axis1_st_en=DoubleVar()
-            self.axis1_st_en.set(float(self.parser.get('Plane Coordinates','axis1_start_end')))
-
-            self.axis2_st_en=DoubleVar()
-            self.axis2_st_en.set(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
-            
-            self.axis3_retract=DoubleVar()
-            self.axis3_retract.set(float(self.parser.get('Depth Coordinates','axis3_retract')))
-            
-            self.axis3_safe_margin=DoubleVar()
-            self.axis3_safe_margin.set(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
-
-            self.axis3_slice_depth=DoubleVar()
-            self.axis3_slice_depth.set(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
-
-            self.axis3_mill_depth=DoubleVar()
-            self.axis3_mill_depth.set(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
-            
-            self.F_G1_Depth=DoubleVar()
-            self.F_G1_Depth.set(float(self.parser.get('Feed Rates','f_g1_depth')))
-
-            self.F_G1_Plane=DoubleVar()
-            self.F_G1_Plane.set(float(self.parser.get('Feed Rates','f_g1_plane')))
-
-            self.points_tolerance=DoubleVar()
-            self.points_tolerance.set(float(self.parser.get('Import Parameters','point_tolerance')))
-
-            self.fitting_tolerance=DoubleVar()
-            self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
-
-            #Zuweisen der Werte fuer die TSP Optimierung
-            self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
-            self.max_population=int((int(self.parser.get('Route Optimisation', 'Max. population'))/4)*4)
-            self.max_iterations=int(self.parser.get('Route Optimisation', 'Max. iterations'))  
-            self.mutate_rate=float(self.parser.get('Route Optimisation', 'Mutation Rate', 0.95))
-
-            #Zuweisen der Axis Letters
-            self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
-            self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
-            self.ax3_letter=self.parser.get('Axis letters', 'ax3_letter')
-
-            #Holen der restlichen Variablen
-            #Verzeichnisse
-            self.load_path=self.parser.get('Paths','load_path')
-            self.save_path=self.parser.get('Paths','save_path')
-
-            #Holen der Commandos fuer pstoedit
-            self.pstoedit_cmd=self.parser.get('Filters','pstoedit_cmd')
-            self.pstoedit_opt=self.parser.get('Filters','pstoedit_opt')
-
-            #Setzen des Globalen Debug Levels
-            self.debug=int(self.parser.get('Debug', 'global_debug_level'))
-            
-            
-        except:
-            showerror(_("Error during reading config file"), _("Please delete or correct\n %s")\
-                      %(os.path.join(FOLDER,self.cfg_file_name)))
-            raise Exception, _("Problem during import from INI File") 
-            
-    def __str__(self):
-
-        str=''
-        for section in self.parser.sections(): 
-            str= str +"\nSection: "+section 
-            for option in self.parser.options(section): 
-                str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
-        return str
-
-class PostprocessorClass:
-    def __init__(self,config=None,textbox=None):
-        self.string=''
-        self.textbox=textbox
-        self.config=config
-
-        # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
-        self.parser = ConfigParser.ConfigParser()
-        self.postpro_file_name=APPNAME+'_postprocessor.cfg'
-        self.parser.read(os.path.join(FOLDER,self.postpro_file_name))
-
-        # Falls kein Postprocessor File vorhanden ist oder File leer ist neue File anlegen und neu laden
-        if len(self.parser.sections())==0:
-            self.make_new_postpro_file()
-            self.parser.read(os.path.join(FOLDER,self.postpro_file_name))
-            textbox.prt((_('\nNo postprocessor file found generated new on at: %s') \
-                             %os.path.join(FOLDER,self.postpro_file_name)))
-        else:
-            textbox.prt((_('\nLoading postprocessor file: %s') \
-                             %os.path.join(FOLDER,self.postpro_file_name)))
-
-        #Variablen erstellen zur späteren Verwendung im Postprozessor        
-        self.get_all_vars()
-
-        textbox.prt(str(self),1)        
-
-    def get_all_vars(self):
-        try:
-            self.output_format=self.parser.get('General', 'output_format')  
-            self.abs_export=int(self.parser.get('General', 'abs_export'))
-            self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
-            self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
-            self.export_ccw_arcs_only=int(self.parser.get('General', 'export_ccw_arcs_only'))   
-            self.gcode_be=self.parser.get('General', 'code_begin')
-            self.gcode_en=self.parser.get('General', 'code_end')
-
-            self.pre_dec=int(self.parser.get('Number format','pre_decimals'))
-            self.post_dec=int(self.parser.get('Number format','post_decimals'))
-            self.dec_sep=self.parser.get('Number format','decimal_seperator')
-            self.pre_dec_z_pad=int(self.parser.get('Number format','pre_decimal_zero_padding'))
-            self.post_dec_z_pad=int(self.parser.get('Number format','post_decimal_zero_padding'))
-            self.signed_val=int(self.parser.get('Number format','signed_values'))
-
-            self.use_line_nrs=int(self.parser.get('Line numbers','use_line_nrs'))
-            self.line_nrs_begin=int(self.parser.get('Line numbers','line_nrs_begin'))
-            self.line_nrs_step=int(self.parser.get('Line numbers','line_nrs_step'))
-
-            self.tool_ch_str=self.parser.get('Program','tool_change')
-            self.feed_ch_str=self.parser.get('Program','feed_change')
-            self.rap_pos_plane_str=self.parser.get('Program','rap_pos_plane')
-            self.rap_pos_depth_str=self.parser.get('Program','rap_pos_depth')
-            self.lin_mov_plane_str=self.parser.get('Program','lin_mov_plane')
-            self.lin_mov_depth_str=self.parser.get('Program','lin_mov_depth')
-            self.arc_int_cw=self.parser.get('Program','arc_int_cw')
-            self.arc_int_ccw=self.parser.get('Program','arc_int_ccw')
-            self.cut_comp_off_str=self.parser.get('Program','cutter_comp_off')
-            self.cut_comp_left_str=self.parser.get('Program','cutter_comp_left')
-            self.cut_comp_right_str=self.parser.get('Program','cutter_comp_right')                        
-                            
-            self.feed=0
-            self.Pe=PointClass( x=self.config.axis1_st_en.get(),
-                                y=self.config.axis2_st_en.get())
-
-            self.Pa=PointClass(x=self.config.axis1_st_en.get(),
-                                y=self.config.axis2_st_en.get())
-
-            self.lPe=PointClass( x=self.config.axis1_st_en.get(),
-                                y=self.config.axis2_st_en.get())
-               
-            self.IJ=PointClass( x=0.0,y=0.0)    
-            self.O=PointClass( x=0.0,y=0.0)    
-            self.r=0.0           
-            self.a_ang=0.0      
-            self.e_ang=0.0         
-            self.ze=self.config.axis3_retract.get()   
-            self.lz=self.ze
-            self.vars={"%feed":'self.iprint(self.feed)',\
-                       "%nl":'self.nlprint()',\
-                       "%XE":'self.fnprint(self.Pe.x)',\
-                       "%-XE":'self.fnprint(-self.Pe.x)',\
-                       "%XA":'self.fnprint(self.Pa.x)',\
-                       "%-XA":'self.fnprint(-self.Pa.x)',\
-                       "%YE":'self.fnprint(self.Pe.y)',\
-                       "%-YE":'self.fnprint(-self.Pe.y)',\
-                       "%YA":'self.fnprint(self.Pa.y)',\
-                       "%-YA":'self.fnprint(-self.Pa.y)',\
-                       "%ZE":'self.fnprint(self.ze)',\
-                       "%-ZE":'self.fnprint(-self.ze)',\
-                       "%I":'self.fnprint(self.IJ.x)',\
-                       "%-I":'self.fnprint(-self.IJ.x)',\
-                       "%J":'self.fnprint(self.IJ.y)',\
-                       "%-J":'self.fnprint(-self.IJ.y)',\
-                       "%XO":'self.fnprint(self.O.x)',\
-                       "%-XO":'self.fnprint(-self.O.x)',\
-                       "%YO":'self.fnprint(self.O.y)',\
-                       "%-YO":'self.fnprint(-self.O.y)',\
-                       "%R":'self.fnprint(self.r)',\
-                       "%AngA":'self.fnprint(degrees(self.a_ang))',\
-                       "%-AngA":'self.fnprint(degrees(-self.a_ang))',\
-                       "%AngE":'self.fnprint(degrees(self.e_ang))',\
-                       "%-AngE":'self.fnprint(degrees(-self.e_ang))'}
-        except:
-            showerror(_("Error during reading postprocessor file"), _("Please delete or correct\n %s")\
-                      %(os.path.join(FOLDER,self.postpro_file_name)))
-            raise Exception, _("Problem during import from postprocessor File") 
-
-    def make_new_postpro_file(self):
-            
-        self.parser.add_section('General')
-        self.parser.set('General', 'output_format', 'g-code')     
-        self.parser.set('General', 'abs_export', 1)
-        self.parser.set('General', 'write_to_stdout', 0)
-        self.parser.set('General', 'cancel_cc_for_depth', 0)
-        self.parser.set('General', 'export_ccw_arcs_only',0)   
-        self.parser.set('General', 'code_begin',\
-                        'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
-                        +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
-                        +'\nG17'
-                        +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
-                        +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
-                        +'\nS5000M03 (Spindle 5000rpm cw)')
-        self.parser.set('General', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
-
-        self.parser.add_section('Number format')
-        self.parser.set('Number format','pre_decimals',4)
-        self.parser.set('Number format','post_decimals',3)
-        self.parser.set('Number format','decimal_seperator','.')
-        self.parser.set('Number format','pre_decimal_zero_padding',0)
-        self.parser.set('Number format','post_decimal_zero_padding',1)
-        self.parser.set('Number format','signed_values',0)
-
-        self.parser.add_section('Line numbers')
-        self.parser.set('Line numbers','use_line_nrs',0)
-        self.parser.set('Line numbers','line_nrs_begin',10)
-        self.parser.set('Line numbers','line_nrs_step',10)
-
-        self.parser.add_section('Program')
-        self.parser.set('Program','tool_change',\
-                        ('T%tool_nr M6%nl S%speed M3%nl'))
-        self.parser.set('Program','feed_change',\
-                        ('F%feed%nl'))
-        self.parser.set('Program','rap_pos_plane',\
-                        ('G0 X%XE Y%YE%nl'))
-        self.parser.set('Program','rap_pos_depth',\
-                        ('G0 Z%ZE %nl'))
-        self.parser.set('Program','lin_mov_plane',\
-                        ('G1 X%XE Y%YE%nl'))
-        self.parser.set('Program','lin_mov_depth',\
-                        ('G1 Z%ZE%nl'))
-        self.parser.set('Program','arc_int_cw',\
-                        ('G2 X%XE Y%YE I%I J%J%nl'))
-        self.parser.set('Program','arc_int_ccw',\
-                        ('G3 X%XE Y%YE I%I J%J%nl'))
-        self.parser.set('Program','cutter_comp_off',\
-                        ('G40%nl'))
-        self.parser.set('Program','cutter_comp_left',\
-                        ('G41%nl'))
-        self.parser.set('Program','cutter_comp_right',\
-                        ('G42%nl'))                      
-                        
-        open_file = open(os.path.join(FOLDER,self.postpro_file_name), "w") 
-        self.parser.write(open_file) 
-        open_file.close()
-
-    def write_gcode_be(self,ExportParas,load_filename):
-        #Schreiben in einen String
-        if self.output_format=='g-code':
-            str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
-        elif self.output_format=='dxf':
-            str=''
-            
-        self.string=(str.encode("utf-8"))
-         
-        #Daten aus dem Textfelder an string anhängen
-        self.string+=("%s\n" %ExportParas.gcode_be.get(1.0,END).strip())
-
-
-
-
-    def write_gcode_en(self,ExportParas):
-        #Daten aus dem Textfelder an string anhängen   
-        self.string+=ExportParas.gcode_en.get(1.0,END)
-
-        self.make_line_numbers()        
-        
-        return self.string
-
-    def make_line_numbers(self):
-        line_format='N%i ' 
-        if self.use_line_nrs:
-            nr=0
-            line_nr=self.line_nrs_begin
-            self.string=((line_format+'%s') %(line_nr,self.string))
-            nr=self.string.find('\n',nr)
-            while not(nr==-1):
-                line_nr+=self.line_nrs_step  
-                self.string=(('%s'+line_format+'%s') %(self.string[0:nr+1],\
-                                          line_nr,\
-                                          self.string[nr+1:len(self.string)]))
-                
-                nr=self.string.find('\n',nr+len(((line_format) %line_nr))+2)
-                          
-            
-            
-    def chg_feed_rate(self,feed):
-        self.feed=feed
-        self.string+=self.make_print_str(self.feed_ch_str) 
-        
-    def set_cut_cor(self,cut_cor,Pe):
-        self.cut_cor=cut_cor
-
-        if not(self.abs_export):
-            self.Pe=Pe-self.lPe
-            self.lPe=Pe
-        else:
-            self.Pe=Pe
-
-        if cut_cor==41:
-            self.string+=self.make_print_str(self.cut_comp_left_str)
-        elif cut_cor==42:
-            self.string+=self.make_print_str(self.cut_comp_right_str)
-
-    def deactivate_cut_cor(self,Pe):
-        if not(self.abs_export):
-            self.Pe=Pe-self.lPe
-            self.lPe=Pe
-        else:
-            self.Pe=Pe   
-        self.string+=self.make_print_str(self.cut_comp_off_str)
-            
-    def lin_pol_arc(self,dir,Pa,Pe,a_ang,e_ang,R,O,IJ):
-        self.O=O
-        self.IJ=IJ
-        self.a_ang=a_ang
-        self.e_ang=e_ang
-        self.Pa=Pa
-        self.r=R
-                
-        if not(self.abs_export):
-            self.Pe=Pe-self.lPe
-            self.lPe=Pe
-        else:
-            self.Pe=Pe
-
-        if dir=='cw':
-            self.string+=self.make_print_str(self.arc_int_cw)
-        else:
-            self.string+=self.make_print_str(self.arc_int_ccw)
-
-          
-    def rap_pos_z(self,z_pos):
-        if not(self.abs_export):
-            self.ze=z_pos-self.lz
-            self.lz=z_pos
-        else:
-            self.ze=z_pos
-
-        self.string+=self.make_print_str(self.rap_pos_depth_str)           
-         
-    def rap_pos_xy(self,Pe):
-        if not(self.abs_export):
-            self.Pe=Pe-self.lPe
-            self.lPe=Pe
-        else:
-            self.Pe=Pe
-
-        self.string+=self.make_print_str(self.rap_pos_plane_str)         
-    
-    def lin_pol_z(self,z_pos):
-        if not(self.abs_export):
-            self.ze=z_pos-self.lz
-            self.lz=z_pos
-        else:
-            self.ze=z_pos
-        self.make_print_str(self.lin_mov_depth_str)
-
-        self.string+=self.make_print_str(self.lin_mov_depth_str)     
-        
-    def lin_pol_xy(self,Pa,Pe):
-        self.Pa=Pa
-        
-        if not(self.abs_export):
-            self.Pe=Pe-self.lPe
-            self.lPe=Pe
-        else:
-            self.Pe=Pe
-
-        self.string+=self.make_print_str(self.lin_mov_plane_str)       
-
-    def make_print_str(self,string):
-  
-        new_string=string
-        for key_nr in range(len(self.vars.keys())):
-
-            new_string=new_string.replace(self.vars.keys()[key_nr],\
-                                          eval(self.vars.values()[key_nr]))
-        return new_string
-
-    #Funktion welche den Wert als formatierter integer zurueck gibt
-    def iprint(self,interger):
-        return ('%i' %interger)
-
-    #Funktion gibt den String fuer eine neue Linie zurueck
-    def nlprint(self):
-        return '\n'
-
-    #Funktion welche die Formatierte Number  zurueck gibt
-    def fnprint(self,number):
-        string=''
-        #+ oder - Zeichen Falls noetig/erwuenscht und Leading 0er
-        if (self.signed_val)and(self.pre_dec_z_pad):
-            numstr=(('%+0'+str(self.pre_dec+self.post_dec+1)+\
-                     '.'+str(self.post_dec)+'f') %number)
-        elif (self.signed_val==0)and(self.pre_dec_z_pad):
-            numstr=(('%0'+str(self.pre_dec+self.post_dec+1)+\
-                    '.'+str(self.post_dec)+'f') %number)
-        elif (self.signed_val)and(self.pre_dec_z_pad==0):
-            numstr=(('%+'+str(self.pre_dec+self.post_dec+1)+\
-                    '.'+str(self.post_dec)+'f') %number)
-        elif (self.signed_val==0)and(self.pre_dec_z_pad==0):
-            numstr=(('%'+str(self.pre_dec+self.post_dec+1)+\
-                    '.'+str(self.post_dec)+'f') %number)
-            
-        #Setzen des zugehoerigen Dezimal Trennzeichens            
-        string+=numstr[0:-(self.post_dec+1)]
-        
-        string_end=self.dec_sep
-        string_end+=numstr[-(self.post_dec):]
-
-        #Falls die 0er am Ende entfernt werden sollen
-        if self.post_dec_z_pad==0:
-            while (len(string_end)>0)and((string_end[-1]=='0')or(string_end[-1]==self.dec_sep)):
-                string_end=string_end[0:-1]                
-        return string+string_end
-    
-    def __str__(self):
-
-        str=''
-        for section in self.parser.sections(): 
-            str= str +"\nSection: "+section 
-            for option in self.parser.options(section): 
-                str= str+ "\n   -> %s=%s" % (option, self.parser.get(section, option))
-        return str
-
-class Show_About_Info(Toplevel):
-    def __init__(self, parent):
-        Toplevel.__init__(self, parent)
-        self.transient(parent)
-
-        self.title(_("About DXF2GCODE"))
-        self.parent = parent
-        self.result = None
-
-        body = Frame(self)
-        self.initial_focus = self.body(body)
-        body.pack(padx=5, pady=5)
-
-        self.buttonbox()
-        self.grab_set()
-
-        if not self.initial_focus:
-            self.initial_focus = self
-
-        self.protocol("WM_DELETE_WINDOW", self.close)
-        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
-                                  parent.winfo_rooty()+50))
-
-        self.initial_focus.focus_set()
-        self.wait_window(self)
-
-    def buttonbox(self):
-        box = Frame(self)
-        w = Button(box, text=_("OK"), width=10, command=self.ok, default=ACTIVE)
-        w.pack(padx=5, pady=5)
-        self.bind("<Return>", self.ok)
-        box.pack()
-
-    def ok(self, event=None):   
-        self.withdraw()
-        self.update_idletasks()
-        self.close()
-
-    def close(self, event=None):
-        self.parent.focus_set()
-        self.destroy()
-
-    def show_hand_cursor(self,event):
-        event.widget.configure(cursor="hand1")
-    def show_arrow_cursor(self,event):
-        event.widget.configure(cursor="")
-        
-    def click(self,event):
-        w = event.widget
-        x, y = event.x, event.y
-        tags = w.tag_names("@%d,%d" % (x, y))
-        for t in tags:
-            if t.startswith("href:"):
-                webbrowser.open(t[5:])
-                break
-
-
-    def body(self, master):
-        text = Text(master,width=40,height=8)
-        text.pack()
-        # configure text tag
-        text.tag_config("a", foreground="blue", underline=1)
-        text.tag_bind("a", "<Enter>", self.show_hand_cursor)
-        text.tag_bind("a", "<Leave>", self.show_arrow_cursor)
-        text.tag_bind("a", "<Button-1>", self.click)
-        text.config(cursor="arrow")
-
-        #add a link with data
-        href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
-        text.insert(END, _("You are using DXF2GCODE"))
-        text.insert(END, ("\nVersion %s (%s)" %(VERSION,DATE)))
-        text.insert(END, _("\nFor more information und updates about"))
-        text.insert(END, _("\nplease visit my homepage at:"))
-        text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:"+href))
 
 class NotebookClass:    
     # initialization. receives the master widget
