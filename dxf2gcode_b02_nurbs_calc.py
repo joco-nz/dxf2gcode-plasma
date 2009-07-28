@@ -468,7 +468,7 @@ class NURBSClass:
                 raise ValueError, "Same Knots Nr. bigger then degree+1"
             
             #Überprüfen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
-            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>0.0)and(knt_spts[-1]<1.0))and(check):
+            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>knt_vec[0][0])and(knt_spts[-1]<knt_vec[-1][-1]))and(check):
 
                 temp, tangent0=self.NURBS_evaluate(n=1,u=knt_spts[0]-1e-12)
                 temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
@@ -495,12 +495,14 @@ class NURBSClass:
                                    self.Knots[same_ctlpt[-1]+self.degree/2]])
 
         #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
-        print("Same Controlpoints Nr. bigger then degree+2")
-        for ignor in self.ignor:
-            print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))    
+        #print("Same Controlpoints Nr. bigger then degree+2")
+        #for ignor in self.ignor:
+        #    print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))    
         
 #        if len(self.knt_m_change):
-#            print("Non steady Angles between Knots: %s" %self.knt_m_change)
+#            print("Non steady Angles between Knots: %s" %self.knt_m_change)
+
+
                                                
     #Berechnen von eine Anzahl gleichmässig verteilter Punkte und bis zur ersten Ableitung
     def calc_curve(self,n=0, cpts_nr=20):
