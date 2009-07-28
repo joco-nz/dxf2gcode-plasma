@@ -88,6 +88,7 @@ class ConfigClass:
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
         self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
+        self.parser.set('Import Parameters', 'spline_check', 1)  
                    
         self.parser.add_section('Tool Parameters') 
         self.parser.set('Tool Parameters', 'diameter', 2.0)
@@ -168,6 +169,7 @@ class ConfigClass:
 
         self.fitting_tolerance=DoubleVar()
         self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
+        self.spline_check=int(self.parser.get('Import Parameters', 'spline_check')  )
 
         #Zuweisen der Werte fuer die TSP Optimierung
         self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
@@ -242,9 +244,7 @@ class PostprocessorClass:
         #Laden der Dateiformate und Texte aus den Config Files
         self.get_output_vars()
         
-        print self.output_format
-        print self.output_text
-        
+      
 #        textbox.prt((_('\nLoading postprocessor file: %s') \
 #                             %os.path.join(self.folder,self.postpro_file_name)))
 
@@ -263,12 +263,10 @@ class PostprocessorClass:
         self.output_format=[]
         self.output_text=[]
         for postprocessor_file in self.postprocessor_files:
+            
             self.parser.read(os.path.join(self.folder,postprocessor_file))
             
-            print(self.parser.get('General', 'output_format'))
-            wert=self.parser.get('General', 'output_format')
-            print wert
-            self.output_format.append(wert)
+            self.output_format.append(self.parser.get('General', 'output_format'))
             self.output_text.append(self.parser.get('General','output_text'))
 
     def get_all_vars(self):

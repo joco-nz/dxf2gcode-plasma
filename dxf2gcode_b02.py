@@ -47,7 +47,7 @@ from math import radians, degrees
 import webbrowser,gettext, tempfile, subprocess
 from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
 from tkMessageBox import showwarning, showerror
-from Tkinter import Tk, IntVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
+from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
@@ -56,7 +56,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-07-24"
+DATE=   "2009-07-28"
 
 # Config Verzeichniss
 
@@ -416,8 +416,8 @@ class Erstelle_Fenster:
     def Get_Save_File(self):
         MyFormats=[]
         for i in range(len(self.postpro.output_format)):
-            name="%s" %eval(self.postpro.output_text[i])
-            format="*%s" %eval(self.postpro.output_format[i])
+            name="%s" %(self.postpro.output_text[i])
+            format="*%s" %(self.postpro.output_format[i])
             MyFormats.append((name,format ))
             
 

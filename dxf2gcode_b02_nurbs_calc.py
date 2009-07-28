@@ -468,7 +468,7 @@ class NURBSClass:
                 raise ValueError, "Same Knots Nr. bigger then degree+1"
             
             #Überprüfen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
-            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>0.0)and(knt_spts[-1]<1.0))and(check):
+            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>knt_vec[0][0])and(knt_spts[-1]<knt_vec[-1][-1]))and(check):
 
                 temp, tangent0=self.NURBS_evaluate(n=1,u=knt_spts[0]-1e-12)
                 temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
