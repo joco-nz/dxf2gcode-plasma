@@ -115,10 +115,9 @@ class LWPolylineClass:
         LWPLClosed=int(lp.line_pair[s].value)
         #print LWPLClosed
         
-        
+        s=lp.index_code(10,s+1,e)
         while 1:
             #XWert
-            s=lp.index_code(10,s+1,e)
             if s==None:
                 break
             
@@ -131,17 +130,25 @@ class LWPolylineClass:
             #Bulge
             bulge=0
             
-            e_temp=min(e,lp.index_code(10,s+1,e))
-            if e_temp==None:
-                s_temp=None
-            else:
-                s_temp=lp.index_code(42,s+1,e_temp)
+            s_nxt_x=lp.index_code(10,s+1,e)
+            e_nxt_b=s_nxt_x
+            
+            #Wenn am Ende dann Suche bis zum Ende
+            if e_nxt_b==None:
+                e_nxt_b=e
+            
+            s_bulge=lp.index_code(42,s+1,e_nxt_b)
+            
             #print('stemp: %s, e: %s, next 10: %s' %(s_temp,e,lp.index_code(10,s+1,e)))
-            if s_temp!=None:
-                bulge=float(lp.line_pair[s_temp].value)
-                s=s_temp
+            if s_bulge!=None:
+                bulge=float(lp.line_pair[s_bulge].value)
+                s_nxt_x=s_nxt_x
+            
+            #Übernehmen des nächsten X Wert als Startwert
+            s=s_nxt_x
                 
            #Zuweisen der Geometrien für die Polyline
+        
             if not(type(Pa)==type(None)):
                 if next_bulge==0:
                     self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
@@ -160,12 +167,15 @@ class LWPolylineClass:
                    
         if (LWPLClosed==1):
             #print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
-            self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
+            if next_bulge:
+                self.geo.append(self.bulge2arc(Pa,self.geo[0].Pa,next_bulge))
+            else:
+                self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
+                
             self.length+=self.geo[-1].length
             
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=e
-                                                          
 
     def get_start_end_points(self,direction=0):
         if not(direction):

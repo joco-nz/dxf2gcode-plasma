@@ -51,8 +51,8 @@ class ShapeClass:
                ('\ncut_cor:     %s' %self.cut_cor)+\
                ('\nlen(geos):   %i' %len(self.geos))+\
                ('\nlength:      %0.2f' %self.length)+\
-               ('\ngeos:        %s' %self.geos)+\
-               ('\ngeos_hdls:   %s' %self.geos_hdls)
+               ('\ngeos:        %s' %self.geos)#+\
+               #('\ngeos_hdls:   %s' %self.geos_hdls)
                #+\
                #('\nparent: %s' %self.parent)
 
@@ -249,7 +249,7 @@ class ShapeClass:
         max_slice=config.axis3_slice_depth.get()
         
         #Wenn Output Format DXF dann nur einmal Fräsen
-        if postpro.output_format=='dxf':
+        if postpro.output_type=='dxf':
             depth=max_slice
 
         #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
@@ -341,6 +341,8 @@ class ShapeClass:
 
         #Falls Fräsradius Korrektur noch nicht ausgeschaltet ist ausschalten.
         if (not(self.cut_cor==40))&(not(postpro.cancel_cc_for_depth)):
+            #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
+            ende,en_angle=self.get_st_en_points(1)
             postpro.deactivate_cut_cor(ende)        
 
         return 1    

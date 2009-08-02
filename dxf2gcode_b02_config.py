@@ -269,7 +269,8 @@ class PostprocessorClass:
             self.output_format.append(self.parser.get('General', 'output_format'))
             self.output_text.append(self.parser.get('General','output_text'))
 
-    def get_all_vars(self):
+    def get_all_vars(self,pp_file_nr):
+        self.parser.read(os.path.join(self.folder,self.postprocessor_files[pp_file_nr]))
         #try:
         self.output_type=self.parser.get('General', 'output_type')  
         self.abs_export=int(self.parser.get('General', 'abs_export'))
@@ -407,7 +408,7 @@ class PostprocessorClass:
         self.parser.write(open_file) 
         open_file.close()
 
-    def write_gcode_be(self,ExportParas,load_filename):
+    def write_gcode_be(self,postpro,load_filename):
         #Schreiben in einen String
         if self.output_type=='g-code':
             str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
@@ -417,14 +418,14 @@ class PostprocessorClass:
         self.string=(str.encode("utf-8"))
          
         #Daten aus dem Textfelder an string anhängen
-        self.string+=("%s\n" %ExportParas.gcode_be.get(1.0,END).strip())
+        self.string+=("%s\n" %postpro.gcode_be)
 
 
 
 
-    def write_gcode_en(self,ExportParas):
+    def write_gcode_en(self,postpro):
         #Daten aus dem Textfelder an string anhängen   
-        self.string+=ExportParas.gcode_en.get(1.0,END)
+        self.string+=postpro.gcode_en
 
         self.make_line_numbers()        
         

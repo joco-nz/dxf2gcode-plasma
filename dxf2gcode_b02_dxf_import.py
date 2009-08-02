@@ -335,7 +335,7 @@ class Load_DXF:
 
         points=self.App_Cont_or_Calc_IntPts(entities.geo,cont)
         points=self.Find_Common_Points(points)
-        points=self.Remove_Redundant_Geos(points)
+        #points=self.Remove_Redundant_Geos(points)
 
         cont=self.Search_Contours(entities.geo,points,cont)
         
@@ -424,13 +424,24 @@ class Load_DXF:
 
         return points
     
-    def Remove_Redundant_Geos(self,points=None):
+    def Remove_Redundant_Geos(self,geo=None,points=None):
         pass
-        #for p in points:
-        #    print p
-
-        return points        
-
+#        del_points=[]
+#        for p_nr in range(len(points)):
+#            if not(p_nr in del_points):
+#                for be_p in points[p_nr].be_cp:
+#                    for en_p in points[p_nr].en_cp:
+#                        if be_p[0]==en_p[0]:
+#                            del_points.append(be_p[0])
+#                            print ('Gleiche Punkte in Anfang: %s und Ende %s' %(be_p,en_p))
+#                    
+#        #Löschen der überflüssigen Punkte
+#        for p_nr in del_points:
+#            for j in range(len(points)):
+#                if p_nr==points[j].point_nr:
+#                    del points[j]
+#                    break
+#        return points        
 
     #Suchen nach den besten zusammenhängenden Konturen
     def Search_Contours(self,geo=None,all_points=None,cont=None):
@@ -453,6 +464,8 @@ class Load_DXF:
                 cont.append(self.Get_Best_Contour(len(cont),new_cont_neg,geo,points))
             elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):
                 #print '\nGibt was in beiden Richtungen'
+                #print points[0].be_cp
+                #print points[0].en_cp
                 #Suchen der möglichen Pfade                
                 new_cont_pos=self.Search_Paths(0,[],points[0].point_nr,1,points)
                 #Bestimmen des besten Pfades und übergabe in cont                
@@ -460,14 +473,17 @@ class Load_DXF:
 
                 #Falls der Pfad nicht durch den ersten Punkt geschlossen ist
                 if cont[-1].closed==0:
-                    #print '\Pfad nicht durch den ersten Punkt geschlossen'
+                    #print '\nPfad nicht durch den ersten Punkt geschlossen'
                     cont[-1].reverse()
+                    #print ("Neue Kontur umgedrejt %s" %cont[-1])
                     new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
-                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg,geo,points)
+                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
                     
             else:
                 print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        
             points=self.Remove_Used_Points(cont[-1],points)
+                       
             cont[-1]=self.Contours_Points2Geo(cont[-1],all_points)
             cont[-1].analyse_and_opt(geo)
 
@@ -480,7 +496,8 @@ class Load_DXF:
             
         #Wenn es der erste Aufruf ist und eine neue Kontur angelegt werden muss         
         if len(c)==0:
-            c.append(ContourClass(cont_nr=0,order=[[p_nr,dir]]))    
+            c.append(ContourClass(cont_nr=0,order=[[p_nr,dir]]))   
+
             
         #Suchen des Punktes innerhalb der points List (nötig da verwendete Punkte gelöscht werden)
         for new_p_nr in range(len(points)):
@@ -560,6 +577,8 @@ class Load_DXF:
                 
         best_c=c[best]
         best_c.cont_nr=c_nr
+        
+        #print "Beste Kontur Nr:%s" %best_c
 
         return best_c
     

@@ -56,7 +56,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-07-28"
+DATE=   "2009-08-02"
 
 # Config Verzeichniss
 
@@ -431,8 +431,14 @@ class Erstelle_Fenster:
         (fileBaseName, fileExtension)=os.path.splitext(ende)
 
         inidir=self.config.save_path
-        self.save_filename = asksaveasfilename(initialdir=inidir,\
-                               initialfile=fileBaseName,filetypes=MyFormats)
+        
+        save_filename = asksaveasfilename(initialdir=inidir,\
+                               initialfile=fileBaseName,filetypes=MyFormats,defaultextension=self.postpro.output_format[0])
+               
+        (beg, ende)=os.path.split(save_filename)
+        (fileBaseName, fileExtension)=os.path.splitext(ende) 
+        
+        return (self.postpro.output_format.index(fileExtension),save_filename)
 
     # Callback des Menu Punkts Exportieren
     def Write_GCode(self):
@@ -444,11 +450,16 @@ class Erstelle_Fenster:
         if not(config.write_to_stdout):
            
                 #Abfrage des Namens um das File zu speichern
-                self.Get_Save_File()
+                (pp_file_nr, self.save_filename)=self.Get_Save_File()
                 
                 #Wenn Cancel gedrueckt wurde
                 if not self.save_filename:
                     return
+                
+                postpro.get_all_vars(pp_file_nr)
+        else:
+                postpro.get_all_vars([0])
+        
                
         #Funktion zum optimieren des Wegs aufrufen
         self.opt_export_route()
@@ -457,7 +468,7 @@ class Erstelle_Fenster:
         status=1
 
         #Schreiben der Standardwert am Anfang        
-        postpro.write_gcode_be(self.ExportParas,self.load_filename)
+        postpro.write_gcode_be(postpro,self.load_filename)
 
         #Maschine auf die Anfangshoehe bringen
         postpro.rap_pos_z(config.axis3_retract.get())
@@ -480,7 +491,7 @@ class Erstelle_Fenster:
                                               y=config.axis2_st_en.get()))
 
         #Schreiben der Standardwert am Ende        
-        string=postpro.write_gcode_en(self.ExportParas)
+        string=postpro.write_gcode_en(postpro)
 
         if status==1:
             self.textbox.prt(_("\nSuccessfully generated G-Code"))
@@ -492,7 +503,7 @@ class Erstelle_Fenster:
 
                     
         #Drucken in den Stdout, speziell fuer EMC2 
-        if postpro.write_to_stdout:
+        if config.write_to_stdout:
             print(string)
             self.ende()     
         else:

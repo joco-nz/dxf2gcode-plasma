@@ -309,8 +309,8 @@ class ArcGeo:
     def plot2can(self,canvas=None,parent=None,tag=None,col='black'):
                         
         x=[]; y=[]; hdl=[]
-        #Alle 3 Grad ein Segment => 120 Segmente für einen Kreis !!
-        segments=int((abs(degrees(self.ext))//3)+1)
+        #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
+        segments=int((abs(degrees(self.ext))//10)+1)
         
         for i in range(segments+1):
             
