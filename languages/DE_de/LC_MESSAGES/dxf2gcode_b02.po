@@ -1,0 +1,438 @@
+# Deutsche Übersetzung zum Programm DXF2GCODE Version B02
+# Copyright (C) 2008 Christian Kohlöffel
+# Christian Kohlöffel <Christian-Kohloeffel@T-Online.de>, 2008.
+
+#: dxf2gcode_b02.py:129
+msgid "File"
+msgstr "Datei"
+
+#: dxf2gcode_b02.py:130
+msgid "Read DXF"
+msgstr "DXF öffnen"
+
+#: dxf2gcode_b02.py:132
+msgid "Exit"
+msgstr "Schliessen"
+
+#: dxf2gcode_b02.py:135
+msgid "Export"
+msgstr "Exportieren"
+
+#: dxf2gcode_b02.py:136
+msgid "Write G-Code"
+msgstr "G-Code ausgeben"
+
+#: dxf2gcode_b02.py:141
+msgid "View"
+msgstr "Ansicht"
+
+#: dxf2gcode_b02.py:142
+msgid "Show workpiece zero"
+msgstr "Zeige Werkstücknullpunkt"
+
+#: dxf2gcode_b02.py:145
+msgid "Show all path directions"
+msgstr "Zeige alle Pfad Richtungen"
+
+#: dxf2gcode_b02.py:148
+msgid "Show disabled shapes"
+msgstr "Zeige verborgene Pfade"
+
+#: dxf2gcode_b02.py:153
+msgid "Autoscale"
+msgstr "Autoskalieren"
+
+#: dxf2gcode_b02.py:157
+msgid "Delete Route"
+msgstr "Eilpfade löschen"
+
+#: dxf2gcode_b02.py:167
+msgid "Options"
+msgstr "Einstellungen"
+
+#: dxf2gcode_b02.py:168
+msgid "Set tolerances"
+msgstr "Toleranzen"
+
+#: dxf2gcode_b02.py:170
+msgid "Scale contours"
+msgstr "Ausgabe skalieren"
+
+#: dxf2gcode_b02.py:171
+msgid "Move workpiece zero"
+msgstr "Werkstücknullpunkt verschieben"
+
+#: dxf2gcode_b02.py:177
+msgid "Help"
+msgstr "Hilfe"
+
+#: dxf2gcode_b02.py:178
+msgid "About..."
+msgstr "Über DXF2GCODE"
+
+#: dxf2gcode_b02.py:183
+msgid "AutoCAD / QCAD Drawing"
+msgstr "AutoCAD / QCAD Zeichnung"
+
+#: dxf2gcode_b02.py:184
+msgid "All File"
+msgstr "Alle Dateien"
+
+#: dxf2gcode_b02.py:198
+msgid ""
+"\nLoading file: %s"
+msgstr "\nLade Datei: %s"
+
+#: dxf2gcode_b02.py:203
+msgid "\nLoaded layers: %s"
+msgstr "\nGeladene Layers %s"
+
+#: dxf2gcode_b02.py:204
+msgid "\nLoaded blocks: %s "
+msgstr "\nGeladene Blöcke: %s"
+
+#: dxf2gcode_b02.py:207
+msgid "\nBlock %i includes %i Geometries, reduced to %i Contours, used layers: %s "
+msgstr "\nBlock %i beinhaltet %i Geometrien. Ergeben %i Konturen. Verwendete Layer: %s"
+
+#: dxf2gcode_b02.py:211
+msgid "\nLoaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i"
+msgstr "\n%i Entitie Geometrien geladen. Ergeben %i Konturen. Verwendete Layer: %s. Anzahl der Inserts: %i"
+#: dxf2gcode_b02.py:243
+msgid "Contour tolerances"
+msgstr "Kontur Toleranzen"
+
+#: dxf2gcode_b02.py:244
+msgid "Tolerance for common points [mm]:"
+msgstr "Toleranz für gemeinsamen Punkt [mm]:"
+
+#: dxf2gcode_b02.py:245
+msgid "Tolerance for curve fitting [mm]:"
+msgstr "Toleranz für Kurvenanpassung [mm]:"
+
+#: dxf2gcode_b02.py:255
+msgid "\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file"
+msgstr "\nKontur Toleranzen verändert (Punkte %0.3f, Kurven %0.3f) Datei wird neu geladen"
+
+#: dxf2gcode_b02.py:262
+msgid "Scale Contours"
+msgstr "Kontur skalieren"
+
+#: dxf2gcode_b02.py:262
+msgid "Set the scale factor"
+msgstr "Skalierungs Faktor"
+
+#: dxf2gcode_b02.py:271
+msgid "\nScaled Contours by factor %0.3f"
+msgstr "Konturen skaliert mit dem Faktor %0.3f"
+
+#: dxf2gcode_b02.py:281
+msgid "Workpiece zero offset"
+msgstr "Werkstücknullpunkt Versatz"
+
+#: dxf2gcode_b02.py:282 dxf2gcode_b02.py:283
+msgid "Offset %s axis by mm:"
+msgstr "Versatz %s -Achse in mm:"
+
+#: dxf2gcode_b02.py:295
+msgid "\nWorpiece zero offset: %s %0.2f; %s %0.2f"
+msgstr "Werkstücknullpunkt Versatz: %s %0.2f; %s %0.2f"
+
+#: dxf2gcode_b02.py:306
+msgid "Export G-Code"
+msgstr "Exportiere G-Code"
+
+#: dxf2gcode_b02.py:306
+msgid "Nothing to export!"
+msgstr "Nicht zu exportieren vorhanden!"
+
+#: dxf2gcode_b02.py:310
+msgid "G-Code for EMC2"
+msgstr "G-Code Datei"
+
+#: dxf2gcode_b02.py:342
+msgid "\nWriting Shape: %s"
+msgstr "\nSchreibe Shape: %s"
+
+#: dxf2gcode_b02.py:360
+msgid "\nSuccessfully generated G-Code"
+msgstr "\nG-Code erfolgreich erstellt"
+
+#: dxf2gcode_b02.py:364
+msgid "\nError during G-Code Generation"
+msgstr "\nFehler während der G-Code Erstellung"
+
+#: dxf2gcode_b02.py:388
+msgid "Cannot save the file."
+msgstr "Datei kann nicht gespeichert werden"
+
+#: dxf2gcode_b02.py:388
+msgid "Save As"
+msgstr "Speichern unter"
+
+#: dxf2gcode_b02.py:416
+msgid "\nTSP Starting"
+msgstr "\nTSP wurde gestartet"
+
+#: dxf2gcode_b02.py:419
+msgid "\nTSP start values initialised"
+msgstr "\nTSP Startwerte initialisiert"
+
+#: dxf2gcode_b02.py:426
+msgid "\nTSP Iteration nr: %i"
+msgstr "\nTSP Iteration Nr: %i"
+
+#: dxf2gcode_b02.py:435
+msgid "\nTSP done with result:"
+msgstr "\nTSP fertiggestellt mit Resultat:"
+
+#: dxf2gcode_b02.py:474
+msgid ""
+"Program started\n"
+"Version V0.1\n"
+"Coded by V. Schulz and C. Kohl\366ffel"
+msgstr ""
+"Programm gestartet\n"
+"Version V0.1\n"
+"Programmiert von V. Schulz und C. Kohl\366ffel"
+
+#: dxf2gcode_b02.py:512
+msgid "Coordinates"
+msgstr "Koordinaten"
+
+#: dxf2gcode_b02.py:513
+msgid "File Beg. & End"
+msgstr "Datei Anf. & Ende"
+
+#: dxf2gcode_b02.py:538
+msgid "Tool diameter [mm]:"
+msgstr "Werkzeug Durchmesser [mm]:"
+
+#: dxf2gcode_b02.py:543
+msgid "Start radius (for tool comp.) [mm]:"
+msgstr "Einlaufradius [mm]:"
+
+#: dxf2gcode_b02.py:548 dxf2gcode_b02.py:553
+msgid "Start at %s [mm]:"
+msgstr "Start bei %s [mm]:"
+
+#: dxf2gcode_b02.py:558
+msgid "%s retraction area [mm]:"
+msgstr "%s Rückzugsebene [mm]:"
+
+#: dxf2gcode_b02.py:563
+msgid "%s safety margin [mm]:"
+msgstr "%s Sicherheitsabstand [mm]:"
+
+#: dxf2gcode_b02.py:568
+msgid "%s infeed depth [mm]:"
+msgstr "%s Zustelltiefe [mm]:"
+
+#: dxf2gcode_b02.py:573
+msgid "%s mill depth [mm]:"
+msgstr "%s Frästiefe [mm]:"
+
+#: dxf2gcode_b02.py:578
+msgid "G1 feed %s-direction [mm/min]:"
+msgstr "G1 Vorschub %s-Richtung [mm/min]:"
+
+#: dxf2gcode_b02.py:583
+msgid "G1 feed %s%s-direction [mm/min]:"
+msgstr "G1 Vorschub %s%s-Ebene [mm/min]:"
+
+#: dxf2gcode_b02.py:593
+msgid "G-Code at the begin of file"
+msgstr "Anfangszeilen der G-Code Datei"
+
+#: dxf2gcode_b02.py:602
+msgid "G-Code at the end of file"
+msgstr "Endzeilen der G-Code Datei"
+
+#: dxf2gcode_b02.py:634
+msgid "Curser Coordinates: X=0.0, Y=0.0, Scale: 1.00"
+msgstr "Curser Koordinaten: X=0.0, Y=0.0, Zoom: 1.00"
+
+#: dxf2gcode_b02.py:672
+msgid "Curser Coordinates: X= %5.0f Y= %5.0f , Scale: %5.3f"
+msgstr "Curser Koordinaten: X= %5.0f Y= %5.0f , Zoom: %5.3f"
+
+#: dxf2gcode_b02.py:676
+msgid "Curser Coordinates: X= %5.1f Y= %5.1f , Scale: %5.2f"
+msgstr "Curser Koordinaten: X= %5.1f Y= %5.1f , Zoom: %5.2f"
+
+#: dxf2gcode_b02.py:679
+msgid "Curser Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f"
+msgstr "Curser Koordinaten: X= %5.2f Y= %5.2f , Zoom: %5.1f"
+
+#: dxf2gcode_b02.py:777
+msgid "Invert Selection"
+msgstr "Auswahl invertieren"
+
+#: dxf2gcode_b02.py:778
+msgid "Disable Selection"
+msgstr "Auswahl ausblenden"
+
+#: dxf2gcode_b02.py:779
+msgid "Enable Selection"
+msgstr "Auswahl einblenden"
+
+#: dxf2gcode_b02.py:782
+msgid "Switch Direction"
+msgstr "Pfadrichtung umschalten"
+
+#: dxf2gcode_b02.py:787
+msgid "G40 No correction"
+msgstr "G40 keine Fräserkompensation"
+
+#: dxf2gcode_b02.py:790
+msgid "G41 Cutting left"
+msgstr "G41 Fräserkompensation links"
+
+#: dxf2gcode_b02.py:793
+msgid "G42 Cutting right"
+msgstr "G42 Fräserkompensatin rechts"
+
+#: dxf2gcode_b02.py:796
+msgid "Set Cutter Correction"
+msgstr "Fräserkompensation auswählen"
+
+#: dxf2gcode_b02.py:1111
+msgid ""
+"\n"
+"\n"
+"Added shape to selection %s:"
+msgstr ""
+"\n"
+"\n"
+"Shape zur Auswahl hinzugefügt: %s"
+
+#: dxf2gcode_b02.py:1132
+msgid ""
+"\n"
+"Inverting Selection"
+msgstr ""
+"\n"
+"Auswahl invertiert"
+
+#: dxf2gcode_b02.py:1163
+msgid ""
+"\n"
+"\n"
+"Switched Direction at Shape: %s"
+msgstr ""
+"\n"
+"\n"
+"Richtung von Shape umgekehrt: %s"
+
+#: dxf2gcode_b02.py:1171
+msgid ""
+"\n"
+"\n"
+"Changed Cutter Correction at Shape: %s"
+msgstr ""
+"\n"
+"\n"
+"Fräserkompensation umgekehrt von Shape: %s"
+
+#: dxf2gcode_b02.py:1272
+msgid ""
+"\n"
+"No config file found generated new on at: %s"
+msgstr ""
+"\n"
+"Keine Config Datei gefunden. Neue Datei erstellt: %s"
+
+#: dxf2gcode_b02.py:1275
+msgid ""
+"\n"
+"Loading config file:%s"
+msgstr ""
+"\n"
+"Lade Config Datei: %s"
+
+#: dxf2gcode_b02.py:1284
+msgid ""
+"\n"
+"Debug Level: %i"
+msgstr ""
+"\n"
+"Debug Level: %i"
+
+#: dxf2gcode_b02.py:1398
+msgid "Error during reading config file"
+msgstr "Fehler während des lesen der Config Datei"
+
+#: dxf2gcode_b02.py:1398 dxf2gcode_b02.py:1492
+msgid ""
+"Please delete or correct\n"
+" %s"
+msgstr ""
+"Bitte löschen oder korrigieren sie folgende Datei:\n"
+" %s"
+
+#: dxf2gcode_b02.py:1400
+msgid "Problem during import from INI File"
+msgstr "Fehler während des lesen der Config Datei"
+
+#: dxf2gcode_b02.py:1426
+msgid ""
+"\n"
+"No postprocessor file found generated new on at: %s"
+msgstr "Keine Postprozessor Datei gefunden. Neue Datei erstellt: %s"
+
+#: dxf2gcode_b02.py:1429
+msgid ""
+"\n"
+"Loading postprocessor file: %s"
+msgstr ""
+"\n"
+"Lade Postprozessor Datei: %s"
+
+#: dxf2gcode_b02.py:1492
+msgid "Error during reading postprocessor file"
+msgstr "Fehler während des lesen der Postprozessor Datei"
+
+#: dxf2gcode_b02.py:1494
+msgid "Problem during import from postprocessor File"
+msgstr "Fehler während des lesen der Postprozessor Datei"
+
+#: dxf2gcode_b02.py:1736
+msgid "About DXF2GCODE"
+msgstr "Über DXF2GCODE"
+
+#: dxf2gcode_b02.py:1759 dxf2gcode_b02.py:1907
+msgid "OK"
+msgstr "OK"
+
+#: dxf2gcode_b02.py:1800
+msgid "You are using DXF2GCODE"
+msgstr "Sie verwenden DXF2GCODE"
+
+#: dxf2gcode_b02.py:1802
+msgid ""
+"\n"
+"For more information und updates about"
+msgstr ""
+"\n"
+"Für weitere Information oder Updates"
+
+#: dxf2gcode_b02.py:1803
+msgid ""
+"\n"
+"please visit my homepage at:"
+msgstr ""
+"\n"
+"besuchen sie bitte meine Homepage:"
+
+#: dxf2gcode_b02.py:1804
+msgid ""
+"\n"
+"www.christian-kohloeffel.homepage.t-online.de"
+msgstr ""
+"\n"
+"www.christian-kohloeffel.homepage.t-online.de"
+
+#: dxf2gcode_b02.py:1909
+msgid "Cancel"
+msgstr "Abbrechen"
+
