@@ -1,982 +1,5456 @@
-G21 (Unit in mm)
-G90 (Absolute distance mode)
-G64 P0.01 (Exact Path 0.001 tol.)
-G17
-G40 (Cancel diameter comp.)
-G49 (Cancel length comp.)
-T1M6 (Tool change to T1)
-M8 (Coolant flood on)
-S5000M03 (Spindle 5000rpm cw)
-G0 Z  15.000 
-G0 X  -7.114 Y  -0.711
-G0 Z   3.000 
-F150
-G1 Z  -1.500
-F400
-G1 X  -8.918 Y   0.686 (Startwerte: XA  -7.114 YA  -0.711) 
-G1 X  -8.918 Y   6.886 (Startwerte: XA  -8.918 YA   0.686) 
-G1 X  -8.588 Y   6.936 (Startwerte: XA  -8.918 YA   6.886) 
-G1 X  -8.232 Y   6.987 (Startwerte: XA  -8.588 YA   6.936) 
-G1 X  -7.902 Y   7.063 (Startwerte: XA  -8.232 YA   6.987) 
-G1 X  -7.597 Y   7.165 (Startwerte: XA  -7.902 YA   7.063) 
-G1 X  -7.267 Y   7.292 (Startwerte: XA  -7.597 YA   7.165) 
-G1 X  -6.962 Y   7.445 (Startwerte: XA  -7.267 YA   7.292) 
-G1 X  -6.657 Y   7.597 (Startwerte: XA  -6.962 YA   7.445) 
-G1 X  -6.377 Y   7.775 (Startwerte: XA  -6.657 YA   7.597) 
-G1 X  -4.522 Y   6.428 (Startwerte: XA  -6.377 YA   7.775) 
-G1 X  -4.522 Y   1.702 (Startwerte: XA  -4.522 YA   6.428) 
-G1 X  -7.114 Y  -0.711 (Startwerte: XA  -4.522 YA   1.702) 
-F150
-G1 Z  -3.000
-F400
-G1 X  -8.918 Y   0.686 (Startwerte: XA  -7.114 YA  -0.711) 
-G1 X  -8.918 Y   6.886 (Startwerte: XA  -8.918 YA   0.686) 
-G1 X  -8.588 Y   6.936 (Startwerte: XA  -8.918 YA   6.886) 
-G1 X  -8.232 Y   6.987 (Startwerte: XA  -8.588 YA   6.936) 
-G1 X  -7.902 Y   7.063 (Startwerte: XA  -8.232 YA   6.987) 
-G1 X  -7.597 Y   7.165 (Startwerte: XA  -7.902 YA   7.063) 
-G1 X  -7.267 Y   7.292 (Startwerte: XA  -7.597 YA   7.165) 
-G1 X  -6.962 Y   7.445 (Startwerte: XA  -7.267 YA   7.292) 
-G1 X  -6.657 Y   7.597 (Startwerte: XA  -6.962 YA   7.445) 
-G1 X  -6.377 Y   7.775 (Startwerte: XA  -6.657 YA   7.597) 
-G1 X  -4.522 Y   6.428 (Startwerte: XA  -6.377 YA   7.775) 
-G1 X  -4.522 Y   1.702 (Startwerte: XA  -4.522 YA   6.428) 
-G1 X  -7.114 Y  -0.711 (Startwerte: XA  -4.522 YA   1.702) 
-G1 Z   3.000
-G0 Z  15.000 
-G0 X -19.209 Y  -9.986
-G0 Z   3.000 
-F150
-G1 Z  -1.500
-F400
-G1 X -21.522 Y  -7.597 (Startwerte: XA -19.209 YA  -9.986) 
-G1 X -22.691 Y  -8.741 (Startwerte: XA -21.522 YA  -7.597) 
-G1 X -23.300 Y  -8.131 (Startwerte: XA -22.691 YA  -8.741) 
-G1 X -20.988 Y  -5.793 (Startwerte: XA -23.300 YA  -8.131) 
-G1 X -20.988 Y   4.446 (Startwerte: XA -20.988 YA  -5.793) 
-G1 X -21.014 Y   4.878 (Startwerte: XA -20.988 YA   4.446) 
-G1 X -21.090 Y   5.259 (Startwerte: XA -21.014 YA   4.878) 
-G1 X -21.217 Y   5.641 (Startwerte: XA -21.090 YA   5.259) 
-G1 X -21.344 Y   5.971 (Startwerte: XA -21.217 YA   5.641) 
-G1 X -21.547 Y   6.276 (Startwerte: XA -21.344 YA   5.971) 
-G1 X -21.750 Y   6.555 (Startwerte: XA -21.547 YA   6.276) 
-G1 X -22.005 Y   6.809 (Startwerte: XA -21.750 YA   6.555) 
-G1 X -22.309 Y   7.013 (Startwerte: XA -22.005 YA   6.809) 
-G1 X -23.631 Y   5.691 (Startwerte: XA -22.309 YA   7.013) 
-G1 X -24.190 Y   6.276 (Startwerte: XA -23.631 YA   5.691) 
-G1 X -20.505 Y  10.011 (Startwerte: XA -24.190 YA   6.276) 
-G1 X -20.277 Y   9.859 (Startwerte: XA -20.505 YA  10.011) 
-G1 X -20.048 Y   9.681 (Startwerte: XA -20.277 YA   9.859) 
-G1 X -19.845 Y   9.503 (Startwerte: XA -20.048 YA   9.681) 
-G1 X -19.641 Y   9.274 (Startwerte: XA -19.845 YA   9.503) 
-G1 X -19.464 Y   9.045 (Startwerte: XA -19.641 YA   9.274) 
-G1 X -19.311 Y   8.791 (Startwerte: XA -19.464 YA   9.045) 
-G1 X -19.159 Y   8.537 (Startwerte: XA -19.311 YA   8.791) 
-G1 X -19.032 Y   8.232 (Startwerte: XA -19.159 YA   8.537) 
-G1 X -18.803 Y   7.597 (Startwerte: XA -19.032 YA   8.232) 
-G1 X -18.650 Y   6.936 (Startwerte: XA -18.803 YA   7.597) 
-G1 X -18.549 Y   6.174 (Startwerte: XA -18.650 YA   6.936) 
-G1 X -18.523 Y   5.386 (Startwerte: XA -18.549 YA   6.174) 
-G1 X -18.523 Y  -5.971 (Startwerte: XA -18.523 YA   5.386) 
-G1 X -17.507 Y  -7.089 (Startwerte: XA -18.523 YA  -5.971) 
-G1 X -16.211 Y  -5.793 (Startwerte: XA -17.507 YA  -7.089) 
-G1 X -15.627 Y  -6.403 (Startwerte: XA -16.211 YA  -5.793) 
-G1 X -19.209 Y  -9.986 (Startwerte: XA -15.627 YA  -6.403) 
-F150
-G1 Z  -3.000
-F400
-G1 X -21.522 Y  -7.597 (Startwerte: XA -19.209 YA  -9.986) 
-G1 X -22.691 Y  -8.741 (Startwerte: XA -21.522 YA  -7.597) 
-G1 X -23.300 Y  -8.131 (Startwerte: XA -22.691 YA  -8.741) 
-G1 X -20.988 Y  -5.793 (Startwerte: XA -23.300 YA  -8.131) 
-G1 X -20.988 Y   4.446 (Startwerte: XA -20.988 YA  -5.793) 
-G1 X -21.014 Y   4.878 (Startwerte: XA -20.988 YA   4.446) 
-G1 X -21.090 Y   5.259 (Startwerte: XA -21.014 YA   4.878) 
-G1 X -21.217 Y   5.641 (Startwerte: XA -21.090 YA   5.259) 
-G1 X -21.344 Y   5.971 (Startwerte: XA -21.217 YA   5.641) 
-G1 X -21.547 Y   6.276 (Startwerte: XA -21.344 YA   5.971) 
-G1 X -21.750 Y   6.555 (Startwerte: XA -21.547 YA   6.276) 
-G1 X -22.005 Y   6.809 (Startwerte: XA -21.750 YA   6.555) 
-G1 X -22.309 Y   7.013 (Startwerte: XA -22.005 YA   6.809) 
-G1 X -23.631 Y   5.691 (Startwerte: XA -22.309 YA   7.013) 
-G1 X -24.190 Y   6.276 (Startwerte: XA -23.631 YA   5.691) 
-G1 X -20.505 Y  10.011 (Startwerte: XA -24.190 YA   6.276) 
-G1 X -20.277 Y   9.859 (Startwerte: XA -20.505 YA  10.011) 
-G1 X -20.048 Y   9.681 (Startwerte: XA -20.277 YA   9.859) 
-G1 X -19.845 Y   9.503 (Startwerte: XA -20.048 YA   9.681) 
-G1 X -19.641 Y   9.274 (Startwerte: XA -19.845 YA   9.503) 
-G1 X -19.464 Y   9.045 (Startwerte: XA -19.641 YA   9.274) 
-G1 X -19.311 Y   8.791 (Startwerte: XA -19.464 YA   9.045) 
-G1 X -19.159 Y   8.537 (Startwerte: XA -19.311 YA   8.791) 
-G1 X -19.032 Y   8.232 (Startwerte: XA -19.159 YA   8.537) 
-G1 X -18.803 Y   7.597 (Startwerte: XA -19.032 YA   8.232) 
-G1 X -18.650 Y   6.936 (Startwerte: XA -18.803 YA   7.597) 
-G1 X -18.549 Y   6.174 (Startwerte: XA -18.650 YA   6.936) 
-G1 X -18.523 Y   5.386 (Startwerte: XA -18.549 YA   6.174) 
-G1 X -18.523 Y  -5.971 (Startwerte: XA -18.523 YA   5.386) 
-G1 X -17.507 Y  -7.089 (Startwerte: XA -18.523 YA  -5.971) 
-G1 X -16.211 Y  -5.793 (Startwerte: XA -17.507 YA  -7.089) 
-G1 X -15.627 Y  -6.403 (Startwerte: XA -16.211 YA  -5.793) 
-G1 X -19.209 Y  -9.986 (Startwerte: XA -15.627 YA  -6.403) 
-G1 Z   3.000
-G0 Z  15.000 
-G0 X  -7.318 Y  -9.986
-G0 Z   3.000 
-F150
-G1 Z  -1.500
-F400
-G1 X  -7.572 Y  -9.706 (Startwerte: XA  -7.318 YA  -9.986) 
-G1 X  -7.851 Y  -9.376 (Startwerte: XA  -7.572 YA  -9.706) 
-G1 X  -8.131 Y  -9.071 (Startwerte: XA  -7.851 YA  -9.376) 
-G1 X  -8.359 Y  -8.817 (Startwerte: XA  -8.131 YA  -9.071) 
-G1 X  -8.563 Y  -8.588 (Startwerte: XA  -8.359 YA  -8.817) 
-G1 X  -8.766 Y  -8.385 (Startwerte: XA  -8.563 YA  -8.588) 
-G1 X  -8.944 Y  -8.207 (Startwerte: XA  -8.766 YA  -8.385) 
-G1 X  -9.071 Y  -8.080 (Startwerte: XA  -8.944 YA  -8.207) 
-G1 X  -9.198 Y  -7.978 (Startwerte: XA  -9.071 YA  -8.080) 
-G1 X  -9.300 Y  -7.902 (Startwerte: XA  -9.198 YA  -7.978) 
-G1 X  -9.427 Y  -7.851 (Startwerte: XA  -9.300 YA  -7.902) 
-G1 X  -9.528 Y  -7.800 (Startwerte: XA  -9.427 YA  -7.851) 
-G1 X  -9.655 Y  -7.750 (Startwerte: XA  -9.528 YA  -7.800) 
-G1 X  -9.782 Y  -7.724 (Startwerte: XA  -9.655 YA  -7.750) 
-G1 X  -9.909 Y  -7.699 (Startwerte: XA  -9.782 YA  -7.724) 
-G1 X -10.036 Y  -7.673 (Startwerte: XA  -9.909 YA  -7.699) 
-G1 X -10.163 Y  -7.673 (Startwerte: XA -10.036 YA  -7.673) 
-G1 X -10.291 Y  -7.673 (Startwerte: XA -10.163 YA  -7.673) 
-G1 X -10.418 Y  -7.699 (Startwerte: XA -10.291 YA  -7.673) 
-G1 X -10.545 Y  -7.724 (Startwerte: XA -10.418 YA  -7.699) 
-G1 X -10.646 Y  -7.775 (Startwerte: XA -10.545 YA  -7.724) 
-G1 X -10.697 Y  -7.800 (Startwerte: XA -10.646 YA  -7.775) 
-G1 X -10.799 Y  -7.851 (Startwerte: XA -10.697 YA  -7.800) 
-G1 X -10.900 Y  -7.902 (Startwerte: XA -10.799 YA  -7.851) 
-G1 X -11.027 Y  -8.004 (Startwerte: XA -10.900 YA  -7.902) 
-G1 X -11.154 Y  -8.080 (Startwerte: XA -11.027 YA  -8.004) 
-G1 X -11.332 Y  -8.207 (Startwerte: XA -11.154 YA  -8.080) 
-G1 X -11.510 Y  -8.334 (Startwerte: XA -11.332 YA  -8.207) 
-G1 X -11.714 Y  -8.461 (Startwerte: XA -11.510 YA  -8.334) 
-G1 X -12.222 Y  -7.750 (Startwerte: XA -11.714 YA  -8.461) 
-G1 X -12.171 Y  -7.699 (Startwerte: XA -12.222 YA  -7.750) 
-G1 X -12.095 Y  -7.648 (Startwerte: XA -12.171 YA  -7.699) 
-G1 X -12.044 Y  -7.622 (Startwerte: XA -12.095 YA  -7.648) 
-G1 X -11.993 Y  -7.572 (Startwerte: XA -12.044 YA  -7.622) 
-G1 X -11.561 Y  -7.267 (Startwerte: XA -11.993 YA  -7.572) 
-G1 X -11.180 Y  -6.987 (Startwerte: XA -11.561 YA  -7.267) 
-G1 X -10.824 Y  -6.733 (Startwerte: XA -11.180 YA  -6.987) 
-G1 X -10.519 Y  -6.530 (Startwerte: XA -10.824 YA  -6.733) 
-G1 X -10.265 Y  -6.352 (Startwerte: XA -10.519 YA  -6.530) 
-G1 X -10.036 Y  -6.200 (Startwerte: XA -10.265 YA  -6.352) 
-G1 X  -9.833 Y  -6.072 (Startwerte: XA -10.036 YA  -6.200) 
-G1 X  -9.681 Y  -5.996 (Startwerte: XA  -9.833 YA  -6.072) 
-G1 X  -9.554 Y  -5.945 (Startwerte: XA  -9.681 YA  -5.996) 
-G1 X  -9.401 Y  -5.895 (Startwerte: XA  -9.554 YA  -5.945) 
-G1 X  -9.249 Y  -5.844 (Startwerte: XA  -9.401 YA  -5.895) 
-G1 X  -9.096 Y  -5.818 (Startwerte: XA  -9.249 YA  -5.844) 
-G1 X  -8.918 Y  -5.793 (Startwerte: XA  -9.096 YA  -5.818) 
-G1 X  -8.741 Y  -5.768 (Startwerte: XA  -8.918 YA  -5.793) 
-G1 X  -8.563 Y  -5.742 (Startwerte: XA  -8.741 YA  -5.768) 
-G1 X  -8.385 Y  -5.742 (Startwerte: XA  -8.563 YA  -5.742) 
-G1 X  -8.004 Y  -5.768 (Startwerte: XA  -8.385 YA  -5.742) 
-G1 X  -7.622 Y  -5.818 (Startwerte: XA  -8.004 YA  -5.768) 
-G1 X  -7.267 Y  -5.945 (Startwerte: XA  -7.622 YA  -5.818) 
-G1 X  -6.911 Y  -6.098 (Startwerte: XA  -7.267 YA  -5.945) 
-G1 X  -6.555 Y  -6.276 (Startwerte: XA  -6.911 YA  -6.098) 
-G1 X  -6.200 Y  -6.530 (Startwerte: XA  -6.555 YA  -6.276) 
-G1 X  -5.844 Y  -6.809 (Startwerte: XA  -6.200 YA  -6.530) 
-G1 X  -5.513 Y  -7.140 (Startwerte: XA  -5.844 YA  -6.809) 
-G1 X  -5.386 Y  -7.063 (Startwerte: XA  -5.513 YA  -7.140) 
-G1 X  -5.285 Y  -6.962 (Startwerte: XA  -5.386 YA  -7.063) 
-G1 X  -5.158 Y  -6.886 (Startwerte: XA  -5.285 YA  -6.962) 
-G1 X  -5.031 Y  -6.809 (Startwerte: XA  -5.158 YA  -6.886) 
-G1 X  -4.904 Y  -6.733 (Startwerte: XA  -5.031 YA  -6.809) 
-G1 X  -4.777 Y  -6.657 (Startwerte: XA  -4.904 YA  -6.733) 
-G1 X  -4.650 Y  -6.606 (Startwerte: XA  -4.777 YA  -6.657) 
-G1 X  -4.522 Y  -6.530 (Startwerte: XA  -4.650 YA  -6.606) 
-G1 X  -4.522 Y   0.533 (Startwerte: XA  -4.522 YA  -6.530) 
-G1 X  -8.486 Y  -3.100 (Startwerte: XA  -4.522 YA   0.533) 
-G1 X -11.307 Y  -0.914 (Startwerte: XA  -8.486 YA  -3.100) 
-G1 X -12.450 Y  -2.007 (Startwerte: XA -11.307 YA  -0.914) 
-G1 X -12.984 Y  -1.397 (Startwerte: XA -12.450 YA  -2.007) 
-G1 X -11.409 Y   0.177 (Startwerte: XA -12.984 YA  -1.397) 
-G1 X -11.409 Y   6.682 (Startwerte: XA -11.409 YA   0.177) 
-G1 X -11.510 Y   6.682 (Startwerte: XA -11.409 YA   6.682) 
-G1 X -11.612 Y   6.682 (Startwerte: XA -11.510 YA   6.682) 
-G1 X -11.714 Y   6.682 (Startwerte: XA -11.612 YA   6.682) 
-G1 X -11.815 Y   6.708 (Startwerte: XA -11.714 YA   6.682) 
-G1 X -11.917 Y   6.708 (Startwerte: XA -11.815 YA   6.708) 
-G1 X -12.018 Y   6.708 (Startwerte: XA -11.917 YA   6.708) 
-G1 X -12.120 Y   6.733 (Startwerte: XA -12.018 YA   6.708) 
-G1 X -12.222 Y   6.733 (Startwerte: XA -12.120 YA   6.733) 
-G1 X -12.222 Y   7.572 (Startwerte: XA -12.222 YA   6.733) 
-G1 X -12.044 Y   7.572 (Startwerte: XA -12.222 YA   7.572) 
-G1 X -11.891 Y   7.546 (Startwerte: XA -12.044 YA   7.572) 
-G1 X -11.714 Y   7.546 (Startwerte: XA -11.891 YA   7.546) 
-G1 X -11.586 Y   7.521 (Startwerte: XA -11.714 YA   7.546) 
-G1 X -11.459 Y   7.521 (Startwerte: XA -11.586 YA   7.521) 
-G1 X -11.332 Y   7.495 (Startwerte: XA -11.459 YA   7.521) 
-G1 X -11.231 Y   7.495 (Startwerte: XA -11.332 YA   7.495) 
-G1 X -11.154 Y   7.495 (Startwerte: XA -11.231 YA   7.495) 
-G1 X -10.672 Y   7.495 (Startwerte: XA -11.154 YA   7.495) 
-G1 X -10.189 Y   7.546 (Startwerte: XA -10.672 YA   7.495) 
-G1 X  -9.706 Y   7.597 (Startwerte: XA -10.189 YA   7.546) 
-G1 X  -9.249 Y   7.648 (Startwerte: XA  -9.706 YA   7.597) 
-G1 X  -8.817 Y   7.750 (Startwerte: XA  -9.249 YA   7.648) 
-G1 X  -8.385 Y   7.851 (Startwerte: XA  -8.817 YA   7.750) 
-G1 X  -7.953 Y   7.978 (Startwerte: XA  -8.385 YA   7.851) 
-G1 X  -7.546 Y   8.131 (Startwerte: XA  -7.953 YA   7.978) 
-G1 X  -7.165 Y   8.309 (Startwerte: XA  -7.546 YA   8.131) 
-G1 X  -6.784 Y   8.486 (Startwerte: XA  -7.165 YA   8.309) 
-G1 X  -6.428 Y   8.690 (Startwerte: XA  -6.784 YA   8.486) 
-G1 X  -6.072 Y   8.918 (Startwerte: XA  -6.428 YA   8.690) 
-G1 X  -5.742 Y   9.173 (Startwerte: XA  -6.072 YA   8.918) 
-G1 X  -5.412 Y   9.427 (Startwerte: XA  -5.742 YA   9.173) 
-G1 X  -5.107 Y   9.706 (Startwerte: XA  -5.412 YA   9.427) 
-G1 X  -4.802 Y  10.011 (Startwerte: XA  -5.107 YA   9.706) 
-G1 X  -2.109 Y   7.978 (Startwerte: XA  -4.802 YA  10.011) 
-G1 X  -1.143 Y   8.868 (Startwerte: XA  -2.109 YA   7.978) 
-G1 X  -0.584 Y   8.232 (Startwerte: XA  -1.143 YA   8.868) 
-G1 X  -2.032 Y   6.860 (Startwerte: XA  -0.584 YA   8.232) 
-G1 X  -2.032 Y  -5.895 (Startwerte: XA  -2.032 YA   6.860) 
-G1 X  -1.880 Y  -5.869 (Startwerte: XA  -2.032 YA  -5.895) 
-G1 X  -1.727 Y  -5.869 (Startwerte: XA  -1.880 YA  -5.869) 
-G1 X  -1.575 Y  -5.844 (Startwerte: XA  -1.727 YA  -5.869) 
-G1 X  -1.397 Y  -5.818 (Startwerte: XA  -1.575 YA  -5.844) 
-G1 X  -1.245 Y  -5.818 (Startwerte: XA  -1.397 YA  -5.818) 
-G1 X  -1.092 Y  -5.793 (Startwerte: XA  -1.245 YA  -5.818) 
-G1 X  -0.940 Y  -5.793 (Startwerte: XA  -1.092 YA  -5.793) 
-G1 X  -0.787 Y  -5.793 (Startwerte: XA  -0.940 YA  -5.793) 
-G1 X  -0.787 Y  -6.632 (Startwerte: XA  -0.787 YA  -5.793) 
-G1 X  -1.321 Y  -6.682 (Startwerte: XA  -0.787 YA  -6.632) 
-G1 X  -1.829 Y  -6.759 (Startwerte: XA  -1.321 YA  -6.682) 
-G1 X  -2.337 Y  -6.860 (Startwerte: XA  -1.829 YA  -6.759) 
-G1 X  -2.820 Y  -6.962 (Startwerte: XA  -2.337 YA  -6.860) 
-G1 X  -3.277 Y  -7.114 (Startwerte: XA  -2.820 YA  -6.962) 
-G1 X  -3.735 Y  -7.267 (Startwerte: XA  -3.277 YA  -7.114) 
-G1 X  -4.167 Y  -7.445 (Startwerte: XA  -3.735 YA  -7.267) 
-G1 X  -4.573 Y  -7.648 (Startwerte: XA  -4.167 YA  -7.445) 
-G1 X  -4.980 Y  -7.877 (Startwerte: XA  -4.573 YA  -7.648) 
-G1 X  -5.361 Y  -8.105 (Startwerte: XA  -4.980 YA  -7.877) 
-G1 X  -5.717 Y  -8.385 (Startwerte: XA  -5.361 YA  -8.105) 
-G1 X  -6.072 Y  -8.664 (Startwerte: XA  -5.717 YA  -8.385) 
-G1 X  -6.403 Y  -8.969 (Startwerte: XA  -6.072 YA  -8.664) 
-G1 X  -6.733 Y  -9.274 (Startwerte: XA  -6.403 YA  -8.969) 
-G1 X  -7.038 Y  -9.630 (Startwerte: XA  -6.733 YA  -9.274) 
-G1 X  -7.318 Y  -9.986 (Startwerte: XA  -7.038 YA  -9.630) 
-F150
-G1 Z  -3.000
-F400
-G1 X  -7.572 Y  -9.706 (Startwerte: XA  -7.318 YA  -9.986) 
-G1 X  -7.851 Y  -9.376 (Startwerte: XA  -7.572 YA  -9.706) 
-G1 X  -8.131 Y  -9.071 (Startwerte: XA  -7.851 YA  -9.376) 
-G1 X  -8.359 Y  -8.817 (Startwerte: XA  -8.131 YA  -9.071) 
-G1 X  -8.563 Y  -8.588 (Startwerte: XA  -8.359 YA  -8.817) 
-G1 X  -8.766 Y  -8.385 (Startwerte: XA  -8.563 YA  -8.588) 
-G1 X  -8.944 Y  -8.207 (Startwerte: XA  -8.766 YA  -8.385) 
-G1 X  -9.071 Y  -8.080 (Startwerte: XA  -8.944 YA  -8.207) 
-G1 X  -9.198 Y  -7.978 (Startwerte: XA  -9.071 YA  -8.080) 
-G1 X  -9.300 Y  -7.902 (Startwerte: XA  -9.198 YA  -7.978) 
-G1 X  -9.427 Y  -7.851 (Startwerte: XA  -9.300 YA  -7.902) 
-G1 X  -9.528 Y  -7.800 (Startwerte: XA  -9.427 YA  -7.851) 
-G1 X  -9.655 Y  -7.750 (Startwerte: XA  -9.528 YA  -7.800) 
-G1 X  -9.782 Y  -7.724 (Startwerte: XA  -9.655 YA  -7.750) 
-G1 X  -9.909 Y  -7.699 (Startwerte: XA  -9.782 YA  -7.724) 
-G1 X -10.036 Y  -7.673 (Startwerte: XA  -9.909 YA  -7.699) 
-G1 X -10.163 Y  -7.673 (Startwerte: XA -10.036 YA  -7.673) 
-G1 X -10.291 Y  -7.673 (Startwerte: XA -10.163 YA  -7.673) 
-G1 X -10.418 Y  -7.699 (Startwerte: XA -10.291 YA  -7.673) 
-G1 X -10.545 Y  -7.724 (Startwerte: XA -10.418 YA  -7.699) 
-G1 X -10.646 Y  -7.775 (Startwerte: XA -10.545 YA  -7.724) 
-G1 X -10.697 Y  -7.800 (Startwerte: XA -10.646 YA  -7.775) 
-G1 X -10.799 Y  -7.851 (Startwerte: XA -10.697 YA  -7.800) 
-G1 X -10.900 Y  -7.902 (Startwerte: XA -10.799 YA  -7.851) 
-G1 X -11.027 Y  -8.004 (Startwerte: XA -10.900 YA  -7.902) 
-G1 X -11.154 Y  -8.080 (Startwerte: XA -11.027 YA  -8.004) 
-G1 X -11.332 Y  -8.207 (Startwerte: XA -11.154 YA  -8.080) 
-G1 X -11.510 Y  -8.334 (Startwerte: XA -11.332 YA  -8.207) 
-G1 X -11.714 Y  -8.461 (Startwerte: XA -11.510 YA  -8.334) 
-G1 X -12.222 Y  -7.750 (Startwerte: XA -11.714 YA  -8.461) 
-G1 X -12.171 Y  -7.699 (Startwerte: XA -12.222 YA  -7.750) 
-G1 X -12.095 Y  -7.648 (Startwerte: XA -12.171 YA  -7.699) 
-G1 X -12.044 Y  -7.622 (Startwerte: XA -12.095 YA  -7.648) 
-G1 X -11.993 Y  -7.572 (Startwerte: XA -12.044 YA  -7.622) 
-G1 X -11.561 Y  -7.267 (Startwerte: XA -11.993 YA  -7.572) 
-G1 X -11.180 Y  -6.987 (Startwerte: XA -11.561 YA  -7.267) 
-G1 X -10.824 Y  -6.733 (Startwerte: XA -11.180 YA  -6.987) 
-G1 X -10.519 Y  -6.530 (Startwerte: XA -10.824 YA  -6.733) 
-G1 X -10.265 Y  -6.352 (Startwerte: XA -10.519 YA  -6.530) 
-G1 X -10.036 Y  -6.200 (Startwerte: XA -10.265 YA  -6.352) 
-G1 X  -9.833 Y  -6.072 (Startwerte: XA -10.036 YA  -6.200) 
-G1 X  -9.681 Y  -5.996 (Startwerte: XA  -9.833 YA  -6.072) 
-G1 X  -9.554 Y  -5.945 (Startwerte: XA  -9.681 YA  -5.996) 
-G1 X  -9.401 Y  -5.895 (Startwerte: XA  -9.554 YA  -5.945) 
-G1 X  -9.249 Y  -5.844 (Startwerte: XA  -9.401 YA  -5.895) 
-G1 X  -9.096 Y  -5.818 (Startwerte: XA  -9.249 YA  -5.844) 
-G1 X  -8.918 Y  -5.793 (Startwerte: XA  -9.096 YA  -5.818) 
-G1 X  -8.741 Y  -5.768 (Startwerte: XA  -8.918 YA  -5.793) 
-G1 X  -8.563 Y  -5.742 (Startwerte: XA  -8.741 YA  -5.768) 
-G1 X  -8.385 Y  -5.742 (Startwerte: XA  -8.563 YA  -5.742) 
-G1 X  -8.004 Y  -5.768 (Startwerte: XA  -8.385 YA  -5.742) 
-G1 X  -7.622 Y  -5.818 (Startwerte: XA  -8.004 YA  -5.768) 
-G1 X  -7.267 Y  -5.945 (Startwerte: XA  -7.622 YA  -5.818) 
-G1 X  -6.911 Y  -6.098 (Startwerte: XA  -7.267 YA  -5.945) 
-G1 X  -6.555 Y  -6.276 (Startwerte: XA  -6.911 YA  -6.098) 
-G1 X  -6.200 Y  -6.530 (Startwerte: XA  -6.555 YA  -6.276) 
-G1 X  -5.844 Y  -6.809 (Startwerte: XA  -6.200 YA  -6.530) 
-G1 X  -5.513 Y  -7.140 (Startwerte: XA  -5.844 YA  -6.809) 
-G1 X  -5.386 Y  -7.063 (Startwerte: XA  -5.513 YA  -7.140) 
-G1 X  -5.285 Y  -6.962 (Startwerte: XA  -5.386 YA  -7.063) 
-G1 X  -5.158 Y  -6.886 (Startwerte: XA  -5.285 YA  -6.962) 
-G1 X  -5.031 Y  -6.809 (Startwerte: XA  -5.158 YA  -6.886) 
-G1 X  -4.904 Y  -6.733 (Startwerte: XA  -5.031 YA  -6.809) 
-G1 X  -4.777 Y  -6.657 (Startwerte: XA  -4.904 YA  -6.733) 
-G1 X  -4.650 Y  -6.606 (Startwerte: XA  -4.777 YA  -6.657) 
-G1 X  -4.522 Y  -6.530 (Startwerte: XA  -4.650 YA  -6.606) 
-G1 X  -4.522 Y   0.533 (Startwerte: XA  -4.522 YA  -6.530) 
-G1 X  -8.486 Y  -3.100 (Startwerte: XA  -4.522 YA   0.533) 
-G1 X -11.307 Y  -0.914 (Startwerte: XA  -8.486 YA  -3.100) 
-G1 X -12.450 Y  -2.007 (Startwerte: XA -11.307 YA  -0.914) 
-G1 X -12.984 Y  -1.397 (Startwerte: XA -12.450 YA  -2.007) 
-G1 X -11.409 Y   0.177 (Startwerte: XA -12.984 YA  -1.397) 
-G1 X -11.409 Y   6.682 (Startwerte: XA -11.409 YA   0.177) 
-G1 X -11.510 Y   6.682 (Startwerte: XA -11.409 YA   6.682) 
-G1 X -11.612 Y   6.682 (Startwerte: XA -11.510 YA   6.682) 
-G1 X -11.714 Y   6.682 (Startwerte: XA -11.612 YA   6.682) 
-G1 X -11.815 Y   6.708 (Startwerte: XA -11.714 YA   6.682) 
-G1 X -11.917 Y   6.708 (Startwerte: XA -11.815 YA   6.708) 
-G1 X -12.018 Y   6.708 (Startwerte: XA -11.917 YA   6.708) 
-G1 X -12.120 Y   6.733 (Startwerte: XA -12.018 YA   6.708) 
-G1 X -12.222 Y   6.733 (Startwerte: XA -12.120 YA   6.733) 
-G1 X -12.222 Y   7.572 (Startwerte: XA -12.222 YA   6.733) 
-G1 X -12.044 Y   7.572 (Startwerte: XA -12.222 YA   7.572) 
-G1 X -11.891 Y   7.546 (Startwerte: XA -12.044 YA   7.572) 
-G1 X -11.714 Y   7.546 (Startwerte: XA -11.891 YA   7.546) 
-G1 X -11.586 Y   7.521 (Startwerte: XA -11.714 YA   7.546) 
-G1 X -11.459 Y   7.521 (Startwerte: XA -11.586 YA   7.521) 
-G1 X -11.332 Y   7.495 (Startwerte: XA -11.459 YA   7.521) 
-G1 X -11.231 Y   7.495 (Startwerte: XA -11.332 YA   7.495) 
-G1 X -11.154 Y   7.495 (Startwerte: XA -11.231 YA   7.495) 
-G1 X -10.672 Y   7.495 (Startwerte: XA -11.154 YA   7.495) 
-G1 X -10.189 Y   7.546 (Startwerte: XA -10.672 YA   7.495) 
-G1 X  -9.706 Y   7.597 (Startwerte: XA -10.189 YA   7.546) 
-G1 X  -9.249 Y   7.648 (Startwerte: XA  -9.706 YA   7.597) 
-G1 X  -8.817 Y   7.750 (Startwerte: XA  -9.249 YA   7.648) 
-G1 X  -8.385 Y   7.851 (Startwerte: XA  -8.817 YA   7.750) 
-G1 X  -7.953 Y   7.978 (Startwerte: XA  -8.385 YA   7.851) 
-G1 X  -7.546 Y   8.131 (Startwerte: XA  -7.953 YA   7.978) 
-G1 X  -7.165 Y   8.309 (Startwerte: XA  -7.546 YA   8.131) 
-G1 X  -6.784 Y   8.486 (Startwerte: XA  -7.165 YA   8.309) 
-G1 X  -6.428 Y   8.690 (Startwerte: XA  -6.784 YA   8.486) 
-G1 X  -6.072 Y   8.918 (Startwerte: XA  -6.428 YA   8.690) 
-G1 X  -5.742 Y   9.173 (Startwerte: XA  -6.072 YA   8.918) 
-G1 X  -5.412 Y   9.427 (Startwerte: XA  -5.742 YA   9.173) 
-G1 X  -5.107 Y   9.706 (Startwerte: XA  -5.412 YA   9.427) 
-G1 X  -4.802 Y  10.011 (Startwerte: XA  -5.107 YA   9.706) 
-G1 X  -2.109 Y   7.978 (Startwerte: XA  -4.802 YA  10.011) 
-G1 X  -1.143 Y   8.868 (Startwerte: XA  -2.109 YA   7.978) 
-G1 X  -0.584 Y   8.232 (Startwerte: XA  -1.143 YA   8.868) 
-G1 X  -2.032 Y   6.860 (Startwerte: XA  -0.584 YA   8.232) 
-G1 X  -2.032 Y  -5.895 (Startwerte: XA  -2.032 YA   6.860) 
-G1 X  -1.880 Y  -5.869 (Startwerte: XA  -2.032 YA  -5.895) 
-G1 X  -1.727 Y  -5.869 (Startwerte: XA  -1.880 YA  -5.869) 
-G1 X  -1.575 Y  -5.844 (Startwerte: XA  -1.727 YA  -5.869) 
-G1 X  -1.397 Y  -5.818 (Startwerte: XA  -1.575 YA  -5.844) 
-G1 X  -1.245 Y  -5.818 (Startwerte: XA  -1.397 YA  -5.818) 
-G1 X  -1.092 Y  -5.793 (Startwerte: XA  -1.245 YA  -5.818) 
-G1 X  -0.940 Y  -5.793 (Startwerte: XA  -1.092 YA  -5.793) 
-G1 X  -0.787 Y  -5.793 (Startwerte: XA  -0.940 YA  -5.793) 
-G1 X  -0.787 Y  -6.632 (Startwerte: XA  -0.787 YA  -5.793) 
-G1 X  -1.321 Y  -6.682 (Startwerte: XA  -0.787 YA  -6.632) 
-G1 X  -1.829 Y  -6.759 (Startwerte: XA  -1.321 YA  -6.682) 
-G1 X  -2.337 Y  -6.860 (Startwerte: XA  -1.829 YA  -6.759) 
-G1 X  -2.820 Y  -6.962 (Startwerte: XA  -2.337 YA  -6.860) 
-G1 X  -3.277 Y  -7.114 (Startwerte: XA  -2.820 YA  -6.962) 
-G1 X  -3.735 Y  -7.267 (Startwerte: XA  -3.277 YA  -7.114) 
-G1 X  -4.167 Y  -7.445 (Startwerte: XA  -3.735 YA  -7.267) 
-G1 X  -4.573 Y  -7.648 (Startwerte: XA  -4.167 YA  -7.445) 
-G1 X  -4.980 Y  -7.877 (Startwerte: XA  -4.573 YA  -7.648) 
-G1 X  -5.361 Y  -8.105 (Startwerte: XA  -4.980 YA  -7.877) 
-G1 X  -5.717 Y  -8.385 (Startwerte: XA  -5.361 YA  -8.105) 
-G1 X  -6.072 Y  -8.664 (Startwerte: XA  -5.717 YA  -8.385) 
-G1 X  -6.403 Y  -8.969 (Startwerte: XA  -6.072 YA  -8.664) 
-G1 X  -6.733 Y  -9.274 (Startwerte: XA  -6.403 YA  -8.969) 
-G1 X  -7.038 Y  -9.630 (Startwerte: XA  -6.733 YA  -9.274) 
-G1 X  -7.318 Y  -9.986 (Startwerte: XA  -7.038 YA  -9.630) 
-G1 Z   3.000
-G0 Z  15.000 
-G0 X   6.784 Y  -9.986
-G0 Z   3.000 
-F150
-G1 Z  -1.500
-F400
-G1 X   6.530 Y  -9.706 (Startwerte: XA   6.784 YA  -9.986) 
-G1 X   6.250 Y  -9.376 (Startwerte: XA   6.530 YA  -9.706) 
-G1 X   5.971 Y  -9.071 (Startwerte: XA   6.250 YA  -9.376) 
-G1 X   5.742 Y  -8.817 (Startwerte: XA   5.971 YA  -9.071) 
-G1 X   5.539 Y  -8.588 (Startwerte: XA   5.742 YA  -8.817) 
-G1 X   5.336 Y  -8.385 (Startwerte: XA   5.539 YA  -8.588) 
-G1 X   5.158 Y  -8.207 (Startwerte: XA   5.336 YA  -8.385) 
-G1 X   5.031 Y  -8.080 (Startwerte: XA   5.158 YA  -8.207) 
-G1 X   4.904 Y  -7.978 (Startwerte: XA   5.031 YA  -8.080) 
-G1 X   4.802 Y  -7.902 (Startwerte: XA   4.904 YA  -7.978) 
-G1 X   4.675 Y  -7.851 (Startwerte: XA   4.802 YA  -7.902) 
-G1 X   4.573 Y  -7.800 (Startwerte: XA   4.675 YA  -7.851) 
-G1 X   4.446 Y  -7.750 (Startwerte: XA   4.573 YA  -7.800) 
-G1 X   4.319 Y  -7.724 (Startwerte: XA   4.446 YA  -7.750) 
-G1 X   4.192 Y  -7.699 (Startwerte: XA   4.319 YA  -7.724) 
-G1 X   4.065 Y  -7.673 (Startwerte: XA   4.192 YA  -7.699) 
-G1 X   3.938 Y  -7.673 (Startwerte: XA   4.065 YA  -7.673) 
-G1 X   3.811 Y  -7.673 (Startwerte: XA   3.938 YA  -7.673) 
-G1 X   3.684 Y  -7.699 (Startwerte: XA   3.811 YA  -7.673) 
-G1 X   3.557 Y  -7.724 (Startwerte: XA   3.684 YA  -7.699) 
-G1 X   3.455 Y  -7.775 (Startwerte: XA   3.557 YA  -7.724) 
-G1 X   3.404 Y  -7.800 (Startwerte: XA   3.455 YA  -7.775) 
-G1 X   3.303 Y  -7.851 (Startwerte: XA   3.404 YA  -7.800) 
-G1 X   3.201 Y  -7.902 (Startwerte: XA   3.303 YA  -7.851) 
-G1 X   3.074 Y  -8.004 (Startwerte: XA   3.201 YA  -7.902) 
-G1 X   2.947 Y  -8.080 (Startwerte: XA   3.074 YA  -8.004) 
-G1 X   2.769 Y  -8.207 (Startwerte: XA   2.947 YA  -8.080) 
-G1 X   2.591 Y  -8.334 (Startwerte: XA   2.769 YA  -8.207) 
-G1 X   2.388 Y  -8.461 (Startwerte: XA   2.591 YA  -8.334) 
-G1 X   1.880 Y  -7.750 (Startwerte: XA   2.388 YA  -8.461) 
-G1 X   1.931 Y  -7.699 (Startwerte: XA   1.880 YA  -7.750) 
-G1 X   2.007 Y  -7.648 (Startwerte: XA   1.931 YA  -7.699) 
-G1 X   2.058 Y  -7.622 (Startwerte: XA   2.007 YA  -7.648) 
-G1 X   2.109 Y  -7.572 (Startwerte: XA   2.058 YA  -7.622) 
-G1 X   2.541 Y  -7.267 (Startwerte: XA   2.109 YA  -7.572) 
-G1 X   2.922 Y  -6.987 (Startwerte: XA   2.541 YA  -7.267) 
-G1 X   3.277 Y  -6.733 (Startwerte: XA   2.922 YA  -6.987) 
-G1 X   3.582 Y  -6.530 (Startwerte: XA   3.277 YA  -6.733) 
-G1 X   3.836 Y  -6.352 (Startwerte: XA   3.582 YA  -6.530) 
-G1 X   4.065 Y  -6.200 (Startwerte: XA   3.836 YA  -6.352) 
-G1 X   4.268 Y  -6.072 (Startwerte: XA   4.065 YA  -6.200) 
-G1 X   4.421 Y  -5.996 (Startwerte: XA   4.268 YA  -6.072) 
-G1 X   4.548 Y  -5.945 (Startwerte: XA   4.421 YA  -5.996) 
-G1 X   4.700 Y  -5.895 (Startwerte: XA   4.548 YA  -5.945) 
-G1 X   4.853 Y  -5.844 (Startwerte: XA   4.700 YA  -5.895) 
-G1 X   5.005 Y  -5.818 (Startwerte: XA   4.853 YA  -5.844) 
-G1 X   5.183 Y  -5.793 (Startwerte: XA   5.005 YA  -5.818) 
-G1 X   5.361 Y  -5.768 (Startwerte: XA   5.183 YA  -5.793) 
-G1 X   5.539 Y  -5.742 (Startwerte: XA   5.361 YA  -5.768) 
-G1 X   5.717 Y  -5.742 (Startwerte: XA   5.539 YA  -5.742) 
-G1 X   6.098 Y  -5.768 (Startwerte: XA   5.717 YA  -5.742) 
-G1 X   6.479 Y  -5.818 (Startwerte: XA   6.098 YA  -5.768) 
-G1 X   6.835 Y  -5.945 (Startwerte: XA   6.479 YA  -5.818) 
-G1 X   7.191 Y  -6.098 (Startwerte: XA   6.835 YA  -5.945) 
-G1 X   7.546 Y  -6.276 (Startwerte: XA   7.191 YA  -6.098) 
-G1 X   7.902 Y  -6.530 (Startwerte: XA   7.546 YA  -6.276) 
-G1 X   8.258 Y  -6.809 (Startwerte: XA   7.902 YA  -6.530) 
-G1 X   8.588 Y  -7.140 (Startwerte: XA   8.258 YA  -6.809) 
-G1 X   8.715 Y  -7.063 (Startwerte: XA   8.588 YA  -7.140) 
-G1 X   8.817 Y  -6.962 (Startwerte: XA   8.715 YA  -7.063) 
-G1 X   8.944 Y  -6.886 (Startwerte: XA   8.817 YA  -6.962) 
-G1 X   9.071 Y  -6.809 (Startwerte: XA   8.944 YA  -6.886) 
-G1 X   9.198 Y  -6.733 (Startwerte: XA   9.071 YA  -6.809) 
-G1 X   9.325 Y  -6.657 (Startwerte: XA   9.198 YA  -6.733) 
-G1 X   9.452 Y  -6.606 (Startwerte: XA   9.325 YA  -6.657) 
-G1 X   9.579 Y  -6.530 (Startwerte: XA   9.452 YA  -6.606) 
-G1 X   9.579 Y   0.533 (Startwerte: XA   9.579 YA  -6.530) 
-G1 X   5.615 Y  -3.100 (Startwerte: XA   9.579 YA   0.533) 
-G1 X   2.795 Y  -0.914 (Startwerte: XA   5.615 YA  -3.100) 
-G1 X   1.651 Y  -2.007 (Startwerte: XA   2.795 YA  -0.914) 
-G1 X   1.118 Y  -1.397 (Startwerte: XA   1.651 YA  -2.007) 
-G1 X   2.693 Y   0.177 (Startwerte: XA   1.118 YA  -1.397) 
-G1 X   2.693 Y   6.682 (Startwerte: XA   2.693 YA   0.177) 
-G1 X   2.591 Y   6.682 (Startwerte: XA   2.693 YA   6.682) 
-G1 X   2.490 Y   6.682 (Startwerte: XA   2.591 YA   6.682) 
-G1 X   2.388 Y   6.682 (Startwerte: XA   2.490 YA   6.682) 
-G1 X   2.286 Y   6.708 (Startwerte: XA   2.388 YA   6.682) 
-G1 X   2.185 Y   6.708 (Startwerte: XA   2.286 YA   6.708) 
-G1 X   2.083 Y   6.708 (Startwerte: XA   2.185 YA   6.708) 
-G1 X   1.981 Y   6.733 (Startwerte: XA   2.083 YA   6.708) 
-G1 X   1.880 Y   6.733 (Startwerte: XA   1.981 YA   6.733) 
-G1 X   1.880 Y   7.572 (Startwerte: XA   1.880 YA   6.733) 
-G1 X   2.058 Y   7.572 (Startwerte: XA   1.880 YA   7.572) 
-G1 X   2.210 Y   7.546 (Startwerte: XA   2.058 YA   7.572) 
-G1 X   2.388 Y   7.546 (Startwerte: XA   2.210 YA   7.546) 
-G1 X   2.515 Y   7.521 (Startwerte: XA   2.388 YA   7.546) 
-G1 X   2.642 Y   7.521 (Startwerte: XA   2.515 YA   7.521) 
-G1 X   2.769 Y   7.495 (Startwerte: XA   2.642 YA   7.521) 
-G1 X   2.871 Y   7.495 (Startwerte: XA   2.769 YA   7.495) 
-G1 X   2.947 Y   7.495 (Startwerte: XA   2.871 YA   7.495) 
-G1 X   3.430 Y   7.495 (Startwerte: XA   2.947 YA   7.495) 
-G1 X   3.913 Y   7.546 (Startwerte: XA   3.430 YA   7.495) 
-G1 X   4.395 Y   7.597 (Startwerte: XA   3.913 YA   7.546) 
-G1 X   4.853 Y   7.648 (Startwerte: XA   4.395 YA   7.597) 
-G1 X   5.285 Y   7.750 (Startwerte: XA   4.853 YA   7.648) 
-G1 X   5.717 Y   7.851 (Startwerte: XA   5.285 YA   7.750) 
-G1 X   6.149 Y   7.978 (Startwerte: XA   5.717 YA   7.851) 
-G1 X   6.555 Y   8.131 (Startwerte: XA   6.149 YA   7.978) 
-G1 X   6.936 Y   8.309 (Startwerte: XA   6.555 YA   8.131) 
-G1 X   7.318 Y   8.486 (Startwerte: XA   6.936 YA   8.309) 
-G1 X   7.673 Y   8.690 (Startwerte: XA   7.318 YA   8.486) 
-G1 X   8.029 Y   8.918 (Startwerte: XA   7.673 YA   8.690) 
-G1 X   8.359 Y   9.173 (Startwerte: XA   8.029 YA   8.918) 
-G1 X   8.690 Y   9.427 (Startwerte: XA   8.359 YA   9.173) 
-G1 X   8.995 Y   9.706 (Startwerte: XA   8.690 YA   9.427) 
-G1 X   9.300 Y  10.011 (Startwerte: XA   8.995 YA   9.706) 
-G1 X  11.993 Y   7.978 (Startwerte: XA   9.300 YA  10.011) 
-G1 X  12.959 Y   8.868 (Startwerte: XA  11.993 YA   7.978) 
-G1 X  13.518 Y   8.232 (Startwerte: XA  12.959 YA   8.868) 
-G1 X  12.069 Y   6.860 (Startwerte: XA  13.518 YA   8.232) 
-G1 X  12.069 Y  -5.895 (Startwerte: XA  12.069 YA   6.860) 
-G1 X  12.222 Y  -5.869 (Startwerte: XA  12.069 YA  -5.895) 
-G1 X  12.374 Y  -5.869 (Startwerte: XA  12.222 YA  -5.869) 
-G1 X  12.527 Y  -5.844 (Startwerte: XA  12.374 YA  -5.869) 
-G1 X  12.705 Y  -5.818 (Startwerte: XA  12.527 YA  -5.844) 
-G1 X  12.857 Y  -5.818 (Startwerte: XA  12.705 YA  -5.818) 
-G1 X  13.009 Y  -5.793 (Startwerte: XA  12.857 YA  -5.818) 
-G1 X  13.162 Y  -5.793 (Startwerte: XA  13.009 YA  -5.793) 
-G1 X  13.314 Y  -5.793 (Startwerte: XA  13.162 YA  -5.793) 
-G1 X  13.314 Y  -6.632 (Startwerte: XA  13.314 YA  -5.793) 
-G1 X  12.781 Y  -6.682 (Startwerte: XA  13.314 YA  -6.632) 
-G1 X  12.273 Y  -6.759 (Startwerte: XA  12.781 YA  -6.682) 
-G1 X  11.764 Y  -6.860 (Startwerte: XA  12.273 YA  -6.759) 
-G1 X  11.282 Y  -6.962 (Startwerte: XA  11.764 YA  -6.860) 
-G1 X  10.824 Y  -7.114 (Startwerte: XA  11.282 YA  -6.962) 
-G1 X  10.367 Y  -7.267 (Startwerte: XA  10.824 YA  -7.114) 
-G1 X   9.935 Y  -7.445 (Startwerte: XA  10.367 YA  -7.267) 
-G1 X   9.528 Y  -7.648 (Startwerte: XA   9.935 YA  -7.445) 
-G1 X   9.122 Y  -7.877 (Startwerte: XA   9.528 YA  -7.648) 
-G1 X   8.741 Y  -8.105 (Startwerte: XA   9.122 YA  -7.877) 
-G1 X   8.385 Y  -8.385 (Startwerte: XA   8.741 YA  -8.105) 
-G1 X   8.029 Y  -8.664 (Startwerte: XA   8.385 YA  -8.385) 
-G1 X   7.699 Y  -8.969 (Startwerte: XA   8.029 YA  -8.664) 
-G1 X   7.368 Y  -9.274 (Startwerte: XA   7.699 YA  -8.969) 
-G1 X   7.063 Y  -9.630 (Startwerte: XA   7.368 YA  -9.274) 
-G1 X   6.784 Y  -9.986 (Startwerte: XA   7.063 YA  -9.630) 
-F150
-G1 Z  -3.000
-F400
-G1 X   6.530 Y  -9.706 (Startwerte: XA   6.784 YA  -9.986) 
-G1 X   6.250 Y  -9.376 (Startwerte: XA   6.530 YA  -9.706) 
-G1 X   5.971 Y  -9.071 (Startwerte: XA   6.250 YA  -9.376) 
-G1 X   5.742 Y  -8.817 (Startwerte: XA   5.971 YA  -9.071) 
-G1 X   5.539 Y  -8.588 (Startwerte: XA   5.742 YA  -8.817) 
-G1 X   5.336 Y  -8.385 (Startwerte: XA   5.539 YA  -8.588) 
-G1 X   5.158 Y  -8.207 (Startwerte: XA   5.336 YA  -8.385) 
-G1 X   5.031 Y  -8.080 (Startwerte: XA   5.158 YA  -8.207) 
-G1 X   4.904 Y  -7.978 (Startwerte: XA   5.031 YA  -8.080) 
-G1 X   4.802 Y  -7.902 (Startwerte: XA   4.904 YA  -7.978) 
-G1 X   4.675 Y  -7.851 (Startwerte: XA   4.802 YA  -7.902) 
-G1 X   4.573 Y  -7.800 (Startwerte: XA   4.675 YA  -7.851) 
-G1 X   4.446 Y  -7.750 (Startwerte: XA   4.573 YA  -7.800) 
-G1 X   4.319 Y  -7.724 (Startwerte: XA   4.446 YA  -7.750) 
-G1 X   4.192 Y  -7.699 (Startwerte: XA   4.319 YA  -7.724) 
-G1 X   4.065 Y  -7.673 (Startwerte: XA   4.192 YA  -7.699) 
-G1 X   3.938 Y  -7.673 (Startwerte: XA   4.065 YA  -7.673) 
-G1 X   3.811 Y  -7.673 (Startwerte: XA   3.938 YA  -7.673) 
-G1 X   3.684 Y  -7.699 (Startwerte: XA   3.811 YA  -7.673) 
-G1 X   3.557 Y  -7.724 (Startwerte: XA   3.684 YA  -7.699) 
-G1 X   3.455 Y  -7.775 (Startwerte: XA   3.557 YA  -7.724) 
-G1 X   3.404 Y  -7.800 (Startwerte: XA   3.455 YA  -7.775) 
-G1 X   3.303 Y  -7.851 (Startwerte: XA   3.404 YA  -7.800) 
-G1 X   3.201 Y  -7.902 (Startwerte: XA   3.303 YA  -7.851) 
-G1 X   3.074 Y  -8.004 (Startwerte: XA   3.201 YA  -7.902) 
-G1 X   2.947 Y  -8.080 (Startwerte: XA   3.074 YA  -8.004) 
-G1 X   2.769 Y  -8.207 (Startwerte: XA   2.947 YA  -8.080) 
-G1 X   2.591 Y  -8.334 (Startwerte: XA   2.769 YA  -8.207) 
-G1 X   2.388 Y  -8.461 (Startwerte: XA   2.591 YA  -8.334) 
-G1 X   1.880 Y  -7.750 (Startwerte: XA   2.388 YA  -8.461) 
-G1 X   1.931 Y  -7.699 (Startwerte: XA   1.880 YA  -7.750) 
-G1 X   2.007 Y  -7.648 (Startwerte: XA   1.931 YA  -7.699) 
-G1 X   2.058 Y  -7.622 (Startwerte: XA   2.007 YA  -7.648) 
-G1 X   2.109 Y  -7.572 (Startwerte: XA   2.058 YA  -7.622) 
-G1 X   2.541 Y  -7.267 (Startwerte: XA   2.109 YA  -7.572) 
-G1 X   2.922 Y  -6.987 (Startwerte: XA   2.541 YA  -7.267) 
-G1 X   3.277 Y  -6.733 (Startwerte: XA   2.922 YA  -6.987) 
-G1 X   3.582 Y  -6.530 (Startwerte: XA   3.277 YA  -6.733) 
-G1 X   3.836 Y  -6.352 (Startwerte: XA   3.582 YA  -6.530) 
-G1 X   4.065 Y  -6.200 (Startwerte: XA   3.836 YA  -6.352) 
-G1 X   4.268 Y  -6.072 (Startwerte: XA   4.065 YA  -6.200) 
-G1 X   4.421 Y  -5.996 (Startwerte: XA   4.268 YA  -6.072) 
-G1 X   4.548 Y  -5.945 (Startwerte: XA   4.421 YA  -5.996) 
-G1 X   4.700 Y  -5.895 (Startwerte: XA   4.548 YA  -5.945) 
-G1 X   4.853 Y  -5.844 (Startwerte: XA   4.700 YA  -5.895) 
-G1 X   5.005 Y  -5.818 (Startwerte: XA   4.853 YA  -5.844) 
-G1 X   5.183 Y  -5.793 (Startwerte: XA   5.005 YA  -5.818) 
-G1 X   5.361 Y  -5.768 (Startwerte: XA   5.183 YA  -5.793) 
-G1 X   5.539 Y  -5.742 (Startwerte: XA   5.361 YA  -5.768) 
-G1 X   5.717 Y  -5.742 (Startwerte: XA   5.539 YA  -5.742) 
-G1 X   6.098 Y  -5.768 (Startwerte: XA   5.717 YA  -5.742) 
-G1 X   6.479 Y  -5.818 (Startwerte: XA   6.098 YA  -5.768) 
-G1 X   6.835 Y  -5.945 (Startwerte: XA   6.479 YA  -5.818) 
-G1 X   7.191 Y  -6.098 (Startwerte: XA   6.835 YA  -5.945) 
-G1 X   7.546 Y  -6.276 (Startwerte: XA   7.191 YA  -6.098) 
-G1 X   7.902 Y  -6.530 (Startwerte: XA   7.546 YA  -6.276) 
-G1 X   8.258 Y  -6.809 (Startwerte: XA   7.902 YA  -6.530) 
-G1 X   8.588 Y  -7.140 (Startwerte: XA   8.258 YA  -6.809) 
-G1 X   8.715 Y  -7.063 (Startwerte: XA   8.588 YA  -7.140) 
-G1 X   8.817 Y  -6.962 (Startwerte: XA   8.715 YA  -7.063) 
-G1 X   8.944 Y  -6.886 (Startwerte: XA   8.817 YA  -6.962) 
-G1 X   9.071 Y  -6.809 (Startwerte: XA   8.944 YA  -6.886) 
-G1 X   9.198 Y  -6.733 (Startwerte: XA   9.071 YA  -6.809) 
-G1 X   9.325 Y  -6.657 (Startwerte: XA   9.198 YA  -6.733) 
-G1 X   9.452 Y  -6.606 (Startwerte: XA   9.325 YA  -6.657) 
-G1 X   9.579 Y  -6.530 (Startwerte: XA   9.452 YA  -6.606) 
-G1 X   9.579 Y   0.533 (Startwerte: XA   9.579 YA  -6.530) 
-G1 X   5.615 Y  -3.100 (Startwerte: XA   9.579 YA   0.533) 
-G1 X   2.795 Y  -0.914 (Startwerte: XA   5.615 YA  -3.100) 
-G1 X   1.651 Y  -2.007 (Startwerte: XA   2.795 YA  -0.914) 
-G1 X   1.118 Y  -1.397 (Startwerte: XA   1.651 YA  -2.007) 
-G1 X   2.693 Y   0.177 (Startwerte: XA   1.118 YA  -1.397) 
-G1 X   2.693 Y   6.682 (Startwerte: XA   2.693 YA   0.177) 
-G1 X   2.591 Y   6.682 (Startwerte: XA   2.693 YA   6.682) 
-G1 X   2.490 Y   6.682 (Startwerte: XA   2.591 YA   6.682) 
-G1 X   2.388 Y   6.682 (Startwerte: XA   2.490 YA   6.682) 
-G1 X   2.286 Y   6.708 (Startwerte: XA   2.388 YA   6.682) 
-G1 X   2.185 Y   6.708 (Startwerte: XA   2.286 YA   6.708) 
-G1 X   2.083 Y   6.708 (Startwerte: XA   2.185 YA   6.708) 
-G1 X   1.981 Y   6.733 (Startwerte: XA   2.083 YA   6.708) 
-G1 X   1.880 Y   6.733 (Startwerte: XA   1.981 YA   6.733) 
-G1 X   1.880 Y   7.572 (Startwerte: XA   1.880 YA   6.733) 
-G1 X   2.058 Y   7.572 (Startwerte: XA   1.880 YA   7.572) 
-G1 X   2.210 Y   7.546 (Startwerte: XA   2.058 YA   7.572) 
-G1 X   2.388 Y   7.546 (Startwerte: XA   2.210 YA   7.546) 
-G1 X   2.515 Y   7.521 (Startwerte: XA   2.388 YA   7.546) 
-G1 X   2.642 Y   7.521 (Startwerte: XA   2.515 YA   7.521) 
-G1 X   2.769 Y   7.495 (Startwerte: XA   2.642 YA   7.521) 
-G1 X   2.871 Y   7.495 (Startwerte: XA   2.769 YA   7.495) 
-G1 X   2.947 Y   7.495 (Startwerte: XA   2.871 YA   7.495) 
-G1 X   3.430 Y   7.495 (Startwerte: XA   2.947 YA   7.495) 
-G1 X   3.913 Y   7.546 (Startwerte: XA   3.430 YA   7.495) 
-G1 X   4.395 Y   7.597 (Startwerte: XA   3.913 YA   7.546) 
-G1 X   4.853 Y   7.648 (Startwerte: XA   4.395 YA   7.597) 
-G1 X   5.285 Y   7.750 (Startwerte: XA   4.853 YA   7.648) 
-G1 X   5.717 Y   7.851 (Startwerte: XA   5.285 YA   7.750) 
-G1 X   6.149 Y   7.978 (Startwerte: XA   5.717 YA   7.851) 
-G1 X   6.555 Y   8.131 (Startwerte: XA   6.149 YA   7.978) 
-G1 X   6.936 Y   8.309 (Startwerte: XA   6.555 YA   8.131) 
-G1 X   7.318 Y   8.486 (Startwerte: XA   6.936 YA   8.309) 
-G1 X   7.673 Y   8.690 (Startwerte: XA   7.318 YA   8.486) 
-G1 X   8.029 Y   8.918 (Startwerte: XA   7.673 YA   8.690) 
-G1 X   8.359 Y   9.173 (Startwerte: XA   8.029 YA   8.918) 
-G1 X   8.690 Y   9.427 (Startwerte: XA   8.359 YA   9.173) 
-G1 X   8.995 Y   9.706 (Startwerte: XA   8.690 YA   9.427) 
-G1 X   9.300 Y  10.011 (Startwerte: XA   8.995 YA   9.706) 
-G1 X  11.993 Y   7.978 (Startwerte: XA   9.300 YA  10.011) 
-G1 X  12.959 Y   8.868 (Startwerte: XA  11.993 YA   7.978) 
-G1 X  13.518 Y   8.232 (Startwerte: XA  12.959 YA   8.868) 
-G1 X  12.069 Y   6.860 (Startwerte: XA  13.518 YA   8.232) 
-G1 X  12.069 Y  -5.895 (Startwerte: XA  12.069 YA   6.860) 
-G1 X  12.222 Y  -5.869 (Startwerte: XA  12.069 YA  -5.895) 
-G1 X  12.374 Y  -5.869 (Startwerte: XA  12.222 YA  -5.869) 
-G1 X  12.527 Y  -5.844 (Startwerte: XA  12.374 YA  -5.869) 
-G1 X  12.705 Y  -5.818 (Startwerte: XA  12.527 YA  -5.844) 
-G1 X  12.857 Y  -5.818 (Startwerte: XA  12.705 YA  -5.818) 
-G1 X  13.009 Y  -5.793 (Startwerte: XA  12.857 YA  -5.818) 
-G1 X  13.162 Y  -5.793 (Startwerte: XA  13.009 YA  -5.793) 
-G1 X  13.314 Y  -5.793 (Startwerte: XA  13.162 YA  -5.793) 
-G1 X  13.314 Y  -6.632 (Startwerte: XA  13.314 YA  -5.793) 
-G1 X  12.781 Y  -6.682 (Startwerte: XA  13.314 YA  -6.632) 
-G1 X  12.273 Y  -6.759 (Startwerte: XA  12.781 YA  -6.682) 
-G1 X  11.764 Y  -6.860 (Startwerte: XA  12.273 YA  -6.759) 
-G1 X  11.282 Y  -6.962 (Startwerte: XA  11.764 YA  -6.860) 
-G1 X  10.824 Y  -7.114 (Startwerte: XA  11.282 YA  -6.962) 
-G1 X  10.367 Y  -7.267 (Startwerte: XA  10.824 YA  -7.114) 
-G1 X   9.935 Y  -7.445 (Startwerte: XA  10.367 YA  -7.267) 
-G1 X   9.528 Y  -7.648 (Startwerte: XA   9.935 YA  -7.445) 
-G1 X   9.122 Y  -7.877 (Startwerte: XA   9.528 YA  -7.648) 
-G1 X   8.741 Y  -8.105 (Startwerte: XA   9.122 YA  -7.877) 
-G1 X   8.385 Y  -8.385 (Startwerte: XA   8.741 YA  -8.105) 
-G1 X   8.029 Y  -8.664 (Startwerte: XA   8.385 YA  -8.385) 
-G1 X   7.699 Y  -8.969 (Startwerte: XA   8.029 YA  -8.664) 
-G1 X   7.368 Y  -9.274 (Startwerte: XA   7.699 YA  -8.969) 
-G1 X   7.063 Y  -9.630 (Startwerte: XA   7.368 YA  -9.274) 
-G1 X   6.784 Y  -9.986 (Startwerte: XA   7.063 YA  -9.630) 
-G1 Z   3.000
-G0 Z  15.000 
-G0 X  20.200 Y  -9.986
-G0 Z   3.000 
-F150
-G1 Z  -1.500
-F400
-G1 X  19.718 Y  -9.528 (Startwerte: XA  20.200 YA  -9.986) 
-G1 X  19.286 Y  -9.045 (Startwerte: XA  19.718 YA  -9.528) 
-G1 X  18.930 Y  -8.537 (Startwerte: XA  19.286 YA  -9.045) 
-G1 X  18.650 Y  -8.004 (Startwerte: XA  18.930 YA  -8.537) 
-G1 X  18.422 Y  -7.445 (Startwerte: XA  18.650 YA  -8.004) 
-G1 X  18.244 Y  -6.860 (Startwerte: XA  18.422 YA  -7.445) 
-G1 X  18.142 Y  -6.250 (Startwerte: XA  18.244 YA  -6.860) 
-G1 X  18.117 Y  -5.641 (Startwerte: XA  18.142 YA  -6.250) 
-G1 X  18.142 Y  -5.005 (Startwerte: XA  18.117 YA  -5.641) 
-G1 X  18.244 Y  -4.395 (Startwerte: XA  18.142 YA  -5.005) 
-G1 X  18.396 Y  -3.786 (Startwerte: XA  18.244 YA  -4.395) 
-G1 X  18.625 Y  -3.227 (Startwerte: XA  18.396 YA  -3.786) 
-G1 X  18.777 Y  -2.922 (Startwerte: XA  18.625 YA  -3.227) 
-G1 X  18.930 Y  -2.591 (Startwerte: XA  18.777 YA  -2.922) 
-G1 X  19.133 Y  -2.236 (Startwerte: XA  18.930 YA  -2.591) 
-G1 X  19.387 Y  -1.829 (Startwerte: XA  19.133 YA  -2.236) 
-G1 X  19.641 Y  -1.422 (Startwerte: XA  19.387 YA  -1.829) 
-G1 X  19.946 Y  -0.965 (Startwerte: XA  19.641 YA  -1.422) 
-G1 X  20.277 Y  -0.508 (Startwerte: XA  19.946 YA  -0.965) 
-G1 X  20.632 Y   0.000 (Startwerte: XA  20.277 YA  -0.508) 
-G1 X  21.014 Y   0.533 (Startwerte: XA  20.632 YA   0.000) 
-G1 X  21.369 Y   1.041 (Startwerte: XA  21.014 YA   0.533) 
-G1 X  21.750 Y   1.550 (Startwerte: XA  21.369 YA   1.041) 
-G1 X  22.081 Y   2.083 (Startwerte: XA  21.750 YA   1.550) 
-G1 X  22.411 Y   2.566 (Startwerte: XA  22.081 YA   2.083) 
-G1 X  22.741 Y   3.074 (Startwerte: XA  22.411 YA   2.566) 
-G1 X  23.046 Y   3.557 (Startwerte: XA  22.741 YA   3.074) 
-G1 X  23.351 Y   4.065 (Startwerte: XA  23.046 YA   3.557) 
-G1 X  23.631 Y   4.548 (Startwerte: XA  23.351 YA   4.065) 
-G1 X  23.910 Y   5.005 (Startwerte: XA  23.631 YA   4.548) 
-G1 X  24.190 Y   5.488 (Startwerte: XA  23.910 YA   5.005) 
-G1 X  24.444 Y   5.945 (Startwerte: XA  24.190 YA   5.488) 
-G1 X  24.673 Y   6.403 (Startwerte: XA  24.444 YA   5.945) 
-G1 X  24.901 Y   6.860 (Startwerte: XA  24.673 YA   6.403) 
-G1 X  25.130 Y   7.318 (Startwerte: XA  24.901 YA   6.860) 
-G1 X  25.333 Y   7.750 (Startwerte: XA  25.130 YA   7.318) 
-G1 X  24.825 Y   7.368 (Startwerte: XA  25.333 YA   7.750) 
-G1 X  24.317 Y   7.038 (Startwerte: XA  24.825 YA   7.368) 
-G1 X  23.809 Y   6.759 (Startwerte: XA  24.317 YA   7.038) 
-G1 X  23.300 Y   6.530 (Startwerte: XA  23.809 YA   6.759) 
-G1 X  22.818 Y   6.352 (Startwerte: XA  23.300 YA   6.530) 
-G1 X  22.309 Y   6.225 (Startwerte: XA  22.818 YA   6.352) 
-G1 X  21.827 Y   6.149 (Startwerte: XA  22.309 YA   6.225) 
-G1 X  21.344 Y   6.123 (Startwerte: XA  21.827 YA   6.149) 
-G1 X  20.937 Y   6.149 (Startwerte: XA  21.344 YA   6.123) 
-G1 X  20.505 Y   6.174 (Startwerte: XA  20.937 YA   6.149) 
-G1 X  20.073 Y   6.250 (Startwerte: XA  20.505 YA   6.174) 
-G1 X  19.616 Y   6.327 (Startwerte: XA  20.073 YA   6.250) 
-G1 X  19.159 Y   6.454 (Startwerte: XA  19.616 YA   6.327) 
-G1 X  18.676 Y   6.606 (Startwerte: XA  19.159 YA   6.454) 
-G1 X  18.193 Y   6.759 (Startwerte: XA  18.676 YA   6.606) 
-G1 X  17.685 Y   6.962 (Startwerte: XA  18.193 YA   6.759) 
-G1 X  16.465 Y   4.370 (Startwerte: XA  17.685 YA   6.962) 
-G1 X  15.728 Y   4.726 (Startwerte: XA  16.465 YA   4.370) 
-G1 X  18.193 Y  10.011 (Startwerte: XA  15.728 YA   4.726) 
-G1 X  18.473 Y   9.808 (Startwerte: XA  18.193 YA  10.011) 
-G1 X  18.752 Y   9.604 (Startwerte: XA  18.473 YA   9.808) 
-G1 X  19.057 Y   9.427 (Startwerte: XA  18.752 YA   9.604) 
-G1 X  19.362 Y   9.249 (Startwerte: XA  19.057 YA   9.427) 
-G1 X  19.667 Y   9.096 (Startwerte: XA  19.362 YA   9.249) 
-G1 X  19.997 Y   8.944 (Startwerte: XA  19.667 YA   9.096) 
-G1 X  20.328 Y   8.791 (Startwerte: XA  19.997 YA   8.944) 
-G1 X  20.658 Y   8.664 (Startwerte: XA  20.328 YA   8.791) 
-G1 X  21.014 Y   8.563 (Startwerte: XA  20.658 YA   8.664) 
-G1 X  21.369 Y   8.461 (Startwerte: XA  21.014 YA   8.563) 
-G1 X  21.700 Y   8.385 (Startwerte: XA  21.369 YA   8.461) 
-G1 X  22.055 Y   8.309 (Startwerte: XA  21.700 YA   8.385) 
-G1 X  22.386 Y   8.258 (Startwerte: XA  22.055 YA   8.309) 
-G1 X  22.741 Y   8.207 (Startwerte: XA  22.386 YA   8.258) 
-G1 X  23.072 Y   8.182 (Startwerte: XA  22.741 YA   8.207) 
-G1 X  23.428 Y   8.182 (Startwerte: XA  23.072 YA   8.182) 
-G1 X  23.682 Y   8.182 (Startwerte: XA  23.428 YA   8.182) 
-G1 X  23.910 Y   8.207 (Startwerte: XA  23.682 YA   8.182) 
-G1 X  24.139 Y   8.232 (Startwerte: XA  23.910 YA   8.207) 
-G1 X  24.368 Y   8.283 (Startwerte: XA  24.139 YA   8.232) 
-G1 X  24.571 Y   8.359 (Startwerte: XA  24.368 YA   8.283) 
-G1 X  24.749 Y   8.410 (Startwerte: XA  24.571 YA   8.359) 
-G1 X  24.927 Y   8.486 (Startwerte: XA  24.749 YA   8.410) 
-G1 X  25.079 Y   8.588 (Startwerte: XA  24.927 YA   8.486) 
-G1 X  25.232 Y   8.690 (Startwerte: XA  25.079 YA   8.588) 
-G1 X  25.384 Y   8.842 (Startwerte: XA  25.232 YA   8.690) 
-G1 X  25.537 Y   8.995 (Startwerte: XA  25.384 YA   8.842) 
-G1 X  25.689 Y   9.147 (Startwerte: XA  25.537 YA   8.995) 
-G1 X  25.816 Y   9.350 (Startwerte: XA  25.689 YA   9.147) 
-G1 X  25.943 Y   9.554 (Startwerte: XA  25.816 YA   9.350) 
-G1 X  26.070 Y   9.782 (Startwerte: XA  25.943 YA   9.554) 
-G1 X  26.197 Y  10.011 (Startwerte: XA  26.070 YA   9.782) 
-G1 X  26.909 Y   9.732 (Startwerte: XA  26.197 YA  10.011) 
-G1 X  26.655 Y   9.020 (Startwerte: XA  26.909 YA   9.732) 
-G1 X  26.426 Y   8.359 (Startwerte: XA  26.655 YA   9.020) 
-G1 X  26.223 Y   7.750 (Startwerte: XA  26.426 YA   8.359) 
-G1 X  26.019 Y   7.216 (Startwerte: XA  26.223 YA   7.750) 
-G1 X  25.816 Y   6.708 (Startwerte: XA  26.019 YA   7.216) 
-G1 X  25.664 Y   6.276 (Startwerte: XA  25.816 YA   6.708) 
-G1 X  25.511 Y   5.895 (Startwerte: XA  25.664 YA   6.276) 
-G1 X  25.359 Y   5.564 (Startwerte: XA  25.511 YA   5.895) 
-G1 X  25.206 Y   5.183 (Startwerte: XA  25.359 YA   5.564) 
-G1 X  24.952 Y   4.650 (Startwerte: XA  25.206 YA   5.183) 
-G1 X  24.622 Y   3.963 (Startwerte: XA  24.952 YA   4.650) 
-G1 X  24.215 Y   3.100 (Startwerte: XA  24.622 YA   3.963) 
-G1 X  23.732 Y   2.109 (Startwerte: XA  24.215 YA   3.100) 
-G1 X  23.173 Y   0.940 (Startwerte: XA  23.732 YA   2.109) 
-G1 X  22.538 Y  -0.406 (Startwerte: XA  23.173 YA   0.940) 
-G1 X  21.827 Y  -1.880 (Startwerte: XA  22.538 YA  -0.406) 
-G1 X  21.598 Y  -2.363 (Startwerte: XA  21.827 YA  -1.880) 
-G1 X  21.420 Y  -2.845 (Startwerte: XA  21.598 YA  -2.363) 
-G1 X  21.242 Y  -3.277 (Startwerte: XA  21.420 YA  -2.845) 
-G1 X  21.115 Y  -3.684 (Startwerte: XA  21.242 YA  -3.277) 
-G1 X  20.988 Y  -4.065 (Startwerte: XA  21.115 YA  -3.684) 
-G1 X  20.912 Y  -4.395 (Startwerte: XA  20.988 YA  -4.065) 
-G1 X  20.887 Y  -4.726 (Startwerte: XA  20.912 YA  -4.395) 
-G1 X  20.861 Y  -5.005 (Startwerte: XA  20.887 YA  -4.726) 
-G1 X  20.887 Y  -5.310 (Startwerte: XA  20.861 YA  -5.005) 
-G1 X  20.912 Y  -5.590 (Startwerte: XA  20.887 YA  -5.310) 
-G1 X  20.988 Y  -5.869 (Startwerte: XA  20.912 YA  -5.590) 
-G1 X  21.115 Y  -6.149 (Startwerte: XA  20.988 YA  -5.869) 
-G1 X  21.242 Y  -6.428 (Startwerte: XA  21.115 YA  -6.149) 
-G1 X  21.420 Y  -6.708 (Startwerte: XA  21.242 YA  -6.428) 
-G1 X  21.598 Y  -6.987 (Startwerte: XA  21.420 YA  -6.708) 
-G1 X  21.827 Y  -7.241 (Startwerte: XA  21.598 YA  -6.987) 
-G1 X  23.072 Y  -5.996 (Startwerte: XA  21.827 YA  -7.241) 
-G1 X  23.656 Y  -6.581 (Startwerte: XA  23.072 YA  -5.996) 
-G1 X  20.200 Y  -9.986 (Startwerte: XA  23.656 YA  -6.581) 
-F150
-G1 Z  -3.000
-F400
-G1 X  19.718 Y  -9.528 (Startwerte: XA  20.200 YA  -9.986) 
-G1 X  19.286 Y  -9.045 (Startwerte: XA  19.718 YA  -9.528) 
-G1 X  18.930 Y  -8.537 (Startwerte: XA  19.286 YA  -9.045) 
-G1 X  18.650 Y  -8.004 (Startwerte: XA  18.930 YA  -8.537) 
-G1 X  18.422 Y  -7.445 (Startwerte: XA  18.650 YA  -8.004) 
-G1 X  18.244 Y  -6.860 (Startwerte: XA  18.422 YA  -7.445) 
-G1 X  18.142 Y  -6.250 (Startwerte: XA  18.244 YA  -6.860) 
-G1 X  18.117 Y  -5.641 (Startwerte: XA  18.142 YA  -6.250) 
-G1 X  18.142 Y  -5.005 (Startwerte: XA  18.117 YA  -5.641) 
-G1 X  18.244 Y  -4.395 (Startwerte: XA  18.142 YA  -5.005) 
-G1 X  18.396 Y  -3.786 (Startwerte: XA  18.244 YA  -4.395) 
-G1 X  18.625 Y  -3.227 (Startwerte: XA  18.396 YA  -3.786) 
-G1 X  18.777 Y  -2.922 (Startwerte: XA  18.625 YA  -3.227) 
-G1 X  18.930 Y  -2.591 (Startwerte: XA  18.777 YA  -2.922) 
-G1 X  19.133 Y  -2.236 (Startwerte: XA  18.930 YA  -2.591) 
-G1 X  19.387 Y  -1.829 (Startwerte: XA  19.133 YA  -2.236) 
-G1 X  19.641 Y  -1.422 (Startwerte: XA  19.387 YA  -1.829) 
-G1 X  19.946 Y  -0.965 (Startwerte: XA  19.641 YA  -1.422) 
-G1 X  20.277 Y  -0.508 (Startwerte: XA  19.946 YA  -0.965) 
-G1 X  20.632 Y   0.000 (Startwerte: XA  20.277 YA  -0.508) 
-G1 X  21.014 Y   0.533 (Startwerte: XA  20.632 YA   0.000) 
-G1 X  21.369 Y   1.041 (Startwerte: XA  21.014 YA   0.533) 
-G1 X  21.750 Y   1.550 (Startwerte: XA  21.369 YA   1.041) 
-G1 X  22.081 Y   2.083 (Startwerte: XA  21.750 YA   1.550) 
-G1 X  22.411 Y   2.566 (Startwerte: XA  22.081 YA   2.083) 
-G1 X  22.741 Y   3.074 (Startwerte: XA  22.411 YA   2.566) 
-G1 X  23.046 Y   3.557 (Startwerte: XA  22.741 YA   3.074) 
-G1 X  23.351 Y   4.065 (Startwerte: XA  23.046 YA   3.557) 
-G1 X  23.631 Y   4.548 (Startwerte: XA  23.351 YA   4.065) 
-G1 X  23.910 Y   5.005 (Startwerte: XA  23.631 YA   4.548) 
-G1 X  24.190 Y   5.488 (Startwerte: XA  23.910 YA   5.005) 
-G1 X  24.444 Y   5.945 (Startwerte: XA  24.190 YA   5.488) 
-G1 X  24.673 Y   6.403 (Startwerte: XA  24.444 YA   5.945) 
-G1 X  24.901 Y   6.860 (Startwerte: XA  24.673 YA   6.403) 
-G1 X  25.130 Y   7.318 (Startwerte: XA  24.901 YA   6.860) 
-G1 X  25.333 Y   7.750 (Startwerte: XA  25.130 YA   7.318) 
-G1 X  24.825 Y   7.368 (Startwerte: XA  25.333 YA   7.750) 
-G1 X  24.317 Y   7.038 (Startwerte: XA  24.825 YA   7.368) 
-G1 X  23.809 Y   6.759 (Startwerte: XA  24.317 YA   7.038) 
-G1 X  23.300 Y   6.530 (Startwerte: XA  23.809 YA   6.759) 
-G1 X  22.818 Y   6.352 (Startwerte: XA  23.300 YA   6.530) 
-G1 X  22.309 Y   6.225 (Startwerte: XA  22.818 YA   6.352) 
-G1 X  21.827 Y   6.149 (Startwerte: XA  22.309 YA   6.225) 
-G1 X  21.344 Y   6.123 (Startwerte: XA  21.827 YA   6.149) 
-G1 X  20.937 Y   6.149 (Startwerte: XA  21.344 YA   6.123) 
-G1 X  20.505 Y   6.174 (Startwerte: XA  20.937 YA   6.149) 
-G1 X  20.073 Y   6.250 (Startwerte: XA  20.505 YA   6.174) 
-G1 X  19.616 Y   6.327 (Startwerte: XA  20.073 YA   6.250) 
-G1 X  19.159 Y   6.454 (Startwerte: XA  19.616 YA   6.327) 
-G1 X  18.676 Y   6.606 (Startwerte: XA  19.159 YA   6.454) 
-G1 X  18.193 Y   6.759 (Startwerte: XA  18.676 YA   6.606) 
-G1 X  17.685 Y   6.962 (Startwerte: XA  18.193 YA   6.759) 
-G1 X  16.465 Y   4.370 (Startwerte: XA  17.685 YA   6.962) 
-G1 X  15.728 Y   4.726 (Startwerte: XA  16.465 YA   4.370) 
-G1 X  18.193 Y  10.011 (Startwerte: XA  15.728 YA   4.726) 
-G1 X  18.473 Y   9.808 (Startwerte: XA  18.193 YA  10.011) 
-G1 X  18.752 Y   9.604 (Startwerte: XA  18.473 YA   9.808) 
-G1 X  19.057 Y   9.427 (Startwerte: XA  18.752 YA   9.604) 
-G1 X  19.362 Y   9.249 (Startwerte: XA  19.057 YA   9.427) 
-G1 X  19.667 Y   9.096 (Startwerte: XA  19.362 YA   9.249) 
-G1 X  19.997 Y   8.944 (Startwerte: XA  19.667 YA   9.096) 
-G1 X  20.328 Y   8.791 (Startwerte: XA  19.997 YA   8.944) 
-G1 X  20.658 Y   8.664 (Startwerte: XA  20.328 YA   8.791) 
-G1 X  21.014 Y   8.563 (Startwerte: XA  20.658 YA   8.664) 
-G1 X  21.369 Y   8.461 (Startwerte: XA  21.014 YA   8.563) 
-G1 X  21.700 Y   8.385 (Startwerte: XA  21.369 YA   8.461) 
-G1 X  22.055 Y   8.309 (Startwerte: XA  21.700 YA   8.385) 
-G1 X  22.386 Y   8.258 (Startwerte: XA  22.055 YA   8.309) 
-G1 X  22.741 Y   8.207 (Startwerte: XA  22.386 YA   8.258) 
-G1 X  23.072 Y   8.182 (Startwerte: XA  22.741 YA   8.207) 
-G1 X  23.428 Y   8.182 (Startwerte: XA  23.072 YA   8.182) 
-G1 X  23.682 Y   8.182 (Startwerte: XA  23.428 YA   8.182) 
-G1 X  23.910 Y   8.207 (Startwerte: XA  23.682 YA   8.182) 
-G1 X  24.139 Y   8.232 (Startwerte: XA  23.910 YA   8.207) 
-G1 X  24.368 Y   8.283 (Startwerte: XA  24.139 YA   8.232) 
-G1 X  24.571 Y   8.359 (Startwerte: XA  24.368 YA   8.283) 
-G1 X  24.749 Y   8.410 (Startwerte: XA  24.571 YA   8.359) 
-G1 X  24.927 Y   8.486 (Startwerte: XA  24.749 YA   8.410) 
-G1 X  25.079 Y   8.588 (Startwerte: XA  24.927 YA   8.486) 
-G1 X  25.232 Y   8.690 (Startwerte: XA  25.079 YA   8.588) 
-G1 X  25.384 Y   8.842 (Startwerte: XA  25.232 YA   8.690) 
-G1 X  25.537 Y   8.995 (Startwerte: XA  25.384 YA   8.842) 
-G1 X  25.689 Y   9.147 (Startwerte: XA  25.537 YA   8.995) 
-G1 X  25.816 Y   9.350 (Startwerte: XA  25.689 YA   9.147) 
-G1 X  25.943 Y   9.554 (Startwerte: XA  25.816 YA   9.350) 
-G1 X  26.070 Y   9.782 (Startwerte: XA  25.943 YA   9.554) 
-G1 X  26.197 Y  10.011 (Startwerte: XA  26.070 YA   9.782) 
-G1 X  26.909 Y   9.732 (Startwerte: XA  26.197 YA  10.011) 
-G1 X  26.655 Y   9.020 (Startwerte: XA  26.909 YA   9.732) 
-G1 X  26.426 Y   8.359 (Startwerte: XA  26.655 YA   9.020) 
-G1 X  26.223 Y   7.750 (Startwerte: XA  26.426 YA   8.359) 
-G1 X  26.019 Y   7.216 (Startwerte: XA  26.223 YA   7.750) 
-G1 X  25.816 Y   6.708 (Startwerte: XA  26.019 YA   7.216) 
-G1 X  25.664 Y   6.276 (Startwerte: XA  25.816 YA   6.708) 
-G1 X  25.511 Y   5.895 (Startwerte: XA  25.664 YA   6.276) 
-G1 X  25.359 Y   5.564 (Startwerte: XA  25.511 YA   5.895) 
-G1 X  25.206 Y   5.183 (Startwerte: XA  25.359 YA   5.564) 
-G1 X  24.952 Y   4.650 (Startwerte: XA  25.206 YA   5.183) 
-G1 X  24.622 Y   3.963 (Startwerte: XA  24.952 YA   4.650) 
-G1 X  24.215 Y   3.100 (Startwerte: XA  24.622 YA   3.963) 
-G1 X  23.732 Y   2.109 (Startwerte: XA  24.215 YA   3.100) 
-G1 X  23.173 Y   0.940 (Startwerte: XA  23.732 YA   2.109) 
-G1 X  22.538 Y  -0.406 (Startwerte: XA  23.173 YA   0.940) 
-G1 X  21.827 Y  -1.880 (Startwerte: XA  22.538 YA  -0.406) 
-G1 X  21.598 Y  -2.363 (Startwerte: XA  21.827 YA  -1.880) 
-G1 X  21.420 Y  -2.845 (Startwerte: XA  21.598 YA  -2.363) 
-G1 X  21.242 Y  -3.277 (Startwerte: XA  21.420 YA  -2.845) 
-G1 X  21.115 Y  -3.684 (Startwerte: XA  21.242 YA  -3.277) 
-G1 X  20.988 Y  -4.065 (Startwerte: XA  21.115 YA  -3.684) 
-G1 X  20.912 Y  -4.395 (Startwerte: XA  20.988 YA  -4.065) 
-G1 X  20.887 Y  -4.726 (Startwerte: XA  20.912 YA  -4.395) 
-G1 X  20.861 Y  -5.005 (Startwerte: XA  20.887 YA  -4.726) 
-G1 X  20.887 Y  -5.310 (Startwerte: XA  20.861 YA  -5.005) 
-G1 X  20.912 Y  -5.590 (Startwerte: XA  20.887 YA  -5.310) 
-G1 X  20.988 Y  -5.869 (Startwerte: XA  20.912 YA  -5.590) 
-G1 X  21.115 Y  -6.149 (Startwerte: XA  20.988 YA  -5.869) 
-G1 X  21.242 Y  -6.428 (Startwerte: XA  21.115 YA  -6.149) 
-G1 X  21.420 Y  -6.708 (Startwerte: XA  21.242 YA  -6.428) 
-G1 X  21.598 Y  -6.987 (Startwerte: XA  21.420 YA  -6.708) 
-G1 X  21.827 Y  -7.241 (Startwerte: XA  21.598 YA  -6.987) 
-G1 X  23.072 Y  -5.996 (Startwerte: XA  21.827 YA  -7.241) 
-G1 X  23.656 Y  -6.581 (Startwerte: XA  23.072 YA  -5.996) 
-G1 X  20.200 Y  -9.986 (Startwerte: XA  23.656 YA  -6.581) 
-G1 Z   3.000
-G0 Z  15.000 
-G0 X   6.987 Y  -0.711
-G0 Z   3.000 
-F150
-G1 Z  -1.500
-F400
-G1 X   5.183 Y   0.686 (Startwerte: XA   6.987 YA  -0.711) 
-G1 X   5.183 Y   6.886 (Startwerte: XA   5.183 YA   0.686) 
-G1 X   5.513 Y   6.936 (Startwerte: XA   5.183 YA   6.886) 
-G1 X   5.869 Y   6.987 (Startwerte: XA   5.513 YA   6.936) 
-G1 X   6.200 Y   7.063 (Startwerte: XA   5.869 YA   6.987) 
-G1 X   6.504 Y   7.165 (Startwerte: XA   6.200 YA   7.063) 
-G1 X   6.835 Y   7.292 (Startwerte: XA   6.504 YA   7.165) 
-G1 X   7.140 Y   7.445 (Startwerte: XA   6.835 YA   7.292) 
-G1 X   7.445 Y   7.597 (Startwerte: XA   7.140 YA   7.445) 
-G1 X   7.724 Y   7.775 (Startwerte: XA   7.445 YA   7.597) 
-G1 X   9.579 Y   6.428 (Startwerte: XA   7.724 YA   7.775) 
-G1 X   9.579 Y   1.702 (Startwerte: XA   9.579 YA   6.428) 
-G1 X   6.987 Y  -0.711 (Startwerte: XA   9.579 YA   1.702) 
-F150
-G1 Z  -3.000
-F400
-G1 X   5.183 Y   0.686 (Startwerte: XA   6.987 YA  -0.711) 
-G1 X   5.183 Y   6.886 (Startwerte: XA   5.183 YA   0.686) 
-G1 X   5.513 Y   6.936 (Startwerte: XA   5.183 YA   6.886) 
-G1 X   5.869 Y   6.987 (Startwerte: XA   5.513 YA   6.936) 
-G1 X   6.200 Y   7.063 (Startwerte: XA   5.869 YA   6.987) 
-G1 X   6.504 Y   7.165 (Startwerte: XA   6.200 YA   7.063) 
-G1 X   6.835 Y   7.292 (Startwerte: XA   6.504 YA   7.165) 
-G1 X   7.140 Y   7.445 (Startwerte: XA   6.835 YA   7.292) 
-G1 X   7.445 Y   7.597 (Startwerte: XA   7.140 YA   7.445) 
-G1 X   7.724 Y   7.775 (Startwerte: XA   7.445 YA   7.597) 
-G1 X   9.579 Y   6.428 (Startwerte: XA   7.724 YA   7.775) 
-G1 X   9.579 Y   1.702 (Startwerte: XA   9.579 YA   6.428) 
-G1 X   6.987 Y  -0.711 (Startwerte: XA   9.579 YA   1.702) 
-G1 Z   3.000
-G0 Z  15.000 
-G0 X   0.000 Y   0.000
-M9 (Coolant off)
-M5 (Spindle off)
-M2 (Prgram end)
+0
+SECTION
+2
+ENTITIES
+0
+LINE
+ 8
+ 1
+ 10
+   -7.114 
+ 20
+   -0.711 
+ 11
+   -8.918 
+ 21
+    0.686 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.918 
+ 20
+    0.686 
+ 11
+   -8.918 
+ 21
+    6.886 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.918 
+ 20
+    6.886 
+ 11
+   -8.588 
+ 21
+    6.936 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.588 
+ 20
+    6.936 
+ 11
+   -8.232 
+ 21
+    6.987 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.232 
+ 20
+    6.987 
+ 11
+   -7.902 
+ 21
+    7.063 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.902 
+ 20
+    7.063 
+ 11
+   -7.597 
+ 21
+    7.165 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.597 
+ 20
+    7.165 
+ 11
+   -7.267 
+ 21
+    7.292 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.267 
+ 20
+    7.292 
+ 11
+   -6.962 
+ 21
+    7.445 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.962 
+ 20
+    7.445 
+ 11
+   -6.657 
+ 21
+    7.597 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.657 
+ 20
+    7.597 
+ 11
+   -6.377 
+ 21
+    7.775 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.377 
+ 20
+    7.775 
+ 11
+   -4.522 
+ 21
+    6.428 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.522 
+ 20
+    6.428 
+ 11
+   -4.522 
+ 21
+    1.702 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.522 
+ 20
+    1.702 
+ 11
+   -7.114 
+ 21
+   -0.711 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -19.209 
+ 20
+   -9.986 
+ 11
+  -21.522 
+ 21
+   -7.597 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -21.522 
+ 20
+   -7.597 
+ 11
+  -22.691 
+ 21
+   -8.741 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -22.691 
+ 20
+   -8.741 
+ 11
+  -23.300 
+ 21
+   -8.131 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -23.300 
+ 20
+   -8.131 
+ 11
+  -20.988 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -20.988 
+ 20
+   -5.793 
+ 11
+  -20.988 
+ 21
+    4.446 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -20.988 
+ 20
+    4.446 
+ 11
+  -21.014 
+ 21
+    4.878 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -21.014 
+ 20
+    4.878 
+ 11
+  -21.090 
+ 21
+    5.259 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -21.090 
+ 20
+    5.259 
+ 11
+  -21.217 
+ 21
+    5.641 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -21.217 
+ 20
+    5.641 
+ 11
+  -21.344 
+ 21
+    5.971 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -21.344 
+ 20
+    5.971 
+ 11
+  -21.547 
+ 21
+    6.276 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -21.547 
+ 20
+    6.276 
+ 11
+  -21.750 
+ 21
+    6.555 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -21.750 
+ 20
+    6.555 
+ 11
+  -22.005 
+ 21
+    6.809 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -22.005 
+ 20
+    6.809 
+ 11
+  -22.309 
+ 21
+    7.013 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -22.309 
+ 20
+    7.013 
+ 11
+  -23.631 
+ 21
+    5.691 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -23.631 
+ 20
+    5.691 
+ 11
+  -24.190 
+ 21
+    6.276 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -24.190 
+ 20
+    6.276 
+ 11
+  -20.505 
+ 21
+   10.011 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -20.505 
+ 20
+   10.011 
+ 11
+  -20.277 
+ 21
+    9.859 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -20.277 
+ 20
+    9.859 
+ 11
+  -20.048 
+ 21
+    9.681 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -20.048 
+ 20
+    9.681 
+ 11
+  -19.845 
+ 21
+    9.503 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -19.845 
+ 20
+    9.503 
+ 11
+  -19.641 
+ 21
+    9.274 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -19.641 
+ 20
+    9.274 
+ 11
+  -19.464 
+ 21
+    9.045 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -19.464 
+ 20
+    9.045 
+ 11
+  -19.311 
+ 21
+    8.791 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -19.311 
+ 20
+    8.791 
+ 11
+  -19.159 
+ 21
+    8.537 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -19.159 
+ 20
+    8.537 
+ 11
+  -19.032 
+ 21
+    8.232 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -19.032 
+ 20
+    8.232 
+ 11
+  -18.803 
+ 21
+    7.597 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -18.803 
+ 20
+    7.597 
+ 11
+  -18.650 
+ 21
+    6.936 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -18.650 
+ 20
+    6.936 
+ 11
+  -18.549 
+ 21
+    6.174 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -18.549 
+ 20
+    6.174 
+ 11
+  -18.523 
+ 21
+    5.386 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -18.523 
+ 20
+    5.386 
+ 11
+  -18.523 
+ 21
+   -5.971 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -18.523 
+ 20
+   -5.971 
+ 11
+  -17.507 
+ 21
+   -7.089 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -17.507 
+ 20
+   -7.089 
+ 11
+  -16.211 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -16.211 
+ 20
+   -5.793 
+ 11
+  -15.627 
+ 21
+   -6.403 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -15.627 
+ 20
+   -6.403 
+ 11
+  -19.209 
+ 21
+   -9.986 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.318 
+ 20
+   -9.986 
+ 11
+   -7.572 
+ 21
+   -9.706 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.572 
+ 20
+   -9.706 
+ 11
+   -7.851 
+ 21
+   -9.376 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.851 
+ 20
+   -9.376 
+ 11
+   -8.131 
+ 21
+   -9.071 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.131 
+ 20
+   -9.071 
+ 11
+   -8.359 
+ 21
+   -8.817 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.359 
+ 20
+   -8.817 
+ 11
+   -8.563 
+ 21
+   -8.588 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.563 
+ 20
+   -8.588 
+ 11
+   -8.766 
+ 21
+   -8.385 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.766 
+ 20
+   -8.385 
+ 11
+   -8.944 
+ 21
+   -8.207 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.944 
+ 20
+   -8.207 
+ 11
+   -9.071 
+ 21
+   -8.080 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.071 
+ 20
+   -8.080 
+ 11
+   -9.198 
+ 21
+   -7.978 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.198 
+ 20
+   -7.978 
+ 11
+   -9.300 
+ 21
+   -7.902 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.300 
+ 20
+   -7.902 
+ 11
+   -9.427 
+ 21
+   -7.851 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.427 
+ 20
+   -7.851 
+ 11
+   -9.528 
+ 21
+   -7.800 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.528 
+ 20
+   -7.800 
+ 11
+   -9.655 
+ 21
+   -7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.655 
+ 20
+   -7.750 
+ 11
+   -9.782 
+ 21
+   -7.724 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.782 
+ 20
+   -7.724 
+ 11
+   -9.909 
+ 21
+   -7.699 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.909 
+ 20
+   -7.699 
+ 11
+  -10.036 
+ 21
+   -7.673 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.036 
+ 20
+   -7.673 
+ 11
+  -10.163 
+ 21
+   -7.673 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.163 
+ 20
+   -7.673 
+ 11
+  -10.291 
+ 21
+   -7.673 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.291 
+ 20
+   -7.673 
+ 11
+  -10.418 
+ 21
+   -7.699 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.418 
+ 20
+   -7.699 
+ 11
+  -10.545 
+ 21
+   -7.724 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.545 
+ 20
+   -7.724 
+ 11
+  -10.646 
+ 21
+   -7.775 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.646 
+ 20
+   -7.775 
+ 11
+  -10.697 
+ 21
+   -7.800 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.697 
+ 20
+   -7.800 
+ 11
+  -10.799 
+ 21
+   -7.851 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.799 
+ 20
+   -7.851 
+ 11
+  -10.900 
+ 21
+   -7.902 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.900 
+ 20
+   -7.902 
+ 11
+  -11.027 
+ 21
+   -8.004 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.027 
+ 20
+   -8.004 
+ 11
+  -11.154 
+ 21
+   -8.080 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.154 
+ 20
+   -8.080 
+ 11
+  -11.332 
+ 21
+   -8.207 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.332 
+ 20
+   -8.207 
+ 11
+  -11.510 
+ 21
+   -8.334 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.510 
+ 20
+   -8.334 
+ 11
+  -11.714 
+ 21
+   -8.461 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.714 
+ 20
+   -8.461 
+ 11
+  -12.222 
+ 21
+   -7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.222 
+ 20
+   -7.750 
+ 11
+  -12.171 
+ 21
+   -7.699 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.171 
+ 20
+   -7.699 
+ 11
+  -12.095 
+ 21
+   -7.648 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.095 
+ 20
+   -7.648 
+ 11
+  -12.044 
+ 21
+   -7.622 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.044 
+ 20
+   -7.622 
+ 11
+  -11.993 
+ 21
+   -7.572 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.993 
+ 20
+   -7.572 
+ 11
+  -11.561 
+ 21
+   -7.267 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.561 
+ 20
+   -7.267 
+ 11
+  -11.180 
+ 21
+   -6.987 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.180 
+ 20
+   -6.987 
+ 11
+  -10.824 
+ 21
+   -6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.824 
+ 20
+   -6.733 
+ 11
+  -10.519 
+ 21
+   -6.530 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.519 
+ 20
+   -6.530 
+ 11
+  -10.265 
+ 21
+   -6.352 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.265 
+ 20
+   -6.352 
+ 11
+  -10.036 
+ 21
+   -6.200 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.036 
+ 20
+   -6.200 
+ 11
+   -9.833 
+ 21
+   -6.072 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.833 
+ 20
+   -6.072 
+ 11
+   -9.681 
+ 21
+   -5.996 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.681 
+ 20
+   -5.996 
+ 11
+   -9.554 
+ 21
+   -5.945 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.554 
+ 20
+   -5.945 
+ 11
+   -9.401 
+ 21
+   -5.895 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.401 
+ 20
+   -5.895 
+ 11
+   -9.249 
+ 21
+   -5.844 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.249 
+ 20
+   -5.844 
+ 11
+   -9.096 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.096 
+ 20
+   -5.818 
+ 11
+   -8.918 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.918 
+ 20
+   -5.793 
+ 11
+   -8.741 
+ 21
+   -5.768 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.741 
+ 20
+   -5.768 
+ 11
+   -8.563 
+ 21
+   -5.742 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.563 
+ 20
+   -5.742 
+ 11
+   -8.385 
+ 21
+   -5.742 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.385 
+ 20
+   -5.742 
+ 11
+   -8.004 
+ 21
+   -5.768 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.004 
+ 20
+   -5.768 
+ 11
+   -7.622 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.622 
+ 20
+   -5.818 
+ 11
+   -7.267 
+ 21
+   -5.945 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.267 
+ 20
+   -5.945 
+ 11
+   -6.911 
+ 21
+   -6.098 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.911 
+ 20
+   -6.098 
+ 11
+   -6.555 
+ 21
+   -6.276 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.555 
+ 20
+   -6.276 
+ 11
+   -6.200 
+ 21
+   -6.530 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.200 
+ 20
+   -6.530 
+ 11
+   -5.844 
+ 21
+   -6.809 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.844 
+ 20
+   -6.809 
+ 11
+   -5.513 
+ 21
+   -7.140 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.513 
+ 20
+   -7.140 
+ 11
+   -5.386 
+ 21
+   -7.063 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.386 
+ 20
+   -7.063 
+ 11
+   -5.285 
+ 21
+   -6.962 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.285 
+ 20
+   -6.962 
+ 11
+   -5.158 
+ 21
+   -6.886 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.158 
+ 20
+   -6.886 
+ 11
+   -5.031 
+ 21
+   -6.809 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.031 
+ 20
+   -6.809 
+ 11
+   -4.904 
+ 21
+   -6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.904 
+ 20
+   -6.733 
+ 11
+   -4.777 
+ 21
+   -6.657 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.777 
+ 20
+   -6.657 
+ 11
+   -4.650 
+ 21
+   -6.606 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.650 
+ 20
+   -6.606 
+ 11
+   -4.522 
+ 21
+   -6.530 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.522 
+ 20
+   -6.530 
+ 11
+   -4.522 
+ 21
+    0.533 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.522 
+ 20
+    0.533 
+ 11
+   -8.486 
+ 21
+   -3.100 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.486 
+ 20
+   -3.100 
+ 11
+  -11.307 
+ 21
+   -0.914 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.307 
+ 20
+   -0.914 
+ 11
+  -12.450 
+ 21
+   -2.007 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.450 
+ 20
+   -2.007 
+ 11
+  -12.984 
+ 21
+   -1.397 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.984 
+ 20
+   -1.397 
+ 11
+  -11.409 
+ 21
+    0.177 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.409 
+ 20
+    0.177 
+ 11
+  -11.409 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.409 
+ 20
+    6.682 
+ 11
+  -11.510 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.510 
+ 20
+    6.682 
+ 11
+  -11.612 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.612 
+ 20
+    6.682 
+ 11
+  -11.714 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.714 
+ 20
+    6.682 
+ 11
+  -11.815 
+ 21
+    6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.815 
+ 20
+    6.708 
+ 11
+  -11.917 
+ 21
+    6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.917 
+ 20
+    6.708 
+ 11
+  -12.018 
+ 21
+    6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.018 
+ 20
+    6.708 
+ 11
+  -12.120 
+ 21
+    6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.120 
+ 20
+    6.733 
+ 11
+  -12.222 
+ 21
+    6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.222 
+ 20
+    6.733 
+ 11
+  -12.222 
+ 21
+    7.572 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.222 
+ 20
+    7.572 
+ 11
+  -12.044 
+ 21
+    7.572 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -12.044 
+ 20
+    7.572 
+ 11
+  -11.891 
+ 21
+    7.546 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.891 
+ 20
+    7.546 
+ 11
+  -11.714 
+ 21
+    7.546 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.714 
+ 20
+    7.546 
+ 11
+  -11.586 
+ 21
+    7.521 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.586 
+ 20
+    7.521 
+ 11
+  -11.459 
+ 21
+    7.521 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.459 
+ 20
+    7.521 
+ 11
+  -11.332 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.332 
+ 20
+    7.495 
+ 11
+  -11.231 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.231 
+ 20
+    7.495 
+ 11
+  -11.154 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -11.154 
+ 20
+    7.495 
+ 11
+  -10.672 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.672 
+ 20
+    7.495 
+ 11
+  -10.189 
+ 21
+    7.546 
+ 0
+LINE
+ 8
+ 1
+ 10
+  -10.189 
+ 20
+    7.546 
+ 11
+   -9.706 
+ 21
+    7.597 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.706 
+ 20
+    7.597 
+ 11
+   -9.249 
+ 21
+    7.648 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -9.249 
+ 20
+    7.648 
+ 11
+   -8.817 
+ 21
+    7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.817 
+ 20
+    7.750 
+ 11
+   -8.385 
+ 21
+    7.851 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -8.385 
+ 20
+    7.851 
+ 11
+   -7.953 
+ 21
+    7.978 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.953 
+ 20
+    7.978 
+ 11
+   -7.546 
+ 21
+    8.131 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.546 
+ 20
+    8.131 
+ 11
+   -7.165 
+ 21
+    8.309 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.165 
+ 20
+    8.309 
+ 11
+   -6.784 
+ 21
+    8.486 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.784 
+ 20
+    8.486 
+ 11
+   -6.428 
+ 21
+    8.690 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.428 
+ 20
+    8.690 
+ 11
+   -6.072 
+ 21
+    8.918 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.072 
+ 20
+    8.918 
+ 11
+   -5.742 
+ 21
+    9.173 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.742 
+ 20
+    9.173 
+ 11
+   -5.412 
+ 21
+    9.427 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.412 
+ 20
+    9.427 
+ 11
+   -5.107 
+ 21
+    9.706 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.107 
+ 20
+    9.706 
+ 11
+   -4.802 
+ 21
+   10.011 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.802 
+ 20
+   10.011 
+ 11
+   -2.109 
+ 21
+    7.978 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -2.109 
+ 20
+    7.978 
+ 11
+   -1.143 
+ 21
+    8.868 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.143 
+ 20
+    8.868 
+ 11
+   -0.584 
+ 21
+    8.232 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -0.584 
+ 20
+    8.232 
+ 11
+   -2.032 
+ 21
+    6.860 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -2.032 
+ 20
+    6.860 
+ 11
+   -2.032 
+ 21
+   -5.895 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -2.032 
+ 20
+   -5.895 
+ 11
+   -1.880 
+ 21
+   -5.869 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.880 
+ 20
+   -5.869 
+ 11
+   -1.727 
+ 21
+   -5.869 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.727 
+ 20
+   -5.869 
+ 11
+   -1.575 
+ 21
+   -5.844 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.575 
+ 20
+   -5.844 
+ 11
+   -1.397 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.397 
+ 20
+   -5.818 
+ 11
+   -1.245 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.245 
+ 20
+   -5.818 
+ 11
+   -1.092 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.092 
+ 20
+   -5.793 
+ 11
+   -0.940 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -0.940 
+ 20
+   -5.793 
+ 11
+   -0.787 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -0.787 
+ 20
+   -5.793 
+ 11
+   -0.787 
+ 21
+   -6.632 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -0.787 
+ 20
+   -6.632 
+ 11
+   -1.321 
+ 21
+   -6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.321 
+ 20
+   -6.682 
+ 11
+   -1.829 
+ 21
+   -6.759 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -1.829 
+ 20
+   -6.759 
+ 11
+   -2.337 
+ 21
+   -6.860 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -2.337 
+ 20
+   -6.860 
+ 11
+   -2.820 
+ 21
+   -6.962 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -2.820 
+ 20
+   -6.962 
+ 11
+   -3.277 
+ 21
+   -7.114 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -3.277 
+ 20
+   -7.114 
+ 11
+   -3.735 
+ 21
+   -7.267 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -3.735 
+ 20
+   -7.267 
+ 11
+   -4.167 
+ 21
+   -7.445 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.167 
+ 20
+   -7.445 
+ 11
+   -4.573 
+ 21
+   -7.648 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.573 
+ 20
+   -7.648 
+ 11
+   -4.980 
+ 21
+   -7.877 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -4.980 
+ 20
+   -7.877 
+ 11
+   -5.361 
+ 21
+   -8.105 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.361 
+ 20
+   -8.105 
+ 11
+   -5.717 
+ 21
+   -8.385 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -5.717 
+ 20
+   -8.385 
+ 11
+   -6.072 
+ 21
+   -8.664 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.072 
+ 20
+   -8.664 
+ 11
+   -6.403 
+ 21
+   -8.969 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.403 
+ 20
+   -8.969 
+ 11
+   -6.733 
+ 21
+   -9.274 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -6.733 
+ 20
+   -9.274 
+ 11
+   -7.038 
+ 21
+   -9.630 
+ 0
+LINE
+ 8
+ 1
+ 10
+   -7.038 
+ 20
+   -9.630 
+ 11
+   -7.318 
+ 21
+   -9.986 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.784 
+ 20
+   -9.986 
+ 11
+    6.530 
+ 21
+   -9.706 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.530 
+ 20
+   -9.706 
+ 11
+    6.250 
+ 21
+   -9.376 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.250 
+ 20
+   -9.376 
+ 11
+    5.971 
+ 21
+   -9.071 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.971 
+ 20
+   -9.071 
+ 11
+    5.742 
+ 21
+   -8.817 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.742 
+ 20
+   -8.817 
+ 11
+    5.539 
+ 21
+   -8.588 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.539 
+ 20
+   -8.588 
+ 11
+    5.336 
+ 21
+   -8.385 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.336 
+ 20
+   -8.385 
+ 11
+    5.158 
+ 21
+   -8.207 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.158 
+ 20
+   -8.207 
+ 11
+    5.031 
+ 21
+   -8.080 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.031 
+ 20
+   -8.080 
+ 11
+    4.904 
+ 21
+   -7.978 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.904 
+ 20
+   -7.978 
+ 11
+    4.802 
+ 21
+   -7.902 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.802 
+ 20
+   -7.902 
+ 11
+    4.675 
+ 21
+   -7.851 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.675 
+ 20
+   -7.851 
+ 11
+    4.573 
+ 21
+   -7.800 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.573 
+ 20
+   -7.800 
+ 11
+    4.446 
+ 21
+   -7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.446 
+ 20
+   -7.750 
+ 11
+    4.319 
+ 21
+   -7.724 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.319 
+ 20
+   -7.724 
+ 11
+    4.192 
+ 21
+   -7.699 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.192 
+ 20
+   -7.699 
+ 11
+    4.065 
+ 21
+   -7.673 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.065 
+ 20
+   -7.673 
+ 11
+    3.938 
+ 21
+   -7.673 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.938 
+ 20
+   -7.673 
+ 11
+    3.811 
+ 21
+   -7.673 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.811 
+ 20
+   -7.673 
+ 11
+    3.684 
+ 21
+   -7.699 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.684 
+ 20
+   -7.699 
+ 11
+    3.557 
+ 21
+   -7.724 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.557 
+ 20
+   -7.724 
+ 11
+    3.455 
+ 21
+   -7.775 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.455 
+ 20
+   -7.775 
+ 11
+    3.404 
+ 21
+   -7.800 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.404 
+ 20
+   -7.800 
+ 11
+    3.303 
+ 21
+   -7.851 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.303 
+ 20
+   -7.851 
+ 11
+    3.201 
+ 21
+   -7.902 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.201 
+ 20
+   -7.902 
+ 11
+    3.074 
+ 21
+   -8.004 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.074 
+ 20
+   -8.004 
+ 11
+    2.947 
+ 21
+   -8.080 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.947 
+ 20
+   -8.080 
+ 11
+    2.769 
+ 21
+   -8.207 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.769 
+ 20
+   -8.207 
+ 11
+    2.591 
+ 21
+   -8.334 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.591 
+ 20
+   -8.334 
+ 11
+    2.388 
+ 21
+   -8.461 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.388 
+ 20
+   -8.461 
+ 11
+    1.880 
+ 21
+   -7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+    1.880 
+ 20
+   -7.750 
+ 11
+    1.931 
+ 21
+   -7.699 
+ 0
+LINE
+ 8
+ 1
+ 10
+    1.931 
+ 20
+   -7.699 
+ 11
+    2.007 
+ 21
+   -7.648 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.007 
+ 20
+   -7.648 
+ 11
+    2.058 
+ 21
+   -7.622 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.058 
+ 20
+   -7.622 
+ 11
+    2.109 
+ 21
+   -7.572 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.109 
+ 20
+   -7.572 
+ 11
+    2.541 
+ 21
+   -7.267 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.541 
+ 20
+   -7.267 
+ 11
+    2.922 
+ 21
+   -6.987 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.922 
+ 20
+   -6.987 
+ 11
+    3.277 
+ 21
+   -6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.277 
+ 20
+   -6.733 
+ 11
+    3.582 
+ 21
+   -6.530 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.582 
+ 20
+   -6.530 
+ 11
+    3.836 
+ 21
+   -6.352 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.836 
+ 20
+   -6.352 
+ 11
+    4.065 
+ 21
+   -6.200 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.065 
+ 20
+   -6.200 
+ 11
+    4.268 
+ 21
+   -6.072 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.268 
+ 20
+   -6.072 
+ 11
+    4.421 
+ 21
+   -5.996 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.421 
+ 20
+   -5.996 
+ 11
+    4.548 
+ 21
+   -5.945 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.548 
+ 20
+   -5.945 
+ 11
+    4.700 
+ 21
+   -5.895 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.700 
+ 20
+   -5.895 
+ 11
+    4.853 
+ 21
+   -5.844 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.853 
+ 20
+   -5.844 
+ 11
+    5.005 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.005 
+ 20
+   -5.818 
+ 11
+    5.183 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.183 
+ 20
+   -5.793 
+ 11
+    5.361 
+ 21
+   -5.768 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.361 
+ 20
+   -5.768 
+ 11
+    5.539 
+ 21
+   -5.742 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.539 
+ 20
+   -5.742 
+ 11
+    5.717 
+ 21
+   -5.742 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.717 
+ 20
+   -5.742 
+ 11
+    6.098 
+ 21
+   -5.768 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.098 
+ 20
+   -5.768 
+ 11
+    6.479 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.479 
+ 20
+   -5.818 
+ 11
+    6.835 
+ 21
+   -5.945 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.835 
+ 20
+   -5.945 
+ 11
+    7.191 
+ 21
+   -6.098 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.191 
+ 20
+   -6.098 
+ 11
+    7.546 
+ 21
+   -6.276 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.546 
+ 20
+   -6.276 
+ 11
+    7.902 
+ 21
+   -6.530 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.902 
+ 20
+   -6.530 
+ 11
+    8.258 
+ 21
+   -6.809 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.258 
+ 20
+   -6.809 
+ 11
+    8.588 
+ 21
+   -7.140 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.588 
+ 20
+   -7.140 
+ 11
+    8.715 
+ 21
+   -7.063 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.715 
+ 20
+   -7.063 
+ 11
+    8.817 
+ 21
+   -6.962 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.817 
+ 20
+   -6.962 
+ 11
+    8.944 
+ 21
+   -6.886 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.944 
+ 20
+   -6.886 
+ 11
+    9.071 
+ 21
+   -6.809 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.071 
+ 20
+   -6.809 
+ 11
+    9.198 
+ 21
+   -6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.198 
+ 20
+   -6.733 
+ 11
+    9.325 
+ 21
+   -6.657 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.325 
+ 20
+   -6.657 
+ 11
+    9.452 
+ 21
+   -6.606 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.452 
+ 20
+   -6.606 
+ 11
+    9.579 
+ 21
+   -6.530 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.579 
+ 20
+   -6.530 
+ 11
+    9.579 
+ 21
+    0.533 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.579 
+ 20
+    0.533 
+ 11
+    5.615 
+ 21
+   -3.100 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.615 
+ 20
+   -3.100 
+ 11
+    2.795 
+ 21
+   -0.914 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.795 
+ 20
+   -0.914 
+ 11
+    1.651 
+ 21
+   -2.007 
+ 0
+LINE
+ 8
+ 1
+ 10
+    1.651 
+ 20
+   -2.007 
+ 11
+    1.118 
+ 21
+   -1.397 
+ 0
+LINE
+ 8
+ 1
+ 10
+    1.118 
+ 20
+   -1.397 
+ 11
+    2.693 
+ 21
+    0.177 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.693 
+ 20
+    0.177 
+ 11
+    2.693 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.693 
+ 20
+    6.682 
+ 11
+    2.591 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.591 
+ 20
+    6.682 
+ 11
+    2.490 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.490 
+ 20
+    6.682 
+ 11
+    2.388 
+ 21
+    6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.388 
+ 20
+    6.682 
+ 11
+    2.286 
+ 21
+    6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.286 
+ 20
+    6.708 
+ 11
+    2.185 
+ 21
+    6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.185 
+ 20
+    6.708 
+ 11
+    2.083 
+ 21
+    6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.083 
+ 20
+    6.708 
+ 11
+    1.981 
+ 21
+    6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+    1.981 
+ 20
+    6.733 
+ 11
+    1.880 
+ 21
+    6.733 
+ 0
+LINE
+ 8
+ 1
+ 10
+    1.880 
+ 20
+    6.733 
+ 11
+    1.880 
+ 21
+    7.572 
+ 0
+LINE
+ 8
+ 1
+ 10
+    1.880 
+ 20
+    7.572 
+ 11
+    2.058 
+ 21
+    7.572 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.058 
+ 20
+    7.572 
+ 11
+    2.210 
+ 21
+    7.546 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.210 
+ 20
+    7.546 
+ 11
+    2.388 
+ 21
+    7.546 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.388 
+ 20
+    7.546 
+ 11
+    2.515 
+ 21
+    7.521 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.515 
+ 20
+    7.521 
+ 11
+    2.642 
+ 21
+    7.521 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.642 
+ 20
+    7.521 
+ 11
+    2.769 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.769 
+ 20
+    7.495 
+ 11
+    2.871 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.871 
+ 20
+    7.495 
+ 11
+    2.947 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+    2.947 
+ 20
+    7.495 
+ 11
+    3.430 
+ 21
+    7.495 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.430 
+ 20
+    7.495 
+ 11
+    3.913 
+ 21
+    7.546 
+ 0
+LINE
+ 8
+ 1
+ 10
+    3.913 
+ 20
+    7.546 
+ 11
+    4.395 
+ 21
+    7.597 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.395 
+ 20
+    7.597 
+ 11
+    4.853 
+ 21
+    7.648 
+ 0
+LINE
+ 8
+ 1
+ 10
+    4.853 
+ 20
+    7.648 
+ 11
+    5.285 
+ 21
+    7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.285 
+ 20
+    7.750 
+ 11
+    5.717 
+ 21
+    7.851 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.717 
+ 20
+    7.851 
+ 11
+    6.149 
+ 21
+    7.978 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.149 
+ 20
+    7.978 
+ 11
+    6.555 
+ 21
+    8.131 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.555 
+ 20
+    8.131 
+ 11
+    6.936 
+ 21
+    8.309 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.936 
+ 20
+    8.309 
+ 11
+    7.318 
+ 21
+    8.486 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.318 
+ 20
+    8.486 
+ 11
+    7.673 
+ 21
+    8.690 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.673 
+ 20
+    8.690 
+ 11
+    8.029 
+ 21
+    8.918 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.029 
+ 20
+    8.918 
+ 11
+    8.359 
+ 21
+    9.173 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.359 
+ 20
+    9.173 
+ 11
+    8.690 
+ 21
+    9.427 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.690 
+ 20
+    9.427 
+ 11
+    8.995 
+ 21
+    9.706 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.995 
+ 20
+    9.706 
+ 11
+    9.300 
+ 21
+   10.011 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.300 
+ 20
+   10.011 
+ 11
+   11.993 
+ 21
+    7.978 
+ 0
+LINE
+ 8
+ 1
+ 10
+   11.993 
+ 20
+    7.978 
+ 11
+   12.959 
+ 21
+    8.868 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.959 
+ 20
+    8.868 
+ 11
+   13.518 
+ 21
+    8.232 
+ 0
+LINE
+ 8
+ 1
+ 10
+   13.518 
+ 20
+    8.232 
+ 11
+   12.069 
+ 21
+    6.860 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.069 
+ 20
+    6.860 
+ 11
+   12.069 
+ 21
+   -5.895 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.069 
+ 20
+   -5.895 
+ 11
+   12.222 
+ 21
+   -5.869 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.222 
+ 20
+   -5.869 
+ 11
+   12.374 
+ 21
+   -5.869 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.374 
+ 20
+   -5.869 
+ 11
+   12.527 
+ 21
+   -5.844 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.527 
+ 20
+   -5.844 
+ 11
+   12.705 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.705 
+ 20
+   -5.818 
+ 11
+   12.857 
+ 21
+   -5.818 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.857 
+ 20
+   -5.818 
+ 11
+   13.009 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+   13.009 
+ 20
+   -5.793 
+ 11
+   13.162 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+   13.162 
+ 20
+   -5.793 
+ 11
+   13.314 
+ 21
+   -5.793 
+ 0
+LINE
+ 8
+ 1
+ 10
+   13.314 
+ 20
+   -5.793 
+ 11
+   13.314 
+ 21
+   -6.632 
+ 0
+LINE
+ 8
+ 1
+ 10
+   13.314 
+ 20
+   -6.632 
+ 11
+   12.781 
+ 21
+   -6.682 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.781 
+ 20
+   -6.682 
+ 11
+   12.273 
+ 21
+   -6.759 
+ 0
+LINE
+ 8
+ 1
+ 10
+   12.273 
+ 20
+   -6.759 
+ 11
+   11.764 
+ 21
+   -6.860 
+ 0
+LINE
+ 8
+ 1
+ 10
+   11.764 
+ 20
+   -6.860 
+ 11
+   11.282 
+ 21
+   -6.962 
+ 0
+LINE
+ 8
+ 1
+ 10
+   11.282 
+ 20
+   -6.962 
+ 11
+   10.824 
+ 21
+   -7.114 
+ 0
+LINE
+ 8
+ 1
+ 10
+   10.824 
+ 20
+   -7.114 
+ 11
+   10.367 
+ 21
+   -7.267 
+ 0
+LINE
+ 8
+ 1
+ 10
+   10.367 
+ 20
+   -7.267 
+ 11
+    9.935 
+ 21
+   -7.445 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.935 
+ 20
+   -7.445 
+ 11
+    9.528 
+ 21
+   -7.648 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.528 
+ 20
+   -7.648 
+ 11
+    9.122 
+ 21
+   -7.877 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.122 
+ 20
+   -7.877 
+ 11
+    8.741 
+ 21
+   -8.105 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.741 
+ 20
+   -8.105 
+ 11
+    8.385 
+ 21
+   -8.385 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.385 
+ 20
+   -8.385 
+ 11
+    8.029 
+ 21
+   -8.664 
+ 0
+LINE
+ 8
+ 1
+ 10
+    8.029 
+ 20
+   -8.664 
+ 11
+    7.699 
+ 21
+   -8.969 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.699 
+ 20
+   -8.969 
+ 11
+    7.368 
+ 21
+   -9.274 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.368 
+ 20
+   -9.274 
+ 11
+    7.063 
+ 21
+   -9.630 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.063 
+ 20
+   -9.630 
+ 11
+    6.784 
+ 21
+   -9.986 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.200 
+ 20
+   -9.986 
+ 11
+   19.718 
+ 21
+   -9.528 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.718 
+ 20
+   -9.528 
+ 11
+   19.286 
+ 21
+   -9.045 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.286 
+ 20
+   -9.045 
+ 11
+   18.930 
+ 21
+   -8.537 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.930 
+ 20
+   -8.537 
+ 11
+   18.650 
+ 21
+   -8.004 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.650 
+ 20
+   -8.004 
+ 11
+   18.422 
+ 21
+   -7.445 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.422 
+ 20
+   -7.445 
+ 11
+   18.244 
+ 21
+   -6.860 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.244 
+ 20
+   -6.860 
+ 11
+   18.142 
+ 21
+   -6.250 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.142 
+ 20
+   -6.250 
+ 11
+   18.117 
+ 21
+   -5.641 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.117 
+ 20
+   -5.641 
+ 11
+   18.142 
+ 21
+   -5.005 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.142 
+ 20
+   -5.005 
+ 11
+   18.244 
+ 21
+   -4.395 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.244 
+ 20
+   -4.395 
+ 11
+   18.396 
+ 21
+   -3.786 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.396 
+ 20
+   -3.786 
+ 11
+   18.625 
+ 21
+   -3.227 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.625 
+ 20
+   -3.227 
+ 11
+   18.777 
+ 21
+   -2.922 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.777 
+ 20
+   -2.922 
+ 11
+   18.930 
+ 21
+   -2.591 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.930 
+ 20
+   -2.591 
+ 11
+   19.133 
+ 21
+   -2.236 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.133 
+ 20
+   -2.236 
+ 11
+   19.387 
+ 21
+   -1.829 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.387 
+ 20
+   -1.829 
+ 11
+   19.641 
+ 21
+   -1.422 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.641 
+ 20
+   -1.422 
+ 11
+   19.946 
+ 21
+   -0.965 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.946 
+ 20
+   -0.965 
+ 11
+   20.277 
+ 21
+   -0.508 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.277 
+ 20
+   -0.508 
+ 11
+   20.632 
+ 21
+    0.000 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.632 
+ 20
+    0.000 
+ 11
+   21.014 
+ 21
+    0.533 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.014 
+ 20
+    0.533 
+ 11
+   21.369 
+ 21
+    1.041 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.369 
+ 20
+    1.041 
+ 11
+   21.750 
+ 21
+    1.550 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.750 
+ 20
+    1.550 
+ 11
+   22.081 
+ 21
+    2.083 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.081 
+ 20
+    2.083 
+ 11
+   22.411 
+ 21
+    2.566 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.411 
+ 20
+    2.566 
+ 11
+   22.741 
+ 21
+    3.074 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.741 
+ 20
+    3.074 
+ 11
+   23.046 
+ 21
+    3.557 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.046 
+ 20
+    3.557 
+ 11
+   23.351 
+ 21
+    4.065 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.351 
+ 20
+    4.065 
+ 11
+   23.631 
+ 21
+    4.548 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.631 
+ 20
+    4.548 
+ 11
+   23.910 
+ 21
+    5.005 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.910 
+ 20
+    5.005 
+ 11
+   24.190 
+ 21
+    5.488 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.190 
+ 20
+    5.488 
+ 11
+   24.444 
+ 21
+    5.945 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.444 
+ 20
+    5.945 
+ 11
+   24.673 
+ 21
+    6.403 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.673 
+ 20
+    6.403 
+ 11
+   24.901 
+ 21
+    6.860 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.901 
+ 20
+    6.860 
+ 11
+   25.130 
+ 21
+    7.318 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.130 
+ 20
+    7.318 
+ 11
+   25.333 
+ 21
+    7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.333 
+ 20
+    7.750 
+ 11
+   24.825 
+ 21
+    7.368 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.825 
+ 20
+    7.368 
+ 11
+   24.317 
+ 21
+    7.038 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.317 
+ 20
+    7.038 
+ 11
+   23.809 
+ 21
+    6.759 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.809 
+ 20
+    6.759 
+ 11
+   23.300 
+ 21
+    6.530 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.300 
+ 20
+    6.530 
+ 11
+   22.818 
+ 21
+    6.352 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.818 
+ 20
+    6.352 
+ 11
+   22.309 
+ 21
+    6.225 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.309 
+ 20
+    6.225 
+ 11
+   21.827 
+ 21
+    6.149 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.827 
+ 20
+    6.149 
+ 11
+   21.344 
+ 21
+    6.123 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.344 
+ 20
+    6.123 
+ 11
+   20.937 
+ 21
+    6.149 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.937 
+ 20
+    6.149 
+ 11
+   20.505 
+ 21
+    6.174 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.505 
+ 20
+    6.174 
+ 11
+   20.073 
+ 21
+    6.250 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.073 
+ 20
+    6.250 
+ 11
+   19.616 
+ 21
+    6.327 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.616 
+ 20
+    6.327 
+ 11
+   19.159 
+ 21
+    6.454 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.159 
+ 20
+    6.454 
+ 11
+   18.676 
+ 21
+    6.606 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.676 
+ 20
+    6.606 
+ 11
+   18.193 
+ 21
+    6.759 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.193 
+ 20
+    6.759 
+ 11
+   17.685 
+ 21
+    6.962 
+ 0
+LINE
+ 8
+ 1
+ 10
+   17.685 
+ 20
+    6.962 
+ 11
+   16.465 
+ 21
+    4.370 
+ 0
+LINE
+ 8
+ 1
+ 10
+   16.465 
+ 20
+    4.370 
+ 11
+   15.728 
+ 21
+    4.726 
+ 0
+LINE
+ 8
+ 1
+ 10
+   15.728 
+ 20
+    4.726 
+ 11
+   18.193 
+ 21
+   10.011 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.193 
+ 20
+   10.011 
+ 11
+   18.473 
+ 21
+    9.808 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.473 
+ 20
+    9.808 
+ 11
+   18.752 
+ 21
+    9.604 
+ 0
+LINE
+ 8
+ 1
+ 10
+   18.752 
+ 20
+    9.604 
+ 11
+   19.057 
+ 21
+    9.427 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.057 
+ 20
+    9.427 
+ 11
+   19.362 
+ 21
+    9.249 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.362 
+ 20
+    9.249 
+ 11
+   19.667 
+ 21
+    9.096 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.667 
+ 20
+    9.096 
+ 11
+   19.997 
+ 21
+    8.944 
+ 0
+LINE
+ 8
+ 1
+ 10
+   19.997 
+ 20
+    8.944 
+ 11
+   20.328 
+ 21
+    8.791 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.328 
+ 20
+    8.791 
+ 11
+   20.658 
+ 21
+    8.664 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.658 
+ 20
+    8.664 
+ 11
+   21.014 
+ 21
+    8.563 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.014 
+ 20
+    8.563 
+ 11
+   21.369 
+ 21
+    8.461 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.369 
+ 20
+    8.461 
+ 11
+   21.700 
+ 21
+    8.385 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.700 
+ 20
+    8.385 
+ 11
+   22.055 
+ 21
+    8.309 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.055 
+ 20
+    8.309 
+ 11
+   22.386 
+ 21
+    8.258 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.386 
+ 20
+    8.258 
+ 11
+   22.741 
+ 21
+    8.207 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.741 
+ 20
+    8.207 
+ 11
+   23.072 
+ 21
+    8.182 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.072 
+ 20
+    8.182 
+ 11
+   23.428 
+ 21
+    8.182 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.428 
+ 20
+    8.182 
+ 11
+   23.682 
+ 21
+    8.182 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.682 
+ 20
+    8.182 
+ 11
+   23.910 
+ 21
+    8.207 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.910 
+ 20
+    8.207 
+ 11
+   24.139 
+ 21
+    8.232 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.139 
+ 20
+    8.232 
+ 11
+   24.368 
+ 21
+    8.283 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.368 
+ 20
+    8.283 
+ 11
+   24.571 
+ 21
+    8.359 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.571 
+ 20
+    8.359 
+ 11
+   24.749 
+ 21
+    8.410 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.749 
+ 20
+    8.410 
+ 11
+   24.927 
+ 21
+    8.486 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.927 
+ 20
+    8.486 
+ 11
+   25.079 
+ 21
+    8.588 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.079 
+ 20
+    8.588 
+ 11
+   25.232 
+ 21
+    8.690 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.232 
+ 20
+    8.690 
+ 11
+   25.384 
+ 21
+    8.842 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.384 
+ 20
+    8.842 
+ 11
+   25.537 
+ 21
+    8.995 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.537 
+ 20
+    8.995 
+ 11
+   25.689 
+ 21
+    9.147 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.689 
+ 20
+    9.147 
+ 11
+   25.816 
+ 21
+    9.350 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.816 
+ 20
+    9.350 
+ 11
+   25.943 
+ 21
+    9.554 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.943 
+ 20
+    9.554 
+ 11
+   26.070 
+ 21
+    9.782 
+ 0
+LINE
+ 8
+ 1
+ 10
+   26.070 
+ 20
+    9.782 
+ 11
+   26.197 
+ 21
+   10.011 
+ 0
+LINE
+ 8
+ 1
+ 10
+   26.197 
+ 20
+   10.011 
+ 11
+   26.909 
+ 21
+    9.732 
+ 0
+LINE
+ 8
+ 1
+ 10
+   26.909 
+ 20
+    9.732 
+ 11
+   26.655 
+ 21
+    9.020 
+ 0
+LINE
+ 8
+ 1
+ 10
+   26.655 
+ 20
+    9.020 
+ 11
+   26.426 
+ 21
+    8.359 
+ 0
+LINE
+ 8
+ 1
+ 10
+   26.426 
+ 20
+    8.359 
+ 11
+   26.223 
+ 21
+    7.750 
+ 0
+LINE
+ 8
+ 1
+ 10
+   26.223 
+ 20
+    7.750 
+ 11
+   26.019 
+ 21
+    7.216 
+ 0
+LINE
+ 8
+ 1
+ 10
+   26.019 
+ 20
+    7.216 
+ 11
+   25.816 
+ 21
+    6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.816 
+ 20
+    6.708 
+ 11
+   25.664 
+ 21
+    6.276 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.664 
+ 20
+    6.276 
+ 11
+   25.511 
+ 21
+    5.895 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.511 
+ 20
+    5.895 
+ 11
+   25.359 
+ 21
+    5.564 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.359 
+ 20
+    5.564 
+ 11
+   25.206 
+ 21
+    5.183 
+ 0
+LINE
+ 8
+ 1
+ 10
+   25.206 
+ 20
+    5.183 
+ 11
+   24.952 
+ 21
+    4.650 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.952 
+ 20
+    4.650 
+ 11
+   24.622 
+ 21
+    3.963 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.622 
+ 20
+    3.963 
+ 11
+   24.215 
+ 21
+    3.100 
+ 0
+LINE
+ 8
+ 1
+ 10
+   24.215 
+ 20
+    3.100 
+ 11
+   23.732 
+ 21
+    2.109 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.732 
+ 20
+    2.109 
+ 11
+   23.173 
+ 21
+    0.940 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.173 
+ 20
+    0.940 
+ 11
+   22.538 
+ 21
+   -0.406 
+ 0
+LINE
+ 8
+ 1
+ 10
+   22.538 
+ 20
+   -0.406 
+ 11
+   21.827 
+ 21
+   -1.880 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.827 
+ 20
+   -1.880 
+ 11
+   21.598 
+ 21
+   -2.363 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.598 
+ 20
+   -2.363 
+ 11
+   21.420 
+ 21
+   -2.845 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.420 
+ 20
+   -2.845 
+ 11
+   21.242 
+ 21
+   -3.277 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.242 
+ 20
+   -3.277 
+ 11
+   21.115 
+ 21
+   -3.684 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.115 
+ 20
+   -3.684 
+ 11
+   20.988 
+ 21
+   -4.065 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.988 
+ 20
+   -4.065 
+ 11
+   20.912 
+ 21
+   -4.395 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.912 
+ 20
+   -4.395 
+ 11
+   20.887 
+ 21
+   -4.726 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.887 
+ 20
+   -4.726 
+ 11
+   20.861 
+ 21
+   -5.005 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.861 
+ 20
+   -5.005 
+ 11
+   20.887 
+ 21
+   -5.310 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.887 
+ 20
+   -5.310 
+ 11
+   20.912 
+ 21
+   -5.590 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.912 
+ 20
+   -5.590 
+ 11
+   20.988 
+ 21
+   -5.869 
+ 0
+LINE
+ 8
+ 1
+ 10
+   20.988 
+ 20
+   -5.869 
+ 11
+   21.115 
+ 21
+   -6.149 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.115 
+ 20
+   -6.149 
+ 11
+   21.242 
+ 21
+   -6.428 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.242 
+ 20
+   -6.428 
+ 11
+   21.420 
+ 21
+   -6.708 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.420 
+ 20
+   -6.708 
+ 11
+   21.598 
+ 21
+   -6.987 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.598 
+ 20
+   -6.987 
+ 11
+   21.827 
+ 21
+   -7.241 
+ 0
+LINE
+ 8
+ 1
+ 10
+   21.827 
+ 20
+   -7.241 
+ 11
+   23.072 
+ 21
+   -5.996 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.072 
+ 20
+   -5.996 
+ 11
+   23.656 
+ 21
+   -6.581 
+ 0
+LINE
+ 8
+ 1
+ 10
+   23.656 
+ 20
+   -6.581 
+ 11
+   20.200 
+ 21
+   -9.986 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.987 
+ 20
+   -0.711 
+ 11
+    5.183 
+ 21
+    0.686 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.183 
+ 20
+    0.686 
+ 11
+    5.183 
+ 21
+    6.886 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.183 
+ 20
+    6.886 
+ 11
+    5.513 
+ 21
+    6.936 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.513 
+ 20
+    6.936 
+ 11
+    5.869 
+ 21
+    6.987 
+ 0
+LINE
+ 8
+ 1
+ 10
+    5.869 
+ 20
+    6.987 
+ 11
+    6.200 
+ 21
+    7.063 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.200 
+ 20
+    7.063 
+ 11
+    6.504 
+ 21
+    7.165 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.504 
+ 20
+    7.165 
+ 11
+    6.835 
+ 21
+    7.292 
+ 0
+LINE
+ 8
+ 1
+ 10
+    6.835 
+ 20
+    7.292 
+ 11
+    7.140 
+ 21
+    7.445 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.140 
+ 20
+    7.445 
+ 11
+    7.445 
+ 21
+    7.597 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.445 
+ 20
+    7.597 
+ 11
+    7.724 
+ 21
+    7.775 
+ 0
+LINE
+ 8
+ 1
+ 10
+    7.724 
+ 20
+    7.775 
+ 11
+    9.579 
+ 21
+    6.428 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.579 
+ 20
+    6.428 
+ 11
+    9.579 
+ 21
+    1.702 
+ 0
+LINE
+ 8
+ 1
+ 10
+    9.579 
+ 20
+    1.702 
+ 11
+    6.987 
+ 21
+   -0.711 
+ 0
+ENDSEC
+0
+EOF
