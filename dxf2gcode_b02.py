@@ -435,10 +435,7 @@ class Erstelle_Fenster:
         save_filename = asksaveasfilename(initialdir=inidir,\
                                initialfile=fileBaseName,filetypes=MyFormats,defaultextension=self.postpro.output_format[0])
                
-        (beg, ende)=os.path.split(save_filename)
-        (fileBaseName, fileExtension)=os.path.splitext(ende) 
-        
-        return (self.postpro.output_format.index(fileExtension),save_filename)
+        return save_filename
 
     # Callback des Menu Punkts Exportieren
     def Write_GCode(self):
@@ -450,11 +447,17 @@ class Erstelle_Fenster:
         if not(config.write_to_stdout):
            
                 #Abfrage des Namens um das File zu speichern
-                (pp_file_nr, self.save_filename)=self.Get_Save_File()
+                self.save_filename=self.Get_Save_File()
                 
-                #Wenn Cancel gedrueckt wurde
+                
+                 #Wenn Cancel gedrueckt wurde
                 if not self.save_filename:
                     return
+                
+                (beg, ende)=os.path.split(self.save_filename)
+                (fileBaseName, fileExtension)=os.path.splitext(ende) 
+        
+                pp_file_nr=postpro.output_format.index(fileExtension)
                 
                 postpro.get_all_vars(pp_file_nr)
         else:
@@ -1405,6 +1408,81 @@ class LayerContentClass:
                ('\nLayerNr :      %i' %self.LayerNr) +\
                ('\nLayerName:     %s' %self.LayerName)+\
                ('\nShapes:    %s' %self.Shapes)
+
+class Show_About_Info(Toplevel):
+    def __init__(self, parent):
+        Toplevel.__init__(self, parent)
+        self.transient(parent)
+
+        self.title(_("About DXF2GCODE"))
+        self.parent = parent
+        self.result = None
+
+        body = Frame(self)
+        self.initial_focus = self.body(body)
+        body.pack(padx=5, pady=5)
+
+        self.buttonbox()
+        self.grab_set()
+
+        if not self.initial_focus:
+            self.initial_focus = self
+
+        self.protocol("WM_DELETE_WINDOW", self.close)
+        self.geometry("+%d+%d" % (parent.winfo_rootx()+50,
+                                  parent.winfo_rooty()+50))
+
+        self.initial_focus.focus_set()
+        self.wait_window(self)
+
+    def buttonbox(self):
+        box = Frame(self)
+        w = Button(box, text=_("OK"), width=10, command=self.ok, default=ACTIVE)
+        w.pack(padx=5, pady=5)
+        self.bind("<Return>", self.ok)
+        box.pack()
+
+    def ok(self, event=None):   
+        self.withdraw()
+        self.update_idletasks()
+        self.close()
+
+    def close(self, event=None):
+        self.parent.focus_set()
+        self.destroy()
+
+    def show_hand_cursor(self,event):
+        event.widget.configure(cursor="hand1")
+    def show_arrow_cursor(self,event):
+        event.widget.configure(cursor="")
+        
+    def click(self,event):
+        w = event.widget
+        x, y = event.x, event.y
+        tags = w.tag_names("@%d,%d" % (x, y))
+        for t in tags:
+            if t.startswith("href:"):
+                webbrowser.open(t[5:])
+                break
+
+
+    def body(self, master):
+        text = Text(master,width=40,height=8)
+        text.pack()
+        # configure text tag
+        text.tag_config("a", foreground="blue", underline=1)
+        text.tag_bind("a", "<Enter>", self.show_hand_cursor)
+        text.tag_bind("a", "<Leave>", self.show_arrow_cursor)
+        text.tag_bind("a", "<Button-1>", self.click)
+        text.config(cursor="arrow")
+
+        #add a link with data
+        href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
+        text.insert(END, _("You are using DXF2GCODE"))
+        text.insert(END, ("\nVersion %s (%s)" %(VERSION,DATE)))
+        text.insert(END, _("\nFor more information und updates about"))
+        text.insert(END, _("\nplease visit my homepage at:"))
+        text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:"+href))
 
 class NotebookClass:    
     # initialization. receives the master widget
