@@ -461,7 +461,7 @@ class Erstelle_Fenster:
                 
                 postpro.get_all_vars(pp_file_nr)
         else:
-                postpro.get_all_vars([0])
+                postpro.get_all_vars(0)
         
                
         #Funktion zum optimieren des Wegs aufrufen
