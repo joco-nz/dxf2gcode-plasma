@@ -56,7 +56,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-08-02"
+DATE=   "2009-08-07"
 
 # Config Verzeichniss
 
@@ -144,7 +144,7 @@ class Erstelle_Fenster:
         self.config=ConfigClass(self.textbox,FOLDER,APPNAME)
 
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.postpro=PostprocessorClass(self.config,self.textbox,FOLDER,APPNAME)
+        self.postpro=PostprocessorClass(self.config,self.textbox,FOLDER,APPNAME,VERSION,DATE)
 
         self.master.columnconfigure(0,weight=0)
         self.master.columnconfigure(1,weight=1)
@@ -1656,7 +1656,7 @@ if __name__ == "__main__":
     sys.stderr = SysErrListener()
 
     master = Tk()
-    master.title("DXF2GCODE, Version: %s, Date: %s " %(VERSION,DATE))
+    master.title("%s, Version: %s, Date: %s " %(APPNAME,VERSION,DATE))
 
     #Falls das Programm mit Parametern von EMC gestartet wurde
     if len(sys.argv) > 1:

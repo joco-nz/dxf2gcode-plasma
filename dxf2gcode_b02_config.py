@@ -28,6 +28,7 @@
 #Loeschen aller Module aus dem Speicher
 import sys, os, string
 import ConfigParser
+import time
 
 from tkMessageBox import showwarning, showerror
 from Tkconstants import END
@@ -210,9 +211,11 @@ class ConfigClass:
         return str
 
 class PostprocessorClass:
-    def __init__(self,config=None,textbox=None,FOLDER='',APPNAME=''):
+    def __init__(self,config=None,textbox=None,FOLDER='',APPNAME='',VERSION='',DATE=''):
         self.folder=os.path.join(FOLDER,'postprocessor')
         self.appname=APPNAME
+        self.version=VERSION
+        self.date=DATE
         self.string=''
         self.textbox=textbox
         self.config=config
@@ -275,7 +278,8 @@ class PostprocessorClass:
         self.output_type=self.parser.get('General', 'output_type')  
         self.abs_export=int(self.parser.get('General', 'abs_export'))
         self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
-        self.export_ccw_arcs_only=int(self.parser.get('General', 'export_ccw_arcs_only'))   
+        self.export_ccw_arcs_only=int(self.parser.get('General', 'export_ccw_arcs_only')) 
+        self.max_arc_radius=int(self.parser.get('General','max_arc_radius'))
         self.gcode_be=self.parser.get('General', 'code_begin')
         self.gcode_en=self.parser.get('General', 'code_end')
 
@@ -357,7 +361,8 @@ class PostprocessorClass:
         
         self.parser.set('General', 'abs_export', 1)
         self.parser.set('General', 'cancel_cc_for_depth', 0)
-        self.parser.set('General', 'export_ccw_arcs_only',0)   
+        self.parser.set('General', 'export_ccw_arcs_only',0)  
+        self.parser.set('General', 'max_arc_radius', 10000)
         self.parser.set('General', 'code_begin',\
                         'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
                         +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
@@ -411,7 +416,9 @@ class PostprocessorClass:
     def write_gcode_be(self,postpro,load_filename):
         #Schreiben in einen String
         if self.output_type=='g-code':
-            str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
+            str="(Generated with: %s, Version: %s, Date: %s)\n" %(self.appname,self.version,self.date)
+            str+="(Time: %s)\n" %time.asctime()
+            str+="(Created from file: %s)\n" %load_filename
         elif self.output_type=='dxf':
             str=''
             
