@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
-import os
+import os, sys
 import subprocess
 
 pyinpfad = "C:\Python25\pyinstaller_1.3"
 exemakepfad = "D:/dxf2gcode_exe_tkinter"
 pyt = "C:/Python25/pythonw.exe"
-filepfad= "D:/dxf2gcode/tags/2009-06-04_b02_tkinter"
-icon= "D:/dxf2gcode/tags/2009-06-04_b02_tkinter/DXF2GCODE-001.ico"
+filepfad= os.path.realpath(os.path.dirname(sys.argv[0]))
+icon= "./DXF2GCODE-001.ico"
 file = "dxf2gcode_b02"
 
 
