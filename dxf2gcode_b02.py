@@ -56,7 +56,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-08-07"
+DATE=   "2009-08-09"
 
 # Config Verzeichniss
 
