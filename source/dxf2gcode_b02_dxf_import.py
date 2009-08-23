@@ -74,6 +74,7 @@ class LoadDXF:
             # '\n'
             #print self.blocks.Entities[i]
             self.blocks.Entities[i].cont=self.Get_Contour(self.blocks.Entities[i])
+
         self.entities.cont=self.Get_Contour(self.entities)
    
     #Laden des ausgewählten DXF-Files
@@ -198,7 +199,7 @@ class LoadDXF:
     #Lesen der Blocks Geometrien
     def Read_Blocks(self,blocks_pos):
         blocks=BlocksClass([])
-        warn=0
+        warning=0
         for block_nr in range(len(blocks_pos)):
             self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr ),1)
             blocks.Entities.append(EntitiesClass(block_nr,blocks_pos[block_nr].name,[]))
@@ -214,13 +215,12 @@ class LoadDXF:
             blocks.Entities[-1].basep.y=float(lp.line_pair[s].value)
             
             #Lesen der Geometrien
-            (blocks.Entities[-1].geo,geo_warn)=self.Get_Geo(s,e)
-            warn+=geo_warn
+            (blocks.Entities[-1].geo,warning)=self.Get_Geo(s,e,warning)
             
             #Im Debug Modus 2 mehr Infos zum Block drucken
             self.textbox.prt(("\n %s" %blocks.Entities[-1] ),2)
             
-        if warn:
+        if warning and self.textbox.DEBUG:
             dial=wx.MessageDialog(None, _("Found unsupported Geometrie during import of Blocks\n") +\
                 _("for the warning message refer to Messagebox"),_("Warning DXF import"), wx.OK |
             wx.ICON_ERROR)
@@ -229,15 +229,16 @@ class LoadDXF:
         return blocks
     #Lesen der Entities Geometrien
     def Read_Entities(self,sections):
-        warn=0
+        warning=0
         for section_nr in range(len(sections)):
             if (find(sections[section_nr-1].name,"ENTITIES") == 0):
                 self.textbox.prt("\n\nReading Entities",1)
                 entities=EntitiesClass(0,'Entities',[])
-                (entities.geo,geo_warn)=self.Get_Geo(sections[section_nr-1].begin+1, sections[section_nr-1].end-1)
-                warn+=geo_warn
+                (entities.geo, warning)=self.Get_Geo(sections[section_nr-1].begin+1, 
+                                                    sections[section_nr-1].end-1,
+                                                    warning)
                 
-        if warn:
+        if warning and self.textbox.DEBUG:
             dial=wx.MessageDialog(None, _("Found unsupported Geometrie during import of Entities\n") +\
                 _("for the warning message refer to Messagebox"),_("Warning DXF import"), wx.OK |
             wx.ICON_ERROR)
@@ -246,21 +247,20 @@ class LoadDXF:
         return entities
 
     #Lesen der Geometrien von Blöcken und Entities         
-    def Get_Geo(self, begin, end):
+    def Get_Geo(self, begin, end, warning):
         geos= []
-        warn=0
         self.start=self.line_pairs.index_code(0,begin,end)
         old_start=self.start
         
         while self.start!=None:
-            
             #Laden der aktuell gefundenen Geometrie
             name=self.line_pairs.line_pair[self.start].value         
-            entitie_geo,ent_warn = self.get_geo_entitie(len(geos),name)
+            entitie_geo,warning = self.get_geo_entitie(len(geos),name, warning)
 
-            #Hinzufügen der Werte oder auch nicht
-            if ent_warn:
-                warn+=ent_warn
+            #Hinzufügen der Werte Wenn es gerade gefunden wurde
+            if warning==2:
+                #Zurücksetzen zu Warnung allgemein
+                warning=1
             else:
                 geos.append(entitie_geo)
             
@@ -279,14 +279,16 @@ class LoadDXF:
                 self.textbox.prt(str(geos[-1]),2)
 
             old_start=self.start
+
         
+            
         del(self.start)
-        return (geos,warn)
+        return geos, warning
 
     #Verteiler für die Geo-Instanzen
     # wird in def Get_Geo aufgerufen
     # für einen Release kann der ganze Code gerne wieder in einer Datei landen.
-    def get_geo_entitie(self, geo_nr, name):
+    def get_geo_entitie(self, geo_nr, name, warning):
         #Entities:
         # 3DFACE, 3DSOLID, ACAD_PROXY_ENTITY, ARC, ATTDEF, ATTRIB, BODY
         # CIRCLE, DIMENSTION, ELLIPSE, HATCH, IMAGE, INSERT, LEADER, LINE,
@@ -314,9 +316,10 @@ class LoadDXF:
         else:  
             self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
             self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
-            return [],1
+            warning=2
+            return [],warning
             
-        return geo,0
+        return geo,warning
 
     #Findet die Nr. des Geometrie Layers
     def Get_Layer_Nr(self,Layer_Name):
@@ -344,7 +347,7 @@ class LoadDXF:
 
         points=self.App_Cont_or_Calc_IntPts(entities.geo,cont)
         points=self.Find_Common_Points(points)
-        points=self.Remove_Redundant_Geos(points)
+        #points=self.Remove_Redundant_Geos(points)
 
         cont=self.Search_Contours(entities.geo,points,cont)
         
@@ -355,8 +358,14 @@ class LoadDXF:
         tol=self.config.points_tolerance
 
         points=[]
+        warning=0
         for i in range(len(geo)) :
-            geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol)
+            warning=geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
+        
+    
+        if warning:
+            pass
+    
         return points
 
     #Suchen von gemeinsamen Punkten
@@ -425,13 +434,24 @@ class LoadDXF:
 
         return points
     
-    def Remove_Redundant_Geos(self,points=None):
+    def Remove_Redundant_Geos(self,geo=None,points=None):
         pass
-        #for p in points:
-        #    print p
-
-        return points        
-
+#        del_points=[]
+#        for p_nr in range(len(points)):
+#            if not(p_nr in del_points):
+#                for be_p in points[p_nr].be_cp:
+#                    for en_p in points[p_nr].en_cp:
+#                        if be_p[0]==en_p[0]:
+#                            del_points.append(be_p[0])
+#                            print ('Gleiche Punkte in Anfang: %s und Ende %s' %(be_p,en_p))
+#                    
+#        #Löschen der überflüssigen Punkte
+#        for p_nr in del_points:
+#            for j in range(len(points)):
+#                if p_nr==points[j].point_nr:
+#                    del points[j]
+#                    break
+#        return points        
 
     #Suchen nach den besten zusammenhängenden Konturen
     def Search_Contours(self,geo=None,all_points=None,cont=None):
@@ -454,6 +474,8 @@ class LoadDXF:
                 cont.append(self.Get_Best_Contour(len(cont),new_cont_neg,geo,points))
             elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):
                 #print '\nGibt was in beiden Richtungen'
+                #print points[0].be_cp
+                #print points[0].en_cp
                 #Suchen der möglichen Pfade                
                 new_cont_pos=self.Search_Paths(0,[],points[0].point_nr,1,points)
                 #Bestimmen des besten Pfades und übergabe in cont                
@@ -461,14 +483,17 @@ class LoadDXF:
 
                 #Falls der Pfad nicht durch den ersten Punkt geschlossen ist
                 if cont[-1].closed==0:
-                    #print '\Pfad nicht durch den ersten Punkt geschlossen'
+                    #print '\nPfad nicht durch den ersten Punkt geschlossen'
                     cont[-1].reverse()
+                    #print ("Neue Kontur umgedrejt %s" %cont[-1])
                     new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
-                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg,geo,points)
+                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
                     
             else:
                 print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+        
             points=self.Remove_Used_Points(cont[-1],points)
+                       
             cont[-1]=self.Contours_Points2Geo(cont[-1],all_points)
             cont[-1].analyse_and_opt(geo)
 
@@ -481,7 +506,8 @@ class LoadDXF:
             
         #Wenn es der erste Aufruf ist und eine neue Kontur angelegt werden muss         
         if len(c)==0:
-            c.append(ContourClass(cont_nr=0,order=[[p_nr,dir]]))    
+            c.append(ContourClass(cont_nr=0,order=[[p_nr,dir]]))   
+
             
         #Suchen des Punktes innerhalb der points List (nötig da verwendete Punkte gelöscht werden)
         for new_p_nr in range(len(points)):
@@ -561,6 +587,8 @@ class LoadDXF:
                 
         best_c=c[best]
         best_c.cont_nr=c_nr
+        
+        #print "Beste Kontur Nr:%s" %best_c
 
         return best_c
     
