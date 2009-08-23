@@ -22,7 +22,7 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b02_point import PointClass, ArcGeo, LineGeo, PointsClass, ContourClass
+from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass
 
 
 class LWPolylineClass:
@@ -51,16 +51,10 @@ class LWPolylineClass:
         for geo in self.geo:
             geo.reverse()    
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         if abs(self.length)<tol:
-            import wx
-            dial=wx.MessageDialog(None,_("Length of geometrie too short! "
-                                       "\nLenght must be greater then tolerance."
-                                       "\nSkipping geometrie"),
-                                        _("Short LWPolyline geometrie"), wx.OK |
-                                        wx.ICON_ERROR)
-            dial.ShowModal()
-            
+            pass
+        
         #Hinzufügen falls es keine geschlossene Polyline ist
         elif  self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
             self.analyse_and_opt()
@@ -70,6 +64,7 @@ class LWPolylineClass:
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[0].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))  
+        return warning
             
     def analyse_and_opt(self):
         summe=0
@@ -118,7 +113,6 @@ class LWPolylineClass:
         s=lp.index_code(70,s+1,e)
         LWPLClosed=int(lp.line_pair[s].value)
         #print LWPLClosed
-        
         
         s=lp.index_code(10,s+1,e)
         while 1:
@@ -181,7 +175,6 @@ class LWPolylineClass:
             
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=e
-                                                          
 
     def get_start_end_points(self,direction=0):
         if not(direction):

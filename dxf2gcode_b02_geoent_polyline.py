@@ -50,15 +50,9 @@ class PolylineClass:
         for geo in self.geo:
             geo.reverse()
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         if abs(self.length)<tol:
-            import wx
-            dial=wx.MessageDialog(None,_("Length of geometrie too short! "
-                                       "\nLenght must be greater then tolerance."
-                                       "\nSkipping Geometrie"),
-                                        _("Short Polyline Geometrie"), wx.OK |
-                                        wx.ICON_ERROR)
-            dial.ShowModal()
+            pass
             
         #Hinzufügen falls es keine geschlossene Polyline ist
         elif self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
@@ -68,8 +62,10 @@ class PolylineClass:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[0].Pa,
-                                      en=self.geo[-1].Pe,be_cp=[],en_cp=[]))      
-           
+                                      en=self.geo[-1].Pe,be_cp=[],en_cp=[])) 
+                                    
+        return warning
+            
     def analyse_and_opt(self):
         summe=0
 
@@ -159,10 +155,12 @@ class PolylineClass:
                     if next_bulge==0:
                         self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
                     else:
+                        #self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
+                        #print bulge
                         self.geo.append(self.bulge2arc(Pa,Pe,next_bulge))
+                    
                     #Länge drauf rechnen wenns eine Geometrie ist
                     self.length+=self.geo[-1].length
-                    
                         
                 #Der Bulge wird immer für den und den nächsten Punkt angegeben
                 next_bulge=bulge
@@ -170,7 +168,7 @@ class PolylineClass:
                     
         #Es ist eine geschlossene Polyline
         if PolyLineFlag==1:
-            print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
+            #print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
             if next_bulge==0:
                 self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
             else:

@@ -23,7 +23,7 @@
 
 from math import sqrt, sin, cos, atan2, radians, degrees
 from dxf2gcode_b02_point import PointClass, LineGeo, PointsClass, ContourClass
-import wx
+#import wx
 
 class LineClass:
     def __init__(self,Nr=0,caller=None):
@@ -43,19 +43,21 @@ class LineClass:
               ("\nLayer Nr: %i" %self.Layer_Nr)+\
               str(self.geo[-1])
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         if abs(self.length)>tol:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[-1].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))
         else:
-            dial=wx.MessageDialog(None, ("Length of Line geometrie too short!"\
-                                   "\nLenght must be greater then tolerance."\
-                                   "\nSkipping Line Geometrie"),_("Short Line Elemente"), wx.OK |
-            wx.ICON_ERROR)
-            dial.ShowModal()
-            
+#            dial=wx.MessageDialog(None, ("Length of Line geometrie too short!"\
+#                                   "\nLenght must be greater then tolerance."\
+#                                   "\nSkipping Line Geometrie"),_("Short Line Elemente"), wx.OK |
+#            wx.ICON_ERROR)
+#            dial.ShowModal()
+            warning=1
+        return warning
+
         
     def Read(self, caller):
         #Kürzere Namen zuweisen

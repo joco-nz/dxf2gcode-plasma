@@ -51,8 +51,11 @@ class InsertClass:
                 '\nrot:         %0.2f' %degrees(self.rot) +\
                 '\nScale:       %s' %self.Scale 
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
+        
         cont.append(ContourClass(len(cont),0,[[i,0]],0))
+        return warning
+    
     
     def Read(self, caller):
         #Kürzere Namen zuweisen

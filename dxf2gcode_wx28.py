@@ -30,6 +30,7 @@ import sys, os, string
 # Globale Konstanten
 APPNAME     = "dxf2gcode"
 VERSION     = "2.0 beta1"
+DATE        = "2009-08-17"
 DEBUG       = 3
 DOT_PER_MM  = 3.5
 
@@ -82,6 +83,7 @@ from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
 import dxf2gcode_b02_dxf_import as dxfimport 
 import dxf2gcode_b02_tsp_opt as tsp
 from dxf2gcode_b02_config import MyConfigClass, MyPostprocessorClass
+from dxf2gcode_b02_tree_classes import *
 
 import time, random
 
@@ -121,7 +123,7 @@ trans.install()
 
 
 class MyFrameClass(wx.Frame):
-    def __init__(self, parent, load_filename=None,id=-1, title='%s, Version: %s' %(APPNAME.capitalize(),VERSION),
+    def __init__(self, parent, load_filename=None,id=-1, title="%s, Version: %s, Date: %s " %(APPNAME.capitalize(),VERSION,DATE),
                  pos=wx.DefaultPosition, size=(1024, 768),
                  style=wx.DEFAULT_FRAME_STYLE):  
                 
@@ -162,53 +164,59 @@ class MyFrameClass(wx.Frame):
         self.MyConfig=MyConfigClass(self.MyMessages,PROGRAMDIRECTORY,APPNAME)
 
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.MyPostpro=MyPostprocessorClass(self.MyConfig,self.MyMessages,PROGRAMDIRECTORY,APPNAME)
+        self.MyPostpro=MyPostprocessorClass(self.MyConfig,self.MyMessages,PROGRAMDIRECTORY,APPNAME, VERSION, DATE)
             
-#        #Erstellen de Eingabefelder und des Canvas
-#        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
      
-        #Erstellen des Baums für die Entities
-        self.MyEntTree = MyEntitieTreeClass(self, wx.ID_ANY)   
+        #Erstellen des Notebooks zum Hinzufügen der zwei Bäume
+        self.MyNotebook=MyNotebookClass( self, -1)
         
+        self.MyEntPanel = wx.Panel(self.MyNotebook, -1)
+        self.MyLayPanel= wx.Panel(self.MyNotebook,-1)
+        
+        #Erstellen des Baums für die Entities
+        self.MyEntTree=MyEntitieTreeClass(self.MyEntPanel, -1)       
+        self.MySelectionInfo = MySelectionInfoClass(self.MyEntPanel, wx.ID_ANY)   
+        
+        self.MyEntTree.MySelectionInfo=self.MySelectionInfo
+        self.MySelectionInfo.MyEntTree=self.MyEntTree
+        
+        sizer1 = wx.BoxSizer(wx.VERTICAL)
+        sizer1.Add(self.MyEntTree, 2, wx.EXPAND)
+        sizer1.Add(self.MySelectionInfo, 1, wx.EXPAND)
+        
+        self.MyEntPanel.SetSizer(sizer1)
+       
         #Erstellen des Baums für die verwendeten Layers
-        self.MyLayersTree = MyLayersTreeClass(self, -1)
+        self.MyLayersTree = MyLayersTreeClass(self.MyLayPanel, -1)
+        self.MyExportParas =MyExportParasClass(self.MyLayPanel,self.MyConfig)
+        
+        self.MyExportParas.MyLayersTree=self.MyLayersTree
+        self.MyLayersTree.MyExportParas=self.MyExportParas
 
-        #Erstellen des Baums für die verwendeten Layers
-        self.MySelectionInfo = MySelectionInfoClass(self, wx.ID_ANY)                                 
+        sizer2 = wx.BoxSizer(wx.VERTICAL)
+        sizer2.Add(self.MyLayersTree, 1, wx.EXPAND)
+        sizer2.Add(self.MyExportParas.sboxSizer, 0, wx.EXPAND)
+        
+        self.MyLayPanel.SetSizer(sizer2)
+        
+        self.MyNotebook.AddPage(self.MyEntPanel, "Entitie Tree")
+        self.MyNotebook.AddPage(self.MyLayPanel, "Layer Tree")
         
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
         self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic,self.MyMessages,
                                                 self.MyConfig,
                                                 self.MyLayersTree,
                                                 self.MyEntTree,
-                                                self.MySelectionInfo)
-        
-        
-#        self.nb = wx.aui.AuiNotebook(self)
-#        page = wx.TextCtrl(self.nb, -1, 'asdfals', style=wx.TE_MULTILINE)
-#        self.nb.AddPage(page, "Welcome")
-#
-#        for num in range(1, 5):
-#            page = wx.TextCtrl(self.nb, -1, "This is page %d" % num ,
-#                               style=wx.TE_MULTILINE)
-#            self.nb.AddPage(page, "Tab Number %d" % num)
-        
+                                                self.MySelectionInfo)  
         
         #Erstellen der Bindings fürs gesamte Fenster
         self.BindMenuEvents()
         
         #Die Verschiedeneen Objecte zum Sizer AUIManager hinzufügen
-        self._mgr.AddPane(self.MyEntTree, wx.aui.AuiPaneInfo(). 
+        self._mgr.AddPane(self.MyNotebook, wx.aui.AuiPaneInfo(). 
                           Caption(_("Entities")).
                           Left().CloseButton(False))            
-        self._mgr.AddPane(self.MyLayersTree,wx.aui.AuiPaneInfo(). 
-                          Caption(_("Layers")).Floatable(True). 
-                          Resizable(False).
-                          Left().CloseButton(False))
-        self._mgr.AddPane(self.MySelectionInfo,wx.aui.AuiPaneInfo(). 
-                          Caption(_("Selection Info")).Floatable(True). 
-                          Resizable(False).
-                          Left().Bottom().CloseButton(False))
+
         self._mgr.AddPane(self.MyMessages, wx.aui.AuiPaneInfo(). 
                           Caption(_("Messages")).Floatable(False).
                           Bottom().CloseButton(False))
@@ -291,7 +299,7 @@ class MyFrameClass(wx.Frame):
         self.Bind(wx.EVT_MENU, self.CloseWindow, id=102)
         
         #Exportmenu
-        self.Bind(wx.EVT_MENU, self.GetSaveFile, id=201)
+        self.Bind(wx.EVT_MENU, self.WriteGCode, id=201)
         
         #Viewmenu
         self.Bind(wx.EVT_MENU, self.MyCanvasContent.plot_wp_zero, id=301)
@@ -408,6 +416,16 @@ class MyFrameClass(wx.Frame):
  
         #Einschalten der disabled Menus
         self.EnableAllMenues()
+
+        #Skalierung der Kontur
+        self.cont_scale=1.0
+        
+        #Verschiebung der Kontur
+        self.cont_dx=0.0
+        self.cont_dy=0.0
+        
+        #Rotieren um den WP zero
+        self.rotate=0.0
 
         #Ausdrucken der Werte        
         self.MyCanvasContent.makeplot(self.values,
@@ -539,50 +557,47 @@ class MyFrameClass(wx.Frame):
         self.MyMessages.prt(_("\nRotated about WP zero: %0.2fdeg") \
                               %(degrees(self.rotate)))
 
-    def GetSaveFile(self,event):
-        
-        if self.MyPostpro.output_format=='g-code':
-            format='.ngc'
-            saveformat = _('EMC2 GCode Files')+'|*.ngc'
-        elif self.MyPostpro.output_format=='dxf':
-            format='_simplified.dxf'
-            saveformat = _('DXF File')+'|*.dxf'
-        
-        if not(self.MyPostpro.write_to_stdout):     
+    def GetSaveFile(self):
+        MyFormats=''
+       
+        for i in range(len(self.MyPostpro.output_format)):
+            if i>0:
+                MyFormats+="|"
+            name="%s" %(self.MyPostpro.output_text[i])
+            format="*%s" %(self.MyPostpro.output_format[i])
+            MyFormats+="%s|%s" %(name,format )         
 
+        #Abbruch falls noch kein File geladen wurde.
+        if self.load_filename==None:
+            showwarning(_("Export G-Code"), _("Nothing to export!"))
+            return
+        
+                
+        if not(self.MyConfig.write_to_stdout):
             #Abbruch falls noch kein File geladen wurde.
             if self.load_filename==None:
                 showwarning(_("Export G-Code"), _("Nothing to export!"))
                 return
- 
             (beg, ende)=os.path.split(self.load_filename)
             (fileBaseName, fileExtension)=os.path.splitext(ende)
-          
-            dlg = wx.FileDialog(
-                self, message=_("Save file as ..."), defaultDir=self.MyConfig.load_path, 
-                defaultFile=fileBaseName + format, wildcard=saveformat, style=wx.SAVE)
-                
-            #dlg.SetFilterIndex(filterIndex) 
-
+            dlg = wx.FileDialog(self, message=_("Save file as ..."),
+                                defaultDir=self.MyConfig.load_path,
+                                defaultFile=fileBaseName,
+                                wildcard=MyFormats, style=wx.SAVE)
+            #dlg.SetFilterIndex(filterIndex)
             # This sets the default filter that the user will initially see. Otherwise,
             # the first filter in the list will be used by default.
             #dlg.SetFilterIndex(2)
-
-            # Show the dialog and retrieve the user response. If it is the OK response, 
-            # process the data.
+            # Show the dialog and retrieve the user response. If it is the OK response,
+            # process the data.             
             if dlg.ShowModal() == wx.ID_OK:
                 paths = dlg.GetPaths()
-                self.save_filename=paths[0]
+                return paths[0]
             else:
-                return
-            
-            self.WriteGCode()
+                return        
 
     # Callback des Menu Punkts Exportieren
-    def WriteGCode(self):
-        pass
-        #Funktion zum optimieren des Wegs aufrufen
-        self.opt_export_route()
+    def WriteGCode(self,event=None):
 
         #Initial Status fuer den Export
         status=1
@@ -590,6 +605,29 @@ class MyFrameClass(wx.Frame):
         #Config & postpro in einen kurzen Namen speichern
         config=self.MyConfig
         postpro=self.MyPostpro
+
+        if not(config.write_to_stdout):
+           
+                #Abfrage des Namens um das File zu speichern
+                self.save_filename=self.GetSaveFile()
+                
+                
+                 #Wenn Cancel gedrueckt wurde
+                if not self.save_filename:
+                    return
+                
+                (beg, ende)=os.path.split(self.save_filename)
+                (fileBaseName, fileExtension)=os.path.splitext(ende) 
+        
+                pp_file_nr=postpro.output_format.index(fileExtension)
+                
+                postpro.get_all_vars(pp_file_nr)
+        else:
+                postpro.get_all_vars(0)
+
+
+        #Funktion zum optimieren des Wegs aufrufen
+        self.opt_export_route()
 
         #Schreiben der Standardwert am Anfang        
         postpro.write_gcode_be(self.load_filename)
@@ -623,7 +661,7 @@ class MyFrameClass(wx.Frame):
 
                     
         #Drucken in den Stdout, speziell fuer EMC2 
-        if postpro.write_to_stdout:
+        if config.write_to_stdout:
             self.ende()     
         else:
             try:
@@ -719,8 +757,7 @@ class MyMessagesClass(wx.TextCtrl):
 
     def SetDebuglevel(self,DEBUG=0):
         self.DEBUG=DEBUG
-
-            
+        
     def prt(self,text='',DEBUGLEVEL=0):
 
         if self.DEBUG>=DEBUGLEVEL:
@@ -748,238 +785,9 @@ class MyMessagesClass(wx.TextCtrl):
     def TextDelete(self,event):    
         self.Remove(self.begpos,self.GetLastPosition())
 
-class MyEntitieTreeClass(CT.CustomTreeCtrl):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                size=wx.Size(250,180),
-                 style=wx.SUNKEN_BORDER |  
-                 CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
-                 CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
-                 CT.TR_MULTIPLE |CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS):
-
-        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)      
-        
-        il = wx.ImageList(16, 16)
-        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Layer.ico"))
-        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Polylinie.ico"))
-        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Linie.ico"))
-        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Bogen.ico"))
-
-        self.AssignImageList(il)
-        #self.root = self.AddRoot("The Root Item")
-
-        self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-        self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
-
-    def MakeEntitieList(self,EntitieContents=None):
-        self.DeleteAllItems()
-        self.root = self.AddRoot("The Root Item")
-        self.AddEntitietoList(EntitieContents,self.root)
-        
-
-    def AddEntitietoList(self,EntitieContents,parent):
-        
-        #Darstellen der Werte für das jeweilige Entitie
-        textctrl=EntitieContents.MakeTreeText(self)
-        treechild = self.AppendItem(parent,'', wnd=textctrl)
-        self.EnableItem(treechild,False)
-        
-        for Entitie in EntitieContents.children:
-            
-            #Wenn es ein Insert ist
-            if Entitie.type=="Entitie":
-                treechild = self.AppendItem(parent,('Insert: %s' %(Entitie.Name)))
-                self.SetPyData(treechild, Entitie)
-                self.SetItemImage(treechild, 0, CT.TreeItemIcon_Normal)
-                self.SetItemImage(treechild, 0, CT.TreeItemIcon_Expanded)
-
-                
-                #Nochmalier Aufruf für die darunter liegenden Entities
-                self.AddEntitietoList(Entitie,treechild)
-                
-            #Wenn es ein Shape ist
-            else:
-                treechild = self.AppendItem(parent,'%s Nr: %i' %(Entitie.type,Entitie.nr))
-                self.SetPyData(treechild, Entitie)
-                self.SetItemImage(treechild, 1, CT.TreeItemIcon_Normal)
-                self.SetItemImage(treechild, 1, CT.TreeItemIcon_Expanded)
-                
-                for geo in Entitie.geos:             
-                    if geo.type=='LineGeo':
-                             
-                        #textctrl=geo.MakeTreeText(self)
-                        
-                        
-                        treechild1 = self.AppendItem(treechild,'%s' %(geo.type))
-                        #child2 = self.AppendItem(child,'', wnd=textctrl)
-                        self.SetPyData(treechild1, geo)
-                        
-                        self.SetItemImage(treechild1, 2, CT.TreeItemIcon_Normal)
-                        self.SetItemImage(treechild1, 2, CT.TreeItemIcon_Expanded)
-                        self.EnableItem(treechild1,False)
-                        
-                        
-                    else:
-                        #textctrl=geo.MakeTreeText(self)
-                        
-                        
-                        treechild1 = self.AppendItem(treechild,'%s' %(geo.type))
-                        #child2 = self.AppendItem(child,'', wnd=textctrl)
-                        self.SetPyData(treechild1, geo)
-                        
-                        self.SetItemImage(treechild1, 3, CT.TreeItemIcon_Normal)
-                        self.SetItemImage(treechild1, 3, CT.TreeItemIcon_Expanded)
-                        self.EnableItem(treechild1,False)
-
-           
-    #Item hinzufügen falls es noch nicht selektiert ist
-    def OnRightDown(self, event):
-        pt = event.GetPosition()
-        self.item, flags = self.HitTest(pt)
-
-        #Wenn nicht mit Ctrl gedrück den Rest aus Selection nehmen
-        if not(event.ControlDown()):
-            self.UnselectAll()
-
-        if not(self.item in self.GetSelections()) and not(self.item==None):
-            self.SelectItem(self.item)
-     
-    #Menu aufmachen falls ein Item selektiert ist
-    def OnRightUp(self, event):
-
-        item = self.item
-        
-        if item==None:
-            event.Skip()
-            return
-
-        #Contextmenu zu den ausgewählten Items
-        menu = wx.Menu()
-        item1 = menu.Append(wx.ID_ANY, "Change Item Background Colour")
-        item2 = menu.Append(wx.ID_ANY, "Modify Item Text Colour")
-        self.PopupMenu(menu)
-        menu.Destroy()
-        
-
-    def OnDisableItem(self, event):
-        self.EnableItem(self.current,False)
-        
-        
-    def OnSelChanged(self, event):
-        sel_items=[]
-        for selection in self.GetSelections():
-            item=self.GetItemPyData(selection)
-            sel_items+=self.GetItemShapes(item)
-
-                  
-        self.MyCanvasContent.change_selection(sel_items)
-        self.MySelectionInfo.change_selection(sel_items)
-    
-    def GetItemShapes(self,item):
-        SelShapes=[]
-        if item.type=="Shape":
-            SelShapes.append(item)
-            
-        elif item.type=="Entitie":
-            for child in item.children:
-                SelShapes+=self.GetItemShapes(child)
-          
-        return SelShapes
-        
-        
-class MyLayersTreeClass(CT.CustomTreeCtrl):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.Size(250,180),
-                 style=wx.SUNKEN_BORDER |  
-                 CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
-                 CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
-                 CT.TR_MULTIPLE |CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS):
-
-        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
-        
-        il = wx.ImageList(16, 16)
-        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Layer.ico"))
-        il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Polylinie.ico"))
-
-        self.AssignImageList(il)
-        #self.root = self.AddRoot("The Root Item")
-
-        self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
-        self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
-        self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
-
-    def MakeLayerList(self,LayerContents=None):
-        self.DeleteAllItems()
-        self.root = self.AddRoot("The Root Item")
-        for LayerContent in LayerContents:
-            child = self.AppendItem(self.root,('Layer Nr: %i, %s' 
-                                    %(LayerContent.LayerNr, LayerContent.LayerName)))
-            self.SetPyData(child, LayerContent)
-            self.SetItemImage(child, 0, CT.TreeItemIcon_Normal)
-            self.SetItemImage(child, 0, CT.TreeItemIcon_Expanded)
 
 
-            for Shape in LayerContent.Shapes:
-                
-                last = self.AppendItem(child,('Shape Nr: %i' %Shape.nr))  
-                self.SetPyData(last, Shape)
-                self.SetItemImage(last, 1, CT.TreeItemIcon_Normal)
-                self.SetItemImage(last, 1, CT.TreeItemIcon_Expanded)
-                    
 
-    #Item hinzufügen falls es noch nicht selektiert ist
-    def OnRightDown(self, event):
-        pt = event.GetPosition()
-        self.item, flags = self.HitTest(pt)
-
-        #Wenn nicht mit Ctrl gedrück den Rest aus Selection nehmen
-        if not(event.ControlDown()):
-            self.UnselectAll()
-
-        if not(self.item in self.GetSelections()) and not(self.item==None):
-            self.SelectItem(self.item)
-     
-    #Menu aufmachen falls ein Item selektiert ist
-    def OnRightUp(self, event):
-
-        item = self.item
-        
-        if item==None:
-            event.Skip()
-            return
-
-        #Contextmenu zu den ausgewählten Items
-        menu = wx.Menu()
-        item1 = menu.Append(wx.ID_ANY, "Change Item Background Colour")
-        item2 = menu.Append(wx.ID_ANY, "Modify Item Text Colour")
-        self.PopupMenu(menu)
-        menu.Destroy()
-        
-
-    def OnDisableItem(self, event):
-        self.EnableItem(self.current, False)
-        
-        
-    def OnSelChanged(self, event):
-        sel_items=[]
-        for selection in self.GetSelections():
-            item=self.GetItemPyData(selection)
-            sel_items+=self.GetItemShapes(item)
-
-                  
-        self.MyCanvasContent.change_selection(sel_items)
-        self.MySelectionInfo.change_selection(sel_items)
-        
-    def GetItemShapes(self,item):
-        SelShapes=[]
-        if item.type=="Shape":
-            SelShapes.append(item)
-            
-        elif item.type=="Layer":
-            for shape in item.Shapes:
-                SelShapes+=self.GetItemShapes(shape)
-          
-        return SelShapes
 
 class MyGraphicClass(wx.Panel):
     def __init__(self, parent, id):
@@ -1153,123 +961,6 @@ class MyGraphicClass(wx.Panel):
         self.Canvas.InitAll()
         self.Canvas.Draw()
   
-#class ExportParasClass:
-#    def __init__(self,master=None,config=None,postpro=None):
-#        self.master=master
-#  
-#        self.nb = NotebookClass(self.master,width=240)
-#
-#        # uses the notebook's frame
-#        self.nb_f1 = Frame(self.nb())
-#        self.nb_f2 = Frame(self.nb())
-#
-#        # keeps the reference to the radiobutton (optional)
-#        self.nb.add_screen(self.nb_f1, _("Coordinates"))
-#        self.nb.add_screen(self.nb_f2, _("File Beg. & End"))
-#
-#        self.nb_f1.columnconfigure(0,weight=1)
-#        self.nb_f2.columnconfigure(0,weight=1)        
-#    
-#        self.erstelle_eingabefelder(config)
-#        self.erstelle_textfelder(config)
-#
-#        self.gcode_be.insert(END,postpro.gcode_be)
-#        self.gcode_en.insert(END,postpro.gcode_en)
-#
-#
-#    def erstelle_eingabefelder(self,config):
-#       
-#        f1=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-#        f1.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
-#        f2=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-#        f2.grid(row=1,column=0,padx=2,pady=2,sticky=N+W+E)
-#        f3=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-#        f3.grid(row=2,column=0,padx=2,pady=2,sticky=N+W+E)
-#    
-#        f1.columnconfigure(0,weight=1)
-#        f2.columnconfigure(0,weight=1)
-#        f3.columnconfigure(0,weight=1)        
-#   
-#        Label(f1, text=_("Tool diameter [mm]:"))\
-#                .grid(row=0,column=0,sticky=N+W,padx=4)
-#        Entry(f1,width=7,textvariable=config.tool_dia)\
-#                .grid(row=0,column=1,sticky=N+E)
-#
-#        Label(f1, text=_("Start radius (for tool comp.) [mm]:"))\
-#                .grid(row=1,column=0,sticky=N+W,padx=4)
-#        Entry(f1,width=7,textvariable=config.start_rad)\
-#                .grid(row=1,column=1,sticky=N+E)        
-#
-#        Label(f2, text=(_("Start at %s [mm]:") %config.ax1_letter))\
-#                .grid(row=0,column=0,sticky=N+W,padx=4)
-#        Entry(f2,width=7,textvariable=config.axis1_st_en)\
-#                .grid(row=0,column=1,sticky=N+E)
-#
-#        Label(f2, text=(_("Start at %s [mm]:") %config.ax2_letter))\
-#                .grid(row=1,column=0,sticky=N+W,padx=4)
-#        Entry(f2,width=7,textvariable=config.axis2_st_en)\
-#                .grid(row=1,column=1,sticky=N+E)
-#
-#        Label(f2, text=(_("%s retraction area [mm]:") %config.ax3_letter))\
-#                .grid(row=2,column=0,sticky=N+W,padx=4)
-#        Entry(f2,width=7,textvariable=config.axis3_retract)\
-#                .grid(row=2,column=1,sticky=N+E)
-#
-#        Label(f2, text=(_("%s safety margin [mm]:") %config.ax3_letter))\
-#                .grid(row=3,column=0,sticky=N+W,padx=4)
-#        Entry(f2,width=7,textvariable=config.axis3_safe_margin)\
-#                .grid(row=3,column=1,sticky=N+E)
-#
-#        Label(f2, text=(_("%s infeed depth [mm]:") %config.ax3_letter))\
-#                .grid(row=4,column=0,sticky=N+W,padx=4)
-#        Entry(f2,width=7,textvariable=config.axis3_slice_depth)\
-#                .grid(row=4,column=1,sticky=N+E)
-#
-#        Label(f2, text=(_("%s mill depth [mm]:") %config.ax3_letter))\
-#                .grid(row=5,column=0,sticky=N+W,padx=4)
-#        Entry(f2,width=7,textvariable=config.axis3_mill_depth)\
-#                .grid(row=5,column=1,sticky=N+E)
-#
-#        Label(f3, text=(_("G1 feed %s-direction [mm/min]:") %config.ax3_letter))\
-#                .grid(row=1,column=0,sticky=N+W,padx=4)
-#        Entry(f3,width=7,textvariable=config.F_G1_Depth)\
-#                .grid(row=1,column=1,sticky=N+E)
-#
-#        Label(f3, text=(_("G1 feed %s%s-direction [mm/min]:") %(config.ax1_letter,config.ax2_letter)))\
-#                .grid(row=2,column=0,sticky=N+W,padx=4)
-#        Entry(f3,width=7,textvariable=config.F_G1_Plane)\
-#                .grid(row=2,column=1,sticky=N+E)
-#
-#    def erstelle_textfelder(self,config):
-#        f22=Frame(self.nb_f2,relief = FLAT,bd = 1)
-#        f22.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
-#        f22.columnconfigure(0,weight=1)        
-#
-#        Label(f22 , text=_("G-Code at the begin of file"))\
-#                .grid(row=0,column=0,columnspan=2,sticky=N+W,padx=2)
-#        self.gcode_be = Text(f22,width=10,height=8)
-#        self.gcode_be_sc = Scrollbar(f22)
-#        self.gcode_be.grid(row=1,column=0,pady=2,sticky=E+W)
-#        self.gcode_be_sc.grid(row=1,column=1,padx=2,pady=2,sticky=N+S)
-#        self.gcode_be_sc.config(command=self.gcode_be.yview)
-#        self.gcode_be.config(yscrollcommand=self.gcode_be_sc.set)
-#
-#        Label(f22, text=_("G-Code at the end of file"))\
-#                .grid(row=2,column=0,columnspan=2,sticky=N+W,padx=2)
-#        self.gcode_en = Text(f22,width=10,height=5)
-#        self.gcode_en_sc = Scrollbar(f22)
-#        self.gcode_en.grid(row=3,column=0,pady=2,sticky=E+W)
-#        self.gcode_en_sc.grid(row=3,column=1,padx=2,pady=2,sticky=N+S)
-#        self.gcode_en_sc.config(command=self.gcode_en.yview)
-#        self.gcode_en.config(yscrollcommand=self.gcode_en_sc.set)
-#
-#        f22.columnconfigure(0,weight=1)
-#        f22.rowconfigure(1,weight=0)
-#        f22.rowconfigure(3,weight=0)
-#         
-#
-
-
 
 
 class MyCanvasContentClass:
@@ -1599,18 +1290,22 @@ class MyCanvasContentClass:
         self.path_hdls=[]
 
     #Hinzufuegen der Kontur zum Layer        
-    def addtoLayerContents(self,shape_nr,lay_nr):
+    def addtoLayerContents(self,shape,lay_nr):
         #Abfrage of der gesuchte Layer schon existiert
         for LayCon in self.LayerContents:
             if LayCon.LayerNr==lay_nr:
-                LayCon.Shapes.append(shape_nr)
+                LayCon.Shapes.append(shape)
+                shape.layer=LayCon
                 return
 
         #Falls er nicht gefunden wurde neuen erstellen
         LayerName=self.values.layers[lay_nr].name
         self.LayerContents.append(MyLayerContentClass(LayerNr=lay_nr,
                                                     LayerName=LayerName,
-                                                    Shapes=[shape_nr]))
+                                                    Shapes=[shape],
+                                                    MyMessages=self.MyMessages))
+                                                    
+        shape.layer=self.LayerContents[-1]
         
     def change_selection(self,sel_shapes):
         if self.MyGraphic.lastkey==0:
@@ -1758,75 +1453,7 @@ class MyCanvasContentClass:
         for shape in shapes:
             shape.geo_hdl.Visible = True   
             
-      
-class MyLayerContentClass:
-    def __init__(self,type='Layer',LayerNr=None,LayerName='',Shapes=[]):
-        self.type=type
-        self.LayerNr=LayerNr
-        self.LayerName=LayerName
-        self.Shapes=Shapes
-        
-    def __cmp__(self, other):
-         return cmp(self.LayerNr, other.LayerNr)
-
-    def __str__(self):
-        return ('\ntype:        %s' %self.type) +\
-               ('\nLayerNr :      %i' %self.LayerNr) +\
-               ('\nLayerName:     %s' %self.LayerName)+\
-               ('\nShapes:    %s' %self.Shapes)
-
-class MySelectionInfoClass(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, ID, pos=wx.DefaultPosition,size=wx.Size(300,150)):
-        
-        wx.ListCtrl.__init__(
-            self, parent, ID,size=size,pos=pos,
-            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_HRULES|wx.LC_VRULES
-            )
-            
-        self.InsertColumn(0, "Entitie Type")
-        self.InsertColumn(1, "Name:")
-        self.InsertColumn(2, "Name:")
-        
-        self.SetItemCount(100)
-        
-        #self.Append(('bdsafsla1','blsda2','blasaf3'))
-        #self.Append(('blsa1','bla2','bla3'))
-
-        #self.SetStringItem(0,1, 'WO')
-        #self.SetStringItem(1,1, 'WO')
-        #self.SetStringItem(1,1, 'WO')
-
-        self.SelectionStr=[]
-        #self.InsertColumn(4, "Name:")
-
-
-    def change_selection(self,sel_shapes):
-        SelectionStr=[]
-        for shape in sel_shapes:
-            SelectionStr.append(shape.makeSelectionStr())
-            
-        self.SelectionStr=self.SelectionStr
-   
-    def OnGetItemText(self, item, col):
-        print item
-        print col
-        try:
-            strs=self.SelectionStr[col]
-            print strs
-            if item==1:
-                str=strs.Name
-            elif item==2:
-                str=strs.Type
-            elif item==3:
-                str=strs.Pa
-            elif item==4:
-                str=strs.Pe
-        except:
-            str='d'
-            
-        print str
-        return str
-    
+       
 class ShowAboutInfoClass:
     def __init__(self,master):
 

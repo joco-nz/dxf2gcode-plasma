@@ -23,9 +23,10 @@
 
 #About Dialog
 #First Version of dxf2gcode Hopefully all works as it should
-import os
+import os, time
 import ConfigParser
 import wx
+
 from dxf2gcode_b02_point import PointClass
 from math import degrees
 
@@ -69,32 +70,26 @@ class MyConfigClass:
             pass 
 
     def make_new_Config_file(self):
+        
+        #Generelle Einstellungen für Export
+        self.parser.add_section('General')
+        self.parser.set('General', 'write_to_stdout', 0)
+        
         self.parser.add_section('Paths') 
         self.parser.set('Paths', 'load_path', 'C:\Users\Christian Kohloeffel\Documents\DXF2GCODE\trunk\dxf')
         self.parser.set('Paths', 'save_path', 'C:\Users\Christian Kohloeffel\Documents')
 
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
-        self.parser.set('Import Parameters', 'fitting_tolerance', 0.01) 
+        self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
         self.parser.set('Import Parameters', 'spline_check', 1)  
                    
-        self.parser.add_section('Tool Parameters') 
-        self.parser.set('Tool Parameters', 'diameter', 2.0)
-        self.parser.set('Tool Parameters', 'start_radius', 0.2)
-
         self.parser.add_section('Plane Coordinates') 
         self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
         self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
 
         self.parser.add_section('Depth Coordinates') 
         self.parser.set('Depth Coordinates', 'axis3_retract', 15)
-        self.parser.set('Depth Coordinates', 'axis3_safe_margin', 3.0)
-        self.parser.set('Depth Coordinates', 'axis3_mill_depth', -3.0)
-        self.parser.set('Depth Coordinates', 'axis3_slice_depth', -1.5)
-
-        self.parser.add_section('Feed Rates')
-        self.parser.set('Feed Rates', 'f_g1_depth', 150)
-        self.parser.set('Feed Rates', 'f_g1_plane', 400)
 
         self.parser.add_section('Axis letters')
         self.parser.set('Axis letters', 'ax1_letter', 'X')
@@ -119,26 +114,14 @@ class MyConfigClass:
         open_file.close()
             
     def get_all_vars(self):
-        try:               
-            self.tool_dia=(float(self.parser.get('Tool Parameters','diameter')))
-
-            self.start_rad=(float(self.parser.get('Tool Parameters','start_radius')))        
+        try: 
+            self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
            
             self.axis1_st_en=(float(self.parser.get('Plane Coordinates','axis1_start_end')))
-
             self.axis2_st_en=(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
-            
+
             self.axis3_retract=(float(self.parser.get('Depth Coordinates','axis3_retract')))
-            
-            self.axis3_safe_margin=(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
-
-            self.axis3_slice_depth=(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
-
-            self.axis3_mill_depth=(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
-            
-            self.F_G1_Depth=(float(self.parser.get('Feed Rates','f_g1_depth')))
-
-            self.F_G1_Plane=(float(self.parser.get('Feed Rates','f_g1_plane')))
+                 
 
             self.points_tolerance=(float(self.parser.get('Import Parameters','point_tolerance')))
             self.fitting_tolerance=(float(self.parser.get('Import Parameters','fitting_tolerance')))
@@ -169,7 +152,7 @@ class MyConfigClass:
             
         except:
             dial=wx.MessageDialog(None, _("Please delete or correct\n %s")\
-                      %(os.path.join(FOLDER,self.cfg_file_name)),_("Error during reading config file"), wx.OK | 
+                      %(os.path.join(self.folder,self.cfg_file_name)),_("Error during reading config file"), wx.OK | 
             wx.ICON_ERROR)
             dial.ShowModal()
 
@@ -185,9 +168,11 @@ class MyConfigClass:
         return str
     
 class MyPostprocessorClass:
-    def __init__(self,config=None,MyMessages=None,FOLDER='',APPNAME=''):
+    def __init__(self,config=None,MyMessages=None,FOLDER='',APPNAME='', VERSION='',DATE=''):
         self.folder=os.path.join(FOLDER,'postprocessor')
         self.appname=APPNAME
+        self.version=VERSION
+        self.date=DATE
         self.string=''
         self.MyMessages=MyMessages
         self.config=config
@@ -197,23 +182,35 @@ class MyPostprocessorClass:
 
         # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
-        self.postpro_file_name=self.appname+'_postprocessor.cfg'
-        self.parser.read(os.path.join(self.folder,self.postpro_file_name))
-
-        # Falls kein Postprocessor File vorhanden ist oder File leer ist neue File anlegen und neu laden
-        if len(self.parser.sections())==0:
-            self.make_new_postpro_file()
-            self.parser.read(os.path.join(self.folder,self.postpro_file_name))
+        
+        #Leser der Files im Config Verzeichniss für Postprocessor
+        try:
+            lfiles = os.listdir(self.folder)
+        except:
+            lfiles= []
+                 
+ 
+        #Es werden nur Dateien mit der Endung CFG akzeptiert
+        self.postprocessor_files=[]
+        for lfile in lfiles:
+            if os.path.splitext(lfile)[1]=='.cfg':
+                self.postprocessor_files.append(lfile)
+        
+        if len(self.postprocessor_files)==0:             
+           # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
+            self.make_settings_folder() 
+            postpro_file_name=self.appname+'_postprocessor.cfg'
+            
             MyMessages.prt((_('\nNo postprocessor file found generated new on at: %s') \
-                             %os.path.join(self.folder,self.postpro_file_name)))
-        else:
-            MyMessages.prt((_('\nLoading postprocessor file: %s') \
-                             %os.path.join(self.folder,self.postpro_file_name)))
+                             %os.path.join(self.folder,postpro_file_name)))
+            self.make_new_postpro_file(postpro_file_name)
+            self.postprocessor_files.append(postpro_file_name)
+            
 
-        #Variablen erstellen zur späteren Verwendung im Postprozessor        
-        self.get_all_vars()
-
-        MyMessages.prt(str(self),1)        
+        #Laden der Dateiformate und Texte aus den Config Files
+        self.get_output_vars()
+        
+           
 
     def make_settings_folder(self): 
         # create settings folder if necessary 
@@ -222,13 +219,30 @@ class MyPostprocessorClass:
         except OSError: 
             pass 
 
-    def get_all_vars(self):
+    def get_output_vars(self):
+        self.output_format=[]
+        self.output_text=[]
+        for postprocessor_file in self.postprocessor_files:
+            try:
+                self.parser.read(os.path.join(self.folder,postprocessor_file))
+                
+                self.output_format.append(self.parser.get('General', 'output_format'))
+                self.output_text.append(self.parser.get('General','output_text'))
+            except:
+                dial=wx.MessageDialog(None, _("Please delete or correct\n %s")\
+                %(os.path.join(self.folder,postprocessor_file)),_("Error during reading postprocessor file"), wx.OK | 
+                wx.ICON_ERROR)
+                dial.ShowModal()
+                raise Exception, _("Problem during import from postprocessor File") 
+
+    def get_all_vars(self,pp_file_nr):
+        self.parser.read(os.path.join(self.folder,self.postprocessor_files[pp_file_nr]))
         #try:
-        self.output_format=self.parser.get('General', 'output_format')
+        self.output_type=self.parser.get('General', 'output_type')  
         self.abs_export=int(self.parser.get('General', 'abs_export'))
-        self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
         self.cancel_cc_for_depth=int(self.parser.get('General', 'cancel_cc_for_depth'))
-        self.export_ccw_arcs_only=int(self.parser.get('General', 'export_ccw_arcs_only'))
+        self.export_ccw_arcs_only=int(self.parser.get('General', 'export_ccw_arcs_only')) 
+        self.max_arc_radius=int(self.parser.get('General','max_arc_radius'))
         self.gcode_be=self.parser.get('General', 'code_begin')
         self.gcode_en=self.parser.get('General', 'code_end')
 
@@ -309,15 +323,16 @@ class MyPostprocessorClass:
 #            dial.ShowModal()
 #            raise Exception, _("Problem during import from postprocessor File") 
 
-    def make_new_postpro_file(self):
-            
+    def make_new_postpro_file(self,postpro_file_name):
         self.parser.add_section('General')
-        self.parser.set('General', 'output_format', 'g-code')
+        self.parser.set('General', 'output_format', '.ngc')   
+        self.parser.set('General', 'output_text', 'G-Code for EMC2')   
+        self.parser.set('General', 'output_type', 'g-code')   
+        
         self.parser.set('General', 'abs_export', 1)
-        self.parser.set('General', 'write_to_stdout', 0)
         self.parser.set('General', 'cancel_cc_for_depth', 0)
-        self.parser.set('General', 'export_ccw_arcs_only',0)
-   
+        self.parser.set('General', 'export_ccw_arcs_only',0)  
+        self.parser.set('General', 'max_arc_radius', 10000)
         self.parser.set('General', 'code_begin',\
                         'G21 (Unit in mm) \nG90 (Absolute distance mode)'\
                         +'\nG64 P0.01 (Exact Path 0.001 tol.)'\
@@ -364,15 +379,17 @@ class MyPostprocessorClass:
         self.parser.set('Program','cutter_comp_right',\
                         ('G42%nl'))                      
                         
-        open_file = open(os.path.join(self.folder,self.postpro_file_name), "w") 
+        open_file = open(os.path.join(self.folder,postpro_file_name), "w") 
         self.parser.write(open_file) 
         open_file.close()
 
     def write_gcode_be(self,load_filename):
         #Schreiben in einen String
-        if self.output_format=='g-code':
-            str=("(Generated with dxf2code)\n(Created from file: %s)\n" %load_filename)
-        elif self.output_format=='dxf':
+        if self.output_type=='g-code':
+            str="(Generated with: %s, Version: %s, Date: %s)\n" %(self.appname,self.version,self.date)
+            str+="(Time: %s)\n" %time.asctime()
+            str+="(Created from file: %s)\n" %load_filename
+        elif self.output_type=='dxf':
             str=''
             
         self.string=(str.encode("utf-8"))
@@ -409,7 +426,7 @@ class MyPostprocessorClass:
         self.feed=feed
         self.string+=self.make_print_str(self.feed_ch_str) 
         
-    def set_cut_cor(self,cut_cor,newpos):
+    def set_cut_cor(self,cut_cor,Pe):
         self.cut_cor=cut_cor
 
         if not(self.abs_export):
