@@ -135,6 +135,7 @@ class ConfigClass:
         #try:   
         self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
         
+
         self.tool_dia=DoubleVar()
         self.tool_dia.set(float(self.parser.get('Tool Parameters','diameter')))
 
@@ -483,12 +484,15 @@ class PostprocessorClass:
             
     def lin_pol_arc(self,dir,Pa,Pe,a_ang,e_ang,R,O,IJ):
         self.O=O
+        
         self.IJ=IJ
+        
         self.a_ang=a_ang
         self.e_ang=e_ang
+        
         self.Pa=Pa
         self.r=R
-                
+        
         if not(self.abs_export):
             self.Pe=Pe-self.lPe
             self.lPe=Pe
@@ -525,13 +529,11 @@ class PostprocessorClass:
             self.lz=z_pos
         else:
             self.ze=z_pos
-        self.make_print_str(self.lin_mov_depth_str)
 
         self.string+=self.make_print_str(self.lin_mov_depth_str)     
         
     def lin_pol_xy(self,Pa,Pe):
         self.Pa=Pa
-        
         if not(self.abs_export):
             self.Pe=Pe-self.lPe
             self.lPe=Pe
@@ -541,10 +543,8 @@ class PostprocessorClass:
         self.string+=self.make_print_str(self.lin_mov_plane_str)       
 
     def make_print_str(self,string):
-  
         new_string=string
         for key_nr in range(len(self.vars.keys())):
-
             new_string=new_string.replace(self.vars.keys()[key_nr],\
                                           eval(self.vars.values()[key_nr]))
         return new_string

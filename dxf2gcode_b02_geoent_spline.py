@@ -50,6 +50,7 @@ class SplineClass:
         #Umwandeln zu einem ArcSpline
         Spline2ArcsClass=Spline2Arcs(degree=self.degree,Knots=self.Knots,\
                                 Weights=self.Weights,CPoints=self.CPoints,tol=tol,check=check)
+                                
 
         self.geo=Spline2ArcsClass.Curve
 
@@ -189,6 +190,7 @@ class SplineClass:
 #        print len(self.Weights)
 #        print len(self.CPoints)
 #        print self
+
         
     def get_start_end_points(self,direction=0):
         if not(direction):
