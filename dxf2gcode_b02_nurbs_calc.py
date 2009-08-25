@@ -451,48 +451,51 @@ class NURBSClass:
         knt_nr=1
         knt_vec=[[self.Knots[0]]]
         self.knt_m_change=[]
-        
-        
-        while knt_nr < len(self.Knots):
-            if self.Knots[knt_nr]==knt_vec[-1][-1]:
-                knt_vec[-1].append(self.Knots[knt_nr])
-            else:
-                knt_vec.append([self.Knots[knt_nr]])
-            knt_nr+=1
-        
-
-    
-        for knt_spts in knt_vec:
-            if (len(knt_spts)>self.degree+1):
-
-                raise ValueError, "Same Knots Nr. bigger then degree+1"
-            
-            #Überprüfen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
-            elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>knt_vec[0][0])and(knt_spts[-1]<knt_vec[-1][-1]))and(check):
-
-                temp, tangent0=self.NURBS_evaluate(n=1,u=knt_spts[0]-1e-12)
-                temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
-
-                if abs(tangent0-tangent1)>1e-6:
-                    self.knt_m_change.append(knt_spts[0])
-                    
-       
-        #Überprüfen der Kontrollpunkte
-        #Suchen von mehrachen Kontrollpunkten (Anzahl über degree+2 => nicht errechnen
-        ctlpt_nr=0
-        ctlpt_vec=[[ctlpt_nr]]
-        while ctlpt_nr < len(self.CPoints)-1:
-            ctlpt_nr+=1
-            if self.CPoints[ctlpt_nr].isintol(self.CPoints[ctlpt_vec[-1][-1]],tol):
-                ctlpt_vec[-1].append(ctlpt_nr)
-            else:
-                ctlpt_vec.append([ctlpt_nr])
-            
         self.ignor=[]
-        for same_ctlpt in ctlpt_vec:
-            if (len(same_ctlpt)>self.degree+1):
-                self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
-                                   self.Knots[same_ctlpt[-1]+self.degree/2]])
+        
+        if check==1:
+            while knt_nr < len(self.Knots):
+                if self.Knots[knt_nr]==knt_vec[-1][-1]:
+                    knt_vec[-1].append(self.Knots[knt_nr])
+                else:
+                    knt_vec.append([self.Knots[knt_nr]])
+                knt_nr+=1
+            
+
+        
+            for knt_spts in knt_vec:
+                if (len(knt_spts)>self.degree+1):
+
+                    raise ValueError, "Same Knots Nr. bigger then degree+1"
+                
+                #Überprüfen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
+                elif ((len(knt_spts)>self.degree)
+                        and(knt_spts[-1]>knt_vec[0][0])
+                        and(knt_spts[-1]<knt_vec[-1][-1])):
+
+                    temp, tangent0=self.NURBS_evaluate(n=1,u=knt_spts[0]-1e-12)
+                    temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
+
+                    if abs(tangent0-tangent1)>1e-6:
+                        self.knt_m_change.append(knt_spts[0])
+                        
+           
+            #Überprüfen der Kontrollpunkte
+            #Suchen von mehrachen Kontrollpunkten (Anzahl über degree+2 => nicht errechnen
+            ctlpt_nr=0
+            ctlpt_vec=[[ctlpt_nr]]
+            while ctlpt_nr < len(self.CPoints)-1:
+                ctlpt_nr+=1
+                if self.CPoints[ctlpt_nr].isintol(self.CPoints[ctlpt_vec[-1][-1]],tol):
+                    ctlpt_vec[-1].append(ctlpt_nr)
+                else:
+                    ctlpt_vec.append([ctlpt_nr])
+                
+
+            for same_ctlpt in ctlpt_vec:
+                if (len(same_ctlpt)>self.degree+1):
+                    self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
+                                       self.Knots[same_ctlpt[-1]+self.degree/2]])
 
         #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
         #print("Same Controlpoints Nr. bigger then degree+2")

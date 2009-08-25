@@ -89,7 +89,7 @@ class ConfigClass:
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
         self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
-        self.parser.set('Import Parameters', 'spline_check', 1)  
+        self.parser.set('Import Parameters', 'spline_check',0)  
                    
         self.parser.add_section('Tool Parameters') 
         self.parser.set('Tool Parameters', 'diameter', 2.0)
