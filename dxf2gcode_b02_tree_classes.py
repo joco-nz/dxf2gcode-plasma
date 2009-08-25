@@ -36,27 +36,65 @@ import wx.lib.customtreectrl as CT
 import  wx.lib.mixins.listctrl  as  listmix
 
 class MyNotebookClass(wx.Notebook):
-    def __init__(self, parent, id=wx.ID_ANY):
+    def __init__(self, parent, id=wx.ID_ANY, MyPostpro=None, MyConfig=None, MyCanvasContent=None):
         wx.Notebook.__init__(self, parent, id, size=(250,180), style=
-                             wx.BK_DEFAULT
-                             #wx.BK_TOP 
-                             #wx.BK_BOTTOM
-                             #wx.BK_LEFT
-                             #wx.BK_RIGHT
-                             # | wx.NB_MULTILINE
-                             )
+                             wx.BK_DEFAULT)
+                    
+        self.MyConfig=MyConfig
+        self.MyPostpro=MyPostpro
+                
+        self.MyEntPanel = wx.Panel(self, -1)
+        self.MyLayPanel= wx.Panel(self,-1)
+        
+        #Erstellen des Baums für die Entities
+        self.MyEntTree=MyEntitieTreeClass(self.MyEntPanel, -1, self)       
+        self.MySelectionInfo = MySelectionInfoClass(self.MyEntPanel, -1, self)   
+        
+        self.MyEntTree.MySelectionInfo=self.MySelectionInfo
+        self.MySelectionInfo.MyEntTree=self.MyEntTree
+        
+        sizer1 = wx.BoxSizer(wx.VERTICAL)
+        sizer1.Add(self.MyEntTree, 2, wx.EXPAND)
+        sizer1.Add(self.MySelectionInfo, 1, wx.EXPAND)
+        
+        self.MyEntPanel.SetSizer(sizer1)
+       
+        #Erstellen des Baums für die verwendeten Layers
+        self.MyLayersTree = MyLayersTreeClass(self.MyLayPanel, -1, self)
+        self.MyExportParas =MyExportParasClass(self.MyLayPanel,-1, self)
+        
+        self.MyExportParas.MyLayersTree=self.MyLayersTree
+        self.MyLayersTree.MyExportParas=self.MyExportParas
 
+        sizer2 = wx.BoxSizer(wx.VERTICAL)
+        sizer2.Add(self.MyLayersTree, 1, wx.EXPAND)
+        sizer2.Add(self.MyExportParas.sboxSizer, 0, wx.EXPAND)
+        
+        self.MyLayPanel.SetSizer(sizer2)
+        
+        self.AddPage(self.MyEntPanel, "Entitie Tree")
+        self.AddPage(self.MyLayPanel, "Layer Tree")
+                               
+        self.Bind(wx.EVT_NOTEBOOK_PAGE_CHANGING, self.OnPageChanging)
 
+    def OnPageChanging(self, event):
+        pass
+    
+    def change_selection(self,sel_items=None):
+        self.MyCanvasContent.change_selection(sel_items)
+        self.MySelectionInfo.change_selection(sel_items)
 
 class MyEntitieTreeClass(CT.CustomTreeCtrl):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                size=wx.Size(250,180),
-                 style=wx.SUNKEN_BORDER |  
-                 CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
-                 CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
-                 CT.TR_MULTIPLE |CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS):
+    def __init__(self, parent, id=wx.ID_ANY, MyNotebook=None):
 
-        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)      
+        CT.CustomTreeCtrl.__init__(self, parent, id, pos=wx.DefaultPosition,
+                                 size=wx.Size(250,180),
+                                 style=wx.SUNKEN_BORDER |  
+                                 CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
+                                 CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
+                                 CT.TR_MULTIPLE |CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS)      
+        
+        self.MyNotebook=MyNotebook
         
         il = wx.ImageList(16, 16)
         il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Layer.ico"))
@@ -175,8 +213,7 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
             sel_items+=self.GetItemShapes(item)
 
                   
-        self.MyCanvasContent.change_selection(sel_items)
-        self.MySelectionInfo.change_selection(sel_items)
+        self.MyNotebook.change_selection(sel_items)
     
     def GetItemShapes(self,item):
         SelShapes=[]
@@ -192,12 +229,13 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
    
 
 class MySelectionInfoClass(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
-    def __init__(self, parent, ID, pos=wx.DefaultPosition,size=wx.Size(300,150)):
+    def __init__(self, parent, ID, MyNotebook=None):
         
         wx.ListCtrl.__init__(
-            self, parent, ID,size=size,pos=pos,
-            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_HRULES|wx.LC_VRULES
-            )
+            self, parent, ID, pos=wx.DefaultPosition,size=wx.Size(300,150),
+            style=wx.LC_REPORT|wx.LC_VIRTUAL|wx.LC_HRULES|wx.LC_VRULES)
+            
+        self.MyNotebook=MyNotebook
             
         self.InsertColumn(0, "Entitie Type")
         self.InsertColumn(1, "Name:")
@@ -225,11 +263,8 @@ class MySelectionInfoClass(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
    
     def OnGetItemText(self, item, col):
 
-        print item
-        print col
         try:
             strs=self.SelectionStr[col]
-            print strs
             if item==1:
                 str=strs.Name
             elif item==2:
@@ -244,14 +279,16 @@ class MySelectionInfoClass(wx.ListCtrl, listmix.ListCtrlAutoWidthMixin):
         return str
     
 class MyLayersTreeClass(CT.CustomTreeCtrl):
-    def __init__(self, parent, id=wx.ID_ANY, pos=wx.DefaultPosition,
-                 size=wx.Size(250,180),
-                 style=wx.SUNKEN_BORDER |  
-                 CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
-                 CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
-                 CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS):
+    def __init__(self, parent, id=wx.ID_ANY, MyNotebook=None):
 
-        CT.CustomTreeCtrl.__init__(self, parent, id, pos, size, style)
+        CT.CustomTreeCtrl.__init__(self, parent, id, pos=wx.DefaultPosition,
+                                 size=wx.Size(250,180),
+                                 style=wx.SUNKEN_BORDER |  
+                                 CT.TR_HAS_VARIABLE_ROW_HEIGHT | wx.WANTS_CHARS |
+                                 CT.TR_FULL_ROW_HIGHLIGHT |CT.TR_HIDE_ROOT| CT.TR_NO_LINES |
+                                 CT.TR_TWIST_BUTTONS |CT.TR_HAS_BUTTONS)
+        
+        self.MyNotebook=MyNotebook
         
         il = wx.ImageList(16, 16)
         il.Add(wx.Bitmap(BITMAPDIRECTORY + "/Layer.ico"))
@@ -279,14 +316,14 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
             self.SetItemImage(child, 0, CT.TreeItemIcon_Expanded)
 
 
-            for Shape in LayerContent.Shapes:
-                
+            for Shape in LayerContent.Shapes:  
                 last = self.AppendItem(child,('Shape Nr: %i' %Shape.nr))  
                 self.SetPyData(last, Shape)
                 self.SetItemImage(last, 1, CT.TreeItemIcon_Normal)
                 self.SetItemImage(last, 1, CT.TreeItemIcon_Expanded)
+                self.EnableItem(last,False)
                     
-        self.MyExportParas.ShowParas(self.LayerContents[0])
+        
 
 
     #Item hinzufügen falls es noch nicht selektiert ist
@@ -318,7 +355,8 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
         menu.Destroy()
         
     def OnKillFocus(self, event):
-        self.UnselectAll()
+        pass
+        #self.UnselectAll()
 
     def OnDisableItem(self, event):
         self.EnableItem(self.current, False)
@@ -326,22 +364,26 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
         
     def OnSelChanged(self, event):
         sel_items=[]
-        print "SelChanged"
         for selection in self.GetSelections():
-            print selection
             item=self.GetItemPyData(selection)
-            print item
             sel_items+=self.GetItemShapes(item)
-
-                  
-        self.MyCanvasContent.change_selection(sel_items)
-        self.MySelectionInfo.change_selection(sel_items)
         
+        #Wenn nichts ausgewählt ist die Edit Felder ausschalten.
+        if len(sel_items)==0:
+            self.MyExportParas.EnableEdit(flag=0)
+        #Sonst Werte anzeigen
+        else:
+            self.MyExportParas.ShowParas(item)
+          
+        self.MyNotebook.change_selection(sel_items)
+    
     def GetItemShapes(self,item):
         SelShapes=[]
-        if item.type=="Shape":
-            SelShapes.append(item)
-            
+
+        if item is None:
+            return []
+        elif item.type=="Shape":
+            SelShapes.append(item)  
         elif item.type=="Layer":
             for shape in item.Shapes:
                 SelShapes+=self.GetItemShapes(shape)
@@ -351,10 +393,11 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
 
 
 class MyExportParasClass():
-    def __init__(self,parent=None,config=None,postpro=None):
+    def __init__(self,parent=None,id=-1,MyNotebook=None):
+        self.MyNotebook=MyNotebook
         
-        self.Sbox=wx.StaticBox(parent, wx.ID_ANY,'Layer Export Parameters',(3,3))
-        self.MakeInputDlg(parent,config)
+        self.Sbox=wx.StaticBox(parent, id,'Layer Export Parameters',(3,3))
+        self.MakeInputDlg(parent,self.MyNotebook.MyConfig)
         self.BindInputDlg()
         self.EnableEdit(0)
     
