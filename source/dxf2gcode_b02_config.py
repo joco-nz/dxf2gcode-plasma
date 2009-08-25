@@ -47,11 +47,11 @@ class MyConfigClass:
         if len(self.parser.sections())==0:
             self.make_new_Config_file()
             self.parser.read(os.path.join(self.folder,self.cfg_file_name))
-            MyMessages.prt((_('\nNo config file found generated new on at: %s') \
-                             %os.path.join(self.folder,self.cfg_file_name)))
+            MyMessage.prt(_('\nNo config file found generated new on at:'))
+            MyMessage.prt('\n%s' %os.path.join(self.folder,self.cfg_file_name))
         else:
-            MyMessages.prt((_('\nLoading config file:%s') \
-                             %os.path.join(self.folder,self.cfg_file_name)))
+            MyMessages.prt(_('\nLoading config file:'))
+            MyMessages.prt('%s' %os.path.join(self.folder,self.cfg_file_name))
 
         #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
         self.get_all_vars()
@@ -82,7 +82,7 @@ class MyConfigClass:
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
         self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
-        self.parser.set('Import Parameters', 'spline_check', 1)  
+        self.parser.set('Import Parameters', 'spline_check', 0) 
                    
         self.parser.add_section('Plane Coordinates') 
         self.parser.set('Plane Coordinates', 'axis1_start_end', 0)

@@ -68,6 +68,7 @@ from wx.lib.wordwrap import wordwrap
 
 from wx.lib.floatcanvas import FloatCanvas, Resources
 from wx.lib.floatcanvas.Utilities import BBox
+import wx.richtext as rt
 import dxf2gcode_b02_FloatCanvas_mod as NavCanvas
 #import wx_lib_floatcanvas_Utilities as GUI
 import wx.lib.colourdb
@@ -168,46 +169,12 @@ class MyFrameClass(wx.Frame):
             
      
         #Erstellen des Notebooks zum Hinzufügen der zwei Bäume
-        self.MyNotebook=MyNotebookClass( self, -1)
-        
-        self.MyEntPanel = wx.Panel(self.MyNotebook, -1)
-        self.MyLayPanel= wx.Panel(self.MyNotebook,-1)
-        
-        #Erstellen des Baums für die Entities
-        self.MyEntTree=MyEntitieTreeClass(self.MyEntPanel, -1)       
-        self.MySelectionInfo = MySelectionInfoClass(self.MyEntPanel, wx.ID_ANY)   
-        
-        self.MyEntTree.MySelectionInfo=self.MySelectionInfo
-        self.MySelectionInfo.MyEntTree=self.MyEntTree
-        
-        sizer1 = wx.BoxSizer(wx.VERTICAL)
-        sizer1.Add(self.MyEntTree, 2, wx.EXPAND)
-        sizer1.Add(self.MySelectionInfo, 1, wx.EXPAND)
-        
-        self.MyEntPanel.SetSizer(sizer1)
-       
-        #Erstellen des Baums für die verwendeten Layers
-        self.MyLayersTree = MyLayersTreeClass(self.MyLayPanel, -1)
-        self.MyExportParas =MyExportParasClass(self.MyLayPanel,self.MyConfig)
-        
-        self.MyExportParas.MyLayersTree=self.MyLayersTree
-        self.MyLayersTree.MyExportParas=self.MyExportParas
-
-        sizer2 = wx.BoxSizer(wx.VERTICAL)
-        sizer2.Add(self.MyLayersTree, 1, wx.EXPAND)
-        sizer2.Add(self.MyExportParas.sboxSizer, 0, wx.EXPAND)
-        
-        self.MyLayPanel.SetSizer(sizer2)
-        
-        self.MyNotebook.AddPage(self.MyEntPanel, "Entitie Tree")
-        self.MyNotebook.AddPage(self.MyLayPanel, "Layer Tree")
+        self.MyNotebook=MyNotebookClass( self, -1,MyPostpro=self.MyPostpro, MyConfig=self.MyConfig)
         
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
         self.MyCanvasContent=MyCanvasContentClass(self.MyGraphic,self.MyMessages,
                                                 self.MyConfig,
-                                                self.MyLayersTree,
-                                                self.MyEntTree,
-                                                self.MySelectionInfo)  
+                                                self.MyNotebook)  
         
         #Erstellen der Bindings fürs gesamte Fenster
         self.BindMenuEvents()
@@ -284,6 +251,9 @@ class MyFrameClass(wx.Frame):
         optionmenu.Append(402,_("Scale contours"), _("Scale all elements by factor"))
         optionmenu.Append(403, _("Move workpiece zero"), _("Offset the workpiece zero of the drawing"))
         optionmenu.Append(404, _("Rotate workpiece zero"), _("Rotate all elements about workpiece zero"))
+        optionmenu.AppendSeparator()
+        optionmenu.Append(405, _("Open Preferences File"), _("Open the Preferences File"))
+        optionmenu.Append(406, _("Open Postprocessor Folder"), _("Open the Postprocessor Folder"))
         
         menuBar.Append(optionmenu, _("Options"))
                 
@@ -313,6 +283,12 @@ class MyFrameClass(wx.Frame):
         self.Bind(wx.EVT_MENU, self.GetContScale, id=402)
         self.Bind(wx.EVT_MENU, self.MoveWpZero, id=403)
         self.Bind(wx.EVT_MENU, self.RotateWpZero, id=404)
+        
+        self.Bind(wx.EVT_MENU, self.MoveWpZero, id=403)
+        self.Bind(wx.EVT_MENU, self.RotateWpZero, id=404)
+        
+        self.Bind(wx.EVT_MENU, self.OpenConfigFile, id=405)
+        self.Bind(wx.EVT_MENU, self.OpenPostproFolder, id=406)
         
         #Helpmenu
         self.Bind(wx.EVT_MENU, self.ShowAbout, id=501)
@@ -557,6 +533,13 @@ class MyFrameClass(wx.Frame):
         self.MyMessages.prt(_("\nRotated about WP zero: %0.2fdeg") \
                               %(degrees(self.rotate)))
 
+
+    def OpenConfigFile(self,event):
+        os.startfile(os.path.join(self.MyConfig.folder,self.MyConfig.cfg_file_name))
+        
+    def OpenPostproFolder(self,event):
+        os.startfile(self.MyPostpro.folder)      
+
     def GetSaveFile(self):
         MyFormats=''
        
@@ -759,10 +742,22 @@ class MyMessagesClass(wx.TextCtrl):
         self.DEBUG=DEBUG
         
     def prt(self,text='',DEBUGLEVEL=0):
-
+        #self.MoveEnd()
         if self.DEBUG>=DEBUGLEVEL:
             self.AppendText(text) 
             
+#    def prt_url(self,text='',DEBUGLEVEL=0):
+#        urlStyle = rt.TextAttrEx()
+#        urlStyle.SetTextColour(wx.BLUE)
+#        urlStyle.SetFontUnderlined(True)
+#
+#        self.BeginStyle(urlStyle)
+#        self.BeginURL(text)
+#        self.AppendText(text)
+#        self.EndURL()
+#        self.EndStyle()
+#        self.Bind(wx.EVT_TEXT_URL, self.OnURL)
+
     #Contextmenu Text mit Bindings beim Rechtsklick
     def TextContextmenu(self,event):
 
@@ -964,14 +959,13 @@ class MyGraphicClass(wx.Panel):
 
 
 class MyCanvasContentClass:
-    def __init__(self,MyGraphic,MyMessages,MyConfig,MyLayersTree, MyEntTree, MySelectionInfo):
+    def __init__(self,MyGraphic,MyMessages,MyConfig,MyNotebook):
         self.MyGraphic=MyGraphic
         self.Canvas=MyGraphic.Canvas
         self.MyMessages=MyMessages
         self.MyConfig=MyConfig
-        self.MyLayersTree=MyLayersTree
-        self.MyEntTree=MyEntTree
-        self.MySelectionInfo=MySelectionInfo
+        self.MyLayersTree=MyNotebook.MyLayersTree
+        self.MyEntTree=MyNotebook.MyEntTree
         self.Shapes=[]
         self.LayerContents=[]
         self.EntitiesRoot=EntitieContentClass()
@@ -984,12 +978,13 @@ class MyCanvasContentClass:
         
         #Zuweisen der Verbindung zwischen den zwei Klassen
         MyGraphic.MyCanvasContent=self
-        MyEntTree.MyCanvasContent=self
-        MyLayersTree.MyCanvasContent=self
-        MySelectionInfo.MyCanvasContent=self
-
-        self.MyEntTree.MySelectionInfo=MySelectionInfo
-        self.MyLayersTree.MySelectionInfo=MySelectionInfo
+        MyNotebook.MyCanvasContent=self
+#        MyEntTree.MyCanvasContent=self
+#        MyLayersTree.MyCanvasContent=self
+#        MySelectionInfo.MyCanvasContent=self
+#
+#        self.MyEntTree.MySelectionInfo=MySelectionInfo
+#        self.MyLayersTree.MySelectionInfo=MySelectionInfo
         
 
         #Anfangswert fuer das Ansicht Toggle Menu
@@ -1333,7 +1328,6 @@ class MyCanvasContentClass:
         self.deselect()
         self.select()
         
-        self.MySelectionInfo.change_selection(self.Selected)
         self.Canvas.Draw(Force=True)
 
     def deselect(self): 

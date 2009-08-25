@@ -79,8 +79,8 @@ class NURBSClass:
             elif ((len(knt_spts)>self.degree)and(knt_spts[-1]>0.0)and(knt_spts[-1]<1.0)):
                 temp, tangent0=self.NURBS_evaluate(n=1,u=knt_spts[0]-1e-12)
                 temp, tangent1=self.NURBS_evaluate(n=1,u=knt_spts[0])
-                if abs(tangent0-tangent1)>1e-6:
-                    self.knt_m_change.append(knt_spts[0])
+#                if abs(tangent0-tangent1)>1e-6:
+#                    self.knt_m_change.append(knt_spts[0])
                                
         #Überprüfen der Kontrollpunkte
         #Suchen von mehrachen Kontrollpunkten (Anzahl über degree+2 => nicht errechnen
@@ -94,10 +94,10 @@ class NURBSClass:
                 ctlpt_vec.append([ctlpt_nr])
             
         self.ignor=[]
-        for same_ctlpt in ctlpt_vec:
-            if (len(same_ctlpt)>self.degree):
-                self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
-                                   self.Knots[same_ctlpt[-1]+self.degree/2]])
+#        for same_ctlpt in ctlpt_vec:
+#            if (len(same_ctlpt)>self.degree):
+#                self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
+#                                   self.Knots[same_ctlpt[-1]+self.degree/2]])
 
         #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
         print("Same Controlpoints Nr. bigger then degree+2")
@@ -1126,7 +1126,7 @@ class ExamplesClass:
         
     def calc_nurbs_1(self):
             #Initialisieren der NURBS Klasse
-            degree, CPoints, Weights, Knots=self.get_nurbs_1()
+            degree, CPoints, Weights, Knots=self.get_nurbs_()
             Nurbs=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
 
             #Berechnen von 30 Punkten des NURBS
@@ -1486,6 +1486,96 @@ class ExamplesClass:
         CPoints.append(PointClass(x=-69.25000, y=-92.00000))
         CPoints.append(PointClass(x=-69.25000, y=-92.00000))
         return degree, CPoints, Weights, Knots
+
+    def get_nurbs_8(self):
+                
+        #Reading Entities
+        #Found SPLINE at Linepair 785 (Line 1574 till 2160)
+        #Typ: Spline
+        #Nr: 0
+        #Layer Nr: 1
+        #Spline flag: 11
+        #degree: 3
+        #length: 44.788
+        #Geo elements: 20
+        
+        degree = 3
+        Knots= [0.0, 0.0, 0.0, 0.0, 0.058823529411764698, 0.058823529411764698, 0.058823529411764698, 0.058823529411764698, 0.1176470588235294, 0.1176470588235294, 0.1176470588235294, 0.1176470588235294, 0.1764705882352941, 0.1764705882352941, 0.1764705882352941, 0.1764705882352941, 0.23529411764705879, 0.23529411764705879, 0.23529411764705879, 0.23529411764705879, 0.29411764705882348, 0.29411764705882348, 0.29411764705882348, 0.29411764705882348, 0.35294117647058831, 0.35294117647058831, 0.35294117647058831, 0.35294117647058831, 0.41176470588235298, 0.41176470588235298, 0.41176470588235298, 0.41176470588235298, 0.4705882352941177, 0.4705882352941177, 0.4705882352941177, 0.4705882352941177, 0.52941176470588236, 0.52941176470588236, 0.52941176470588236, 0.52941176470588236, 0.58823529411764708, 0.58823529411764708, 0.58823529411764708, 0.58823529411764708, 0.6470588235294118, 0.6470588235294118, 0.6470588235294118, 0.6470588235294118, 0.70588235294117652, 0.70588235294117652, 0.70588235294117652, 0.70588235294117652, 0.76470588235294124, 0.76470588235294124, 0.76470588235294124, 0.76470588235294124, 0.82352941176470595, 0.82352941176470595, 0.82352941176470595, 0.82352941176470595, 0.88235294117647067, 0.88235294117647067, 0.88235294117647067, 0.88235294117647067, 0.94117647058823539, 0.94117647058823539, 0.94117647058823539, 0.94117647058823539, 1.0, 1.0, 1.0, 1.0]
+        Weights= [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+
+        CPoints =[]
+
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=33.750, y=-115.419))
+        CPoints.append(PointClass(x=33.750, y=-115.419))
+        CPoints.append(PointClass(x=33.750, y=-115.419))
+        CPoints.append(PointClass(x=33.750, y=-115.419))
+        CPoints.append(PointClass(x=33.750, y=-115.419))
+        CPoints.append(PointClass(x=33.750, y=-115.419))
+        CPoints.append(PointClass(x=33.750, y=-115.419))
+        CPoints.append(PointClass(x=37.670, y=-115.419))
+        CPoints.append(PointClass(x=40.883, y=-118.632))
+        CPoints.append(PointClass(x=40.883, y=-122.552))
+        CPoints.append(PointClass(x=40.883, y=-122.552))
+        CPoints.append(PointClass(x=40.883, y=-122.552))
+        CPoints.append(PointClass(x=40.883, y=-122.552))
+        CPoints.append(PointClass(x=40.883, y=-122.552))
+        CPoints.append(PointClass(x=40.883, y=-122.552))
+        CPoints.append(PointClass(x=40.883, y=-122.552))
+        CPoints.append(PointClass(x=40.883, y=-140.411))
+        CPoints.append(PointClass(x=40.883, y=-140.411))
+        CPoints.append(PointClass(x=40.883, y=-140.411))
+        CPoints.append(PointClass(x=40.883, y=-140.411))
+        CPoints.append(PointClass(x=40.883, y=-140.411))
+        CPoints.append(PointClass(x=40.883, y=-140.411))
+        CPoints.append(PointClass(x=40.883, y=-140.411))
+        CPoints.append(PointClass(x=40.883, y=-144.332))
+        CPoints.append(PointClass(x=37.670, y=-147.544))
+        CPoints.append(PointClass(x=33.750, y=-147.544))
+        CPoints.append(PointClass(x=33.750, y=-147.544))
+        CPoints.append(PointClass(x=33.750, y=-147.544))
+        CPoints.append(PointClass(x=33.750, y=-147.544))
+        CPoints.append(PointClass(x=33.750, y=-147.544))
+        CPoints.append(PointClass(x=33.750, y=-147.544))
+        CPoints.append(PointClass(x=33.750, y=-147.544))
+        CPoints.append(PointClass(x=-239.857, y=-147.544))
+        CPoints.append(PointClass(x=-239.857, y=-147.544))
+        CPoints.append(PointClass(x=-239.857, y=-147.544))
+        CPoints.append(PointClass(x=-239.857, y=-147.544))
+        CPoints.append(PointClass(x=-239.857, y=-147.544))
+        CPoints.append(PointClass(x=-239.857, y=-147.544))
+        CPoints.append(PointClass(x=-239.857, y=-147.544))
+        CPoints.append(PointClass(x=-243.777, y=-147.544))
+        CPoints.append(PointClass(x=-246.990, y=-144.332))
+        CPoints.append(PointClass(x=-246.990, y=-140.411))
+        CPoints.append(PointClass(x=-246.990, y=-140.411))
+        CPoints.append(PointClass(x=-246.990, y=-140.411))
+        CPoints.append(PointClass(x=-246.990, y=-140.411))
+        CPoints.append(PointClass(x=-246.990, y=-140.411))
+        CPoints.append(PointClass(x=-246.990, y=-140.411))
+        CPoints.append(PointClass(x=-246.990, y=-140.411))
+        CPoints.append(PointClass(x=-246.990, y=-122.552))
+        CPoints.append(PointClass(x=-246.990, y=-122.552))
+        CPoints.append(PointClass(x=-246.990, y=-122.552))
+        CPoints.append(PointClass(x=-246.990, y=-122.552))
+        CPoints.append(PointClass(x=-246.990, y=-122.552))
+        CPoints.append(PointClass(x=-246.990, y=-122.552))
+        CPoints.append(PointClass(x=-246.990, y=-122.552))
+        CPoints.append(PointClass(x=-246.990, y=-118.632))
+        CPoints.append(PointClass(x=-243.777, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        CPoints.append(PointClass(x=-239.857, y=-115.419))
+        return degree, CPoints, Weights, Knots   
+
+
 
 if 1:
     master = Tk()
