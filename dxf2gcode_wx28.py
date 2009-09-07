@@ -49,7 +49,6 @@ else:
 #Schauen ob das numpy Modul geladen werden kann
 try:
     import numpy as N
-    haveNumpy = True
 except ImportError:
             # numpy isn't there
             print ("The FloatCanvas requires the numpy module, version 1.* \n\n"
@@ -964,8 +963,7 @@ class MyCanvasContentClass:
         self.Canvas=MyGraphic.Canvas
         self.MyMessages=MyMessages
         self.MyConfig=MyConfig
-        self.MyLayersTree=MyNotebook.MyLayersTree
-        self.MyEntTree=MyNotebook.MyEntTree
+        self.MyNotebook=MyNotebook
         self.Shapes=[]
         self.LayerContents=[]
         self.EntitiesRoot=EntitieContentClass()
@@ -979,13 +977,7 @@ class MyCanvasContentClass:
         #Zuweisen der Verbindung zwischen den zwei Klassen
         MyGraphic.MyCanvasContent=self
         MyNotebook.MyCanvasContent=self
-#        MyEntTree.MyCanvasContent=self
-#        MyLayersTree.MyCanvasContent=self
-#        MySelectionInfo.MyCanvasContent=self
-#
-#        self.MyEntTree.MySelectionInfo=MySelectionInfo
-#        self.MyLayersTree.MySelectionInfo=MySelectionInfo
-        
+
 
         #Anfangswert fuer das Ansicht Toggle Menu
         self.toggle_wp_zero=1
@@ -1061,8 +1053,8 @@ class MyCanvasContentClass:
         self.LayerContents.sort()
          
         #Erstellen der Layers Liste (Tree)
-        self.MyLayersTree.MakeLayerList(self.LayerContents)
-        self.MyEntTree.MakeEntitieList(self.EntitiesRoot)
+        self.MyNotebook.MyLayersTree.MakeLayerList(self.LayerContents)
+        self.MyNotebook.MyEntTree.MakeEntitieList(self.EntitiesRoot)
         
     def autoscale(self):
         self.Canvas.ZoomToBB()
@@ -1143,10 +1135,12 @@ class MyCanvasContentClass:
     
     def ShapeGotHit(self, Object):
         self.change_selection([Object.Name])
+        self.selection_changed()
         #self.Canvas._RaiseMouseEvent(event, EventType)
         
     def NothingGotHit(self):
         self.change_selection([])
+        self.selection_changed()
         
     def ShapesInBB(self,BB):
         InsideList=[]
@@ -1155,6 +1149,7 @@ class MyCanvasContentClass:
             if BB.Inside(shape.geo_hdl.BoundingBox):
                 InsideList.append(shape)
         self.change_selection(InsideList)
+        self.selection_changed()
              
             
     def plot_grid(self,event=None):
@@ -1365,6 +1360,7 @@ class MyCanvasContentClass:
         self.Canvas.Draw(Force=True)
 
         self.MyMessages.prt(_('\nInverting Selection'),3)
+        self.selection_changed()
         
 
     def disable_selection(self,event):
@@ -1383,7 +1379,9 @@ class MyCanvasContentClass:
         self.select()
         self.Canvas.Draw(Force=True)
 
-    
+    def selection_changed(self):
+        self.MyNotebook.selection_changed(self.Selected)
+        
 
     def switch_shape_dir(self,event):
         for shape in self.Selected:

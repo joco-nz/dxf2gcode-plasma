@@ -81,8 +81,13 @@ class MyNotebookClass(wx.Notebook):
         pass
     
     def change_selection(self,sel_items=None):
+        #print "bin da"
         self.MyCanvasContent.change_selection(sel_items)
-        self.MySelectionInfo.change_selection(sel_items)
+        
+    def selection_changed(self,sel_items=None):
+        #self.MySelectionInfo.change_selection(sel_items)
+        self.MyLayersTree.selection_changed(sel_items)
+
 
 class MyEntitieTreeClass(CT.CustomTreeCtrl):
     def __init__(self, parent, id=wx.ID_ANY, MyNotebook=None):
@@ -108,7 +113,7 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
         self.Bind(wx.EVT_RIGHT_DOWN, self.OnRightDown)
         self.Bind(wx.EVT_RIGHT_UP, self.OnRightUp)
         self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
-        self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
+        #self.Bind(wx.EVT_KILL_FOCUS, self.OnKillFocus)
 
     def MakeEntitieList(self,EntitieContents=None):
         self.DeleteAllItems()
@@ -389,8 +394,19 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
                 SelShapes+=self.GetItemShapes(shape)
           
         return SelShapes
-
-
+    
+    def selection_changed(self,sel_items=None):
+        
+        #self.Update()
+        print self.GetSelection()
+        if len(self.GetSelections())>0:
+            self.Unbind(CT.EVT_TREE_SEL_CHANGED)
+            self.UnselectAll()
+            self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
+        #print dir(self)
+        #self.Update()
+        
+        
 
 class MyExportParasClass():
     def __init__(self,parent=None,id=-1,MyNotebook=None):
