@@ -405,8 +405,8 @@ class Spline2Arcs:
                     u-=cur_step
                     cur_step*=0.7
                     
-            if step>1000:
-                raise ValueError, "Iteraitions above 1000 reduce tolerance"
+            if step>10000:
+                raise ValueError, "Iteraitions above 10000 reduce tolerance"
             
         return BiarcCurve, PtsVec
     
@@ -453,7 +453,7 @@ class NURBSClass:
         self.knt_m_change=[]
         self.ignor=[]
         
-        if check==1:
+        if check==1 or check==3:
             while knt_nr < len(self.Knots):
                 if self.Knots[knt_nr]==knt_vec[-1][-1]:
                     knt_vec[-1].append(self.Knots[knt_nr])
@@ -482,6 +482,7 @@ class NURBSClass:
            
             #Überprüfen der Kontrollpunkte
             #Suchen von mehrachen Kontrollpunkten (Anzahl über degree+2 => nicht errechnen
+        if check==2 or check==3:
             ctlpt_nr=0
             ctlpt_vec=[[ctlpt_nr]]
             while ctlpt_nr < len(self.CPoints)-1:
