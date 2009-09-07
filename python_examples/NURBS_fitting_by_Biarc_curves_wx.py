@@ -29,13 +29,22 @@
 #numpy      see: http://numpy.scipy.org/ and http://sourceforge.net/projects/numpy/
 #matplotlib.use('TkAgg')
 
-from matplotlib.numerix import arange, sin, pi
-from matplotlib.axes import Subplot
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2TkAgg
+import matplotlib
+
+# uncomment the following to use wx rather than wxagg
+#matplotlib.use('WX')
+#from matplotlib.backends.backend_wx import FigureCanvasWx as FigureCanvas
+
+# comment out the following to use wx rather than wxagg
+matplotlib.use('WXAgg')
+from matplotlib.backends.backend_wxagg import FigureCanvasWxAgg as FigureCanvas
+
+from matplotlib.backends.backend_wx import NavigationToolbar2Wx
+
 from matplotlib.figure import Figure
 
-from Tkconstants import TOP, BOTH, BOTTOM, LEFT, RIGHT,GROOVE
-from Tkinter import Tk, Button, Frame
+import wx
+
 from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil
 import sys
 
@@ -52,11 +61,30 @@ class NURBSClass:
         #Punkte in Homogene Punkte umwandeln
         self.CPts_2_HCPts()
 
+        print self
+
         #Erstellen der BSplineKlasse zur Berechnung der Homogenen Punkte
         self.BSpline=BSplineClass(degree=self.degree,\
                                   Knots=self.Knots,\
                                   CPts=self.HCPts)
 
+    def __str__(self):
+        print len(self.Knots)
+        print len(self.Weights)
+        print len(self.CPoints)
+        str='\ndegree:    %s' %self.degree
+        
+        for j in range((self.degree+1)/2):
+            str=str+'\n'
+            str=str+'Knots[%s]: %s' % (j,self.Knots[j])
+        for i in range(len(self.Knots)-j-1):
+            str=str+'\n'
+            if i<len(self.CPoints):
+                str=str+'  CPoints[%s]: %s' % (i,self.CPoints[i])
+                str=str+'  Weights[%s]: %s' % (i,self.Weights[i])
+            str=str+'Knots[%s]: %s' % (i+j+1,self.Knots[i+j+1])
+            
+        return str
     def check_NURBSParameters(self,tol):
         #Überprüfen des Knotenvektors
         #Suchen von mehrfachen Knotenpunkte (Anzahl über degree+1 => Fehler?!)
@@ -365,15 +393,12 @@ class BSplineClass:
 
 
 class BiarcFittingClass:
-    def __init__(self):
+    def __init__(self,degree, CPoints, Weights, Knots):
         #Max Abweichung für die Biarc Kurve
         self.epsilon=0.01
         self.epsilon_high=self.epsilon*0.03
         self.segments=50
 
-        #Beispiel aus der ExamplesClass laden
-        examples=ExamplesClass()
-        degree, CPoints, Weights, Knots=examples.get_nurbs_6()
 
         #NURBS Klasse initialisieren
         self.NURBS=NURBSClass(degree=degree,Knots=Knots,CPoints=CPoints,Weights=Weights)
@@ -947,7 +972,7 @@ class ArcGeo:
         #print self
         x=[]; y=[]
         #Alle 6 Grad ein Linien Segment Drucken
-        segments=int((abs(degrees(self.ext))//6)+1)
+        segments=int((abs(degrees(self.ext))//0.01)+1)
         for i in range(segments+1):
             ang=self.s_ang+i*self.ext/segments
             x.append(self.O.x+cos(ang)*abs(self.r))
@@ -1050,28 +1075,64 @@ class PointClass:
         c=self.distance(other2)
         return sqrt(pow(b,2)-pow((pow(c,2)+pow(b,2)-pow(a,2))/(2*c),2))                
 
-class PlotClass:
-    def __init__(self,master=[]):
-        
-        self.master=master
- 
-        #Erstellen des Fensters mit Rahmen und Canvas
-        self.figure = Figure(figsize=(7,7), dpi=100)
-        self.frame_c=Frame(relief = GROOVE,bd = 2)
-        self.frame_c.pack(fill=BOTH, expand=1,)
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self.frame_c)
-        self.canvas.show()
-        self.canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
-        #Erstellen der Toolbar unten
-        self.toolbar = NavigationToolbar2TkAgg(self.canvas, self.frame_c)
+
+
+
+
+
+class PlotClass(wx.Frame):
+
+    def __init__(self):
+        wx.Frame.__init__(self,None,-1,
+                         'CanvasFrame',size=(550,350))
+
+
+
+        self.SetBackgroundColour(wx.NamedColor("WHITE"))
+
+        self.figure = Figure()
+        self.axes = self.figure.add_subplot(111)
+
+        self.canvas = FigureCanvas(self, -1, self.figure)
+
+        self.sizer = wx.BoxSizer(wx.VERTICAL)
+        self.sizer.Add(self.canvas, 1, wx.LEFT | wx.TOP | wx.GROW)
+        self.SetSizer(self.sizer)
+        self.Fit()
+
+        self.add_toolbar()  # comment this out for no toolbar
+        
+        self.axes.set_title("NURBS and B-Spline Algorithms: ")
+
+
+    def add_toolbar(self):
+        self.toolbar = NavigationToolbar2Wx(self.canvas)
+        self.toolbar.Realize()
+        if wx.Platform == '__WXMAC__':
+            # Mac platform (OSX 10.3, MacPython) does not seem to cope with
+            # having a toolbar in a sizer. This work-around gets the buttons
+            # back, but at the expense of having the toolbar at the top
+            self.SetToolBar(self.toolbar)
+        else:
+            # On Windows platform, default window size is incorrect, so set
+            # toolbar width to figure width.
+            tw, th = self.toolbar.GetSizeTuple()
+            fw, fh = self.canvas.GetSizeTuple()
+            # By adding toolbar in sizer, we are able to put it at the bottom
+            # of the frame - so appearance is closer to GTK version.
+            # As noted above, doesn't work for Mac.
+            self.toolbar.SetSize(wx.Size(fw, th))
+            self.sizer.Add(self.toolbar, 0, wx.LEFT | wx.EXPAND)
+        # update the axes menu on the toolbar
         self.toolbar.update()
-        self.canvas._tkcanvas.pack( fill=BOTH, expand=1)
+
+    def OnPaint(self, event):
+        self.canvas.draw()
 
     def make_nurbs_plot(self,CPoints=[],Points=[],Tang=[]):
 
-        self.plot1 = self.figure.add_subplot(111)
-        self.plot1.set_title("NURBS and B-Spline Algorithms: ")
+
                 
         xC=[]; yC=[]; xP=[]; yP=[]
 
@@ -1081,34 +1142,33 @@ class PlotClass:
         for Pt in Points:
             xP.append(Pt.x)
             yP.append(Pt.y)
-        self.plot1.plot(xC,yC,'-.xr',xP,yP,'-og')
+        self.axes.plot(xC,yC,'-.xr',xP,yP,'-og')
 
         if len(Tang)>0:
             arrow_len=0.3
-            self.plot1.hold(True)
+            self.axes.hold(True)
             
             for nr in range(len(Tang)):
-                self.plot1.arrow(Points[nr].x,Points[nr].y,\
+                self.axes.arrow(Points[nr].x,Points[nr].y,\
                                  cos(Tang[nr])*arrow_len,\
                                  sin(Tang[nr])*arrow_len,\
                                  width=0.02)
                 
         self.canvas.show()
     def make_nurbs_biarc_plot(self,biarcs):
-        self.plot1 = self.figure.add_subplot(111)
-        self.plot1.set_title("NURBS, BIARC Fitting Algorithms: ")
+        self.axes.set_title("NURBS, BIARC Fitting Algorithms: ")
 
         arrow_len=0.3
         arrow_width=arrow_len*0.05
 
         xP=[]
         yP=[]
-        self.plot1.hold(True)
+        self.axes.hold(True)
         for PtsVec in biarcs.PtsVec:
             for Pt in PtsVec:
                 (Pt[0].x)
                 (Pt[0].y)
-                self.plot1.plot([Pt[0].x],[Pt[0].y],'xr')
+                self.axes.plot([Pt[0].x],[Pt[0].y],'xr')
                 
 ##                self.plot1.arrow(Pt[0].x,Pt[0].y,\
 ##                                 cos(Pt[1])*arrow_len,\
@@ -1116,9 +1176,31 @@ class PlotClass:
 ##                                 width=arrow_width)        
 
         for geo in biarcs.Curve:
-            geo.plot2plot(self.plot1)
-        self.plot1.axis('scaled')     
+            geo.plot2plot(self.axes)
+        self.axes.axis('scaled')     
         #self.canvas.show()
+        
+    def _onSize(self, event):
+        self._resizeflag = True
+
+    def _onIdle(self, evt):
+        if self._resizeflag:
+            self._resizeflag = False
+            self._SetSize()
+            self.draw()
+
+    def _SetSize(self, pixels = None):
+        """
+        This method can be called to force the Plot to be a desired size, which defaults to
+        the ClientSize of the panel
+        """
+        if not pixels:
+            pixels = self.GetClientSize()
+        self.canvas.SetSize(pixels)
+        self.figure.set_figsize_inches(pixels[0]/self.figure.get_dpi(),
+        pixels[1]/self.figure.get_dpi())
+
+
     
 class ExamplesClass:
     def __init__(self):
@@ -1148,193 +1230,6 @@ class ExamplesClass:
                 CPoints.append(PointClass(x=CPt[0],y=CPt[1]))
                 
             return CPoints, Points, Tang
-
-                
-    def get_bspline_1(self):
-        #Erstellt mit ndu das Ergebniss aus S.71 und S.91
-        degree=2
-        Knots=[0,0,0,1,2,3,4,4,5,5,5]
-        CPts=[[0,1],[2,8],[5,1],[7,6],[10,1],[11,1],[12,5],[12.5,7]]
-
-        return degree, CPts, Knots           
-
-    def get_nurbs_1(self):
-        degree=3
-        Knots=[0.0, 0.0, 0.0, 0.0, 0.25, 0.25, 0.25, 0.25, 0.5, 0.5, 0.5,\
-               0.5, 0.75, 0.75, 0.75, 0.75, 1.0, 1.0, 1.0, 1.0]
-        
-        Weights= [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-        CPoints=[]        
-        CPoints.append(PointClass(x=-105.00,y=147.25))
-        CPoints.append(PointClass(x=-104.31,y=147.25))
-        CPoints.append(PointClass(x=-103.75,y=147.81))
-        CPoints.append(PointClass(x=-103.75,y=148.50))
-        CPoints.append(PointClass(x=-103.75,y=148.50))
-        CPoints.append(PointClass(x=-103.75,y=149.19))
-        CPoints.append(PointClass(x=-104.31,y=149.75))
-        CPoints.append(PointClass(x=-105.00,y=149.75))
-        CPoints.append(PointClass(x=-105.00,y=149.75))
-        CPoints.append(PointClass(x=-105.69,y=149.75))
-        CPoints.append(PointClass(x=-106.25,y=149.19))
-        CPoints.append(PointClass(x=-106.25,y=148.50))
-        CPoints.append(PointClass(x=-106.25,y=148.50))
-        CPoints.append(PointClass(x=-106.25,y=147.81))
-        CPoints.append(PointClass(x=-105.69,y=147.25))
-        CPoints.append(PointClass(x=-105.00,y=147.25))
-
-        return degree, CPoints, Weights, Knots   
-
-    def get_nurbs_2(self):
-        degree=3
-        Knots=[0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001,\
-               0.10000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001,\
-               0.20000000000000001, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999,\
-               0.29999999999999999, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002,\
-               0.40000000000000002, 0.5, 0.5, 0.5, 0.5, 0.59999999999999998, 0.59999999999999998,\
-               0.59999999999999998, 0.59999999999999998, 0.69999999999999996, 0.69999999999999996,\
-               0.69999999999999996, 0.69999999999999996, 0.79999999999999993, 0.79999999999999993,\
-               0.79999999999999993, 0.79999999999999993, 0.89999999999999991, 0.89999999999999991,\
-               0.89999999999999991, 0.89999999999999991, 1.0, 1.0, 1.0, 1.0]
-        
-        Weights= [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,\
-                    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-        CPoints=[]
-     
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-64.98,y=92.00))
-        CPoints.append(PointClass(x=-61.00,y=93.30))
-        CPoints.append(PointClass(x=-57.69,y=95.53))
-        CPoints.append(PointClass(x=-57.69,y=95.53))
-        CPoints.append(PointClass(x=-57.69,y=95.53))
-        CPoints.append(PointClass(x=-60.22,y=98.06))
-        CPoints.append(PointClass(x=-60.22,y=98.06))
-        CPoints.append(PointClass(x=-60.22,y=98.06))
-        CPoints.append(PointClass(x=-62.85,y=96.44))
-        CPoints.append(PointClass(x=-65.94,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-69.25,y=95.50))
-        CPoints.append(PointClass(x=-72.56,y=95.50))
-        CPoints.append(PointClass(x=-75.65,y=96.44))
-        CPoints.append(PointClass(x=-78.28,y=98.06))
-        CPoints.append(PointClass(x=-78.28,y=98.06))
-        CPoints.append(PointClass(x=-78.28,y=98.06))
-        CPoints.append(PointClass(x=-80.81,y=95.53))
-        CPoints.append(PointClass(x=-80.81,y=95.53))
-        CPoints.append(PointClass(x=-80.81,y=95.53))
-        CPoints.append(PointClass(x=-77.50,y=93.30))
-        CPoints.append(PointClass(x=-73.53,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        CPoints.append(PointClass(x=-69.25,y=92.00))
-        return degree, CPoints, Weights, Knots   
-
-    def get_nurbs_3(self):
-        degree=3
-        
-        Knots=[0,0,0,0,1,2,3,4,4,5,5,6,7,7,7,7]
-
-        Weights= [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-        CPoints=[]
-     
-        CPoints.append(PointClass(x=0.0,y=1.0))
-        CPoints.append(PointClass(x=2.0,y=8.0))
-        CPoints.append(PointClass(x=-3.0,y=1.0))
-        CPoints.append(PointClass(x=7.0,y=6.0))
-        CPoints.append(PointClass(x=14.0,y=-3.0))
-        CPoints.append(PointClass(x=13.0,y=1.0))
-        CPoints.append(PointClass(x=8.0,y=-6.0))
-        CPoints.append(PointClass(x=3.5,y=-4.00))
-        CPoints.append(PointClass(x=0.5,y=4.00))
-        CPoints.append(PointClass(x=-2.,y=-6.0))
-        CPoints.append(PointClass(x=3.5,y=3.00))
-        CPoints.append(PointClass(x=8.5,y=-2.00))
-
-
-
-        return degree, CPoints, Weights, Knots 
-
-    def get_nurbs_4(self):
-        degree=3
-        
-        Knots=[0,0,0,0,1,2,3,3,3,3]
-
-        Weights= [1, 1, 1, 1, 1, 1]
-
-        CPoints=[]
-     
-        CPoints.append(PointClass(x=0.0,y=-4.0))
-        CPoints.append(PointClass(x=3.5,y=-4.0))
-        CPoints.append(PointClass(x=3.5,y=3.0))
-        CPoints.append(PointClass(x=-3,y=3.0))
-        CPoints.append(PointClass(x=-2.7,y=-2.0))
-        CPoints.append(PointClass(x=0,y=-1))
-        
-        return degree, CPoints, Weights, Knots 
-
-    def get_nurbs_5(self):
-        degree = 3
-        Knots=[0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.5, 0.5, 0.5, 0.5, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 1.0, 1.0, 1.0, 1.0]
-        Weights=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-
-        CPoints=[]
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-64.98  , y=-92.00))
-        CPoints.append(PointClass(x=-61.00  , y=-93.30))
-        CPoints.append(PointClass(x=-57.69  , y=-95.53))
-        CPoints.append(PointClass(x=-57.69  , y=-95.53))
-        CPoints.append(PointClass(x=-57.69  , y=-95.53))
-        CPoints.append(PointClass(x=-60.22  , y=-98.06))
-        CPoints.append(PointClass(x=-60.22  , y=-98.06))
-        CPoints.append(PointClass(x=-60.22  , y=-98.06))
-        CPoints.append(PointClass(x=-62.85  , y=-96.44))
-        CPoints.append(PointClass(x=-65.94  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-69.25  , y=-95.50))
-        CPoints.append(PointClass(x=-72.56  , y=-95.50))
-        CPoints.append(PointClass(x=-75.65  , y=-96.44))
-        CPoints.append(PointClass(x=-78.28  , y=-98.06))
-        CPoints.append(PointClass(x=-78.28  , y=-98.06))
-        CPoints.append(PointClass(x=-78.28  , y=-98.06))
-        CPoints.append(PointClass(x=-80.81  , y=-95.53))
-        CPoints.append(PointClass(x=-80.81  , y=-95.53))
-        CPoints.append(PointClass(x=-80.81  , y=-95.53))
-        CPoints.append(PointClass(x=-77.50  , y=-93.30))
-        CPoints.append(PointClass(x=-73.53  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        CPoints.append(PointClass(x=-69.25  , y=-92.00))
-        return degree, CPoints, Weights, Knots
 
     def get_nurbs_6(self):
         degree=3
@@ -1391,211 +1286,99 @@ class ExamplesClass:
         CPoints.append(PointClass(x=-69.25150, y=-77.50000))
         CPoints.append(PointClass(x=-69.25000, y=-77.50000))
         CPoints.append(PointClass(x=-69.25000, y=-77.50000))
-        
-        print len(CPoints)
-        print len(Weights)
-        print len(Knots)
         return degree, CPoints, Weights, Knots
 
-    def get_nurbs_7(self):
+    def get_nurbs_61(self):
         degree=3
-        Knots=[0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.5, 0.5, 0.5, 0.5, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 1.0, 1.0, 1.0, 1.0]
-        Weights=[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        CPoints =[]
-        CPoints.append(PointClass(x=-52.03270, y=-101.18960))
-        CPoints.append(PointClass(x=-49.80380, y=-104.49620))
-        CPoints.append(PointClass(x=-48.50030, y=-108.47490))
-        CPoints.append(PointClass(x=-48.50000, y=-112.74850))
-        CPoints.append(PointClass(x=-48.50000, y=-112.74850))
-        CPoints.append(PointClass(x=-48.50000, y=-112.74850))
-        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
-        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
-        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
-        CPoints.append(PointClass(x=-48.50000, y=-112.75000))
-        CPoints.append(PointClass(x=-48.50000, y=-112.75070))
-        CPoints.append(PointClass(x=-48.50000, y=-112.75070))
-        CPoints.append(PointClass(x=-48.50000, y=-112.75070))
-        CPoints.append(PointClass(x=-48.50010, y=-117.02480))
-        CPoints.append(PointClass(x=-49.80380, y=-121.00360))
-        CPoints.append(PointClass(x=-52.03280, y=-124.31030))
-        CPoints.append(PointClass(x=-52.03280, y=-124.31030))
-        CPoints.append(PointClass(x=-52.03280, y=-124.31030))
-        CPoints.append(PointClass(x=-54.56410, y=-121.77900))
-        CPoints.append(PointClass(x=-54.56410, y=-121.77900))
-        CPoints.append(PointClass(x=-54.56410, y=-121.77900))
-        CPoints.append(PointClass(x=-52.93950, y=-119.14980))
-        CPoints.append(PointClass(x=-52.00010, y=-116.05620))
-        CPoints.append(PointClass(x=-52.00000, y=-112.75070))
-        CPoints.append(PointClass(x=-52.00000, y=-112.75070))
-        CPoints.append(PointClass(x=-52.00000, y=-112.75070))
-        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
-        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
-        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
-        CPoints.append(PointClass(x=-52.00000, y=-112.75000))
-        CPoints.append(PointClass(x=-52.00000, y=-112.74850))
-        CPoints.append(PointClass(x=-52.00000, y=-112.74850))
-        CPoints.append(PointClass(x=-52.00000, y=-112.74850))
-        CPoints.append(PointClass(x=-52.00020, y=-109.44350))
-        CPoints.append(PointClass(x=-52.93940, y=-106.34970))
-        CPoints.append(PointClass(x=-54.56380, y=-103.72070))
-        CPoints.append(PointClass(x=-54.56380, y=-103.72070))
-        CPoints.append(PointClass(x=-54.56380, y=-103.72070))
-        CPoints.append(PointClass(x=-52.03270, y=-101.18960))
-        CPoints.append(PointClass(x=-52.03270, y=-101.18960))
+        Knots = [0.0, 0.0, 0.0, 0.0,\
+                 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001,\
+                 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001]
+        Weights = [1, 1, 1, 1, 1, 1, 1, 1]
+        CPoints=[]
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-77.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-77.50000))
+        CPoints.append(PointClass(x=-69.24930, y=-77.50000))
+        CPoints.append(PointClass(x=-60.97700, y=-77.50020))
+        CPoints.append(PointClass(x=-53.35560, y=-80.37450))
+        CPoints.append(PointClass(x=-47.33170, y=-85.17480))
+        
         return degree, CPoints, Weights, Knots
 
-    def get_nurbs_8(self):
-        degree = 3
-        Knots = [0.0, 0.0, 0.0, 0.0, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.10000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.5, 0.5, 0.5, 0.5, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 1.0, 1.0, 1.0, 1.0]
-        Weights =[1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-        CPoints =[]
-        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
-        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
-        CPoints.append(PointClass(x=-69.24930, y=-92.00000))
-        CPoints.append(PointClass(x=-69.24930, y=-92.00000))
-        CPoints.append(PointClass(x=-69.24930, y=-92.00000))
-        CPoints.append(PointClass(x=-64.97520, y=-92.00010))
-        CPoints.append(PointClass(x=-60.99630, y=-93.30340))
-        CPoints.append(PointClass(x=-57.68950, y=-95.53260))
-        CPoints.append(PointClass(x=-57.68950, y=-95.53260))
-        CPoints.append(PointClass(x=-57.68950, y=-95.53260))
-        CPoints.append(PointClass(x=-60.22060, y=-98.06370))
-        CPoints.append(PointClass(x=-60.22060, y=-98.06370))
-        CPoints.append(PointClass(x=-60.22060, y=-98.06370))
-        CPoints.append(PointClass(x=-62.85000, y=-96.43900))
-        CPoints.append(PointClass(x=-65.94370, y=-95.50010))
-        CPoints.append(PointClass(x=-69.24930, y=-95.50000))
-        CPoints.append(PointClass(x=-69.24930, y=-95.50000))
-        CPoints.append(PointClass(x=-69.24930, y=-95.50000))
-        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
-        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
-        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
-        CPoints.append(PointClass(x=-69.25000, y=-95.50000))
-        CPoints.append(PointClass(x=-69.25150, y=-95.50000))
-        CPoints.append(PointClass(x=-69.25150, y=-95.50000))
-        CPoints.append(PointClass(x=-69.25150, y=-95.50000))
-        CPoints.append(PointClass(x=-72.55680, y=-95.50020))
-        CPoints.append(PointClass(x=-75.65020, y=-96.43910))
-        CPoints.append(PointClass(x=-78.27940, y=-98.06370))
-        CPoints.append(PointClass(x=-78.27940, y=-98.06370))
-        CPoints.append(PointClass(x=-78.27940, y=-98.06370))
-        CPoints.append(PointClass(x=-80.81050, y=-95.53260))
-        CPoints.append(PointClass(x=-80.81050, y=-95.53260))
-        CPoints.append(PointClass(x=-80.81050, y=-95.53260))
-        CPoints.append(PointClass(x=-77.50380, y=-93.30360))
-        CPoints.append(PointClass(x=-73.52530, y=-92.00030))
-        CPoints.append(PointClass(x=-69.25150, y=-92.00000))
-        CPoints.append(PointClass(x=-69.25150, y=-92.00000))
-        CPoints.append(PointClass(x=-69.25150, y=-92.00000))
-        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
-        CPoints.append(PointClass(x=-69.25000, y=-92.00000))
+    def get_nurbs_62(self):
+        degree=3
+        Knots = [0.20000000000000001, 0.20000000000000001, 0.20000000000000001, 0.20000000000000001,\
+                 0.29999999999999999, 0.29999999999999999, 0.29999999999999999, 0.29999999999999999,\
+                 0.40000000000000002, 0.40000000000000002, 0.40000000000000002, 0.40000000000000002,\
+                 0.5, 0.5, 0.5, 0.5,\
+                 0.59999999999999998, 0.59999999999999998, 0.59999999999999998, 0.59999999999999998,\
+                 0.69999999999999996, 0.69999999999999996, 0.69999999999999996, 0.69999999999999996,\
+                 0.79999999999999993, 0.79999999999999993, 0.79999999999999993, 0.79999999999999993,\
+                 0.89999999999999991, 0.89999999999999991, 0.89999999999999991, 0.89999999999999991,\
+                 1.0, 1.0, 1.0, 1.0]
+        Weights = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        CPoints=[]
+        CPoints.append(PointClass(x=-47.33170, y=-85.17480))
+        CPoints.append(PointClass(x=-47.33170, y=-85.17480))
+        CPoints.append(PointClass(x=-49.82390, y=-87.66700))
+        CPoints.append(PointClass(x=-49.82390, y=-87.66700))
+        CPoints.append(PointClass(x=-49.82390, y=-87.66700))
+        CPoints.append(PointClass(x=-55.19980, y=-83.49120))
+        CPoints.append(PointClass(x=-61.94320, y=-81.00010))
+        CPoints.append(PointClass(x=-69.24930, y=-81.00000))
+        CPoints.append(PointClass(x=-69.24930, y=-81.00000))
+        CPoints.append(PointClass(x=-69.24930, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25000, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-81.00000))
+        CPoints.append(PointClass(x=-69.25150, y=-81.00000))
+        CPoints.append(PointClass(x=-76.55740, y=-81.00030))
+        CPoints.append(PointClass(x=-83.30040, y=-83.49120))
+        CPoints.append(PointClass(x=-88.67610, y=-87.66700))
+        CPoints.append(PointClass(x=-88.67610, y=-87.66700))
+        CPoints.append(PointClass(x=-88.67610, y=-87.66700))
+        CPoints.append(PointClass(x=-91.16830, y=-85.17480))
+        CPoints.append(PointClass(x=-91.16830, y=-85.17480))
+        CPoints.append(PointClass(x=-91.16830, y=-85.17480))
+        CPoints.append(PointClass(x=-85.14470, y=-80.37460))
+        CPoints.append(PointClass(x=-77.52360, y=-77.50030))
+        CPoints.append(PointClass(x=-69.25150, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25150, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25150, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
+        CPoints.append(PointClass(x=-69.25000, y=-77.50000))
         return degree, CPoints, Weights, Knots
 
-    def get_nurbs_8(self):
-                
-        #Reading Entities
-        #Found SPLINE at Linepair 785 (Line 1574 till 2160)
-        #Typ: Spline
-        #Nr: 0
-        #Layer Nr: 1
-        #Spline flag: 11
-        #degree: 3
-        #length: 44.788
-        #Geo elements: 20
+
+class App(wx.App):
+    def OnInit(self):
+        'Create the main window and insert the custom frame'
+        frame = PlotClass()
         
-        degree = 3
-        Knots= [0.0, 0.0, 0.0, 0.0, 0.058823529411764698, 0.058823529411764698, 0.058823529411764698, 0.058823529411764698, 0.1176470588235294, 0.1176470588235294, 0.1176470588235294, 0.1176470588235294, 0.1764705882352941, 0.1764705882352941, 0.1764705882352941, 0.1764705882352941, 0.23529411764705879, 0.23529411764705879, 0.23529411764705879, 0.23529411764705879, 0.29411764705882348, 0.29411764705882348, 0.29411764705882348, 0.29411764705882348, 0.35294117647058831, 0.35294117647058831, 0.35294117647058831, 0.35294117647058831, 0.41176470588235298, 0.41176470588235298, 0.41176470588235298, 0.41176470588235298, 0.4705882352941177, 0.4705882352941177, 0.4705882352941177, 0.4705882352941177, 0.52941176470588236, 0.52941176470588236, 0.52941176470588236, 0.52941176470588236, 0.58823529411764708, 0.58823529411764708, 0.58823529411764708, 0.58823529411764708, 0.6470588235294118, 0.6470588235294118, 0.6470588235294118, 0.6470588235294118, 0.70588235294117652, 0.70588235294117652, 0.70588235294117652, 0.70588235294117652, 0.76470588235294124, 0.76470588235294124, 0.76470588235294124, 0.76470588235294124, 0.82352941176470595, 0.82352941176470595, 0.82352941176470595, 0.82352941176470595, 0.88235294117647067, 0.88235294117647067, 0.88235294117647067, 0.88235294117647067, 0.94117647058823539, 0.94117647058823539, 0.94117647058823539, 0.94117647058823539, 1.0, 1.0, 1.0, 1.0]
-        Weights= [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+        if 1:
+            examples=ExamplesClass()
+            CPoints, Points, Tang=examples.calc_nurbs_1()
+            frame.make_nurbs_plot(CPoints,Points,Tang)
+        if 0:
+            examples=ExamplesClass()
+            
+            degree, CPoints, Weights, Knots=examples.get_nurbs_6()   
+            biarcfitting=BiarcFittingClass(degree, CPoints, Weights, Knots)
+            frame.make_nurbs_biarc_plot(biarcfitting)
+            
+#            degree, CPoints, Weights, Knots=examples.get_nurbs_62()   
+#            biarcfitting=BiarcFittingClass(degree, CPoints, Weights, Knots)
+#            frame.make_nurbs_biarc_plot(biarcfitting)
+            
+        frame.Show(True)
 
-        CPoints =[]
+        return True
 
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=33.750, y=-115.419))
-        CPoints.append(PointClass(x=33.750, y=-115.419))
-        CPoints.append(PointClass(x=33.750, y=-115.419))
-        CPoints.append(PointClass(x=33.750, y=-115.419))
-        CPoints.append(PointClass(x=33.750, y=-115.419))
-        CPoints.append(PointClass(x=33.750, y=-115.419))
-        CPoints.append(PointClass(x=33.750, y=-115.419))
-        CPoints.append(PointClass(x=37.670, y=-115.419))
-        CPoints.append(PointClass(x=40.883, y=-118.632))
-        CPoints.append(PointClass(x=40.883, y=-122.552))
-        CPoints.append(PointClass(x=40.883, y=-122.552))
-        CPoints.append(PointClass(x=40.883, y=-122.552))
-        CPoints.append(PointClass(x=40.883, y=-122.552))
-        CPoints.append(PointClass(x=40.883, y=-122.552))
-        CPoints.append(PointClass(x=40.883, y=-122.552))
-        CPoints.append(PointClass(x=40.883, y=-122.552))
-        CPoints.append(PointClass(x=40.883, y=-140.411))
-        CPoints.append(PointClass(x=40.883, y=-140.411))
-        CPoints.append(PointClass(x=40.883, y=-140.411))
-        CPoints.append(PointClass(x=40.883, y=-140.411))
-        CPoints.append(PointClass(x=40.883, y=-140.411))
-        CPoints.append(PointClass(x=40.883, y=-140.411))
-        CPoints.append(PointClass(x=40.883, y=-140.411))
-        CPoints.append(PointClass(x=40.883, y=-144.332))
-        CPoints.append(PointClass(x=37.670, y=-147.544))
-        CPoints.append(PointClass(x=33.750, y=-147.544))
-        CPoints.append(PointClass(x=33.750, y=-147.544))
-        CPoints.append(PointClass(x=33.750, y=-147.544))
-        CPoints.append(PointClass(x=33.750, y=-147.544))
-        CPoints.append(PointClass(x=33.750, y=-147.544))
-        CPoints.append(PointClass(x=33.750, y=-147.544))
-        CPoints.append(PointClass(x=33.750, y=-147.544))
-        CPoints.append(PointClass(x=-239.857, y=-147.544))
-        CPoints.append(PointClass(x=-239.857, y=-147.544))
-        CPoints.append(PointClass(x=-239.857, y=-147.544))
-        CPoints.append(PointClass(x=-239.857, y=-147.544))
-        CPoints.append(PointClass(x=-239.857, y=-147.544))
-        CPoints.append(PointClass(x=-239.857, y=-147.544))
-        CPoints.append(PointClass(x=-239.857, y=-147.544))
-        CPoints.append(PointClass(x=-243.777, y=-147.544))
-        CPoints.append(PointClass(x=-246.990, y=-144.332))
-        CPoints.append(PointClass(x=-246.990, y=-140.411))
-        CPoints.append(PointClass(x=-246.990, y=-140.411))
-        CPoints.append(PointClass(x=-246.990, y=-140.411))
-        CPoints.append(PointClass(x=-246.990, y=-140.411))
-        CPoints.append(PointClass(x=-246.990, y=-140.411))
-        CPoints.append(PointClass(x=-246.990, y=-140.411))
-        CPoints.append(PointClass(x=-246.990, y=-140.411))
-        CPoints.append(PointClass(x=-246.990, y=-122.552))
-        CPoints.append(PointClass(x=-246.990, y=-122.552))
-        CPoints.append(PointClass(x=-246.990, y=-122.552))
-        CPoints.append(PointClass(x=-246.990, y=-122.552))
-        CPoints.append(PointClass(x=-246.990, y=-122.552))
-        CPoints.append(PointClass(x=-246.990, y=-122.552))
-        CPoints.append(PointClass(x=-246.990, y=-122.552))
-        CPoints.append(PointClass(x=-246.990, y=-118.632))
-        CPoints.append(PointClass(x=-243.777, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        CPoints.append(PointClass(x=-239.857, y=-115.419))
-        return degree, CPoints, Weights, Knots   
-
-
-
-if 1:
-    master = Tk()
-    #Wenn der NURBS erstellt und ausgedrückt werden soll
-    Pl=PlotClass(master)
-    if 0:
-        examples=ExamplesClass()
-        CPoints, Points, Tang=examples.calc_nurbs_1()
-        master.title("NURBS und B-Splines Classes in PYTHON")
-        Pl.make_nurbs_plot(CPoints,Points,Tang)
-    if 1:
-        biarcfitting=BiarcFittingClass()
-        master.title("NURBS BIARC Fiting in PYTHON")
-        Pl.make_nurbs_biarc_plot(biarcfitting)
-        
-    master.mainloop()
-
+app = App(0)
+app.MainLoop()
 
      

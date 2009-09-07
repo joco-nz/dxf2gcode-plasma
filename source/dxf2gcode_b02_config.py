@@ -82,7 +82,7 @@ class MyConfigClass:
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
         self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
-        self.parser.set('Import Parameters', 'spline_check', 0) 
+        self.parser.set('Import Parameters', 'spline_check', 1) 
                    
         self.parser.add_section('Plane Coordinates') 
         self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
