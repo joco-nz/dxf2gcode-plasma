@@ -495,8 +495,6 @@ class LoadDXF:
             points=self.Remove_Used_Points(cont[-1],points)
                        
             cont[-1]=self.Contours_Points2Geo(cont[-1],all_points)
-            cont[-1].analyse_and_opt(geo)
-
         return cont
 
     #Suchen die Wege duch die Konturn !!! REKURSIVE SCHLEIFE WAR SAU SCHWIERIG

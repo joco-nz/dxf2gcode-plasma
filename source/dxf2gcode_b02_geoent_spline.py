@@ -38,7 +38,6 @@ class SplineClass:
         self.Weights=[]
         self.CPoints=[]
         self.geo=[]
-        self.length= 0.0
 
         #Lesen der Geometrie
         self.Read(caller)
@@ -54,8 +53,6 @@ class SplineClass:
 
         self.geo=Spline2ArcsClass.Curve
 
-        for geo in self.geo:
-            self.length+=geo.length
 
     def __str__(self):
         # how to print the object
@@ -64,7 +61,6 @@ class SplineClass:
            ('\nLayer Nr: %i' %self.Layer_Nr)+\
            ('\nSpline flag: %i' %self.Spline_flag)+\
            ('\ndegree: %i' %self.degree)+\
-           ('\nlength: %0.3f' %self.length)+\
            ('\nGeo elements: %i' %len(self.geo))+\
            ('\nKnots: %s' %self.Knots)+\
            ('\nWeights: %s' %self.Weights)+\
@@ -84,8 +80,7 @@ class SplineClass:
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         #Hinzufügen falls es keine geschlossener Spline ist
         if self.CPoints[0].isintol(self.CPoints[-1],tol):
-            self.analyse_and_opt()
-            cont.append(ContourClass(len(cont),1,[[i,0]],self.length)) 
+            cont.append(ContourClass(len(cont),1,[[i,0]])) 
         else:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
@@ -94,31 +89,6 @@ class SplineClass:
                                       be_cp=[],en_cp=[]))
         return warning
             
-    def analyse_and_opt(self):
-        summe=0
-
-        #Richtung in welcher der Anfang liegen soll (unten links)        
-        Popt=PointClass(x=-1e3,y=-1e6)
-        
-        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-        #negativer Wert bedeutet CCW geschlossenes Polygon            
-        for Line in self.geo:
-            summe+=(Line.Pa.x*Line.Pe.y-Line.Pe.x*Line.Pa.y)/2
-        
-        if summe>0.0:
-            self.reverse()
-        
-        #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-        min_distance=self.geo[0].Pa.distance(Popt)
-        min_geo_nr=0
-        for geo_nr in range(1,len(self.geo)):
-            if (self.geo[geo_nr].Pa.distance(Popt)<min_distance):
-                min_distance=self.geo[geo_nr].Pa.distance(Popt)
-                min_geo_nr=geo_nr
-
-        #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-        self.geo=self.geo[min_geo_nr:len(self.geo)]+self.geo[0:min_geo_nr]
-
     def Read(self, caller):
 
         #Kürzere Namen zuweisen        
