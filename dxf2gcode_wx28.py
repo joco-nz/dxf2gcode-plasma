@@ -99,26 +99,26 @@ local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
 #Übersetzungen initialisieren----------------------------------------------------------------------------
 # Liste der unterstützuden Sprachen anlegen und die dementsprchende Reihenfolge der default Sprachen
-langs = ['DE_de']
+languages = ['DE_de']
 
 #Default Sprache des Systems herausfinden
 lc, encoding = locale.getdefaultlocale()
 
 if (lc):
     #Wenn wir eine haben diese als Default setzen
-    langs = [lc]
+    languages = [lc]
 
 # Herausfinden welche sprachen wir haben
 language = os.environ.get('LANGUAGE', None)
 if (language):
     #Die sprachen kommen in folgender Form vom Linzy System zurück:
     #en_CA:en_US:en_GB:en bei Windows nichts. Für Linux muß beim : gespliete werden
-    langs += language.split(":")
+    languages += language.split(":")
 
 # "Installieren" der Übersetzung fpr die Funktion _(string)
 gettext.bindtextdomain("dxf2gcode", local_path)
 gettext.textdomain("dxf2gcode")
-trans = gettext.translation("dxf2gcode", localedir='languages', languages=langs, fallback = True)
+trans = gettext.translation("dxf2gcode", localedir='languages', languages=languages, fallback = True)
 trans.install()
 
 
@@ -989,8 +989,7 @@ class MyCanvasContentClass:
         s='\nNr. of Shapes -> %s' %len(self.Shapes)
         for lay in self.LayerContents:
             s=s+'\n'+str(lay)
-        for ent in self.EntitieContents:
-            s=s+'\n'+str(ent)
+
         s=s+'\nSelected -> %s'%(self.Selected)\
            +'\nDisabled -> %s'%(self.Disabled)
         return s
@@ -1107,6 +1106,7 @@ class MyCanvasContentClass:
                                                 parent,\
                                                 [],\
                                                 []))
+                
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
                     if cont.order[ent_geo_nr][1]:
@@ -1134,13 +1134,13 @@ class MyCanvasContentClass:
         return [0]
     
     def ShapeGotHit(self, Object):
-        self.change_selection([Object.Name])
-        self.selection_changed()
+        self.change_selection([Object.Name],caller=self)
+
         #self.Canvas._RaiseMouseEvent(event, EventType)
         
     def NothingGotHit(self):
-        self.change_selection([])
-        self.selection_changed()
+        self.change_selection([],caller=self)
+
         
     def ShapesInBB(self,BB):
         InsideList=[]
@@ -1148,8 +1148,7 @@ class MyCanvasContentClass:
         for shape in self.Shapes:
             if BB.Inside(shape.geo_hdl.BoundingBox):
                 InsideList.append(shape)
-        self.change_selection(InsideList)
-        self.selection_changed()
+        self.change_selection(InsideList,caller=self)
              
             
     def plot_grid(self,event=None):
@@ -1294,10 +1293,13 @@ class MyCanvasContentClass:
                                                     LayerName=LayerName,
                                                     Shapes=[shape],
                                                     MyMessages=self.MyMessages))
+                              
+
                                                     
         shape.layer=self.LayerContents[-1]
         
-    def change_selection(self,sel_shapes):
+    def change_selection(self,sel_shapes=[],caller=None):
+        print type(caller)
         if self.MyGraphic.lastkey==0:
             
             self.Deselected=self.Selected[:]

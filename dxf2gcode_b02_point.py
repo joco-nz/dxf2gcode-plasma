@@ -207,50 +207,8 @@ class ContourClass:
         for i in range(len(self.order)):
             self.length+=geos[self.order[i][0]].length
         return
+  
 
-
-    
-    def analyse_and_opt(self,geos=None):
-        #Errechnen der Länge
-        self.calc_length(geos)
-        
-        #Optimierung für geschlossene Konturen
-        if self.closed==1:
-            summe=0
-            #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-            #negativer Wert bedeutet CCW geschlossenes Polygon
-            geo_point_l, dummy=geos[self.order[-1][0]].get_start_end_points(self.order[-1][1])            
-            for geo_order_nr in range(len(self.order)):
-                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
-                summe+=(geo_point_l.x*geo_point.y-geo_point.x*geo_point_l.y)/2
-                geo_point_l=geo_point
-            if summe>0.0:
-                self.reverse()
-
-            #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-            min_point=geo_point_l
-            min_point_nr=None
-            for geo_order_nr in range(len(self.order)):
-                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
-                #Geringster Abstand nach unten Unten Links
-                if (min_point.x+min_point.y)>=(geo_point.x+geo_point.y):
-                    min_point=geo_point
-                    min_point_nr=geo_order_nr
-            #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-            self.set_new_startpoint(min_point_nr)
-            
-        #Optimierung für offene Konturen
-        else:
-            geo_spoint, dummy=geos[self.order[0][0]].get_start_end_points(self.order[0][1])
-            geo_epoint, dummy=geos[self.order[0][0]].get_start_end_points(not(self.order[0][1]))
-            if (geo_spoint.x+geo_spoint.y)>=(geo_epoint.x+geo_epoint.y):
-                self.reverse()
-
-
-    #Neuen Startpunkt an den Anfang stellen
-    def set_new_startpoint(self,st_p):
-        self.order=self.order[st_p:len(self.order)]+self.order[0:st_p]
-        
     #Wie die Klasse ausgegeben wird.
     def __str__(self):
         # how to print the object

@@ -80,9 +80,11 @@ class MyNotebookClass(wx.Notebook):
     def OnPageChanging(self, event):
         pass
     
-    def change_selection(self,sel_items=None):
+    def change_selection(self,sel_shapes=None,caller=None):
         #print "bin da"
-        self.MyCanvasContent.change_selection(sel_items)
+        d=[]
+        #print dir(d)
+        self.MyCanvasContent.change_selection(sel_shapes=sel_shapes,caller=caller)
         
     def selection_changed(self,sel_items=None):
         #self.MySelectionInfo.change_selection(sel_items)
@@ -216,9 +218,8 @@ class MyEntitieTreeClass(CT.CustomTreeCtrl):
         for selection in self.GetSelections():
             item=self.GetItemPyData(selection)
             sel_items+=self.GetItemShapes(item)
-
-                  
-        self.MyNotebook.change_selection(sel_items)
+           
+        self.MyNotebook.change_selection(sel_shapes=sel_items,caller=self)
     
     def GetItemShapes(self,item):
         SelShapes=[]
@@ -366,21 +367,22 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
     def OnDisableItem(self, event):
         self.EnableItem(self.current, False)
         
-        
     def OnSelChanged(self, event):
-        sel_items=[]
+        #print dir(event)
+        #print 'OnSelChanged'
+        sel_shapes=[]
         for selection in self.GetSelections():
             item=self.GetItemPyData(selection)
-            sel_items+=self.GetItemShapes(item)
+            sel_shapes+=self.GetItemShapes(item)
         
         #Wenn nichts ausgewählt ist die Edit Felder ausschalten.
-        if len(sel_items)==0:
+        if len(sel_shapes)==0:
             self.MyExportParas.EnableEdit(flag=0)
         #Sonst Werte anzeigen
         else:
             self.MyExportParas.ShowParas(item)
           
-        self.MyNotebook.change_selection(sel_items)
+        self.MyNotebook.change_selection(sel_shapes=sel_shapes,caller=self)
     
     def GetItemShapes(self,item):
         SelShapes=[]
@@ -397,16 +399,10 @@ class MyLayersTreeClass(CT.CustomTreeCtrl):
     
     def selection_changed(self,sel_items=None):
         
-        #self.Update()
-        print self.GetSelection()
         if len(self.GetSelections())>0:
-            self.Unbind(CT.EVT_TREE_SEL_CHANGED)
             self.UnselectAll()
-            self.Bind(CT.EVT_TREE_SEL_CHANGED, self.OnSelChanged)
-        #print dir(self)
-        #self.Update()
-        
-        
+
+               
 
 class MyExportParasClass():
     def __init__(self,parent=None,id=-1,MyNotebook=None):
