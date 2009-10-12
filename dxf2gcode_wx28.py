@@ -1107,6 +1107,7 @@ class MyCanvasContentClass:
                                                 [],\
                                                 []))
                 
+                
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
                     if cont.order[ent_geo_nr][1]:
@@ -1123,6 +1124,8 @@ class MyCanvasContentClass:
                         
                 self.addtoLayerContents(self.Shapes[-1],ent_geo.Layer_Nr)
                 parent.addchild(self.Shapes[-1])
+                
+                self.Shapes[-1].AnalyseAndOptimize(MyConfig=self.MyConfig)
 
     def plot_shapes(self):
         for shape in self.Shapes:
