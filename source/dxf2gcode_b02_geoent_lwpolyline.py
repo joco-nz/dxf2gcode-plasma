@@ -30,6 +30,7 @@ class LWPolylineClass:
         self.Typ='LWPolyline'
         self.Nr = Nr
         self.Layer_Nr = 0
+        self.length= 0
         self.geo=[]
 
         #Lesen der Geometrie
@@ -40,7 +41,8 @@ class LWPolylineClass:
         string=("\nTyp: LWPolyline")+\
                ("\nNr: %i" %self.Nr)+\
                ("\nLayer Nr: %i" %self.Layer_Nr)+\
-               ("\nNr. of geos: %i" %len(self.geo))
+               ("\nNr. of geos: %i" %len(self.geo))+\
+               ("\nlength: %0.3f" %self.length)
         
         return string
 
@@ -50,16 +52,20 @@ class LWPolylineClass:
             geo.reverse()    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
-        if  self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
-
-            cont.append(ContourClass(len(cont),1,[[i,0]]))
+        if abs(self.length)<tol:
+            pass
+        
+        #Hinzufügen falls es keine geschlossene Polyline ist
+        elif  self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
+            cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
         else:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[0].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))  
         return warning
-                
+        
+        
     def Read(self, caller):
         Old_Point=PointClass(0,0)
         #Kürzere Namen zuweisen
@@ -122,7 +128,10 @@ class LWPolylineClass:
                 else:
                     #self.geo.append(LineGeo(Pa=Pa,Pe=Pe))
                     #print bulge
-                    self.geo.append(self.bulge2arc(Pa,Pe,next_bulge))             
+                    self.geo.append(self.bulge2arc(Pa,Pe,next_bulge))
+                
+                #Länge drauf rechnen wenns eine Geometrie ist
+                self.length+=self.geo[-1].length
                     
             #Der Bulge wird immer für den und den nächsten Punkt angegeben
             next_bulge=bulge
@@ -135,7 +144,9 @@ class LWPolylineClass:
                 self.geo.append(self.bulge2arc(Pa,self.geo[0].Pa,next_bulge))
             else:
                 self.geo.append(LineGeo(Pa=Pa,Pe=self.geo[0].Pa))
-                       
+                
+            self.length+=self.geo[-1].length
+            
         #Neuen Startwert für die nächste Geometrie zurückgeben        
         caller.start=e
 

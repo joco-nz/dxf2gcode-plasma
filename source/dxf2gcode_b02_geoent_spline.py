@@ -38,6 +38,7 @@ class SplineClass:
         self.Weights=[]
         self.CPoints=[]
         self.geo=[]
+        self.length= 0.0
 
         #Lesen der Geometrie
         self.Read(caller)
@@ -53,6 +54,8 @@ class SplineClass:
 
         self.geo=Spline2ArcsClass.Curve
 
+        for geo in self.geo:
+            self.length+=geo.length
 
     def __str__(self):
         # how to print the object
@@ -61,6 +64,7 @@ class SplineClass:
            ('\nLayer Nr: %i' %self.Layer_Nr)+\
            ('\nSpline flag: %i' %self.Spline_flag)+\
            ('\ndegree: %i' %self.degree)+\
+           ('\nlength: %0.3f' %self.length)+\
            ('\nGeo elements: %i' %len(self.geo))+\
            ('\nKnots: %s' %self.Knots)+\
            ('\nWeights: %s' %self.Weights)+\
@@ -80,15 +84,15 @@ class SplineClass:
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
         #Hinzufügen falls es keine geschlossener Spline ist
         if self.CPoints[0].isintol(self.CPoints[-1],tol):
-            cont.append(ContourClass(len(cont),1,[[i,0]])) 
+            cont.append(ContourClass(len(cont),1,[[i,0]],self.length)) 
         else:
             points.append(PointsClass(point_nr=len(points),geo_nr=i,\
                                       Layer_Nr=self.Layer_Nr,\
                                       be=self.geo[0].Pa,\
                                       en=self.geo[-1].Pe,\
                                       be_cp=[],en_cp=[]))
-        return warning
-            
+        return warning          
+
     def Read(self, caller):
 
         #Kürzere Namen zuweisen        

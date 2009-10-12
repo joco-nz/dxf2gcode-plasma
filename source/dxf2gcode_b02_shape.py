@@ -26,6 +26,7 @@
 #import sys, os, string, ConfigParser 
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, MySelectionStrClass
 from math import cos, sin, radians, degrees
+from copy import deepcopy
 import wx
 from wx.lib.expando import ExpandoTextCtrl
 
@@ -60,6 +61,31 @@ class ShapeClass:
 			#('\nparent: %s' %self.parent)
 
 
+	def AnalyseAndOptimize(self,MyConfig=None):
+		#Optimierung für geschlossene Konturen
+		if self.closed:
+			#Startwert setzen für die erste Summe
+			start, dummy=self.geos[0].get_start_end_points(0,self.parent)
+			summe=0.0
+			for geo in self.geos:
+				if geo.type=='LineGeo':
+					ende, dummy=geo.get_start_end_points(1,self.parent)
+					summe+=(start.x+ende.x)*(ende.y-start.y)/2
+					start=deepcopy(ende)
+				elif geo.type=='ArcGeo':
+					segments=int((abs(degrees(geo.ext))//90)+1)
+					for i in range(segments): 
+						ang=geo.s_ang+(i+1)*geo.ext/segments
+						ende=PointClass(x=(geo.O.x+cos(ang)*abs(geo.r)),y=(geo.O.y+sin(ang)*abs(geo.r)))
+						summe+=(start.x+ende.x)*(ende.y-start.y)/2
+						start=deepcopy(ende)
+			            				
+			if summe>0.0:
+				self.reverse()
+					
+			
+		
+		
 #		#Optimierung für geschlossene Konturen
 #        if self.closed==1:
 #            summe=0
