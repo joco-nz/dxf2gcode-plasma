@@ -86,7 +86,6 @@ class LWPolylineClass:
         #Polyline flag (bit-coded); default is 0; 1 = Closed; 128 = Plinegen
         s=lp.index_code(70,s+1,e)
         LWPLClosed=int(lp.line_pair[s].value)
-        #print LWPLClosed
         
         s=lp.index_code(10,s+1,e)
         while 1:
@@ -137,8 +136,10 @@ class LWPolylineClass:
             next_bulge=bulge
             Pa=Pe 
 
+            
+               
                    
-        if (LWPLClosed==1):
+        if (LWPLClosed==1)or(LWPLClosed==129):
             #print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
             if next_bulge:
                 self.geo.append(self.bulge2arc(Pa,self.geo[0].Pa,next_bulge))
