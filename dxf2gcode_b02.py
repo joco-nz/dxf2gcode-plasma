@@ -56,15 +56,18 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-08-25"
+DATE=   "2009-11-01"
 
 # Config Verzeichniss
 
 
-if os.name == 'posix': 
-    FOLDER = os.path.join(os.environ.get('HOME'), "." + APPNAME.lower()) 
-elif os.name == 'nt': 
-    FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()) 
+#===============================================================================
+# if os.name == 'posix': 
+#    FOLDER = os.path.join(os.environ.get('HOME'), "." + APPNAME.lower()) 
+# elif os.name == 'nt': 
+#    FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()).replace("\\", "/")
+#===============================================================================
+FOLDER=os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 
 #Das momentane Verzeichnis herausfinden
 local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
@@ -1653,7 +1656,7 @@ class SysErrListener:
 if __name__ == "__main__":
    
     #sys.stdout = SysOutListener()
-    sys.stderr = SysErrListener()
+    #sys.stderr = SysErrListener()
 
     master = Tk()
     master.title("%s, Version: %s, Date: %s " %(APPNAME,VERSION,DATE))

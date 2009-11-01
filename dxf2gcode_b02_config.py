@@ -40,7 +40,7 @@ from dxf2gcode_b02_point import PointClass
 
 class ConfigClass:
     def __init__(self,textbox,FOLDER,APPNAME):
-        self.folder=FOLDER
+        self.folder=os.path.join(FOLDER,'config')
         self.appname=APPNAME
         # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
         self.make_settings_folder()
@@ -71,6 +71,7 @@ class ConfigClass:
 
     def make_settings_folder(self): 
         # create settings folder if necessary 
+        print
         try: 
             os.mkdir(self.folder) 
         except OSError: 

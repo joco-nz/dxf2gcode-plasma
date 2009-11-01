@@ -164,7 +164,7 @@ class LWPolylineClass:
             Pa=Pe 
 
                    
-        if (LWPLClosed==1):
+        if (LWPLClosed==1)or(LWPLClosed==129):
             #print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
             if next_bulge:
                 self.geo.append(self.bulge2arc(Pa,self.geo[0].Pa,next_bulge))
