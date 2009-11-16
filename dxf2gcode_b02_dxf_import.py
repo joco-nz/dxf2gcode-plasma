@@ -443,7 +443,7 @@ class Load_DXF:
 #                    break
 #        return points        
 
-    #Suchen nach den besten zusammenhängenden Konturen
+     #Suchen nach den besten zusammenhängenden Konturen
     def Search_Contours(self,geo=None,all_points=None,cont=None):
         
         points=deepcopy(all_points)
@@ -485,8 +485,6 @@ class Load_DXF:
             points=self.Remove_Used_Points(cont[-1],points)
                        
             cont[-1]=self.Contours_Points2Geo(cont[-1],all_points)
-            cont[-1].analyse_and_opt(geo)
-
         return cont
 
     #Suchen die Wege duch die Konturn !!! REKURSIVE SCHLEIFE WAR SAU SCHWIERIG
@@ -603,6 +601,7 @@ class Load_DXF:
         return points
     #Alle Punkte im Pfad aus Points löschen um nächte Suche zu beschleunigen               
     def Contours_Points2Geo(self,cont=None,points=None):
+        #print cont.order
         for c_nr in range(len(cont.order)):
                 cont.order[c_nr][0]=points[cont.order[c_nr][0]].geo_nr
         return cont
