@@ -32,7 +32,6 @@ import time
 
 from tkMessageBox import showwarning, showerror
 from Tkconstants import END
-from Tkinter import DoubleVar, IntVar
 
 from math import degrees
 
@@ -90,25 +89,14 @@ class ConfigClass:
         self.parser.add_section('Import Parameters') 
         self.parser.set('Import Parameters', 'point_tolerance', 0.01)
         self.parser.set('Import Parameters', 'fitting_tolerance', 0.01)   
-        self.parser.set('Import Parameters', 'spline_check',1)  
+        self.parser.set('Import Parameters', 'spline_check', 1) 
                    
-        self.parser.add_section('Tool Parameters') 
-        self.parser.set('Tool Parameters', 'diameter', 2.0)
-        self.parser.set('Tool Parameters', 'start_radius', 0.2)
-
         self.parser.add_section('Plane Coordinates') 
         self.parser.set('Plane Coordinates', 'axis1_start_end', 0)
         self.parser.set('Plane Coordinates', 'axis2_start_end', 0)
 
         self.parser.add_section('Depth Coordinates') 
         self.parser.set('Depth Coordinates', 'axis3_retract', 15)
-        self.parser.set('Depth Coordinates', 'axis3_safe_margin', 3.0)
-        self.parser.set('Depth Coordinates', 'axis3_mill_depth', -3.0)
-        self.parser.set('Depth Coordinates', 'axis3_slice_depth', -1.5)
-
-        self.parser.add_section('Feed Rates')
-        self.parser.set('Feed Rates', 'f_g1_depth', 150)
-        self.parser.set('Feed Rates', 'f_g1_plane', 400)
 
         self.parser.add_section('Axis letters')
         self.parser.set('Axis letters', 'ax1_letter', 'X')
@@ -133,75 +121,47 @@ class ConfigClass:
         open_file.close()
             
     def get_all_vars(self):
-        #try:   
-        self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
-        
+        try: 
+            self.write_to_stdout=int(self.parser.get('General', 'write_to_stdout'))
+           
+            self.axis1_st_en=(float(self.parser.get('Plane Coordinates','axis1_start_end')))
+            self.axis2_st_en=(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
 
-        self.tool_dia=DoubleVar()
-        self.tool_dia.set(float(self.parser.get('Tool Parameters','diameter')))
+            self.axis3_retract=(float(self.parser.get('Depth Coordinates','axis3_retract')))
+                 
 
-        self.start_rad=DoubleVar()
-        self.start_rad.set(float(self.parser.get('Tool Parameters','start_radius')))        
-       
-        self.axis1_st_en=DoubleVar()
-        self.axis1_st_en.set(float(self.parser.get('Plane Coordinates','axis1_start_end')))
+            self.points_tolerance=(float(self.parser.get('Import Parameters','point_tolerance')))
+            self.fitting_tolerance=(float(self.parser.get('Import Parameters','fitting_tolerance')))
+            self.spline_check=(float(self.parser.get('Import Parameters','spline_check')))
 
-        self.axis2_st_en=DoubleVar()
-        self.axis2_st_en.set(float(self.parser.get('Plane Coordinates','axis2_start_end')))        
-        
-        self.axis3_retract=DoubleVar()
-        self.axis3_retract.set(float(self.parser.get('Depth Coordinates','axis3_retract')))
-        
-        self.axis3_safe_margin=DoubleVar()
-        self.axis3_safe_margin.set(float(self.parser.get('Depth Coordinates','axis3_safe_margin')))
+            #Zuweisen der Werte fuer die TSP Optimierung
+            self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
+            self.max_population=int((int(self.parser.get('Route Optimisation', 'Max. population'))/4)*4)
+            self.max_iterations=int(self.parser.get('Route Optimisation', 'Max. iterations'))  
+            self.mutate_rate=float(self.parser.get('Route Optimisation', 'Mutation Rate', 0.95))
 
-        self.axis3_slice_depth=DoubleVar()
-        self.axis3_slice_depth.set(float(self.parser.get('Depth Coordinates','axis3_slice_depth')))        
+            #Zuweisen der Axis Letters
+            self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
+            self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
+            self.ax3_letter=self.parser.get('Axis letters', 'ax3_letter')
 
-        self.axis3_mill_depth=DoubleVar()
-        self.axis3_mill_depth.set(float(self.parser.get('Depth Coordinates','axis3_mill_depth')))        
-        
-        self.F_G1_Depth=DoubleVar()
-        self.F_G1_Depth.set(float(self.parser.get('Feed Rates','f_g1_depth')))
+            #Holen der restlichen Variablen
+            #Verzeichnisse
+            self.load_path=self.parser.get('Paths','load_path')
+            self.save_path=self.parser.get('Paths','save_path')
 
-        self.F_G1_Plane=DoubleVar()
-        self.F_G1_Plane.set(float(self.parser.get('Feed Rates','f_g1_plane')))
+            #Holen der Commandos fuer pstoedit
+            self.pstoedit_cmd=self.parser.get('Filters','pstoedit_cmd')
+            self.pstoedit_opt=self.parser.get('Filters','pstoedit_opt')
 
-        self.points_tolerance=DoubleVar()
-        self.points_tolerance.set(float(self.parser.get('Import Parameters','point_tolerance')))
-
-        self.fitting_tolerance=DoubleVar()
-        self.fitting_tolerance.set(float(self.parser.get('Import Parameters','fitting_tolerance')))
-        self.spline_check=int(self.parser.get('Import Parameters', 'spline_check')  )
-
-        #Zuweisen der Werte fuer die TSP Optimierung
-        self.begin_art=self.parser.get('Route Optimisation', 'Begin art')
-        self.max_population=int((int(self.parser.get('Route Optimisation', 'Max. population'))/4)*4)
-        self.max_iterations=int(self.parser.get('Route Optimisation', 'Max. iterations'))  
-        self.mutate_rate=float(self.parser.get('Route Optimisation', 'Mutation Rate', 0.95))
-
-        #Zuweisen der Axis Letters
-        self.ax1_letter=self.parser.get('Axis letters', 'ax1_letter')
-        self.ax2_letter=self.parser.get('Axis letters', 'ax2_letter')
-        self.ax3_letter=self.parser.get('Axis letters', 'ax3_letter')
-
-        #Holen der restlichen Variablen
-        #Verzeichnisse
-        self.load_path=self.parser.get('Paths','load_path')
-        self.save_path=self.parser.get('Paths','save_path')
-
-        #Holen der Commandos fuer pstoedit
-        self.pstoedit_cmd=self.parser.get('Filters','pstoedit_cmd')
-        self.pstoedit_opt=self.parser.get('Filters','pstoedit_opt')
-
-        #Setzen des Globalen Debug Levels
-        self.debug=int(self.parser.get('Debug', 'global_debug_level'))
-        
-        
-#        except:
-#            showerror(_("Error during reading config file"), _("Please delete or correct\n %s")\
-#                      %(os.path.join(self.folder,self.cfg_file_name)))
-#            raise Exception, _("Problem during import from INI File") 
+            #Setzen des Globalen Debug Levels
+            self.debug=int(self.parser.get('Debug', 'global_debug_level'))
+            
+      
+        except:
+            showerror(_("Error during reading config file"), _("Please delete or correct\n %s")\
+                      %(os.path.join(self.folder,self.cfg_file_name)))
+            raise Exception, _("Problem during import from INI File") 
 #            
     def __str__(self):
 

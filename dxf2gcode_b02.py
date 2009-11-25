@@ -38,6 +38,7 @@ else:
 from dxf2gcode_b02_config import ConfigClass, PostprocessorClass
 from dxf2gcode_b02_point import PointClass
 from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
+from dxf2gcode_b02_notebook import NotebookClass, ExportParasClass, LayerContentClass
 import dxf2gcode_b02_dxf_import as dxf_import 
 import dxf2gcode_b02_tsp_opt as tsp
 import locale
@@ -56,7 +57,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2009-11-01"
+DATE=   "2009-11-16"
 
 # Config Verzeichniss
 
@@ -633,119 +634,7 @@ class TextboxClass:
         self.text.delete(7.0,END)
         self.text.yview(END)           
 
-class ExportParasClass:
-    def __init__(self,master=None,config=None,postpro=None):
-        self.master=master
-  
-        self.nb = NotebookClass(self.master,width=240)
 
-        # uses the notebook's frame
-        self.nb_f1 = Frame(self.nb())
-        #self.nb_f2 = Frame(self.nb())
-
-        # keeps the reference to the radiobutton (optional)
-        self.nb.add_screen(self.nb_f1, _("Coordinates"))
-        #self.nb.add_screen(self.nb_f2, _("File Beg. & End"))
-
-        self.nb_f1.columnconfigure(0,weight=1)
-        #self.nb_f2.columnconfigure(0,weight=1)        
-    
-        self.erstelle_eingabefelder(config)
-        #self.erstelle_textfelder(config)
-
-        #self.gcode_be.insert(END,postpro.gcode_be)
-        #self.gcode_en.insert(END,postpro.gcode_en)
-
-
-    def erstelle_eingabefelder(self,config):
-       
-        f1=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-        f1.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
-        f2=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-        f2.grid(row=1,column=0,padx=2,pady=2,sticky=N+W+E)
-        f3=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-        f3.grid(row=2,column=0,padx=2,pady=2,sticky=N+W+E)
-    
-        f1.columnconfigure(0,weight=1)
-        f2.columnconfigure(0,weight=1)
-        f3.columnconfigure(0,weight=1)        
-   
-        Label(f1, text=_("Tool diameter [mm]:"))\
-                .grid(row=0,column=0,sticky=N+W,padx=4)
-        Entry(f1,width=7,textvariable=config.tool_dia)\
-                .grid(row=0,column=1,sticky=N+E)
-
-        Label(f1, text=_("Start radius (for tool comp.) [mm]:"))\
-                .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f1,width=7,textvariable=config.start_rad)\
-                .grid(row=1,column=1,sticky=N+E)        
-
-        Label(f2, text=(_("Start at %s [mm]:") %config.ax1_letter))\
-                .grid(row=0,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.axis1_st_en)\
-                .grid(row=0,column=1,sticky=N+E)
-
-        Label(f2, text=(_("Start at %s [mm]:") %config.ax2_letter))\
-                .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.axis2_st_en)\
-                .grid(row=1,column=1,sticky=N+E)
-
-        Label(f2, text=(_("%s retraction area [mm]:") %config.ax3_letter))\
-                .grid(row=2,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.axis3_retract)\
-                .grid(row=2,column=1,sticky=N+E)
-
-        Label(f2, text=(_("%s safety margin [mm]:") %config.ax3_letter))\
-                .grid(row=3,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.axis3_safe_margin)\
-                .grid(row=3,column=1,sticky=N+E)
-
-        Label(f2, text=(_("%s infeed depth [mm]:") %config.ax3_letter))\
-                .grid(row=4,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.axis3_slice_depth)\
-                .grid(row=4,column=1,sticky=N+E)
-
-        Label(f2, text=(_("%s mill depth [mm]:") %config.ax3_letter))\
-                .grid(row=5,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=config.axis3_mill_depth)\
-                .grid(row=5,column=1,sticky=N+E)
-
-        Label(f3, text=(_("G1 feed %s-direction [mm/min]:") %config.ax3_letter))\
-                .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f3,width=7,textvariable=config.F_G1_Depth)\
-                .grid(row=1,column=1,sticky=N+E)
-
-        Label(f3, text=(_("G1 feed %s%s-direction [mm/min]:") %(config.ax1_letter,config.ax2_letter)))\
-                .grid(row=2,column=0,sticky=N+W,padx=4)
-        Entry(f3,width=7,textvariable=config.F_G1_Plane)\
-                .grid(row=2,column=1,sticky=N+E)
-
-    def erstelle_textfelder(self,config):
-        f22=Frame(self.nb_f2,relief = FLAT,bd = 1)
-        f22.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
-        f22.columnconfigure(0,weight=1)        
-
-        Label(f22 , text=_("G-Code at the begin of file"))\
-                .grid(row=0,column=0,columnspan=2,sticky=N+W,padx=2)
-        self.gcode_be = Text(f22,width=10,height=8)
-        self.gcode_be_sc = Scrollbar(f22)
-        self.gcode_be.grid(row=1,column=0,pady=2,sticky=E+W)
-        self.gcode_be_sc.grid(row=1,column=1,padx=2,pady=2,sticky=N+S)
-        self.gcode_be_sc.config(command=self.gcode_be.yview)
-        self.gcode_be.config(yscrollcommand=self.gcode_be_sc.set)
-
-        Label(f22, text=_("G-Code at the end of file"))\
-                .grid(row=2,column=0,columnspan=2,sticky=N+W,padx=2)
-        self.gcode_en = Text(f22,width=10,height=5)
-        self.gcode_en_sc = Scrollbar(f22)
-        self.gcode_en.grid(row=3,column=0,pady=2,sticky=E+W)
-        self.gcode_en_sc.grid(row=3,column=1,padx=2,pady=2,sticky=N+S)
-        self.gcode_en_sc.config(command=self.gcode_en.yview)
-        self.gcode_en.config(yscrollcommand=self.gcode_en_sc.set)
-
-        f22.columnconfigure(0,weight=1)
-        f22.rowconfigure(1,weight=0)
-        f22.rowconfigure(3,weight=0)
          
 #Klasse zum Erstellen des Plots
 class CanvasClass:
@@ -1164,6 +1053,7 @@ class CanvasContentClass:
                 self.addtoLayerContents(self.Shapes[-1],ent_geo.Layer_Nr)
                 parent.addchild(self.Shapes[-1])
 
+                self.Shapes[-1].AnalyseAndOptimize(MyConfig=self.config)
     def plot_shapes(self):
         for shape in self.Shapes:
             shape.plot2can(self.Canvas.canvas)
@@ -1234,7 +1124,10 @@ class CanvasContentClass:
 
         #Falls er nicht gefunden wurde neuen erstellen
         LayerName=self.values.layers[lay_nr].name
-        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
+        self.LayerContents.append(LayerContentClass(LayerNr=lay_nr,
+                                                    LayerName=LayerName,
+                                                    Shapes=[shape_nr],
+                                                    MyMessages=self.textbox))
         
     #Hinzufuegen der Kontur zu den Entities
     def addtoEntitieContents(self,shape_nr,ent_nr,c_nr):
@@ -1397,20 +1290,7 @@ class CanvasContentClass:
         return hdls      
                                        
        
-class LayerContentClass:
-    def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
-        self.LayerNr=LayerNr
-        self.LayerName=LayerName
-        self.Shapes=Shapes
-        
-    def __cmp__(self, other):
-         return cmp(self.LayerNr, other.LayerNr)
 
-    def __str__(self):
-        return ('\ntype:        %s' %self.type) +\
-               ('\nLayerNr :      %i' %self.LayerNr) +\
-               ('\nLayerName:     %s' %self.LayerName)+\
-               ('\nShapes:    %s' %self.Shapes)
 
 class Show_About_Info(Toplevel):
     def __init__(self, parent):
@@ -1487,69 +1367,7 @@ class Show_About_Info(Toplevel):
         text.insert(END, _("\nplease visit my homepage at:"))
         text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:"+href))
 
-class NotebookClass:    
-    # initialization. receives the master widget
-    # reference and the notebook orientation
-    def __init__(self, master,width=0,height=0):
 
-        self.active_fr = None
-        self.count = 0
-        self.choice = IntVar(0)
-
-        self.dummy_x_fr = Frame(master, width=width, borderwidth=0)
-        self.dummy_y_fr = Frame(master, height=height, borderwidth=0)
-        self.dummy_x_fr.grid(row=0,column=1)
-        self.dummy_x_fr.grid_propagate(0)
-        self.dummy_y_fr.grid(row=1,rowspan=2,column=0)
-        self.dummy_y_fr.grid_propagate(0)
-
-        # creates notebook's frames structure
-        self.rb_fr = Frame(master, borderwidth=0)
-        self.rb_fr.grid(row=1,column=1, sticky=N+W)
-        
-        self.screen_fr = Frame(master, borderwidth=2, relief=RIDGE)
-        self.screen_fr.grid(row=2,column=1,sticky=N+W+E)
-        
-        master.rowconfigure(2,weight=1)
-        master.columnconfigure(1,weight=1)
-
-    # return a master frame reference for the external frames (screens)
-    def __call__(self):
-        return self.screen_fr
-
-    # add a new frame (screen) to the (bottom/left of the) notebook
-    def add_screen(self, fr, title):
-
-        b = Radiobutton(self.rb_fr,bd=1, text=title, indicatoron=0, \
-                        variable=self.choice, value=self.count, \
-                        command=lambda: self.display(fr))
-        
-        b.grid(column=self.count,row=0,sticky=N+E+W)
-        self.rb_fr.columnconfigure(self.count,weight=1)
-
-        fr.grid(sticky=N+W+E)
-        self.screen_fr.columnconfigure(0,weight=1)
-        fr.grid_remove()
-
-        # ensures the first frame will be
-        # the first selected/enabled
-        if not self.active_fr:
-            fr.grid()
-            self.active_fr = fr
-
-        self.count += 1
-
-        # returns a reference to the newly created
-        # radiobutton (allowing its configuration/destruction)
-        return b
-
-
-        # hides the former active frame and shows 
-        # another one, keeping its reference
-    def display(self, fr):
-        self.active_fr.grid_remove()
-        fr.grid()
-        self.active_fr = fr
 
 class Tkinter_Variable_Dialog(Toplevel):
     def __init__(self, parent=None,title='Test Dialog',label=('label1','label2'),value=(0.0,0.0)):
@@ -1634,21 +1452,21 @@ class Tkinter_Variable_Dialog(Toplevel):
 #        f.flush()
 #        f.close()
 #        sys.__stdout__.write(string)
-
-
-class SysErrListener:
-    def __init__(self):
-        self.first = True
-    def write(self, string):
-        
-        f=open(os.path.join(FOLDER,'dxf2gcode_err.txt'), 'a')
-        if self.first:
-            self.first = False
-            f.write('\n\n' + time.ctime() + ':\n')
-        f.write(string)
-        f.flush()
-        f.close()
-        sys.__stderr__.write(string)
+#
+#
+#class SysErrListener:
+#    def __init__(self):
+#        self.first = True
+#    def write(self, string):
+#        
+#        f=open(os.path.join(FOLDER,'dxf2gcode_err.txt'), 'a')
+#        if self.first:
+#            self.first = False
+#            f.write('\n\n' + time.ctime() + ':\n')
+#        f.write(string)
+#        f.flush()
+#        f.close()
+#        sys.__stderr__.write(string)
 
 
 
