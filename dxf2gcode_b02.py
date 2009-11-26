@@ -608,11 +608,10 @@ class TextboxClass:
         
         #Binding fuer Contextmenu
         self.text.bind("<Button-3>", self.text_contextmenu)
-        # Mac OS x has right mouse button on Button-2
+        # Mac OS x has right mouse button mapped to  Button-2
         if platform in ("mac"):
-            #self.text.bind("<Button-2>", self.text_contextmenu)
-            # for single-button macs..
             self.text.bind("<Button-2>", self.text_contextmenu)
+            # for single-button macs..
             self.text.bind("<Option-Button-1>", self.text_contextmenu)
 
         #Anfangstext einfuegen
