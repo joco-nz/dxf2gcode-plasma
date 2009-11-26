@@ -35,6 +35,12 @@ if globals().has_key('init_modules'):
 else:
     init_modules = sys.modules.keys()
 
+# some button bindings differ on Mac OS
+platform = ""  
+if os.name == "posix" and sys.platform == "darwin":
+    platform = "mac"
+# in case more per-platform determination warts are needed, fill in here:
+ 
 from dxf2gcode_b02_config import ConfigClass, PostprocessorClass
 from dxf2gcode_b02_point import PointClass
 from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
@@ -602,6 +608,12 @@ class TextboxClass:
         
         #Binding fuer Contextmenu
         self.text.bind("<Button-3>", self.text_contextmenu)
+        # Mac OS x has right mouse button on Button-2
+        if platform in ("mac"):
+            #self.text.bind("<Button-2>", self.text_contextmenu)
+            # for single-button macs..
+            self.text.bind("<Button-2>", self.text_contextmenu)
+            self.text.bind("<Option-Button-1>", self.text_contextmenu)
 
         #Anfangstext einfuegen
         self.textscr.config(command=self.text.yview)
@@ -794,9 +806,18 @@ class CanvasClass:
         self.canvas.bind("<Control-Button-1>", self.mouse_move)
         self.canvas.bind("<Control-B1-Motion>", self.mouse_move_motion)
         self.canvas.bind("<Control-ButtonRelease-1>", self.mouse_move_release)
+        
         self.canvas.bind("<Control-Button-3>", self.mouse_zoom)
         self.canvas.bind("<Control-B3-Motion>", self.mouse_zoom_motion)
-        self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)   
+        self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)  
+        if platform in ("mac"):
+            # for macs with three button mice  Button-3  actually is reported as Button-2
+            self.canvas.bind("<Button-2>", self.make_contextmenu)
+            # and if that isnt available, the following does the trick (one-eyed mice)
+            self.canvas.bind("<Option-Button-1>", self.make_contextmenu)
+            self.canvas.bind("<Command-ButtonRelease-1>", self.mouse_zoom_release)   
+            self.canvas.bind("<Command-Button-1>", self.mouse_zoom)
+            self.canvas.bind("<Command-B1-Motion>", self.mouse_zoom_motion)          
 
     #Callback fuer das Bewegen der Mouse mit Darstellung in untere Leiste
     def moving(self,event):

@@ -1,0 +1,20 @@
+
+
+
+Mac OS X peculiarities:
+
+Some Macs might just have a single-button mouse. 
+Macs with Trackpads or three-button mice report what's perceived as a right-click actually as Button-2.
+Control-Button-2 is used for global zooming.
+
+So..:
+	context menus:
+		use right-click (Button-2/3) or Option-Button1 
+		
+	zooming
+		Command-Button1 and move
+	
+	panning
+		Control-Button1 and move 
+
+		
