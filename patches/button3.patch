@@ -1,0 +1,44 @@
+### Eclipse Workspace Patch 1.0
+#P dxf2gcode-tkinter
+Index: dxf2gcode_b02.py
+===================================================================
+--- dxf2gcode_b02.py	(revision 159)
++++ dxf2gcode_b02.py	(working copy)
+@@ -35,6 +35,12 @@
+ else:
+     init_modules = sys.modules.keys()
+ 
++# some button bindings differ on Mac OS
++platform = ""  
++if os.name == "posix" and sys.platform == "darwin":
++    platform = "mac"
++# in case more per-platform determination warts are needed, fill in here:
++ 
+ from dxf2gcode_b02_config import ConfigClass, PostprocessorClass
+ from dxf2gcode_b02_point import PointClass
+ from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
+@@ -602,6 +608,9 @@
+         
+         #Binding fuer Contextmenu
+         self.text.bind("<Button-3>", self.text_contextmenu)
++        # Mac OS x has right mouse button on Button-2
++        if platform in ("mac"):
++            self.text.bind("<Button-2>", self.text_contextmenu)
+ 
+         #Anfangstext einfuegen
+         self.textscr.config(command=self.text.yview)
+@@ -796,7 +805,13 @@
+         self.canvas.bind("<Control-ButtonRelease-1>", self.mouse_move_release)
+         self.canvas.bind("<Control-Button-3>", self.mouse_zoom)
+         self.canvas.bind("<Control-B3-Motion>", self.mouse_zoom_motion)
+-        self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)   
++        self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)  
++        # Mac OS x has right mouse button on Button-2 so bind these to -2 as well
++        if platform in ("mac"):
++            self.canvas.bind("<Button-2>", self.make_contextmenu)
++            self.canvas.bind("<Control-ButtonRelease-2>", self.mouse_zoom_release)   
++            self.canvas.bind("<Control-Button-2>", self.mouse_zoom)
++            self.canvas.bind("<Control-B2-Motion>", self.mouse_zoom_motion)
+ 
+     #Callback fuer das Bewegen der Mouse mit Darstellung in untere Leiste
+     def moving(self,event):
