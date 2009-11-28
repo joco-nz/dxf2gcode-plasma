@@ -71,7 +71,6 @@ class ConfigClass:
 
     def make_settings_folder(self): 
         # create settings folder if necessary 
-        print
         try: 
             os.mkdir(self.folder) 
         except OSError: 

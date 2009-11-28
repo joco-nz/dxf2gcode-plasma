@@ -46,7 +46,7 @@ from math import radians, degrees
 
 import webbrowser,gettext, tempfile, subprocess
 from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
-from tkMessageBox import showwarning, showerror
+from tkMessageBox import showwarning, showerror, showinfo
 from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
@@ -60,17 +60,19 @@ DATE=   "2009-11-16"
 
 # Config Verzeichniss
 
-
 #===============================================================================
 # if os.name == 'posix': 
 #    FOLDER = os.path.join(os.environ.get('HOME'), "." + APPNAME.lower()) 
 # elif os.name == 'nt': 
 #    FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()).replace("\\", "/")
 #===============================================================================
-FOLDER=os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
+ 
+if os.path.islink(sys.argv[0]):
+    FOLDER=os.path.dirname(os.readlink(sys.argv[0]))
+    
 
 #Das momentane Verzeichnis herausfinden
-local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
+#local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
 # Liste der unterstützuden Sprachen anlegen.
 langs = []
@@ -98,7 +100,7 @@ langs += []
 to try to use.  First we check the default, then what the system
 told us, and finally the 'known' list"""
 
-gettext.bindtextdomain(APPNAME, local_path)
+gettext.bindtextdomain(APPNAME, FOLDER)
 gettext.textdomain(APPNAME)
 # Get the language to use
 trans = gettext.translation(APPNAME, localedir='languages', languages=langs, fallback = True)
