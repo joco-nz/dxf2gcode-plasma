@@ -1,0 +1,171 @@
+Strukur einer DXF-Datei
+=======================
+
+Eine DXF-Datei enthält grundlegende Geometrieelemente (Entities) wie Punkt, Linie, Kreisbogen,  Kreis, Spline, Text
+etc, sowie zusammengefasste wiederverwendbare Elemente (Blocks), die an verschiedenen Stellen der Zeichnung 
+eingefügt werden. Ein Beispiel für einen Block wäre ein - einmal definierter - "Türknopf"-Block, der an 
+allen Türen in einer Zeichnung eingesetz wird. Ein solch eingsetzter Block wird als Insert bezeichnet. 
+
+Diese Elemente besitzen Attribute, wie zB Koordinaten, Farbe, Linienstil- und Dicke.
+
+Die Grundelemente werden in Darstellungsebenen (Layer) zusammengefasst, die im CAD-Programm ein- oder 
+ausgeblendet werden könenn. Diese Ebenen haben ebenfalls Attribute (Name, Farbe etc). Grundelemente in 
+einer Ebene haben entweder ihre eigenen Attribute, oder sie "erben" diese Attribute von ihrer
+Ebene. Ein Insert hat ebenso Attribute - entweder eigene, von der Ebene, oder vom Block vererbt. 
+
+Auf oberster Ebene ist die Datei in Abschnitte(Section) unterteilt.
+
+Lesen der DXF-Datei
+===================
+Beim Einlesen der DXF-Datei passieren folgende Schritte:
+- Die Struktur-Elemente Section, Blocks und Layers und einzelne Entities werden gelesen.
+- Block-Elemente werden an der Zielposition als Inserts eingesetzt und damit in ihre einzelnen 
+Geometrie-Elemente aufgelöst.
+- Alle unterstützten Geometrie-Elemente werden in Linien, Kreisbogen oder Punkte umgewandelt.
+
+Wie entstehen Pfade (Shapes)?
+==============================
+Für die Bearbeitung werden zusammenhängende Pfade benötigt. Nicht alles, was in Qcad/Autocad etc am Bildschirm wie eine
+zusammenhängender Pfad aussieht, ist auch einer - ein Rechteck kann in der DXF-Datei zB aus 4 einzelnen Linien, oder aber einer 
+Polyline bestehen.  Objekte wie Kreise, Ellipsen oder auch Punkte sind jedenfalls für sich bereits eine Pfad. Im Fall des Rechtecks
+ist das aber nicht offensichtlich.
+
+Dxf2gcode untersucht daher die Endpunkte aller Geometrie-Elemente eines Layers, ob sie zusammenfallen, und fasst diese ggfs als
+neuer Pfad zusammen. "Zusammenfallen" heisst nun, dass die Punkte ident oder "nahe genug beinander" sind. Falls Pfade, die 
+eigentlich zusammengehören sollten, in einzelne Teile zerfallen, dann kann das Erhöhen der betreffenden Parameter 
+helfen (Einstellungen->Toleranzen). Nur Elemente, die auf der selben Ebene liegen, werden zu einem Pfad zusammengefasst.
+
+Ergebnis ist eine Liste von Pfaden, die intern nur mehr aus Linien, Kreisbögen oder einem Punkt bestehen, welche leicht 
+als G-Code exportiert werden können. 
+
+Auswahl von Pfaden für den Export
+=================================
+
+Eine Pfad ist entweder für den Export freigegeben (enabled) oder gesperrt (disabled).  Freigegebene Pfade werden normal im 
+Darstellungsbereich angezeigt, gesperrte Pfade werden grau dargestellt oder verborgen, falls  "Ansicht->Zeige verborgene Pfade" 
+abgewählt ist.  Nach dem  Einlesen werden alle Pfade im Darstellungsbereich angezeigt und zunächst sind alle für den Export 
+freigegeben. "Export G-Code" an dieser Stelle würde daher sämtliche Pfade exportieren.
+
+Um einzelne Pfade zu sperren oder freizugeben, werden sie zunächst ausgewählt, und dann mit dem Kontext-Menü (Rechts-Klick) freigeben
+oder gesperrt.
+
+Auswählen von Pfaden im Darstellungsbereich:
+- durch Anklicken wird ein einzelner Pfad ausgewählt.
+- Drücken der Shift-Taste und Anklicken weiterer Pfade - diese werden der Auswahl hinzugefügt.
+- Ziehen eines Rahmens mit gedrückter Maustaste um die gewünschten Pfade - die Pfade innerhalb des Rahmens werden ausgewählt.
+- Invertieren einer Auswahl: "Kontextmenü->Auswahl invertieren" deselektiert alle ausgewählen Pfade und selektiert alle anderen Pfade.
+
+Ausgewählte Pfade ändern die Farbe auf rot (im Fall eines freigebenen Pfades) bzw blau bei einem gesperrten Pfad. 
+Gesperrte, aber dargestellte graue Pfade können noch ausgewählt werden. Verborgene Pfadewerden nicht dargestellt und können
+daher nicht ausgewählt werden. 
+
+Derart ausgewählte Pfade können nun mit für den Export freigegeben oder gesperrt werden, und zwar mit "Kontextmenü->Auswahl einblenden"
+bzw mit  "Kontextmenü->Auswahl ausblenden".
+
+Der Ausgabeprozess: Export
+==========================
+Die freigegebenen Pfade werden mit Hilfe eines Postprozessors exportiert. Wie gesagt bestehen Pfade an dieser Stelle nur mehr aus
+Linien, Kreisbögen und Punkten.
+
+Dieser PP kann weitgehend über Konfigurationsdateien parametriert werden, und zwar global und optional per Layer, wobei der 
+Layername aus dem CAD-Programm übernommen wird, um eine entsprechende Datei zu lesen (bzw anzulegen und mit Standardwerten zu füllen,
+falls diese noch nicht existiert).
+
+Parameter-Namen und Konfigurationsdateien:
+
+
+Parameter (Präfix config):
+	- global: 		config/dxf2fcode_b02_config.cfg
+	- per Layer:	layerconfig/LayerContent_<Layername>.cfg
+	
+Postprozessor(Präfix postpro):
+	- global: 		postprocessor/dxf2fcode_b02_postprocessor.cfg
+
+
+Folgende Schritte laufen beim Export ab:
+
+- Die Eilwege zwischen den Pfaden werden optimiert.
+- Eine G-Code Vorlauftext wird ausgegeben (postpro.write_gcode_be)
+- Das Werkzeug wurd auf die Z-Anfangshöhe gebracht (config.axis3_retract)
+- Die Pfade werden nun in der optimierten Reihenfolge ausgegeben.
+- die Maschine wird auf den XY-Endwert positioniert (config.axis1_st_en,config.axis1_st_en)
+- Ein Nachlauftext wird ausgegeben (postpro.write_gcode_en).
+
+Ausgabe der Pfade:
+
+- das Werkzeug wird rasch auf sicherer Z-Höhe zum Eintauchpunkt gefahren  (config.axis3_safe_margin)
+- die Feedrate wird auf Eintauchwert gesetzt (config.f_g1_depth)
+- Eintauchen auf anfängliche Schnitthöhe  (postpro.lin_pol_z)
+- Feedrate wird auf Fräswert gesetzt (config.f_g1_plane)
+- Eine Einlaufbewegung abhängig Fräsradiuskorrektur, Startradius und Werkzeugdurchmesser wird gefahren 
+	(config.start_rad, config.tool_dia)
+- der erste Schnitt wird durchgeführt (einzelnen Elemente des Pfades in XY abgefahren)
+- WARUM?  falls postpro.cancel_cc_for_depth gesetzt ist, wird ggfs die Fräsradiuskorrektur abgeschaltet (postpro.deactivate_cut_cor) 
+- der folgende Zyklus erfolgt pro Z-Vorschub (config.axis3_slice_depth) bis zur Frästiefe (config.axis3_mill_depth):
+	- die Feedrate wird auf Eintauchwert gesetzt (config.f_g1_depth)
+	- Eintauchen auf nächste Schnitthöhe (postpro.lin_pol_z)
+	- Feedrate wird auf Fräswert gesetzt (config.f_g1_plane)
+	- bei einem offenen Pfad wird der Pfad zurückgefahren 
+		- dazu wird ggfs die Fräsradiuskorrektur auf die andere Seite gewechselt (G41->G42 bzw G42->G41) 
+		  und wieder eingeschaltet (postpro.set_cut_cor)	
+	- der Pfad wird in XY abgefahren (siehe Ausgabe der Pfadelemente)
+	-  falls postpro.cancel_cc_for_depth gesetzt ist, wird ggfs die Fräsradiuskorrektur abgeschaltet (postpro.deactivate_cut_cor) 
+	
+- das Werkzeug wird mit Feedrate auf sichere Höhe (config.axis3_safe_margin), dann im Eilgang auf Starthöhe (config.axis3_retract) gebracht
+- ggfs wird die  Fräsradiuskorrektur abgeschaltet (postpro.deactivate_cut_cor) 
+
+Ausgabe der Pfadelemente:
+=========================
+Linien:			
+	postpro.lin_pol_xy(anfang, ende)
+
+Kreisbögen:		
+	Falls Bogenradius zu gross (> postpro.max_arc_radius):
+            postpro.lin_pol_xy(anf,ende)
+    ansonst:
+    	Bogen im Gegenzeigersinn:
+    		postpro.lin_pol_arc("ccw", anfang, ende, startwinkel,endwinkel, FIXME)
+    	Bogen im Uhrzeigersinn:
+    		falls  postpro.export_ccw_arcs_only gesetzt:
+    		
+Punkte: 
+	postpro.rap_pos_xy(x,y)
+
+
+
+Parametrierung
+==============
+        self.vars={"%feed":'self.iprint(self.feed)',\
+                   "%nl":'self.nlprint()',\
+                   "%XE":'self.fnprint(self.Pe.x)',\
+                   "%-XE":'self.fnprint(-self.Pe.x)',\
+                   "%XA":'self.fnprint(self.Pa.x)',\
+                   "%-XA":'self.fnprint(-self.Pa.x)',\
+                   "%YE":'self.fnprint(self.Pe.y)',\
+                   "%-YE":'self.fnprint(-self.Pe.y)',\
+                   "%YA":'self.fnprint(self.Pa.y)',\
+                   "%-YA":'self.fnprint(-self.Pa.y)',\
+                   "%ZE":'self.fnprint(self.ze)',\
+                   "%-ZE":'self.fnprint(-self.ze)',\
+                   "%I":'self.fnprint(self.IJ.x)',\
+                   "%-I":'self.fnprint(-self.IJ.x)',\
+                   "%J":'self.fnprint(self.IJ.y)',\
+                   "%-J":'self.fnprint(-self.IJ.y)',\
+                   "%XO":'self.fnprint(self.O.x)',\
+                   "%-XO":'self.fnprint(-self.O.x)',\
+                   "%YO":'self.fnprint(self.O.y)',\
+                   "%-YO":'self.fnprint(-self.O.y)',\
+                   "%R":'self.fnprint(self.r)',\
+                   "%AngA":'self.fnprint(degrees(self.a_ang))',\
+                   "%-AngA":'self.fnprint(degrees(-self.a_ang))',\
+                   "%AngE":'self.fnprint(degrees(self.e_ang))',\
+                   "%-AngE":'self.fnprint(degrees(-self.e_ang))'}
+
+
+
+FIXME 
+- template Namen statt Methoden
+- liste der Variablen und Bedeutung 
+- template Beispiel für Layerspezifischen Postprozessor
+
+            
