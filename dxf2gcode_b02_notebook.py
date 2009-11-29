@@ -31,42 +31,85 @@ import ConfigParser
 PROGRAMDIRECTORY = os.path.dirname(os.path.abspath(sys.argv[0]))
 BITMAPDIRECTORY = PROGRAMDIRECTORY + "/bitmaps"
 
-from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
+from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT, RIGHT, VERTICAL, Y, BOTH, EXTENDED
 from tkMessageBox import showwarning, showerror
 from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
-from Tkinter import DoubleVar, IntVar
+from Tkinter import DoubleVar, IntVar, Listbox
+from dxf2gcode_widgets import Notebook
 
-class ExportParasClass:
-    def __init__(self,master=None,config=None,postpro=None):
-        self.master=master
-  
-        self.nb = NotebookClass(self.master,width=240)
-
-        # uses the notebook's frame
-        self.nb_f1 = Frame(self.nb())
+class MyNotebookClass(Notebook):
+    def __init__(self,master=None,config=None,postpro=None,LayerContents=None):
+        Notebook.__init__(self,master,width=240)
+    
+        self.nb_f1 = Frame(self())
+        
+        self.LayerContents=LayerContents
+        
+        self.ExportParas=ExportParasClass(self.nb_f1,config)
+        
+        self.LayerListbox=LayerListboxClass(self.nb_f1,self)
+        self.LayerListbox.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
+        self.LayerListbox.scrollbar.grid(row=0,column=1,padx=2,pady=2,sticky=N+W+E+S)
         #self.nb_f2 = Frame(self.nb())
 
-        # keeps the reference to the radiobutton (optional)
-        self.nb.add_screen(self.nb_f1, _("Layers"))
+        self.add_screen(self.nb_f1, _("Layers"))
         #self.nb.add_screen(self.nb_f2, _("File Beg. & End"))
 
-        self.nb_f1.columnconfigure(0,weight=1)
+        #self.nb_f1.columnconfigure(0,weight=1)
         #self.nb_f2.columnconfigure(0,weight=1)        
-    
-        #self.erstelle_eingabefelder(config)
-
-        #self.gcode_be.insert(END,postpro.gcode_be)
-        #self.gcode_en.insert(END,postpro.gcode_en)
 
 
-    def erstelle_eingabefelder(self,config):
+    def CreateLayerContent(self,LayerContents):
+        self.LayerListbox.CreateLayerContent(LayerContents)
+        self.ExportParas.LayerContents=LayerContents
+        
+    def change_selection(self,sel_shapes):
+        self.CanvasContent.deselect()
+        self.CanvasContent.change_selection(sel_shapes)
+        
+class ExportParasClass:
+    def __init__(self,frame=None,config=None,postpro=None):
+        self.frame=frame
+
+        self.initialise_textvariables()
+        self.generate_entryfields(config)
+        
+        #self.change_entry_state(NORMAL)
+
+    def initialise_textvariables(self):
+        self.tool_dia=DoubleVar()
+        self.tool_dia.set(0.0)
+        
+        self.start_rad=DoubleVar()
+        self.start_rad.set(0.0)        
        
-        f1=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-        f1.grid(row=0,column=0,padx=2,pady=2,sticky=N+W+E)
-        f2=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-        f2.grid(row=1,column=0,padx=2,pady=2,sticky=N+W+E)
-        f3=Frame(self.nb_f1,relief = GROOVE,bd = 2)
-        f3.grid(row=2,column=0,padx=2,pady=2,sticky=N+W+E)
+        self.axis3_retract=DoubleVar()
+        self.axis3_retract.set(0.0)
+        
+        self.axis3_safe_margin=DoubleVar()
+        self.axis3_safe_margin.set(0.0)
+
+        self.axis3_slice_depth=DoubleVar()
+        self.axis3_slice_depth.set(0.0)        
+
+        self.axis3_mill_depth=DoubleVar()
+        self.axis3_mill_depth.set(0.0)        
+        
+        self.F_G1_Depth=DoubleVar()
+        self.F_G1_Depth.set(0.0)
+
+        self.F_G1_Plane=DoubleVar()
+        self.F_G1_Plane.set(0.0)
+
+    def generate_entryfields(self,config):
+        self.entries=[]
+       
+        f1=Frame(self.frame,relief = GROOVE,bd = 2)
+        f1.grid(row=1,column=0,padx=2,pady=2,sticky=N+W+E)
+        f2=Frame(self.frame,relief = GROOVE,bd = 2)
+        f2.grid(row=2,column=0,padx=2,pady=2,sticky=N+W+E)
+        f3=Frame(self.frame,relief = GROOVE,bd = 2)
+        f3.grid(row=3,column=0,padx=2,pady=2,sticky=N+W+E)
     
         f1.columnconfigure(0,weight=1)
         f2.columnconfigure(0,weight=1)
@@ -74,105 +117,90 @@ class ExportParasClass:
    
         Label(f1, text=_("Tool diameter [mm]:"))\
                 .grid(row=0,column=0,sticky=N+W,padx=4)
-        Entry(f1,width=7,textvariable=self.tool_dia)\
-                .grid(row=0,column=1,sticky=N+E)
+        self.entries.append(Entry(f1,width=7,textvariable=self.tool_dia,state=DISABLED))
+        self.entries[-1].grid(row=0,column=1,sticky=N+E)
+
 
         Label(f1, text=_("Start radius (for tool comp.) [mm]:"))\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f1,width=7,textvariable=self.start_rad)\
-                .grid(row=1,column=1,sticky=N+E)        
+        self.entries.append(Entry(f1,width=7,textvariable=self.start_rad,state=DISABLED))
+        self.entries[-1].grid(row=1,column=1,sticky=N+E) 
 
         Label(f2, text=(_("%s safety margin [mm]:") %config.ax3_letter))\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.axis3_safe_margin)\
-                .grid(row=1,column=1,sticky=N+E)
+        self.entries.append(Entry(f2,width=7,textvariable=self.axis3_safe_margin,state=DISABLED))
+        self.entries[-1].grid(row=1,column=1,sticky=N+E)
 
         Label(f2, text=(_("%s infeed depth [mm]:") %config.ax3_letter))\
                 .grid(row=2,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.axis3_slice_depth)\
-                .grid(row=2,column=1,sticky=N+E)
+        self.entries.append(Entry(f2,width=7,textvariable=self.axis3_slice_depth,state=DISABLED))
+        self.entries[-1].grid(row=2,column=1,sticky=N+E)
 
         Label(f2, text=(_("%s mill depth [mm]:") %config.ax3_letter))\
                 .grid(row=3,column=0,sticky=N+W,padx=4)
-        Entry(f2,width=7,textvariable=self.axis3_mill_depth)\
-                .grid(row=3,column=1,sticky=N+E)
+        self.entries.append(Entry(f2,width=7,textvariable=self.axis3_mill_depth,state=DISABLED))
+        self.entries[-1].grid(row=3,column=1,sticky=N+E)
 
         Label(f3, text=(_("G1 feed %s-direction [mm/min]:") %config.ax3_letter))\
                 .grid(row=1,column=0,sticky=N+W,padx=4)
-        Entry(f3,width=7,textvariable=self.F_G1_Depth)\
-                .grid(row=1,column=1,sticky=N+E)
+        self.entries.append(Entry(f3,width=7,textvariable=self.F_G1_Depth,state=DISABLED))
+        self.entries[-1].grid(row=1,column=1,sticky=N+E)
 
         Label(f3, text=(_("G1 feed %s%s-direction [mm/min]:") %(config.ax1_letter,config.ax2_letter)))\
                 .grid(row=2,column=0,sticky=N+W,padx=4)
-        Entry(f3,width=7,textvariable=self.F_G1_Plane)\
-                .grid(row=2,column=1,sticky=N+E)
+        self.entries.append(Entry(f3,width=7,textvariable=self.F_G1_Plane,state=DISABLED))
+        self.entries[-1].grid(row=2,column=1,sticky=N+E)
 
-
-class NotebookClass:    
-    # initialization. receives the master widget
-    # reference and the notebook orientation
-    def __init__(self, master,width=0,height=0):
-
-        self.active_fr = None
-        self.count = 0
-        self.choice = IntVar(0)
-
-        self.dummy_x_fr = Frame(master, width=width, borderwidth=0)
-        self.dummy_y_fr = Frame(master, height=height, borderwidth=0)
-        self.dummy_x_fr.grid(row=0,column=1)
-        self.dummy_x_fr.grid_propagate(0)
-        self.dummy_y_fr.grid(row=1,rowspan=2,column=0)
-        self.dummy_y_fr.grid_propagate(0)
-
-        # creates notebook's frames structure
-        self.rb_fr = Frame(master, borderwidth=0)
-        self.rb_fr.grid(row=1,column=1, sticky=N+W)
+    def change_entry_state(self,new_state):
+        for entry in self.entries:
+            entry.config(state=new_state)
+            
+    def ShowParas(self,LayerContent):
+        print 'Kommt noch'
+             
+class LayerListboxClass(Listbox):
+    def __init__(self,master=None,MyNotebook=None):
+        Listbox.__init__(self,master)
         
-        self.screen_fr = Frame(master, borderwidth=2, relief=RIDGE)
-        self.screen_fr.grid(row=2,column=1,sticky=N+W+E)
+        self.MyNotebook=MyNotebook
         
-        master.rowconfigure(2,weight=1)
-        master.columnconfigure(1,weight=1)
-
-    # return a master frame reference for the external frames (screens)
-    def __call__(self):
-        return self.screen_fr
-
-    # add a new frame (screen) to the (bottom/left of the) notebook
-    def add_screen(self, fr, title):
-
-        b = Radiobutton(self.rb_fr,bd=1, text=title, indicatoron=0, \
-                        variable=self.choice, value=self.count, \
-                        command=lambda: self.display(fr))
+        self.current = None
         
-        b.grid(column=self.count,row=0,sticky=N+E+W)
-        self.rb_fr.columnconfigure(self.count,weight=1)
+        self.scrollbar = Scrollbar(master, orient=VERTICAL)
+        self.config(yscrollcommand=self.scrollbar.set)
+        self.scrollbar.config(command=self.yview)
+        #self.scrollbar.pack(side=RIGHT, fill=Y)
+        #self.pack(side=LEFT, fill=BOTH, expand=1)
+        self.bind("<<ListboxSelect>> ",self.list_clicked)
+        self.LayerContents=[]
+        
+    def CreateLayerContent(self,LayerContents):
+        self.LayerContents=LayerContents
+        self.delete(0, END)
+        
+        for LayerContent in LayerContents:
+            self.insert(END,('Layer Nr: %i, %s' 
+                                    %(LayerContent.LayerNr, LayerContent.LayerName)))
+    
+    def list_clicked(self, event):
+        now = self.curselection()
+        if now != self.current:
+            self.changed_selection()
+            self.current = now
 
-        fr.grid(sticky=N+W+E)
-        self.screen_fr.columnconfigure(0,weight=1)
-        fr.grid_remove()
-
-        # ensures the first frame will be
-        # the first selected/enabled
-        if not self.active_fr:
-            fr.grid()
-            self.active_fr = fr
-
-        self.count += 1
-
-        # returns a reference to the newly created
-        # radiobutton (allowing its configuration/destruction)
-        return b
-
-
-        # hides the former active frame and shows 
-        # another one, keeping its reference
-    def display(self, fr):
-        self.active_fr.grid_remove()
-        fr.grid()
-        self.active_fr = fr
-                  
-               
+    def changed_selection(self):
+        print "selection is", self.curselection()
+        
+        #Wenn nichts ausgewählt ist die Edit Felder ausschalten.
+        if len(self.curselection())==0:
+            self.MyNotebook.ExportParas.change_entry_state(state=DISABLED)
+        #Sonst Werte anzeigen
+        else:
+            sel=int(self.curselection()[0])
+            self.MyNotebook.ExportParas.ShowParas(self.LayerContents[sel])
+            self.MyNotebook.change_selection(self.LayerContents[sel].Shapes)
+        
+        
 class LayerContentClass:
     def __init__(self,type='Layer',LayerNr=None,LayerName='',Shapes=[], MyMessages=[]):
         self.type=type
@@ -182,14 +210,14 @@ class LayerContentClass:
          
         self.folder=os.path.join(PROGRAMDIRECTORY,'layerconfig')
         
-        # eine ConfigParser Instanz oeffnen
+        # open a ConfigParser Instance
         self.parser = ConfigParser.ConfigParser()
         self.layer_content_file_name='LayerContent_%s.cfg' %self.LayerName
         
-        # Lesen der Config Datei falls vorhanden
+        # Read the config file 
         self.parser.read(os.path.join(self.folder,self.layer_content_file_name))
         
-        # Überprüfung ob vorhanden sonst neu erstellen
+        # check if it already exists 
         if len(self.parser.sections())==0:
             self.MakeNewLayerContentFile()
             self.parser.read(os.path.join(self.folder,self.layer_content_file_name))
@@ -199,8 +227,9 @@ class LayerContentClass:
             MyMessages.prt((_('\nLoading LayerContent file:%s') \
                              %os.path.join(self.folder,self.layer_content_file_name)))
 
-        #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
+        #Read the variables from the existing layer config file  
         self.GetAllVars()
+
 
 
     def MakeNewLayerContentFile(self):

@@ -44,7 +44,7 @@ if os.name == "posix" and sys.platform == "darwin":
 from dxf2gcode_b02_config import ConfigClass, PostprocessorClass
 from dxf2gcode_b02_point import PointClass
 from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
-from dxf2gcode_b02_notebook import NotebookClass, ExportParasClass, LayerContentClass
+from dxf2gcode_b02_notebook import MyNotebookClass, LayerContentClass
 import dxf2gcode_b02_dxf_import as dxf_import 
 import dxf2gcode_b02_tsp_opt as tsp
 import locale
@@ -54,7 +54,7 @@ from math import radians, degrees
 import webbrowser,gettext, tempfile, subprocess
 from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
 from tkMessageBox import showwarning, showerror
-from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
+from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button, Listbox
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
@@ -165,11 +165,16 @@ class Erstelle_Fenster:
             
 
         #Erstellen de Eingabefelder und des Canvas
-        self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
+        self.MyNotebook =MyNotebookClass(self.frame_l,self.config,self.postpro,[])
         self.Canvas =CanvasClass(self.frame_c,self)
 
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
-        self.CanvasContent=CanvasContentClass(self.Canvas,self.textbox,self.config)
+        self.CanvasContent=CanvasContentClass(self.Canvas,
+                                              self.textbox,
+                                              self.config,
+                                              self.MyNotebook)
+        
+        self.MyNotebook.CanvasContent=self.CanvasContent
         self.Canvas.Content=self.CanvasContent
 
         #Erstellen des Fenster Menus
@@ -677,7 +682,6 @@ class CanvasClass:
         self.master.columnconfigure(0,weight=1)
         self.master.rowconfigure(0,weight=1)
 
-
         #Binding fuer die Bewegung des Mousezeigers
         self.canvas.bind("<Motion>", self.moving)
 
@@ -700,14 +704,14 @@ class CanvasClass:
         self.canvas.bind("<Control-B3-Motion>", self.mouse_zoom_motion)
         self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)  
 
-	if platform in ("mac"):
-            # for macs with three button mice  Button-3  actually is reported as Button-2
-            self.canvas.bind("<Button-2>", self.make_contextmenu)
-            # and if that isnt available, the following does the trick (one-eyed mice)
-            self.canvas.bind("<Option-Button-1>", self.make_contextmenu)
-            self.canvas.bind("<Command-ButtonRelease-1>", self.mouse_zoom_release)   
-            self.canvas.bind("<Command-Button-1>", self.mouse_zoom)
-            self.canvas.bind("<Command-B1-Motion>", self.mouse_zoom_motion)          
+#	if platform in ("mac"):
+#            # for macs with three button mice  Button-3  actually is reported as Button-2
+#            self.canvas.bind("<Button-2>", self.make_contextmenu)
+#            # and if that isnt available, the following does the trick (one-eyed mice)
+#            self.canvas.bind("<Option-Button-1>", self.make_contextmenu)
+#            self.canvas.bind("<Command-ButtonRelease-1>", self.mouse_zoom_release)   
+#            self.canvas.bind("<Command-Button-1>", self.mouse_zoom)
+#            self.canvas.bind("<Command-B1-Motion>", self.mouse_zoom_motion)          
 
     #Callback fuer das Bewegen der Mouse mit Darstellung in untere Leiste
     def moving(self,event):
@@ -765,7 +769,8 @@ class CanvasClass:
             items=self.canvas.find_overlapping(event.x-3,event.y-3,event.x+3,event.y+3)
             mode='single'
             
-        self.Content.addselection(items,mode)
+        shapes=self.Content.get_selected_shapes(items,mode)
+        self.Content.change_selection(shapes)
 
     #Callback fuer Bewegung des Bildes
     def mouse_move(self,event):
@@ -934,10 +939,11 @@ class CanvasClass:
         
 #Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
 class CanvasContentClass:
-    def __init__(self,Canvas,textbox,config):
+    def __init__(self,Canvas,textbox,config,MyNotebook):
         self.Canvas=Canvas
         self.textbox=textbox
         self.config=config
+        self.MyNotebook=MyNotebook
         self.Shapes=[]
         self.LayerContents=[]
         self.EntitiesRoot=EntitieContentClass()
@@ -1009,6 +1015,8 @@ class CanvasContentClass:
 
         #Autoscale des Canvas        
         self.Canvas.autoscale()
+        
+        self.MyNotebook.CreateLayerContent(self.LayerContents)
 
     def makeshapes(self,parent=None,ent_nr=-1):
 
@@ -1108,9 +1116,9 @@ class CanvasContentClass:
         else:
             draw_list=range(len(self.Shapes))
                
-        for shape_nr in draw_list:
-            if not(shape_nr in self.Disabled):
-                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas,self.config)
+        for shape in draw_list:
+            if not(shape in self.Disabled):
+                self.dir_hdls+=shape.plot_cut_info(self.Canvas,self.config)
 
 
     def plot_opt_route(self,shapes_st_en_points,route):
@@ -1176,57 +1184,80 @@ class CanvasContentClass:
             
         self.path_hdls=[]
         
-    def deselect(self): 
-        self.set_shapes_color(self.Selected,'deselected')
+    def deselect(self):
+        self.Deselected=self.Selected[:]
+        self.Selected=[]
+        self.set_shapes_color(self.Deselected,'deselected')
         
         if not(self.toggle_start_stop.get()):
             for hdl in self.dir_hdls:
                 self.Canvas.canvas.delete(hdl) 
             self.dir_hdls=[]
-        
-    def addselection(self,items,mode):
+       
+    def get_selected_shapes(self,items,mode):
+        shape_nrs=[]
+        shapes=[]
         for item in items:
             try:
                 tag=int(self.Canvas.canvas.gettags(item)[-1])
-                if not(tag in self.Selected):
-                    self.Selected.append(tag)
-
-                    self.textbox.prt(_('\n\nAdded shape to selection %s:')%(self.Shapes[tag]),3)
-                    
+                if not(tag in shape_nrs):
+                    shape_nrs.append(tag)
                     if mode=='single':
                         break
             except:
                 pass
             
+        for shape_nr in shape_nrs:
+            shapes.append(self.Shapes[shape_nr])
+            
+        return shapes
+        
+    def change_selection(self,sel_shapes):
+        self.Deselected=[]
+        for shape in sel_shapes:
+            if not(shape in self.Selected):
+                self.Selected.append(shape)
+                self.textbox.prt(_('\n\nAdded shape to selection %s:')%(shape),3)
+            else:
+                self.Deselected.append(shape)
+                self.Selected.remove(shape)
+                self.textbox.prt(_('\n\Removed shape to selection %s:')%(shape),3)
+        
         self.plot_cut_info()
         self.set_shapes_color(self.Selected,'selected')
+        self.set_shapes_color(self.Deselected,'deselected')
+        self.Deselected=[]
  
     def invert_selection(self):
         new_sel=[]
-        for shape_nr in range(len(self.Shapes)):
+        for shape in self.Shapes:
             if (not(shape_nr in self.Disabled)) & (not(shape_nr in self.Selected)):
                 new_sel.append(shape_nr)
 
-        self.deselect()
+        self.Deselected=self.Selected[:]
         self.Selected=new_sel
+        
         self.set_shapes_color(self.Selected,'selected')
+        self.set_shapes_color(self.Deselected,'deselected')
+        self.Deselected=[]
+        
         self.plot_cut_info()
 
         self.textbox.prt(_('\nInverting Selection'),3)
         
 
     def disable_selection(self):
-        for shape_nr in self.Selected:
-            if not(shape_nr in self.Disabled):
+        for shape in self.Selected:
+            if not(shape in self.Disabled):
                 self.Disabled.append(shape_nr)
         self.set_shapes_color(self.Selected,'disabled')
         self.Selected=[]
         self.plot_cut_info()
 
     def enable_selection(self):
-        for shape_nr in self.Selected:
-            if shape_nr in self.Disabled:
-                nr=self.Disabled.index(shape_nr)
+        for shape in self.Selected:
+            if shape in self.Disabled:
+                nr=self.Disabled.index(shape)
                 del(self.Disabled[nr])
         self.set_shapes_color(self.Selected,'deselected')
         self.Selected=[]
@@ -1241,10 +1272,10 @@ class CanvasContentClass:
             self.show_dis=0
 
     def switch_shape_dir(self):
-        for shape_nr in self.Selected:
-            self.Shapes[shape_nr].reverse()
+        for shape in self.Selected:
+            shape.reverse()
             self.textbox.prt(_('\n\nSwitched Direction at Shape: %s')\
-                             %(self.Shapes[shape_nr]),3)
+                             %(shape),3)
         self.plot_cut_info()
         
     def set_cut_cor(self,correction):
@@ -1255,22 +1286,21 @@ class CanvasContentClass:
                              %(self.Shapes[shape_nr]),3)
         self.plot_cut_info() 
         
-    def set_shapes_color(self,shape_nrs,state):
-        s_shape_nrs=[]
-        d_shape_nrs=[]
-        for shape in shape_nrs:
+    def set_shapes_color(self,shapes,state):
+        s_shapes=[]
+        d_shapes=[]
+        for shape in shapes:
             if not(shape in self.Disabled):
-                s_shape_nrs.append(shape)
+                s_shapes.append(shape)
             else:
-                d_shape_nrs.append(shape)
+                d_shapes.append(shape)
         
-        s_hdls=self.get_shape_hdls(s_shape_nrs)
-        d_hdls=self.get_shape_hdls(d_shape_nrs)
-    
+        s_hdls=self.get_shape_hdls(s_shapes)
+        d_hdls=self.get_shape_hdls(d_shapes)
+
         if state=='deselected':
             s_color='black'
             d_color='gray'
-            self.Selected=[]
         elif state=='selected':
             s_color='red'
             d_color='blue'
@@ -1282,7 +1312,7 @@ class CanvasContentClass:
         self.set_color(d_hdls,d_color)
 
         if (self.toggle_show_disabled.get()==0):
-            self.set_hdls_hidden(d_shape_nrs)
+            self.set_hdls_hidden(d_shapes)
         
     def set_color(self,hdls,color):
         for hdl in hdls:
@@ -1291,24 +1321,24 @@ class CanvasContentClass:
             else:
                 self.Canvas.canvas.itemconfig(hdl, fill=color)
 
-    def set_hdls_hidden(self,shape_nrs):
-        hdls=self.get_shape_hdls(shape_nrs)
+    def set_hdls_hidden(self,shapes):
+        hdls=self.get_shape_hdls(shapes)
         for hdl in hdls:
             self.Canvas.canvas.itemconfig(hdl,state='hidden')
 
-    def set_hdls_normal(self,shape_nrs):
-        hdls=self.get_shape_hdls(shape_nrs)
+    def set_hdls_normal(self,shapes):
+        hdls=self.get_shape_hdls(shapes)
         for hdl in hdls:
             self.Canvas.canvas.itemconfig(hdl,state='normal')            
         
-    def get_shape_hdls(self,shape_nrs):        
+    def get_shape_hdls(self,shapes):        
         hdls=[]
-        for s_nr in shape_nrs:
-            if type(self.Shapes[s_nr].geos_hdls[0]) is list:
-                for subcont in self.Shapes[s_nr].geos_hdls:
+        for shape in shapes:
+            if type(shape.geos_hdls[0]) is list:
+                for subcont in shape.geos_hdls:
                     hdls=hdls+subcont
             else:
-                hdls=hdls+self.Shapes[s_nr].geos_hdls
+                hdls=hdls+shape.geos_hdls
         return hdls      
                                        
        
