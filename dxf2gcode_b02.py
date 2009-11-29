@@ -66,13 +66,12 @@ DATE=   "2009-11-16"
 # elif os.name == 'nt': 
 #    FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()).replace("\\", "/")
 #===============================================================================
- 
+ FOLDER=os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
+
+
 if os.path.islink(sys.argv[0]):
     FOLDER=os.path.dirname(os.readlink(sys.argv[0]))
     
-
-#Das momentane Verzeichnis herausfinden
-#local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
 
 # Liste der unterstützuden Sprachen anlegen.
 langs = []
