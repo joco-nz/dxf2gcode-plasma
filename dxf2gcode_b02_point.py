@@ -310,7 +310,7 @@ class ArcGeo:
                         
         x=[]; y=[]; hdl=[]
         #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
-        segments=int((abs(degrees(self.ext))//10)+1)
+        segments=int((abs(degrees(self.ext))//2)+1)
         
         for i in range(segments+1):
             

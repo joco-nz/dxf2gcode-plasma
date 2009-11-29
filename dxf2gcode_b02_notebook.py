@@ -53,7 +53,7 @@ class ExportParasClass:
         self.nb_f1.columnconfigure(0,weight=1)
         #self.nb_f2.columnconfigure(0,weight=1)        
     
-        self.erstelle_eingabefelder(config)
+        #self.erstelle_eingabefelder(config)
 
         #self.gcode_be.insert(END,postpro.gcode_be)
         #self.gcode_en.insert(END,postpro.gcode_en)
