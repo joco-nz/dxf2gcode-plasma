@@ -60,7 +60,7 @@ from Canvas import Rectangle, Line, Oval, Arc
 from copy import copy
 
 # Globale "Konstanten"
-APPNAME = "dxf2gcode_b02"
+APPNAME = "dxf2gcode"
 VERSION= "TKINTER Beta 02"
 DATE=   "2009-11-01"
 

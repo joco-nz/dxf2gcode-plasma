@@ -47,7 +47,8 @@ class ConfigClass:
 
         # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
-        self.cfg_file_name=self.appname+'_config.cfg'
+#        self.cfg_file_name=self.appname+'_config.cfg'
+        self.cfg_file_name='config.cfg'
         self.parser.read(os.path.join(self.folder,self.cfg_file_name))
 
         # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
@@ -231,7 +232,8 @@ class PostprocessorClass:
         except:
            # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
             self.make_settings_folder() 
-            self.postpro_file_name=self.appname+'_postprocessor.cfg'
+#            self.postpro_file_name=self.appname+'_postprocessor.cfg'
+            self.postpro_file_name='postprocessor.cfg'
             
             self.make_new_postpro_file()
             self.parser.read(os.path.join(self.folder,self.postpro_file_name))
