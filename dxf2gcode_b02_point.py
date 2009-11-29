@@ -256,12 +256,13 @@ class ContourClass:
                +'\norder ->'+str(self.order)+'\nlength ->'+str(self.length)
 
 class ArcGeo:
-    def __init__(self,Pa=None,Pe=None,O=None,r=1,s_ang=None,e_ang=None,dir=1):
+    def __init__(self,Pa=None,Pe=None,O=None,r=1,s_ang=None,e_ang=None,dir=1,color=None):
         self.type="ArcGeo"
         self.Pa=Pa
         self.Pe=Pe
         self.O=O
         self.r=abs(r)
+        self.color=color
 
         #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
         if type(s_ang)==type(None):
@@ -291,7 +292,8 @@ class ArcGeo:
                ("\nPa : %s; s_ang: %0.5f" %(self.Pa,self.s_ang))+\
                ("\nPe : %s; e_ang: %0.5f" %(self.Pe,self.e_ang))+\
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
-               ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
+               ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))+\
+               ("\ncolor: %s" %self.color)        
 
     def reverse(self):
         Pa=self.Pa
@@ -384,17 +386,19 @@ class ArcGeo:
 
     
 class LineGeo:
-    def __init__(self,Pa,Pe):
+    def __init__(self,Pa,Pe,color=None):
         self.type="LineGeo"
         self.Pa=Pa
         self.Pe=Pe
         self.length=self.Pa.distance(self.Pe)
+        self.color=color
 
     def __str__(self):
         return ("\nLineGeo")+\
                ("\nPa : %s" %self.Pa)+\
                ("\nPe : %s" %self.Pe)+\
-               ("\nlength: %0.5f" %self.length)        
+               ("\nlength: %0.5f" %self.length)+\
+               ("\ncolor: %s" %self.color)        
 
     def reverse(self):
         Pa=self.Pa
@@ -442,7 +446,49 @@ class LineGeo:
             return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
         except:
             return 1e10
-            
+   
+   
+class PointGeo:
+    def __init__(self,Pa,color=None):
+        self.type="PointGeo"
+        self.Pa=Pa
+        self.length=0
+        self.color=color
+
+    def __str__(self):
+        return ("\nPointGeo")+\
+               ("\nPa : %s" %self.Pa)+\
+               ("\ncolor: %s" %self.color)        
+
+    def reverse(self):  
+        pass
+
+    def reverse_copy(self):
+        return PointGeo(Pa=Pa)
+        
+    def plot2can(self,canvas=None,parent=None,tag=None,col='black'):
+        hdls = []
+        size = 3 
+        p=self.Pa.rot_sca_abs(parent=parent)
+        xy=p.x-size/2,-(p.y-size/2),p.x+size/2,-(p.y+size/2)
+        hdls.append(Arc(canvas,xy,start=0,extent=90,  tag=tag))
+        hdls.append(Arc(canvas,xy,start=180,extent=90,tag=tag))
+        
+        return [hdls]
+
+    def get_start_end_points(self,direction,parent=None):
+        punkt=self.Pa.rot_sca_abs(parent=parent)
+        return punkt, 0
+    
+    # FIXME
+    def Write_GCode(self,parent=None,postpro=None):
+        anf, anf_ang=self.get_start_end_points(0,parent)
+        ende, end_ang=self.get_start_end_points(1,parent)
+
+        return postpro.lin_pol_xy(anf,anf)
+
+    def distance2point(self,point):
+        return self.Pa.distance(point)
 
 class BiarcClass:
     def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[],min_r=5e-4):
