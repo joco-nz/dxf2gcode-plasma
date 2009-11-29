@@ -28,6 +28,10 @@ import os, sys
 import ConfigParser
 
 PROGRAMDIRECTORY = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
+
+if os.path.islink(sys.argv[0]):
+    PROGRAMDIRECTORY=os.path.dirname(os.readlink(sys.argv[0]))
+    
 BITMAPDIRECTORY = PROGRAMDIRECTORY + "/bitmaps"
 
 import wx

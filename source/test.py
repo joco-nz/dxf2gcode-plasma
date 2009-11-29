@@ -79,7 +79,7 @@ from math import radians, degrees, log, ceil
 
 from dxf2gcode_inputdlg import VarDlg
 from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
-from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
+from dxf2gcode_b02_shape_mod import ShapeClass, EntitieContentClass #ANDERST####################################
 import dxf2gcode_b02_dxf_import as dxfimport 
 import dxf2gcode_b02_tsp_opt as tsp
 from dxf2gcode_b02_config import MyConfigClass, MyPostprocessorClass
@@ -1129,9 +1129,9 @@ class MyCanvasContentClass:
     def plot_shapes(self):
         for shape in self.Shapes:
             shape.plot2can(self.Canvas)
-            shape.geo_hdl.Name = shape   
-            shape.geo_hdl.HitLineWidth=15
-            shape.geo_hdl.Bind(FloatCanvas.EVT_FC_LEFT_UP, self.ShapeGotHit)
+            #shape.geo_hdl.Name = shape   
+            #shape.geo_hdl.HitLineWidth=15
+            #shape.geo_hdl.Bind(FloatCanvas.EVT_FC_LEFT_UP, self.ShapeGotHit)
 
         return [0]
     
@@ -1384,7 +1384,8 @@ class MyCanvasContentClass:
         self.Canvas.Draw(Force=True)
 
     def selection_changed(self):
-        self.MyNotebook.selection_changed(self.Selected)
+        pass
+        #self.MyNotebook.selection_changed(self.Selected)
         
 
     def switch_shape_dir(self,event):
