@@ -34,6 +34,7 @@ from dxf2gcode_b02_geoent_polyline import PolylineClass
 from dxf2gcode_b02_geoent_spline import SplineClass
 from dxf2gcode_b02_geoent_ellipse import EllipseClass
 from dxf2gcode_b02_geoent_lwpolyline import LWPolylineClass
+from dxf2gcode_b02_geoent_point import PointGeoClass
 
 import sys, os
 from Tkconstants import END
@@ -151,10 +152,13 @@ class Load_DXF:
             while (start != None):
                 start=self.line_pairs.index_both(0,"LAYER",start+1,tables_section.end)
                 if(start != None):
+                    color = None
                     start=self.line_pairs.index_code(2,start+1)
+#                    color=self.line_pairs.index_code(62,start+1)
                     layers.append(LayerClass(len(layers)))
                     layers[-1].name=self.line_pairs.line_pair[start].value
-                    
+#                    layers[-1].color=self.line_pairs.line_pair[color].value # FIXME
+
         self.textbox.prt(("\n\nLayers found:" ),1)
         for lay in layers:
             self.textbox.prt(str(lay),1)
@@ -207,7 +211,7 @@ class Load_DXF:
             #YWert
             s=lp.index_code(20,s+1,e)
             blocks.Entities[-1].basep.y=float(lp.line_pair[s].value)
-            
+
             #Lesen der Geometrien
             (blocks.Entities[-1].geo,warning)=self.Get_Geo(s,e,warning)
             
@@ -301,6 +305,8 @@ class Load_DXF:
             geo=EllipseClass(geo_nr,self)
         elif (name=="LWPOLYLINE"):
             geo=LWPolylineClass(geo_nr,self)
+        elif (name=="POINT"):
+            geo=PointGeoClass(geo_nr,self)
         else:  
             self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" %name))
             self.start+=1 #Eins hochzählen sonst gibts ne dauer Schleife
@@ -639,7 +645,8 @@ class dxflinepairsClass:
     
     #Sucht nach Code Angaben in den Line Pairs code & value
     #optional mit start und endwert für die Suche
-    def index_code(self,code=0,start=0,stop=-1):
+    # optionaler stop wenn stopcode gefunden (zum Suchen optionaler Codes)
+    def index_code(self,code=0, start=0,stop=-1,stopcode=None):
 
         #Wenn bei stop -1 angegeben wird stop am ende der pairs        
         if stop==-1:
@@ -647,19 +654,23 @@ class dxflinepairsClass:
             
         #Starten der Suche innerhalb mit den angegeben parametern        
         for i in range(start,stop):
+            if (stopcode <> None) and (self.line_pair[i].code==stopcode):
+                return None
             if (self.line_pair[i].code==code):
                 return i
             
         #Wenn nicht gefunden wird None ausgeben
         return None
-            
+    
+              
 class LayerClass:
-    def __init__(self,Nr=0, name=''):
+    def __init__(self,Nr=0, name='',color=None):
         self.Nr= Nr
         self.name = name
+        self.color = color
     def __str__(self):
         # how to print the object
-        return '\nNr ->'+str(self.Nr)+'\nName ->'+self.name
+        return '\nNr ->'+str(self.Nr)+'\nName ->'+self.name + '\ncolor -> ' +str(self.color)
     def __len__(self):
         return self.__len__
 
@@ -719,3 +730,101 @@ class BlocksClass:
         for entitie in self.ties:
             s=s+str(entitie)
         return s
+    
+# map ACI colors to UI-usable #rgb values
+# and nice names for common colors
+class ColorClass:
+    
+    # common color name
+    pens = {
+              0 : "by block",
+              1 : "red",
+              2 : "yellow",
+              3 : "green",
+              4 : "cyan",
+              5 : "blue",
+              6 : "magenta",
+              7 : "black",
+              8 : "darkgrey",
+              9 : "lightgray",
+              255 : "white",
+              256 : "by layer" 
+    }
+
+    rgb = [ "FFFFFF", "FF0000", "FFFF00", "00FF00", #   0 -   3
+            "00FFFF", "0000FF", "FF00FF", "FFFFFF", #   4 -   7
+            "B2B2B2", "C0C0C0", "FF0000", "FF8080", #   8 -  11
+            "A60000", "A65353", "800000", "804040", #  12 -  15
+            "4C0000", "4C2626", "260000", "261313", #  16 -  19
+            "FF4000", "FF9F80", "A62900", "A66853", #  20 -  23
+            "802000", "805040", "4C1300", "4C3026", #  24 -  27
+            "260A00", "261813", "FF8000", "FFBF80", #  28 -  31
+            "A65300", "A67C53", "804000", "806040", #  32 -  35
+            "4C2600", "4C3926", "261300", "261D13", #  36 -  39
+            "FFBF00", "FFDF80", "A67C00", "A69153", #  40 -  43
+            "806000", "807040", "4C3900", "4C4326", #  44 -  47
+            "261D00", "262113", "FFFF00", "FFFF80", #  48 -  51
+            "A6A600", "A6A653", "808000", "808040", #  52 -  55
+            "4C4C00", "4C4C26", "262600", "262613", #  56 -  59
+            "BFFF00", "DFFF80", "7CA600", "91A653", #  60 -  63
+            "608000", "708040", "394C00", "434C26", #  64 -  67
+            "1D2600", "212613", "80FF00", "BFFF80", #  68 -  71
+            "53A600", "7CA653", "408000", "608040", #  72 -  75
+            "264C00", "394C26", "132600", "1D2613", #  76 -  79
+            "40FF00", "9FFF80", "29A600", "68A653", #  80 -  83
+            "208000", "508040", "134C00", "304C26", #  84 -  87
+            "0A2600", "182613", "00FF00", "80FF80", #  88 -  91
+            "00A600", "53A653", "008000", "408040", #  92 -  95
+            "004C00", "264C26", "002600", "132613", #  96 -  99
+            "00FF40", "80FF9F", "00A629", "53A668", # 100 - 103
+            "008020", "408050", "004C13", "264C30", # 104 - 107
+            "00260A", "132618", "00FF80", "80FFBF", # 108 - 111
+            "00A653", "53A67C", "008040", "408060", # 112 - 115
+            "004C26", "264C39", "002613", "13261D", # 116 - 119
+            "00FFBF", "80FFDF", "00A67C", "53A691", # 120 - 123
+            "008060", "408070", "004C39", "264C43", # 124 - 127
+            "00261D", "132621", "00FFFF", "80FFFF", # 128 - 131
+            "00A6A6", "53A6A6", "008080", "408080", # 132 - 135
+            "004C4C", "264C4C", "002626", "132626", # 136 - 139
+            "00BFFF", "80DFFF", "007CA6", "5391A6", # 140 - 143
+            "006080", "407080", "00394C", "26434C", # 144 - 147
+            "001D26", "132126", "0080FF", "80BFFF", # 148 - 151
+            "0053A6", "537CA6", "004080", "406080", # 152 - 155
+            "00264C", "26394C", "001326", "131D26", # 156 - 159
+            "0040FF", "809FFF", "0029A6", "5368A6", # 160 - 163
+            "002080", "405080", "00134C", "26304C", # 164 - 167
+            "000A26", "131826", "0000FF", "8080FF", # 168 - 171
+            "0000A6", "5353A6", "000080", "404080", # 172 - 175
+            "00004C", "26264C", "000026", "131326", # 176 - 179
+            "4000FF", "9F80FF", "2900A6", "6853A6", # 180 - 183
+            "200080", "504080", "13004C", "30264C", # 184 - 187
+            "0A0026", "181326", "8000FF", "BF80FF", # 188 - 191
+            "5300A6", "7C53A6", "400080", "604080", # 192 - 195
+            "26004C", "39264C", "130026", "1D1326", # 196 - 199
+            "BF00FF", "DF80FF", "7C00A6", "9153A6", # 200 - 203
+            "600080", "704080", "39004C", "43264C", # 204 - 207
+            "1D0026", "211326", "FF00FF", "FF80FF", # 208 - 211
+            "A600A6", "A653A6", "800080", "804080", # 212 - 215
+            "4C004C", "4C264C", "260026", "261326", # 216 - 219
+            "FF00BF", "FF80DF", "A6007C", "A65391", # 220 - 223
+            "800060", "804070", "4C0039", "4C2643", # 224 - 227
+            "26001D", "261321", "FF0080", "FF80BF", # 228 - 231
+            "A60053", "A6537C", "800040", "804060", # 232 - 235
+            "4C0026", "4C2639", "260013", "26131D", # 236 - 239
+            "FF0040", "FF809F", "A60029", "A65368", # 240 - 243
+            "800020", "804050", "4C0013", "4C2630", # 244 - 247
+            "26000A", "261318", "545454", "767676", # 248 - 251
+            "989898", "BBBBBB", "DDDDDD", "000000"  # 252 - 255
+            "FFFFFF" ]
+    
+                
+    def __init__(self,color=256):
+        self.color = color
+        
+    def __str__(self):
+        return '\nColor: -> %s'+pen[self.color]
+
+    def tkcolor(self):
+        return "#" + rgb[self.color]
+    
+    
