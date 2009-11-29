@@ -21,6 +21,9 @@ class Polylines:
         self.cut_cor=40
         self.nr=0
         self.r=0
+    def __str__(self):
+        return("%s" %self.cut_cor)
+        
         
         
 class InterSectionPoint:
@@ -58,8 +61,9 @@ class InterSectionPoint:
         return
     def do_compensation(self, shapes, radius, dir):
         pline=Polylines()
-        
+        print pline
         pline=self.CorNextInterSect(shapes)
+        print pline
         pline.cut_cor=dir
         pline=self.GenRawCompData(pline,radius)
         #pline=self.compsteplines(pline)
@@ -76,9 +80,9 @@ class InterSectionPoint:
         P2=PointClass(2, 2)
         newshape=Polylines()
         
-        if num_elements<2:
-            return
-        newshape.closed=shapes.closed
+#        if num_elements<2:
+#            return
+#        newshape.closed=shapes.closed
        # print('is shape closed?', shapes.closed)
        # if shapes.closed!=0:
        #     pass

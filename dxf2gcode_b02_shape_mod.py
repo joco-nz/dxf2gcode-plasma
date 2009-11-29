@@ -3,7 +3,7 @@
 #
 #dxf2gcode_b02_shape.py
 #Programmers:   Christian Kohlöffel
-#               Vinzenz Schulz
+#			   Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
 #
@@ -24,367 +24,452 @@
 #Main Class Shape
 
 #import sys, os, string, ConfigParser 
-from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
+from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, MySelectionStrClass
 from math import cos, sin, radians, degrees
+from copy import deepcopy
 import wx
 from wx.lib.expando import ExpandoTextCtrl
 
 class ShapeClass:
-    def __init__(self,nr='None',closed=0,
-                cut_cor=40,length=0.0,
-                parent=None,
-                geos=[],geos_hdls=[]):
-                
-                    
-        self.type="Shape"
-        self.nr=nr
-        self.closed=closed
-        self.cut_cor=40
-        self.length=length
-        self.parent=parent
-        self.geos=geos
-        self.geos_hdls=geos_hdls
+	def __init__(self, nr='None', closed=0,
+				cut_cor=40, length=0.0,
+				parent=None,
+				layer=None,
+				geos=[], geos_hdls=[]):
+				
+					
+		self.type = "Shape"
+		self.nr = nr
+		self.closed = closed
+		self.cut_cor = 40
+		self.length = length
+		self.parent = parent
+		self.layer = layer
+		self.geos = geos
+		self.geos_hdls = geos_hdls
 
-    def __str__(self):
-        return ('\ntype:        %s' %self.type)+\
-               ('\nnr:          %i' %self.nr)+\
-               ('\nclosed:      %i' %self.closed)+\
-               ('\ncut_cor:     %s' %self.cut_cor)+\
-               ('\nlen(geos):   %i' %len(self.geos))+\
-               ('\nlength:      %0.2f' %self.length)+\
-               ('\ngeos:        %s' %self.geos)+\
-               ('\ngeos_hdls:   %s' %self.geos_hdls)
-               #+\
-               #('\nparent: %s' %self.parent)
 
-    def reverse(self):
-        self.geos.reverse()
-        for geo in self.geos: 
-            geo.reverse()
+	def __str__(self):
+		return ('\ntype:		%s' % self.type) + \
+			('\nnr:		  %i' % self.nr) + \
+			('\nclosed:	  %i' % self.closed) + \
+			('\ncut_cor:	 %s' % self.cut_cor) + \
+			('\nlen(geos):   %i' % len(self.geos)) + \
+			('\nlength:	  %0.2f' % self.length) + \
+			('\ngeos:		%s' % self.geos)#+\
+			#('\ngeos_hdls:   %s' %self.geos_hdls)
+			#+\
+			#('\nparent: %s' %self.parent)
 
-    def switch_cut_cor(self):
-        if self.cut_cor==41:
-            self.cut_cor=42
-        elif self.cut_cor==42:
-            self.cut_cor=41
 
-    def get_st_en_points(self):
-        st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=st_point.rot_sca_abs(self.EntitieContent)
-        
-        en_point, en_angle=self.geos[-1].get_start_end_points(1)
-        ende=en_point.rot_sca_abs(self.EntitieContent)
-        return [start,ende]
+	def AnalyseAndOptimize(self, MyConfig=None):
+		#Optimierung für geschlossene Konturen
+		if self.closed:
+			#Startwert setzen für die erste Summe
+			start, dummy = self.geos[0].get_start_end_points(0, self.parent)
+			summe = 0.0
+			for geo in self.geos:
+				if geo.type == 'LineGeo':
+					ende, dummy = geo.get_start_end_points(1, self.parent)
+					summe += (start.x + ende.x) * (ende.y - start.y) / 2
+					start = deepcopy(ende)
+				elif geo.type == 'ArcGeo':
+					segments = int((abs(degrees(geo.ext)) // 90) + 1)
+					for i in range(segments): 
+						ang = geo.s_ang + (i + 1) * geo.ext / segments
+						ende = PointClass(x=(geo.O.x + cos(ang) * abs(geo.r)), y=(geo.O.y + sin(ang) * abs(geo.r)))
+						summe += (start.x + ende.x) * (ende.y - start.y) / 2
+						start = deepcopy(ende)
+										
+			if summe > 0.0:
+				self.reverse()
+					
+			
 
-#    def plot2can(self,Canvas=None,tag=None,col='Black'):
-#        
-#        for i in range(len(self.geos)):
-#            cur_pts=self.geos[i].plot2can(self.parent)
+
+#		#Optimierung für geschlossene Konturen
+#		if self.closed==1:
+#			summe=0
+#			#Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
+#			#negativer Wert bedeutet CCW geschlossenes Polygon
+#			geo_point_l, dummy=geos[self.order[-1][0]].get_start_end_points(self.order[-1][1])			
+#			for geo_order_nr in range(len(self.order)):
+#				geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
+#				summe+=(geo_point_l.x*geo_point.y-geo_point.x*geo_point_l.y)/2
+#				geo_point_l=geo_point
+#			if summe>0.0:
+#				self.reverse()
 #
-#            if i==0:
-#                points=cur_pts
-#            else:
-#                points+=cur_pts[1:len(cur_pts)]
-#                       
-#        self.geo_hdl=Canvas.AddLine(points, LineWidth = 2, LineColor = col)
-    def plot2can(self,Canvas=None,tag=None,col='Black'):
-        
-        for i in range(len(self.geos)):
-            cur_pts=self.geos[i].plot2can(self.parent)
-            col=self.geos[i].col #################### Entfernen
-           
-            self.geo_hdl=Canvas.AddLine(cur_pts, LineWidth = 2, LineColor = col)
-        
-    def plot_cut_info(self,Canvas,config,length):
-        hdls=[]
-        hdls.append(self.plot_start(Canvas,length))
-        hdls.append(self.plot_end(Canvas,length))
-        if self.cut_cor>40:
-            hdls.append(self.plot_cut_cor(Canvas,length))
-               
-            self.make_start_moves(config)
-            #hdls+=self.st_move[1].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
-            #hdls+=self.st_move[2].plot2can(CanvasClass.canvas,P0,sca,tag=self.nr,col='SteelBlue3')
-        return hdls
-            
-    def plot_start(self,Canvas=None,length=20):
-        st_point, st_angle=self.geos[0].get_start_end_points(0)
-                
-        start=st_point.rot_sca_abs(parent=self.parent)
-        
-        dx=cos(radians(st_angle))*length
-        dy=sin(radians(st_angle))*length
-
-        hdl=Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
-                                LineWidth=2, 
-                                LineColor= "BLUE",
-                                ArrowHeadSize = 18,
-                                ArrowHeadAngle = 18)
-        return hdl
-    
-    
-
-    def plot_cut_cor(self,Canvas=None,length=20):
-        st_point, st_angle=self.geos[0].get_start_end_points(0)
-        start=st_point.rot_sca_abs(parent=self.parent)
-
-        if self.cut_cor==41:
-            st_angle=st_angle+90
-        else:
-            st_angle=st_angle-90
-            
-        dx=cos(radians(st_angle))*length
-        dy=sin(radians(st_angle))*length
-
-        hdl=Canvas.AddArrowLine([[start.x,start.y],[start.x+dx,start.y+dy]],
-                                LineWidth=2,
-                                LineColor= "BLUE",
-                                ArrowHeadSize = 18,
-                                ArrowHeadAngle = 18)
-        return hdl
-
-    def plot_end(self,Canvas=None,length=20):
-        en_point, en_angle=self.geos[-1].get_start_end_points(1)
-           
-        ende=en_point.rot_sca_abs(parent=self.parent)
-        
-        dx=cos(radians(en_angle))*length
-        dy=sin(radians(en_angle))*length
-
-        hdl=Canvas.AddArrowLine([[ende.x+dx,ende.y+dy],[ende.x,ende.y]],
-                                LineWidth=2,
-                                LineColor= "GREEN",
-                                ArrowHeadSize = 18,
-                                ArrowHeadAngle = 18)
-        return hdl
-
-    def make_start_moves(self,config):
-        self.st_move=[]
-
-        #Einlaufradius und Versatz 
-        start_rad=config.start_rad
-        start_ver=start_rad
-
-        #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad=config.tool_dia/2
-    
-        #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
-        sp, sa=self.geos[0].get_start_end_points(0)
-        start_cont=(sp*self.parent.sca)+self.parent.p0
-      
-        if self.cut_cor==40:              
-            self.st_move.append(start_cont)
-
-        #Fräsradiuskorrektur Links        
-        elif self.cut_cor==41:
-            #Mittelpunkts für Einlaufradius
-            Oein=start_cont.get_arc_point(sa+90,start_rad+tool_rad)
-            #Startpunkts für Einlaufradius
-            Pa_ein=Oein.get_arc_point(sa+180,start_rad+tool_rad)
-            #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(sa+90,start_ver)
-            
-            #Eintauchpunkts errechnete Korrektur
-            start_ein=Pg_ein.get_arc_point(sa,tool_rad)
-            self.st_move.append(start_ein)
-
-            #Einlaufgerade mit Korrektur
-            start_line=LineGeo(Pg_ein,Pa_ein)
-            self.st_move.append(start_line)
-
-            #Einlaufradius mit Korrektur
-            start_rad=ArcGeo(Pa=Pa_ein,Pe=start_cont,O=Oein,r=start_rad+tool_rad,dir=1)
-            self.st_move.append(start_rad)
-            
-        #Fräsradiuskorrektur Rechts        
-        elif self.cut_cor==42:
-
-            #Mittelpunkt für Einlaufradius
-            Oein=start_cont.get_arc_point(sa-90,start_rad+tool_rad)
-            #Startpunkt für Einlaufradius
-            Pa_ein=Oein.get_arc_point(sa+180,start_rad+tool_rad)
-            IJ=Oein-Pa_ein
-            #Startwerts für Einlaufgerade
-            Pg_ein=Pa_ein.get_arc_point(sa-90,start_ver)
-            
-            #Eintauchpunkts errechnete Korrektur
-            start_ein=Pg_ein.get_arc_point(sa,tool_rad)
-            self.st_move.append(start_ein)
-
-            #Einlaufgerade mit Korrektur
-            start_line=LineGeo(Pg_ein,Pa_ein)
-            self.st_move.append(start_line)
-
-            #Einlaufradius mit Korrektur
-            start_rad=ArcGeo(Pa=Pa_ein,Pe=start_cont,O=Oein,r=start_rad+tool_rad,dir=0)
-            self.st_move.append(start_rad)
-    
-    def Write_GCode(self,config,postpro):
-
-        #Erneutes erstellen der Einlaufgeometrien
-        self.make_start_moves(config)
-        
-        #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad=config.tool_dia/2
-        
-        depth=config.axis3_mill_depth
-        max_slice=config.axis3_slice_depth
-
-        #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
-        if -abs(max_slice)<=depth:
-            mom_depth=depth
-        else:
-            mom_depth=-abs(max_slice)
+#			#Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
+#			min_point=geo_point_l
+#			min_point_nr=None
+#			for geo_order_nr in range(len(self.order)):
+#				geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
+#				#Geringster Abstand nach unten Unten Links
+#				if (min_point.x+min_point.y)>=(geo_point.x+geo_point.y):
+#					min_point=geo_point
+#					min_point_nr=geo_order_nr
+#			#Kontur so anordnen das neuer Startpunkt am Anfang liegt
+#			self.set_new_startpoint(min_point_nr)
+#			
+#		#Optimierung für offene Konturen
+#		else:
+#			geo_spoint, dummy=geos[self.order[0][0]].get_start_end_points(self.order[0][1])
+#			geo_epoint, dummy=geos[self.order[0][0]].get_start_end_points(not(self.order[0][1]))
+#			if (geo_spoint.x+geo_spoint.y)>=(geo_epoint.x+geo_epoint.y):
+#				self.reverse()
+#
+#
+#	#Neuen Startpunkt an den Anfang stellen
+#	def set_new_startpoint(self,st_p):
+#		self.order=self.order[st_p:len(self.order)]+self.order[0:st_p]
 
 
-        #Positionieren des Werkzeugs über dem Anfang und Eintauchen
-        self.st_move[0].Write_GCode([1,1,1],\
-                                    PointClass(x=0,y=0),\
-                                    PointClass(x=0,y=0),
-                                    0.0,\
-                                    postpro)
-        
-        postpro.rap_pos_z(config.axis3_safe_margin)
-        postpro.chg_feed_rate(config.F_G1_Depth)
-        postpro.lin_pol_z(mom_depth)
-        postpro.chg_feed_rate(config.F_G1_Plane)
 
-        #Wenn G41 oder G42 an ist Fräsradiuskorrektur        
-        if self.cut_cor!=40:
-            
-            #Errechnen des Startpunkts ohne Werkzeug Kompensation
-            #und einschalten der Kompensation     
-            start_cor, sa=self.st_move[1].get_start_end_points(0)
-            postpro.set_cut_cor(self.cut_cor,start_cor)
-            
-            self.st_move[1].Write_GCode([1,1,1],\
-                                    PointClass(x=0,y=0),\
-                                    PointClass(x=0,y=0),
-                                    0.0,\
-                                    postpro)
-            
-            self.st_move[2].Write_GCode([1,1,1],\
-                                    PointClass(x=0,y=0),\
-                                    PointClass(x=0,y=0),
-                                    0.0,\
-                                    postpro)
+	def makeSelectionStr(self):
+		SelectionStr = []
+		SelectionStr.append(MySelectionStrClass(Name=('Shape %s' % self.nr), \
+		Type=self.type, \
+		Closed=self.closed))
+		for geo in self.geos:
+			SelectionStr.append(geo.makeSelectionStr())
+		return SelectionStr
+	
+	def reverse(self):
+		self.geos.reverse()
+		for geo in self.geos: 
+			geo.reverse()
+	
+	def switch_cut_cor(self):
+		if self.cut_cor == 41:
+			self.cut_cor = 42
+		elif self.cut_cor == 42:
+			self.cut_cor = 41
+	
+	def get_st_en_points(self, dir=None):
+		start, start_ang = self.geos[0].get_start_end_points(0, self.parent)
+		ende, end_ang = self.geos[-1].get_start_end_points(1, self.parent)
+		
+		if dir == None:
+			return start, ende
+		elif dir == 0:
+			return start, start_ang
+		elif dir == 1:
+			return ende, end_ang 
 
-        #Schreiben der Geometrien für den ersten Schnitt
-        for geo in self.geos:
-            geo.Write_GCode(self.sca,self.p0,self.rot,postpro)
+	def plot2can(self, Canvas=None, tag=None, col='Black'):  
+		for i in range(len(self.geos)):
+			cur_pts = self.geos[i].plot2can(self.parent)
+			col = self.geos[i].col #################### Entfernen
+		   
+			self.geo_hdl = Canvas.AddLine(cur_pts, LineWidth=2, LineColor=col)		
+	
+	def plot_cut_info(self, Canvas, config, length):
+		hdls = []
+		hdls.append(self.plot_start(Canvas, length))
+		hdls.append(self.plot_end(Canvas, length))
+		if self.cut_cor > 40:
+			self.make_start_moves(config)
+			hdls += self.plot_cut_cor(Canvas, length)		 
+	
+		return hdls
+			
+	def plot_start(self, Canvas=None, length=20):
+		#st_point, st_angle=self.geos[0].get_start_end_points(0,parent)
+				
+		start, start_ang = self.get_st_en_points(0)
 
-        #Ausschalten der Fräsradiuskorrektur
-        if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
-            en_point, en_angle=self.geos[-1].get_start_end_points(-1)
-            end_cont=(en_point*self.sca)+self.p0
-            if self.cut_cor==41:
-                pos_cut_out=end_cont.get_arc_point(en_angle-90,tool_rad)
-            elif self.cut_cor==42:
-                pos_cut_out=end_cont.get_arc_point(en_angle+90,tool_rad)         
-            postpro.deactivate_cut_cor(pos_cut_out)            
+		
 
-        #Zählen der Schleifen
-        snr=0
-        #Schleifen für die Anzahl der Schnitte
-        while mom_depth>depth:
-            snr+=1
-            mom_depth=mom_depth-abs(max_slice)
-            if mom_depth<depth:
-                mom_depth=depth                
+		dx = cos(radians(start_ang)) * length
+		dy = sin(radians(start_ang)) * length
 
-            #Erneutes Eintauchen
-            postpro.chg_feed_rate(config.F_G1_Depth)
-            postpro.lin_pol_z(mom_depth)
-            postpro.chg_feed_rate(config.F_G1_Plane)
+		hdl = Canvas.AddArrowLine([[start.x, start.y], [start.x + dx, start.y + dy]],
+								LineWidth=2,
+								LineColor="BLUE",
+								ArrowHeadSize=18,
+								ArrowHeadAngle=18)
+		return hdl
+	
+	
+	#Funktion zum drucken der zu fräsenden Kontur mit den Richtungspfeilen usw.
+	def plot_cut_cor(self, Canvas=None, length=20):
+		start, start_ang = self.get_st_en_points(0)
 
-            #Falls es keine geschlossene Kontur ist    
-            if self.closed==0:
-                self.reverse()
-                self.switch_cut_cor()
-                
-            #Falls cut correction eingeschaltet ist diese einschalten.
-            if ((not(self.cut_cor==40))&(self.closed==0))or(postpro.cancel_cc_for_depth==1):
-                #Errechnen des Startpunkts ohne Werkzeug Kompensation
-                #und einschalten der Kompensation     
-                sp, sa=self.geos[0].get_start_end_points(0)
-                start_cor=(sp*self.sca)+self.p0
-                postpro.set_cut_cor(self.cut_cor,start_cor)
-                
-            for geo_nr in range(len(self.geos)):
-                self.geos[geo_nr].Write_GCode(self.entitie.sca,self.entitie.p0,
-                                                self.entitie.pb,
-                                                self.entitie.rot,postpro)
+		#BaseEntitie erstellen um auf oberster Ebene zu Fräsen
+		BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
+										parent=None,
+										children=[],
+										p0=PointClass(x=0.0, y=0.0),
+										pb=PointClass(x=0.0, y=0.0),
+										sca=[1, 1, 1],
+										rot=0.0)
 
-            #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
-            en_point, en_angle=self.geos[-1].get_start_end_points(-1)
-            en_point=(en_point*self.sca)+self.p0
-            if self.cut_cor==41:
-                en_point=en_point.get_arc_point(en_angle-90,tool_rad)
-            elif self.cut_cor==42:
-                en_point=en_point.get_arc_point(en_angle+90,tool_rad)
+		if self.cut_cor == 41:
+			start_ang = start_ang + 90
+		else:
+			start_ang = start_ang - 90
+			
+		dx = cos(radians(start_ang)) * length
+		dy = sin(radians(start_ang)) * length
 
-            #Ausschalten der Fräsradiuskorrektur falls benötigt          
-            if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):         
-                postpro.deactivate_cut_cor(en_point)
-     
-        #Anfangswert für Direction wieder herstellen falls nötig
-        if (snr%2)>0:
-            self.reverse()
-            self.switch_cut_cor()
+		hdl = [Canvas.AddArrowLine([[start.x, start.y], [start.x + dx, start.y + dy]],
+								LineWidth=2,
+								LineColor="BLUE",
+								ArrowHeadSize=18,
+								ArrowHeadAngle=18)]
+		
+		points = []
+		for geo_nr in range(len(self.st_move)):
+			cur_pts = self.st_move[geo_nr].plot2can(BaseEntitie)	
+			if cur_pts == None:
+				pass
+			else:
+				points += cur_pts[1:len(cur_pts)]
+				
+		if len(self.st_move) > 0:
+			hdl.append(Canvas.AddLine(points, LineWidth=2))
+			
+		return hdl
+			
+	def plot_end(self, Canvas=None, length=20):
+		ende, en_angle = self.get_st_en_points(1)
+	
+		dx = cos(radians(en_angle)) * length
+		dy = sin(radians(en_angle)) * length
 
-        #Fertig und Zurückziehen des Werkzeugs
-        postpro.lin_pol_z(config.axis3_safe_margin)
-        postpro.rap_pos_z(config.axis3_retract)
+		hdl = Canvas.AddArrowLine([[ende.x + dx, ende.y + dy], [ende.x, ende.y]],
+								LineWidth=2,
+								LineColor="GREEN",
+								ArrowHeadSize=18,
+								ArrowHeadAngle=18)
+		return hdl
 
-        #Falls Fräsradius Korrektur noch nicht ausgeschaltet ist ausschalten.
-        if (not(self.cut_cor==40))&(not(postpro.cancel_cc_for_depth)):
-            postpro.deactivate_cut_cor(en_point)        
+	#Funktion zum erstellen der Einlaufradien usw. Hier könnte man später auch die Fräs
+	#radienkorrektur unterbringen?!
+	def make_start_moves(self, config):
+		self.st_move = []
 
-        return 1    
-    
+		#Einlaufradius und Versatz 
+		start_rad = self.layer.start_rad
+		start_ver = self.layer.start_rad
+
+		#Werkzeugdurchmesser in Radius umrechnen		
+		tool_rad = self.layer.tool_dia / 2
+	
+		#Errechnen des Startpunkts mit und ohne Werkzeug Kompensation		
+		start, start_ang = self.get_st_en_points(0)
+	
+		if self.cut_cor == 40:			  
+			self.st_move.append(start)
+
+		#Fräsradiuskorrektur Links		
+		elif self.cut_cor == 41:
+			#Mittelpunkts für Einlaufradius
+			Oein = start.get_arc_point(start_ang + 90, start_rad + tool_rad)
+			#Startpunkts für Einlaufradius
+			Pa_ein = Oein.get_arc_point(start_ang + 180, start_rad + tool_rad)
+			#Startwerts für Einlaufgerade
+			Pg_ein = Pa_ein.get_arc_point(start_ang + 90, start_ver)
+			
+			#Eintauchpunkt errechnete Korrektur
+			start_ein = Pg_ein.get_arc_point(start_ang, tool_rad)
+			self.st_move.append(start_ein)
+
+			#Einlaufgerade mit Korrektur
+			start_line = LineGeo(Pg_ein, Pa_ein)
+			self.st_move.append(start_line)
+
+			#Einlaufradius mit Korrektur
+			start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, r=start_rad + tool_rad, dir=1)
+			self.st_move.append(start_rad)
+			
+		#Fräsradiuskorrektur Rechts		
+		elif self.cut_cor == 42:
+
+			#Mittelpunkt für Einlaufradius
+			Oein = start.get_arc_point(start_ang - 90, start_rad + tool_rad)
+			#Startpunkt für Einlaufradius
+			Pa_ein = Oein.get_arc_point(start_ang + 180, start_rad + tool_rad)
+			#IJ=Oein-Pa_ein
+			#Startwerts für Einlaufgerade
+			Pg_ein = Pa_ein.get_arc_point(start_ang - 90, start_ver)
+			
+			#Eintauchpunkts errechnete Korrektur
+			start_ein = Pg_ein.get_arc_point(start_ang, tool_rad)
+			self.st_move.append(start_ein)
+
+			#Einlaufgerade mit Korrektur
+			start_line = LineGeo(Pg_ein, Pa_ein)
+			self.st_move.append(start_line)
+
+			#Einlaufradius mit Korrektur
+			start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, r=start_rad + tool_rad, dir=0)
+			self.st_move.append(start_rad)
+	
+	def Write_GCode(self, config, postpro):
+
+		#Erneutes erstellen der Einlaufgeometrien
+		self.make_start_moves(config)
+		
+		#Werkzeugdurchmesser in Radius umrechnen		
+		tool_rad = self.layer.tool_dia / 2
+
+		#BaseEntitie erstellen um auf oberster Ebene zu Fräsen
+		BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
+										parent=None,
+										children=[],
+										p0=PointClass(x=0.0, y=0.0),
+										pb=PointClass(x=0.0, y=0.0),
+										sca=[1, 1, 1],
+										rot=0.0)
+		
+
+		depth = self.layer.axis3_mill_depth
+		max_slice = self.layer.axis3_slice_depth
+
+		#Wenn Output Format DXF dann nur einmal Fräsen
+		if postpro.output_type == 'dxf':
+			depth = max_slice
+
+		#Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
+		if - abs(max_slice) <= depth:
+			mom_depth = depth
+		else:
+			mom_depth = -abs(max_slice)
+
+
+		#Positionieren des Werkzeugs über dem Anfang und Eintauchen
+		self.st_move[0].Write_GCode(parent=BaseEntitie, postpro=postpro)
+		
+		postpro.rap_pos_z(self.layer.axis3_safe_margin)
+		postpro.chg_feed_rate(self.layer.F_G1_Depth)
+		postpro.lin_pol_z(mom_depth)
+		postpro.chg_feed_rate(self.layer.F_G1_Plane)
+
+		#Wenn G41 oder G42 an ist Fräsradiuskorrektur		
+		if self.cut_cor != 40:
+			
+			#Errechnen des Startpunkts ohne Werkzeug Kompensation
+			#und einschalten der Kompensation	 
+			start, start_ang = self.get_st_en_points(0)
+			postpro.set_cut_cor(self.cut_cor, start)
+			
+			self.st_move[1].Write_GCode(parent=BaseEntitie, postpro=postpro)
+			self.st_move[2].Write_GCode(parent=BaseEntitie, postpro=postpro)
+
+		#Schreiben der Geometrien für den ersten Schnitt
+		for geo in self.geos:
+			geo.Write_GCode(self.parent, postpro)
+
+		#Ausschalten der Fräsradiuskorrektur
+		if (not(self.cut_cor == 40)) & (postpro.cancel_cc_for_depth == 1):
+			ende, en_angle = self.get_st_en_points(1)
+			if self.cut_cor == 41:
+				pos_cut_out = ende.get_arc_point(en_angle - 90, tool_rad)
+			elif self.cut_cor == 42:
+				pos_cut_out = ende.get_arc_point(en_angle + 90, tool_rad)		 
+			postpro.deactivate_cut_cor(pos_cut_out)			
+
+		#Zählen der Schleifen
+		snr = 0
+		#Schleifen für die Anzahl der Schnitte
+		while mom_depth > depth:
+			snr += 1
+			mom_depth = mom_depth - abs(max_slice)
+			if mom_depth < depth:
+				mom_depth = depth				
+
+			#Erneutes Eintauchen
+			postpro.chg_feed_rate(self.layer.F_G1_Depth)
+			postpro.lin_pol_z(mom_depth)
+			postpro.chg_feed_rate(self.layer.F_G1_Plane)
+
+			#Falls es keine geschlossene Kontur ist	
+			if self.closed == 0:
+				self.reverse()
+				self.switch_cut_cor()
+				
+			#Falls cut correction eingeschaltet ist diese einschalten.
+			if ((not(self.cut_cor == 40)) & (self.closed == 0))or(postpro.cancel_cc_for_depth == 1):
+				#Errechnen des Startpunkts ohne Werkzeug Kompensation
+				#und einschalten der Kompensation	 
+				postpro.set_cut_cor(self.cut_cor, start)
+				
+			for geo_nr in range(len(self.geos)):
+				self.geos[geo_nr].Write_GCode(self.parent, postpro)
+
+			#Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
+			ende, en_angle = self.get_st_en_points(1)
+			if self.cut_cor == 41:
+				pos_cut_out = ende.get_arc_point(en_angle - 90, tool_rad)
+			elif self.cut_cor == 42:
+				pos_cut_out = ende.get_arc_point(en_angle + 90, tool_rad)
+
+			#Ausschalten der Fräsradiuskorrektur falls benötigt		  
+			if (not(self.cut_cor == 40)) & (postpro.cancel_cc_for_depth == 1):		 
+				postpro.deactivate_cut_cor(pos_cut_out)
+	
+		#Anfangswert für Direction wieder herstellen falls nötig
+		if (snr % 2) > 0:
+			self.reverse()
+			self.switch_cut_cor()
+
+		#Fertig und Zurückziehen des Werkzeugs
+		postpro.lin_pol_z(self.layer.axis3_safe_margin)
+		postpro.rap_pos_z(config.axis3_retract)
+
+		#Falls Fräsradius Korrektur noch nicht ausgeschaltet ist ausschalten.
+		if (not(self.cut_cor == 40)) & (not(postpro.cancel_cc_for_depth)):
+			#Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
+			ende, en_angle = self.get_st_en_points(1)
+			postpro.deactivate_cut_cor(ende)		
+
+		return 1	
+	
 class EntitieContentClass:
-    def __init__(self,type="Entitie",Nr=None,Name='',parent=None,children=[],
-                p0=PointClass(x=0.0,y=0.0),pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],rot=0.0):
-                    
-        self.type=type
-        self.Nr=Nr
-        self.Name=Name
-        self.children=children
-        self.p0=p0
-        self.pb=pb
-        self.sca=sca
-        self.rot=rot
-        self.parent=parent
+	def __init__(self, type="Entitie", Nr=None, Name='', parent=None, children=[],
+				p0=PointClass(x=0.0, y=0.0), pb=PointClass(x=0.0, y=0.0), sca=[1, 1, 1], rot=0.0):
+					
+		self.type = type
+		self.Nr = Nr
+		self.Name = Name
+		self.children = children
+		self.p0 = p0
+		self.pb = pb
+		self.sca = sca
+		self.rot = rot
+		self.parent = parent
 
-    def __cmp__(self, other):
-         return cmp(self.EntNr, other.EntNr)        
-        
-    def __str__(self):
-        return ('\ntype:        %s' %self.type) +\
-               ('\nNr :      %i' %self.Nr) +\
-               ('\nName:     %s' %self.Name)+\
-               ('\np0:          %s' %self.p0)+\
-               ('\npb:          %s' %self.pb)+\
-               ('\nsca:         %s' %self.sca)+\
-               ('\nrot:         %s' %self.rot)+\
-               ('\nchildren:    %s' %self.children)
-            
-    #Hinzufuegen der Kontur zu den Entities
-    def addchild(self,child):
-        self.children.append(child)
-        
-    def MakeTreeText(self,parent):
-        #font1 = wx.Font(8,wx.SWISS, wx.NORMAL, wx.NORMAL)
-        textctrl = ExpandoTextCtrl(parent, -1, "", 
-                            size=wx.Size(160,55))
-                            
-        
-        #textctrl.SetFont(font1)
-                                
-        #dastyle = wx.TextAttr()
-        #dastyle.SetTabs([100, 120])
-        #textctrl.SetDefaultStyle(dastyle)
-        textctrl.AppendText('Point:  X:%0.2f Y%0.2f\n' %(self.p0.x, self.p0.y))
-        textctrl.AppendText('Offset: X:%0.2f Y%0.2f\n' %(self.pb.x, self.pb.y))
-        textctrl.AppendText('rot: %0.1fdeg sca: %s' %(degrees(self.rot), self.sca))
-        return textctrl
+	def __cmp__(self, other):
+		return cmp(self.EntNr, other.EntNr)		
+		
+	def __str__(self):
+		return ('\ntype:		%s' % self.type) + \
+			('\nNr :	  %i' % self.Nr) + \
+			('\nName:	 %s' % self.Name) + \
+			('\np0:		  %s' % self.p0) + \
+			('\npb:		  %s' % self.pb) + \
+			('\nsca:		 %s' % self.sca) + \
+			('\nrot:		 %s' % self.rot) + \
+			('\nchildren:	%s' % self.children)
+			
+	#Hinzufuegen der Kontur zu den Entities
+	def addchild(self, child):
+		self.children.append(child)
+		
+	def MakeTreeText(self, parent):
+		#font1 = wx.Font(8,wx.SWISS, wx.NORMAL, wx.NORMAL)
+		textctrl = ExpandoTextCtrl(parent, -1, "",
+							size=wx.Size(160, 55))
+							
+		
+		#textctrl.SetFont(font1)
+								
+		#dastyle = wx.TextAttr()
+		#dastyle.SetTabs([100, 120])
+		#textctrl.SetDefaultStyle(dastyle)
+		textctrl.AppendText('Point:  X:%0.2f Y%0.2f\n' % (self.p0.x, self.p0.y))
+		textctrl.AppendText('Offset: X:%0.2f Y%0.2f\n' % (self.pb.x, self.pb.y))
+		textctrl.AppendText('rot: %0.1fdeg sca: %s' % (degrees(self.rot), self.sca))
+		return textctrl
