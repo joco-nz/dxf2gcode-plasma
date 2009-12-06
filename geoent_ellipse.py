@@ -2,7 +2,7 @@
 # -*- coding: cp1252 -*-
 #
 #dxf2gcode_b02_geoent_ellipse
-#Programmers:   Christian Kohlöffel
+#Programmers:   Christian Kohlï¿½ffel
 #               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
@@ -23,7 +23,7 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi, floor
-from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
+from point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
 
 
 class EllipseClass:
@@ -33,12 +33,12 @@ class EllipseClass:
         #Initialisieren der Werte        
         self.Layer_Nr = 0
         self.center = PointClass(0,0) #Mittelpunkt der Geometrie
-        self.vector = PointClass(1,0) #Vektor A = große Halbachse a, = Drehung der Ellipse
+        self.vector = PointClass(1,0) #Vektor A = groï¿½e Halbachse a, = Drehung der Ellipse
                                       # http://de.wikipedia.org/wiki/Gro%C3%9Fe_Halbachse
-        self.ratio = 1                #Verhältnis der kleinen zur großen Halbachse (b/a)
+        self.ratio = 1                #Verhï¿½ltnis der kleinen zur groï¿½en Halbachse (b/a)
         #self.AngS = 0                 #Startwinkel beim zeichnen eines Ellipsensegments
         #self.AngE = radians(360)      #Endwinkel (Winkel im DXF als Radians!)
-        #Die folgenden Grundwerte werden später ein mal berechnet
+        #Die folgenden Grundwerte werden spï¿½ter ein mal berechnet
 
         self.length = 0
         self.Points=[]
@@ -46,7 +46,7 @@ class EllipseClass:
         #Lesen der Geometrie
         self.Read(caller)
 
-        #Zuweisen der Toleranz fürs Fitting
+        #Zuweisen der Toleranz fï¿½rs Fitting
         tol=caller.config.fitting_tolerance
         
         #Errechnen der Ellipse
@@ -76,7 +76,7 @@ class EllipseClass:
             geo.reverse()    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
-        #Hinzufügen falls es keine geschlossene Polyline ist
+        #Hinzufï¿½gen falls es keine geschlossene Polyline ist
         if self.geo[0].Pa.isintol(self.geo[-1].Pe,tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
@@ -88,7 +88,7 @@ class EllipseClass:
         return warning
 
     def Read(self, caller):
-        #Kürzere Namen zuweisen
+        #Kï¿½rzere Namen zuweisen
         lp=caller.line_pairs
         e=lp.index_code(0,caller.start+1)
         #Layer zuweisen
@@ -100,7 +100,7 @@ class EllipseClass:
         s=lp.index_code(20,s+1)
         y0=float(lp.line_pair[s].value)
         self.center=PointClass(x0,y0)
-        #XWert, YWert. Vektor, relativ zum Zentrum, Große Halbachse
+        #XWert, YWert. Vektor, relativ zum Zentrum, Groï¿½e Halbachse
         s=lp.index_code(11,s+1)
         x1=float(lp.line_pair[s].value)
         s=lp.index_code(21,s+1)
@@ -115,7 +115,7 @@ class EllipseClass:
         #End Winkel - Achtung, ist als rad (0-2pi) im dxf
         s=lp.index_code(42,s+1)
         self.AngE=float(lp.line_pair[s].value)
-        #Neuen Startwert für die nächste Geometrie zurückgeben
+        #Neuen Startwert fï¿½r die nï¿½chste Geometrie zurï¿½ckgeben
         caller.start=e
         
 
@@ -143,7 +143,7 @@ class EllipseClass:
     
     def Ellipse_2_Arcs(self, tol):
 
-        #Anfangswert für Anzahl Elemente
+        #Anfangswert fï¿½r Anzahl Elemente
         num_elements=2
         intol=False   
         
@@ -173,7 +173,7 @@ class EllipseClass:
                 Pb = self.Ellipse_Point(angle+step)
                 tanb= self.Ellipse_Tangent(angle+step)
 
-                #Biarc erstellen und an geo anhängen        
+                #Biarc erstellen und an geo anhï¿½ngen        
                 biarcs=BiarcClass(Pa,tana,Pb,tanb,tol/100)
                 self.geo+=biarcs.geos[:]             
 
@@ -212,7 +212,7 @@ class EllipseClass:
             return 1            
 
     def Ellipse_Grundwerte(self):
-        #Weitere Grundwerte der Ellipse, die nur einmal ausgerechnet werden müssen
+        #Weitere Grundwerte der Ellipse, die nur einmal ausgerechnet werden mï¿½ssen
         self.rotation = atan2(self.vector.y, self.vector.x)
         self.a = sqrt(self.vector.x**2 + self.vector.y**2)
         self.b = self.a * self.ratio
@@ -223,12 +223,12 @@ class EllipseClass:
         #self.ext-=floor(self.ext/(2*pi))*(2*pi)
    
     def Ellipse_Point(self, alpha=0):#PointClass(0,0)
-        #große Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
+        #groï¿½e Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         Ex = self.a*cos(alpha) * cos(self.rotation) - self.b*sin(alpha) * sin(self.rotation);
         Ey = self.a*cos(alpha) * sin(self.rotation) + self.b*sin(alpha) * cos(self.rotation);
         return PointClass(self.center.x+Ex, self.center.y+Ey)
     
     def Ellipse_Tangent(self, alpha=0):#PointClass(0,0)
-        #große Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
+        #groï¿½e Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         phi=atan2(self.a*sin(alpha),self.b*cos(alpha))+self.rotation+pi/2
         return phi

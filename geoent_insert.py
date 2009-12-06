@@ -2,7 +2,7 @@
 # -*- coding: cp1252 -*-
 #
 #dxf2gcode_b02_geoent_insert
-#Programmers:   Christian Kohlöffel
+#Programmers:   Christian Kohlï¿½ffel
 #               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
@@ -21,7 +21,7 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from dxf2gcode_b02_point import PointClass, ContourClass
+from point import PointClass, ContourClass
 from math import degrees, radians
 
 class InsertClass:
@@ -58,7 +58,7 @@ class InsertClass:
     
     
     def Read(self, caller):
-        #Kürzere Namen zuweisen
+        #Kï¿½rzere Namen zuweisen
         lp=caller.line_pairs
         e=lp.index_code(0,caller.start+1)
 
@@ -96,6 +96,6 @@ class InsertClass:
             self.rot=radians(float(lp.line_pair[s_temp].value))
 
 
-        #Neuen Startwert für die nächste Geometrie zurückgeben
+        #Neuen Startwert fï¿½r die nï¿½chste Geometrie zurï¿½ckgeben
         caller.start=e      
 

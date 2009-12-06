@@ -35,7 +35,7 @@ from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NOR
 from tkMessageBox import showwarning, showerror
 from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button
 from Tkinter import DoubleVar, IntVar, Listbox
-from dxf2gcode_widgets import Notebook
+from widgets import Notebook
 
 class MyNotebookClass(Notebook):
     def __init__(self,master=None,config=None,postpro=None,LayerContents=None):

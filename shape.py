@@ -2,7 +2,7 @@
 # -*- coding: cp1252 -*-
 #
 #dxf2gcode_b02_shape.py
-#Programmers:   Christian Kohlöffel
+#Programmers:   Christian Kohlï¿½ffel
 #               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
@@ -24,7 +24,7 @@
 #Main Class Shape
 
 #import sys, os, string, ConfigParser 
-from dxf2gcode_b02_point import PointClass, LineGeo, ArcGeo
+from point import PointClass, LineGeo, ArcGeo
 from math import cos, sin, radians, degrees
 from copy import deepcopy
 from Canvas import Line
@@ -60,9 +60,9 @@ class ShapeClass:
 
 
     def AnalyseAndOptimize(self,MyConfig=None):
-        #Optimierung für geschlossene Konturen
+        #Optimierung fï¿½r geschlossene Konturen
         if self.closed:
-            #Startwert setzen für die erste Summe
+            #Startwert setzen fï¿½r die erste Summe
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
             summe=0.0
             for geo in self.geos:
@@ -127,7 +127,7 @@ class ShapeClass:
             #Korrektur der Skalierung
             sca=[CanvasClass.scale]*3
             
-            #BaseEntitie erstellen um auf oberster Ebene zu Fräsen
+            #BaseEntitie erstellen um auf oberster Ebene zu Frï¿½sen
             BaseEntitie=EntitieContentClass(Nr=-1,Name='BaseEntitie',
                                         parent=None,
                                         children=[],
@@ -155,11 +155,11 @@ class ShapeClass:
         return hdl
     
     
-    #Funktion zum drucken der zu fräsenden Kontur mit den Richtungspfeilen usw.
+    #Funktion zum drucken der zu frï¿½senden Kontur mit den Richtungspfeilen usw.
     def plot_cut_cor(self,Canvas=None,length=20):
         start,start_ang=self.get_st_en_points(0)
 
-        #BaseEntitie erstellen um auf oberster Ebene zu Fräsen
+        #BaseEntitie erstellen um auf oberster Ebene zu Frï¿½sen
         BaseEntitie=EntitieContentClass(Nr=-1,Name='BaseEntitie',
                                         parent=None,
                                         children=[],
@@ -209,13 +209,13 @@ class ShapeClass:
         if self.cut_cor==40:              
             self.st_move.append(start)
 
-        #Fräsradiuskorrektur Links        
+        #Frï¿½sradiuskorrektur Links        
         elif self.cut_cor==41:
-            #Mittelpunkts für Einlaufradius
+            #Mittelpunkts fï¿½r Einlaufradius
             Oein=start.get_arc_point(start_ang+90,start_rad+tool_rad)
-            #Startpunkts für Einlaufradius
+            #Startpunkts fï¿½r Einlaufradius
             Pa_ein=Oein.get_arc_point(start_ang+180,start_rad+tool_rad)
-            #Startwerts für Einlaufgerade
+            #Startwerts fï¿½r Einlaufgerade
             Pg_ein=Pa_ein.get_arc_point(start_ang+90,start_ver)
             
             #Eintauchpunkt errechnete Korrektur
@@ -230,15 +230,15 @@ class ShapeClass:
             start_rad=ArcGeo(Pa=Pa_ein,Pe=start,O=Oein,r=start_rad+tool_rad,dir=1)
             self.st_move.append(start_rad)
             
-        #Fräsradiuskorrektur Rechts        
+        #Frï¿½sradiuskorrektur Rechts        
         elif self.cut_cor==42:
 
-            #Mittelpunkt für Einlaufradius
+            #Mittelpunkt fï¿½r Einlaufradius
             Oein=start.get_arc_point(start_ang-90,start_rad+tool_rad)
-            #Startpunkt für Einlaufradius
+            #Startpunkt fï¿½r Einlaufradius
             Pa_ein=Oein.get_arc_point(start_ang+180,start_rad+tool_rad)
             #IJ=Oein-Pa_ein
-            #Startwerts für Einlaufgerade
+            #Startwerts fï¿½r Einlaufgerade
             Pg_ein=Pa_ein.get_arc_point(start_ang-90,start_ver)
             
             #Eintauchpunkts errechnete Korrektur
@@ -261,7 +261,7 @@ class ShapeClass:
         #Werkzeugdurchmesser in Radius umrechnen        
         tool_rad=config.tool_dia.get()/2
 
-        #BaseEntitie erstellen um auf oberster Ebene zu Fräsen
+        #BaseEntitie erstellen um auf oberster Ebene zu Frï¿½sen
         BaseEntitie=EntitieContentClass(Nr=-1,Name='BaseEntitie',
                                         parent=None,
                                         children=[],
@@ -275,18 +275,18 @@ class ShapeClass:
         depth=config.axis3_mill_depth.get()
         max_slice=config.axis3_slice_depth.get()
         
-        #Wenn Output Format DXF dann nur einmal Fräsen
+        #Wenn Output Format DXF dann nur einmal Frï¿½sen
         if postpro.output_type=='dxf':
             depth=max_slice
 
-        #Scheibchendicke bei Frästiefe auf Frästiefe begrenzen
+        #Scheibchendicke bei Frï¿½stiefe auf Frï¿½stiefe begrenzen
         if -abs(max_slice)<=depth:
             mom_depth=depth
         else:
             mom_depth=-abs(max_slice)
 
 
-        #Positionieren des Werkzeugs über dem Anfang und Eintauchen
+        #Positionieren des Werkzeugs ï¿½ber dem Anfang und Eintauchen
         self.st_move[0].Write_GCode(parent=BaseEntitie,postpro=postpro)
         
         postpro.rap_pos_z(config.axis3_safe_margin.get())
@@ -294,7 +294,7 @@ class ShapeClass:
         postpro.lin_pol_z(mom_depth)
         postpro.chg_feed_rate(config.F_G1_Plane.get())
 
-        #Wenn G41 oder G42 an ist Fräsradiuskorrektur        
+        #Wenn G41 oder G42 an ist Frï¿½sradiuskorrektur        
         if self.cut_cor!=40:
             
             #Errechnen des Startpunkts ohne Werkzeug Kompensation
@@ -305,11 +305,11 @@ class ShapeClass:
             self.st_move[1].Write_GCode(parent=BaseEntitie,postpro=postpro)
             self.st_move[2].Write_GCode(parent=BaseEntitie,postpro=postpro)
 
-        #Schreiben der Geometrien für den ersten Schnitt
+        #Schreiben der Geometrien fï¿½r den ersten Schnitt
         for geo in self.geos:
             geo.Write_GCode(self.parent,postpro)
 
-        #Ausschalten der Fräsradiuskorrektur
+        #Ausschalten der Frï¿½sradiuskorrektur
         if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):
             ende,en_angle=self.get_st_en_points(1)
             if self.cut_cor==41:
@@ -318,9 +318,9 @@ class ShapeClass:
                 pos_cut_out=ende.get_arc_point(en_angle+90,tool_rad)         
             postpro.deactivate_cut_cor(pos_cut_out)            
 
-        #Zählen der Schleifen
+        #Zï¿½hlen der Schleifen
         snr=0
-        #Schleifen für die Anzahl der Schnitte
+        #Schleifen fï¿½r die Anzahl der Schnitte
         while mom_depth>depth:
             snr+=1
             mom_depth=mom_depth-abs(max_slice)
@@ -346,29 +346,29 @@ class ShapeClass:
             for geo_nr in range(len(self.geos)):
                 self.geos[geo_nr].Write_GCode(self.parent,postpro)
 
-            #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
+            #Errechnen des Konturwerte mit Frï¿½sradiuskorrektur und ohne
             ende,en_angle=self.get_st_en_points(1)
             if self.cut_cor==41:
                 pos_cut_out=ende.get_arc_point(en_angle-90,tool_rad)
             elif self.cut_cor==42:
                 pos_cut_out=ende.get_arc_point(en_angle+90,tool_rad)
 
-            #Ausschalten der Fräsradiuskorrektur falls benötigt          
+            #Ausschalten der Frï¿½sradiuskorrektur falls benï¿½tigt          
             if (not(self.cut_cor==40))&(postpro.cancel_cc_for_depth==1):         
                 postpro.deactivate_cut_cor(pos_cut_out)
      
-        #Anfangswert für Direction wieder herstellen falls nötig
+        #Anfangswert fï¿½r Direction wieder herstellen falls nï¿½tig
         if (snr%2)>0:
             self.reverse()
             self.switch_cut_cor()
 
-        #Fertig und Zurückziehen des Werkzeugs
+        #Fertig und Zurï¿½ckziehen des Werkzeugs
         postpro.lin_pol_z(config.axis3_safe_margin.get())
         postpro.rap_pos_z(config.axis3_retract.get())
 
-        #Falls Fräsradius Korrektur noch nicht ausgeschaltet ist ausschalten.
+        #Falls Frï¿½sradius Korrektur noch nicht ausgeschaltet ist ausschalten.
         if (not(self.cut_cor==40))&(not(postpro.cancel_cc_for_depth)):
-            #Errechnen des Konturwerte mit Fräsradiuskorrektur und ohne
+            #Errechnen des Konturwerte mit Frï¿½sradiuskorrektur und ohne
             ende,en_angle=self.get_st_en_points(1)
             postpro.deactivate_cut_cor(ende)        
 

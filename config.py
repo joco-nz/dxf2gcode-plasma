@@ -35,7 +35,7 @@ from Tkconstants import END
 
 from math import degrees
 
-from dxf2gcode_b02_point import PointClass
+from point import PointClass
 
 class ConfigClass:
     def __init__(self,textbox,FOLDER,APPNAME):
@@ -46,7 +46,7 @@ class ConfigClass:
 
         # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
-        self.cfg_file_name=self.appname+'_config.cfg'
+        self.cfg_file_name='config.cfg'
         self.parser.read(os.path.join(self.folder,self.cfg_file_name))
 
         # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
@@ -59,11 +59,11 @@ class ConfigClass:
             textbox.prt((_('\nLoading config file:%s') \
                              %os.path.join(self.folder,self.cfg_file_name)))
 
-        #Tkinter Variablen erstellen zur späteren Verwendung in den Eingabefeldern        
+        #Tkinter Variablen erstellen zur spï¿½teren Verwendung in den Eingabefeldern        
         self.get_all_vars()
 
         #DEBUG INFORMATIONEN
-        #Übergeben des geladenen Debug Level
+        #ï¿½bergeben des geladenen Debug Level
         textbox.set_debuglevel(DEBUG=self.debug)
         textbox.prt(_('\nDebug Level: %i') %(self.debug),1)
         textbox.prt(str(self),1)
@@ -78,7 +78,7 @@ class ConfigClass:
 
     def make_new_Config_file(self):
         
-        #Generelle Einstellungen für Export
+        #Generelle Einstellungen fï¿½r Export
         self.parser.add_section('General')
         self.parser.set('General', 'write_to_stdout', 0)
         
@@ -185,13 +185,13 @@ class PostprocessorClass:
         # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
         
-        #Leser der Files im Config Verzeichniss für Postprocessor
+        #Leser der Files im Config Verzeichniss fï¿½r Postprocessor
         try:
             lfiles = os.listdir(self.folder)
         except:
            # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
             self.make_settings_folder() 
-            self.postpro_file_name=self.appname+'_postprocessor.cfg'
+            self.postpro_file_name='postprocessor.cfg'
             
             self.make_new_postpro_file()
             self.parser.read(os.path.join(self.folder,self.postpro_file_name))
@@ -213,7 +213,7 @@ class PostprocessorClass:
 #        textbox.prt((_('\nLoading postprocessor file: %s') \
 #                             %os.path.join(self.folder,self.postpro_file_name)))
 
-#        #Variablen erstellen zur späteren Verwendung im Postprozessor        
+#        #Variablen erstellen zur spï¿½teren Verwendung im Postprozessor        
 #        self.get_all_vars()
 #        textbox.prt(str(self),1)        
 
@@ -386,14 +386,14 @@ class PostprocessorClass:
             
         self.string=(str.encode("utf-8"))
          
-        #Daten aus dem Textfelder an string anhängen
+        #Daten aus dem Textfelder an string anhï¿½ngen
         self.string+=("%s\n" %postpro.gcode_be)
 
 
 
 
     def write_gcode_en(self,postpro):
-        #Daten aus dem Textfelder an string anhängen   
+        #Daten aus dem Textfelder an string anhï¿½ngen   
         self.string+=postpro.gcode_en
 
         self.make_line_numbers()        

@@ -2,7 +2,7 @@
 # -*- coding: cp1252 -*-
 #
 #dxf2gcode_b02_geoent_spline
-#Programmers:   Christian Kohlöffel
+#Programmers:   Christian Kohlï¿½ffel
 #               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
@@ -22,8 +22,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b02_nurbs_calc import Spline2Arcs
-from dxf2gcode_b02_point import PointClass, PointsClass, ContourClass
+from nurbs_calc import Spline2Arcs
+from point import PointClass, PointsClass, ContourClass
 
 class SplineClass:
     def __init__(self,Nr=0,caller=None):
@@ -43,7 +43,7 @@ class SplineClass:
         #Lesen der Geometrie
         self.Read(caller)
 
-        #Zuweisen der Toleranz fürs Fitting
+        #Zuweisen der Toleranz fï¿½rs Fitting
         tol=caller.config.fitting_tolerance
         check=caller.config.spline_check
 
@@ -82,7 +82,7 @@ class SplineClass:
             geo.reverse()    
           
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
-        #Hinzufügen falls es keine geschlossener Spline ist
+        #Hinzufï¿½gen falls es keine geschlossener Spline ist
         if self.CPoints[0].isintol(self.CPoints[-1],tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont),1,[[i,0]],self.length)) 
@@ -100,7 +100,7 @@ class SplineClass:
         #Richtung in welcher der Anfang liegen soll (unten links)        
         Popt=PointClass(x=-1e3,y=-1e6)
         
-        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
+        #Berechnung der Flï¿½ch nach Gauï¿½-Elling Positive Wert bedeutet CW
         #negativer Wert bedeutet CCW geschlossenes Polygon            
         for Line in self.geo:
             summe+=(Line.Pa.x*Line.Pe.y-Line.Pe.x*Line.Pa.y)/2
@@ -121,7 +121,7 @@ class SplineClass:
 
     def Read(self, caller):
 
-        #Kürzere Namen zuweisen        
+        #Kï¿½rzere Namen zuweisen        
         lp=caller.line_pairs
         e=lp.index_code(0,caller.start+1)
 

@@ -41,12 +41,12 @@ if os.name == "posix" and sys.platform == "darwin":
     platform = "mac"
 # in case more per-platform determination warts are needed, fill in here:
  
-from dxf2gcode_b02_config import ConfigClass, PostprocessorClass
-from dxf2gcode_b02_point import PointClass
-from dxf2gcode_b02_shape import ShapeClass, EntitieContentClass
-from dxf2gcode_b02_notebook import MyNotebookClass, LayerContentClass
-import dxf2gcode_b02_dxf_import as dxf_import 
-import dxf2gcode_b02_tsp_opt as tsp
+from config import ConfigClass, PostprocessorClass
+from point import PointClass
+from shape import ShapeClass, EntitieContentClass
+from notebook import MyNotebookClass, LayerContentClass
+from dxf_import import Load_DXF 
+from tsp_opt import TSPoptimize
 import locale
 
 from math import radians, degrees
@@ -61,7 +61,7 @@ from Canvas import Rectangle, Line, Oval, Arc
 from copy import copy
 
 # Globale "Konstanten"
-APPNAME = "dxf2gcode_b02"
+APPNAME = "dxf2gcode"
 VERSION= "TKINTER Beta 02"
 DATE=   "2009-11-16"
 
@@ -294,7 +294,7 @@ class Erstelle_Fenster:
         self.textbox.text.delete(7.0,END)
         self.textbox.prt(_('\nLoading file: %s') %self.load_filename)
         
-        self.values=dxf_import.Load_DXF(filename,self.config,self.textbox)
+        self.values=Load_DXF(filename,self.config,self.textbox)
         
         #Ausgabe der Informationen im Text Fenster
         self.textbox.prt(_('\nLoaded layers: %s') %len(self.values.layers))
@@ -564,7 +564,7 @@ class Erstelle_Fenster:
         #Optimieren der Reihenfolge
         self.textbox.prt(_("\nTSP Starting"),1)
                 
-        self.TSP=tsp.TSPoptimize(shapes_st_en_points,self.textbox,self.master,self.config)
+        self.TSP=TSPoptimize(shapes_st_en_points,self.textbox,self.master,self.config)
         self.textbox.prt(_("\nTSP start values initialised"),1)
         #self.CanvasContent.path_hdls=[]
         #self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)

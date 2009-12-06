@@ -23,7 +23,7 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-from dxf2gcode_b02_point import PointClass, PointsClass, ArcGeo, ContourClass
+from point import PointClass, PointsClass, ArcGeo, ContourClass
 from tkMessageBox import showwarning
 
 class ArcClass:
