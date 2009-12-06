@@ -26,14 +26,12 @@
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
 #Loeschen aller Module aus dem Speicher
-import sys, os, string
+import os
 import ConfigParser
 import time
 
-from tkMessageBox import showwarning, showerror
-from Tkconstants import END
+from tkMessageBox import showerror
 
-from math import degrees
 
 from point import PointClass
 
@@ -189,7 +187,7 @@ class PostprocessorClass:
         try:
             lfiles = os.listdir(self.folder)
         except:
-           # Das Standard App Verzeichniss fuer das Betriebssystem abfragen
+            #Das Standard App Verzeichniss fuer das Betriebssystem abfragen
             self.make_settings_folder() 
             self.postpro_file_name='postprocessor.cfg'
             

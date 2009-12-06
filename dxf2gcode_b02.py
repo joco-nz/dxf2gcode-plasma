@@ -45,16 +45,16 @@ from config import ConfigClass, PostprocessorClass
 from point import PointClass
 from shape import ShapeClass, EntitieContentClass
 from notebook import MyNotebookClass, LayerContentClass
-from dxf_import import Load_DXF 
+from dxf_import import ReadDXF 
 from tsp_opt import TSPoptimize
 import locale
 
 from math import radians, degrees
 
 import webbrowser,gettext, tempfile, subprocess
-from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT
-from tkMessageBox import showwarning, showerror
-from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Radiobutton, Label, Entry, Text, Scrollbar, Toplevel,Button, Listbox
+from Tkconstants import END, ALL, N, S, E, W, RIDGE, DISABLED, NORMAL, ACTIVE, LEFT
+from tkMessageBox import showwarning
+from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Label, Entry, Text, Scrollbar, Toplevel,Button
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
@@ -113,7 +113,7 @@ gettext.textdomain(APPNAME)
 trans = gettext.translation(APPNAME, localedir='languages', languages=langs, fallback = True)
 trans.install()
 
-class Erstelle_Fenster:
+class MyMainWindow:
     def __init__(self, master = None, load_filename=None ):
         
         self.master=master
@@ -124,8 +124,7 @@ class Erstelle_Fenster:
         self.helpmenu=None
         self.viewemnu=None
             
-
-         #Skalierung der Kontur
+        #Skalierung der Kontur
         self.cont_scale=1.0
         
         #Verschiebung der Kontur
@@ -294,7 +293,7 @@ class Erstelle_Fenster:
         self.textbox.text.delete(7.0,END)
         self.textbox.prt(_('\nLoading file: %s') %self.load_filename)
         
-        self.values=Load_DXF(filename,self.config,self.textbox)
+        self.values=ReadDXF(filename,self.config,self.textbox)
         
         #Ausgabe der Informationen im Text Fenster
         self.textbox.prt(_('\nLoaded layers: %s') %len(self.values.layers))
@@ -349,7 +348,7 @@ class Erstelle_Fenster:
         label=(_("Tolerance for common points [mm]:"),\
                _("Tolerance for curve fitting [mm]:"))
         value=(self.config.points_tolerance.get(),self.config.fitting_tolerance.get())
-        dialog=Tkinter_Variable_Dialog(self.master,title,label,value)
+        dialog=VariableDialogWindow(self.master,title,label,value)
         self.config.points_tolerance.set(dialog.result[0])
         self.config.fitting_tolerance.set(dialog.result[1])
         
@@ -360,10 +359,7 @@ class Erstelle_Fenster:
         self.textbox.prt(_("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file")\
                               %(dialog.result[0],dialog.result[1]))
         
-    def Get_Cont_Scale(self):
-        #Abspeichern der alten Werte
-        old_scale=self.cont_scale
-                
+    def Get_Cont_Scale(self):             
         value=askfloat(_('Scale Contours'),_('Set the scale factor'),\
                                 initialvalue=self.cont_scale)
         #Abfrage ob Cancel gedrueckt wurde
@@ -409,7 +405,7 @@ class Erstelle_Fenster:
         label=((_("Offset %s axis by mm:") %self.config.ax1_letter),\
                (_("Offset %s axis by mm:") %self.config.ax2_letter))
         value=(self.cont_dx,self.cont_dy)
-        dialog=Tkinter_Variable_Dialog(self.master,title,label,value)
+        dialog=VariableDialogWindow(self.master,title,label,value)
 
         #Abbruch wenn nicht uebergeben wurde
         if dialog.result==False:
@@ -457,7 +453,7 @@ class Erstelle_Fenster:
     # Callback des Menu Punkts Exportieren
     def Write_GCode(self):
         
-       #Config & postpro in einen kurzen Namen speichern
+        #Config & postpro in einen kurzen Namen speichern
         config=self.config
         postpro=self.postpro
 
@@ -467,7 +463,7 @@ class Erstelle_Fenster:
                 self.save_filename=self.Get_Save_File()
                 
                 
-                 #Wenn Cancel gedrueckt wurde
+                #Wenn Cancel gedrueckt wurde
                 if not self.save_filename:
                     return
                 
@@ -594,7 +590,7 @@ class Erstelle_Fenster:
             pass
         
     def Show_About(self):
-        Show_About_Info(self.master)
+        AboutDialogWindow(self.master)
   
     def ende(self):
         self.master.destroy()
@@ -978,9 +974,9 @@ class CanvasContentClass:
     def calc_dir_var(self):
         if len(self.Selected)==0:
             return -1
-        dir=self.Shapes[self.Selected[0]].cut_cor
-        for shape_nr in self.Selected[1:len(self.Selected)]: 
-            if not(dir==self.Shapes[shape_nr].cut_cor):
+        dir=self.Selected[0].cut_cor
+        for shape in self.Selected[1:len(self.Selected)]: 
+            if not(dir==shape.cut_cor):
                 return -1   
         return dir-40
                 
@@ -1231,8 +1227,8 @@ class CanvasContentClass:
     def invert_selection(self):
         new_sel=[]
         for shape in self.Shapes:
-            if (not(shape_nr in self.Disabled)) & (not(shape_nr in self.Selected)):
-                new_sel.append(shape_nr)
+            if (not(shape in self.Disabled)) & (not(shape in self.Selected)):
+                new_sel.append(shape)
 
         self.Deselected=self.Selected[:]
         self.Selected=new_sel
@@ -1249,7 +1245,7 @@ class CanvasContentClass:
     def disable_selection(self):
         for shape in self.Selected:
             if not(shape in self.Disabled):
-                self.Disabled.append(shape_nr)
+                self.Disabled.append(shape)
         self.set_shapes_color(self.Selected,'disabled')
         self.Selected=[]
         self.plot_cut_info()
@@ -1279,11 +1275,11 @@ class CanvasContentClass:
         self.plot_cut_info()
         
     def set_cut_cor(self,correction):
-        for shape_nr in self.Selected: 
-            self.Shapes[shape_nr].cut_cor=correction
+        for shape in self.Selected: 
+            shape.cut_cor=correction
             
             self.textbox.prt(_('\n\nChanged Cutter Correction at Shape: %s')\
-                             %(self.Shapes[shape_nr]),3)
+                             %(shape),3)
         self.plot_cut_info() 
         
     def set_shapes_color(self,shapes,state):
@@ -1344,7 +1340,7 @@ class CanvasContentClass:
        
 
 
-class Show_About_Info(Toplevel):
+class AboutDialogWindow(Toplevel):
     def __init__(self, parent):
         Toplevel.__init__(self, parent)
         self.transient(parent)
@@ -1421,7 +1417,7 @@ class Show_About_Info(Toplevel):
 
 
 
-class Tkinter_Variable_Dialog(Toplevel):
+class VariableDialogWindow(Toplevel):
     def __init__(self, parent=None,title='Test Dialog',label=('label1','label2'),value=(0.0,0.0)):
         if not(len(label)==len(value)):
             raise Exception, "Number of labels different to number of values"
@@ -1533,9 +1529,9 @@ if __name__ == "__main__":
 
     #Falls das Programm mit Parametern von EMC gestartet wurde
     if len(sys.argv) > 1:
-        Erstelle_Fenster(master,sys.argv[1])
+        MyMainWindow(master,sys.argv[1])
     else:
-        Erstelle_Fenster(master)
+        MyMainWindow(master)
 
     master.mainloop()
 

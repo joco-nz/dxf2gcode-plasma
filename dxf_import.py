@@ -24,7 +24,7 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from point import PointClass, PointsClass, ContourClass
+from point import PointClass, ContourClass
 
 from geoent_arc import ArcClass
 from geoent_circle import CircleClass
@@ -35,15 +35,11 @@ from geoent_spline import SplineClass
 from geoent_ellipse import EllipseClass
 from geoent_lwpolyline import LWPolylineClass
 
-import sys, os
-from Tkconstants import END
 from tkMessageBox import showwarning
-from Canvas import Oval, Arc, Line
 from copy import deepcopy, copy
 from string import find, strip
-from math import sqrt, sin, cos, atan2, radians, degrees
 
-class Load_DXF:
+class ReadDXF:
     #Initialisierung der Klasse
     def __init__(self, filename=None,config=None,textbox=None):
 
@@ -136,7 +132,6 @@ class Load_DXF:
 
     #Suchen der TABLES Section innerhalb der Sectionen diese beinhaltet die LAYERS
     def Read_Layers(self,section):
-        layer_nr=-1
         for sect_nr in range(len(section)):
             if(find(section[sect_nr].name,"TABLES") == 0):
                 tables_section=section[sect_nr]
@@ -367,8 +362,8 @@ class Load_DXF:
         
         #Einen List aus allen Punkten generieren
         for p in points:
-           p_list.append([p.Layer_Nr,p.be.x,p.be.y,p.point_nr,0])
-           p_list.append([p.Layer_Nr,p.en.x,p.en.y,p.point_nr,1])
+            p_list.append([p.Layer_Nr,p.be.x,p.be.y,p.point_nr,0])
+            p_list.append([p.Layer_Nr,p.en.x,p.en.y,p.point_nr,1])
 
         #Den List sortieren        
         p_list.sort()
@@ -444,7 +439,7 @@ class Load_DXF:
 #                    break
 #        return points        
 
-     #Suchen nach den besten zusammenh�ngenden Konturen
+    #Suchen nach den besten zusammenh�ngenden Konturen
     def Search_Contours(self,geo=None,all_points=None,cont=None):
         
         points=deepcopy(all_points)
@@ -703,7 +698,7 @@ class EntitiesClass:
             if (self.geo[i].Layer_Nr in used_layers)==0:
                 used_layers.append(self.geo[i].Layer_Nr)
         return used_layers
-      #Gibt die Anzahl der Inserts in den Entities zur�ck
+    #Gibt die Anzahl der Inserts in den Entities zur�ck
     def get_insert_nr(self):
         insert_nr=0
         for i in range(len(self.geo)):

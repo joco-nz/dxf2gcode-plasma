@@ -44,15 +44,15 @@ class TSPoptimize:
  
         #Creating Lines    
         #Generating the Distance Matrix
-        self.DistanceMatrix=ClassDistanceMatrix()
+        self.DistanceMatrix=DistanceMatrixClass()
         self.DistanceMatrix.generate_matrix(st_end_points)
 
         #Generation Population 
-        self.Population=ClassPopulation(textbox=textbox,master=master,config=config)
+        self.Population=PopulationClass(textbox=textbox,master=master,config=config)
         self.Population.ini_population(size=[self.shape_nrs,self.pop_nr],dmatrix=self.DistanceMatrix.matrix)
 
         #Initialisieren der Result Class
-        self.Fittness=ClassFittness(population=self.Population,cur_fittness=range(self.Population.size[1]))
+        self.Fittness=FittnessClass(population=self.Population,cur_fittness=range(self.Population.size[1]))
         self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,range(self.shape_nrs))
         self.Fittness.order=self.order
 
@@ -108,7 +108,7 @@ def print_matrix(matrix=[],format='%6.2f'):
             str+=(format %(wert))
     return str
 #Population Class
-class ClassPopulation:
+class PopulationClass:
     def __init__(self,pop=[],rot=[],order=[],size=[0,0],mutate_rate=0.95,textbox=[],master=[],config=[]):
         self.pop=pop
         self.rot=rot
@@ -276,7 +276,7 @@ class ClassPopulation:
 
 
 #Distance Matrix Class
-class ClassDistanceMatrix:
+class DistanceMatrixClass:
     def __init__(self,matrix=[],size=[0,0]):
         self.matrix=matrix
         
@@ -297,7 +297,7 @@ class ClassDistanceMatrix:
                 string+=("%8.2f" %x_vals)
         return string
 
-class ClassFittness:
+class FittnessClass:
     def __init__(self,population=[],cur_fittness=[],best_fittness=[],best_route=[]):
         self.population=population
         self.cur_fittness=cur_fittness
