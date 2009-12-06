@@ -25,10 +25,11 @@
 #First Version of dxf2gcode Hopefully all works as it should
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
-#Loeschen aller Module aus dem Speicher
+
 import sys, os, string
 import time
 
+#Delete loaded modules from memory
 if globals().has_key('init_modules'):
     for m in [x for x in sys.modules.keys() if x not in init_modules]:
         del(sys.modules[m]) 
@@ -49,6 +50,12 @@ from dxf_import import ReadDXF
 from tsp_opt import TSPoptimize
 import locale
 
+#===============================================================================
+# Added the Cutter Compensation here
+#===============================================================================
+from ccomp import InterSectionPoint, Polylines
+
+
 from math import radians, degrees
 
 import webbrowser,gettext, tempfile, subprocess
@@ -60,35 +67,25 @@ from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
 from copy import copy
 
-# Globale "Konstanten"
+# Global Variables
 APPNAME = "dxf2gcode"
 VERSION= "TKINTER Beta 02"
 DATE=   "2009-11-16"
 
-# Config Verzeichniss
-
-
-#===============================================================================
-# if os.name == 'posix': 
-#    FOLDER = os.path.join(os.environ.get('HOME'), "." + APPNAME.lower()) 
-# elif os.name == 'nt': 
-#    FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()).replace("\\", "/")
-#===============================================================================
+# Get folder of the main program
 FOLDER=os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
-
-
 if os.path.islink(sys.argv[0]):
     FOLDER=os.path.dirname(os.readlink(sys.argv[0]))
     
 
-# Liste der unterstützuden Sprachen anlegen.
+# List of supported languages
 langs = []
 
-#Default Sprache des Systems herausfinden
+#Get default language of the system
 lc, encoding = locale.getdefaultlocale()
 
+#If there is a default language use it
 if (lc):
-    #Wenn wir eine haben diese als Default setzen
     langs = [lc]
 
 # Herausfinden welche sprachen wir haben
@@ -1005,6 +1002,21 @@ class CanvasContentClass:
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
         self.makeshapes(parent=self.EntitiesRoot)
+        
+        #=======================================================================
+        # Added the Cutter Compensation into the makeshaps...
+        #=======================================================================
+        
+        ISP=InterSectionPoint()
+        pl=Polylines()
+        
+        for shape in self.Shapes:
+            self.plot_shapes()
+            pl=ISP.do_compensation(shape, 2, 41)
+           # self.Shapes[nr].col=pl.col
+            shape.geos=pl.geos
+        
+        
         self.plot_shapes()
         self.LayerContents.sort()
         #self.EntitieContents.sort()

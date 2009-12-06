@@ -33,7 +33,7 @@ class PointClass:
         return ('X ->%6.3f  Y ->%6.3f' %(self.x,self.y))
         #return ('CPoints.append(PointClass(x=%6.5f, y=%6.5f))' %(self.x,self.y))
     def __cmp__(self, other) : 
-      return (self.x == other.x) and (self.y == other.y)
+        return (self.x == other.x) and (self.y == other.y)
     def __neg__(self):
         return -1.0*self
     def __add__(self, other): # add to another point
@@ -191,8 +191,8 @@ class ContourClass:
             for j in range(i+1,len(self.order)):
                 #print '\ni: '+str(i)+'j: '+str(j)
                 if self.order[i][0]==self.order[j][0]:
-                   self.order=self.order[0:i]
-                   break
+                    self.order=self.order[0:i]
+                    break
         return 
     #Berechnen der Zusammengesetzen Kontur Länge
     def calc_length(self,geos=None):        
@@ -208,41 +208,43 @@ class ContourClass:
 
 
     
-    def analyse_and_opt(self,geos=None):
-        #Errechnen der Länge
-        self.calc_length(geos)
-        
-        #Optimierung für geschlossene Konturen
-        if self.closed==1:
-            summe=0
-            #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-            #negativer Wert bedeutet CCW geschlossenes Polygon
-            geo_point_l, dummy=geos[self.order[-1][0]].get_start_end_points(self.order[-1][1])            
-            for geo_order_nr in range(len(self.order)):
-                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
-                summe+=(geo_point_l.x*geo_point.y-geo_point.x*geo_point_l.y)/2
-                geo_point_l=geo_point
-            if summe>0.0:
-                self.reverse()
-
-            #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
-            min_point=geo_point_l
-            min_point_nr=None
-            for geo_order_nr in range(len(self.order)):
-                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
-                #Geringster Abstand nach unten Unten Links
-                if (min_point.x+min_point.y)>=(geo_point.x+geo_point.y):
-                    min_point=geo_point
-                    min_point_nr=geo_order_nr
-            #Kontur so anordnen das neuer Startpunkt am Anfang liegt
-            self.set_new_startpoint(min_point_nr)
-            
-        #Optimierung für offene Konturen
-        else:
-            geo_spoint, dummy=geos[self.order[0][0]].get_start_end_points(self.order[0][1])
-            geo_epoint, dummy=geos[self.order[0][0]].get_start_end_points(not(self.order[0][1]))
-            if (geo_spoint.x+geo_spoint.y)>=(geo_epoint.x+geo_epoint.y):
-                self.reverse()
+#===============================================================================
+#    def analyse_and_opt(self,geos=None):
+#        #Errechnen der Länge
+#        self.calc_length(geos)
+#        
+#        #Optimierung für geschlossene Konturen
+#        if self.closed==1:
+#            summe=0
+#            #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
+#            #negativer Wert bedeutet CCW geschlossenes Polygon
+#            geo_point_l, dummy=geos[self.order[-1][0]].get_start_end_points(self.order[-1][1])            
+#            for geo_order_nr in range(len(self.order)):
+#                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
+#                summe+=(geo_point_l.x*geo_point.y-geo_point.x*geo_point_l.y)/2
+#                geo_point_l=geo_point
+#            if summe>0.0:
+#                self.reverse()
+# 
+#            #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
+#            min_point=geo_point_l
+#            min_point_nr=None
+#            for geo_order_nr in range(len(self.order)):
+#                geo_point, dummy=geos[self.order[geo_order_nr][0]].get_start_end_points(self.order[geo_order_nr][1])
+#                #Geringster Abstand nach unten Unten Links
+#                if (min_point.x+min_point.y)>=(geo_point.x+geo_point.y):
+#                    min_point=geo_point
+#                    min_point_nr=geo_order_nr
+#            #Kontur so anordnen das neuer Startpunkt am Anfang liegt
+#            self.set_new_startpoint(min_point_nr)
+#            
+#        #Optimierung für offene Konturen
+#        else:
+#            geo_spoint, dummy=geos[self.order[0][0]].get_start_end_points(self.order[0][1])
+#            geo_epoint, dummy=geos[self.order[0][0]].get_start_end_points(not(self.order[0][1]))
+#            if (geo_spoint.x+geo_spoint.y)>=(geo_epoint.x+geo_epoint.y):
+#                self.reverse()
+#===============================================================================
 
 
     #Neuen Startpunkt an den Anfang stellen
@@ -262,7 +264,47 @@ class ArcGeo:
         self.Pe=Pe
         self.O=O
         self.r=abs(r)
-
+        self.col='Black'
+        self.nva=PointClass(0.0,0.0)	
+        self.nve=PointClass(0.0,0.0)	
+        
+       
+        # Kreismittelpunkt bestimmen wenn Pa,Pe,r,und dir bekannt
+        if type(O)==type(None):
+           
+            if (type(Pa)!=type(None)) and (type(Pe)!=type(None)) and (type(dir)!=type(None)):
+               
+                arc=self.Pe.norm_angle(Pa)-pi/2
+                Ve=Pe-Pa
+                m=(sqrt(pow(Ve.x, 2)+pow(Ve.y, 2)))/2
+                lo=sqrt(pow(r, 2)-pow(m, 2))
+                if dir<0:
+                    d=-1
+                else:
+                    d=1
+                O=Pa+0.5*Ve
+                O.y+=lo*sin(arc)*d
+                O.x+=lo*cos(arc)*d
+                self.O=O
+              
+        # Falls nicht übergeben Mittelpunkt ausrechnen  
+            elif (type(s_ang)!=type(None)) and (type(e_ang)!=type(None)):
+                O.x=Pa.x-r*cos(s_ang)
+                O.y=Pa.y-r*sin(s_ang)
+                self.O=O
+            else:
+                print('Fehlende Angabe für Kreis')
+                self.O=O
+        #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
+        if type(s_ang)==type(None):
+            s_ang=O.norm_angle(Pa)
+        if type(e_ang)==type(None):
+            e_ang=O.norm_angle(Pe)
+        
+        self.nva.x=sin(s_ang)
+        self.nva.y=cos(s_ang)
+        self.nva.x=sin(e_ang)
+        self.nva.y=cos(e_ang)
         #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
         if type(s_ang)==type(None):
             s_ang=O.norm_angle(Pa)
@@ -293,6 +335,29 @@ class ArcGeo:
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
                ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 
+    def dif_ang(self, P1, P2, dir):
+        sa=self.O.norm_angle(P1)
+       
+        if(sa<0):
+            sa+=2*pi
+        
+        ea=self.O.norm_angle(P2)
+        if(ea<0):
+            ea+=2*pi
+        
+        if(dir>0):     # GU
+            if(sa>ea):
+                ang=(2*pi-sa+ea)
+            else:
+                ang=(ea-sa)
+        else:
+            if(ea>sa):
+                ang=(sa+2*pi-ea)
+            else:
+                ang=(sa-ea)
+        
+        return(ang)        
+        
     def reverse(self):
         Pa=self.Pa
         Pe=self.Pe
@@ -388,8 +453,36 @@ class LineGeo:
         self.type="LineGeo"
         self.Pa=Pa
         self.Pe=Pe
+        self.col='Black'
         self.length=self.Pa.distance(self.Pe)
-
+        Va=PointClass(0.0,0.0)
+         
+        Ve=self.Pe-self.Pa            # Richtungsabhängiger Normalenvektor
+        if (abs(Ve.x)>abs(Ve.y)):
+            if(Ve.x>0):
+                Va.y=-1
+            else:
+                Va.y=1
+            if(Ve.y!=0):
+                Va.x=-Ve.y*Va.y/Ve.x
+            else:
+                Va.x=0;
+        else:
+            if(Ve.y>0):
+                Va.x=1
+            else:
+                Va.x=-1
+            if(Ve.y!=0):
+                Va.y=-Ve.x*Va.x/Ve.y
+            else:
+                Va.y=0
+            
+        betrag=Va.distance()
+               
+        self.nve=1/betrag*Va
+        self.nva=self.nve
+       
+        
     def __str__(self):
         return ("\nLineGeo")+\
                ("\nPa : %s" %self.Pa)+\
@@ -448,7 +541,7 @@ class BiarcClass:
     def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[],min_r=5e-4):
         min_len=1e-9        #Min Abstand für doppelten Punkt
         min_alpha=1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
-        max_r=5e3           #Max Radius ab welchem Gerade angenommen wird (10m)
+        max_r=5e3           #Max Radius ab welchem Gerade angenommen wird (5m)
         min_r=min_r         #Min Radius ab welchem nichts gemacht wird
         
         self.Pa=Pa
@@ -550,13 +643,13 @@ class BiarcClass:
     def limit_angles(self,alpha,beta):
         #print("limit_angles: alpha: %s, beta: %s" %(alpha,beta))
         if (alpha<-pi):
-           alpha += 2*pi
+            alpha += 2*pi
         if (alpha>pi):
-           alpha -= 2*pi
+            alpha -= 2*pi
         if (beta<-pi):
-           beta += 2*pi
+            beta += 2*pi
         if (beta>pi):
-           beta -= 2*pi
+            beta -= 2*pi
         while (alpha-beta)>pi:
             alpha=alpha-2*pi
         while (alpha-beta)<-pi:

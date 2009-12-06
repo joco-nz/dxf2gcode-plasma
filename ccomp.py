@@ -1,6 +1,6 @@
 # -*- coding: cp1252 -*-
-from dxf2gcode_b02_point import PointClass, ArcGeo, LineGeo,floor ,ceil
-from dxf2gcode_b02_shape import ShapeClass
+from point import PointClass, ArcGeo, LineGeo,floor ,ceil
+from shape import ShapeClass
 from copy import deepcopy 
 
 from math import sin,cos,  atan2, sqrt, pow,pi
