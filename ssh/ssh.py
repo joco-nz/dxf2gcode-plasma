@@ -86,7 +86,7 @@ class ShapeSetHandler:
     classdocs
     '''
 
-    def __init__(self,parentframe,config):
+    def __init__(self,parentframe,config,instancename = None):
         '''
         called once the module is loaded and verified
         frame - the handlers's parameter frame (a tab, left side)
@@ -95,7 +95,7 @@ class ShapeSetHandler:
         
         directory = "."
         basename = "vspace"
-        instancename = "foo"
+#        instancename = "foo"
         self.vs = VarSpace(specname, directory, basename, instancename=instancename,specversion=SPECVERSION)
         # layout variables as per INI file
         self.vs.create_pane(parentframe,config)

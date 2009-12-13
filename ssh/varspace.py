@@ -25,7 +25,7 @@ import os
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
 
-debug = 0
+debug = 1
 
 class VarSpace:
     def __init__(self, specname, directory, basename, instancename=None,specversion=None):
@@ -105,16 +105,16 @@ class VarSpace:
                 value  = self.vars['Variables'][varname]
                 print "%(varname)s = %(value)s" %(locals())
 
-    def _scalarChanged(self,variable,name,index,mode):
+    def _scalarChanged(self,varname,name,index,mode):
         try:
-            value = variable.get()
+            value = self.tkVars[varname].get()
         except ValueError:
             pass
         else:
-            self.vars['Variables'][name] = value
             if debug:
-                print "%s changed to %s" %(name,value)
-            
+                print "%s changed from %s to %s" %(varname,self.vars['Variables'][varname],value)
+            self.vars['Variables'][varname] = value
+
     def create_pane(self,parent,config):
         currgroup = None
         groupcount = 0
@@ -152,36 +152,36 @@ class VarSpace:
                 width = 7
                 # generate appropriate widget for type
                 if  isinstance(value, float):
-                    self.tkVars[varname] = DoubleVar(name=varname)
+                    self.tkVars[varname] = DoubleVar()
                     self.tkVars[varname].set(value)
                     entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, self.tkVars[varname] ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
                     
                 if  isinstance(value, int):
-                    self.tkVars[varname] = IntVar(name=varname)
+                    self.tkVars[varname] = IntVar()
                     self.tkVars[varname].set(value)
                     entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, self.tkVars[varname] ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
 
                 if  isinstance(value, basestring):
                     if len(value) > width:
                         width = len(value)
-                    self.tkVars[varname] = StringVar(name=varname)
+                    self.tkVars[varname] = StringVar()
                     self.tkVars[varname].set(value)
                     entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, self.tkVars[varname] ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
 
                 if  isinstance(value, bool):
-                    self.tkVars[varname] = BooleanVar(name=varname)
+                    self.tkVars[varname] = BooleanVar()
                     self.tkVars[varname].set(value)
                     entry = Checkbutton(current_frame, variable=self.tkVars[varname])#, offvalue=False, onvalue=True)  
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, self.tkVars[varname] ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
 
                 if  optionlist:
-                    self.tkVars[varname] = StringVar(name=varname)
+                    self.tkVars[varname] = StringVar()
                     self.tkVars[varname].set(value) 
                     entry = OptionMenu(current_frame, self.tkVars[varname], *optionlist)     
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, self.tkVars[varname] ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
 
                 entry.grid(row=linecount, column=1, sticky=N + E)
                 linecount += 1   
