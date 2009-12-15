@@ -2,7 +2,7 @@
 
 VarSpace implements:
 
-- a persistent, typed  variable store (self.vars) using ConfigObj 
+- a persistent, typed  variable store (self.cfg_vars) using ConfigObj 
     (including automatic type conversion when reading from INI file)
     plus some basic type and range checking on the INI file 
 - a method to create a default INI file from the specifification
@@ -16,8 +16,8 @@ Created on 07.12.2009
 @author: Michael Haberler
 '''
 
-from Tkconstants import END, ALL, N, S, E, W, RIDGE, GROOVE, FLAT, DISABLED, NORMAL, ACTIVE, LEFT, RIGHT, VERTICAL, Y, BOTH, EXTENDED
-from Tkinter import OptionMenu, Frame, Checkbutton, Button, Label, Entry, Text, LabelFrame
+from Tkconstants import  N, E, W, GROOVE
+from Tkinter import OptionMenu, Frame, Checkbutton, Button, Label, Entry,LabelFrame
 from Tkinter import StringVar, DoubleVar, IntVar,BooleanVar
 
 import os
@@ -28,16 +28,20 @@ from validate import Validator
 debug = 1
 
 class VarSpace:
-    def __init__(self, specname, directory, basename, instancename=None,specversion=None):
-        self.supported = ('double', 'string', 'bool', 'list')
-        self.ui_items = []
+    def __init__(self, specname, directory, basename, instancename=None, specversion=None):
+        #       self.supported = ('double', 'string', 'bool', 'list')
+        #       self.ui_items = []
+        self.path = None
+        self.cfg_vars = dict()
         self.tkVars = dict()
+        self.groupcount = 0
         self.spec = ConfigObj(specname, interpolation=False, list_values=False, _inspec=True)
         self.directory = directory
         self.basename = basename
         self.instancename = instancename
         self.configsuffix = 'cfg'    # FIXME add2 global config ref
         self._initialize(specversion)
+
         
     def _initialize(self,specversion):
         '''
@@ -55,10 +59,10 @@ class VarSpace:
         
         if os.path.isfile(self.path):
             # file exists, read & validate it
-            self.vars = ConfigObj(self.path, configspec=self.spec, interpolation=False)
-            self.vdt = Validator()
-            result = self.vars.validate(self.vdt, preserve_errors=True)
-            validate_errors = flatten_errors(self.vars, result)
+            self.cfg_vars = ConfigObj(self.path, configspec=self.spec, interpolation=False)
+            _vdt = Validator()
+            result = self.cfg_vars.validate(_vdt, preserve_errors=True)
+            validate_errors = flatten_errors(self.cfg_vars, result)
             if validate_errors:
                 print "errors reading %(path)s:" % (self.__dict__)
             for entry in validate_errors:
@@ -79,7 +83,7 @@ class VarSpace:
                 
             # check config file version against internal version
             if specversion:
-                fileversion = self.vars['Version']['specversion']
+                fileversion = self.cfg_vars['Version']['specversion']
                 if fileversion != specversion:
                     print 'config file vesions do not match - internal: "%(specversion)s", config file "%(fileversion)s"' %(locals())
                     raise BadConfigFileError         
@@ -88,21 +92,21 @@ class VarSpace:
             
     def create_default_cfg(self):
         # derive config file with defaults from spec
-        self.vars = ConfigObj(configspec=self.spec)
-        self.vdt = Validator()
-        self.vars.validate(self.vdt, copy=True)
-        self.vars.filename = self.path
-        self.vars.write()
+        self.cfg_vars = ConfigObj(configspec=self.spec)
+        _vdt = Validator()
+        self.cfg_vars.validate(_vdt, copy=True)
+        self.cfg_vars.filename = self.path
+        self.cfg_vars.write()
     
     def save_cfg(self):
-        #self.vars.filename = self.path
-        self.vars.write()   
+        #self.cfg_vars.filename = self.path
+        self.cfg_vars.write()   
     
     def print_vars(self):
-        for frame,content in self.vars['UI'].items():
+        for frame,content in self.cfg_vars['UI'].items():
             #print " frame=%(frame)s" %(locals())
             for varname,text in content.items():
-                value  = self.vars['Variables'][varname]
+                value  = self.cfg_vars['Variables'][varname]
                 print "%(varname)s = %(value)s" %(locals())
 
     def _scalarChanged(self,varname,name,index,mode):
@@ -112,16 +116,16 @@ class VarSpace:
             pass
         else:
             if debug:
-                print "%s changed from %s to %s" %(varname,self.vars['Variables'][varname],value)
-            self.vars['Variables'][varname] = value
+                print "%s changed from %s to %s" %(varname,self.cfg_vars['Variables'][varname],value)
+            self.cfg_vars['Variables'][varname] = value
 
     def create_pane(self,parent,config):
         currgroup = None
         groupcount = 0
         linecount = 0
         current_frame = None
-        self.vars.main.interpolation = False # avoid ConfigObj getting too clever
-        for group,content in self.vars['UI'].items():            
+        self.cfg_vars.main.interpolation = False # avoid ConfigObj getting too clever
+        for group,content in self.cfg_vars['UI'].items():            
             for k,v in content.items():
                 optionlist = None
                 if isinstance(v, list):  # OptionMenu = 'labeltext','choice1,'choice2'....
@@ -130,7 +134,7 @@ class VarSpace:
                     optionlist = v[1:]
                 else:                   # scalars just have varname = labeltext
                     (varname,labelvar) = (k,v)
-                value = self.vars['Variables'][varname]
+                value = self.cfg_vars['Variables'][varname]
                 # print "    varname=%(varname)s value=%(value)s labeltext=%(labeltext)s labelvar=%(labelvar)s" %(locals())
                 if group != currgroup:
                     currgroup = group

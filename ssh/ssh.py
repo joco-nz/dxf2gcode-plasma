@@ -4,8 +4,7 @@ Created on 07.12.2009
 @author: mah
 '''
 
-import os,sys
-
+import sys
 from varspace import  VarSpace
 
 # see http://www.voidspace.org.uk/python/configobj.html and
@@ -126,8 +125,8 @@ class ShapeSetHandler:
 
     
     
-    def short_name(self):
-        return "Mill"
+    def tag_name(self):
+        return "mill"
     
 #    def menu_entry(self):
 #        pass
