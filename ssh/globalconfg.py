@@ -24,7 +24,7 @@ Created on 13.12.2009
 
 
 
-from constants import *
+#from constants import *
 
 import os
 import sys
@@ -34,14 +34,26 @@ import logging
 from optparse import OptionParser
 from configobj import ConfigObj,flatten_errors
 from validate import Validator
+from dotdictlookup import DictDotLookup
 
-# all defaults in upper case
-
+PROGRAM_VERSION  = "47.11"
 PROGNAME =  'dxf2gcode'
+
+DEFAULT_CONFIG_FILE = 'config/dxf2gcode.cfg' 
+# this environment variable overrides  DEFAULT_CONFIG_FILE
+DXF2GCODE_CONFIG  = 'DXF2GCODE_CFG' 
+
+
 CONSOLE_LOGLEVEL = logging.ERROR
 FILE_LOGLEVEL    = logging.WARNING
 WINDOW_LOGLEVEL  = logging.INFO
+# for debugging startup problmes log to console
+# FIXME set to logging.ERROR eventually - otherwise verbose startup
+STARTUP_LOGLEVEL = logging.DEBUG
 DEFAULT_LOGFILE  = 'dxf2gcode.log'
+#
+NEWPROJ_DEFDIRS = ['config','dxf','ngc','varspace','plugins' ]
+
 
 # if the config file has syntax errors, move it out
 # of the way and create a new default cfg
@@ -57,17 +69,13 @@ RENEW_ERRORED_CFG = True
 # always increment specversion default so an old .ini file
 # can be detected
 
-CONFIG_VERSION = "13"
-
-
-#    [Paths]
-#    save_path = /Users/mah/Documents/workspace/dxf2gcode-tkinter-haberler-gc/ngc
-#    load_path = /Users/mah/Documents/workspace/dxf2gcode-tkinter-haberler-gc/dxf
-#    pstoedit_opt = list(default=list('-f', 'dxf', '-mm'))
-
+CONFIG_VERSION = "22"
 
 
 CONFIG_SPEC = str('''
+#  Section and variable names must be valid Python identifiers
+#      do not use whitespace in names 
+
 # do not edit the following section name:
     [Version]
 
@@ -75,38 +83,48 @@ CONFIG_SPEC = str('''
     config_version = string(default="'''  + \
     str(CONFIG_VERSION) + '")\n' + \
 '''
+    [Paths]
+    # 
+    project_dir = string(default=".")
+    import_dir = string(default="./dxf")
+    output_dir = string(default="./ngc")
 
+    # search here for exporter + transformer plugins
+    plugin_dir = string(default=".")
+    # plugin varspaces are stored here
+    varspace_dir = string(default="./varspace")
     
-    [Depth Coordinates]
+    
+    [Depth_Coordinates]
     axis3_retract = float(default= 15.0)
     axis3_slice_depth = float(default= -1.5)
     axis3_safe_margin = float(default= 3.0)
     axis3_mill_depth = float(default= -3.0)
     
-    [Axis letters]
+    [Axis_letters]
     ax1_letter = string(default="X")
     ax2_letter = string(default="Y")
     ax3_letter = string(default="Z")
     
-    [Plane Coordinates]
+    [Plane_Coordinates]
     axis1_start_end = float(default= 0)
     axis2_start_end = float(default= 0)
     
     [General]
     write_to_stdout = boolean(default=False)
     
-    [Route Optimisation]
+    [Route_Optimisation]
     mutation rate = float(default= 0.95)
     max. population = float(default= 20)
     max. iterations = float(default= 300)
     begin art = string(default="heurestic")
     
-    [Import Parameters]
+    [Import_Parameters]
     point_tolerance = float(default= 0.01)
     spline_check = boolean(default=True)
     fitting_tolerance = float(default= 0.01)
     
-    [Tool Parameters]
+    [Tool_Parameters]
     diameter = float(default= 2.0)
     start_radius = float(default= 0.2)
     
@@ -126,18 +144,18 @@ CONFIG_SPEC = str('''
     # corresponding output
     
     # this really goes to stderr
-    console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='ERROR')
+    console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')
   
     file_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')
     
     # logging level for the message window
-    window_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')
+    window_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='INFO')
     
     # backwards compatibility
     global_debug_level = integer(min=0,max=5,default=3)
 
     
-    [Feed Rates]
+    [Feed_Rates]
     f_g1_plane = float(default=400)
     f_g1_depth = float(default=150)
 
@@ -152,67 +170,70 @@ class Log:
         file
         message window
     '''
-    def __init__(self,prog_name):
-        self.console_handler = None
+    def __init__(self,tag,console_loglevel):
         self.file_handler = None
-        # always log to the message window
-        self.logger = logging.getLogger(prog_name)
+        self.window_handler = None
+        self.logger = logging.getLogger(tag)
         self.logger.setLevel(logging.DEBUG)
 
-        self.window_handler = logging.StreamHandler()
-        self.window_handler.setFormatter(logging.Formatter("%(name)s - %(levelname)s - %(message)s"))
-        self.window_handler.setLevel(WINDOW_LOGLEVEL)
+        # always log to the console window
+        self.console_handler = logging.StreamHandler()
+        self.console_handler.setFormatter(logging.Formatter("%(levelname)s %(module)s:%(funcName)s:%(lineno)d - %(message)s"))
+        self.console_handler.setLevel(self._cvtlevel(console_loglevel))
+        self.logger.addHandler(self.console_handler)
 
-        self.logger.addHandler(self.window_handler)
-
-    # allow strings like 'INFO' or logging.INFO type args
+    # allow  'INFO' or logging.INFO  args
     def _cvtlevel(self,level):
         if isinstance(level,basestring):
             return logging._levelNames[level]
         else:
             return level
 
-    # logging to file & console - explicitely enabled
+    # logging to file + window - explicitely enabled
     def add_file_logger(self,logfile=DEFAULT_LOGFILE,log_level=FILE_LOGLEVEL):
         
         self.file_handler = logging.FileHandler(logfile)
-        self.file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+        self.file_handler.setFormatter(logging.Formatter("%(levelname)s %(module)s:%(funcName)s:%(lineno)d  - %(message)s"))
         self.file_handler.setLevel(self._cvtlevel(log_level))
         self.logger.addHandler(self.file_handler)
     
-    def add_console_logger(self, log_level=CONSOLE_LOGLEVEL):
-        self.console_handler = logging.StreamHandler()
-        self.console_handler.setFormatter(logging.Formatter("%(name)s - %(levelname)s - %(message)s"))
-        self.console_handler.setLevel(self._cvtlevel(log_level))
-        self.logger.addHandler(self.console_handler)
-
-
-    def set_window_loglevel(self,log_level):
+    def add_window_logger(self, log_level=WINDOW_LOGLEVEL):
+        
+        self.window_handler = logging.StreamHandler()
+        self.window_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
         self.window_handler.setLevel(self._cvtlevel(log_level))
-    
+        self.logger.addHandler(self.window_handler)
+        
     def set_window_logstream(self,stream=sys.stderr):
-        self.window_handler.stream = stream
+        if self.window_handler:
+            self.window_handler.stream = stream
+        
+    def set_window_loglevel(self,log_level):
+        if self.window_handler:
+            self.window_handler.setLevel(self._cvtlevel(log_level))
     
     def set_file_loglevel(self,log_level):
-        self.file_handler.setLevel(self._cvtlevel(log_level))
+        if self.file_handler:
+            self.file_handler.setLevel(self._cvtlevel(log_level))
                       
     def set_console_loglevel(self,log_level):
-        self.console_handler.setLevel(self._cvtlevel(log_level))
+        if self.console_handler:
+            self.console_handler.setLevel(self._cvtlevel(log_level))
    
-                
-def cleanup_and_exit(obj,returncode, msg=None):
-    if msg:
-        print msg
-    # add any sensible cleanup actions here
-
-    sys.exit(returncode)
-
-
 class GlobalConfig:
-    
+    '''
+    setup logging
+    parse command line options
+        options are available 'flattened', e.g. self.option.debug  
+    read config file, generating a default if needed
+        config file values are available 'flattened' like self.config.section.variable  
+
+    '''
     def __init__(self):
-        self.configvars = dict()
-        self.n_config_errors = 0
+        self.n_errors = 0
+        
+        self.log = Log(sys.argv[0],console_loglevel=STARTUP_LOGLEVEL)
+        logger = self.log.logger
 
         self.current_directory = os.getcwd()  
         
@@ -221,38 +242,24 @@ class GlobalConfig:
             self.platform = "mac"
         # Fixme - windows test
         # fixme - linux test
-        
-        self.config_suffix = '.cfg'
 
-        self.config_subdir = 'config'
-        self.config_basename = 'dxf2gcode'
-        
-        # default to current directory
-        self.config_dir = os.path.join(self.current_directory,self.config_subdir)
-        self.config_file = os.path.join(self.config_dir,self.config_basename + self.config_suffix)
-
-        self.log = Log(PROGNAME)
-        logger = self.log.logger    # shorthand
-        
-        #self.log.set_window_loglevel('DEBUG') # works
-        
     
         parser = OptionParser()
-        parser.add_option("-V", "--verbose",
-                          action="store_true", dest="verbose", default=False,
-                          help="verbose output to message window")
+
         parser.add_option("-d", "--debug",
                           action="count", dest="debug", default=0,
                           help="increase debug level - repeat option for more output")
         parser.add_option("-v", "--version",
                           action="store_true", dest="printversion", default=False,
                           help="display program version")
+        
         parser.add_option("-c", "--config-file",
-                          action="store", metavar="FILE", dest="config_file", default=self.config_file,
-                          help="use FILE as global config file, create default config if none found")   
+                          action="store", metavar="FILE", dest="config_file", default=None,
+                          help="use FILE as global config file, create default config if none found")        
+
         parser.add_option("-p", "--project-directory",
                           action="store", metavar="DIR", dest="project_directory", default=None,
-                          help="use DIR for DXF input, export output and parameter storage")    
+                          help="use DIR as place for dxf,ngc,config,varspace,plugin directoryies")    
         parser.add_option("-P", "--plugin-directory",
                           action="store", metavar="DIR", dest="plugin_directory", default=None,
                           help="search DIR for plugins")        
@@ -265,9 +272,15 @@ class GlobalConfig:
         parser.add_option("-e", "--exporter-directory",
                           action="store", metavar="DIR", dest="exporter_directory", default=None,
                           help="look for/store exporter parameter files in DIR")     
+        parser.add_option("-V", "--varspace-directory",
+                          action="store", dest="varspace_directory", default=False,
+                          help="verbose output to message window") 
+        
+        
+        
         parser.add_option("-C", "--create-project-directory",metavar="DIR",
-                          action="store_true", dest="create_projectdir", default=False,
-                          help= "initialize DIR as a project - for later use with --project-directory DIR. \
+                          action="store", dest="new_project_dir", default=None,
+                          help= "initialize DIR as a project and use like --project-directory DIR. \
                           create subdirectory config and default config/dxf2gcode.cfg with the current \
                           option setting (-I,-O,-e)")
         parser.add_option("-L", "--logfile",
@@ -275,84 +288,131 @@ class GlobalConfig:
                           help="log to FILE")
 
         (self.options, self.args) = parser.parse_args()
-        
+     
+        if self.options.new_project_dir:
+            path = os.path.abspath(self.options.new_project_dir)
+            if os.path.isdir(path):
+                logger.error("create project directory: %s already exists" % path)
+                raise OSError
+            else:
+                try:
+                    os.makedirs(path)
+                except OSError as (error,strerror,filename):
+                    logger.error("can't create directory %s: %s" % (path,strerror))
+                    raise
+                logger.debug("created project directory %s" % (path))
+                for d in NEWPROJ_DEFDIRS:
+                    os.mkdir(os.path.join(path, d))
+                    logger.debug("created %s subdirectory %s" % (d))
+                self.config_file = os.path.join(path,DEFAULT_CONFIG_FILE)
+
+     
+        if self.options.logfile:
+            self.log.add_file_logger(self,logfile=self.options.logfile)  
+             
         # merge in options from config file
         # program arguments override
 
-        # override config file path
+        # pecking order for config file:
+        # 1. explicit -C <configfile>
+        # 2. Use environment
+        # 3. Use built-indefault 
         if self.options.config_file:
             self.config_file = self.options.config_file
-            self.config_dir = os.path.dirname(self.config_file)        
-        
-        # try hard to read a config file
-        self._get_config()
-        
-        if self.options.logfile:
-            self.log.add_file_logger(logfile=self.options.logfile)
         else:
-            if len(self.configvars['Logging']['logfile']) > 0:
-                self.log.add_file_logger(logfile=self.configvars['Logging']['logfile'],
-                                       log_level=self.configvars['Logging']['file_loglevel'])
+            self.config_file = os.getenv(DXF2GCODE_CONFIG, DEFAULT_CONFIG_FILE)
+ 
+        # try hard to read a config file
+#        (self.configvars,n_errors) = self._get_config(self.config_file)
+        (self.config_dict,n_errors) = self._get_config(self.config_file)
+   
+        # convenience - flatten nested config dict to access it via self.config.sectionname.varname
+        self.config = DictDotLookup(self.config_dict)
         
-        self.log.add_console_logger(log_level=self.configvars['Logging']['console_loglevel'])        
-        self.log.set_window_loglevel(log_level=self.configvars['Logging']['window_loglevel'])
+        # determine project directory
+        if self.options.project_directory:  # cmd line -P
+            self.project_directory = self.options.project_directory 
+        else:
+            if self.config.Paths.project_dir: # take from .cfg
+                self.project_directory = self.config.Paths.project_dir
+        
+        
+        # special-case abspath arg (emc2) : use dirname() as project_directory
+        #    if os.path.abspath(dirname(arg)
 
-        
-        
-        if self.n_config_errors:
-            logger.warning("%d error(s) reading '%s'" % (self.n_config_errors,self.config_file))
+        if not self.options.logfile:
+            if len(self.config.Logging.logfile) > 0: 
+                self.log.add_file_logger(logfile=self.config.Logging.logfile)
+                self.log.set_file_loglevel(self.config.Logging.file_loglevel)
+
+        # now adjust to values from config 
+        self.log.set_console_loglevel(log_level=self.config.Logging.console_loglevel)        
+ 
+        # CK: execute this code once the logging window is established
+        if False:
+            self.log.add_window_logger(log_level=self.self.config.Logging.window_loglevelconfig)
+            self.log.set_window_logstream(stream=sys.stderr) # set to window file handle
+            # change window loglevel like so:
+            #self.log.set_window_loglevel(self,log_level)
+            
+            
+        if self.n_errors:
+            logger.warning("%d error(s) reading '%s'" % (self.n_errors,self.config_file))
         else:
             logger.info("config read sucessfully")
           
             
-        # special-case abspath arg (emc2)
 
-
+        #logger.error("see what happens now")
         print "options = ", self.options
+        print "config = ", self.config
         print "args = ",self.args
+        print "n_errors = ",n_errors
     
-    def _get_config(self):
+    def _get_config(self,config_file):
         '''
         try to arrive at, and read a valid config file
             if the config dir doesnt exist, create it
             if the file doesnt exist, create a default config derived from CONFIG_SPEC
-            at this point, a config file does exist - new or old
-            read it
+            at this point, a config file does exist - new or old, so read it
             if the version number mismatches or the config file doesnt
             validate, rename the bad config file by adding a time stamp, re-create a
             default file and read that
         '''
-
+        configvars = dict()
         logger = self.log.logger    # shorthand
 
         # create config subdir and default config if needed
-        if not os.path.isfile(self.config_file):
-            if not os.path.isdir(self.config_dir):
-                if os.mkdir(self.config_dir):
-                    logger.error("can't create directory %s" % (self.config_dir))
-                    cleanup_and_exit(self, -1)
+        if not os.path.isfile(config_file):
+            config_dir = os.path.dirname(config_file)
+            if not os.path.isdir(config_dir) and (len(config_dir) > 0):
+                try:
+                    os.makedirs(config_dir)
+                except OSError as (error,strerror,filename):
+                    logger.error("can't create directory %s: %s" % (config_dir,strerror))
+                    raise
                 else:
-                    logger.info("created config directory %s" % (self.config_dir))
+                    logger.info("created config directory %s" % (config_dir))
 
             # we have a directory, create default config
             try:
-                self._write_default_config_file(self.config_file,CONFIG_SPEC)
+                self._write_default_config_file(config_file,CONFIG_SPEC)
             except Exception as inst:
                 logger.error(inst)
-                logger.error("unexpected error creating default config %s" % (self.config_file))
-                cleanup_and_exit(self, -2)
+                logger.error("unexpected error creating default config %s" % (config_file))
+                raise                
             else:
-                logger.info("created default config file %s" % (self.config_file))
+                logger.info("created default config file %s" % (config_file))
         # we have a default config file
         keep_trying = True
         while keep_trying:
             try:
-                self.n_config_errors = 0
-                (self.configvars,result) = self._read_config_file(self.config_file, CONFIG_SPEC)
-                error_dict = flatten_errors(self.configvars,result)
-                self.n_config_errors = len(error_dict)
-                if self.n_config_errors:
-                    logger.warning("%d error(s) reading %s :" %(self.n_config_errors,self.config_file))
+                n_errors = 0
+                (configvars,result) = self._read_config_file(config_file, CONFIG_SPEC)
+                error_dict = flatten_errors(configvars,result)
+                n_errors += len(error_dict)
+                if n_errors:
+                    logger.warning("%d error(s) reading %s :" %(n_errors,config_file))
 
                 for entry in error_dict: 
                     section_list, key, error = entry
@@ -366,43 +426,43 @@ class GlobalConfig:
                     logger.warning(section_string + ' = ' + str(error))
                     keep_trying = False 
 
-                fileversion = self.configvars['Version']['config_version']
+                fileversion = configvars['Version']['config_version']
                 if fileversion != CONFIG_VERSION:
                     logger.warning('config file versions do not match - internal: "%s", config file "%s"' %(CONFIG_VERSION,fileversion))       
                 else:
                     logger.debug("config file version ok: '%s'" % (fileversion))
 
                 # giive up on this cfg file?
-                if (fileversion != CONFIG_VERSION) or (RENEW_ERRORED_CFG and (self.n_config_errors > 0)):
+                if (fileversion != CONFIG_VERSION) or (RENEW_ERRORED_CFG and (n_errors > 0)):
                     # This config file wont work.
                     # we move the file out of the way, create
                     # a new default and retry.
                     tag = asctime()
-                    badfilename = self.config_file + '.' + tag.replace(' ','-')
-                    logger.debug("trying to rename bad cfg %s to %s" % (self.config_file,badfilename))
+                    badfilename = config_file + '.' + tag.replace(' ','-')
+                    logger.debug("trying to rename bad cfg %s to %s" % (config_file,badfilename))
                     try:
-                        os.rename(self.config_file,badfilename)
+                        os.rename(config_file,badfilename)
             
                     except OSError  as (e,msg):
-                        logger.error("rename(%s,%s) failed: %s - %s" % (self.config_file,badfilename,e,msg))
-                        # Canthappen. Yeah, right.
-                        self.n_config_errors += 1
-                        keep_trying = False 
+                        logger.error("rename(%s,%s) failed: %s - %s" % (config_file,badfilename,e,msg))
+                        raise
+
                     else:
                         logger.info("renamed bad config to %s" % (badfilename))
                         # create a fresh default cfg
-                        (self.configvars,result) = self._write_default_config_file(self.config_file,CONFIG_SPEC)
+                        (configvars,result) = self._write_default_config_file(config_file,CONFIG_SPEC)
                         # a new file exists, read it once more so we 
-                        logger.info("created default cfg %s" % (self.config_file))
+                        logger.info("created default cfg %s" % (config_file))
                         keep_trying = True                              
                 else:
                     keep_trying = False # it's either this or that way                                    
                 
             except IOError as (e,msg):
-                logger.error("cant read %s: %s %s " % (self.config_file,e,msg))
-                self.n_config_errors += 1
+                logger.error("cant read %s: %s %s " % (config_file,e,msg))
+                n_errors += 1
                 keep_trying = False 
     
+        return (configvars,n_errors)
         
     def _read_config_file(self,path,spec):
         # file exists, read & validate it
