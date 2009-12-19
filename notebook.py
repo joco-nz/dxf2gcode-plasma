@@ -151,9 +151,9 @@ class ExportParasClass:
         self.entries.append(Entry(f3,width=7,textvariable=self.F_G1_Plane,state=DISABLED))
         self.entries[-1].grid(row=2,column=1,sticky=N+E)
 
-    def change_entry_state(self,new_state):
+    def change_entry_state(self,state=DISABLED):
         for entry in self.entries:
-            entry.config(state=new_state)
+            entry.config(state=state)
             
     def ShowParas(self,LayerContent):
         print 'Kommt noch'

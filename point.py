@@ -25,6 +25,9 @@
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil
 
+#Length of the cross.
+dl=1
+
 class PointClass:
     def __init__(self,x=0,y=0):
         self.x=x
@@ -301,15 +304,11 @@ class ArcGeo:
         if type(e_ang)==type(None):
             e_ang=O.norm_angle(Pe)
         
-        self.nva.x=sin(s_ang)
-        self.nva.y=cos(s_ang)
-        self.nva.x=sin(e_ang)
-        self.nva.y=cos(e_ang)
-        #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
-        if type(s_ang)==type(None):
-            s_ang=O.norm_angle(Pa)
-        if type(e_ang)==type(None):
-            e_ang=O.norm_angle(Pe)
+        #self.nva.x=sin(s_ang)
+        #self.nva.y=cos(s_ang)
+        #self.nva.x=sin(e_ang)
+        #self.nva.y=cos(e_ang)
+
 
         #Aus dem Vorzeichen von dir den extend ausrechnen
         self.ext=e_ang-s_ang
@@ -335,6 +334,7 @@ class ArcGeo:
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
                ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 
+    
     def dif_ang(self, P1, P2, dir):
         sa=self.O.norm_angle(P1)
        
@@ -371,7 +371,7 @@ class ArcGeo:
         self.s_ang=s_ang
         self.e_ang=e_ang
            
-    def plot2can(self,canvas=None,parent=None,tag=None,col='black'):
+    def plot2can(self,canvas=None,parent=None,tag=None,col='black',plotoption=0):
                         
         x=[]; y=[]; hdl=[]
         #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
@@ -390,8 +390,16 @@ class ArcGeo:
             
             if i>=1:
                 hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag,fill=col))       
-         
-        return hdl        
+               
+        if plotoption:
+            anf=self.Pa.rot_sca_abs(parent=parent)
+            ende=self.Pe.rot_sca_abs(parent=parent)
+            hdl.append(Line(canvas,anf.x-dl,-anf.y-dl,anf.x+dl,-anf.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,anf.x+dl,-anf.y-dl,anf.x-dl,-anf.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,ende.x-dl,-ende.y-dl,ende.x+dl,-ende.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,ende.x+dl,-ende.y-dl,ende.x-dl,-ende.y+dl,tag=tag,fill=col))
+            
+        return hdl  
 
     def get_start_end_points(self,direction,parent=None):
         if not(direction):
@@ -501,13 +509,21 @@ class LineGeo:
         Pe=self.Pa
         return LineGeo(Pa=Pa,Pe=Pe)
         
-    def plot2can(self,canvas=None,parent=None,tag=None,col='black'):
+    def plot2can(self,canvas=None,parent=None,tag=None,col='black',plotoption=0):
         
+        hdl=[]
         anf=self.Pa.rot_sca_abs(parent=parent)
         ende=self.Pe.rot_sca_abs(parent=parent)
 
-        hdl=Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col)
-        return [hdl]
+        hdl.append(Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col))
+        
+        if plotoption:
+            hdl.append(Line(canvas,anf.x-dl,-anf.y-dl,anf.x+dl,-anf.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,anf.x+dl,-anf.y-dl,anf.x-dl,-anf.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,ende.x-dl,-ende.y-dl,ende.x+dl,-ende.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,ende.x+dl,-ende.y-dl,ende.x-dl,-ende.y+dl,tag=tag,fill=col))
+            
+        return hdl
 
     def get_start_end_points(self,direction,parent=None):
         if not(direction):

@@ -33,7 +33,8 @@ class ShapeClass:
     def __init__(self,nr='None',closed=0,
                 cut_cor=40,length=0.0,
                 parent=None,
-                geos=[],geos_hdls=[]):
+                geos=[],geos_hdls=[],
+                plotoption=0):
                 
                     
         self.type="Shape"
@@ -44,6 +45,7 @@ class ShapeClass:
         self.parent=parent
         self.geos=geos
         self.geos_hdls=geos_hdls
+        self.plotoption=plotoption
 
     def __str__(self):
         return ('\ntype:        %s' %self.type)+\
@@ -51,8 +53,8 @@ class ShapeClass:
                ('\nclosed:      %i' %self.closed)+\
                ('\ncut_cor:     %s' %self.cut_cor)+\
                ('\nlen(geos):   %i' %len(self.geos))+\
-               ('\nlength:      %0.2f' %self.length)+\
                ('\ngeos:        %s' %self.geos)#+\
+               #('\nlength:      %s' %self.length)+\
                #('\ngeos_hdls:   %s' %self.geos_hdls)
                #+\
                #('\nparent: %s' %self.parent)
@@ -106,9 +108,13 @@ class ShapeClass:
             return ende, end_ang
         
 
-    def plot2can(self,canvas):
+    def plot2can(self,canvas,col='black'):
         for geo in self.geos:
-            self.geos_hdls+=geo.plot2can(canvas,self.parent,self.nr)
+            self.geos_hdls+=geo.plot2can(canvas=canvas,
+                                         parent=self.parent,
+                                         tag=self.nr,
+                                         col=col,
+                                         plotoption=self.plotoption)
             
     def plot_cut_info(self,CanvasClass,config):
         hdls=[]
