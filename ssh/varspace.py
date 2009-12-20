@@ -2,7 +2,7 @@
 
 VarSpace implements:
 
-- a persistent, typed  variable store (self.cfg_vars) using ConfigObj 
+- a persistent, typed  variable store (self.var_dict) using ConfigObj 
     (including automatic type conversion when reading from INI file)
     plus some basic type and range checking on the INI file 
 - a method to create a default INI file from the specifification
@@ -16,55 +16,55 @@ Created on 07.12.2009
 @author: Michael Haberler
 '''
 
-from Tkconstants import  N, E, W, GROOVE
+import os
+import logging
+
+from Tkconstants import  N, S, E, W, GROOVE
 from Tkinter import OptionMenu, Frame, Checkbutton, Button, Label, Entry,LabelFrame
 from Tkinter import StringVar, DoubleVar, IntVar,BooleanVar
-
-import os
-
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
 
-debug = 1
+from dotdictlookup import DictDotLookup
+import globals as g
+import constants as c
+
 
 class VarSpace:
-    def __init__(self, specname, directory, basename, instancename=None, specversion=None):
-        #       self.supported = ('double', 'string', 'bool', 'list')
-        #       self.ui_items = []
-        self.path = None
-        self.cfg_vars = dict()
+    def __init__(self, specname, pathname, instance_name,specversion=None,pluginloader=None):
+
+        self.var_dict = dict()
         self.tkVars = dict()
         self.groupcount = 0
         self.spec = ConfigObj(specname, interpolation=False, list_values=False, _inspec=True)
-        self.directory = directory
-        self.basename = basename
-        self.instancename = instancename
-        self.configsuffix = 'cfg'    # FIXME add2 global config ref
+        self.pathname = pathname
+        self.instance_name = instance_name
+        self.pluginloader = pluginloader
         self._initialize(specversion)
 
+    def cleanup(self):
+        '''
+        delete a varspace instance
+        remove parameter pane from window
+        '''
+        g.logger.logger.info( 'cleanup varspace %s "' %(self.instance_name))
+
+        if g.config.config.General.save_on_instance_delete:
+            self.save_varspace()
+        self.tab_button.destroy()
+        #self.param_frame.destroy()
         
     def _initialize(self,specversion):
-        '''
-        construct path
-        if file exists, try to read it and populate variables, type-converted
-        if file doesnt exist or has errors, bail out
-        '''
-        
-        if self.instancename:
-            fn = "%(basename)s-%(instancename)s.%(configsuffix)s" % (self.__dict__)
-        else:
-            fn = "%(basename)s.%(configsuffix)s" % (self.__dict__)
-            
-        self.path = os.path.join(self.directory, fn)
-        
-        if os.path.isfile(self.path):
+
+        if os.path.isfile(self.pathname):
+
             # file exists, read & validate it
-            self.cfg_vars = ConfigObj(self.path, configspec=self.spec, interpolation=False)
+            self.var_dict = ConfigObj(self.pathname, configspec=self.spec, interpolation=False)
             _vdt = Validator()
-            result = self.cfg_vars.validate(_vdt, preserve_errors=True)
-            validate_errors = flatten_errors(self.cfg_vars, result)
+            result = self.var_dict.validate(_vdt, preserve_errors=True)
+            validate_errors = flatten_errors(self.var_dict, result)
             if validate_errors:
-                print "errors reading %(path)s:" % (self.__dict__)
+                g.logger.logger.error("errors reading %s:" % (self.pathname))
             for entry in validate_errors:
                 # each entry is a tuple
                 section_list, key, error = entry
@@ -75,38 +75,45 @@ class VarSpace:
                 section_string = ', '.join(section_list)
                 if error == False:
                     error = 'Missing value or section.'
-                print section_string, ' = ', error            
-            
+                g.logger.logger.error( section_string + ' = ' + error)       
+
             if validate_errors:
                 raise BadConfigFileError 
                 # print "Errors reading %(path)s - delete file to recreate defaults" % (self.__dict__)
                 
             # check config file version against internal version
             if specversion:
-                fileversion = self.cfg_vars['Version']['specversion']
+                fileversion = self.var_dict['Version']['specversion']
                 if fileversion != specversion:
-                    print 'config file vesions do not match - internal: "%(specversion)s", config file "%(fileversion)s"' %(locals())
-                    raise BadConfigFileError         
+                    print 
+                    g.logger.logger.error( 'config file vesions do not match - internal: "%(specversion)s", config file "%(fileversion)s"' %(locals()))
+                    raise BadConfigFileError      
+            g.logger.logger.debug("read existing varspace '%s'" %(self.pathname))
         else:
-            self.create_default_cfg()
+            self.create_default_varspace()
+            g.logger.logger.debug("created default varspace '%s'" %(self.pathname))
+
+        # convenience - flatten nested config dict to access it via self.config.sectionname.varname
+        self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
+        self.vars = DictDotLookup(self.var_dict) # FIXME
             
-    def create_default_cfg(self):
+    def create_default_varspace(self):
         # derive config file with defaults from spec
-        self.cfg_vars = ConfigObj(configspec=self.spec)
+        self.var_dict = ConfigObj(configspec=self.spec)
         _vdt = Validator()
-        self.cfg_vars.validate(_vdt, copy=True)
-        self.cfg_vars.filename = self.path
-        self.cfg_vars.write()
+        self.var_dict.validate(_vdt, copy=True)
+        self.var_dict.filename = self.pathname
+        self.var_dict.write()
     
-    def save_cfg(self):
-        #self.cfg_vars.filename = self.path
-        self.cfg_vars.write()   
+    def save_varspace(self):
+        self.var_dict.filename = self.pathname
+        self.var_dict.write()   
     
     def print_vars(self):
-        for frame,content in self.cfg_vars['UI'].items():
+        for frame,content in self.var_dict['UI'].items():
             #print " frame=%(frame)s" %(locals())
             for varname,text in content.items():
-                value  = self.cfg_vars['Variables'][varname]
+                value  = self.var_dict['Variables'][varname]
                 print "%(varname)s = %(value)s" %(locals())
 
     def _scalarChanged(self,varname,name,index,mode):
@@ -115,17 +122,74 @@ class VarSpace:
         except ValueError:
             pass
         else:
-            if debug:
-                print "%s changed from %s to %s" %(varname,self.cfg_vars['Variables'][varname],value)
-            self.cfg_vars['Variables'][varname] = value
+            g.logger.logger.debug(  "%s changed from %s to %s" %(varname,self.var_dict['Variables'][varname],value))
+            self.var_dict['Variables'][varname] = value
 
-    def create_pane(self,parent,config):
+    def save_callback(self):
+        if self.tk_instance_name.get() != self.instance_name:
+            
+            old_instance = self.instance_name
+            old_path = self.pathname
+            self.instance_name = self.tk_instance_name.get()
+
+            self.pathname = os.path.join(os.path.dirname(old_path),self.instance_name+c.CONFIG_EXTENSION)
+            self.save_varspace()
+            # FIXME robustify + log
+            os.remove(old_path)
+            self.tab_button.tv.set(self.instance_name)
+            # call hook to fix menu entries
+            
+            if self.pluginloader:
+                self.pluginloader.rename_instance(old_instance,self.instance_name)
+            
+        else:
+            self.save_varspace()
+    
+    def make_instancemenu(self,foo):
+        print "make_instancemenu"
+        
+    def create_pane(self,nbook):
+        self.nbook_frame = nbook()
+        self.param_frame = Frame(self.nbook_frame)
+        self.groupcount = 0
+        
+        self.param_frame.bind("<Button-3>", self.make_instancemenu)
+        self.param_frame.bind("<Button-2>", self.make_instancemenu)
+  #      self.param_frame.bind("<Enter>", self.make_instancemenu)
+        
+        
+        
+        current_frame = Frame(self.param_frame,bd = 0)
+        current_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
+ #       current_frame.columnconfigure(0, weight=1)
+        
+        label = Label(current_frame, text='Instance name')
+        label.grid(row=0, column=0, sticky= W, padx=4) 
+        
+        self.tk_instance_name = StringVar()
+        self.tk_instance_name.set(self.instance_name)
+ 
+        entry = Entry(current_frame, width=15, textvariable=self.tk_instance_name)
+        entry.grid(row=0, column=1, sticky=W,padx=4)
+
+        button = Button(current_frame,text='Save',command=self.save_callback)
+        button.grid(row=0, column=2, sticky=E)
+#        current_frame.columnconfigure(0, weight=1)
+
+        
+    def display_pane(self,parent,tab_name):
+        self.tab_button = parent.add_screen(self.param_frame,tab_name)
+
+
+    def add_config_items(self): #,config):
         currgroup = None
-        groupcount = 0
+        self.groupcount = 0
         linecount = 0
         current_frame = None
-        self.cfg_vars.main.interpolation = False # avoid ConfigObj getting too clever
-        for group,content in self.cfg_vars['UI'].items():            
+
+        self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
+        
+        for group,content in self.var_dict['UI'].items():            
             for k,v in content.items():
                 optionlist = None
                 if isinstance(v, list):  # OptionMenu = 'labeltext','choice1,'choice2'....
@@ -134,23 +198,23 @@ class VarSpace:
                     optionlist = v[1:]
                 else:                   # scalars just have varname = labeltext
                     (varname,labelvar) = (k,v)
-                value = self.cfg_vars['Variables'][varname]
+                value = self.var_dict['Variables'][varname]
                 # print "    varname=%(varname)s value=%(value)s labeltext=%(labeltext)s labelvar=%(labelvar)s" %(locals())
                 if group != currgroup:
                     currgroup = group
-                    groupcount += 1
+                    self.groupcount += 1
                     linecount = 0
                     if currgroup == 'UNFRAMED':       # no frame
-                        current_frame = Frame(parent,bd = 0)
+                        current_frame = Frame(self.param_frame,bd = 0)
                     else:
                         if currgroup == 'FRAMED' :    # unnamed frame
-                            current_frame = Frame(parent,relief = GROOVE,bd = 2)
+                            current_frame = Frame(self.param_frame,relief = GROOVE,bd = 2)
                         else:                   # named frame
-                            current_frame = LabelFrame(parent,relief = GROOVE,bd = 2, labelanchor='nw',text = group)
-                    current_frame.grid(row=groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
+                            current_frame = LabelFrame(self.param_frame,relief = GROOVE,bd = 2, labelanchor='nw',text = group)
+                    current_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
                     current_frame.columnconfigure(0, weight=1)
                     
-                labeltext = labelvar % (config.__dict__)
+                labeltext = labelvar % (self.var_dict['Variables']) # (config.__dict__)
                 label = Label(current_frame, text=labeltext)
                 label.grid(row=linecount, column=0, sticky=N + W, padx=4) 
                 width = 7
@@ -189,15 +253,15 @@ class VarSpace:
 
                 entry.grid(row=linecount, column=1, sticky=N + E)
                 linecount += 1   
-            self.groupcount = groupcount
+            #self.groupcount
             
 
-    def add_button(self,parent, text,name, callback,config):
+    def add_button(self, text,name, callback): #,config):
         self.groupcount += 1
         col = 0
-        current_frame = Frame(parent,bd = 0)
-        labeltext = text % (config.__dict__)
-        buttontext = name % (config.__dict__)
+        current_frame = Frame(self.param_frame,bd = 0)
+        labeltext = text % (self.var_dict['Variables'])
+        buttontext = name % (self.var_dict['Variables'])
         if len(text) > 0:
             label = Label(current_frame, text=labeltext)
             label.grid(row=0, column=0, sticky=N + W, padx=4) 
@@ -206,6 +270,7 @@ class VarSpace:
         button = Button(current_frame,text=buttontext,command=SimpleCallback(callback,name))
         button.grid(row=0, column=col, sticky=N )
         current_frame.columnconfigure(0, weight=1)
+        
 
 # http://www.astro.washington.edu/users/rowen/TkinterSummary.html#CallbackShims
 class SimpleCallback:

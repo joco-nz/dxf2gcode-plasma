@@ -97,7 +97,7 @@ class ShapeSetHandler:
 #        instancename = "foo"
         self.vs = VarSpace(specname, directory, basename, instancename=instancename,specversion=SPECVERSION)
         # layout variables as per INI file
-        self.vs.create_pane(parentframe,config)
+        self.vs.add_config_items(parentframe,config)
         # manually add buttons at bottom
         self.vs.add_button(parentframe,"","Show variables", self._show_params,config)
         self.vs.add_button(parentframe,"","Save config", self._save_params,config)
@@ -118,7 +118,7 @@ class ShapeSetHandler:
         sys.exit(0)
         
     def _save_params(self,name):
-        self.vs.save_cfg() #self.pathname)
+        self.vs.save_varspace() #self.pathname)
     
     def _show_params(self,name):
         self.vs.print_vars()

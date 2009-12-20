@@ -35,39 +35,39 @@ class DictDotLookup(object):
     def __repr__(self):
         return pprint.pformat(self.__dict__)
 
-if __name__ == '__main__':
-    cfg_data = eval("""{
-        'foo' : {
-            'bar' : {
-                'tdata' : (
-                    {'baz' : 1 },
-                    {'baz' : 2 },
-                    {'baz' : 3 },
-                ),
-            },
-        },
-        'quux' : False,
-    }""")
-
-    cfg = DictDotLookup(cfg_data)
-
-    # iterate
-    for k,v in cfg.__iter__(): #foo.bar.iteritems():
-        print k," = ",v
-        
-    print "cfg=",cfg
-    
-    #   Standard nested dictionary lookup.
-    print 'normal lookup :', cfg['foo']['bar']['tdata'][0]['baz']
-
-    #   Dot-style nested lookup.
-    print 'dot lookup    :', cfg.foo.bar.tdata[0].baz
-    
-    print "qux=",cfg.quux
-    cfg.quux = '123'
-    print "qux=",cfg.quux
-    
-    del cfg.foo.bar
-    cfg.foo.bar = 4711
-    print 'dot lookup    :', cfg.foo.bar #.tdata[0].baz
+#if __name__ == '__main__':
+#    cfg_data = eval("""{
+#        'foo' : {
+#            'bar' : {
+#                'tdata' : (
+#                    {'baz' : 1 },
+#                    {'baz' : 2 },
+#                    {'baz' : 3 },
+#                ),
+#            },
+#        },
+#        'quux' : False,
+#    }""")
+#
+#    cfg = DictDotLookup(cfg_data)
+#
+#    # iterate
+#    for k,v in cfg.__iter__(): #foo.bar.iteritems():
+#        print k," = ",v
+#        
+#    print "cfg=",cfg
+#    
+#    #   Standard nested dictionary lookup.
+#    print 'normal lookup :', cfg['foo']['bar']['tdata'][0]['baz']
+#
+#    #   Dot-style nested lookup.
+#    print 'dot lookup    :', cfg.foo.bar.tdata[0].baz
+#    
+#    print "qux=",cfg.quux
+#    cfg.quux = '123'
+#    print "qux=",cfg.quux
+#    
+#    del cfg.foo.bar
+#    cfg.foo.bar = 4711
+#    print 'dot lookup    :', cfg.foo.bar #.tdata[0].baz
 

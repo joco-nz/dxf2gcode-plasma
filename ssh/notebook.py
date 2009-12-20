@@ -39,13 +39,17 @@ class notebook:
 
         return self.screen_fr
 
-        
     # add a new frame (screen) to the (bottom/left of the) notebook
     def add_screen(self, fr, title):
         
-        b = Radiobutton(self.rb_fr, text=title, indicatoron=0, \
+
+        tv = StringVar()
+        b = Radiobutton(self.rb_fr, textvariable=tv, indicatoron=0, \
             variable=self.choice, value=self.count, \
+            width=len(title)+1,
             command=lambda: self.display(fr))
+        tv.set(title)
+        b.tv = tv
         b.pack(fill=BOTH, side=self.side)
         
         # ensures the first frame will be
