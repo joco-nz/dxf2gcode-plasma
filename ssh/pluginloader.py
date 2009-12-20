@@ -42,86 +42,108 @@ Copyright 2005 Jesse Noller <jnoller@gmail.com>
 
 import os
 import sys
-import logging
 import glob
 
 import globals as g
 import constants as c
 
+from varspace import VarSpace
 
 class PluginLoader:
     
     
-    
-#    def __init__(self,plugin_directory,varspaces_directory,frame):
     def __init__(self,frame):
         """
         import all valid plugins from a plugin_directory
+        for each plugin:
+            if plugin varspace(s) files available:
+                for each varspace.cfg
+                    create plugin instance with varspace loaded
+            else
+                create a plugin instance with default varspace
         """ 
-#        self.modules = dict()       # the modules keyed by tag
-#        self.plugins = dict()       # plugin instances keyed by instance name
         
         self.frame = frame          # notebook frame where panes are hooked to
         
-        self.import_plugins(g.config.config.Paths.plugin_dir,g.config.config.Paths.varspaces_dir)
+        self.import_plugins(g.config.config.Paths.plugin_dir,
+                            g.config.config.Paths.varspaces_dir)
 
-
-    
     def add_instance(self,module):
-    
+        """
+        create a plugin instance with default varspace and auto-generated
+        instance name
+        """
         p = module.Plugin() 
-        tag = p.plugin_tag()
-        varspace_subdir = os.path.join(g.config.config.Paths.varspaces_dir,tag)        
-        
-        instance_name = self.valid_instance(p.plugin_tag(), varspace_subdir)
+        varspace_subdir = os.path.join(g.config.config.Paths.varspaces_dir,p.TAG)        
+        instance_name = self.generate_valid_instance_name(p.TAG, varspace_subdir)
         vs_path = os.path.join(varspace_subdir,instance_name + c.CONFIG_EXTENSION)                                    
         self.startup_plugin(p, instance_name,module,vs_path)
         g.plugins[instance_name] = p 
-    
-    def delete_instance(self,instance_name):
-        #del(g.plugins[instance_name].vs)
+        g.logger.logger.debug("plugin %s module %s new instance %s created" % (p.TAG,module.__name__,instance_name))
+
+    def close_instance(self,instance_name):
+        """
+        close the plugin and save to corresponding varspace file
+        """        
         p = g.plugins[instance_name]
+        p.vs.cleanup(save=True)
         p.cleanup()
         del(g.plugins[instance_name])
-    
+        g.logger.logger.debug("plugin %s instance %s saved" % (p.TAG, instance_name))
+ 
+    def delete_instance(self,instance_name):
+        """
+        close the plugin and delete corresponding varspace file
+        """
+        p = g.plugins[instance_name]
+        p.vs.cleanup(remove=True)
+
+        p.cleanup()
+        del(g.plugins[instance_name])
+        g.logger.logger.debug("plugin %s instance %s deleted" % (p.TAG, instance_name))
+  
     def rename_instance(self,old_instancename, new_instancename):
+        """ 
+        this is a hook called by varspace if the user renamed the instance
+        do necessary UI updates like change menu entries
+        """
+        
         p = g.plugins[old_instancename]
         del(g.plugins[old_instancename])
         g.plugins[new_instancename] = p
         self.frame.rebuild_menu()
-        
-        print "pl: rename_instance %s -> %s" % (old_instancename, new_instancename)
-        pass
+        g.logger.logger.debug("instance %s renamed to %s" % (old_instancename, new_instancename))
     
     def import_plugins(self,directory,varspaces_dir):
         """ 
         Find and validate all plugins in <directory>
-        for each saved varspace in <varspaces_dir>/<handle>/<instancename>.cfg:
-            create an instance of the <handle> plugin with <instancename>.cfg loaded
-        if <varspaces_dir>/<handle> is empty:
+        for each saved varspace in <varspaces_dir>/<module>/<instancename>.cfg:
+            create an instance of the <module> plugin 
+            with <instancename>.cfg varspace loaded in startup_plugin
+        if <varspaces_dir>/<module> is empty:
             create a new  <default-instancename>.cfg
-            return a <handler> instance with <default-instancename>.cfg varspace loaded
+            return a <plugin> instance with <default-instancename>.cfg varspace loaded
         """
         if os.path.isdir(directory):
             sys.path.append(directory)
             d = os.path.abspath(directory)
             names = sorted(os.listdir(d))
-            #FXIME handle OSError
+            #FXIME module OSError
             if len(names) > 0:
                 for f in names:       
-                    handle, ext = os.path.splitext(f) # Handles no-extension files, etc.
+                    module, ext = os.path.splitext(f) # Handles no-extension files, etc.
                     if ext == '.py':
-                        module = self.load_module(handle)
-                        if module:
-                            p = self.validate_plugin(module)
+                        m = self.load_module(module)
+                        if m:
+                            p = self.validate_plugin(m)
                             if p: # looking good
-                                tag = p.plugin_tag()
-                                varspace_subdir = os.path.join(varspaces_dir,tag) 
+                                varspace_subdir = os.path.join(varspaces_dir,p.TAG) 
                                 if not os.path.isdir(varspace_subdir):
                                     try:
                                         os.makedirs(varspace_subdir)
                                     except OSError, e:
-                                        g.logger.logger.error("can't create directory %s: %s" % (varspace_subdir,e.strerror))
+                                        g.logger.logger.error("can't create directory %s: %s" % 
+                                                              (varspace_subdir,e.strerror))
                                         raise
                                 
                                 vs_files = glob.glob(os.path.join(varspace_subdir,'*' + c.CONFIG_EXTENSION))
@@ -131,36 +153,43 @@ class PluginLoader:
                                     for vs in vs_files:
                                         instance_name,ext = os.path.splitext(os.path.basename(vs))
                                         if n > 0: # finalize test instance and initialize
-                                            p = module.Plugin()
+                                            p = m.Plugin()
                                         n += 1
-                                        self.startup_plugin(p, instance_name,module,vs)
+                                        self.startup_plugin(p, instance_name,m,vs)
                                         g.plugins[instance_name]  = p
                                 else:
                                     # finalize test instance and initialize
-                                    instance_name = self.valid_instance(tag, varspace_subdir)
+                                    instance_name = self.generate_valid_instance_name(p.TAG, varspace_subdir)
                                     vs_path = os.path.join(varspace_subdir,instance_name + c.CONFIG_EXTENSION)                                    
-                                    self.startup_plugin(p, instance_name,module,vs_path)
+                                    self.startup_plugin(p, instance_name,m,vs_path)
                                     g.plugins[instance_name]  = p
 
-                                g.modules[tag] = module
+                                g.modules[p.TAG] = m
 
             else:
                 g.logger.logger.warning("no files found in plugin dir %s" %(directory))
         else:
             g.logger.logger.error("plugin_dir %s - not a directory",directory)            
         
-    def load_module(self,handle):
+    def load_module(self,module):
+        """ 
+        try to import module and fail nicely
+        """
+        
         try:
-            module = __import__(handle)
+            module = __import__(module)
         except ImportError,msg:
-            g.logger.logger.warning("skipping %s - %s",handle,msg)
+            g.logger.logger.warning("skipping %s - %s",module,msg)
             return None
         else:
-            g.logger.logger.debug("module %s imported OK",handle)
+            g.logger.logger.debug("module %s imported OK",module)
             return module
     
-    def valid_instance(self,tag,directory):
-        
+    def generate_valid_instance_name(self,tag,directory):
+        """
+        search for next unused instance name in directory
+        ugly, but works
+        """
         for i in range(100):
             fn = "%s-%d" % (tag,i)
             afn=  os.path.join(directory,fn + c.CONFIG_EXTENSION)
@@ -169,10 +198,14 @@ class PluginLoader:
         return None
     
     def startup_plugin(self,p,instance_name,module,varspace_path):   
-        
+        """
+        generate the varspace and pass to initialize()
+        """
+        _vs = VarSpace(p.SPECNAME, varspace_path, instance_name,specversion=p.SPECVERSION,rename_hook=self.rename_instance)
+
         # TODO handle initialize execeptions and dont add if any         
-        p.initialize(self.frame.nbook, varspace_path,instance_name,self)
-        g.logger.logger.info("module %s instance '%s' started, tag='%s'" % (module.__name__,instance_name,p.plugin_tag()))
+        p.initialize(self.frame.nbook, _vs)
+        g.logger.logger.info("module %s instance '%s' started, tag='%s'" % (module.__name__,instance_name,p.TAG))
 
         
     def validate_plugin(self,module):   
@@ -206,7 +239,7 @@ class PluginLoader:
             except NameError,msg:
                 g.logger.logger.warning(msg)
             else:
-                g.logger.logger.debug("module '%s' v='%s' tag='%s' validated" % (module.__name__,p.version(),p.plugin_tag()))
+                g.logger.logger.debug("module '%s' v='%s' tag='%s' validated" % (module.__name__,p.VERSION,p.TAG))
                 return p
         return None
        

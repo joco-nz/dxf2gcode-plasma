@@ -1,31 +1,26 @@
 '''
 
 integration test setup
-    GlobalConfig+Log
-    ShapeSetHandler
-    Varspaces
+    GlobalConfig+Logger
+    PluginLoader
+    Varspace
+    various plugins
     a primitve window setup without working canvas
 
-TODO 
-    pluginloader
-    decorate context menu cascade
     
 Created on 13.12.2009
 
 @author: mah
 '''
 
-# file: test.py
-# simple demonstration of the Tkinter notebook
-
 from Tkinter import *
 import pprint 
 
 
 from notebook import *
-from globalconfg import *
-#from ssh import ShapeSetHandler
+from globalconfig import *
 from pluginloader import PluginLoader
+from simplecallback import SimpleCallback
 
 import globals as g
 import constants as c
@@ -35,19 +30,7 @@ from logger import Log
 platform = 'mac'
 
 
-def _(parm):
-    return parm
-# http://www.astro.washington.edu/users/rowen/TkinterSummary.html#CallbackShims
-class SimpleCallback:
-    """Create a callback shim. Based on code by Scott David Daniels
-    (which also handles keyword arguments).
-    """
-    def __init__(self, callback, *firstArgs):
-        self.__callback = callback
-        self.__firstArgs = firstArgs
-    
-    def __call__(self, *args):
-        return self.__callback (*(self.__firstArgs + args))
+
 
 #
 class CanvasClass:
@@ -198,10 +181,6 @@ class TextboxClass:
         self.textscr.config(command=self.text.yview)
         self.text.config(yscrollcommand=self.textscr.set)
 
-
-        #print 'Program started\nmah was here'
-        
-        #self.prt('Program started\nmah was here\n')
     
     def set_debuglevel(self,DEBUG=0):
         self.DEBUG=DEBUG
@@ -301,27 +280,6 @@ class NotebookClass:
         self.active_fr = fr
         
 
-#def add_param_nb(master):
-#    w = notebook (master, TOP) 
-#    f1 = Frame(w())
-#    f2 = Frame(w())
-##    config = junk()
-##    config.ax1_letter = 'X'
-##    config.ax2_letter = 'Y'
-##    config.ax3_letter = 'Z'
-##    
-##    config2 = junk()
-##    config2.ax1_letter = 'A'
-##    config2.ax2_letter = 'B'
-##    config2.ax3_letter = 'C'
-##    ssh1 = ShapeSetHandler(f1, config, instancename="one")
-##    ssh2 = ShapeSetHandler(f2, config2, instancename="two")
-#    w.add_screen(f1, "mill1")
-#    w.add_screen(f2, "mill2")
-
-def hello():
-    print "hello"
-
 class Windoof:
     def __init__(self,master):
         
@@ -392,42 +350,39 @@ class Windoof:
     def apply_export(self,inst):
         print "export ",inst
     
-    def apply_delete(self,inst):
-        print "apply_delete %s" % (inst)
-        self.pluginloader.delete_instance(inst)
-#
-#        p = g.plugins[inst]
-#        del(g.plugins[inst])
-#        del(p)
+    def apply_close(self,inst):
+        # print "apply_close %s" % (inst)
+        self.pluginloader.close_instance(inst)
         self.rebuild_menu()
-#        if inst in self.instances:
-#            self.instances.remove(inst)
-#            self.rebuild_menu()
-#            print "delete ",inst
-#        else:
-#            print "%s not found" %(inst)
+
+    def apply_delete(self,inst):
+        # print "apply_delete %s" % (inst)
+        self.pluginloader.delete_instance(inst)
+        self.rebuild_menu()
+        
 
     def add_instance(self,tag):
-        print "add_instance %s" % (tag)
+        # print "add_instance %s" % (tag)
         m = g.modules[tag]
         self.pluginloader.add_instance(m)
-#        self.counter += 1
-#        name = "%s-%d" %(tag,self.counter)
-#        self.instances.append(name)
         self.rebuild_menu()
     
     
     def rebuild_menu(self):
-        print "rebuild menu:"
+#        print "rebuild menu:"
         dyn_menu = Menu(self.menu)
 #        dyn_menu.add_command(label="single entry")
 #        dyn_menu.add_separator()
 
         for k,v in g.plugins.items():
-            print "    add plugin instance ", k
+#            print "    add plugin instance ", k
             sm= Menu(dyn_menu)
-            sm.add_command(label = "export shape with %s" %(k),command=SimpleCallback(v.export,k))
-            sm.add_command(label = "close %s" %(k),command=SimpleCallback(self.apply_delete,k))
+            if hasattr(v,'export'):
+                sm.add_command(label = "export shape with %s" %(k),command=SimpleCallback(v.export,k))
+            if hasattr(v,'transform'):
+                sm.add_command(label = "transform shape with %s" %(k),command=SimpleCallback(v.transform,k))                
+            sm.add_command(label = "close %s" %(k),command=SimpleCallback(self.apply_close,k))
+            sm.add_command(label = "delete %s" %(k),command=SimpleCallback(self.apply_delete,k))
             dyn_menu.add_cascade(label=k,menu=sm)
         self.menu.entryconfigure(2, menu=dyn_menu)
     
@@ -449,7 +404,7 @@ def setup_logging(window):
     
 if __name__ == "__main__":
     
-    g.logger = Log(c.PROGNAME,console_loglevel=logging.DEBUG)
+    g.logger = Log(c.APPNAME,console_loglevel=logging.DEBUG)
     g.config = GlobalConfig()
     
 
@@ -457,13 +412,13 @@ if __name__ == "__main__":
     w = Windoof(a)
     setup_logging(w)
     p = PluginLoader(w)
-    print "plugins: "
-    w.pp.pprint(g.plugins)    
-    print "modules: "
-    w.pp.pprint(g.modules)
     w.add_modules(p) # add module names to Create menu
     w.rebuild_menu() # add module names to Create menu
     
+#    print "plugins: "
+#    w.pp.pprint(g.plugins)    
+#    print "modules: "
+#    w.pp.pprint(g.modules)
+    
     a.mainloop()
 
-# END

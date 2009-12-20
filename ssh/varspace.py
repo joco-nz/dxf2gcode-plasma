@@ -1,5 +1,19 @@
+# -*- coding: iso-8859-15 -*-
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 '''
-
 VarSpace implements:
 
 - a persistent, typed  variable store (self.var_dict) using ConfigObj 
@@ -9,11 +23,9 @@ VarSpace implements:
 - a user interface abstraction so ShapeSetHandler may remain UI-agnostic
      this is a minimal interface to create parameter entry fields & buttons for
      Tkinter, driven by config file contents
-     
 
-Created on 07.12.2009
 
-@author: Michael Haberler
+Michael Haberler  20.12.2009
 '''
 
 import os
@@ -26,12 +38,13 @@ from configobj import ConfigObj, flatten_errors
 from validate import Validator
 
 from dotdictlookup import DictDotLookup
+from simplecallback import SimpleCallback
 import globals as g
 import constants as c
 
 
 class VarSpace:
-    def __init__(self, specname, pathname, instance_name,specversion=None,pluginloader=None):
+    def __init__(self, specname, pathname, instance_name,specversion=None,rename_hook=None):
 
         self.var_dict = dict()
         self.tkVars = dict()
@@ -39,20 +52,26 @@ class VarSpace:
         self.spec = ConfigObj(specname, interpolation=False, list_values=False, _inspec=True)
         self.pathname = pathname
         self.instance_name = instance_name
-        self.pluginloader = pluginloader
+        self.tk_instance_name = None
+        self.rename_hook = rename_hook
         self._initialize(specversion)
 
-    def cleanup(self):
+    def cleanup(self,save=True,remove=False):
         '''
-        delete a varspace instance
+        close a varspace instance
+        optionally save/remove persistence file
         remove parameter pane from window
         '''
-        g.logger.logger.info( 'cleanup varspace %s "' %(self.instance_name))
+        
 
-        if g.config.config.General.save_on_instance_delete:
+        if save:
             self.save_varspace()
+            g.logger.logger.debug( 'varspace %s saved' %(self.instance_name))
+        if remove:
+            os.remove(self.pathname)
+            g.logger.logger.debug( 'varspace %s deleted' %(self.instance_name))
+
         self.tab_button.destroy()
-        #self.param_frame.destroy()
         
     def _initialize(self,specversion):
 
@@ -79,7 +98,7 @@ class VarSpace:
 
             if validate_errors:
                 raise BadConfigFileError 
-                # print "Errors reading %(path)s - delete file to recreate defaults" % (self.__dict__)
+                # TODO fix exceptions
                 
             # check config file version against internal version
             if specversion:
@@ -122,7 +141,7 @@ class VarSpace:
         except ValueError:
             pass
         else:
-            g.logger.logger.debug(  "%s changed from %s to %s" %(varname,self.var_dict['Variables'][varname],value))
+#            g.logger.logger.debug(  "%s changed from %s to %s" %(varname,self.var_dict['Variables'][varname],value))
             self.var_dict['Variables'][varname] = value
 
     def save_callback(self):
@@ -137,31 +156,24 @@ class VarSpace:
             # FIXME robustify + log
             os.remove(old_path)
             self.tab_button.tv.set(self.instance_name)
+            # TODO fix width 
             # call hook to fix menu entries
             
-            if self.pluginloader:
-                self.pluginloader.rename_instance(old_instance,self.instance_name)
+            if self.rename_hook:
+                self.rename_hook(old_instance,self.instance_name)
             
         else:
             self.save_varspace()
-    
-    def make_instancemenu(self,foo):
-        print "make_instancemenu"
+            g.logger.logger.debug("varspace %s saved" %(self.instance_name))
+
         
     def create_pane(self,nbook):
         self.nbook_frame = nbook()
         self.param_frame = Frame(self.nbook_frame)
         self.groupcount = 0
-        
-        self.param_frame.bind("<Button-3>", self.make_instancemenu)
-        self.param_frame.bind("<Button-2>", self.make_instancemenu)
-  #      self.param_frame.bind("<Enter>", self.make_instancemenu)
-        
-        
-        
+
         current_frame = Frame(self.param_frame,bd = 0)
         current_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
- #       current_frame.columnconfigure(0, weight=1)
         
         label = Label(current_frame, text='Instance name')
         label.grid(row=0, column=0, sticky= W, padx=4) 
@@ -174,7 +186,6 @@ class VarSpace:
 
         button = Button(current_frame,text='Save',command=self.save_callback)
         button.grid(row=0, column=2, sticky=E)
-#        current_frame.columnconfigure(0, weight=1)
 
         
     def display_pane(self,parent,tab_name):
@@ -270,21 +281,6 @@ class VarSpace:
         button = Button(current_frame,text=buttontext,command=SimpleCallback(callback,name))
         button.grid(row=0, column=col, sticky=N )
         current_frame.columnconfigure(0, weight=1)
+
+
         
-
-# http://www.astro.washington.edu/users/rowen/TkinterSummary.html#CallbackShims
-class SimpleCallback:
-    """Create a callback shim. Based on code by Scott David Daniels
-    (which also handles keyword arguments).
-    """
-    def __init__(self, callback, *firstArgs):
-        self.__callback = callback
-        self.__firstArgs = firstArgs
-    
-    def __call__(self, *args):
-        return self.__callback (*(self.__firstArgs + args))
-
-
-if __name__ == "__main__":
-    pass
-
