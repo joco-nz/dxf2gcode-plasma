@@ -324,67 +324,62 @@ class Windoof:
         self.Canvas =CanvasClass(self.frame_c,self)
         
         self.menu = Menu(self.master)
+        self.master.config(menu=self.menu)
 
 
         list_menu = Menu(self.menu) 
         list_menu.add_command(label="show instances",command=SimpleCallback(self.dump,1))
         self.menu.add_cascade(label="Dump", menu=list_menu)
-        
+    
         self.create_menu = Menu(self.menu) 
         self.menu.add_cascade(label="Create",menu=self.create_menu)    
 
-        
-        self.menu.add_cascade(label="Apply")
-        self.rebuild_menu()
+        self.dyn_menu = Menu(self.menu) 
+        self.menu.add_cascade(label="Apply",menu=self.dyn_menu)    
+
+
  
-        self.master.config(menu=self.menu)
 
     def add_modules(self,pluginloader):
         self.pluginloader = pluginloader
 
         for k,v in g.modules.items():
             self.create_menu.add_command(label=k,command=SimpleCallback(self.add_instance,k))
-        self.menu.entryconfigure(1, menu=self.create_menu)
         
         
     def apply_export(self,inst):
         print "export ",inst
     
     def apply_close(self,inst):
-        # print "apply_close %s" % (inst)
         self.pluginloader.close_instance(inst)
         self.rebuild_menu()
 
     def apply_delete(self,inst):
-        # print "apply_delete %s" % (inst)
         self.pluginloader.delete_instance(inst)
         self.rebuild_menu()
         
 
     def add_instance(self,tag):
-        # print "add_instance %s" % (tag)
         m = g.modules[tag]
         self.pluginloader.add_instance(m)
         self.rebuild_menu()
     
     
     def rebuild_menu(self):
-#        print "rebuild menu:"
-        dyn_menu = Menu(self.menu)
+        self.dyn_menu = Menu(self.menu)
 #        dyn_menu.add_command(label="single entry")
 #        dyn_menu.add_separator()
 
         for k,v in g.plugins.items():
-#            print "    add plugin instance ", k
-            sm= Menu(dyn_menu)
+            sm= Menu(self.dyn_menu)
             if hasattr(v,'export'):
                 sm.add_command(label = "export shape with %s" %(k),command=SimpleCallback(v.export,k))
             if hasattr(v,'transform'):
                 sm.add_command(label = "transform shape with %s" %(k),command=SimpleCallback(v.transform,k))                
             sm.add_command(label = "close %s" %(k),command=SimpleCallback(self.apply_close,k))
             sm.add_command(label = "delete %s" %(k),command=SimpleCallback(self.apply_delete,k))
-            dyn_menu.add_cascade(label=k,menu=sm)
-        self.menu.entryconfigure(2, menu=dyn_menu)
+            self.dyn_menu.add_cascade(label=k,menu=sm)
+        self.menu.entryconfigure(3, menu=self.dyn_menu)
     
     def dump(self,arg):
         print "plugin instances:"
