@@ -140,6 +140,12 @@ class VarSpace:
     def save_varspace(self):
         self.var_dict.filename = self.pathname
         self.var_dict.write()   
+        
+    def print_vars(self):
+        for frame,content in self.var_dict['UI'].items():
+            for varname,text in content.items():
+                value  = self.var_dict['Variables'][varname]
+                print "%(varname)s = %(value)s" %(locals())
 
     def tkvar_changed_callback(self,varname,name,index,mode):
         try:
