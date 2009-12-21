@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 '''
-    Example dxf2gcode export plugin
+    Example dxf2gcode transform-only plugin
 
     Michael Haberler  20.12.2009
 '''
