@@ -37,7 +37,7 @@ class Plugin(object):
     MENU_ENTRY =    "drilling exporter"
     DESCRIPTION =   'drill export plugin for DXF2gcode'
     VERSION =       '0.2'
-    SPECVERSION =   '2'        # increment this whenever you edit SPECNAME
+    SPECVERSION =   '4'        # increment this whenever you edit SPECNAME
     SPECNAME = str('''
     # do not edit the following section name:
         [Version]

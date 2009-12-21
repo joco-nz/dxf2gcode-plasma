@@ -37,7 +37,7 @@ class Plugin(object):
     MENU_ENTRY =    "milling exporter"
     DESCRIPTION =   'milling export plugin for DXF2gcode'
     VERSION =       '0.01'
-    SPECVERSION =   '24'        # increment this whenever you edit SPECNAME
+    SPECVERSION =   '25'        # increment this whenever you edit SPECNAME
     SPECNAME = str('''
     # do not edit the following section name:
         [Version]

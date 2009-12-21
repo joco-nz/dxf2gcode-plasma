@@ -36,6 +36,7 @@ from validate import Validator
 
 import constants as c
 import globals as g
+from exceptions import *
 from dotdictlookup import DictDotLookup
 from logger import Log
 
@@ -68,7 +69,7 @@ RENEW_ERRORED_CFG = True
 # always increment specversion default so an old .ini file
 # can be detected
 
-CONFIG_VERSION = "27"
+CONFIG_VERSION = "29"
 
 
 CONFIG_SPEC = str('''
@@ -352,7 +353,6 @@ class GlobalConfig:
             default file and read that
             results are in self.config_dict
         """
-        configvars = dict()
         logger = self.log.logger    # shorthand
 
         # create config subdir and default config if needed
@@ -411,8 +411,9 @@ class GlobalConfig:
                     # This config file wont work.
                     # we move the file out of the way, create
                     # a new default and retry.
-                    tag = asctime()
-                    badfilename = config_file + '.' + tag.replace(' ','-')
+
+                    (base,ext) = os.path.splitext(config_file)
+                    badfilename = base + c.BAD_CONFIG_EXTENSION
                     logger.debug("trying to rename bad cfg %s to %s" % (config_file,badfilename))
                     try:
                         os.rename(config_file,badfilename)

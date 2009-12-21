@@ -20,10 +20,9 @@ VarSpace implements:
     (including automatic type conversion when reading from INI file)
     plus some basic type and range checking on the INI file 
 - a method to create a default INI file from the specifification
-- a user interface abstraction so ShapeSetHandler may remain UI-agnostic
+- a user interface abstraction so plugins may remain UI-agnostic
      this is a minimal interface to create parameter entry fields & buttons for
      Tkinter, driven by config file contents
-
 
 Michael Haberler  20.12.2009
 '''
@@ -39,9 +38,9 @@ from validate import Validator
 
 from dotdictlookup import DictDotLookup
 from simplecallback import SimpleCallback
+from exceptions import *
 import globals as g
 import constants as c
-
 
 class VarSpace:
     def __init__(self, specname, pathname, instance_name,specversion=None,rename_hook=None):
@@ -54,16 +53,14 @@ class VarSpace:
         self.instance_name = instance_name
         self.tk_instance_name = None
         self.rename_hook = rename_hook
-        self._initialize(specversion)
+        self.load_varspace(specversion)
 
     def cleanup(self,save=True,remove=False):
-        '''
+        """
         close a varspace instance
         optionally save/remove persistence file
         remove parameter pane from window
-        '''
-        
-
+        """
         if save:
             self.save_varspace()
             g.logger.logger.debug( 'varspace %s saved' %(self.instance_name))
@@ -73,48 +70,62 @@ class VarSpace:
 
         self.tab_button.destroy()
         
-    def _initialize(self,specversion):
+    def load_varspace(self,specversion):
 
         if os.path.isfile(self.pathname):
-
-            # file exists, read & validate it
-            self.var_dict = ConfigObj(self.pathname, configspec=self.spec, interpolation=False)
-            _vdt = Validator()
-            result = self.var_dict.validate(_vdt, preserve_errors=True)
-            validate_errors = flatten_errors(self.var_dict, result)
-            if validate_errors:
-                g.logger.logger.error("errors reading %s:" % (self.pathname))
-            for entry in validate_errors:
-                # each entry is a tuple
-                section_list, key, error = entry
-                if key is not None:
-                    section_list.append(key)
+            try:
+                # file exists, read & validate it
+                self.var_dict = ConfigObj(self.pathname, configspec=self.spec, interpolation=False)
+                _vdt = Validator()
+                result = self.var_dict.validate(_vdt, preserve_errors=True)
+                validate_errors = flatten_errors(self.var_dict, result)
+                if validate_errors:
+                    g.logger.logger.error("errors reading %s:" % (self.pathname))
+                for entry in validate_errors:
+                    section_list, key, error = entry
+                    if key is not None:
+                        section_list.append(key)
+                    else:
+                        section_list.append('[missing section]')
+                    section_string = ', '.join(section_list)
+                    if error == False:
+                        error = 'Missing value or section.'
+                    g.logger.logger.error( section_string + ' = ' + error)       
+    
+                if validate_errors:
+                    raise BadConfigFileError 
+                    
+                # check config file version against internal version
+                if specversion:
+                    fileversion = self.var_dict['Version']['specversion'] # this could raise KeyError
+                    if fileversion != specversion:
+                        print 
+                        g.logger.logger.error( 'config file vesions do not match - internal: "%(specversion)s", config file "%(fileversion)s"' %(locals()))
+                        raise BadConfigFileError
+                    
+            except Exception,inst:
+                # g.logger.logger.error(inst)               
+                (base,ext) = os.path.splitext(self.pathname)
+                badfilename = base + c.BAD_CONFIG_EXTENSION
+                g.logger.logger.debug("trying to rename bad cfg %s to %s" % (self.pathname,badfilename))
+                try:
+                    os.rename(self.pathname,badfilename)
+                except OSError,e:
+                    g.logger.logger.error("rename(%s,%s) failed: %s" % (self.pathname,badfilename,e.strerror))
+                    raise
                 else:
-                    section_list.append('[missing section]')
-                section_string = ', '.join(section_list)
-                if error == False:
-                    error = 'Missing value or section.'
-                g.logger.logger.error( section_string + ' = ' + error)       
-
-            if validate_errors:
-                raise BadConfigFileError 
-                # TODO fix exceptions
-                
-            # check config file version against internal version
-            if specversion:
-                fileversion = self.var_dict['Version']['specversion']
-                if fileversion != specversion:
-                    print 
-                    g.logger.logger.error( 'config file vesions do not match - internal: "%(specversion)s", config file "%(fileversion)s"' %(locals()))
-                    raise BadConfigFileError      
-            g.logger.logger.debug("read existing varspace '%s'" %(self.pathname))
+                    g.logger.logger.debug("renamed bad varspace %s to '%s'" %(self.pathname,badfilename))
+                    self.create_default_varspace()
+                    g.logger.logger.debug("created default varspace '%s'" %(self.pathname))
+            else:
+                g.logger.logger.debug("read existing varspace '%s'" %(self.pathname))
         else:
             self.create_default_varspace()
             g.logger.logger.debug("created default varspace '%s'" %(self.pathname))
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
-        self.vars = DictDotLookup(self.var_dict) # FIXME
+        self.vars = DictDotLookup(self.var_dict) 
             
     def create_default_varspace(self):
         # derive config file with defaults from spec
@@ -127,21 +138,14 @@ class VarSpace:
     def save_varspace(self):
         self.var_dict.filename = self.pathname
         self.var_dict.write()   
-    
-    def print_vars(self):
-        for frame,content in self.var_dict['UI'].items():
-            #print " frame=%(frame)s" %(locals())
-            for varname,text in content.items():
-                value  = self.var_dict['Variables'][varname]
-                print "%(varname)s = %(value)s" %(locals())
 
-    def _scalarChanged(self,varname,name,index,mode):
+    def tkvar_changed_callback(self,varname,name,index,mode):
         try:
             value = self.tkVars[varname].get()
         except ValueError:
             pass
         else:
-#            g.logger.logger.debug(  "%s changed from %s to %s" %(varname,self.var_dict['Variables'][varname],value))
+            # g.logger.logger.debug(  "%s changed from %s to %s" %(varname,self.var_dict['Variables'][varname],value))
             self.var_dict['Variables'][varname] = value
 
     def save_callback(self):
@@ -156,9 +160,8 @@ class VarSpace:
             # FIXME robustify + log
             os.remove(old_path)
             self.tab_button.tv.set(self.instance_name)
-            # TODO fix width 
-            # call hook to fix menu entries
-            
+
+            # call hook to fixup menu entries
             if self.rename_hook:
                 self.rename_hook(old_instance,self.instance_name)
             
@@ -210,7 +213,6 @@ class VarSpace:
                 else:                   # scalars just have varname = labeltext
                     (varname,labelvar) = (k,v)
                 value = self.var_dict['Variables'][varname]
-                # print "    varname=%(varname)s value=%(value)s labeltext=%(labeltext)s labelvar=%(labelvar)s" %(locals())
                 if group != currgroup:
                     currgroup = group
                     self.groupcount += 1
@@ -234,13 +236,13 @@ class VarSpace:
                     self.tkVars[varname] = DoubleVar()
                     self.tkVars[varname].set(value)
                     entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
                     
                 if  isinstance(value, int):
                     self.tkVars[varname] = IntVar()
                     self.tkVars[varname].set(value)
                     entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
 
                 if  isinstance(value, basestring):
                     if len(value) > width:
@@ -248,26 +250,25 @@ class VarSpace:
                     self.tkVars[varname] = StringVar()
                     self.tkVars[varname].set(value)
                     entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
 
                 if  isinstance(value, bool):
                     self.tkVars[varname] = BooleanVar()
                     self.tkVars[varname].set(value)
                     entry = Checkbutton(current_frame, variable=self.tkVars[varname])#, offvalue=False, onvalue=True)  
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
 
                 if  optionlist:
                     self.tkVars[varname] = StringVar()
                     self.tkVars[varname].set(value) 
                     entry = OptionMenu(current_frame, self.tkVars[varname], *optionlist)     
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self._scalarChanged, varname ))
+                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
 
                 entry.grid(row=linecount, column=1, sticky=N + E)
                 linecount += 1   
-            #self.groupcount
             
 
-    def add_button(self, text,name, callback): #,config):
+    def add_button(self, text,name, callback): 
         self.groupcount += 1
         col = 0
         current_frame = Frame(self.param_frame,bd = 0)

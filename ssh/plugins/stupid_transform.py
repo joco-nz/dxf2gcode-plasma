@@ -37,7 +37,7 @@ class Plugin(object):
     MENU_ENTRY =    "point transformer"
     DESCRIPTION =   'dreally stupid transformer plugine example'
     VERSION =       '0.1'
-    SPECVERSION =   '3'        # increment this whenever you edit SPECNAME
+    SPECVERSION =   '5'        # increment this whenever you edit SPECNAME
     SPECNAME = str('''
     # do not edit the following section name:
         [Version]
