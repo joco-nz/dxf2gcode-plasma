@@ -43,16 +43,18 @@ import globals as g
 import constants as c
 
 class VarSpace:
-    def __init__(self, specname, pathname, instance_name,specversion=None,rename_hook=None):
+    def __init__(self, specname, pathname, instance_name,frame=None,specversion=None,rename_hook=None):
 
         self.var_dict = dict()
         self.tkVars = dict()
         self.groupcount = 0
         self.spec = ConfigObj(specname, interpolation=False, list_values=False, _inspec=True)
         self.pathname = pathname
+        self.nbook = frame
         self.instance_name = instance_name
         self.tk_instance_name = None
         self.rename_hook = rename_hook
+        self.tab_button = None
         self.load_varspace(specversion)
 
     def cleanup(self,save=True,remove=False):
@@ -170,9 +172,8 @@ class VarSpace:
             g.logger.logger.debug("varspace %s saved" %(self.instance_name))
 
         
-    def create_pane(self,nbook):
-        self.nbook_frame = nbook()
-        self.param_frame = Frame(self.nbook_frame)
+    def create_pane(self):
+        self.param_frame = Frame(self.nbook())
         self.groupcount = 0
 
         current_frame = Frame(self.param_frame,bd = 0)
@@ -191,8 +192,8 @@ class VarSpace:
         button.grid(row=0, column=2, sticky=E)
 
         
-    def display_pane(self,parent,tab_name):
-        self.tab_button = parent.add_screen(self.param_frame,tab_name)
+    def display_pane(self,tab_name):
+        self.tab_button = self.nbook.add_screen(self.param_frame,tab_name)
 
 
     def add_config_items(self): #,config):

@@ -54,13 +54,16 @@ WINDOW_LOGLEVEL  = logging.INFO
 # these methods must exist
 REQUIRED = ['__init__', 'cleanup', 'initialize',
             # class variables
-            'TAG','MENU_ENTRY', 
+            'TAG', 
             'DESCRIPTION','VERSION',
             'SPECVERSION','SPECNAME']
 # one of these must exist, otherwise it's pretty useless
 EXPORTER = 'export'
 TRANSFORMER = 'transform'
-
+# if one of the above is defined, the corresponding entry below
+# needs to be defined as well
+EXPORT_MENU_ENTRY = 'EXPORT_MENU_ENTRY'
+TRANSFORM_MENU_ENTRY = 'TRANSFORM_MENU_ENTRY'
     
 
 

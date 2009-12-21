@@ -34,7 +34,7 @@ class Plugin(object):
     '''
     
     TAG =           'drill'
-    MENU_ENTRY =    "drilling exporter"
+    EXPORT_MENU_ENTRY =    "drilling exporter"
     DESCRIPTION =   'drill export plugin for DXF2gcode'
     VERSION =       '0.2'
     SPECVERSION =   '4'        # increment this whenever you edit SPECNAME
@@ -103,26 +103,26 @@ class Plugin(object):
 
     
 #    def initialize(self,parent,varspaces_path,instance_tag,pluginloader):
-    def initialize(self,parent,varspace):
+    def initialize(self,varspace):
         
         self.vs = varspace
         
         # create parameter pane with instance edit, save button
         # parent is the notebook widget
-        self.vs.create_pane(parent)
+        self.vs.create_pane()
         # layout variables as per INI file
         self.vs.add_config_items()
         # manually add buttons at bottom
         # self.vs.add_button("",_("Show variables"), self._show_params)
         # and display as notebook screen
-        self.vs.display_pane(parent,self.vs.instance_name)
+        self.vs.display_pane(self.vs.instance_name)
         
 
     def export(self,shapes):
         '''
         main export function 
         '''
-        g.logger.logger.info("%s exporter() instance %s called",self.MENU_ENTRY,self.vs.instance_name)
+        g.logger.logger.info("%s exporter() instance %s called",self.EXPORT_MENU_ENTRY,self.vs.instance_name)
 
 
 #    def transform(self,shapes):

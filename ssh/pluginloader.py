@@ -201,10 +201,13 @@ class PluginLoader:
         """
         generate the varspace and pass to initialize()
         """
-        _vs = VarSpace(p.SPECNAME, varspace_path, instance_name,specversion=p.SPECVERSION,rename_hook=self.rename_instance)
+        _vs = VarSpace(p.SPECNAME, varspace_path, instance_name,
+                       frame=self.frame.nbook,
+                       specversion=p.SPECVERSION,
+                       rename_hook=self.rename_instance)
 
         # TODO handle initialize execeptions and dont add if any         
-        p.initialize(self.frame.nbook, _vs)
+        p.initialize( _vs)
         g.logger.logger.info("module %s instance '%s' started, tag='%s'" % (module.__name__,instance_name,p.TAG))
 
         
@@ -229,11 +232,15 @@ class PluginLoader:
                 n = 0
                 if hasattr(p,c.EXPORTER):
                     n += 1
+                    if not hasattr(p,c.EXPORT_MENU_ENTRY):
+                        raise NameError, "module '%s' missing required '%s' class variable" %(module.__name__,c.EXPORT_MENU_ENTRY)
+
                 if hasattr(p,c.TRANSFORMER):
                     n += 1
-
-                if n != 1:
-                    raise NameError, "module '%s': must have either a %s() or a %s() method" %(module.__name__,c.EXPORTER,c.TRANSFORMER)
+                    if not hasattr(p,c.TRANSFORM_MENU_ENTRY):
+                        raise NameError, "module '%s' missing required '%s' class variable" %(module.__name__,c.TRANSFORM_MENU_ENTRY)
+                if n is 0:
+                    raise NameError, "module '%s': must have at least a %s() or a %s() method" %(module.__name__,c.EXPORTER,c.TRANSFORMER)
                 
                           
             except NameError,msg:

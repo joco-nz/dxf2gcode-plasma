@@ -14,9 +14,25 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 '''
-helper class to pass arguments to Tkinter callbacks
+SimpleCallback - helper class to pass arguments to Tkinter callbacks
 
-straight from  http://www.astro.washington.edu/users/rowen/TkinterSummary.html#CallbackShims
+Tkinter callbacks do not pass optional arguments to callbacks. This function 
+enables callback arguments::
+
+    def doButton(buttonName):
+        print buttonName, "pressed"
+
+    root = Tkinter.Tk()
+    
+    buttonNames = ("Button 1", "Button 2", "Button 3")
+    for name in buttonNames:
+    callback = SimpleCallback(doButton, name)
+    Tkinter.Button(root, text=name, command=callback).pack()
+    
+    root.mainloop()
+
+see U{http://www.astro.washington.edu/users/rowen/TkinterSummary.html#CallbackShims}
+
 Michael Haberler  20.12.2009
 '''
 

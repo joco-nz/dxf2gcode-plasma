@@ -34,7 +34,7 @@ class Plugin(object):
     '''
     
     TAG =           'warp'
-    MENU_ENTRY =    "point transformer"
+    TRANSFORM_MENU_ENTRY =    "point transformer"
     DESCRIPTION =   'dreally stupid transformer plugine example'
     VERSION =       '0.1'
     SPECVERSION =   '5'        # increment this whenever you edit SPECNAME
@@ -83,19 +83,19 @@ class Plugin(object):
 
     
 #    def initialize(self,parent,varspaces_path,instance_tag,pluginloader):
-    def initialize(self,parent,varspace):
+    def initialize(self,varspace):
         
         self.vs = varspace
         
         # create parameter pane with instance edit, save button
         # parent is the notebook widget
-        self.vs.create_pane(parent)
+        self.vs.create_pane()
         # layout variables as per INI file
         self.vs.add_config_items()
         # manually add buttons at bottom
         # self.vs.add_button("",_("Show variables"), self._show_params)
         # and display as notebook screen
-        self.vs.display_pane(parent,self.vs.instance_name)
+        self.vs.display_pane(self.vs.instance_name)
         
 
 #    def export(self,shapes):
@@ -110,7 +110,7 @@ class Plugin(object):
         do some transformation on shapes and
         return modified shapes
         """
-        g.logger.logger.info("%s transformer() instance %s called",self.MENU_ENTRY,self.vs.instance_name)
+        g.logger.logger.info("%s transformer() instance %s called",self.TRANSFORM_MENU_ENTRY,self.vs.instance_name)
         return self.my_transform(shapes)
 
 # ---- opional user defined functions

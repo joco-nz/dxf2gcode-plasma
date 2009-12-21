@@ -14,7 +14,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 '''
-    Example dxf2gcode export plugin
+    template for dxf2gcode export/transform plugin
 
     Michael Haberler  20.12.2009
 '''
@@ -26,28 +26,50 @@ class Plugin(object):
     """
     Template for a dxf2gcode plugin
     
-    Required Plugin() class variables - leave the names untouched, fill in the values
-    as needed. Make sure I{tag} does not collide with another plugin's tag value. 
-     
-        - TAG - the short name (for tab riders, varspace subdir, varspace default prefix
-        - EXPORT_MENU_ENTRY - description for menu item
-        - DESCRIPTION -  verbose plugin description  (for user interface 'About)
-        - VERSION - plugin version
-        - SPECVERSION - running version number of the cfg file format - increment this
-        any time you change a non-comment field in SPECNAME
-        - SPECNAME  - variable and UI description.
+    Plugin() class variables as listed are required - leave the names untouched, fill in the values
+    as needed. Make sure I{TAG} does not collide with another plugin's tag value. 
     
-    This module uses I{ConfigObj} and I{Validate} 
-        - for ConfigObj see U{http://www.voidspace.org.uk/python/configobj.html} 
-        - for Validate see U{http://www.voidspace.org.uk/python/validate.html}
+    The user interface will display an export option if the C{export} method is defined, and 
+    a transform option if the C{transform} method is defined. If you dont need one of them, just
+    remove the method.
+    
+    The persistent storage is described in C{SPECNAME} and implemented by the VarSpace class, which
+    uses I{ConfigObj} and I{Validate} for reading, writing, validating and type conversion. 
+    For C{SPECNAME} syntax and semantics, see:
+        - for ConfigObj: U{http://www.voidspace.org.uk/python/configobj.html} 
+        - for Validate: U{http://www.voidspace.org.uk/python/validate.html}
     """
     
-    TAG =           'mill'
-    EXPORT_MENU_ENTRY =    "milling exporter"
-    TRANSFORM_MENU_ENTRY = "milling shape transformer"
-    DESCRIPTION =   'milling export plugin for DXF2gcode'
-    VERSION =       '0.01'
-    SPECVERSION =   '25'        # increment this whenever you edit SPECNAME
+    TAG =           'demo'
+    """short name (for tab riders, varspace subdir and varspace default prefix creation"""
+
+    EXPORT_MENU_ENTRY =    "demo exporter"
+    """menu entry displayed for the export() method
+
+       unused if no export() method defined - leave here nevertheless
+    """
+        
+    TRANSFORM_MENU_ENTRY = "demo transformer"
+    """menu entry displayed for the transform() method
+    
+        unused if no export() method defined - leave here nevertheless
+    """
+        
+    DESCRIPTION =   'demo plugin for DXF2gcode'
+    """verbose plugin description  (for user interface 'About', hovers etc)"""
+        
+    VERSION =       '0.1'
+    """plugin version number"""
+        
+    SPECVERSION =   '1'       
+    """running version number of the varspace .cfg file format
+    
+        Increment this value time you change a non-comment field in SPECNAME. 
+        
+        If an old varspace.cfg file is detected, it is renamed with a .bad suffix and a new
+        default config file with the same instance name is generated.
+        """
+
     SPECNAME = str('''
     # do not edit the following section name:
         [Version]
@@ -115,6 +137,8 @@ class Plugin(object):
             option = string_list(default=list('Tick one of:','foo', 'bar', 'baz'))
     
     ''').splitlines()  
+    """ variable and UI description"""
+    
 
     def __init__(self):
         """
