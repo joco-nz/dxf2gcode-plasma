@@ -170,10 +170,11 @@ class VarSpace:
 
             self.pathname = os.path.join(os.path.dirname(old_path),self.instance_name+c.CONFIG_EXTENSION)
             self.save_varspace()
-            # FIXME robustify + log
+            # TODO robustify + log
             os.remove(old_path)
             self.tab_button.tv.set(self.instance_name)
-
+            self.tab_button['width'] = len(self.instance_name)
+            
             # call hook to fixup menu entries
             if self.rename_hook:
                 self.rename_hook(old_instance,self.instance_name)

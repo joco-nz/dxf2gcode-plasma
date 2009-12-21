@@ -46,7 +46,7 @@ class notebook:
         tv = StringVar()
         b = Radiobutton(self.rb_fr, textvariable=tv, indicatoron=0, \
             variable=self.choice, value=self.count, \
-            width=len(title)+1,
+            width=len(title),
             command=lambda: self.display(fr))
         tv.set(title)
         b.tv = tv
