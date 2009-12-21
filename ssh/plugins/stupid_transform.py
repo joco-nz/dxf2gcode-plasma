@@ -97,6 +97,8 @@ class Plugin(object):
         # and display as notebook screen
         self.vs.display_pane(self.vs.instance_name)
         
+        return True
+
 
 #    def export(self,shapes):
 #        '''

@@ -13,18 +13,26 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-'''
-globalconfig:
+"""
+@newfield purpose: Purpose
+@newfield sideeffect: Side effect, Side effects
 
-    program arguments & options handling 
-    reading dxf2gcode.cfg  .ini file and merge with options
-    
-TODO
-    exceptions for dxf2gcode
+@purpose:  program arguments & options handling, read the config file
+ 
+ 
+ 
+ # config file format spec
+# see http://www.voidspace.org.uk/python/validate.html
+# and http://www.voidspace.org.uk/python/configobj.html
+# if you make any changes to config_spec
+# always increment specversion default so an old .ini file
+# can be detected
 
-Michael Haberler  20.12.2009
-'''
 
+@author: Michael Haberler 
+@since:  21.12.2009
+@license: GPL
+"""
 
 import os
 import sys
@@ -44,34 +52,36 @@ from logger import Log
 
 
 # for debugging startup problmes log to console
-# FIXME set to logging.ERROR eventually - otherwise verbose startup
 
 
-# project subdirectories and corresponding config variable names
+
 DEFDIR_DICT = {'config' : None,
                'dxf' : 'import_dir',
                'ngc' : 'output_dir' ,
                'varspaces' : 'varspaces_dir',
                'plugins' : 'plugin_dir' }
+"""project subdirectories and their corresponding config variable names"""
 
 
-# if the config file has syntax errors, move it out
-# of the way and create a new default cfg
-# if this is false, there isnt much to do but exit badly
 
 RENEW_ERRORED_CFG = True
+""" 
+if the config file has syntax errors, move it out
+of the way and create a new default cfg
+if this is false, there isnt much to do but exit badly
+"""
 
 
-# config file format spec
-# see http://www.voidspace.org.uk/python/validate.html
-# and http://www.voidspace.org.uk/python/configobj.html
-# if you make any changes to config_spec
-# always increment specversion default so an old .ini file
-# can be detected
+
 
 CONFIG_VERSION = "29"
+"""
+version tag - increment this each time you edit CONFIG_SPEC
 
-
+compared to version number in config file so
+old versions are recognized and skipped"
+"""
+    
 CONFIG_SPEC = str('''
 #  Section and variable names must be valid Python identifiers
 #      do not use whitespace in names 
@@ -167,30 +177,32 @@ CONFIG_SPEC = str('''
     f_g1_depth = float(default=150)
 
 ''').splitlines()  
-
+""" format, type and default value specification of the global config file"""
+    
 
 class GlobalConfig:
-    """
-    setup logging
-    parse command line options
-        options are available 'flattened', e.g. self.option.debug  
-    read config file, generating a default if needed
-        config file values are available 'flattened' like self.config.section.variable  
-    raise an Exception if options,permissions etc are really badly screwed
-    
-    result (fine if self.n_errors = 0)
-        all config file variables have been merged with overriding
-        cmd line options into self.config 
-    
-    
-    self.config may differ from the config file if there were command
-    line options - to save the current state, self.write_current_config(self.config_file)
-        
-    
 
-    """
     def __init__(self):
+        """
+        setup logging
+        parse command line options
+        read config file, generating a default if needed
+            config file values are available 'flattened' like self.config.section.variable  
+        raise an Exception if options,permissions etc are really badly screwed
         
+        result (fine if self.n_errors = 0)
+            all config file variables have been merged with overriding
+            cmd line options into self.config 
+        
+        options are available 'flattened', e.g. self.option.debug  
+
+        
+        self.config may differ from the config file if there were command
+        line options - to save the current state, self.write_current_config(self.config_file)
+        
+        @sideeffect: sets global.config to instance variable
+        
+        """
         self.n_errors = 0
 
         self.log = g.logger
@@ -404,7 +416,7 @@ class GlobalConfig:
                 if fileversion != CONFIG_VERSION:
                     logger.warning('config file versions do not match - internal: "%s", config file "%s"' %(CONFIG_VERSION,fileversion))       
                 else:
-                    logger.debug("config file version ok: '%s'" % (fileversion))
+                    logger.debug("config file version '%s' - ok: " % (fileversion))
 
                 # giive up on this cfg file?
                 if (fileversion != CONFIG_VERSION) or (RENEW_ERRORED_CFG and (n_errors > 0)):

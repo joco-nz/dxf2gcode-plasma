@@ -116,7 +116,7 @@ class Plugin(object):
         # self.vs.add_button("",_("Show variables"), self._show_params)
         # and display as notebook screen
         self.vs.display_pane(self.vs.instance_name)
-        
+        return True
 
     def export(self,shapes):
         '''

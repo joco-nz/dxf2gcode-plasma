@@ -388,13 +388,13 @@ class Windoof:
              
 def setup_logging(window):
     # LogText window exists, setup logging
-    g.logger.logger.error("This should show up in the console window")
+ #   g.logger.logger.error("This should show up in the console window")
     g.logger.add_window_logger(log_level='DEBUG')
     g.logger.set_window_logstream(window.textbox.text)
-    g.logger.logger.info("this should show up in the window since its INFO ")
+ #   g.logger.logger.info("this should show up in the window since its INFO ")
 
     g.logger.set_window_loglevel('INFO')
-    g.logger.logger.debug("this should NOT show up in the window since windowhandler level is now INFO and the message is a DEBUG ")
+ #   g.logger.logger.debug("this should NOT show up in the window since windowhandler level is now INFO and the message is a DEBUG ")
     
     
 if __name__ == "__main__":
@@ -407,13 +407,10 @@ if __name__ == "__main__":
     w = Windoof(a)
     setup_logging(w)
     p = PluginLoader(w)
-    w.add_modules(p) # add module names to Create menu
-    w.rebuild_menu() # add module names to Create menu
     
-#    print "plugins: "
-#    w.pp.pprint(g.plugins)    
-#    print "modules: "
-#    w.pp.pprint(g.modules)
+    w.add_modules(p) # add module names to Create menu
+    w.rebuild_menu() # add instances  to Apply menu
+    
     
     a.mainloop()
 

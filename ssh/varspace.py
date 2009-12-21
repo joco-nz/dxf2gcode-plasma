@@ -55,6 +55,7 @@ class VarSpace:
         self.tk_instance_name = None
         self.rename_hook = rename_hook
         self.tab_button = None
+        self.default_config = False # wether a new name was generated
         self.load_varspace(specversion)
 
     def cleanup(self,save=True,remove=False):
@@ -70,7 +71,8 @@ class VarSpace:
             os.remove(self.pathname)
             g.logger.logger.debug( 'varspace %s deleted' %(self.instance_name))
 
-        self.tab_button.destroy()
+        if self.tab_button:
+            self.tab_button.destroy()
         
     def load_varspace(self,specversion):
 
@@ -118,11 +120,14 @@ class VarSpace:
                 else:
                     g.logger.logger.debug("renamed bad varspace %s to '%s'" %(self.pathname,badfilename))
                     self.create_default_varspace()
+                    self.default_config = True
                     g.logger.logger.debug("created default varspace '%s'" %(self.pathname))
             else:
+                self.default_config = False
                 g.logger.logger.debug("read existing varspace '%s'" %(self.pathname))
         else:
             self.create_default_varspace()
+            self.default_config = True
             g.logger.logger.debug("created default varspace '%s'" %(self.pathname))
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname

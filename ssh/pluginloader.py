@@ -77,9 +77,12 @@ class PluginLoader:
         varspace_subdir = os.path.join(g.config.config.Paths.varspaces_dir,p.TAG)        
         instance_name = self.generate_valid_instance_name(p.TAG, varspace_subdir)
         vs_path = os.path.join(varspace_subdir,instance_name + c.CONFIG_EXTENSION)                                    
-        self.startup_plugin(p, instance_name,module,vs_path)
-        g.plugins[instance_name] = p 
-        g.logger.logger.debug("plugin %s module %s new instance %s created" % (p.TAG,module.__name__,instance_name))
+        if self.startup_plugin(p, instance_name,module,vs_path):
+            g.plugins[instance_name] = p 
+            g.logger.logger.debug("plugin %s module %s new instance %s created" % (p.TAG,module.__name__,instance_name))
+        else:
+            g.logger.logger.warning("skipping plugin %s module %s instance %s: initialize() failed" 
+                                    % (p.TAG,module.__name__,instance_name))
 
     def close_instance(self,instance_name):
         """
@@ -155,14 +158,20 @@ class PluginLoader:
                                         if n > 0: # finalize test instance and initialize
                                             p = m.Plugin()
                                         n += 1
-                                        self.startup_plugin(p, instance_name,m,vs)
-                                        g.plugins[instance_name]  = p
+                                        if self.startup_plugin(p, instance_name,m,vs):
+                                            g.plugins[instance_name]  = p
+                                        else:
+                                            g.logger.logger.warning("skipping plugin %s module %s instance %s: initialize() failed" 
+                                                                    % (p.TAG,module,instance_name))
                                 else:
                                     # finalize test instance and initialize
                                     instance_name = self.generate_valid_instance_name(p.TAG, varspace_subdir)
                                     vs_path = os.path.join(varspace_subdir,instance_name + c.CONFIG_EXTENSION)                                    
-                                    self.startup_plugin(p, instance_name,m,vs_path)
-                                    g.plugins[instance_name]  = p
+                                    if self.startup_plugin(p, instance_name,m,vs_path):
+                                        g.plugins[instance_name]  = p
+                                    else:
+                                        g.logger.logger.warning("skipping plugin %s module %s instance %s: initialize() failed" 
+                                                                % (p.TAG,module,instance_name))
 
                                 g.modules[p.TAG] = m
 
@@ -179,10 +188,10 @@ class PluginLoader:
         try:
             module = __import__(module)
         except ImportError,msg:
-            g.logger.logger.warning("skipping %s - %s",module,msg)
+            g.logger.logger.warning("skipping %s - %s",module.__name__,msg)
             return None
         else:
-            g.logger.logger.debug("module %s imported OK",module)
+            g.logger.logger.debug("module %s imported OK",module.__name__)
             return module
     
     def generate_valid_instance_name(self,tag,directory):
@@ -205,11 +214,14 @@ class PluginLoader:
                        frame=self.frame.nbook,
                        specversion=p.SPECVERSION,
                        rename_hook=self.rename_instance)
-
-        # TODO handle initialize execeptions and dont add if any         
-        p.initialize( _vs)
-        g.logger.logger.info("module %s instance '%s' started, tag='%s'" % (module.__name__,instance_name,p.TAG))
-
+        _result = p.initialize( _vs)
+        if not _result and _vs.default_config:
+            # we auto-generated a varspace and initialize failed
+            # so remove that varspace
+            _vs.cleanup(save=False,remove=True)
+            del(_vs)
+            g.logger.logger.debug("cleanup default varspace %s after failed initialize()",instance_name)            
+        return _result
         
     def validate_plugin(self,module):   
         """
