@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: ISO-8859-1 -*-
 from point import PointClass, ArcGeo, LineGeo,floor ,ceil
 from shape import ShapeClass
 from copy import deepcopy 

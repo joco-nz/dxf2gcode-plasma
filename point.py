@@ -23,7 +23,7 @@
 
 
 from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil
+from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil, copysign
 
 #Length of the cross.
 dl=1
@@ -267,13 +267,14 @@ class ArcGeo:
         self.Pe=Pe
         self.O=O
         self.r=abs(r)
+        self.s_ang=s_ang
+        self.e_ang=e_ang
+        self.BB=[]
         self.col='Black'
-        self.nva=PointClass(0.0,0.0)	
-        self.nve=PointClass(0.0,0.0)	
         
        
         # Kreismittelpunkt bestimmen wenn Pa,Pe,r,und dir bekannt
-        if type(O)==type(None):
+        if type(self.O)==type(None):
            
             if (type(Pa)!=type(None)) and (type(Pe)!=type(None)) and (type(dir)!=type(None)):
                
@@ -285,33 +286,27 @@ class ArcGeo:
                     d=-1
                 else:
                     d=1
-                O=Pa+0.5*Ve
-                O.y+=lo*sin(arc)*d
-                O.x+=lo*cos(arc)*d
-                self.O=O
+                self.O=Pa+0.5*Ve
+                self.O.y+=lo*sin(arc)*d
+                self.O.x+=lo*cos(arc)*d
+                
               
         # Falls nicht übergeben Mittelpunkt ausrechnen  
-            elif (type(s_ang)!=type(None)) and (type(e_ang)!=type(None)):
-                O.x=Pa.x-r*cos(s_ang)
-                O.y=Pa.y-r*sin(s_ang)
-                self.O=O
+            elif (type(self.s_ang)!=type(None)) and (type(self.e_ang)!=type(None)):
+                self.O.x=self.Pa.x-r*cos(self.s_ang)
+                self.O.y=self.Pa.y-r*sin(self.s_ang)
             else:
                 print('Fehlende Angabe für Kreis')
-                self.O=O
+
         #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
-        if type(s_ang)==type(None):
-            s_ang=O.norm_angle(Pa)
-        if type(e_ang)==type(None):
-            e_ang=O.norm_angle(Pe)
+        if type(self.s_ang)==type(None):
+            self.s_ang=self.O.norm_angle(Pa)
+            
+        if type(self.e_ang)==type(None):
+            self.e_ang=self.O.norm_angle(Pe)
         
-        #self.nva.x=sin(s_ang)
-        #self.nva.y=cos(s_ang)
-        #self.nva.x=sin(e_ang)
-        #self.nva.y=cos(e_ang)
-
-
         #Aus dem Vorzeichen von dir den extend ausrechnen
-        self.ext=e_ang-s_ang
+        self.ext=self.e_ang-self.s_ang
         if dir>0.0:
             self.ext=self.ext%(-2*pi)
             self.ext-=floor(self.ext/(2*pi))*(2*pi)
@@ -323,19 +318,31 @@ class ArcGeo:
         if self.ext==0.0:
             self.ext=2*pi
                    
-        self.s_ang=s_ang
-        self.e_ang=e_ang
+        
         self.length=self.r*abs(self.ext)
 
     def __str__(self):
+        """ 
+        Standard method to print the object
+        @return: A string
+        """ 
         return ("\nArcGeo")+\
                ("\nPa : %s; s_ang: %0.5f" %(self.Pa,self.s_ang))+\
                ("\nPe : %s; e_ang: %0.5f" %(self.Pe,self.e_ang))+\
                ("\nO  : %s; r: %0.3f" %(self.O,self.r))+\
+               ("\nBB : %s" %self.BB)+\
                ("\next  : %0.5f; length: %0.5f" %(self.ext,self.length))
 
     
     def dif_ang(self, P1, P2, dir):
+        """
+        Calculated the angle of extend based on the 3 given points. Center Point,
+        P1 and P2.
+        @param P1: the start point of the arc 
+        @param P2: the end point of the arc
+        @param dir: the direction of the arc
+        @return: Returns the angle between -2* pi and 2 *pi for the arc extend
+        """ 
         sa=self.O.norm_angle(P1)
        
         if(sa<0):
@@ -359,6 +366,9 @@ class ArcGeo:
         return(ang)        
         
     def reverse(self):
+        """ 
+        Reverses the direction of the arc (switch direction).
+        """ 
         Pa=self.Pa
         Pe=self.Pe
         ext=self.ext
@@ -370,8 +380,88 @@ class ArcGeo:
         self.ext=ext*-1
         self.s_ang=s_ang
         self.e_ang=e_ang
-           
-    def plot2can(self,canvas=None,parent=None,tag=None,col='black',plotoption=0):
+        
+    def make_abs_geo(self,parent=None,reverse=0):
+        """
+        Generates the absolut geometry based on the geometry self and the
+        parent. If reverse 1 is given the geometry may be reversed.
+        @param parent: The parent of the geometry (EntitieContentClass)
+        @param reverse: If 1 the geometry direction will be switched.
+        @return: A new ArcGeoClass will be returned.
+        """ 
+        Pa=self.Pa.rot_sca_abs(parent=parent)
+        Pe=self.Pe.rot_sca_abs(parent=parent)
+        O=self.O.rot_sca_abs(parent=parent)
+        r=self.scaleR(self.r,parent)
+        dir=copysign(1,self.ext)
+        #s_ang=self.rot_angle(self.s_ang,parent)
+        #e_ang=self.rot_angle(self.e_ang,parent)
+        abs_geo=ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r,dir=dir)
+        if reverse:
+            abs_geo.reverse()
+        return abs_geo
+    
+    def calc_bounding_box(self):
+        """
+        Calculated the BoundingBox of the geometry and saves it into self.BB
+        """
+        
+        Pa=PointClass(x=self.O.x-self.r,y=self.O.y-self.r)
+        Pe=PointClass(x=self.O.x+self.r,y=self.O.y+self.r)
+        
+        #Do the calculation only for arcs have positiv extend => switch angles
+        if self.ext>=0:
+            s_ang=self.s_ang
+            e_ang=self.e_ang
+        elif self.ext<0:
+            s_ang=self.e_ang
+            e_ang=self.s_ang
+                 
+        #If the positive X Axis is crossed
+        if not(self.wrap(s_ang,0)>=self.wrap(e_ang,1)):
+            Pe.x=max(self.Pa.x,self.Pe.x)
+
+        #If the positive Y Axis is crossed 
+        if not(self.wrap(s_ang-pi/2,0)>=self.wrap(e_ang-pi/2,1)):
+            Pe.y=max(self.Pa.y,self.Pe.y)
+
+        #If the negative X Axis is crossed
+        if not(self.wrap(s_ang-pi,0)>=self.wrap(e_ang-pi,1)):
+            Pa.x=min(self.Pa.x,self.Pe.x)
+
+        #If the negative Y is crossed 
+        if not(self.wrap(s_ang-1.5*pi,0)>=self.wrap(e_ang-1.5*pi,1)):
+            Pa.y=min(self.Pa.y,self.Pe.y)
+       
+        self.BB=BoundingBoxClass(Pa=Pa,Pe=Pe)
+        
+    def wrap(self,angle,isend=0):
+        """
+        Wrapes the given angle into a range between 0 and 2pi
+        @param angle: The angle to be wraped
+        @param isend: If the angle is the end angle or start angle, this makes a
+        difference at 0 or 2pi.
+        @return: Returns the angle between 0 and 2 *pi
+        """ 
+        wrap_angle=angle%(2*pi)
+        if isend and wrap_angle==0.0:
+            wrap_angle+=2*pi
+        elif wrap_angle==2*pi:
+            wrap_angle-=2*pi
+            
+        return wrap_angle
+    
+    
+    def plot2can(self,canvas=None,tag=None,col='black',plotoption=0):
+        """
+        Plots the geometry of self into the defined canvas. Arcs will be ploted
+        as line segments.
+        @param canvas: The canvas instance to plot in
+        @param tag: the number of the parent shape
+        @param col: The color in which the shape shall be ploted
+        @param plotoption: Additional option for Debug print use
+        @return: Returns the hdl or hdls of the ploted objects.
+        """
                         
         x=[]; y=[]; hdl=[]
         #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
@@ -383,35 +473,48 @@ class ArcGeo:
             p_cur=PointClass(x=(self.O.x+cos(ang)*abs(self.r)),\
                        y=(self.O.y+sin(ang)*abs(self.r)))
                     
-            p_cur_rot=p_cur.rot_sca_abs(parent=parent)
-
-            x.append(p_cur_rot.x)
-            y.append(p_cur_rot.y)
+            x.append(p_cur.x)
+            y.append(p_cur.y)
             
             if i>=1:
                 hdl.append(Line(canvas,x[i-1],-y[i-1],x[i],-y[i],tag=tag,fill=col))       
                
         if plotoption:
-            anf=self.Pa.rot_sca_abs(parent=parent)
-            ende=self.Pe.rot_sca_abs(parent=parent)
-            hdl.append(Line(canvas,anf.x-dl,-anf.y-dl,anf.x+dl,-anf.y+dl,tag=tag,fill=col))
-            hdl.append(Line(canvas,anf.x+dl,-anf.y-dl,anf.x-dl,-anf.y+dl,tag=tag,fill=col))
-            hdl.append(Line(canvas,ende.x-dl,-ende.y-dl,ende.x+dl,-ende.y+dl,tag=tag,fill=col))
-            hdl.append(Line(canvas,ende.x+dl,-ende.y-dl,ende.x-dl,-ende.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pa.x-dl,-self.Pa.y-dl,
+                            self.Pa.x+dl,-self.Pa.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pa.x+dl,-self.Pa.y-dl,
+                            self.Pa.x-dl,-self.Pa.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pe.x-dl,-self.Pe.y-dl,
+                            self.Pe.x+dl,-self.Pe.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pe.x+dl,-self.Pe.y-dl,
+                            self.Pe.x-dl,-self.Pe.y+dl,tag=tag,fill=col))
             
+        self.BB.plot2can(canvas=canvas,tag=tag,col='red',hdl=hdl)
+         
         return hdl  
 
-    def get_start_end_points(self,direction,parent=None):
+    def get_start_end_points(self,direction):
+        """
+        Returns the start/end point and its direction
+        @param direction: 0 to return start point and 1 to return end point
+        @return: a list of point and angle Returns the hdl or hdls of the ploted objects.
+        """
         if not(direction):
-            punkt=self.Pa.rot_sca_abs(parent=parent)
-            angle=self.rot_angle(degrees(self.s_ang)+90*self.ext/abs(self.ext),parent)
+            point=self.Pa
+            angle=degrees(self.s_ang)+90*self.ext/abs(self.ext)
         elif direction:
-            punkt=self.Pe.rot_sca_abs(parent=parent)
-            angle=self.rot_angle(degrees(self.e_ang)-90*self.ext/abs(self.ext),parent)
-        return punkt,angle
+            point=self.Pe
+            angle=degrees(self.e_ang)-90*self.ext/abs(self.ext)
+        return point,angle
     
    
     def rot_angle(self,angle,parent):
+        """
+        Rotates the given angle based on the rotations given in its parents.
+        @param angle: The angle which shall be rotated
+        @param parent: The parent Entitie (Instance: EntitieContentClass)
+        @return: The rotated angle.
+        """
 
         #Rekursive Schleife falls mehrfach verschachtelt.
         if type(parent)!=type(None):
@@ -421,6 +524,13 @@ class ArcGeo:
         return angle
     
     def scaleR(self,sR,parent):
+        """
+        Scales the radius based on the scale given in its parents. This is done
+        recursively.
+        @param sR: The radius which shall be scaled
+        @param parent: The parent Entitie (Instance: EntitieContentClass)
+        @return: The scaled radius
+        """
         
         #Rekursive Schleife falls mehrfach verschachtelt.
         if type(parent)!=type(None):
@@ -429,29 +539,29 @@ class ArcGeo:
                 
         return sR
 
-    def Write_GCode(self,parent=None,postpro=None):
-        anf, anf_ang=self.get_start_end_points(0,parent)
-        O=self.O.rot_sca_abs(parent=parent)
-        IJ=(O-anf)
-        ende, en_ang=self.get_start_end_points(1,parent)
-        
-        s_ang=self.rot_angle(self.s_ang,parent)
-        e_ang=self.rot_angle(self.e_ang,parent)
-        
-        sR=self.scaleR(self.r,parent)
-
-        #Vorsicht geht nicht für Ovale
-        if sR>postpro.max_arc_radius:
-            string=postpro.lin_pol_xy(anf,ende)
+    def Write_GCode(self,postpro=None):
+        """
+        Writes the GCODE for a ARC.
+        """
+       
+        #If the radius of the element is bigger then the max. radius export
+        #the element as an line.
+        if self.r>postpro.max_arc_radius:
+            string=postpro.lin_pol_xy(self.Pa,self.Pe)
         else:
             if (self.ext>0):
-                #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-                string=postpro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,sR,O,IJ)
+                string=postpro.lin_pol_arc("ccw",self.Pa,self.Pe,
+                                           self.s_ang,self.e_ang,
+                                           self.r,self.O,self.O-self.Pa)
+                
             elif (self.ext<0) and postpro.export_ccw_arcs_only:
-                string=postpro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,sR,O,(O-ende))
+                string=postpro.lin_pol_arc("ccw",self.Pe,self.Pa,
+                                           self.e_ang,self.s_ang,
+                                           self.r,self.O,self.O-self.Pe)
             else:
-                #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
-                string=postpro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,sR,O,IJ)
+                string=postpro.lin_pol_arc("cw",self.Pa,self.Pe,
+                                           self.s_ang,self.e_ang,
+                                           self.r,self.O,self.O-self.Pa)
         return string  
 
 
@@ -461,6 +571,7 @@ class LineGeo:
         self.type="LineGeo"
         self.Pa=Pa
         self.Pe=Pe
+        self.BB=[]
         self.col='Black'
         self.length=self.Pa.distance(self.Pe)
         Va=PointClass(0.0,0.0)
@@ -492,55 +603,95 @@ class LineGeo:
        
         
     def __str__(self):
+        """ 
+        Standard method to print the object
+        @return: A string
+        """ 
         return ("\nLineGeo")+\
                ("\nPa : %s" %self.Pa)+\
                ("\nPe : %s" %self.Pe)+\
+               ("\nBB : %s" %self.BB)+\
                ("\nlength: %0.5f" %self.length)        
 
     def reverse(self):
+        """ 
+        Reverses the direction of the arc (switch direction).
+        """ 
         Pa=self.Pa
         Pe=self.Pe
         
         self.Pa=Pe
         self.Pe=Pa
-
-    def reverse_copy(self):
-        Pa=self.Pe
-        Pe=self.Pa
-        return LineGeo(Pa=Pa,Pe=Pe)
+   
+    def make_abs_geo(self,parent=None,reverse=0):
+        """
+        Generates the absolut geometry based on the geometry self and the
+        parent. If reverse 1 is given the geometry may be reversed.
+        @param parent: The parent of the geometry (EntitieContentClass)
+        @param reverse: If 1 the geometry direction will be switched.
+        @return: A new LineGeoClass will be returned.
+        """ 
+        Pa=self.Pa.rot_sca_abs(parent=parent)
+        Pe=self.Pe.rot_sca_abs(parent=parent)
+        abs_geo=LineGeo(Pa=Pa,Pe=Pe)
+        if reverse:
+            abs_geo.reverse()
+        return abs_geo
+    
+    def calc_bounding_box(self):
+        """
+        Calculated the BoundingBox of the geometry and saves it into self.BB
+        """
+        Pa=PointClass(x=min(self.Pa.x,self.Pe.x),y=min(self.Pa.y,self.Pe.y))
+        Pe=PointClass(x=max(self.Pa.x,self.Pe.x),y=max(self.Pa.y,self.Pe.y))
         
-    def plot2can(self,canvas=None,parent=None,tag=None,col='black',plotoption=0):
+        self.BB=BoundingBoxClass(Pa=Pa,Pe=Pe)
+        
+    def plot2can(self,canvas=None,tag=None,col='black',plotoption=0):
+        """
+        Plots the geometry of self into the defined canvas.
+        @param canvas: The canvas instance to plot in
+        @param tag: the number of the parent shape
+        @param col: The color in which the shape shall be ploted
+        @param plotoption: Additional option for Debug print use
+        @return: Returns the hdl or hdls of the ploted objects.
+        """
         
         hdl=[]
-        anf=self.Pa.rot_sca_abs(parent=parent)
-        ende=self.Pe.rot_sca_abs(parent=parent)
 
-        hdl.append(Line(canvas,anf.x,-anf.y,ende.x,-ende.y,tag=tag,fill=col))
+        hdl.append(Line(canvas,self.Pa.x,-self.Pa.y,
+                        self.Pe.x,-self.Pe.y,tag=tag,fill=col))
         
         if plotoption:
-            hdl.append(Line(canvas,anf.x-dl,-anf.y-dl,anf.x+dl,-anf.y+dl,tag=tag,fill=col))
-            hdl.append(Line(canvas,anf.x+dl,-anf.y-dl,anf.x-dl,-anf.y+dl,tag=tag,fill=col))
-            hdl.append(Line(canvas,ende.x-dl,-ende.y-dl,ende.x+dl,-ende.y+dl,tag=tag,fill=col))
-            hdl.append(Line(canvas,ende.x+dl,-ende.y-dl,ende.x-dl,-ende.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pa.x-dl,-self.Pa.y-dl,
+                            self.Pa.x+dl,-self.Pa.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pa.x+dl,-self.Pa.y-dl,
+                            self.Pa.x-dl,-self.Pa.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pe.x-dl,-self.Pe.y-dl,
+                            self.Pe.x+dl,-self.Pe.y+dl,tag=tag,fill=col))
+            hdl.append(Line(canvas,self.Pe.x+dl,-self.Pe.y-dl,
+                            self.Pe.x-dl,-self.Pe.y+dl,tag=tag,fill=col))
+            
+        self.BB.plot2can(canvas=canvas,tag=tag,col='red',hdl=hdl)
             
         return hdl
 
-    def get_start_end_points(self,direction,parent=None):
+    def get_start_end_points(self,direction):
+        """
+        Returns the start/end point and its direction
+        @param direction: 0 to return start point and 1 to return end point
+        @return: a list of point and angle Returns the hdl or hdls of the ploted objects.
+        """
         if not(direction):
-            punkt=self.Pa.rot_sca_abs(parent=parent)
-            punkt_e=self.Pe.rot_sca_abs(parent=parent)
-            angle=degrees(punkt.norm_angle(punkt_e))
+            punkt=self.Pa
+            angle=degrees(self.Pa.norm_angle(self.Pe))
         elif direction:
-            punkt_a=self.Pa.rot_sca_abs(parent=parent)
-            punkt=self.Pe.rot_sca_abs(parent=parent)
-            angle=degrees(punkt.norm_angle(punkt_a))
+            punkt=self.Pe
+            angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
     
-    def Write_GCode(self,parent=None,postpro=None):
-        anf, anf_ang=self.get_start_end_points(0,parent)
-        ende, end_ang=self.get_start_end_points(1,parent)
-
-        return postpro.lin_pol_xy(anf,ende)
+    def Write_GCode(self,postpro=None):
+        return postpro.lin_pol_xy(self.Pa,self.Pe)
 
     def distance2point(self,point):
         try:
@@ -552,6 +703,48 @@ class LineGeo:
         except:
             return 1e10
             
+class BoundingBoxClass:
+    """ 
+    Bounding Box Class. This is the standard class which provides all std. 
+    Bounding Box methods.
+    """ 
+    def __init__(self,Pa=PointClass(0,0),Pe=PointClass(0,0),hdl=[]):
+        """ 
+        Standard method to initialize the class
+        """ 
+        self.Pa=Pa
+        self.Pe=Pe
+        
+    def __str__(self):
+        """ 
+        Standard method to print the object
+        @return: A string
+        """ 
+        s= ("\nPa : %s" %(self.Pa))+\
+           ("\nPe : %s" %(self.Pe))
+        return s
+     
+    def plot2can(self,canvas=None,tag=None,col='red',hdl=[]):
+        """
+        Plots the geometry of self into the defined canvas.
+        @param canvas: The canvas instance to plot in
+        @param tag: the number of the parent shape
+        @param col: The color in which the shape shall be ploted
+        @param hdl: The existing hdls where to append the additional ones
+        @return: Returns the hdl or hdls of the ploted objects.
+        """
+        hdl.append(Line(canvas,
+                        self.Pa.x,-self.Pa.y,self.Pe.x,-self.Pa.y,tag=tag,fill=col))
+        hdl.append(Line(canvas,
+                        self.Pe.x,-self.Pa.y,self.Pe.x,-self.Pe.y,tag=tag,fill=col))
+        hdl.append(Line(canvas,
+                        self.Pe.x,-self.Pe.y,self.Pa.x,-self.Pe.y,tag=tag,fill=col))
+        hdl.append(Line(canvas,
+                        self.Pa.x,-self.Pe.y,self.Pa.x,-self.Pa.y,tag=tag,fill=col))
+        return hdl
+       
+
+
 
 class BiarcClass:
     def __init__(self,Pa=[],tan_a=[],Pb=[],tan_b=[],min_r=5e-4):

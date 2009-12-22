@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# -*- coding: cp1252 -*-
+# -*- coding: ISO-8859-1 -*-
 #
 #dxf2gcode_b02.py
 #Programmers:   Christian Kohloeffel
@@ -1101,17 +1101,13 @@ class CanvasContentClass:
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
         self.makeshapes(parent=self.EntitiesRoot)
         
-        self.makeccshapes(parent=self.EntitiesRoot)
+        #self.makeccshapes(parent=self.EntitiesRoot)
         
-        self.plot_ccshapes()
+        #self.plot_ccshapes()
         
         self.plot_shapes()
         
-        self.LayerContents.sort()
-        #self.EntitieContents.sort()
-
-#
-        
+        self.LayerContents.sort()     
 
         #Autoscale des Canvas        
         self.Canvas.autoscale()
@@ -1166,19 +1162,22 @@ class CanvasContentClass:
                                                 parent, \
                                                 [], \
                                                 []))
+                
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
                     if cont.order[ent_geo_nr][1]:
                         ent_geo.geo.reverse()
                         for geo in ent_geo.geo:
-                            geo = copy(geo)
-                            geo.reverse()
-                            self.Shapes[-1].geos.append(geo)
+                            abs_geo = geo.make_abs_geo(parent=parent,reverse=1)
+                            abs_geo.calc_bounding_box()
+                            self.Shapes[-1].geos.append(abs_geo)
 
                         ent_geo.geo.reverse()
                     else:
                         for geo in ent_geo.geo:
-                            self.Shapes[-1].geos.append(copy(geo))
+                            abs_geo = geo.make_abs_geo(parent=parent,reverse=0)
+                            abs_geo.calc_bounding_box()
+                            self.Shapes[-1].geos.append(abs_geo)
                         
                 self.addtoLayerContents(self.Shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.Shapes[-1])

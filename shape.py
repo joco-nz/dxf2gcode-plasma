@@ -65,11 +65,11 @@ class ShapeClass:
         #Optimierung f�r geschlossene Konturen
         if self.closed:
             #Startwert setzen f�r die erste Summe
-            start, dummy=self.geos[0].get_start_end_points(0,self.parent)
+            start, dummy=self.geos[0].get_start_end_points(0)
             summe=0.0
             for geo in self.geos:
                 if geo.type=='LineGeo':
-                    ende, dummy=geo.get_start_end_points(1,self.parent)
+                    ende, dummy=geo.get_start_end_points(1)
                     summe+=(start.x+ende.x)*(ende.y-start.y)/2
                     start=deepcopy(ende)
                 elif geo.type=='ArcGeo':
@@ -97,8 +97,8 @@ class ShapeClass:
             self.cut_cor=41
 
     def get_st_en_points(self,dir=None):
-        start, start_ang=self.geos[0].get_start_end_points(0,self.parent)
-        ende, end_ang=self.geos[-1].get_start_end_points(1,self.parent)
+        start, start_ang=self.geos[0].get_start_end_points(0)
+        ende, end_ang=self.geos[-1].get_start_end_points(1)
         
         if dir==None:
             return start,ende
@@ -111,7 +111,6 @@ class ShapeClass:
     def plot2can(self,canvas,col='black'):
         for geo in self.geos:
             self.geos_hdls+=geo.plot2can(canvas=canvas,
-                                         parent=self.parent,
                                          tag=self.nr,
                                          col=col,
                                          plotoption=self.plotoption)
