@@ -53,7 +53,7 @@ import locale
 #===============================================================================
 # Added the Cutter Compensation here
 #===============================================================================
-from ccomp import InterSectionPoint
+from ccomp_chrisko import ShapeOffsetClass
 
 
 from math import radians, degrees
@@ -1101,7 +1101,7 @@ class CanvasContentClass:
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
         self.makeshapes(parent=self.EntitiesRoot)
         
-        #self.makeccshapes(parent=self.EntitiesRoot)
+        self.makeccshapes(parent=self.EntitiesRoot)
         
         #self.plot_ccshapes()
         
@@ -1171,6 +1171,7 @@ class CanvasContentClass:
                             abs_geo = geo.make_abs_geo(parent=parent,reverse=1)
                             abs_geo.calc_bounding_box()
                             self.Shapes[-1].geos.append(abs_geo)
+                            self.Shapes[-1].BB=self.Shapes[-1].BB.joinBB(abs_geo.BB)
 
                         ent_geo.geo.reverse()
                     else:
@@ -1178,6 +1179,7 @@ class CanvasContentClass:
                             abs_geo = geo.make_abs_geo(parent=parent,reverse=0)
                             abs_geo.calc_bounding_box()
                             self.Shapes[-1].geos.append(abs_geo)
+                            self.Shapes[-1].BB=self.Shapes[-1].BB.joinBB(abs_geo.BB)
                         
                 self.addtoLayerContents(self.Shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.Shapes[-1])
@@ -1190,10 +1192,10 @@ class CanvasContentClass:
            
     def makeccshapes(self, parent=None):
         self.CCShapes = []
-        self.ISP = InterSectionPoint()
+        self.SOC = ShapeOffsetClass()
         
         for shape in self.Shapes:
-            self.CCShapes.append(self.ISP.do_compensation(shape, 2, 41))
+            self.CCShapes.append(self.SOC.do_compensation(shape, 2, 41))
             
     def plot_ccshapes(self):
         for ccshape in self.CCShapes:

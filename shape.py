@@ -24,7 +24,7 @@
 #Main Class Shape
 
 #import sys, os, string, ConfigParser 
-from point import PointClass, LineGeo, ArcGeo
+from point import PointClass, LineGeo, ArcGeo, BoundingBoxClass
 from math import cos, sin, radians, degrees
 from copy import deepcopy
 from Canvas import Line
@@ -35,6 +35,9 @@ class ShapeClass:
                 parent=None,
                 geos=[],geos_hdls=[],
                 plotoption=0):
+        """ 
+        Standard method to initialize the class
+        """ 
                 
                     
         self.type="Shape"
@@ -45,9 +48,14 @@ class ShapeClass:
         self.parent=parent
         self.geos=geos
         self.geos_hdls=geos_hdls
+        self.BB=BoundingBoxClass(Pa=None,Pe=None)
         self.plotoption=plotoption
 
     def __str__(self):
+        """ 
+        Standard method to print the object
+        @return: A string
+        """ 
         return ('\ntype:        %s' %self.type)+\
                ('\nnr:          %i' %self.nr)+\
                ('\nclosed:      %i' %self.closed)+\
@@ -62,7 +70,11 @@ class ShapeClass:
 
 
     def AnalyseAndOptimize(self,MyConfig=None):
-        #Optimierung f�r geschlossene Konturen
+        """ 
+        Standard method to print the object
+        @return: A string
+        """ 
+        #Optimisation for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
             start, dummy=self.geos[0].get_start_end_points(0)
@@ -86,6 +98,9 @@ class ShapeClass:
             
      
     def reverse(self):
+        """ 
+        Reverses the direction of the whole shape (switch direction).
+        """ 
         self.geos.reverse()
         for geo in self.geos: 
             geo.reverse()
@@ -97,6 +112,11 @@ class ShapeClass:
             self.cut_cor=41
 
     def get_st_en_points(self,dir=None):
+        """
+        Returns the start/end point and its direction
+        @param direction: 0 to return start point and 1 to return end point
+        @return: a list of point and angle 
+        """
         start, start_ang=self.geos[0].get_start_end_points(0)
         ende, end_ang=self.geos[-1].get_start_end_points(1)
         
@@ -114,6 +134,7 @@ class ShapeClass:
                                          tag=self.nr,
                                          col=col,
                                          plotoption=self.plotoption)
+        self.BB.plot2can(canvas=canvas,tag=self.nr,col='green',hdl=self.geos_hdls)
             
     def plot_cut_info(self,CanvasClass,config):
         hdls=[]

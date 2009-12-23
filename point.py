@@ -24,6 +24,7 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil, copysign
+from copy import copy
 
 #Length of the cross.
 dl=1
@@ -161,7 +162,6 @@ class ContourClass:
         self.closed=closed
         self.order=order
         self.length=length
-        
 
     #Komplettes umdrehen der Kontur
     def reverse(self):
@@ -680,7 +680,7 @@ class LineGeo:
         """
         Returns the start/end point and its direction
         @param direction: 0 to return start point and 1 to return end point
-        @return: a list of point and angle Returns the hdl or hdls of the ploted objects.
+        @return: a list of point and angle 
         """
         if not(direction):
             punkt=self.Pa
@@ -689,6 +689,80 @@ class LineGeo:
             punkt=self.Pe
             angle=degrees(self.Pe.norm_angle(self.Pa))
         return punkt, angle
+    
+    def CheckIntersectLineLine(selfL2):
+       
+    
+        print('check line/line')
+        dx1=self.Pe.x-self.Pa.x
+        dy1=self.Pe.y-self.Pa.y
+        
+        dx2=L2.Pe.x-L2.Pa.x
+        dy2=L2.Pe.y-L2.Pa.y
+
+        dax=L1.Pa.x-L2.Pa.x
+        day=L1.Pa.y-L2.Pa.y
+
+        if dx1==0 and dy1==0:
+            return
+        if dx2==0 and dy2==0:
+            return
+        
+        print dx1
+        print dy1
+        print dx2
+        print dy2
+        
+        
+        if(abs(dx2)>=abs(dy2)):
+            n=(day-dax*dy2/dx2)/(dx1*dy2/dx2 -dy1)
+            u=(dax+n*dx1)/dx2
+            self.P1=PointClass(x=L1.Pa.x+n*dx1,
+                               y=L1.Pa.y+n*dy1)
+            self.v1=n
+            self.v2=u
+            
+        else:
+            print dy1*dx2/dy2 -dx1
+           
+            n=(dax-day*dx2/dy2)/(dy1*dx2/dy2 -dx1)
+            u=(day+n*dy1)/dy2
+            self.P1=PointClass(x=L1.Pa.x+n*dx1,
+                               y=L1.Pa.y+n*dy1)
+            self.v1=n
+            self.v2=u
+            
+        self.num=1
+        
+        if 0.00001<self.v1 and self.v1<0.9999:
+            self.ISPstatus1a='between'             
+        elif 0.9999<self.v1 and self.v1<1.00001:
+            self.ISPstatus1a='at_end'
+        elif -0.00001<self.v1 and self.v1<0.00001:
+            self.ISPstatus1a='at_start'    
+        elif self.v1>1.00001:
+            self.ISPstatus1a='above'
+        else:
+            self.ISPstatus1a='under'
+            
+        if 0.00001<self.v2 and self.v2<0.9999:
+            self.ISPstatus1b='between'             
+        elif 0.9999<self.v2 and self.v2<1.00001:
+            self.ISPstatus1b='at_end'
+        elif -0.00001<self.v2 and self.v2<0.00001:
+            self.ISPstatus1b='at_start'    
+        elif self.v2>1.00001:
+            self.ISPstatus1b='above'
+        else:
+            self.ISPstatus1b='under'    
+            
+            
+        
+        print ('num,x1,y1,x2,y2',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y)
+        print ('st1a,st2a,st1b,st2b,v1,v2',self.ISPstatus1a,self.ISPstatus2a,self.ISPstatus1b,self.ISPstatus2b, self.v1,self.v2, )
+
+        return 
+    
     
     def Write_GCode(self,postpro=None):
         return postpro.lin_pol_xy(self.Pa,self.Pe)
@@ -723,6 +797,34 @@ class BoundingBoxClass:
         s= ("\nPa : %s" %(self.Pa))+\
            ("\nPe : %s" %(self.Pe))
         return s
+    
+    def joinBB(self,other):
+        """
+        Joins two Bounding Box Classes and returns the new one
+        @param other: The 2nd Bounding Box
+        @return: Returns the joined Bounding Box Class
+        """
+        
+        if type(self.Pa)==type(None) or type(self.Pe)==type(None):
+            return BoundingBoxClass(copy(other.Pa),copy(other.Pe))
+        
+        xmin=min(self.Pa.x,other.Pa.x)
+        xmax=max(self.Pe.x,other.Pe.x)
+        ymin=min(self.Pa.y,other.Pa.y)
+        ymax=max(self.Pe.y,other.Pe.y)
+        
+        return BoundingBoxClass(Pa=PointClass(xmin,ymin),Pe=PointClass(xmax,ymax))
+    
+    def hasintersection(self,other=None,tol=0.0):
+        """
+        Checks if the two bounding boxes have an intersection
+        @param other: The 2nd Bounding Box
+        @return: Returns true or false
+        """        
+        x_inter_pos=(self.Pe.x-tol > other.Pa.x) and (self.Pa.x + tol<other.Pe.x)
+        y_inter_pos=(self.Pe.y-tol > other.Pa.y) and (self.Pa.y + tol<other.Pe.y)
+     
+        return x_inter_pos and y_inter_pos
      
     def plot2can(self,canvas=None,tag=None,col='red',hdl=[]):
         """
