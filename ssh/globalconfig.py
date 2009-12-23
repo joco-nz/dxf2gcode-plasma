@@ -14,21 +14,19 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 """
+
+ 
+ 
+    # config file format spec
+    # see http://www.voidspace.org.uk/python/validate.html
+    # and http://www.voidspace.org.uk/python/configobj.html
+    # if you make any changes to config_spec
+    # always increment specversion default so an old .ini file
+    # can be detected
+
 @newfield purpose: Purpose
 @newfield sideeffect: Side effect, Side effects
-
 @purpose:  program arguments & options handling, read the config file
- 
- 
- 
- # config file format spec
-# see http://www.voidspace.org.uk/python/validate.html
-# and http://www.voidspace.org.uk/python/configobj.html
-# if you make any changes to config_spec
-# always increment specversion default so an old .ini file
-# can be detected
-
-
 @author: Michael Haberler 
 @since:  21.12.2009
 @license: GPL
@@ -187,11 +185,11 @@ class GlobalConfig:
         setup logging
         parse command line options
         read config file, generating a default if needed
-            config file values are available 'flattened' like self.config.section.variable  
+            - config file values are available 'flattened' like self.config.section.variable  
         raise an Exception if options,permissions etc are really badly screwed
         
         result (fine if self.n_errors = 0)
-            all config file variables have been merged with overriding
+            - all config file variables have been merged with overriding
             cmd line options into self.config 
         
         options are available 'flattened', e.g. self.option.debug  
@@ -200,8 +198,20 @@ class GlobalConfig:
         self.config may differ from the config file if there were command
         line options - to save the current state, self.write_current_config(self.config_file)
         
-        @sideeffect: sets global.config to instance variable
-        
+        @sideeffect:
+        sets global.config to instance variable
+            - global.config.options - command line options (dictionary)
+            - gobal.config.varrs - the config file flattened as attribute hierarchy
+                
+                            
+                Example: the variable specified in the config file fragment as per SPECNAME above::
+                    [Paths]
+                    import_dir = /home/mah/dxf
+                    
+                may be referred to in the plugin as::
+                
+                    self.vs.vars.Paths.import_dir
+                            
         """
         self.n_errors = 0
 
@@ -357,13 +367,14 @@ class GlobalConfig:
     def get_config(self,config_file):
         """
         try to arrive at, and read a valid config file
-            if the config dir doesnt exist, create it
-            if the file doesnt exist, create a default config derived from CONFIG_SPEC
-            at this point, a config file does exist - new or old, so read it
-            if the version number mismatches or the config file doesnt
-            validate, rename the bad config file by adding a time stamp, re-create a
-            default file and read that
-            results are in self.config_dict
+        
+        if the config dir doesnt exist, create it
+        if the file doesnt exist, create a default config derived from CONFIG_SPEC
+        at this point, a config file does exist - new or old, so read it
+        if the version number mismatches or the config file doesnt
+        validate, rename the bad config file by adding a time stamp, re-create a
+        default file and read that
+        results are in self.config_dict
         """
         logger = self.log.logger    # shorthand
 

@@ -286,7 +286,7 @@ class Windoof:
         self.pp = pprint.PrettyPrinter(indent=4)
         self.counter = 0
         self.entries = ['good','bad','ugly']
-        self.dyn_menu = None
+        self.apply_menu = None
         self.instances = []
         
         self.master = master
@@ -334,17 +334,37 @@ class Windoof:
         self.create_menu = Menu(self.menu) 
         self.menu.add_cascade(label="Create",menu=self.create_menu)    
 
-        self.dyn_menu = Menu(self.menu) 
-        self.menu.add_cascade(label="Apply",menu=self.dyn_menu)    
+        self.apply_menu = Menu(self.menu) 
+        self.menu.add_cascade(label="Apply",menu=self.apply_menu)    
 
 
  
 
     def add_modules(self,pluginloader):
+
         self.pluginloader = pluginloader
 
-        for k,v in g.modules.items():
-            self.create_menu.add_command(label=k,command=SimpleCallback(self.add_instance,k))
+        for k,v in g.plugins.items():
+            if  v.varspace.is_default:
+                sm= Menu(self.create_menu)
+                sm.add_command(label = "clone %s" %(k),command=SimpleCallback(self.add_instance,k))
+                sm.add_command(label = "hide %s" %(k),command=SimpleCallback(self.apply_hide,k))
+                self.create_menu.add_cascade(label=k,menu=sm)
+        self.menu.entryconfigure(2, menu=self.create_menu)
+        
+
+
+    def apply_clone(self,inst):
+#        self.pluginloader.close_instance(inst)
+#        self.rebuild_menu()    
+        print "clone NOOP", inst
+
+    def apply_hide(self,inst):
+#        self.pluginloader.close_instance(inst)
+#        self.rebuild_menu()    
+        print "hide NOOP", inst
+                     
+        
         
         
     def apply_export(self,inst):
@@ -366,20 +386,21 @@ class Windoof:
     
     
     def rebuild_menu(self):
-        self.dyn_menu = Menu(self.menu)
-#        dyn_menu.add_command(label="single entry")
-#        dyn_menu.add_separator()
+        self.apply_menu = Menu(self.menu)
+#        apply_menu.add_command(label="single entry")
+#        apply_menu.add_separator()
 
         for k,v in g.plugins.items():
-            sm= Menu(self.dyn_menu)
-            if hasattr(v,'export'):
-                sm.add_command(label = "export shape with %s" %(k),command=SimpleCallback(v.export,k))
-            if hasattr(v,'transform'):
-                sm.add_command(label = "transform shape with %s" %(k),command=SimpleCallback(v.transform,k))                
-            sm.add_command(label = "close %s" %(k),command=SimpleCallback(self.apply_close,k))
-            sm.add_command(label = "delete %s" %(k),command=SimpleCallback(self.apply_delete,k))
-            self.dyn_menu.add_cascade(label=k,menu=sm)
-        self.menu.entryconfigure(3, menu=self.dyn_menu)
+            if not v.varspace.is_default:
+                sm= Menu(self.apply_menu)
+                if hasattr(v,'export'):
+                    sm.add_command(label = "export shape with %s" %(k),command=SimpleCallback(v.export,k))
+                if hasattr(v,'transform'):
+                    sm.add_command(label = "transform shape with %s" %(k),command=SimpleCallback(v.transform,k))                
+                sm.add_command(label = "close %s" %(k),command=SimpleCallback(self.apply_close,k))
+                sm.add_command(label = "delete %s" %(k),command=SimpleCallback(self.apply_delete,k))
+                self.apply_menu.add_cascade(label=k,menu=sm)
+        self.menu.entryconfigure(3, menu=self.apply_menu)
     
     def dump(self,arg):
         print "plugin instances:"
@@ -388,15 +409,10 @@ class Windoof:
              
 def setup_logging(window):
     # LogText window exists, setup logging
- #   g.logger.logger.error("This should show up in the console window")
     g.logger.add_window_logger(log_level='DEBUG')
     g.logger.set_window_logstream(window.textbox.text)
- #   g.logger.logger.info("this should show up in the window since its INFO ")
-
     g.logger.set_window_loglevel('INFO')
- #   g.logger.logger.debug("this should NOT show up in the window since windowhandler level is now INFO and the message is a DEBUG ")
-    
-    
+
 if __name__ == "__main__":
     
     g.logger = Log(c.APPNAME,console_loglevel=logging.DEBUG)
@@ -407,7 +423,7 @@ if __name__ == "__main__":
     w = Windoof(a)
     setup_logging(w)
     p = PluginLoader(w)
-    
+
     w.add_modules(p) # add module names to Create menu
     w.rebuild_menu() # add instances  to Apply menu
     

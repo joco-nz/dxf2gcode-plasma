@@ -21,8 +21,10 @@
 
 from varspace import  VarSpace
 import globals as g
+import constants as c
 
-class Plugin(object):
+
+class Plugin(VarSpace):
     """
     Template for a dxf2gcode plugin
     
@@ -45,20 +47,22 @@ class Plugin(object):
     TAG =           'mill'
     EXPORT_MENU_ENTRY =    "milling exporter"
     TRANSFORM_MENU_ENTRY = "milling shape transformer"
-    DESCRIPTION =   'milling export plugin for DXF2gcode'
+    DESCRIPTION =   'milling export'
     VERSION =       '0.01'
-    SPECVERSION =   '25'        # increment this whenever you edit SPECNAME
+    SPECVERSION =   25        # increment this whenever you edit SPECNAME
     SPECNAME = str('''
     # do not edit the following section name:
         [Version]
     
         # do not edit the following value:
-        specversion = string(default="'''  + \
-        str(SPECVERSION) + '")\n' + \
+        specversion = integer(default='''  + \
+        str(SPECVERSION) + ')\n' +
     '''
         
-        [Variables]
+        [''' + c.VARIABLES +
         
+        ''']
+                
         # persistent variables
         tool_dia = float(default=63.0)
         start_radius = float(default=0.0)
@@ -81,7 +85,8 @@ class Plugin(object):
         random_text    = string(default='ver random')
        
                  
-        [UI]
+        [''' + c.UI_VARIABLES +
+        ''']
         # Variables listed here are displayed in the UI and are editable
         # the string value is the descriptive text displayed in a Label
         # variables from the Variables section can be interpolated into

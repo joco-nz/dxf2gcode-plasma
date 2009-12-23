@@ -21,6 +21,7 @@
 
 from varspace import  VarSpace
 import globals as g
+import constants as c
 
 class Plugin(object):
     '''
@@ -37,17 +38,19 @@ class Plugin(object):
     EXPORT_MENU_ENTRY =    "drilling exporter"
     DESCRIPTION =   'drill export plugin for DXF2gcode'
     VERSION =       '0.2'
-    SPECVERSION =   '4'        # increment this whenever you edit SPECNAME
+    SPECVERSION =   5        # increment this whenever you edit SPECNAME
     SPECNAME = str('''
     # do not edit the following section name:
         [Version]
     
         # do not edit the following value:
-        specversion = string(default="'''  + \
-        str(SPECVERSION) + '")\n' + \
+        specversion = integer(default='''  + \
+        str(SPECVERSION) + ')\n' +
     '''
         
-        [Variables]
+        [''' + c.VARIABLES +
+        
+        ''']
         
         # persistent variables
         drill_axis = string(default="Z")
@@ -61,7 +64,8 @@ class Plugin(object):
         drill_points = boolean(default=True)
         drill_circles = boolean(default=False)
                  
-        [UI]
+        [''' + c.UI_VARIABLES +
+        ''']
         # Variables listed here are displayed in the UI and are editable
         # the string value is the descriptive text displayed in a Label
         # variables from the Variables section can be interpolated into

@@ -43,7 +43,7 @@ import globals as g
 import constants as c
 
 class VarSpace:
-    def __init__(self, specname, pathname, instance_name,frame=None,specversion=None,rename_hook=None):
+    def __init__(self, specname, pathname, instance_name,frame=None,specversion=None,rename_hook=None,default=False,plugin=None):
 
         self.var_dict = dict()
         self.tkVars = dict()
@@ -57,7 +57,9 @@ class VarSpace:
         self.tab_button = None
         self.default_config = False # wether a new name was generated
         self.load_varspace(specversion)
-
+        self.is_default = default
+        self.plugin = plugin
+        
     def cleanup(self,save=True,remove=False):
         """
         close a varspace instance
@@ -69,7 +71,7 @@ class VarSpace:
             g.logger.logger.debug( 'varspace %s saved' %(self.instance_name))
         if remove:
             os.remove(self.pathname)
-            g.logger.logger.debug( 'varspace %s deleted' %(self.instance_name))
+            g.logger.logger.info( 'varspace %s deleted' %(self.instance_name))
 
         if self.tab_button:
             self.tab_button.destroy()
@@ -145,43 +147,50 @@ class VarSpace:
     def save_varspace(self):
         self.var_dict.filename = self.pathname
         self.var_dict.write()   
-        
+    
     def print_vars(self):
-        for frame,content in self.var_dict['UI'].items():
-            for varname,text in content.items():
-                value  = self.var_dict['Variables'][varname]
-                print "%(varname)s = %(value)s" %(locals())
+        print "Variables:"
+        for k,v in self.var_dict['Variables'].items():
+            print k," = ",v
 
-    def tkvar_changed_callback(self,varname,name,index,mode):
+
+    def tkvar_changed_callback(self,varname,vdict,name,index,mode):
         try:
             value = self.tkVars[varname].get()
         except ValueError:
+            # g.logger.logger.debug("VALUE ERROR %s " %(varname))
+            # reset to default value if funny keys are pressed
+            self.tkVars[varname].set(vdict[varname])
             pass
         else:
-            # g.logger.logger.debug(  "%s changed from %s to %s" %(varname,self.var_dict['Variables'][varname],value))
-            self.var_dict['Variables'][varname] = value
+            #g.logger.logger.debug("%s changed from %s to %s" %(varname,vdict[varname],value))
+            vdict[varname] = value
 
     def save_callback(self):
-        if self.tk_instance_name.get() != self.instance_name:
-            
-            old_instance = self.instance_name
-            old_path = self.pathname
-            self.instance_name = self.tk_instance_name.get()
-
-            self.pathname = os.path.join(os.path.dirname(old_path),self.instance_name+c.CONFIG_EXTENSION)
+        if self.is_default:
             self.save_varspace()
-            # TODO robustify + log
-            os.remove(old_path)
-            self.tab_button.tv.set(self.instance_name)
-            self.tab_button['width'] = len(self.instance_name)
-            
-            # call hook to fixup menu entries
-            if self.rename_hook:
-                self.rename_hook(old_instance,self.instance_name)
-            
-        else:
-            self.save_varspace()
-            g.logger.logger.debug("varspace %s saved" %(self.instance_name))
+            g.logger.logger.debug("varspace %s (default) saved" %(self.instance_name))  
+        else:         
+            if self.tk_instance_name.get() != self.instance_name:
+                
+                old_instance = self.instance_name
+                old_path = self.pathname
+                self.instance_name = self.tk_instance_name.get()
+    
+                self.pathname = os.path.join(os.path.dirname(old_path),self.instance_name+c.CONFIG_EXTENSION)
+                self.save_varspace()
+                # TODO robustify + log
+                os.remove(old_path)
+                self.tab_button.tv.set(self.instance_name)
+                self.tab_button['width'] = len(self.instance_name)
+                
+                # call hook to fixup menu entries
+                if self.rename_hook:
+                    self.rename_hook(old_instance,self.instance_name)
+                
+            else:
+                self.save_varspace()
+                g.logger.logger.debug("varspace %s saved" %(self.instance_name))
 
         
     def create_pane(self):
@@ -190,103 +199,120 @@ class VarSpace:
 
         current_frame = Frame(self.param_frame,bd = 0)
         current_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
-        
-        label = Label(current_frame, text='Instance name')
-        label.grid(row=0, column=0, sticky= W, padx=4) 
-        
-        self.tk_instance_name = StringVar()
-        self.tk_instance_name.set(self.instance_name)
- 
-        entry = Entry(current_frame, width=15, textvariable=self.tk_instance_name)
-        entry.grid(row=0, column=1, sticky=W,padx=4)
+        self.groupcount += 1
 
-        button = Button(current_frame,text='Save',command=self.save_callback)
-        button.grid(row=0, column=2, sticky=E)
-
+        if self.is_default:
+            label = Label(current_frame, text=self.plugin.DESCRIPTION)
+            label.grid(row=0, column=0, sticky= W, padx=4) 
+            
+            button = Button(current_frame,text=_('Save as default'),command=self.save_callback)
+            button.grid(row=0, column=1, sticky=E)        
+        else:
+            label = Label(current_frame, text=_('Instance name'))
+            label.grid(row=0, column=0, sticky= W, padx=4) 
+            
+            self.tk_instance_name = StringVar()
+            self.tk_instance_name.set(self.instance_name)
+     
+            entry = Entry(current_frame, width=15, textvariable=self.tk_instance_name)
+            entry.grid(row=0, column=1, sticky=W,padx=4)
+    
+            button = Button(current_frame,text=_('Save'),command=self.save_callback)
+            button.grid(row=0, column=2, sticky=E)
+        
         
     def display_pane(self,tab_name):
         self.tab_button = self.nbook.add_screen(self.param_frame,tab_name)
 
+    def add_item(self,frame,name,value,text,line,vdict):
+                
+        #print "    line %d add %s default %s label %s " %(line,name,value,labeltext)
+        optionlist = None
+        if isinstance(text, list):  # OptionMenu = 'labeltext','choice1,'choice2'....
+            optionlist = text[1:]
+            label = text[0]
+        else:
+            label = text
+            
+        label = label % (self.var_dict[c.VARIABLES])
+                        
+        label = Label(frame, text=label)
+        label.grid(row=line, column=0, sticky=N + W, padx=4) 
+        
+        width = 7 
 
-    def add_config_items(self): #,config):
-        currgroup = None
-        self.groupcount = 0
-        linecount = 0
+        if  isinstance(value, float):
+            self.tkVars[name] = DoubleVar()
+            self.tkVars[name].set(value)
+            entry = Entry(frame, width=width, textvariable=self.tkVars[name])
+            self.tkVars[name].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, name,vdict ))
+            
+        if  isinstance(value, int):
+            self.tkVars[name] = IntVar()
+            self.tkVars[name].set(value)
+            entry = Entry(frame, width=width, textvariable=self.tkVars[name])
+            self.tkVars[name].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, name,vdict ))
+
+        if  isinstance(value, basestring):
+            if len(value) > width:
+                width = len(value)
+            self.tkVars[name] = StringVar()
+            self.tkVars[name].set(value)
+            entry = Entry(frame, width=width, textvariable=self.tkVars[name])
+            self.tkVars[name].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, name,vdict ))
+
+        if  isinstance(value, bool):
+            self.tkVars[name] = BooleanVar()
+            self.tkVars[name].set(value)
+            entry = Checkbutton(frame, variable=self.tkVars[name])
+            self.tkVars[name].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, name,vdict ))
+
+        if optionlist:  # OptionMenu = 'labeltext','choice1,'choice2'....
+            
+            self.tkVars[name] = StringVar()
+            self.tkVars[name].set(value) 
+            entry = OptionMenu(frame, self.tkVars[name], *optionlist)     
+            self.tkVars[name].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, name,vdict ))
+
+        entry.grid(row=line, column=1, sticky=N + E)
+
+    def add_config_items(self): 
+        self._add_config_items(self.param_frame,name=c.UNFRAMED,value=self.var_dict[c.UI_VARIABLES],line = 0)
+        
+
+    def _add_config_items(self,frame,name=None,value=None,line=0):
+
         current_frame = None
 
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
-        
-        for group,content in self.var_dict['UI'].items():            
-            for k,v in content.items():
-                optionlist = None
-                if isinstance(v, list):  # OptionMenu = 'labeltext','choice1,'choice2'....
-                    varname = k
-                    labelvar = v[0]
-                    optionlist = v[1:]
-                else:                   # scalars just have varname = labeltext
-                    (varname,labelvar) = (k,v)
-                value = self.var_dict['Variables'][varname]
-                if group != currgroup:
-                    currgroup = group
-                    self.groupcount += 1
-                    linecount = 0
-                    if currgroup == 'UNFRAMED':       # no frame
-                        current_frame = Frame(self.param_frame,bd = 0)
-                    else:
-                        if currgroup == 'FRAMED' :    # unnamed frame
-                            current_frame = Frame(self.param_frame,relief = GROOVE,bd = 2)
-                        else:                   # named frame
-                            current_frame = LabelFrame(self.param_frame,relief = GROOVE,bd = 2, labelanchor='nw',text = group)
-                    current_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
-                    current_frame.columnconfigure(0, weight=1)
-                    
-                labeltext = labelvar % (self.var_dict['Variables']) # (config.__dict__)
-                label = Label(current_frame, text=labeltext)
-                label.grid(row=linecount, column=0, sticky=N + W, padx=4) 
-                width = 7
-                # generate appropriate widget for type
-                if  isinstance(value, float):
-                    self.tkVars[varname] = DoubleVar()
-                    self.tkVars[varname].set(value)
-                    entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
-                    
-                if  isinstance(value, int):
-                    self.tkVars[varname] = IntVar()
-                    self.tkVars[varname].set(value)
-                    entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
+       
+        if isinstance(value,dict): 
+            line = 0            
+            if name == c.UNFRAMED:       # no frame
+                current_frame = Frame(frame,bd = 0)
+            else:
+                if name == c.FRAMED:    # unnamed frame
+                    current_frame = Frame(frame,relief = GROOVE,bd = 2)
+                else:                   # named frame
+                    current_frame = LabelFrame(frame,relief = GROOVE,bd = 2, labelanchor='nw',text = name)
+            current_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E,columnspan=2)
+            current_frame.columnconfigure(0, weight=1)
 
-                if  isinstance(value, basestring):
-                    if len(value) > width:
-                        width = len(value)
-                    self.tkVars[varname] = StringVar()
-                    self.tkVars[varname].set(value)
-                    entry = Entry(current_frame, width=width, textvariable=self.tkVars[varname])
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
-
-                if  isinstance(value, bool):
-                    self.tkVars[varname] = BooleanVar()
-                    self.tkVars[varname].set(value)
-                    entry = Checkbutton(current_frame, variable=self.tkVars[varname])#, offvalue=False, onvalue=True)  
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
-
-                if  optionlist:
-                    self.tkVars[varname] = StringVar()
-                    self.tkVars[varname].set(value) 
-                    entry = OptionMenu(current_frame, self.tkVars[varname], *optionlist)     
-                    self.tkVars[varname].trace_variable("w", SimpleCallback(self.tkvar_changed_callback, varname ))
-
-                entry.grid(row=linecount, column=1, sticky=N + E)
-                linecount += 1   
+            self.groupcount +=1
             
+            for k,v in value.items():
+                self._add_config_items(current_frame,name=k,value=v,line=line)  # recurse
+                line += 1
+        else:
+            self.add_item(frame,name,self.var_dict[c.VARIABLES][name],value,line,self.var_dict[c.VARIABLES])
+ 
+
 
     def add_button(self, text,name, callback): 
-        self.groupcount += 1
         col = 0
         current_frame = Frame(self.param_frame,bd = 0)
-        labeltext = text % (self.var_dict['Variables'])
-        buttontext = name % (self.var_dict['Variables'])
+        labeltext = text % (self.var_dict[c.VARIABLES])
+        buttontext = name % (self.var_dict[c.VARIABLES])
         if len(text) > 0:
             label = Label(current_frame, text=labeltext)
             label.grid(row=0, column=0, sticky=N + W, padx=4) 
@@ -295,6 +321,7 @@ class VarSpace:
         button = Button(current_frame,text=buttontext,command=SimpleCallback(callback,name))
         button.grid(row=0, column=col, sticky=N )
         current_frame.columnconfigure(0, weight=1)
+        self.groupcount += 1
 
 
         

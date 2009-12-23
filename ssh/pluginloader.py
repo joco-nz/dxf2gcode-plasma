@@ -48,8 +48,11 @@ import globals as g
 import constants as c
 
 from varspace import VarSpace
+from d2gexceptions import PluginError
 
-class PluginLoader:
+
+
+class PluginLoader(object):
     
     
     def __init__(self,frame):
@@ -62,10 +65,12 @@ class PluginLoader:
             else
                 create a plugin instance with default varspace
         """ 
-        
+        self.loaded_modules = dict()
+        """ key: module basename, value: loaded module"""
+            
         self.frame = frame          # notebook frame where panes are hooked to
         
-        self.import_plugins(g.config.config.Paths.plugin_dir,
+        self.import_all_plugins(g.config.config.Paths.plugin_dir,
                             g.config.config.Paths.varspaces_dir)
 
     def add_instance(self,module):
@@ -74,10 +79,14 @@ class PluginLoader:
         instance name
         """
         p = module.Plugin() 
+        p.is_default = False 
+
+
         varspace_subdir = os.path.join(g.config.config.Paths.varspaces_dir,p.TAG)        
         instance_name = self.generate_valid_instance_name(p.TAG, varspace_subdir)
+        
         vs_path = os.path.join(varspace_subdir,instance_name + c.CONFIG_EXTENSION)                                    
-        if self.startup_plugin(p, instance_name,module,vs_path):
+        if self.startup_plugin(p, instance_name,vs_path):
             g.plugins[instance_name] = p 
             g.logger.logger.debug("plugin %s module %s new instance %s created" % (p.TAG,module.__name__,instance_name))
         else:
@@ -117,70 +126,29 @@ class PluginLoader:
         self.frame.rebuild_menu()
         g.logger.logger.debug("instance %s renamed to %s" % (old_instancename, new_instancename))
     
-    def import_plugins(self,directory,varspaces_dir):
-        """ 
-        Find and validate all plugins in <directory>
-        for each saved varspace in <varspaces_dir>/<module>/<instancename>.cfg:
-            create an instance of the <module> plugin 
-            with <instancename>.cfg varspace loaded in startup_plugin
-        if <varspaces_dir>/<module> is empty:
-            create a new  <default-instancename>.cfg
-            return a <plugin> instance with <default-instancename>.cfg varspace loaded
+    def startup_plugin(self,p,instance_name,varspace_path,default=False):   
         """
-        if os.path.isdir(directory):
-            sys.path.append(directory)
-            d = os.path.abspath(directory)
-            names = sorted(os.listdir(d))
-            #FXIME module OSError
-            if len(names) > 0:
-                for f in names:       
-                    module, ext = os.path.splitext(f) # Handles no-extension files, etc.
-                    if ext == '.py':
-                        m = self.load_module(module)
-                        if m:
-                            p = self.validate_plugin(m)
-                            if p: # looking good
-                                varspace_subdir = os.path.join(varspaces_dir,p.TAG) 
-                                if not os.path.isdir(varspace_subdir):
-                                    try:
-                                        os.makedirs(varspace_subdir)
-                                    except OSError, e:
-                                        g.logger.logger.error("can't create directory %s: %s" % 
-                                                              (varspace_subdir,e.strerror))
-                                        raise
-                                
-                                vs_files = glob.glob(os.path.join(varspace_subdir,'*' + c.CONFIG_EXTENSION))
-                                if len(vs_files) > 0:
-                                    n = 0
-                                    # derive instance name from filename
-                                    for vs in vs_files:
-                                        instance_name,ext = os.path.splitext(os.path.basename(vs))
-                                        if n > 0: # finalize test instance and initialize
-                                            p = m.Plugin()
-                                        n += 1
-                                        if self.startup_plugin(p, instance_name,m,vs):
-                                            g.plugins[instance_name]  = p
-                                        else:
-                                            g.logger.logger.warning("skipping plugin %s module %s instance %s: initialize() failed" 
-                                                                    % (p.TAG,module,instance_name))
-                                else:
-                                    # finalize test instance and initialize
-                                    instance_name = self.generate_valid_instance_name(p.TAG, varspace_subdir)
-                                    vs_path = os.path.join(varspace_subdir,instance_name + c.CONFIG_EXTENSION)                                    
-                                    if self.startup_plugin(p, instance_name,m,vs_path):
-                                        g.plugins[instance_name]  = p
-                                    else:
-                                        g.logger.logger.warning("skipping plugin %s module %s instance %s: initialize() failed" 
-                                                                % (p.TAG,module,instance_name))
-
-                                g.modules[p.TAG] = m
-
-            else:
-                g.logger.logger.warning("no files found in plugin dir %s" %(directory))
-        else:
-            g.logger.logger.error("plugin_dir %s - not a directory",directory)            
+        generate the varspace and pass to initialize()
+        """
         
-    def load_module(self,module):
+        _vs = VarSpace(p.SPECNAME, varspace_path, instance_name,
+                       frame=self.frame.nbook,
+                       specversion=p.SPECVERSION,
+                       rename_hook=self.rename_instance,default=default,plugin=p)
+        _result = p.initialize( _vs)
+
+        if not _result and _vs.default_config:
+            # we auto-generated a varspace and initialize failed
+            # so remove that varspace
+            _vs.cleanup(save=False,remove=True)
+            del(_vs)
+            g.logger.logger.debug("cleanup default varspace %s after failed initialize()",instance_name) 
+        else:
+            p.varspace = _vs    # make sure it's associated with the instance     
+
+        return _result
+
+    def import_module(self,module):
         """ 
         try to import module and fail nicely
         """
@@ -188,11 +156,108 @@ class PluginLoader:
         try:
             module = __import__(module)
         except ImportError,msg:
-            g.logger.logger.warning("skipping %s - %s",module.__name__,msg)
+            g.logger.logger.warning("skipping %s - %s",module,msg)
             return None
         else:
             g.logger.logger.debug("module %s imported OK",module.__name__)
             return module
+        
+    def import_plugin(self,plugin_dir, file_name):
+        """
+        import and validate a single plugin in plugin_dir if the
+        module wasnt loaded yet.
+        
+        Return module, instance and success/failure.
+        
+        @param plugin_dir: directory where  plugin.py files live
+        @type plugin_dir: String.
+        
+        @param file_name: plugin filename like 'foo.py' 
+        @type file_name: String.
+             
+        @return: tuple(module, instance, success).
+        """
+        _module_name, ext = os.path.splitext(file_name) # Handles no-extension files, etc.
+
+        if ext != c.PY_EXTENSION:
+            g.logger.logger.warning("plugin %s - not a .py file" % (file_name))
+        else:
+            if not self.loaded_modules.has_key(_module_name):
+                if plugin_dir not in sys.path:
+                    sys.path.append(plugin_dir)
+                _module = self.import_module(_module_name)
+            else:
+                _module = self.loaded_modules[_module_name]
+                
+            _instance = self.instantiate_and_validate_plugin(_module)
+            return (_module,_instance,True)
+        return (None,None,False)
+    
+    def import_all_plugins(self,plugin_dir,varspaces_dir):
+        """ 
+        Find and validate all plugins in <plugin_dir>
+        for each saved varspace in <varspaces_dir>/<p.TAG>/<instancename>.cfg:
+            create an instance of the <module> plugin 
+            with <instancename>.cfg varspace loaded in startup_plugin
+        if <varspaces_dir>/<module> is empty:
+            create a new  <default-instancename>.cfg
+            return a <plugin> instance with <default-instancename>.cfg varspace loaded
+        """
+
+        try:
+            #_file_names = sorted(os.listdir(os.path.abspath(plugin_dir)))
+            _file_names = sorted(glob.glob(os.path.join(plugin_dir,'*' + c.PY_EXTENSION)))
+            
+        except OSError, e:
+            g.logger.logger.error("can't read plugin_dir %s: %s" % 
+                                                  (plugin_dir,e.strerror))
+        if len(_file_names) > 0:
+            for _plugin_path in _file_names:  
+                (_dir,file_name) = os.path.split(_plugin_path)    
+                # first, create the default instance.
+                (_module,_instance,_success) = self.import_plugin(plugin_dir, file_name)
+                if _success:
+                    # at this point we have a plugin instance.
+                    # first, make sure varspace_path exists
+                    varspaces_subdir = os.path.join(varspaces_dir,_instance.TAG) 
+
+                    if not os.path.isdir(varspaces_subdir):
+                        try:
+                            os.makedirs(varspaces_subdir)
+                        except OSError, e:
+                            g.logger.logger.error("can't create varspace dir %s: %s" % 
+                                                  (varspaces_subdir,e.strerror))
+                            raise
+                    # re-use that test instance as default:
+                    # load or create a default varsapce named <tag>.cfg.
+                    _default_config = _instance.TAG + c.CONFIG_EXTENSION
+                    if self.startup_plugin(_instance,_instance.TAG,
+                                           os.path.join(varspaces_subdir,_default_config),default=True):
+                        
+                        # remember it's a default - control sensible UI actions
+ #                       _instance.varspace.is_default = True
+                        # _instance.varspace.default_config tells us it was created from the spec    
+                        g.plugins[_instance.TAG] = _instance
+                        g.modules[_instance.TAG] = _module
+   
+                    # now load all stored instances.
+                    vs_files = glob.glob(os.path.join(varspaces_subdir,'*' + c.CONFIG_EXTENSION))
+                    # remove default instance name since we just created/loaded that 
+                    if len(vs_files) > 0:
+                        vs_files.remove(os.path.join(varspaces_subdir,_default_config))
+                    
+                    # derive instance name from filename
+                    for vs in vs_files:
+                        instance_name,ext = os.path.splitext(os.path.basename(vs))
+                        _instance = _module.Plugin()
+                        if self.startup_plugin(_instance, instance_name,vs,default=False):
+                            #_instance.varspace.is_default = False 
+                            g.plugins[instance_name]  = _instance
+                        else:
+                            g.logger.logger.warning("skipping plugin %s module %s instance %s: initialize() failed" 
+                                                    % (_instance.TAG,_module,instance_name))   
+        else:
+            g.logger.logger.warning("no plugins found in %s" %(plugin_dir))                
     
     def generate_valid_instance_name(self,tag,directory):
         """
@@ -206,24 +271,9 @@ class PluginLoader:
                 return fn
         return None
     
-    def startup_plugin(self,p,instance_name,module,varspace_path):   
-        """
-        generate the varspace and pass to initialize()
-        """
-        _vs = VarSpace(p.SPECNAME, varspace_path, instance_name,
-                       frame=self.frame.nbook,
-                       specversion=p.SPECVERSION,
-                       rename_hook=self.rename_instance)
-        _result = p.initialize( _vs)
-        if not _result and _vs.default_config:
-            # we auto-generated a varspace and initialize failed
-            # so remove that varspace
-            _vs.cleanup(save=False,remove=True)
-            del(_vs)
-            g.logger.logger.debug("cleanup default varspace %s after failed initialize()",instance_name)            
-        return _result
+
         
-    def validate_plugin(self,module):   
+    def instantiate_and_validate_plugin(self,module):   
         """
         instantiate plugin and check for required attributes 
         return instance or None if failed
@@ -234,26 +284,29 @@ class PluginLoader:
         except Exception,msg:
             g.logger.logger.warning("module '%s' disabled - missing Plugin() class - %s" %(module.__name__,msg))
         else: 
+
+
             # now check wether all required methods are defined on Plugin()
+
             try:
                 for m in c.REQUIRED:
                     if not hasattr(p,m):
                         raise NameError, "module '%s' missing required '%s' method" %(module.__name__,m)
                 
-                # and exactly one of these:
-                n = 0
-                if hasattr(p,c.EXPORTER):
-                    n += 1
-                    if not hasattr(p,c.EXPORT_MENU_ENTRY):
-                        raise NameError, "module '%s' missing required '%s' class variable" %(module.__name__,c.EXPORT_MENU_ENTRY)
-
-                if hasattr(p,c.TRANSFORMER):
-                    n += 1
-                    if not hasattr(p,c.TRANSFORM_MENU_ENTRY):
-                        raise NameError, "module '%s' missing required '%s' class variable" %(module.__name__,c.TRANSFORM_MENU_ENTRY)
-                if n is 0:
-                    raise NameError, "module '%s': must have at least a %s() or a %s() method" %(module.__name__,c.EXPORTER,c.TRANSFORMER)
-                
+#                # and exactly one of these:
+#                n = 0
+#                if hasattr(p,c.EXPORTER):
+#                    n += 1
+#                    if not hasattr(p,c.EXPORT_MENU_ENTRY):
+#                        raise NameError, "module '%s' missing required '%s' class variable" %(module.__name__,c.EXPORT_MENU_ENTRY)
+#
+#                if hasattr(p,c.TRANSFORMER):
+#                    n += 1
+#                    if not hasattr(p,c.TRANSFORM_MENU_ENTRY):
+#                        raise NameError, "module '%s' missing required '%s' class variable" %(module.__name__,c.TRANSFORM_MENU_ENTRY)
+#                if n is 0:
+#                    raise NameError, "module '%s': must have at least a %s() or a %s() method" %(module.__name__,c.EXPORTER,c.TRANSFORMER)
+#                
                           
             except NameError,msg:
                 g.logger.logger.warning(msg)

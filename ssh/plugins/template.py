@@ -21,6 +21,7 @@
 
 from varspace import  VarSpace
 import globals as g
+import constants as c
 
 class Plugin(object):
     """
@@ -61,7 +62,7 @@ class Plugin(object):
     VERSION =       '0.1'
     """plugin version number"""
         
-    SPECVERSION =   '1'       
+    SPECVERSION =   12      
     """running version number of the varspace .cfg file format
     
         Increment this value time you change a non-comment field in SPECNAME. 
@@ -75,11 +76,14 @@ class Plugin(object):
         [Version]
     
         # do not edit the following value:
-        specversion = string(default="'''  + \
-        str(SPECVERSION) + '")\n' + \
-    '''
+        specversion =  integer(default='''  + 
+        str(SPECVERSION) + ''')
+
         
-        [Variables]
+        [''' + c.VARIABLES +
+        
+        ''']
+        
         
         # persistent variables
         tool_dia = float(default=63.0)
@@ -102,8 +106,9 @@ class Plugin(object):
               
         random_text    = string(default='ver random')
        
-                 
-        [UI]
+                  
+        [''' + c.UI_VARIABLES +
+        ''']
         # Variables listed here are displayed in the UI and are editable
         # the string value is the descriptive text displayed in a Label
         # variables from the Variables section can be interpolated into
