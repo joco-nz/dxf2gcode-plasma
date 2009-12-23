@@ -26,15 +26,12 @@
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
 
-import sys, os, string
-import time
+import sys, os
 
 #Delete loaded modules from memory
 if globals().has_key('init_modules'):
     for m in [x for x in sys.modules.keys() if x not in init_modules]:
         del(sys.modules[m]) 
-else:
-    init_modules = sys.modules.keys()
 
 # some button bindings differ on Mac OS
 platform = ""  
@@ -59,13 +56,14 @@ from ccomp_chrisko import ShapeOffsetClass
 from math import radians, degrees
 
 import webbrowser, gettext, tempfile, subprocess
-from Tkconstants import END, ALL, N, S, E, W, RIDGE, DISABLED, NORMAL, ACTIVE, LEFT
+from Tkconstants import END, ALL, N, S, E, W, RIDGE, DISABLED, NORMAL, ACTIVE, \
+LEFT
 from tkMessageBox import showwarning
-from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Label, Entry, Text, Scrollbar, Toplevel, Button
+from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Label, Entry, \
+Text, Scrollbar, Toplevel, Button
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
-from copy import copy
 
 # Global Variables
 APPNAME = "dxf2gcode"
@@ -90,10 +88,11 @@ if (lc):
 
 # Herausfinden welche sprachen wir haben
 language = os.environ.get('LANGUAGE', None)
+"""langage comes back something like en_CA:en_US:en_GB:en
+on linuxy systems, on Win32 it's nothing, so we need to
+split it up into a list"""
 if (language):
-    """langage comes back something like en_CA:en_US:en_GB:en
-    on linuxy systems, on Win32 it's nothing, so we need to
-    split it up into a list"""
+
     langs += language.split(":")
 
 """Now add on to the back of the list the translations that we
@@ -117,7 +116,7 @@ class MyMainWindow:
     
     """
 
-    def __init__(self, master=None, load_filename=None):
+    def __init__(self, load_filename=None):
         """
         The function can be used with an addition parameter for the filename to
         display after startup
@@ -146,13 +145,16 @@ class MyMainWindow:
 
         #Linker Rahmen erstellen, in welchen später die Eingabefelder kommen       
         self.frame_l = Frame(master) 
-        self.frame_l.grid(row=0, column=0, rowspan=2, padx=4, pady=4, sticky=N + E + W)
+        self.frame_l.grid(row=0, column=0, rowspan=2,
+                           padx=4, pady=4, sticky=N + E + W)
         
         #Erstellen des Canvas Rahmens
         self.frame_c = Frame(master, relief=RIDGE, bd=2)
-        self.frame_c.grid(row=0, column=1, padx=4, pady=4, sticky=N + E + S + W)
+        self.frame_c.grid(row=0, column=1,
+                          padx=4, pady=4, sticky=N + E + S + W)
         
-        #Unterer Rahmen erstellen mit der Lisbox + Scrollbar zur Darstellung der Ereignisse.
+        #Unterer Rahmen erstellen mit der Lisbox + Scrollbar zur Darstellung 
+        #der Ereignisse.
         self.frame_u = Frame(master) 
         self.frame_u.grid(row=1, column=1, padx=4, sticky=N + E + W + S)
         #Erstellen des Statusfenster
@@ -162,7 +164,8 @@ class MyMainWindow:
         self.config = ConfigClass(self.textbox, FOLDER, APPNAME)
 
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
-        self.postpro = PostprocessorClass(self.config, self.textbox, FOLDER, APPNAME, VERSION, DATE)
+        self.postpro = PostprocessorClass(self.config, self.textbox, FOLDER,
+                                           APPNAME, VERSION, DATE)
 
         self.master.columnconfigure(0, weight=0)
         self.master.columnconfigure(1, weight=1)
@@ -754,6 +757,7 @@ class CanvasClass:
         self.Content = []
 
         #Erstellen der Standardwerte
+        self.firstevent = []
         self.lastevent = []
         self.sel_rect_hdl = []
         self.dir_var = IntVar()
@@ -823,7 +827,7 @@ class CanvasClass:
     #Callback fuer das Auswählen von Elementen
     def select_cont(self, event):
         #Abfrage ob ein Contextfenster offen ist, speziell fuer Linux
-        self.schliesse_contextmenu()
+        self.close_contextmenu()
         
         self.moving(event)
         self.Content.deselect()
@@ -832,7 +836,7 @@ class CanvasClass:
 
     def multiselect_cont(self, event):
         #Abfrage ob ein Contextfenster offen ist, speziell fuer Linux
-        self.schliesse_contextmenu()
+        self.close_contextmenu()
         
         self.sel_rect_hdl = Rectangle(self.canvas, event.x, event.y, event.x, event.y, outline="grey") 
         self.lastevent = event
@@ -911,7 +915,7 @@ class CanvasClass:
         self.lastevent = event
 
         #Abfrage ob das Contextfenster schon existiert, speziell fuer Linux
-        self.schliesse_contextmenu()
+        self.close_contextmenu()
             
         #Contextmenu erstellen zu der Geometrie        
         popup = Menu(self.canvas, tearoff=0)
@@ -948,7 +952,11 @@ class CanvasClass:
         popup.post(event.x_root, event.y_root)
         
     #Speziell fuer Linux falls das Contextmenu offen ist dann schliessen
-    def schliesse_contextmenu(self):
+    def close_contextmenu(self):
+        """ 
+        Additional function to close the popup contextmenu. Was needed in Linux
+        since it was not popberly closing.
+        """ 
         try:
             self.popup.destroy()
             del(self.popup)
@@ -956,6 +964,9 @@ class CanvasClass:
             pass
 
     def autoscale(self):
+        """ 
+        Autoscales the Canvas.
+        """ 
 
         #Rand der um die Extreme des Elemente dargestellt wird        
         rand = 20
@@ -999,37 +1010,10 @@ class CanvasClass:
         x_ca = (x_st - self.dx) * self.scale
         y_ca = (y_st - self.dy) * self.scale - self.canvas.winfo_height()
         return x_ca, y_ca
-
-#    def scale_contours(self,delta_scale):     
-#        self.scale=self.scale/delta_scale
-#        self.dx=self.dx*delta_scale
-#        self.dy=self.dy*delta_scale
-#
-#        #Schreiben der neuen WErte simulierne auf Curser Punkt 0, 0
-#        event=PointClass(x=0,y=0)
-#        self.moving(event)
-#
-#        #Skalieren der Shapes
-#        for shape in self.Content.Shapes:
-#            shape.sca[0]=shape.sca[0]*delta_scale
-#            shape.sca[1]=shape.sca[1]*delta_scale
-#            shape.sca[2]=shape.sca[2]*delta_scale
-#            
-#            shape.p0=shape.p0*[delta_scale,delta_scale]
-#
-#    def move_wp_zero(self,delta_dx,delta_dy):
-#        self.dx=self.dx-delta_dx
-#        self.dy=self.dy-delta_dy
-#
-#        #Verschieben der Shapes 
-#        for shape in self.Content.Shapes:
-#            shape.p0-=PointClass(x=delta_dx,y=delta_dy)
-#
-#        #Update des Nullpunkts auf neue Koordinaten
-#        self.Content.plot_wp_zero()
         
 #Klasse mit den Inhalten des Canvas & Verbindung zu den Konturen
 class CanvasContentClass:
+    
     def __init__(self, Canvas, textbox, config, MyNotebook):
         self.Canvas = Canvas
         self.textbox = textbox
@@ -1039,6 +1023,7 @@ class CanvasContentClass:
         self.LayerContents = []
         self.EntitiesRoot = EntitieContentClass()
         self.BaseEntities = EntitieContentClass()
+        self.EntitieContents = []
         self.Selected = []
         self.Disabled = []
         self.wp_zero_hdls = []
@@ -1057,14 +1042,14 @@ class CanvasContentClass:
         self.toggle_show_disabled.set(0)  
         
     def __str__(self):
-        s = '\nNr. of Shapes -> %s' % len(self.Shapes)
+        str = '\nNr. of Shapes -> %str' % len(self.Shapes)
         for lay in self.LayerContents:
-            s = s + '\n' + str(lay)
+            str = str + '\n' + str(lay)
         for ent in self.EntitieContents:
-            s = s + '\n' + str(ent)
-        s = s + '\nSelected -> %s' % (self.Selected)\
-           + '\nDisabled -> %s' % (self.Disabled)
-        return s
+            str = str + '\n' + str(ent)
+        str = str + '\nSelected -> %str' % (self.Selected)\
+           + '\nDisabled -> %str' % (self.Disabled)
+        return str
 
     def calc_dir_var(self):
         if len(self.Selected) == 0:
@@ -1103,9 +1088,9 @@ class CanvasContentClass:
         
         self.makeccshapes(parent=self.EntitiesRoot)
         
-        #self.plot_ccshapes()
+        self.plot_ccshapes()
         
-        self.plot_shapes()
+        #self.plot_shapes()
         
         self.LayerContents.sort()     
 
@@ -1168,18 +1153,18 @@ class CanvasContentClass:
                     if cont.order[ent_geo_nr][1]:
                         ent_geo.geo.reverse()
                         for geo in ent_geo.geo:
-                            abs_geo = geo.make_abs_geo(parent=parent,reverse=1)
+                            abs_geo = geo.make_abs_geo(parent=parent, reverse=1)
                             abs_geo.calc_bounding_box()
                             self.Shapes[-1].geos.append(abs_geo)
-                            self.Shapes[-1].BB=self.Shapes[-1].BB.joinBB(abs_geo.BB)
+                            self.Shapes[-1].BB = self.Shapes[-1].BB.joinBB(abs_geo.BB)
 
                         ent_geo.geo.reverse()
                     else:
                         for geo in ent_geo.geo:
-                            abs_geo = geo.make_abs_geo(parent=parent,reverse=0)
+                            abs_geo = geo.make_abs_geo(parent=parent, reverse=0)
                             abs_geo.calc_bounding_box()
                             self.Shapes[-1].geos.append(abs_geo)
-                            self.Shapes[-1].BB=self.Shapes[-1].BB.joinBB(abs_geo.BB)
+                            self.Shapes[-1].BB = self.Shapes[-1].BB.joinBB(abs_geo.BB)
                         
                 self.addtoLayerContents(self.Shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.Shapes[-1])
@@ -1603,35 +1588,6 @@ class VariableDialogWindow(Toplevel):
         for tkintervar in self.tkintervars:
             self.result.append(tkintervar.get())
 
-#class SysOutListener:
-#    def __init__(self):
-#        self.first = True
-#    def write(self, string):
-#        f=open('d:/dxf2gcode_out.txt', 'a')
-#        if self.first:
-#            self.first = False
-#            f.write('\n\n' + time.ctime() + ':\n')
-#        f.write(string)
-#        f.flush()
-#        f.close()
-#        sys.__stdout__.write(string)
-#
-#
-#class SysErrListener:
-#    def __init__(self):
-#        self.first = True
-#    def write(self, string):
-#        
-#        f=open(os.path.join(FOLDER,'dxf2gcode_err.txt'), 'a')
-#        if self.first:
-#            self.first = False
-#            f.write('\n\n' + time.ctime() + ':\n')
-#        f.write(string)
-#        f.flush()
-#        f.close()
-#        sys.__stderr__.write(string)
-
-
 
 #Hauptfunktion zum Aufruf des Fensters und Mainloop     
 if __name__ == "__main__":
@@ -1644,9 +1600,9 @@ if __name__ == "__main__":
 
     #Falls das Programm mit Parametern von EMC gestartet wurde
     if len(sys.argv) > 1:
-        MyMainWindow(master, sys.argv[1])
+        MyMainWindow(sys.argv[1])
     else:
-        MyMainWindow(master)
+        MyMainWindow()
 
     master.mainloop()
 

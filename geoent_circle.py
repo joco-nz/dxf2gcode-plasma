@@ -26,66 +26,67 @@ from math import sqrt, sin, cos, atan2, radians, degrees, pi
 from point import PointClass, PointsClass, ArcGeo, ContourClass
 
 class CircleClass:
-    def __init__(self,Nr=0,caller=None):
-        self.Typ='Circle'
+    def __init__(self, Nr=0, caller=None):
+        self.Typ = 'Circle'
         self.Nr = Nr
         self.Layer_Nr = 0
-        self.length= 0.0
-        self.geo=[]
+        self.length = 0.0
+        self.geo = []
 
         #Lesen der Geometrie
         self.Read(caller)
         
     def __str__(self):
         # how to print the object
-        return("\nTyp: Circle ")+\
-              ("\nNr: %i" %self.Nr)+\
-              ("\nLayer Nr:%i" %self.Layer_Nr)+\
+        return("\nTyp: Circle ") + \
+              ("\nNr: %i" % self.Nr) + \
+              ("\nLayer Nr:%i" % self.Layer_Nr) + \
               str(self.geo[-1])
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
-        cont.append(ContourClass(len(cont),1,[[i,0]],self.length))
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+        cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length))
         return warning
         
     def Read(self, caller):
 
         #K�rzere Namen zuweisen
-        lp=caller.line_pairs
+        lp = caller.line_pairs
 
         #Layer zuweisen        
-        s=lp.index_code(8,caller.start+1)
-        self.Layer_Nr=caller.Get_Layer_Nr(lp.line_pair[s].value)
+        s = lp.index_code(8, caller.start + 1)
+        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
         #XWert
-        s=lp.index_code(10,s+1)
-        x0=float(lp.line_pair[s].value)
+        s = lp.index_code(10, s + 1)
+        x0 = float(lp.line_pair[s].value)
         #YWert
-        s=lp.index_code(20,s+1)
-        y0=float(lp.line_pair[s].value)
-        O=PointClass(x0,y0)
+        s = lp.index_code(20, s + 1)
+        y0 = float(lp.line_pair[s].value)
+        O = PointClass(x0, y0)
         #Radius
-        s=lp.index_code(40,s+1)
-        r= float(lp.line_pair[s].value)
+        s = lp.index_code(40, s + 1)
+        r = float(lp.line_pair[s].value)
                                 
         #Berechnen der Start und Endwerte des Kreises ohne �berschneidung              
-        s_ang= -3*pi/4
-        e_ang= -3*pi/4
+        s_ang = -3 * pi / 4
+        e_ang = -3 * pi / 4
 
         #Berechnen der Start und Endwerte des Arcs
-        Pa=PointClass(x=cos(s_ang)*r,y=sin(s_ang)*r)+O
-        Pe=PointClass(x=cos(e_ang)*r,y=sin(e_ang)*r)+O
+        Pa = PointClass(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
+        Pe = PointClass(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
 
         #Anh�ngen der ArcGeo Klasse f�r die Geometrie
-        self.geo.append(ArcGeo(Pa=Pa,Pe=Pe,O=O,r=r,s_ang=s_ang,e_ang=e_ang,dir=1))
+        self.geo.append(ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r,
+                               s_ang=s_ang, e_ang=e_ang, direction=1))
         self.geo[-1].reverse()
 
         #L�nge entspricht der L�nge des Kreises
-        self.length=self.geo[-1].length
+        self.length = self.geo[-1].length
        
         #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben        
-        caller.start=s        
+        caller.start = s        
 
-    def get_start_end_points(self,direction):
-        punkt,angle=self.geo[-1].get_start_end_points(direction)
-        return punkt,angle
+    def get_start_end_points(self, direction):
+        punkt, angle = self.geo[-1].get_start_end_points(direction)
+        return punkt, angle
     
         
