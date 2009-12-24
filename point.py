@@ -73,6 +73,13 @@ class PointClass:
         yt = other.y + self.x * sin(alpha) + self.y * cos(alpha)
         return PointClass(x=xt, y=yt)
     def get_arc_point(self, ang=0, r=1):
+        """ 
+        Returns the point on the arc defined by r and the given angel
+        @param ang: The angle of the point
+        @param radius: The radius around the given point
+        @return: A point on given given radius from Point self
+        """ 
+        
         return PointClass(x=self.x + cos(radians(ang)) * r, \
                           y=self.y + sin(radians(ang)) * r)
 
@@ -506,15 +513,15 @@ class ArcGeo:
         
         #If self circle is surrounded by the other no intersection
         if(O_dis <= abs(self.r - other.r)):
-            return 
+            return []
 
         #If other circle is surrounded by the self no intersection
         if(O_dis > abs(self.r + other.r)):
-            return 
+            return []
         
         #If both circels have the same center no intersection
         if abs(O_dis) == 0.0:
-            return 
+            return []
 
         #The following algorithm was found on :
         #http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
@@ -546,7 +553,9 @@ class ArcGeo:
 
 #        if(self.O.x == other.O.x):
 #            d1 = (self.O.x - other.O.x)/(other.O.y - self.O.y)
-#            d2 = ((pow(self.r,2) - pow(other.r,2))- (pow(self.O.y,2) - pow(other.O.y,2)) - (pow(self.O.x,2) - pow(other.O.x,2))  )/(2*other.O.y - 2*self.O.y)
+#            d2 = ((pow(self.r,2) - pow(other.r,2))- (pow(self.O.y,2) 
+#            - pow(other.O.y,2)) - (pow(self.O.x,2) - pow(other.O.x,2))  )/
+#            (2*other.O.y - 2*self.O.y)
 #            a = pow(d1,2)+1
 #            b = (2*d1*(d2-self.O.y))-(2*self.O.x)
 #            c = pow((d2-self.O.y),2) -pow(self.r,2) + pow(self.O.x,2)
@@ -558,7 +567,9 @@ class ArcGeo:
 #
 #        else:
 #            d1 =(self.O.y - other.O.y)/(other.O.x - self.O.x)
-#            d2 =((pow(self.r,2) - pow(other.r,2))- (pow(self.O.x,2) - pow(other.O.x,2)) -  (pow(self.O.y,2) - pow(other.O.y,2))  )/(2*other.O.x - 2*self.O.x)
+#            d2 =((pow(self.r,2) - pow(other.r,2))- (pow(self.O.x,2) 
+#            - pow(other.O.x,2)) -  (pow(self.O.y,2) - pow(other.O.y,2))  )
+#            /(2*other.O.x - 2*self.O.x)
 #            a = pow(d1,2)+1
 #            b = (2*d1*(d2-self.O.x))-(2*self.O.y)
 #            c = pow((d2-self.O.x),2)-pow(self.r,2) + pow(self.O.y,2)
@@ -572,7 +583,70 @@ class ArcGeo:
 
         #If both solutions are identical then return only one.
 
-
+    def isLSIP(self, point=PointClass, tol=0.01):
+        """
+        Checks if the point is a Local Self Intersection Point of the ArcGeo
+        @param point: The Point which shall be ckecke
+        @return: Returns true or false
+        """
+        
+        #The linear tolerance in angle
+        atol = 0.01 / 2 / pi / self.r
+        pang = self.O.norm_angle(point)
+        
+         
+        if self.ext >= 0.0:
+            return self.angle_between(self.s_ang + atol, self.e_ang - tol, pang)
+        else:
+            return self.angle_between(self.e_ang + atol, self.s_ang - tol, pang)
+    
+        
+    def split_into_2geos(self, ipoint=PointClass()):
+        """
+        Splits the given geometry into 2 not self intersection geometries. The
+        geometry will be splitted between ipoint and Pe.
+        @param ipoint: The Point where the intersection occures
+        @return: A list of 2 ArcGeo's will be returned.
+        """
+       
+        #The angle between endpoint and where the intersection occures
+        d_e_ang = self.e_ang - self.O.norm_angle(ipoint)
+        
+        #Correct by 2*pi if the direction is wrong
+        if d_e_ang > self.ext:
+            d_e_ang -= 2 * pi
+            
+        #The point where the geo shall be splitted
+        spoint = self.O.get_arc_point(ang=degrees(self.e_ang - d_e_ang / 2),
+                                      r=self.r)
+        
+        #Generate the 2 geometries and their bounding boxes.
+        Arc1 = ArcGeo(Pa=self.Pa, Pe=spoint, r=self.r,
+                       O=self.O, direction=self.ext)
+        Arc1.calc_bounding_box()
+        Arc2 = ArcGeo(Pa=spoint, Pe=self.Pe, r=self.r,
+                       O=self.O, direction=self.ext)
+        Arc2.calc_bounding_box()
+        
+        return [Arc1, Arc2]
+        
+    def angle_between(self, min_ang, max_ang, angle):
+        """
+        Returns if the angle is in the range between 2 other angles
+        @param min_ang: The starting angle
+        @param parent: The end angel. Always in ccw direction from min_ang
+        @return: True or False
+        """
+        if min_ang < 0.0:
+            min_ang += 2 * pi
+        
+        while max_ang < min_ang:
+            max_ang += 2 * pi
+            
+        while angle < min_ang:
+            angle += 2 * pi
+                    
+        return (min_ang < angle) and (angle <= max_ang)
    
     def rot_angle(self, angle, parent):
         """
@@ -608,6 +682,8 @@ class ArcGeo:
     def Write_GCode(self, postpro=None):
         """
         Writes the GCODE for a ARC.
+        @param postpro: The postprocessor instance to be used
+        @return: Returns the string to be written to a file.
         """
        
         #If the radius of the element is bigger then the max. radius export
@@ -824,16 +900,54 @@ class LineGeo:
         
         return [Pi1, Pi2]  
          
+    def isLSIP(self, point=PointClass, tol=0.01):
+        """
+        Checks if the point is on the LineGeo
+        @param other: The Point which shall be ckecke
+        @return: Returns true or false
+        """
+        return self.BB.pointisinBB(point=point, tol=tol)
+    
+    def split_into_2geos(self, ipoint=PointClass()):
+        """
+        Splits the given geometry into 2 not self intersection geometries. The
+        geometry will be splitted between ipoint and Pe.
+        @param ipoint: The Point where the intersection occures
+        @return: A list of 2 LineGeo's will be returned.
+        """
+        #The point where the geo shall be splitted
+        spoint = PointClass(x=(ipoint.x + self.Pe.x) / 2,
+                          y=(ipoint.y + self.Pe.y) / 2)
+        
+        Li1 = LineGeo(Pa=self.Pa, Pe=spoint)
+        Li1.calc_bounding_box()
+        Li2 = LineGeo(Pa=spoint, Pe=self.Pe)
+        Li2.calc_bounding_box()
+        
+        return [Li1, Li2]
+        
+         
     def Write_GCode(self, postpro=None):
+        """
+        To be calles if a LineGeo shall be wirtten to the postprocessor.
+        @param pospro: The used Posprocessor instance
+        @return: a string to be written into the file
+        """
         return postpro.lin_pol_xy(self.Pa, self.Pe)
 
     def distance2point(self, point):
+        """
+        Returns the distance between a line and a given point
+        @param point: The Point which shall be checked
+        @return: returns the distance to the Line
+        """
         try:
             AE = self.Pa.distance(self.Pe)
             AP = self.Pa.distance(point)
             EP = self.Pe.distance(point)
             AEPA = (AE + AP + EP) / 2
-            return abs(2 * sqrt(abs(AEPA * (AEPA - AE) * (AEPA - AP) * (AEPA - EP))) / AE)
+            return abs(2 * sqrt(abs(AEPA * (AEPA - AE) * \
+                                     (AEPA - AP) * (AEPA - EP))) / AE)
         except:
             return 1e10
             
@@ -881,9 +995,23 @@ class BoundingBoxClass:
         @param other: The 2nd Bounding Box
         @return: Returns true or false
         """        
-        x_inter_pos = (self.Pe.x - tol > other.Pa.x) and (self.Pa.x + tol < other.Pe.x)
-        y_inter_pos = (self.Pe.y - tol > other.Pa.y) and (self.Pa.y + tol < other.Pe.y)
+        x_inter_pos = (self.Pe.x - tol > other.Pa.x) and \
+        (self.Pa.x + tol < other.Pe.x)
+        y_inter_pos = (self.Pe.y - tol > other.Pa.y) and \
+        (self.Pa.y + tol < other.Pe.y)
      
+        return x_inter_pos and y_inter_pos
+    
+    def pointisinBB(self, point=PointClass(), tol=0.01):
+        """
+        Checks if the point is within the bounding box
+        @param point: The Point which shall be ckecke
+        @return: Returns true or false
+        """
+        x_inter_pos = (self.Pe.x - tol > point.x) and \
+        (self.Pa.x + tol < point.x)
+        y_inter_pos = (self.Pe.y - tol > point.y) and \
+        (self.Pa.y + tol < point.y)
         return x_inter_pos and y_inter_pos
      
     def plot2can(self, canvas=None, tag=None, col='red', hdl=[]):
@@ -909,7 +1037,20 @@ class BoundingBoxClass:
 
 
 class BiarcClass:
-    def __init__(self, Pa=[], tan_a=[], Pb=[], tan_b=[], min_r=5e-4):
+    """ 
+    BiarcClass Class for the generation of Biarc Section. It is used for the
+    Ellipse fitting and the Nurbs convertion to Line and Arc segements.
+    """
+    def __init__(self, Pa=PointClass(), tan_a=0.0,
+                  Pb=PointClass, tan_b=0.0, min_r=5e-4):
+        """ 
+        Std. method to initialise the class.
+        @param Pa: Start Point for the Biarc
+        @param tan_a: Tangent of the Start Point
+        @param Pb: End Point of the Biarc
+        @param tan_b: Tangent of the End Point
+        @param min_r: The minimu radius of a arc section.
+        """
         min_len = 1e-9        #Min Abstand für doppelten Punkt
         min_alpha = 1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
         max_r = 5e3           #Max Radius ab welchem Gerade angenommen wird (5m)
@@ -934,7 +1075,6 @@ class BiarcClass:
         
         if(self.l < min_len):
             self.shape = "Zero"
-            pass
         
             
         elif(self.shape == "LineGeo"):
@@ -1030,8 +1170,10 @@ class BiarcClass:
             
     def calc_r1_r2(self, l, alpha, beta, teta):
         #print("alpha: %s, beta: %s, teta: %s" %(alpha,beta,teta))
-        r1 = (l / (2 * sin((alpha + beta) / 2)) * sin((beta - alpha + teta) / 2) / sin(teta / 2))
-        r2 = (l / (2 * sin((alpha + beta) / 2)) * sin((2 * alpha - teta) / 2) / sin((alpha + beta - teta) / 2))
+        r1 = (l / (2 * sin((alpha + beta) / 2)) * 
+              sin((beta - alpha + teta) / 2) / sin(teta / 2))
+        r2 = (l / (2 * sin((alpha + beta) / 2)) * 
+              sin((2 * alpha - teta) / 2) / sin((alpha + beta - teta) / 2))
         return r1, r2
     
     def calc_s_e_ang(self, P1, O, P2):

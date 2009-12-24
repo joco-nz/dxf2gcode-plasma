@@ -63,7 +63,8 @@ class ShapeClass:
                ('\nclosed:      %i' % self.closed) + \
                ('\ncut_cor:     %s' % self.cut_cor) + \
                ('\nlen(geos):   %i' % len(self.geos)) + \
-               ('\ngeos:        %s' % self.geos)
+               ('\ngeos:        %s' % self.geos) + \
+               ('\ngeo_hdls:    %s' % self.geos_hdls)
 
 
     def AnalyseAndOptimize(self, MyConfig=None):
@@ -129,6 +130,11 @@ class ShapeClass:
         
 
     def plot2can(self, canvas, col='black'):
+        """
+        To be called if a Shape shall be printed to the canvas
+        @param canvas: The canvas to be printed in
+        @param pospro: The color of the shape 
+        """
         for geo in self.geos:
             self.geos_hdls += geo.plot2can(canvas=canvas,
                                          tag=self.nr,

@@ -22,7 +22,7 @@ class ShapeOffsetClass:
         Standard method to initialize the class
         """ 
         self.tol = 0.01
-        self.shape = ShapeClass()
+        self.ccshape = ShapeClass()
         self.radius = 10
         self.dir = 41
         
@@ -38,9 +38,12 @@ class ShapeOffsetClass:
         self.radius = radius
         self.dir = direction
         
-        ccshape = self.pretreatment()
+        #Pretreatment of the shapes to have no LSIP
+        pretshape = self.pretreatment()
         
-        return ccshape
+        
+        
+        return pretshape
         
 
     def pretreatment(self):
@@ -51,6 +54,13 @@ class ShapeOffsetClass:
         If Local self intersections exist the Elements will be splitted into new
         elements at their intersection point.
         """ 
+        
+        pretshape = ShapeClass(parent=self.shape.parent,
+                           cut_cor=40,
+                           nr=self.shape.nr,
+                           plotoption=1)
+        
+        pretshape.BB = self.shape.BB
         
         #Loop for all geometries in the shape
         for geo_nr in range(1, len(self.shape.geos)):
@@ -65,27 +75,28 @@ class ShapeOffsetClass:
             #Check if the Bounding Box of geo1 has an intersection with BB of 
             #geo2
             intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
-            print intersect
             
             if intersect:
                 points = geo1.find_inter_points(geo2)
+
                 
                 #Check if the point is in tolerance with the last point of geo1
                 #If not it is a Local Self Intersecting Point per Definition 2 
                 #and the element has to be seperated into 2 elements. this will
                 #result in a not self intersecting element. 
-                for point in points:
-                    if point.isintol(geo1.Pe, self.tol):
-                        pass
-                    else:
-                        print "das ist ein echter Intersection point"
-                    
-                    print point
                 
-            
-        self.shape.plotoption = 1
-            
-        return self.shape
+                if len(points):
+                    for point in points:
+                        #There can be only one Local Self Intersection Point.
+                        if geo1.isLSIP(point, self.tol):
+                            pretshape.geos += geo1.split_into_2geos(point)
+                else:
+                    pretshape.geos.append(geo1)
+                    
+        #Add the last geometry             
+        pretshape.geos.append(geo2)
+        
+        return pretshape
         
 #        inshape=ShapeClass(parent=shape.parent,
 #                           cut_cor=40,

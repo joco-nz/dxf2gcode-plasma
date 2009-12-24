@@ -1176,13 +1176,18 @@ class CanvasContentClass:
             shape.plot2can(self.Canvas.canvas)
            
     def makeccshapes(self, parent=None):
+        
         self.CCShapes = []
         self.SOC = ShapeOffsetClass()
         
         for shape in self.Shapes:
+            #self.CCShapes.append(self.SOC.do_compensation(shape, 2, 41))
             self.CCShapes.append(self.SOC.do_compensation(shape, 2, 41))
             
     def plot_ccshapes(self):
+        """
+        Plots the Cutter Compesated shapes to the canvas
+        """
         for ccshape in self.CCShapes:
             ccshape.plot2can(self.Canvas.canvas, col='blue')  
   
