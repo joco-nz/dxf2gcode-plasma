@@ -1,0 +1,65 @@
+
+Themen, damit ichs nicht vergesse:
+
+- Inhalt global cfg vs Inhalt exporter cfg
+-- interpolieren von global cfg Variablen in postpro output
+
+[Depth Coordinates]
+axis3_retract = 15  --> exporter
+
+[Axis letters]
+ax2_letter = Y
+ax1_letter = X
+ax3_letter = Z
+
+
+
+-- alles über varspaces/plugins ziehen
+	config
+	machine
+	
+	methodentest: export,transform,close,wipe,save,clone
+
+-- Entscheidung über 'Verlegungen' - was wohin
+
+- default varspace cfg files lesen: global, per projekt? -> 'save as
+project default', 'save as global default'?
+- Programmpfad als default project_dir
+
+	- separieren r/o dirs und r/w
+		
+- durchgehen Semantik 'Projekt', project_dir, default project -
+Operationen - open, create, clone, switch to ?
+
+- serielle Anwendung von exportern - Output in *einer* Datei
+	JA -> output file == global, nicht exporter
+	
+	
+- Ersatz Postprozessor: Design output-Klasse
+
+- ShapeSet Iteratoren - über die shapes, über die Elemente eines
+shapes -  Modell
+	MyMainWindow->Write_Gcode
+
+- wohin kommt der TSP-Schritt - main, plugin? Was kriegt der exporter/
+transformer - Original, TSP, beides?
+	Aufruf im Exporter
+	
+- rename branch->ssh
+- reimport trunk
+- copy ssh
+
+
+Liu Graphs 4,5,6,8
+
+
+ich meine wir sollten einen gemeinsamen Branch anlgen, der als Kopie
+von Deinem startet und auf dem arbeiten wir dann beide; ab dann müssen
+wir vor einem commit immer die Konflikte mit dem momentanen head
+auflösen und vor Arbeitsbeginn immer 'update to head'.
+
+Bin gespannt wie das so geht mit svn, hab da wenig Erfahrung. Sollten
+wir mal an einer harmlosen Stelle durchspielen, damits keine
+Überraschungen gibt, das wird dann das Kochrezept.
+
+mein branch bleibt Bastelstube.

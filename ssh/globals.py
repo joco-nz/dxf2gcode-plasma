@@ -37,8 +37,9 @@ config = None
 
 
 # PluginLoader, Varspace
-    
-modules =  dict()   # the modules keyed by module name 
+ 
+#moved to PluginLoader    
+#modules =  dict()   # the modules keyed by module name 
 plugins =  dict()   # plugin instances keyed by instance name
 
 
@@ -50,6 +51,15 @@ if os.name == "posix" and sys.platform == "darwin":
     platform = "mac"
 # TODO - windows test
 # TODO - linux test
+
+# Appearance - see NotebookClass
+# on macs/linux the notbook buttons need a character headroom 
+# to display the label properly
+# on windows the come out fine with 0 
+if platform is "mac":
+    NOTEBOOK_BUTTON_EXTRASPACE = 1
+else:
+    NOTEBOOK_BUTTON_EXTRASPACE = 0
 
 
 # Language support

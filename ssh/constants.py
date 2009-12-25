@@ -63,18 +63,10 @@ WINDOW_LOGLEVEL  = logging.INFO
 # plugin related
 # these methods must exist
 REQUIRED = ['__init__', 'cleanup', 'initialize',
-            # class variables
             'TAG', 
-            'DESCRIPTION','VERSION',
+            'DESCRIPTION','VERSION','CLONABLE','HIDDEN_AT_STARTUP',
             'SPECVERSION','SPECNAME']
-# one of these must exist, otherwise it's pretty useless
-EXPORTER = 'export'
-TRANSFORMER = 'transform'
-# if one of the above is defined, the corresponding entry below
-# needs to be defined as well
-EXPORT_MENU_ENTRY = 'EXPORT_MENU_ENTRY'
-TRANSFORM_MENU_ENTRY = 'TRANSFORM_MENU_ENTRY'
-    
-
+# all methods which can be applied to a shapeset are listed here:
+METHOD_DICT = 'shapeset_handlers'
 
 

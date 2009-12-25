@@ -1,6 +1,0 @@
-# $Rev$
-
-# $Date$
-# $Author$
-# $HeadURL$
-# $Id$

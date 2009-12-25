@@ -24,7 +24,11 @@ class BadConfigFileError(SyntaxError):
     """
     syntax error in .cfg file
     """
-
+class VersionMismatchError(SyntaxError):
+    """
+    syntax error in .cfg file
+    """
+    
 class OptionError(SyntaxError):
     """
     conflicting command line option

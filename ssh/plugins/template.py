@@ -16,14 +16,17 @@
 '''
     template for dxf2gcode export/transform plugin
 
+    this is always the best-maintained example for a plugin
+
     Michael Haberler  20.12.2009
 '''
+import sys
 
 from varspace import  VarSpace
 import globals as g
 import constants as c
 
-class Plugin(object):
+class Plugin(VarSpace):
     """
     Template for a dxf2gcode plugin
     
@@ -40,119 +43,135 @@ class Plugin(object):
         - for ConfigObj: U{http://www.voidspace.org.uk/python/configobj.html} 
         - for Validate: U{http://www.voidspace.org.uk/python/validate.html}
     """
-    
-    TAG =           'demo'
-    """short name (for tab riders, varspace subdir and varspace default prefix creation"""
-
-    EXPORT_MENU_ENTRY =    "demo exporter"
-    """menu entry displayed for the export() method
-
-       unused if no export() method defined - leave here nevertheless
-    """
-        
-    TRANSFORM_MENU_ENTRY = "demo transformer"
-    """menu entry displayed for the transform() method
-    
-        unused if no export() method defined - leave here nevertheless
-    """
-        
-    DESCRIPTION =   'demo plugin for DXF2gcode'
-    """verbose plugin description  (for user interface 'About', hovers etc)"""
-        
-    VERSION =       '0.1'
-    """plugin version number"""
-        
-    SPECVERSION =   12      
-    """running version number of the varspace .cfg file format
-    
-        Increment this value time you change a non-comment field in SPECNAME. 
-        
-        If an old varspace.cfg file is detected, it is renamed with a .bad suffix and a new
-        default config file with the same instance name is generated.
-        """
-
-    SPECNAME = str('''
-    # do not edit the following section name:
-        [Version]
-    
-        # do not edit the following value:
-        specversion =  integer(default='''  + 
-        str(SPECVERSION) + ''')
-
-        
-        [''' + c.VARIABLES +
-        
-        ''']
-        
-        
-        # persistent variables
-        tool_dia = float(default=63.0)
-        start_radius = float(default=0.0)
-        axis3_safe_margin = float(default=20.0)
-        axis3_slice_depth = float(default=0.5)
-        axis3_mill_depth = float(default=10.0)
-        f_g1_depth = float(default=50.0)
-        f_g1_plane = float(default=150.0)
-        # Tests
-        booltrue = boolean(default=True)
-        boolfalse = boolean(default=False)
-        option    = string(default='bar')
-    
-        unframed_int = integer(default=50)
-        
-        ax1_letter = string(default="X")
-        ax2_letter = string(default="Y")
-        ax3_letter = string(default="Z")
-              
-        random_text    = string(default='ver random')
-       
-                  
-        [''' + c.UI_VARIABLES +
-        ''']
-        # Variables listed here are displayed in the UI and are editable
-        # the string value is the descriptive text displayed in a Label
-        # variables from the Variables section can be interpolated into
-        # e.g. Label names
-        
-        [[FRAMED]]
-            random_text = string(default="Random Text")
-            
-        [[UNFRAMED]]
-            unframed_int = string(default="Edit int value:")
-            
-            
-        #named frames:
-        [[Tool Parameters]]
-            tool_dia = string(default= "Tool diameter [mm]:")
-            start_radius = string(default= "Start radius (for tool comp.) [mm]:")
-        [[Depth Coordinates]]
-            axis3_safe_margin = string(default= "%(ax3_letter)s safety margin [mm]:")
-            axis3_slice_depth = string(default= "%(ax3_letter)s infeed depth [mm]:")
-            axis3_mill_depth = string(default=  "%(ax3_letter)s mill depth [mm]:")
-        [[Feed Rates]]
-            f_g1_depth = string(default= "G1 feed %(ax3_letter)s-direction [mm/min]:")
-            f_g1_plane = string(default= "G1 feed %(ax1_letter)s%(ax2_letter)s-direction [mm/min]:")
-            
-        [[Test]]
-            # pre-set boolean variables
-            booltrue = string(default = "Checked")
-            boolfalse = string(default = "Unchecked")
-            
-            # a OptionMenu - labeltext is first element, rest is choices:
-            option = string_list(default=list('Tick one of:','foo', 'bar', 'baz'))
-    
-    ''').splitlines()  
-    """ variable and UI description"""
-    
-
+   
     def __init__(self):
+
         """
+        FIXME
+        
         required for plugin syntax validation but should not do anything exotic -
         real initialization happens through I{initialize(self,...)} which is 
         called once the plugin is syntactically validated
         """
-        pass
+        
+        self.shapeset_handlers = {
+                'export'    :  { 'menu_entry' : 'demo export','method':self.export},
+                'transform' :  { 'menu_entry' : 'demo pocketing','method':self.transform},
+ #               'xyzzy'     :  { 'menu_entry' : 'random plugin method','method':self.xyzzy}
+            }
+        """
+        dictionary of function names and corresponding menu entries
+        
+        only methods actually defined in this plugin may be added
+        """
+        
+
+        
+        self.TAG =           'template'
+        """short name (for tab riders, varspace subdir and varspace default prefix creation"""
     
+
+        
+        self.DESCRIPTION =   'template for new plugins'
+        """verbose plugin description  (for user interface 'About', hovers etc)"""
+        
+        self.VERSION =       '0.1'
+        """plugin version number"""
+        
+        self.CLONABLE = True
+        """ several instances of this plugin may exist"""
+        
+        self.HIDDEN_AT_STARTUP = False
+        """ displayed at startup """
+        
+        self.SPECVERSION =   12      
+        """running version number of the varspace .cfg file format
+        
+            Increment this value time you change a non-comment field in SPECNAME. 
+            
+            If an old varspace.cfg file is detected, it is renamed with a .bad suffix and a new
+            default config file with the same instance name is generated.
+            """
+    
+        self.SPECNAME = str('''
+        # do not edit the following section name:
+            [Version]
+        
+            # do not edit the following value:
+            specversion =  integer(default='''  + 
+            str(self.SPECVERSION) + ''')
+    
+            
+            [''' + c.VARIABLES +
+            
+            ''']
+            
+    
+    
+            # persistent variables
+            tool_dia = float(default=63.0)
+            start_radius = float(default=0.0)
+            axis3_safe_margin = float(default=20.0)
+            axis3_slice_depth = float(default=0.5)
+            axis3_mill_depth = float(default=10.0)
+            f_g1_depth = float(default=50.0)
+            f_g1_plane = float(default=150.0)
+            # Tests
+            booltrue = boolean(default=True)
+            boolfalse = boolean(default=False)
+            option    = string(default='bar')
+        
+            unframed_int = integer(default=50)
+            
+            ax1_letter = string(default="X")
+            ax2_letter = string(default="Y")
+            ax3_letter = string(default="Z")
+                  
+            random_text    = string(default='ver random')
+           
+                      
+            [''' + c.UI_VARIABLES +
+            ''']
+            # Variables listed here are displayed in the UI and are editable
+            # the string value is the descriptive text displayed in a Label
+            # variables from the Variables section can be interpolated into
+            # e.g. Label names
+            
+            [[FRAMED]]
+                random_text = string(default="Random Text")
+                
+            [[UNFRAMED]]
+                unframed_int = string(default="Edit int value:")
+                
+                
+            #named frames:
+            [[Tool Parameters]]
+                tool_dia = string(default= "Tool diameter [mm]:")
+                start_radius = string(default= "Start radius (for tool comp.) [mm]:")
+            [[Depth Coordinates]]
+                axis3_safe_margin = string(default= "%(ax3_letter)s safety margin [mm]:")
+                axis3_slice_depth = string(default= "%(ax3_letter)s infeed depth [mm]:")
+                axis3_mill_depth = string(default=  "%(ax3_letter)s mill depth [mm]:")
+            [[Feed Rates]]
+                f_g1_depth = string(default= "G1 feed %(ax3_letter)s-direction [mm/min]:")
+                f_g1_plane = string(default= "G1 feed %(ax1_letter)s%(ax2_letter)s-direction [mm/min]:")
+                
+            [[Test]]
+                # pre-set boolean variables
+                booltrue = string(default = "Checked")
+                boolfalse = string(default = "Unchecked")
+                
+                # a OptionMenu - labeltext is first element, rest is choices:
+                option = string_list(default=list('Tick one of:','foo', 'bar', 'baz'))
+        
+        ''').splitlines()  
+        """ variable and UI description"""
+
+    
+    
+    def __del__self(self):
+        print "TEMPLATE __del__"
+        
     def cleanup(self):
         """
         called when closing a plugin instance
@@ -161,10 +180,12 @@ class Plugin(object):
 
         @return: None.
         """
-        g.logger.logger.info("cleanup plugin %s" %(self.vs.instance_name))
+        g.logger.logger.info("%s.%s()  called" %(self.instance_name,sys._getframe(0).f_code.co_name))
 
-    def initialize(self,varspace):
+    def initialize(self):
         """
+        
+        FXIME
         @param varspace: container for persistent plugin variables
           
             This contains the variables for this plugin as described in I{SPECNAME}, 
@@ -185,7 +206,7 @@ class Plugin(object):
             
                 self.vs.vars.Variables.tool_dia
         
-            The plugin instance name is available as C{self.vs.instance_name} .
+            The plugin instance name is available as C{self.instance_name} .
         
         @type varspace: an instance of VarSpace
               
@@ -195,17 +216,20 @@ class Plugin(object):
             active plugins.
 
         """
-        self.vs = varspace  # remember my varspace
+        g.logger.logger.info("%s.%s()  called" %(self.instance_name,sys._getframe(0).f_code.co_name))
         
+        #self.vs = varspace  # remember my varspace
         # create parameter pane with instance edit, save button
         # parent is the notebook widget
-        self.vs.create_pane()
+        self.create_pane()
         # layout variables as per INI file
-        self.vs.add_config_items()
-        # manually add buttons at bottom
-        self.vs.add_button("",_("Show variables"), self._show_params)
+        self.add_config_items()
+        
+        # Example: manually add buttons at bottom
+        self.add_button("",_("Show variables"), self._show_params)
+        
         # and display as notebook screen
-        self.vs.display_pane(self.vs.instance_name)
+        self.display_pane(self.instance_name)
         
         return True
 
@@ -224,7 +248,8 @@ class Plugin(object):
         @return: None.
         """
 
-        g.logger.logger.info("%s exporter() instance %s called",self.EXPORT_MENU_ENTRY,self.vs.instance_name)
+        g.logger.logger.info("%s.%s()  called" %(self.instance_name,sys._getframe(0).f_code.co_name))
+
 
 
     def transform(self,shapes):
@@ -243,8 +268,10 @@ class Plugin(object):
         @return: a ShapeSet .
         """
 
-        g.logger.logger.info("%s transform() instance %s called",self.EXPORT_MENU_ENTRY,self.vs.instance_name)
+        g.logger.logger.info("%s.%s()  called" %(self.instance_name,sys._getframe(0).f_code.co_name))
+
         return self.my_transform(shapes)
+
 
 # ---- opional user defined functions
     def my_transform(self,shapes):
@@ -257,5 +284,5 @@ class Plugin(object):
         """ 
         demonstrate a button callback 
         """
-        self.vs.print_vars()
+        self.print_vars()
                  

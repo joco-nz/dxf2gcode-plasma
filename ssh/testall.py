@@ -208,77 +208,6 @@ class TextboxClass:
         self.text.yview(END)           
         
         
-        
-class junk:
-    def __init__(self):
-        pass
-
-#class NotebookClass:    
-#    # initialization. receives the master widget
-#    # reference and the notebook orientation
-#    def __init__(self, master,width=0,height=0):
-#
-#
-#
-#        self.active_fr = None
-#        self.count = 0
-#        self.choice = IntVar(0)
-#
-#        self.dummy_x_fr = Frame(master, width=width, borderwidth=0)
-#        self.dummy_y_fr = Frame(master, height=height, borderwidth=0)
-#        self.dummy_x_fr.grid(row=0,column=1)
-#        self.dummy_x_fr.grid_propagate(0)
-#        self.dummy_y_fr.grid(row=1,rowspan=2,column=0)
-#        self.dummy_y_fr.grid_propagate(0)
-#
-#        # creates notebook's frames structure
-#        self.rb_fr = Frame(master, borderwidth=0)
-#        self.rb_fr.grid(row=1,column=1, sticky=N+W)
-#        
-#        self.screen_fr = Frame(master, borderwidth=2, relief=RIDGE)
-#        self.screen_fr.grid(row=2,column=1,sticky=N+W+E)
-#        
-#        master.rowconfigure(2,weight=1)
-#        master.columnconfigure(1,weight=1)
-#
-#    # return a master frame reference for the external frames (screens)
-#    def __call__(self):
-#        return self.screen_fr
-#
-#    # add a new frame (screen) to the (bottom/left of the) notebook
-#    def add_screen(self, fr, title):
-#
-#        b = Radiobutton(self.rb_fr,bd=1, text=title, indicatoron=0, \
-#                        variable=self.choice, value=self.count, \
-#                        command=lambda: self.display(fr))
-#        
-#        b.grid(column=self.count,row=0,sticky=N+E+W)
-#        self.rb_fr.columnconfigure(self.count,weight=1)
-#
-#        fr.grid(sticky=N+W+E)
-#        self.screen_fr.columnconfigure(0,weight=1)
-#        fr.grid_remove()
-#
-#        # ensures the first frame will be
-#        # the first selected/enabled
-#        if not self.active_fr:
-#            fr.grid()
-#            self.active_fr = fr
-#
-#        self.count += 1
-#
-#        # returns a reference to the newly created
-#        # radiobutton (allowing its configuration/destruction)
-#        return b
-#
-#
-#        # hides the former active frame and shows 
-#        # another one, keeping its reference
-#    def display(self, fr):
-#        self.active_fr.grid_remove()
-#        fr.grid()
-#        self.active_fr = fr
-        
 
 class Windoof:
     def __init__(self,master):
@@ -287,17 +216,18 @@ class Windoof:
         self.counter = 0
         self.entries = ['good','bad','ugly']
         self.apply_menu = None
+        self.create_menu = None
         self.instances = []
         
         self.master = master
-        self.pluginloader = None
+#        self.pluginloader = None
         
         # param
         self.frame_l=Frame(master) 
         self.frame_l.grid(row=0,column=0,rowspan=2,padx=4,pady=4,sticky=N+E+W)
     #        add_param_nb(self.frame_l)
-        self.nbook = notebook(self.frame_l,TOP)
-
+        #self.nbook = NotebookClass(self.frame_l,TOP)
+        self.nbook = NotebookClass(self.frame_l,height=200,width=240)
 
         #Erstellen des Canvas Rahmens
         self.frame_c=Frame(master,relief = RIDGE,bd = 2)
@@ -323,89 +253,147 @@ class Windoof:
         #self.ExportParas =ExportParasClass(self.frame_l,self.config,self.postpro)
         self.Canvas =CanvasClass(self.frame_c,self)
         
-        self.menu = Menu(self.master)
+        self.menu = Menu(self.master,tearoff=0)
         self.master.config(menu=self.menu)
 
 
-        list_menu = Menu(self.menu) 
-        list_menu.add_command(label="show instances",command=SimpleCallback(self.dump,1))
-        self.menu.add_cascade(label="Dump", menu=list_menu)
+#        list_menu = Menu(self.menu,tearoff=0) 
+#        list_menu.add_command(label="show instances",command=SimpleCallback(self.dump,1))
+#        self.menu.add_cascade(label="Dump", menu=list_menu)
     
-        self.create_menu = Menu(self.menu) 
-        self.menu.add_cascade(label="Create",menu=self.create_menu)    
+        self.create_menu = Menu(self.menu,tearoff=0) 
+        self.menu.add_cascade(label="Defaults",menu=self.create_menu)    
 
-        self.apply_menu = Menu(self.menu) 
-        self.menu.add_cascade(label="Apply",menu=self.apply_menu)    
-
-
- 
-
-    def add_modules(self,pluginloader):
-
-        self.pluginloader = pluginloader
-
-        for k,v in g.plugins.items():
-            if  v.varspace.is_default:
-                sm= Menu(self.create_menu)
-                sm.add_command(label = "clone %s" %(k),command=SimpleCallback(self.add_instance,k))
-                sm.add_command(label = "hide %s" %(k),command=SimpleCallback(self.apply_hide,k))
-                self.create_menu.add_cascade(label=k,menu=sm)
-        self.menu.entryconfigure(2, menu=self.create_menu)
+        self.apply_menu = Menu(self.menu,tearoff=0) 
+        self.menu.add_cascade(label="Instance",menu=self.apply_menu)    
         
+#        print "dump index ",self.menu.index("Dump")
+#        print "create index ",self.menu.index("Create")
+#        print "apply index ",self.menu.index("Apply")
 
 
-    def apply_clone(self,inst):
-#        self.pluginloader.close_instance(inst)
-#        self.rebuild_menu()    
-        print "clone NOOP", inst
 
-    def apply_hide(self,inst):
-#        self.pluginloader.close_instance(inst)
-#        self.rebuild_menu()    
-        print "hide NOOP", inst
-                     
-        
-        
-        
-    def apply_export(self,inst):
-        print "export ",inst
-    
     def apply_close(self,inst):
-        self.pluginloader.close_instance(inst)
-        self.rebuild_menu()
+        p = g.plugins[inst]
+        p.close_instance(inst)
+        self.rebuild_apply_menu()
+        
 
     def apply_delete(self,inst):
-        self.pluginloader.delete_instance(inst)
-        self.rebuild_menu()
+        p = g.plugins[inst]
+        p.delete_instance(inst)
+        self.rebuild_apply_menu()
         
 
     def add_instance(self,tag):
-        m = g.modules[tag]
-        self.pluginloader.add_instance(m)
-        self.rebuild_menu()
+        p = g.plugins[tag]
+        if p.clone_instance():
+            self.rebuild_apply_menu()
     
+    def save_all(self):
+        # caveat - instance name changes are done as well - migth fail
+        for tag,plugin in g.plugins.items():
+            plugin.save_callback() # save_varspace()
+
+    def toggle_vis(self,inst):
+        if inst.hidden:
+            self.nbook.display(inst.param_frame)
+        else:
+            self.nbook.hide(inst.param_frame)
+        inst.hidden = not inst.hidden
+        self.rebuild_create_menu()
+ 
+    def hide_defaults(self):
+        for k,v in g.plugins.items():
+            if  v.is_default and not v.hidden:
+                self.toggle_vis(v)
+        self.rebuild_create_menu()
     
-    def rebuild_menu(self):
-        self.apply_menu = Menu(self.menu)
-#        apply_menu.add_command(label="single entry")
-#        apply_menu.add_separator()
+    def show_defaults(self):
+        for k,v in g.plugins.items():
+            if  v.is_default and v.hidden:
+                self.toggle_vis(v)
+        self.rebuild_create_menu()
+
+
+
+    def rebuild_create_menu(self):#,pluginloader=None):
+
+        if self.create_menu:
+            self.create_menu.destroy()
+        self.create_menu = Menu(self.menu,tearoff=0)
+        
+        for k,v in g.plugins.items():
+            if  v.is_default and v.CLONABLE:
+                sm= Menu(self.create_menu,tearoff=0)
+                sm.add_command(label = "Clone '%s'" %(k),command=lambda p=k:self.add_instance(p))    #SimpleCallback(self.add_instance,k))
+
+#                if v.hidden:
+#                    sm.add_command(label = "Show '%s'" %(k),command=lambda i=v:self.toggle_vis(i))
+#                else:
+#                    sm.add_command(label = "Hide '%s'" %(k),command=lambda i=v:self.toggle_vis(i)) 
+                self.create_menu.add_cascade(label=k,menu=sm)
+                
+        self.create_menu.add_separator()
 
         for k,v in g.plugins.items():
-            if not v.varspace.is_default:
-                sm= Menu(self.apply_menu)
-                if hasattr(v,'export'):
-                    sm.add_command(label = "export shape with %s" %(k),command=SimpleCallback(v.export,k))
-                if hasattr(v,'transform'):
-                    sm.add_command(label = "transform shape with %s" %(k),command=SimpleCallback(v.transform,k))                
-                sm.add_command(label = "close %s" %(k),command=SimpleCallback(self.apply_close,k))
-                sm.add_command(label = "delete %s" %(k),command=SimpleCallback(self.apply_delete,k))
+            if  v.is_default and not v.CLONABLE:
+                sm= Menu(self.create_menu,tearoff=0)
+#                if v.CLONABLE:
+#                    sm.add_command(label = "Clone '%s'" %(k),command=lambda p=k:self.add_instance(p))    #SimpleCallback(self.add_instance,k))
+
+                if v.hidden:
+                    sm.add_command(label = "Show '%s'" %(k),command=lambda i=v:self.toggle_vis(i))
+                else:
+                    sm.add_command(label = "Hide '%s'" %(k),command=lambda i=v:self.toggle_vis(i)) 
+                self.create_menu.add_cascade(label=k,menu=sm)
+                
+        self.create_menu.add_separator()
+        self.create_menu.add_command(label="Show defaults",command=lambda:self.show_defaults())
+        self.create_menu.add_command(label="Hide defaults",command=lambda:self.hide_defaults())
+                
+        
+        self.menu.entryconfigure(self.menu.index("Defaults"), menu=self.create_menu)
+        
+#    def handler(self,plugin,method):
+#        print "apply %s p %s" %(method,plugin)
+#        print "dict" , plugin.__dict__
+#        self.pp.pprint(plugin)   
+#
+#        
+#        #plugin.__dict__[method](None)
+        
+    def rebuild_apply_menu(self):
+        if self.apply_menu:
+            self.apply_menu.destroy()
+        self.apply_menu = Menu(self.menu,tearoff=0)
+        self.apply_menu.add_command(label="Save all",command=lambda:self.save_all())
+        self.apply_menu.add_separator()
+
+        for k,v in g.plugins.items():
+            if not v.is_default:
+                sm= Menu(self.apply_menu,tearoff=0)
+                if hasattr(v,c.METHOD_DICT):
+                    for ssh,descr in v.shapeset_handlers.items():  
+#                        for n,x in descr.items():
+#                            print "%s = %s" % (n,x)
+                        sm.add_command(label = descr['menu_entry'],command=SimpleCallback(descr['method'],ssh))# lambda i=v,p=ssh:i.p(p))
+#                if hasattr(v,'transform'):
+#                    sm.add_command(label = "transform shape with %s" %(k),command=lambda i=v,p=k:i.transform(p))     
+                sm.add_separator()
+                sm.add_command(label = "Close '%s'" %(k),command=lambda p=k:self.apply_close(p))
+                sm.add_command(label = "Delete '%s'" %(k),command=lambda p=k:self.apply_delete(p))
                 self.apply_menu.add_cascade(label=k,menu=sm)
-        self.menu.entryconfigure(3, menu=self.apply_menu)
+        self.menu.entryconfigure(self.menu.index("Instance"), menu=self.apply_menu)
     
     def dump(self,arg):
         print "plugin instances:"
         self.pp.pprint(g.plugins)   
-        
+
+    def finalize(self,p):
+        self.rebuild_create_menu() # add module names to Create menu
+        self.rebuild_apply_menu() # add instances  to Apply menu
+    
              
 def setup_logging(window):
     # LogText window exists, setup logging
@@ -424,9 +412,9 @@ if __name__ == "__main__":
     setup_logging(w)
     p = PluginLoader(w)
 
-    w.add_modules(p) # add module names to Create menu
-    w.rebuild_menu() # add instances  to Apply menu
+    w.finalize(p)
     
+
     
     a.mainloop()
 

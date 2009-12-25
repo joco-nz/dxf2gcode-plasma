@@ -38,43 +38,33 @@ from validate import Validator
 
 from dotdictlookup import DictDotLookup
 from simplecallback import SimpleCallback
-from exceptions import *
+from d2gexceptions import *
 import globals as g
 import constants as c
 
-class VarSpace:
-    def __init__(self, specname, pathname, instance_name,frame=None,specversion=None,rename_hook=None,default=False,plugin=None):
+class VarSpace(object):
+#    def __init__(self):
+#        g.logger.logger.error( 'VARSPACE INIT CALLED!!')
+#
+#    def __del__self(self):
+#        print "TEMPLATE __del__"
 
-        self.var_dict = dict()
-        self.tkVars = dict()
-        self.groupcount = 0
-        self.spec = ConfigObj(specname, interpolation=False, list_values=False, _inspec=True)
-        self.pathname = pathname
-        self.nbook = frame
-        self.instance_name = instance_name
-        self.tk_instance_name = None
-        self.rename_hook = rename_hook
-        self.tab_button = None
-        self.default_config = False # wether a new name was generated
-        self.load_varspace(specversion)
-        self.is_default = default
-        self.plugin = plugin
         
-    def cleanup(self,save=True,remove=False):
+    def _cleanup(self,save=True,remove=False):
         """
         close a varspace instance
         optionally save/remove persistence file
         remove parameter pane from window
         """
         if save:
-            self.save_varspace()
+            self._save_varspace()
             g.logger.logger.debug( 'varspace %s saved' %(self.instance_name))
         if remove:
             os.remove(self.pathname)
             g.logger.logger.info( 'varspace %s deleted' %(self.instance_name))
 
-        if self.tab_button:
-            self.tab_button.destroy()
+        self.nbook.hide(self.param_frame)
+
         
     def load_varspace(self,specversion):
 
@@ -99,15 +89,15 @@ class VarSpace:
                     g.logger.logger.error( section_string + ' = ' + error)       
     
                 if validate_errors:
-                    raise BadConfigFileError 
+                    raise BadConfigFileError,"syntax errors in config file"
                     
                 # check config file version against internal version
                 if specversion:
                     fileversion = self.var_dict['Version']['specversion'] # this could raise KeyError
                     if fileversion != specversion:
-                        print 
-                        g.logger.logger.error( 'config file vesions do not match - internal: "%(specversion)s", config file "%(fileversion)s"' %(locals()))
-                        raise BadConfigFileError
+                        #print 
+                        #g.logger.logger.error( 
+                        raise VersionMismatchError,'config file vesions do not match - internal: "%(specversion)s", config file "%(fileversion)s"' %(locals())
                     
             except Exception,inst:
                 # g.logger.logger.error(inst)               
@@ -144,7 +134,7 @@ class VarSpace:
         self.var_dict.filename = self.pathname
         self.var_dict.write()
     
-    def save_varspace(self):
+    def _save_varspace(self):
         self.var_dict.filename = self.pathname
         self.var_dict.write()   
     
@@ -153,12 +143,125 @@ class VarSpace:
         for k,v in self.var_dict['Variables'].items():
             print k," = ",v
 
+    def generate_valid_instance_name(self,tag,directory):
+        """
+        search for next unused instance name in directory
+        ugly, but works
+        """
+        for i in range(100):
+            fn = "%s-%d" % (tag,i)
+            afn=  os.path.join(directory,fn + c.CONFIG_EXTENSION)
+            if not os.path.isfile(afn):
+                return fn
+        return None
+    
+    def clone_instance(self):
+        """
+        clone a plugin instance 
+            - add default varspace
+            - auto-generated instance name
+            - add to g.plugins dictionary
+        
+        return True on success, False on failure
+        """
+        p = self.module.Plugin()  # clone myself
+        p.is_default = False 
+        p.module = self.module
+        p.window = self.window
+        p.nbook = self.window.nbook
+
+
+        varspace_subdir = os.path.join(g.config.config.Paths.varspaces_dir,p.TAG)        
+        p.instance_name = self.generate_valid_instance_name(p.TAG, varspace_subdir)
+        
+        if p.instance_name == None:
+            g.logger.logger.warning("clone_instance() failed - couldnt generate valid instance name for '%s', module '%s', vs=%s" 
+                                    % (p.TAG,p.module.__name__,varspace_subdir))
+            return False
+        else:
+            vs_path = os.path.join(varspace_subdir,p.instance_name + c.CONFIG_EXTENSION)                                    
+            if p.startup_plugin(vs_path): #,self.window,default=False):
+                g.plugins[p.instance_name] = p 
+                g.logger.logger.debug("plugin %s module %s new instance %s created" % (p.TAG,self.module.__name__,p.instance_name))
+                return True
+            else:
+                g.logger.logger.warning("skipping plugin %s module %s instance %s: initialize() failed" 
+                                        % (p.TAG,self.module.__name__,p.instance_name))
+                return False
+    
+    def close_instance(self,instance_name):
+        """
+        close the plugin and save to corresponding varspace file
+        """        
+        p = g.plugins[instance_name]
+        p.cleanup()
+        p._cleanup(save=True)
+
+        del(g.plugins[instance_name])
+        g.logger.logger.debug("plugin %s instance %s closed" % (p.TAG, instance_name))
+ 
+    def delete_instance(self,instance_name):
+        """
+        close the plugin and delete corresponding varspace file
+        """
+        p = g.plugins[instance_name]
+        p.cleanup()
+        p._cleanup(remove=True)
+
+        del(g.plugins[instance_name])
+        g.logger.logger.debug("plugin %s instance %s deleted" % (p.TAG, instance_name))
+  
+    def rename_instance(self,old_instancename, new_instancename):
+        """ 
+        this is a hook called by varspace if the user renamed the instance
+        do necessary UI updates like change menu entries
+        """
+        
+        p = g.plugins[old_instancename]
+        del(g.plugins[old_instancename])
+        g.plugins[new_instancename] = p
+        self.window.rebuild_apply_menu()
+        g.logger.logger.debug("instance %s renamed to %s" % (old_instancename, new_instancename))
+        
+    def startup_plugin(self,varspace_path): #,window): #,default=False):   
+        """
+        initialize the varspace of an existing plugin instance
+        init_varspace() is a superclass method of plugin
+        """
+
+        self.hidden = self.HIDDEN_AT_STARTUP
+        self.default_config = False # wether a new name was generated
+
+        self.var_dict = dict()
+        self.tkVars = dict()
+        self.groupcount = 0
+        self.spec = ConfigObj(self.SPECNAME, interpolation=False, list_values=False, _inspec=True)
+        self.pathname = varspace_path
+        self.tk_instance_name = None
+        try:
+            self.load_varspace(self.SPECVERSION)
+        except Exception,msg:
+            g.logger.logger.warning("varspace %s loading failed: %s" % (self.instance_name,msg))      
+            return False
+            
+        # startup Plugin subclass
+        _result = self.initialize()       
+
+        if not _result and self.default_config:
+            # we auto-generated a varspace and initialize failed
+            # so remove that varspace
+            self._cleanup(save=False,remove=True)
+            #del(p)
+            g.logger.logger.debug("cleanup plugin %s after failed initialize()",self.instance_name)      
+
+        return _result
+    
+
 
     def tkvar_changed_callback(self,varname,vdict,name,index,mode):
         try:
             value = self.tkVars[varname].get()
         except ValueError:
-            # g.logger.logger.debug("VALUE ERROR %s " %(varname))
             # reset to default value if funny keys are pressed
             self.tkVars[varname].set(vdict[varname])
             pass
@@ -168,65 +271,80 @@ class VarSpace:
 
     def save_callback(self):
         if self.is_default:
-            self.save_varspace()
-            g.logger.logger.debug("varspace %s (default) saved" %(self.instance_name))  
+            self._save_varspace()
+            g.logger.logger.debug("varspace %s saved (default) " %(self.instance_name))  
         else:         
-            if self.tk_instance_name.get() != self.instance_name:
+            new_name = self.tk_instance_name.get()
+            if new_name != self.instance_name:
                 
-                old_instance = self.instance_name
-                old_path = self.pathname
-                self.instance_name = self.tk_instance_name.get()
-    
-                self.pathname = os.path.join(os.path.dirname(old_path),self.instance_name+c.CONFIG_EXTENSION)
-                self.save_varspace()
-                # TODO robustify + log
-                os.remove(old_path)
-                self.tab_button.tv.set(self.instance_name)
-                self.tab_button['width'] = len(self.instance_name)
-                
-                # call hook to fixup menu entries
-                if self.rename_hook:
-                    self.rename_hook(old_instance,self.instance_name)
-                
+                if g.plugins.has_key(new_name): # uh-oh
+                    g.logger.logger.error("can't save to %s - instance already exists" %(new_name))
+                else:
+                    old_instance = self.instance_name
+                    old_path = self.pathname
+                    self.instance_name = new_name
+        
+                    self.pathname = os.path.join(os.path.dirname(old_path),self.instance_name+c.CONFIG_EXTENSION)
+                    self._save_varspace()
+                    # TODO robustify + log
+                    os.remove(old_path)
+                    self.nbook.rename(self.param_frame,self.instance_name)
+                    
+                    # fixup menu entries
+                    self.rename_instance(old_instance,self.instance_name)
+                    
+                    # name labelframe
+                    self.set_frame_name()
+
             else:
-                self.save_varspace()
+                self._save_varspace()
                 g.logger.logger.debug("varspace %s saved" %(self.instance_name))
 
-        
+    def set_frame_name(self):
+        if self.is_default:
+            self.label_frame['text'] = self.TAG + ' - defaults'
+        else:
+            self.label_frame['text']  = self.TAG + ':' +  self.instance_name
+    
     def create_pane(self):
         self.param_frame = Frame(self.nbook())
         self.groupcount = 0
 
-        current_frame = Frame(self.param_frame,bd = 0)
-        current_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
+        self.label_frame = LabelFrame(self.param_frame,relief = GROOVE,bd = 2, labelanchor='nw')
+        self.set_frame_name()
+
+            
+#        current_frame = Frame(self.param_frame,bd = 0)
+        self.label_frame.grid(row=self.groupcount, column=0, padx=2, pady=2, sticky=N + W + E)
         self.groupcount += 1
 
         if self.is_default:
-            label = Label(current_frame, text=self.plugin.DESCRIPTION)
+            label = Label(self.label_frame, text=self.DESCRIPTION)
             label.grid(row=0, column=0, sticky= W, padx=4) 
             
-            button = Button(current_frame,text=_('Save as default'),command=self.save_callback)
+            button = Button(self.label_frame,text=_('Save as default'),command=self.save_callback)
             button.grid(row=0, column=1, sticky=E)        
         else:
-            label = Label(current_frame, text=_('Instance name'))
+            label = Label(self.label_frame, text=_('Instance name'))
             label.grid(row=0, column=0, sticky= W, padx=4) 
             
             self.tk_instance_name = StringVar()
             self.tk_instance_name.set(self.instance_name)
      
-            entry = Entry(current_frame, width=15, textvariable=self.tk_instance_name)
+            entry = Entry(self.label_frame, width=15, textvariable=self.tk_instance_name)
             entry.grid(row=0, column=1, sticky=W,padx=4)
     
-            button = Button(current_frame,text=_('Save'),command=self.save_callback)
+            button = Button(self.label_frame,text=_('Save'),command=self.save_callback)
             button.grid(row=0, column=2, sticky=E)
         
         
     def display_pane(self,tab_name):
-        self.tab_button = self.nbook.add_screen(self.param_frame,tab_name)
+        self.nbook.add_screen(self.param_frame,tab_name)
+        self.nbook.display(self.param_frame)    # switch to it
 
     def add_item(self,frame,name,value,text,line,vdict):
                 
-        #print "    line %d add %s default %s label %s " %(line,name,value,labeltext)
+        # print "    line %d add %s default %s label %s " %(line,name,value,text)
         optionlist = None
         if isinstance(text, list):  # OptionMenu = 'labeltext','choice1,'choice2'....
             optionlist = text[1:]
@@ -276,13 +394,12 @@ class VarSpace:
 
         entry.grid(row=line, column=1, sticky=N + E)
 
+
     def add_config_items(self): 
         self._add_config_items(self.param_frame,name=c.UNFRAMED,value=self.var_dict[c.UI_VARIABLES],line = 0)
         
 
     def _add_config_items(self,frame,name=None,value=None,line=0):
-
-        current_frame = None
 
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
        
