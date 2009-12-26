@@ -1,0 +1,38 @@
+<html><head><title>Epydoc Redirect Page</title>
+<meta http-equiv="cache-control" content="no-cache" />
+<meta http-equiv="expires" content="0" />
+<meta http-equiv="pragma" content="no-cache" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+<body>
+<script type="text/javascript">
+<!--
+var pages = ["exceptions.PendingDeprecationWarning-c", "exceptions.UnicodeTranslateError-c", "exceptions.NotImplementedError-c", "exceptions.BadConfigFileError-c", "exceptions.DeprecationWarning-c", "exceptions.FloatingPointError-c", "exceptions.UnicodeDecodeError-c", "exceptions.UnicodeEncodeError-c", "simplecallback.SimpleCallback-c", "exceptions.KeyboardInterrupt-c", "exceptions.UnboundLocalError-c", "exceptions.ZeroDivisionError-c", "dotdictlookup.DictDotLookup-c", "exceptions.EnvironmentError-c", "exceptions.IndentationError-c", "exceptions.ArithmeticError-c", "exceptions.AssertionError-c", "exceptions.AttributeError-c", "exceptions.ReferenceError-c", "exceptions.RuntimeWarning-c", "exceptions.UnicodeWarning-c", "globalconfig.GlobalConfig-c", "pluginloader.PluginLoader-c", "exceptions.BaseException-c", "exceptions.FutureWarning-c", "exceptions.GeneratorExit-c", "exceptions.ImportWarning-c", "exceptions.OverflowError-c", "exceptions.StandardError-c", "exceptions.StopIteration-c", "exceptions.SyntaxWarning-c", "exceptions.BytesWarning-c", "exceptions.RuntimeError-c", "exceptions.UnicodeError-c", "milling_exporter.Plugin-c", "exceptions.BufferError-c", "exceptions.ImportError-c", "exceptions.LookupError-c", "exceptions.MemoryError-c", "exceptions.OptionError-c", "exceptions.SyntaxError-c", "exceptions.SystemError-c", "exceptions.UserWarning-c", "exceptions.IndexError-c", "exceptions.SystemExit-c", "exceptions.ValueError-c", "exceptions.Exception-c", "exceptions.NameError-c", "exceptions.TypeError-c", "exceptions.EOFError-c", "exceptions.KeyError-c", "exceptions.TabError-c", "exceptions.IOError-c", "exceptions.OSError-c", "exceptions.Warning-c", "notebook.notebook-c", "varspace.VarSpace-c", "milling_exporter-m", "template.Plugin-c", "simplecallback-m", "dotdictlookup-m", "globalconfig-m", "pluginloader-m", "exceptions-m", "logger.Log-c", "constants-m", "notebook-m", "template-m", "varspace-m", "globals-m", "logger-m"];
+var dottedName = get_anchor();
+if (dottedName) {
+    var target = redirect_url(dottedName);
+    if (target) window.location.replace(target);
+}
+// -->
+</script>
+
+<h3>Epydoc Auto-redirect page</h3>
+
+<p>When javascript is enabled, this page will redirect URLs of
+the form <tt>redirect.html#<i>dotted.name</i></tt> to the
+documentation for the object with the given fully-qualified
+dotted name.</p>
+<p><a id="message"> &nbsp; </a></p>
+
+<script type="text/javascript">
+<!--
+if (dottedName) {
+    var msg = document.getElementById("message");
+    msg.innerHTML = "No documentation found for <tt>"+
+                    dottedName+"</tt>";
+}
+// -->
+</script>
+
+</body>
+</html>

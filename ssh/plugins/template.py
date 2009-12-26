@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-15 -*-
+# -*- coding: iso-8859-1 -*-
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ class Plugin(VarSpace):
     Template for a dxf2gcode plugin
     
     Plugin() class variables as listed are required - leave the names untouched, fill in the values
-    as needed. Make sure I{TAG} does not collide with another plugin's tag value. 
+    as needed. 
     
     The user interface will display an export option if the C{export} method is defined, and 
     a transform option if the C{transform} method is defined. If you dont need one of them, just
@@ -64,13 +64,6 @@ class Plugin(VarSpace):
         
         only methods actually defined in this plugin may be added
         """
-        
-
-        
-        self.TAG =           'template'
-        """short name (for tab riders, varspace subdir and varspace default prefix creation"""
-    
-
         
         self.DESCRIPTION =   'template for new plugins'
         """verbose plugin description  (for user interface 'About', hovers etc)"""

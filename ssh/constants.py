@@ -38,10 +38,10 @@ PY_EXTENSION = '.py'
 #DEFAULT_EXTENSION = '.def'
 #rename unreadable config/varspace files to .bad
 BAD_CONFIG_EXTENSION = '.bad'
-DEFAULT_CONFIG_FILE = 'config/dxf2gcode' + CONFIG_EXTENSION
+DEFAULT_CONFIG_DIR = 'config/' 
 
-# this environment variable overrides  DEFAULT_CONFIG_FILE
-DXF2GCODE_CONFIG  = 'DXF2GCODE_CFG' 
+# this environment variable overrides  DEFAULT_CONFIG_DIR
+DXF2GCODE_CONFIG_DIR  = 'DXF2GCODE_CFG' 
 
 # config files - magic section tags
 # No space in these strings - must be valid Python identifiers
@@ -63,7 +63,6 @@ WINDOW_LOGLEVEL  = logging.INFO
 # plugin related
 # these methods must exist
 REQUIRED = ['__init__', 'cleanup', 'initialize',
-            'TAG', 
             'DESCRIPTION','VERSION','CLONABLE','HIDDEN_AT_STARTUP',
             'SPECVERSION','SPECNAME']
 # all methods which can be applied to a shapeset are listed here:

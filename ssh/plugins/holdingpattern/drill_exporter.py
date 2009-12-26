@@ -26,7 +26,6 @@ import constants as c
 class Plugin(object):
     '''
      Plugin class variables:
-            TAG - the short name (for tab riders, varspace subdir, varspace default prefix
             MENU_ENTRY - description for menu item
             DESCRIPTION -  verbose plugin description  (for user interface 'About)
             VERSION string
@@ -34,7 +33,6 @@ class Plugin(object):
             SPECNAME  - variable and UI description   
     '''
     
-    TAG =           'drill'
     EXPORT_MENU_ENTRY =    "drilling exporter"
     DESCRIPTION =   'drill export plugin for DXF2gcode'
     VERSION =       '0.2'

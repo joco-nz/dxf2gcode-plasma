@@ -20,21 +20,28 @@ user defined exceptions
 Michael Haberler  20.12.2009
 '''
 
-class BadConfigFileError(SyntaxError):
+
+class BadConfigFileError(Exception):
     """
     syntax error in .cfg file
     """
-class VersionMismatchError(SyntaxError):
+class VersionMismatchError(Exception):
     """
-    syntax error in .cfg file
+    config file version doesnt match internal version
     """
     
-class OptionError(SyntaxError):
+class OptionError(Exception):
     """
     conflicting command line option
     """
 
-class PluginError(SyntaxError):
+class PluginError(Exception):
     """
     something went wrong during plugin loading or initialization
+    """
+
+class PathError(Exception):
+    """
+    typically an OSError during makedirs, with associated more detailed
+    message
     """

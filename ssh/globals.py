@@ -37,9 +37,6 @@ config = None
 
 
 # PluginLoader, Varspace
- 
-#moved to PluginLoader    
-#modules =  dict()   # the modules keyed by module name 
 plugins =  dict()   # plugin instances keyed by instance name
 
 

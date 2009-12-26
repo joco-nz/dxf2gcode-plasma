@@ -35,21 +35,15 @@
 import os
 import sys
 import logging
-from time import asctime
 from optparse import OptionParser
 from configobj import ConfigObj,flatten_errors
 from validate import Validator
 
 import constants as c
 import globals as g
-from exceptions import *
+from d2gexceptions import *
 from dotdictlookup import DictDotLookup
-from logger import Log
 
-
-
-
-# for debugging startup problmes log to console
 
 
 
@@ -178,9 +172,9 @@ CONFIG_SPEC = str('''
 """ format, type and default value specification of the global config file"""
     
 
-class GlobalConfig:
+class GlobalConfig(object):
 
-    def __init__(self):
+    def __init__(self, plugin_loader):        
         """
         setup logging
         parse command line options
@@ -196,7 +190,7 @@ class GlobalConfig:
 
         
         self.config may differ from the config file if there were command
-        line options - to save the current state, self.write_current_config(self.config_file)
+        line options - to save the current state, self.write_current_config(self.config_dir)
         
         @sideeffect:
         sets global.config to instance variable
@@ -214,14 +208,11 @@ class GlobalConfig:
                             
         """
         self.n_errors = 0
-
         self.log = g.logger
         logger = self.log.logger
 
-        self.current_directory = os.getcwd()  
-        
 
-        
+
         parser = OptionParser()
 
         parser.add_option("-d", "--debug",
@@ -231,9 +222,9 @@ class GlobalConfig:
                           action="store_true", dest="printversion", default=False,
                           help="display program version")
         
-        parser.add_option("-c", "--config-file",
-                          action="store", metavar="FILE", dest="config_file", default=None,
-                          help="use FILE as global config file, create default config if none found")        
+        parser.add_option("-c", "--config-directory",
+                          action="store", metavar="DIR", dest="config_dir", default=None,
+                          help="use DIR to search for config.cfg and machine.cfg")        
 
         parser.add_option("-p", "--project-directory",
                           action="store", metavar="DIR", dest="project_dir", default=None,
@@ -265,57 +256,68 @@ class GlobalConfig:
 
         (self.options, self.args) = parser.parse_args()
         opt = self.options # shorthand
-        
-
-            
+    
         if opt.project_dir and opt.create_project_dir:
             logger.error("--create-project-directory and --project-directory"
                           " options are mutually exclusive")
             raise OptionError
 
-
- 
         # pecking order for config file:
         # 1. explicit -C <configfile>
         # 2. if projectdir, user projectdir/config/dxf2gcode.cfg
         # 3. Use environment
         # 4. Use built-in default config/dxf2gcode.cfg
-        if opt.config_file:
-            self.config_file = opt.config_file
+        if opt.config_dir:
+            self.config_dir = opt.config_dir
         else:
             if opt.project_dir:
-                self.config_file = os.path.join(opt.project_dir,c.DEFAULT_CONFIG_FILE)
+                self.config_dir = os.path.join(opt.project_dir,c.DEFAULT_CONFIG_DIR)
             else:
-                self.config_file = os.getenv(c.DXF2GCODE_CONFIG, c.DEFAULT_CONFIG_FILE)
-        logger.debug("using config file %s" % (self.config_file))
+                # backwards compatibility: default config/dxf2gcode.cfg under program dir
+                _def = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
+                _def = os.path.join(_def, c.DEFAULT_CONFIG_DIR)
+                self.config_dir = os.getenv(c.DXF2GCODE_CONFIG_DIR, _def)
+        logger.debug("using config directory %s" % (self.config_dir))
 
 
-        # try hard to read a config file
-        n_errors = self.get_config(self.config_file)
+        # pseudo-plugins in program directory proper: config.py, machine.py
+        _name = "config"
+        self.config_plugin =  plugin_loader.activate(None,_name,os.path.join(self.config_dir,_name + c.CONFIG_EXTENSION))
+        _name = "machine"
+        self.machine_plugin = plugin_loader.activate(None,_name,os.path.join(self.config_dir,_name + c.CONFIG_EXTENSION))
+
+#
+#        # try hard to read a config file
+#        self.n_errors = self.get_config(self.config_dir)
    
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
-        self.config = DictDotLookup(self.config_dict)
+        self.config = self.config_plugin.vars.Variables
+        self.machine = self.machine_plugin.vars.Variables
         cfg = self.config #  shorthand
 
         # adjust to value from config 
-        self.log.set_console_loglevel(log_level=cfg.Logging.console_loglevel)   
-        
-
-                        
+        self.log.set_console_loglevel(log_level=cfg.console_loglevel)   
+                              
         # merge options into config, program arguments override
-        cfg.Paths.import_dir = opt.import_dir if opt.import_dir else cfg.Paths.import_dir
-        cfg.Paths.output_dir = opt.output_dir if opt.output_dir else cfg.Paths.output_dir
-        cfg.Paths.plugin_dir = opt.plugin_dir if opt.plugin_dir else cfg.Paths.plugin_dir
-        cfg.Paths.varspaces_dir = opt.varspaces_dir if opt.varspaces_dir else cfg.Paths.varspaces_dir
+        cfg.import_dir = opt.import_dir if opt.import_dir else cfg.import_dir
+        cfg.output_dir = opt.output_dir if opt.output_dir else cfg.output_dir
+        cfg.plugin_dir = opt.plugin_dir if opt.plugin_dir else cfg.plugin_dir
+        cfg.varspaces_dir = opt.varspaces_dir if opt.varspaces_dir else cfg.varspaces_dir
         
         if opt.logfile:
             cfg.Logging.logfile = opt.logfile
             self.log.add_file_logger(self,logfile=opt.logfile)  
         else:
-            if len(cfg.Logging.logfile) > 0: 
-                self.log.add_file_logger(logfile=cfg.Logging.logfile)
-                self.log.set_file_loglevel(cfg.Logging.file_loglevel)
-        
+            if len(cfg.logfile) > 0:  # FIXME check for iswhite!!!
+                self.log.add_file_logger(logfile=cfg.logfile)
+                self.log.set_file_loglevel(cfg.file_loglevel)
+   
+        self.current_directory = os.getcwd()  
+        self.app_directory = os.getcwd()  
+        FOLDER=os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
+        #Das momentane Verzeichnis herausfinden
+        local_path = os.path.realpath(os.path.dirname(sys.argv[0]))
+     
         
         if opt.create_project_dir:
             path = os.path.abspath(opt.create_project_dir)
@@ -340,149 +342,28 @@ class GlobalConfig:
                     if v:
                         self.config_dict['Paths'][v] = _dir
                         
-                self.config_file = os.path.join(path,c.DEFAULT_CONFIG_FILE)
-                self.write_current_config(self.config_file)
+                self.config_dir = os.path.join(path,c.DEFAULT_CONFIG_DIR)
+                self.write_current_config(self.config_dir)
                 if opt.default_config:
-                    logger.debug("created default config in %s" % (self.config_file))
+                    logger.debug("created default config in %s" % (self.config_dir))
                 else:
-                    logger.debug("created current config in %s" % (self.config_file))
+                    logger.debug("created current config in %s" % (self.config_dir))
 
  
         # CK: execute this code once the logging window is established
         if False:
-            self.log.add_window_logger(log_level=cfg.Logging.window_loglevelconfig)
+            self.log.add_window_logger(log_level=cfg.window_loglevelconfig)
             self.log.set_window_logstream(stream=sys.stderr) # set to window file handle
             # change window loglevel like so:
             #self.log.set_window_loglevel(self,log_level)
             
             
         if self.n_errors:
-            logger.warning("%d error(s) reading '%s'" % (self.n_errors,self.config_file))
+            logger.warning("%d error(s) reading '%s'" % (self.n_errors,self.config_dir))
         else:
-            logger.info("config read sucessfully: %s",self.config_file )
+            logger.info("config read sucessfully: %s",self.config_dir )
           
             
 
 
-    def get_config(self,config_file):
-        """
-        try to arrive at, and read a valid config file
-        
-        if the config dir doesnt exist, create it
-        if the file doesnt exist, create a default config derived from CONFIG_SPEC
-        at this point, a config file does exist - new or old, so read it
-        if the version number mismatches or the config file doesnt
-        validate, rename the bad config file by adding a time stamp, re-create a
-        default file and read that
-        results are in self.config_dict
-        """
-        logger = self.log.logger    # shorthand
-
-        # create config subdir and default config if needed
-        if not os.path.isfile(config_file):
-            config_dir = os.path.dirname(config_file)
-            if not os.path.isdir(config_dir) and (len(config_dir) > 0):
-                try:
-                    os.makedirs(config_dir)
-                except OSError,e:
-                    logger.error("can't create directory %s: %s" % (config_dir,e.strerror))
-                    raise
-                else:
-                    logger.info("created config directory %s" % (config_dir))
-
-            # we have a directory, create default config
-            self.create_default_config(CONFIG_SPEC)
-            try:
-                self.write_current_config(config_file)
-            except Exception,inst:
-                logger.error(inst)
-                logger.error("unexpected error creating default config %s" % (config_file))
-                raise                
-            else:
-                logger.info("created default config file %s" % (config_file))
-        # we have a default config file
-        keep_trying = True
-        while keep_trying:
-            try:
-                n_errors = 0
-                result = self.read_config_file(config_file, CONFIG_SPEC)
-                error_dict = flatten_errors(self.config_dict,result)
-                n_errors += len(error_dict)
-                if n_errors:
-                    logger.warning("%d error(s) reading %s :" %(n_errors,config_file))
-
-                for entry in error_dict: 
-                    section_list, key, error = entry
-                    if key is not None:
-                        section_list.append(key)
-                    else:
-                        section_list.append('[missing section]')
-                    section_string = ', '.join(section_list)
-                    if error == False:
-                        error = 'Missing value or section.'
-                    logger.warning(section_string + ' = ' + str(error))
-                    keep_trying = False 
-
-                fileversion = self.config_dict['Version']['config_version']
-                if fileversion != CONFIG_VERSION:
-                    logger.warning('config file versions do not match - internal: "%s", config file "%s"' %(CONFIG_VERSION,fileversion))       
-                else:
-                    logger.debug("config file version '%s' - ok: " % (fileversion))
-
-                # giive up on this cfg file?
-                if (fileversion != CONFIG_VERSION) or (RENEW_ERRORED_CFG and (n_errors > 0)):
-                    # This config file wont work.
-                    # we move the file out of the way, create
-                    # a new default and retry.
-
-                    (base,ext) = os.path.splitext(config_file)
-                    badfilename = base + c.BAD_CONFIG_EXTENSION
-                    logger.debug("trying to rename bad cfg %s to %s" % (config_file,badfilename))
-                    try:
-                        os.rename(config_file,badfilename)
-            
-                    except OSError,e:
-                        logger.error("rename(%s,%s) failed: %s" % (config_file,badfilename,e.strerror))
-                        raise
-
-                    else:
-                        logger.info("renamed bad config to %s" % (badfilename))
-                        # create a fresh default cfg
-                        self.create_default_config(CONFIG_SPEC)
-                        self.write_current_config(config_file)
-                        # a new file exists, read it once more so we 
-                        logger.info("created default cfg %s" % (config_file))
-                        keep_trying = True                              
-                else:
-                    keep_trying = False # it's either this or that way                                    
-                
-            except IOError,e:
-                logger.error("cant read %s: %s" % (config_file,e.strerror))
-                n_errors += 1
-                keep_trying = False 
-    
-        return n_errors
-        
-    def read_config_file(self,path,spec):
-        """
-        read config & validate against spec decorating self.config_dict
-        """
-        self.config_dict = ConfigObj(path, configspec=spec, interpolation=False,
-                                     file_error=True,raise_errors=False)
-        _vdt = Validator()
-        res = self.config_dict.validate(_vdt, preserve_errors=True)
-        return res
-    
-    def write_current_config(self,path):
-        self.config_dict.filename = path
-        self.config_dict.write()    
-        
-    def create_default_config(self,configspec):
-        """
-        decorate self.config_dict from configspec
-        """
-        self.config_dict = ConfigObj(configspec=configspec)
-        vdt = Validator()
-        self.config_dict.validate(vdt, copy=True)
-                
         

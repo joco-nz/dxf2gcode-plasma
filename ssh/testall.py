@@ -19,7 +19,7 @@ import pprint
 
 from notebook import *
 from globalconfig import *
-from pluginloader import PluginLoader
+from varspace import PluginLoader
 from simplecallback import SimpleCallback
 
 import globals as g
@@ -227,7 +227,7 @@ class Windoof:
         self.frame_l.grid(row=0,column=0,rowspan=2,padx=4,pady=4,sticky=N+E+W)
     #        add_param_nb(self.frame_l)
         #self.nbook = NotebookClass(self.frame_l,TOP)
-        self.nbook = NotebookClass(self.frame_l,height=200,width=240)
+        self.nbook = NotebookClass(self.frame_l,height=200,width=240,xfuzz=g.NOTEBOOK_BUTTON_EXTRASPACE)
 
         #Erstellen des Canvas Rahmens
         self.frame_c=Frame(master,relief = RIDGE,bd = 2)
@@ -397,20 +397,24 @@ class Windoof:
              
 def setup_logging(window):
     # LogText window exists, setup logging
-    g.logger.add_window_logger(log_level='DEBUG')
+    g.logger.add_window_logger(log_level=g.config.config.window_loglevel)
     g.logger.set_window_logstream(window.textbox.text)
-    g.logger.set_window_loglevel('INFO')
+#    g.logger.set_window_loglevel('INFO')
 
 if __name__ == "__main__":
     
     g.logger = Log(c.APPNAME,console_loglevel=logging.DEBUG)
-    g.config = GlobalConfig()
     
 
     a = Tk()    
     w = Windoof(a)
-    setup_logging(w)
     p = PluginLoader(w)
+    g.config = GlobalConfig(p)
+    setup_logging(w)
+   
+
+    p.activate_all(g.config.config.plugin_dir,g.config.config.varspaces_dir)
+
 
     w.finalize(p)
     

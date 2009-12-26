@@ -1,0 +1,621 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+          "DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>globalconfig</title>
+  <link rel="stylesheet" href="epydoc.css" type="text/css" />
+  <script type="text/javascript" src="epydoc.js"></script>
+</head>
+
+<body bgcolor="white" text="black" link="blue" vlink="#204080"
+      alink="#204080">
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table width="100%" cellpadding="0" cellspacing="0">
+  <tr valign="top">
+    <td width="100%">
+      <span class="breadcrumbs">
+        Module&nbsp;globalconfig
+      </span>
+    </td>
+    <td>
+      <table cellpadding="0" cellspacing="0">
+        <!-- hide/show private -->
+        <tr><td align="right"><span class="options">[<a href="javascript:void(0);" class="privatelink"
+    onclick="toggle_private();">hide&nbsp;private</a>]</span></td></tr>
+        <tr><td align="right"><span class="options"
+            >[<a href="frames.html" target="_top">frames</a
+            >]&nbsp;|&nbsp;<a href="globalconfig-pysrc.html"
+            target="_top">no&nbsp;frames</a>]</span></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<h1 class="epydoc">Source Code for <a href="globalconfig-module.html">Module globalconfig</a></h1>
+<pre class="py-src">
+<a name="L1"></a><tt class="py-lineno">  1</tt>  <tt class="py-line"><tt class="py-comment"># -*- coding: iso-8859-15 -*-</tt> </tt>
+<a name="L2"></a><tt class="py-lineno">  2</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L3"></a><tt class="py-lineno">  3</tt>  <tt class="py-line"><tt class="py-comment"># This program is free software; you can redistribute it and/or</tt> </tt>
+<a name="L4"></a><tt class="py-lineno">  4</tt>  <tt class="py-line"><tt class="py-comment"># modify it under the terms of the GNU General Public License</tt> </tt>
+<a name="L5"></a><tt class="py-lineno">  5</tt>  <tt class="py-line"><tt class="py-comment"># as published by the Free Software Foundation; either version 2</tt> </tt>
+<a name="L6"></a><tt class="py-lineno">  6</tt>  <tt class="py-line"><tt class="py-comment"># of the License, or (at your option) any later version.</tt> </tt>
+<a name="L7"></a><tt class="py-lineno">  7</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L8"></a><tt class="py-lineno">  8</tt>  <tt class="py-line"><tt class="py-comment"># This program is distributed in the hope that it will be useful,</tt> </tt>
+<a name="L9"></a><tt class="py-lineno">  9</tt>  <tt class="py-line"><tt class="py-comment"># but WITHOUT ANY WARRANTY; without even the implied warranty of</tt> </tt>
+<a name="L10"></a><tt class="py-lineno"> 10</tt>  <tt class="py-line"><tt class="py-comment"># MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</tt> </tt>
+<a name="L11"></a><tt class="py-lineno"> 11</tt>  <tt class="py-line"><tt class="py-comment"># GNU General Public License for more details.</tt> </tt>
+<a name="L12"></a><tt class="py-lineno"> 12</tt>  <tt class="py-line"><tt class="py-comment">#</tt> </tt>
+<a name="L13"></a><tt class="py-lineno"> 13</tt>  <tt class="py-line"><tt class="py-comment"># You should have received a copy of the GNU General Public License</tt> </tt>
+<a name="L14"></a><tt class="py-lineno"> 14</tt>  <tt class="py-line"><tt class="py-comment"># along with this program; if not, write to the Free Software</tt> </tt>
+<a name="L15"></a><tt class="py-lineno"> 15</tt>  <tt class="py-line"><tt class="py-comment"># Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.</tt> </tt>
+<a name="L16"></a><tt class="py-lineno"> 16</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L17"></a><tt class="py-lineno"> 17</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L18"></a><tt class="py-lineno"> 18</tt>  <tt class="py-line"><tt class="py-docstring"> </tt> </tt>
+<a name="L19"></a><tt class="py-lineno"> 19</tt>  <tt class="py-line"><tt class="py-docstring"> </tt> </tt>
+<a name="L20"></a><tt class="py-lineno"> 20</tt>  <tt class="py-line"><tt class="py-docstring">    # config file format spec</tt> </tt>
+<a name="L21"></a><tt class="py-lineno"> 21</tt>  <tt class="py-line"><tt class="py-docstring">    # see http://www.voidspace.org.uk/python/validate.html</tt> </tt>
+<a name="L22"></a><tt class="py-lineno"> 22</tt>  <tt class="py-line"><tt class="py-docstring">    # and http://www.voidspace.org.uk/python/configobj.html</tt> </tt>
+<a name="L23"></a><tt class="py-lineno"> 23</tt>  <tt class="py-line"><tt class="py-docstring">    # if you make any changes to config_spec</tt> </tt>
+<a name="L24"></a><tt class="py-lineno"> 24</tt>  <tt class="py-line"><tt class="py-docstring">    # always increment specversion default so an old .ini file</tt> </tt>
+<a name="L25"></a><tt class="py-lineno"> 25</tt>  <tt class="py-line"><tt class="py-docstring">    # can be detected</tt> </tt>
+<a name="L26"></a><tt class="py-lineno"> 26</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L27"></a><tt class="py-lineno"> 27</tt>  <tt class="py-line"><tt class="py-docstring">@newfield purpose: Purpose</tt> </tt>
+<a name="L28"></a><tt class="py-lineno"> 28</tt>  <tt class="py-line"><tt class="py-docstring">@newfield sideeffect: Side effect, Side effects</tt> </tt>
+<a name="L29"></a><tt class="py-lineno"> 29</tt>  <tt class="py-line"><tt class="py-docstring">@purpose:  program arguments &amp; options handling, read the config file</tt> </tt>
+<a name="L30"></a><tt class="py-lineno"> 30</tt>  <tt class="py-line"><tt class="py-docstring">@author: Michael Haberler </tt> </tt>
+<a name="L31"></a><tt class="py-lineno"> 31</tt>  <tt class="py-line"><tt class="py-docstring">@since:  21.12.2009</tt> </tt>
+<a name="L32"></a><tt class="py-lineno"> 32</tt>  <tt class="py-line"><tt class="py-docstring">@license: GPL</tt> </tt>
+<a name="L33"></a><tt class="py-lineno"> 33</tt>  <tt class="py-line"><tt class="py-docstring">"""</tt> </tt>
+<a name="L34"></a><tt class="py-lineno"> 34</tt>  <tt class="py-line"> </tt>
+<a name="L35"></a><tt class="py-lineno"> 35</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">os</tt> </tt>
+<a name="L36"></a><tt class="py-lineno"> 36</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">sys</tt> </tt>
+<a name="L37"></a><tt class="py-lineno"> 37</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt class="py-name">logging</tt> </tt>
+<a name="L38"></a><tt class="py-lineno"> 38</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">time</tt> <tt class="py-keyword">import</tt> <tt class="py-name">asctime</tt> </tt>
+<a name="L39"></a><tt class="py-lineno"> 39</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">optparse</tt> <tt class="py-keyword">import</tt> <tt class="py-name">OptionParser</tt> </tt>
+<a name="L40"></a><tt class="py-lineno"> 40</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">configobj</tt> <tt class="py-keyword">import</tt> <tt class="py-name">ConfigObj</tt><tt class="py-op">,</tt><tt class="py-name">flatten_errors</tt> </tt>
+<a name="L41"></a><tt class="py-lineno"> 41</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt class="py-name">validate</tt> <tt class="py-keyword">import</tt> <tt class="py-name">Validator</tt> </tt>
+<a name="L42"></a><tt class="py-lineno"> 42</tt>  <tt class="py-line"> </tt>
+<a name="L43"></a><tt class="py-lineno"> 43</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-0" class="py-name" targets="Module constants=constants-module.html"><a title="constants" class="py-name" href="#" onclick="return doclink('link-0', 'constants', 'link-0');">constants</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">c</tt> </tt>
+<a name="L44"></a><tt class="py-lineno"> 44</tt>  <tt class="py-line"><tt class="py-keyword">import</tt> <tt id="link-1" class="py-name" targets="Module globals=globals-module.html"><a title="globals" class="py-name" href="#" onclick="return doclink('link-1', 'globals', 'link-1');">globals</a></tt> <tt class="py-keyword">as</tt> <tt class="py-name">g</tt> </tt>
+<a name="L45"></a><tt class="py-lineno"> 45</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-2" class="py-name" targets="Module exceptions=exceptions-module.html"><a title="exceptions" class="py-name" href="#" onclick="return doclink('link-2', 'exceptions', 'link-2');">exceptions</a></tt> <tt class="py-keyword">import</tt> <tt class="py-op">*</tt> </tt>
+<a name="L46"></a><tt class="py-lineno"> 46</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-3" class="py-name" targets="Module dotdictlookup=dotdictlookup-module.html"><a title="dotdictlookup" class="py-name" href="#" onclick="return doclink('link-3', 'dotdictlookup', 'link-3');">dotdictlookup</a></tt> <tt class="py-keyword">import</tt> <tt id="link-4" class="py-name" targets="Class dotdictlookup.DictDotLookup=dotdictlookup.DictDotLookup-class.html"><a title="dotdictlookup.DictDotLookup" class="py-name" href="#" onclick="return doclink('link-4', 'DictDotLookup', 'link-4');">DictDotLookup</a></tt> </tt>
+<a name="L47"></a><tt class="py-lineno"> 47</tt>  <tt class="py-line"><tt class="py-keyword">from</tt> <tt id="link-5" class="py-name" targets="Variable globals.logger=globals-module.html#logger,Module logger=logger-module.html"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-5', 'logger', 'link-5');">logger</a></tt> <tt class="py-keyword">import</tt> <tt id="link-6" class="py-name" targets="Class logger.Log=logger.Log-class.html"><a title="logger.Log" class="py-name" href="#" onclick="return doclink('link-6', 'Log', 'link-6');">Log</a></tt> </tt>
+<a name="L48"></a><tt class="py-lineno"> 48</tt>  <tt class="py-line"> </tt>
+<a name="L49"></a><tt class="py-lineno"> 49</tt>  <tt class="py-line"> </tt>
+<a name="L50"></a><tt class="py-lineno"> 50</tt>  <tt class="py-line"> </tt>
+<a name="L51"></a><tt class="py-lineno"> 51</tt>  <tt class="py-line"> </tt>
+<a name="L52"></a><tt class="py-lineno"> 52</tt>  <tt class="py-line"><tt class="py-comment"># for debugging startup problmes log to console</tt> </tt>
+<a name="L53"></a><tt class="py-lineno"> 53</tt>  <tt class="py-line"> </tt>
+<a name="L54"></a><tt class="py-lineno"> 54</tt>  <tt class="py-line"> </tt>
+<a name="L55"></a><tt class="py-lineno"> 55</tt>  <tt class="py-line"> </tt>
+<a name="L56"></a><tt class="py-lineno"> 56</tt>  <tt class="py-line"><tt id="link-7" class="py-name" targets="Variable globalconfig.DEFDIR_DICT=globalconfig-module.html#DEFDIR_DICT"><a title="globalconfig.DEFDIR_DICT" class="py-name" href="#" onclick="return doclink('link-7', 'DEFDIR_DICT', 'link-7');">DEFDIR_DICT</a></tt> <tt class="py-op">=</tt> <tt class="py-op">{</tt><tt class="py-string">'config'</tt> <tt class="py-op">:</tt> <tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L57"></a><tt class="py-lineno"> 57</tt>  <tt class="py-line">               <tt class="py-string">'dxf'</tt> <tt class="py-op">:</tt> <tt class="py-string">'import_dir'</tt><tt class="py-op">,</tt> </tt>
+<a name="L58"></a><tt class="py-lineno"> 58</tt>  <tt class="py-line">               <tt class="py-string">'ngc'</tt> <tt class="py-op">:</tt> <tt class="py-string">'output_dir'</tt> <tt class="py-op">,</tt> </tt>
+<a name="L59"></a><tt class="py-lineno"> 59</tt>  <tt class="py-line">               <tt class="py-string">'varspaces'</tt> <tt class="py-op">:</tt> <tt class="py-string">'varspaces_dir'</tt><tt class="py-op">,</tt> </tt>
+<a name="L60"></a><tt class="py-lineno"> 60</tt>  <tt class="py-line">               <tt class="py-string">'plugins'</tt> <tt class="py-op">:</tt> <tt class="py-string">'plugin_dir'</tt> <tt class="py-op">}</tt> </tt>
+<a name="L61"></a><tt class="py-lineno"> 61</tt>  <tt class="py-line"><tt class="py-string">"""project subdirectories and their corresponding config variable names"""</tt> </tt>
+<a name="L62"></a><tt class="py-lineno"> 62</tt>  <tt class="py-line"> </tt>
+<a name="L63"></a><tt class="py-lineno"> 63</tt>  <tt class="py-line"> </tt>
+<a name="L64"></a><tt class="py-lineno"> 64</tt>  <tt class="py-line"> </tt>
+<a name="L65"></a><tt class="py-lineno"> 65</tt>  <tt class="py-line"><tt id="link-8" class="py-name" targets="Variable globalconfig.RENEW_ERRORED_CFG=globalconfig-module.html#RENEW_ERRORED_CFG"><a title="globalconfig.RENEW_ERRORED_CFG" class="py-name" href="#" onclick="return doclink('link-8', 'RENEW_ERRORED_CFG', 'link-8');">RENEW_ERRORED_CFG</a></tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L66"></a><tt class="py-lineno"> 66</tt>  <tt class="py-line"><tt class="py-string">""" </tt> </tt>
+<a name="L67"></a><tt class="py-lineno"> 67</tt>  <tt class="py-line"><tt class="py-string">if the config file has syntax errors, move it out</tt> </tt>
+<a name="L68"></a><tt class="py-lineno"> 68</tt>  <tt class="py-line"><tt class="py-string">of the way and create a new default cfg</tt> </tt>
+<a name="L69"></a><tt class="py-lineno"> 69</tt>  <tt class="py-line"><tt class="py-string">if this is false, there isnt much to do but exit badly</tt> </tt>
+<a name="L70"></a><tt class="py-lineno"> 70</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
+<a name="L71"></a><tt class="py-lineno"> 71</tt>  <tt class="py-line"> </tt>
+<a name="L72"></a><tt class="py-lineno"> 72</tt>  <tt class="py-line"> </tt>
+<a name="L73"></a><tt class="py-lineno"> 73</tt>  <tt class="py-line"> </tt>
+<a name="L74"></a><tt class="py-lineno"> 74</tt>  <tt class="py-line"> </tt>
+<a name="L75"></a><tt class="py-lineno"> 75</tt>  <tt class="py-line"><tt id="link-9" class="py-name" targets="Variable globalconfig.CONFIG_VERSION=globalconfig-module.html#CONFIG_VERSION"><a title="globalconfig.CONFIG_VERSION" class="py-name" href="#" onclick="return doclink('link-9', 'CONFIG_VERSION', 'link-9');">CONFIG_VERSION</a></tt> <tt class="py-op">=</tt> <tt class="py-string">"29"</tt> </tt>
+<a name="L76"></a><tt class="py-lineno"> 76</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
+<a name="L77"></a><tt class="py-lineno"> 77</tt>  <tt class="py-line"><tt class="py-string">version tag - increment this each time you edit CONFIG_SPEC</tt> </tt>
+<a name="L78"></a><tt class="py-lineno"> 78</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L79"></a><tt class="py-lineno"> 79</tt>  <tt class="py-line"><tt class="py-string">compared to version number in config file so</tt> </tt>
+<a name="L80"></a><tt class="py-lineno"> 80</tt>  <tt class="py-line"><tt class="py-string">old versions are recognized and skipped"</tt> </tt>
+<a name="L81"></a><tt class="py-lineno"> 81</tt>  <tt class="py-line"><tt class="py-string">"""</tt> </tt>
+<a name="L82"></a><tt class="py-lineno"> 82</tt>  <tt class="py-line">     </tt>
+<a name="L83"></a><tt class="py-lineno"> 83</tt>  <tt class="py-line"><tt id="link-10" class="py-name" targets="Variable globalconfig.CONFIG_SPEC=globalconfig-module.html#CONFIG_SPEC"><a title="globalconfig.CONFIG_SPEC" class="py-name" href="#" onclick="return doclink('link-10', 'CONFIG_SPEC', 'link-10');">CONFIG_SPEC</a></tt> <tt class="py-op">=</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-string">'''</tt> </tt>
+<a name="L84"></a><tt class="py-lineno"> 84</tt>  <tt class="py-line"><tt class="py-string">#  Section and variable names must be valid Python identifiers</tt> </tt>
+<a name="L85"></a><tt class="py-lineno"> 85</tt>  <tt class="py-line"><tt class="py-string">#      do not use whitespace in names </tt> </tt>
+<a name="L86"></a><tt class="py-lineno"> 86</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L87"></a><tt class="py-lineno"> 87</tt>  <tt class="py-line"><tt class="py-string"># do not edit the following section name:</tt> </tt>
+<a name="L88"></a><tt class="py-lineno"> 88</tt>  <tt class="py-line"><tt class="py-string">    [Version]</tt> </tt>
+<a name="L89"></a><tt class="py-lineno"> 89</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L90"></a><tt class="py-lineno"> 90</tt>  <tt class="py-line"><tt class="py-string">    # do not edit the following value:</tt> </tt>
+<a name="L91"></a><tt class="py-lineno"> 91</tt>  <tt class="py-line"><tt class="py-string">    config_version = string(default="'''</tt>  <tt class="py-op">+</tt> \ </tt>
+<a name="L92"></a><tt class="py-lineno"> 92</tt>  <tt class="py-line">    <tt class="py-name">str</tt><tt class="py-op">(</tt><tt id="link-11" class="py-name"><a title="globalconfig.CONFIG_VERSION" class="py-name" href="#" onclick="return doclink('link-11', 'CONFIG_VERSION', 'link-9');">CONFIG_VERSION</a></tt><tt class="py-op">)</tt> <tt class="py-op">+</tt> <tt class="py-string">'")\n'</tt> <tt class="py-op">+</tt> \ </tt>
+<a name="L93"></a><tt class="py-lineno"> 93</tt>  <tt class="py-line"><tt class="py-string">'''</tt> </tt>
+<a name="L94"></a><tt class="py-lineno"> 94</tt>  <tt class="py-line"><tt class="py-string">    [Paths]</tt> </tt>
+<a name="L95"></a><tt class="py-lineno"> 95</tt>  <tt class="py-line"><tt class="py-string">    # </tt> </tt>
+<a name="L96"></a><tt class="py-lineno"> 96</tt>  <tt class="py-line"><tt class="py-string">    # look here for DXF files</tt> </tt>
+<a name="L97"></a><tt class="py-lineno"> 97</tt>  <tt class="py-line"><tt class="py-string">    import_dir = string(default="dxf")</tt> </tt>
+<a name="L98"></a><tt class="py-lineno"> 98</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L99"></a><tt class="py-lineno"> 99</tt>  <tt class="py-line"><tt class="py-string">    # store gcode output here </tt> </tt>
+<a name="L100"></a><tt class="py-lineno">100</tt>  <tt class="py-line"><tt class="py-string">    output_dir = string(default="ngc")</tt> </tt>
+<a name="L101"></a><tt class="py-lineno">101</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L102"></a><tt class="py-lineno">102</tt>  <tt class="py-line"><tt class="py-string">    # search here for exporter + transformer plugins</tt> </tt>
+<a name="L103"></a><tt class="py-lineno">103</tt>  <tt class="py-line"><tt class="py-string">    plugin_dir = string(default="plugins")</tt> </tt>
+<a name="L104"></a><tt class="py-lineno">104</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L105"></a><tt class="py-lineno">105</tt>  <tt class="py-line"><tt class="py-string">    # plugin varspaces are stored here</tt> </tt>
+<a name="L106"></a><tt class="py-lineno">106</tt>  <tt class="py-line"><tt class="py-string">    varspaces_dir = string(default="varspaces")</tt> </tt>
+<a name="L107"></a><tt class="py-lineno">107</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L108"></a><tt class="py-lineno">108</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L109"></a><tt class="py-lineno">109</tt>  <tt class="py-line"><tt class="py-string">    [Depth_Coordinates]</tt> </tt>
+<a name="L110"></a><tt class="py-lineno">110</tt>  <tt class="py-line"><tt class="py-string">    axis3_retract = float(default= 15.0)</tt> </tt>
+<a name="L111"></a><tt class="py-lineno">111</tt>  <tt class="py-line"><tt class="py-string">    axis3_slice_depth = float(default= -1.5)</tt> </tt>
+<a name="L112"></a><tt class="py-lineno">112</tt>  <tt class="py-line"><tt class="py-string">    axis3_safe_margin = float(default= 3.0)</tt> </tt>
+<a name="L113"></a><tt class="py-lineno">113</tt>  <tt class="py-line"><tt class="py-string">    axis3_mill_depth = float(default= -3.0)</tt> </tt>
+<a name="L114"></a><tt class="py-lineno">114</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L115"></a><tt class="py-lineno">115</tt>  <tt class="py-line"><tt class="py-string">    [Axis_letters]</tt> </tt>
+<a name="L116"></a><tt class="py-lineno">116</tt>  <tt class="py-line"><tt class="py-string">    ax1_letter = string(default="X")</tt> </tt>
+<a name="L117"></a><tt class="py-lineno">117</tt>  <tt class="py-line"><tt class="py-string">    ax2_letter = string(default="Y")</tt> </tt>
+<a name="L118"></a><tt class="py-lineno">118</tt>  <tt class="py-line"><tt class="py-string">    ax3_letter = string(default="Z")</tt> </tt>
+<a name="L119"></a><tt class="py-lineno">119</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L120"></a><tt class="py-lineno">120</tt>  <tt class="py-line"><tt class="py-string">    [Plane_Coordinates]</tt> </tt>
+<a name="L121"></a><tt class="py-lineno">121</tt>  <tt class="py-line"><tt class="py-string">    axis1_start_end = float(default= 0)</tt> </tt>
+<a name="L122"></a><tt class="py-lineno">122</tt>  <tt class="py-line"><tt class="py-string">    axis2_start_end = float(default= 0)</tt> </tt>
+<a name="L123"></a><tt class="py-lineno">123</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L124"></a><tt class="py-lineno">124</tt>  <tt class="py-line"><tt class="py-string">    [General]</tt> </tt>
+<a name="L125"></a><tt class="py-lineno">125</tt>  <tt class="py-line"><tt class="py-string">    write_to_stdout = boolean(default=False)</tt> </tt>
+<a name="L126"></a><tt class="py-lineno">126</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L127"></a><tt class="py-lineno">127</tt>  <tt class="py-line"><tt class="py-string">    # wether to save a plugin's varspace if the </tt> </tt>
+<a name="L128"></a><tt class="py-lineno">128</tt>  <tt class="py-line"><tt class="py-string">    # instance is deleted</tt> </tt>
+<a name="L129"></a><tt class="py-lineno">129</tt>  <tt class="py-line"><tt class="py-string">    save_on_instance_delete = boolean(default=True)</tt> </tt>
+<a name="L130"></a><tt class="py-lineno">130</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L131"></a><tt class="py-lineno">131</tt>  <tt class="py-line"><tt class="py-string">    [Route_Optimisation]</tt> </tt>
+<a name="L132"></a><tt class="py-lineno">132</tt>  <tt class="py-line"><tt class="py-string">    mutation rate = float(default= 0.95)</tt> </tt>
+<a name="L133"></a><tt class="py-lineno">133</tt>  <tt class="py-line"><tt class="py-string">    max. population = float(default= 20)</tt> </tt>
+<a name="L134"></a><tt class="py-lineno">134</tt>  <tt class="py-line"><tt class="py-string">    max. iterations = float(default= 300)</tt> </tt>
+<a name="L135"></a><tt class="py-lineno">135</tt>  <tt class="py-line"><tt class="py-string">    begin art = string(default="heurestic")</tt> </tt>
+<a name="L136"></a><tt class="py-lineno">136</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L137"></a><tt class="py-lineno">137</tt>  <tt class="py-line"><tt class="py-string">    [Import_Parameters]</tt> </tt>
+<a name="L138"></a><tt class="py-lineno">138</tt>  <tt class="py-line"><tt class="py-string">    point_tolerance = float(default= 0.01)</tt> </tt>
+<a name="L139"></a><tt class="py-lineno">139</tt>  <tt class="py-line"><tt class="py-string">    spline_check = boolean(default=True)</tt> </tt>
+<a name="L140"></a><tt class="py-lineno">140</tt>  <tt class="py-line"><tt class="py-string">    fitting_tolerance = float(default= 0.01)</tt> </tt>
+<a name="L141"></a><tt class="py-lineno">141</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L142"></a><tt class="py-lineno">142</tt>  <tt class="py-line"><tt class="py-string">    [Tool_Parameters]</tt> </tt>
+<a name="L143"></a><tt class="py-lineno">143</tt>  <tt class="py-line"><tt class="py-string">    diameter = float(default= 2.0)</tt> </tt>
+<a name="L144"></a><tt class="py-lineno">144</tt>  <tt class="py-line"><tt class="py-string">    start_radius = float(default= 0.2)</tt> </tt>
+<a name="L145"></a><tt class="py-lineno">145</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L146"></a><tt class="py-lineno">146</tt>  <tt class="py-line"><tt class="py-string">    [Filters]</tt> </tt>
+<a name="L147"></a><tt class="py-lineno">147</tt>  <tt class="py-line"><tt class="py-string">    pstoedit_cmd = string(default="/opt/local/bin/pstoedit")</tt> </tt>
+<a name="L148"></a><tt class="py-lineno">148</tt>  <tt class="py-line"><tt class="py-string">    pstoedit_opt = list(default=list('-f', 'dxf', '-mm'))</tt> </tt>
+<a name="L149"></a><tt class="py-lineno">149</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L150"></a><tt class="py-lineno">150</tt>  <tt class="py-line"><tt class="py-string">    [Logging]</tt> </tt>
+<a name="L151"></a><tt class="py-lineno">151</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L152"></a><tt class="py-lineno">152</tt>  <tt class="py-line"><tt class="py-string">    # set this to 'logfile = &lt;pathname&gt;' to turn on file logging</tt> </tt>
+<a name="L153"></a><tt class="py-lineno">153</tt>  <tt class="py-line"><tt class="py-string">    # or give the '-L logfile' program option</tt> </tt>
+<a name="L154"></a><tt class="py-lineno">154</tt>  <tt class="py-line"><tt class="py-string">    logfile = string(default="")</tt> </tt>
+<a name="L155"></a><tt class="py-lineno">155</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L156"></a><tt class="py-lineno">156</tt>  <tt class="py-line"><tt class="py-string">    # log levels are one in increasing importance:</tt> </tt>
+<a name="L157"></a><tt class="py-lineno">157</tt>  <tt class="py-line"><tt class="py-string">    #      DEBUG INFO WARNING  ERROR CRITICAL</tt> </tt>
+<a name="L158"></a><tt class="py-lineno">158</tt>  <tt class="py-line"><tt class="py-string">    # log events with importance &gt;= loglevel are logged to the</tt> </tt>
+<a name="L159"></a><tt class="py-lineno">159</tt>  <tt class="py-line"><tt class="py-string">    # corresponding output</tt> </tt>
+<a name="L160"></a><tt class="py-lineno">160</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L161"></a><tt class="py-lineno">161</tt>  <tt class="py-line"><tt class="py-string">    # this really goes to stderr</tt> </tt>
+<a name="L162"></a><tt class="py-lineno">162</tt>  <tt class="py-line"><tt class="py-string">    console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')</tt> </tt>
+<a name="L163"></a><tt class="py-lineno">163</tt>  <tt class="py-line"><tt class="py-string">  </tt> </tt>
+<a name="L164"></a><tt class="py-lineno">164</tt>  <tt class="py-line"><tt class="py-string">    file_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')</tt> </tt>
+<a name="L165"></a><tt class="py-lineno">165</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L166"></a><tt class="py-lineno">166</tt>  <tt class="py-line"><tt class="py-string">    # logging level for the message window</tt> </tt>
+<a name="L167"></a><tt class="py-lineno">167</tt>  <tt class="py-line"><tt class="py-string">    window_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='INFO')</tt> </tt>
+<a name="L168"></a><tt class="py-lineno">168</tt>  <tt class="py-line"><tt class="py-string">    </tt> </tt>
+<a name="L169"></a><tt class="py-lineno">169</tt>  <tt class="py-line"><tt class="py-string">    # backwards compatibility</tt> </tt>
+<a name="L170"></a><tt class="py-lineno">170</tt>  <tt class="py-line"><tt class="py-string">    global_debug_level = integer(min=0,max=5,default=3)</tt> </tt>
+<a name="L171"></a><tt class="py-lineno">171</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L172"></a><tt class="py-lineno">172</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L173"></a><tt class="py-lineno">173</tt>  <tt class="py-line"><tt class="py-string">    [Feed_Rates]</tt> </tt>
+<a name="L174"></a><tt class="py-lineno">174</tt>  <tt class="py-line"><tt class="py-string">    f_g1_plane = float(default=400)</tt> </tt>
+<a name="L175"></a><tt class="py-lineno">175</tt>  <tt class="py-line"><tt class="py-string">    f_g1_depth = float(default=150)</tt> </tt>
+<a name="L176"></a><tt class="py-lineno">176</tt>  <tt class="py-line"><tt class="py-string"></tt> </tt>
+<a name="L177"></a><tt class="py-lineno">177</tt>  <tt class="py-line"><tt class="py-string">'''</tt><tt class="py-op">)</tt><tt class="py-op">.</tt><tt class="py-name">splitlines</tt><tt class="py-op">(</tt><tt class="py-op">)</tt>   </tt>
+<a name="L178"></a><tt class="py-lineno">178</tt>  <tt class="py-line"><tt class="py-string">""" format, type and default value specification of the global config file"""</tt> </tt>
+<a name="L179"></a><tt class="py-lineno">179</tt>  <tt class="py-line">     </tt>
+<a name="L180"></a><tt class="py-lineno">180</tt>  <tt class="py-line"> </tt>
+<a name="GlobalConfig"></a><div id="GlobalConfig-def"><a name="L181"></a><tt class="py-lineno">181</tt> <a class="py-toggle" href="#" id="GlobalConfig-toggle" onclick="return toggle('GlobalConfig');">-</a><tt class="py-line"><tt class="py-keyword">class</tt> <a class="py-def-name" href="globalconfig.GlobalConfig-class.html">GlobalConfig</a><tt class="py-op">:</tt> </tt>
+</div><div id="GlobalConfig-collapsed" style="display:none;" pad="+++" indent="++++"></div><div id="GlobalConfig-expanded"><a name="L182"></a><tt class="py-lineno">182</tt>  <tt class="py-line"> </tt>
+<a name="GlobalConfig.__init__"></a><div id="GlobalConfig.__init__-def"><a name="L183"></a><tt class="py-lineno">183</tt> <a class="py-toggle" href="#" id="GlobalConfig.__init__-toggle" onclick="return toggle('GlobalConfig.__init__');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="globalconfig.GlobalConfig-class.html#__init__">__init__</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GlobalConfig.__init__-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GlobalConfig.__init__-expanded"><a name="L184"></a><tt class="py-lineno">184</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L185"></a><tt class="py-lineno">185</tt>  <tt class="py-line"><tt class="py-docstring">        setup logging</tt> </tt>
+<a name="L186"></a><tt class="py-lineno">186</tt>  <tt class="py-line"><tt class="py-docstring">        parse command line options</tt> </tt>
+<a name="L187"></a><tt class="py-lineno">187</tt>  <tt class="py-line"><tt class="py-docstring">        read config file, generating a default if needed</tt> </tt>
+<a name="L188"></a><tt class="py-lineno">188</tt>  <tt class="py-line"><tt class="py-docstring">            - config file values are available 'flattened' like self.config.section.variable  </tt> </tt>
+<a name="L189"></a><tt class="py-lineno">189</tt>  <tt class="py-line"><tt class="py-docstring">        raise an Exception if options,permissions etc are really badly screwed</tt> </tt>
+<a name="L190"></a><tt class="py-lineno">190</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L191"></a><tt class="py-lineno">191</tt>  <tt class="py-line"><tt class="py-docstring">        result (fine if self.n_errors = 0)</tt> </tt>
+<a name="L192"></a><tt class="py-lineno">192</tt>  <tt class="py-line"><tt class="py-docstring">            - all config file variables have been merged with overriding</tt> </tt>
+<a name="L193"></a><tt class="py-lineno">193</tt>  <tt class="py-line"><tt class="py-docstring">            cmd line options into self.config </tt> </tt>
+<a name="L194"></a><tt class="py-lineno">194</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L195"></a><tt class="py-lineno">195</tt>  <tt class="py-line"><tt class="py-docstring">        options are available 'flattened', e.g. self.option.debug  </tt> </tt>
+<a name="L196"></a><tt class="py-lineno">196</tt>  <tt class="py-line"><tt class="py-docstring"></tt> </tt>
+<a name="L197"></a><tt class="py-lineno">197</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L198"></a><tt class="py-lineno">198</tt>  <tt class="py-line"><tt class="py-docstring">        self.config may differ from the config file if there were command</tt> </tt>
+<a name="L199"></a><tt class="py-lineno">199</tt>  <tt class="py-line"><tt class="py-docstring">        line options - to save the current state, self.write_current_config(self.config_file)</tt> </tt>
+<a name="L200"></a><tt class="py-lineno">200</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L201"></a><tt class="py-lineno">201</tt>  <tt class="py-line"><tt class="py-docstring">        @sideeffect:</tt> </tt>
+<a name="L202"></a><tt class="py-lineno">202</tt>  <tt class="py-line"><tt class="py-docstring">        sets global.config to instance variable</tt> </tt>
+<a name="L203"></a><tt class="py-lineno">203</tt>  <tt class="py-line"><tt class="py-docstring">            - global.config.options - command line options (dictionary)</tt> </tt>
+<a name="L204"></a><tt class="py-lineno">204</tt>  <tt class="py-line"><tt class="py-docstring">            - gobal.config.varrs - the config file flattened as attribute hierarchy</tt> </tt>
+<a name="L205"></a><tt class="py-lineno">205</tt>  <tt class="py-line"><tt class="py-docstring">                </tt> </tt>
+<a name="L206"></a><tt class="py-lineno">206</tt>  <tt class="py-line"><tt class="py-docstring">                            </tt> </tt>
+<a name="L207"></a><tt class="py-lineno">207</tt>  <tt class="py-line"><tt class="py-docstring">                Example: the variable specified in the config file fragment as per SPECNAME above::</tt> </tt>
+<a name="L208"></a><tt class="py-lineno">208</tt>  <tt class="py-line"><tt class="py-docstring">                    [Paths]</tt> </tt>
+<a name="L209"></a><tt class="py-lineno">209</tt>  <tt class="py-line"><tt class="py-docstring">                    import_dir = /home/mah/dxf</tt> </tt>
+<a name="L210"></a><tt class="py-lineno">210</tt>  <tt class="py-line"><tt class="py-docstring">                    </tt> </tt>
+<a name="L211"></a><tt class="py-lineno">211</tt>  <tt class="py-line"><tt class="py-docstring">                may be referred to in the plugin as::</tt> </tt>
+<a name="L212"></a><tt class="py-lineno">212</tt>  <tt class="py-line"><tt class="py-docstring">                </tt> </tt>
+<a name="L213"></a><tt class="py-lineno">213</tt>  <tt class="py-line"><tt class="py-docstring">                    self.vs.vars.Paths.import_dir</tt> </tt>
+<a name="L214"></a><tt class="py-lineno">214</tt>  <tt class="py-line"><tt class="py-docstring">                            </tt> </tt>
+<a name="L215"></a><tt class="py-lineno">215</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L216"></a><tt class="py-lineno">216</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_errors</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L217"></a><tt class="py-lineno">217</tt>  <tt class="py-line"> </tt>
+<a name="L218"></a><tt class="py-lineno">218</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt> <tt class="py-op">=</tt> <tt class="py-name">g</tt><tt class="py-op">.</tt><tt id="link-12" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-12', 'logger', 'link-5');">logger</a></tt> </tt>
+<a name="L219"></a><tt class="py-lineno">219</tt>  <tt class="py-line">        <tt id="link-13" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-13', 'logger', 'link-5');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-14" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-14', 'logger', 'link-5');">logger</a></tt> </tt>
+<a name="L220"></a><tt class="py-lineno">220</tt>  <tt class="py-line"> </tt>
+<a name="L221"></a><tt class="py-lineno">221</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">current_directory</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">getcwd</tt><tt class="py-op">(</tt><tt class="py-op">)</tt>   </tt>
+<a name="L222"></a><tt class="py-lineno">222</tt>  <tt class="py-line">         </tt>
+<a name="L223"></a><tt class="py-lineno">223</tt>  <tt class="py-line"> </tt>
+<a name="L224"></a><tt class="py-lineno">224</tt>  <tt class="py-line">         </tt>
+<a name="L225"></a><tt class="py-lineno">225</tt>  <tt class="py-line">        <tt class="py-name">parser</tt> <tt class="py-op">=</tt> <tt class="py-name">OptionParser</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L226"></a><tt class="py-lineno">226</tt>  <tt class="py-line"> </tt>
+<a name="L227"></a><tt class="py-lineno">227</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-d"</tt><tt class="py-op">,</tt> <tt class="py-string">"--debug"</tt><tt class="py-op">,</tt> </tt>
+<a name="L228"></a><tt class="py-lineno">228</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"count"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"debug"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-number">0</tt><tt class="py-op">,</tt> </tt>
+<a name="L229"></a><tt class="py-lineno">229</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"increase debug level - repeat option for more output"</tt><tt class="py-op">)</tt> </tt>
+<a name="L230"></a><tt class="py-lineno">230</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-v"</tt><tt class="py-op">,</tt> <tt class="py-string">"--version"</tt><tt class="py-op">,</tt> </tt>
+<a name="L231"></a><tt class="py-lineno">231</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store_true"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"printversion"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> </tt>
+<a name="L232"></a><tt class="py-lineno">232</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"display program version"</tt><tt class="py-op">)</tt> </tt>
+<a name="L233"></a><tt class="py-lineno">233</tt>  <tt class="py-line">         </tt>
+<a name="L234"></a><tt class="py-lineno">234</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-c"</tt><tt class="py-op">,</tt> <tt class="py-string">"--config-file"</tt><tt class="py-op">,</tt> </tt>
+<a name="L235"></a><tt class="py-lineno">235</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">metavar</tt><tt class="py-op">=</tt><tt class="py-string">"FILE"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"config_file"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L236"></a><tt class="py-lineno">236</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"use FILE as global config file, create default config if none found"</tt><tt class="py-op">)</tt>         </tt>
+<a name="L237"></a><tt class="py-lineno">237</tt>  <tt class="py-line"> </tt>
+<a name="L238"></a><tt class="py-lineno">238</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-p"</tt><tt class="py-op">,</tt> <tt class="py-string">"--project-directory"</tt><tt class="py-op">,</tt> </tt>
+<a name="L239"></a><tt class="py-lineno">239</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">metavar</tt><tt class="py-op">=</tt><tt class="py-string">"DIR"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"project_dir"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L240"></a><tt class="py-lineno">240</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"use DIR as place for dxf,ngc,config,varspaces,plugin directoryies"</tt><tt class="py-op">)</tt>     </tt>
+<a name="L241"></a><tt class="py-lineno">241</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-P"</tt><tt class="py-op">,</tt> <tt class="py-string">"--plugin-directory"</tt><tt class="py-op">,</tt> </tt>
+<a name="L242"></a><tt class="py-lineno">242</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">metavar</tt><tt class="py-op">=</tt><tt class="py-string">"DIR"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"plugin_dir"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L243"></a><tt class="py-lineno">243</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"search DIR for plugins"</tt><tt class="py-op">)</tt>         </tt>
+<a name="L244"></a><tt class="py-lineno">244</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-I"</tt><tt class="py-op">,</tt> <tt class="py-string">"--import-directory"</tt><tt class="py-op">,</tt> </tt>
+<a name="L245"></a><tt class="py-lineno">245</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">metavar</tt><tt class="py-op">=</tt><tt class="py-string">"DIR"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"import_dir"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L246"></a><tt class="py-lineno">246</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"use DIR for DXF input"</tt><tt class="py-op">)</tt>   </tt>
+<a name="L247"></a><tt class="py-lineno">247</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-O"</tt><tt class="py-op">,</tt> <tt class="py-string">"--output-directory"</tt><tt class="py-op">,</tt> </tt>
+<a name="L248"></a><tt class="py-lineno">248</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">metavar</tt><tt class="py-op">=</tt><tt class="py-string">"DIR"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"output_dir"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L249"></a><tt class="py-lineno">249</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"use DIR for export output (like G-code)"</tt><tt class="py-op">)</tt>          </tt>
+<a name="L250"></a><tt class="py-lineno">250</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-V"</tt><tt class="py-op">,</tt> <tt class="py-string">"--varspaces-directory"</tt><tt class="py-op">,</tt> </tt>
+<a name="L251"></a><tt class="py-lineno">251</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"varspaces_dir"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> </tt>
+<a name="L252"></a><tt class="py-lineno">252</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"look for/store exporter parameter files in DIR"</tt><tt class="py-op">)</tt>      </tt>
+<a name="L253"></a><tt class="py-lineno">253</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-C"</tt><tt class="py-op">,</tt> <tt class="py-string">"--create-project-directory"</tt><tt class="py-op">,</tt><tt class="py-name">metavar</tt><tt class="py-op">=</tt><tt class="py-string">"DIR"</tt><tt class="py-op">,</tt> </tt>
+<a name="L254"></a><tt class="py-lineno">254</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"create_project_dir"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt> </tt>
+<a name="L255"></a><tt class="py-lineno">255</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt> <tt class="py-string">"initialize DIR as a project and use like --project-directory DIR. \</tt> </tt>
+<a name="L256"></a><tt class="py-lineno">256</tt>  <tt class="py-line"><tt class="py-string">                          create subdirectory config and default config/dxf2gcode.cfg with the current \</tt> </tt>
+<a name="L257"></a><tt class="py-lineno">257</tt>  <tt class="py-line"><tt class="py-string">                          option setting (-I,-O,-e)"</tt><tt class="py-op">)</tt> </tt>
+<a name="L258"></a><tt class="py-lineno">258</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-D"</tt><tt class="py-op">,</tt> <tt class="py-string">"--default-config"</tt><tt class="py-op">,</tt> </tt>
+<a name="L259"></a><tt class="py-lineno">259</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"default_config"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> </tt>
+<a name="L260"></a><tt class="py-lineno">260</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt> <tt class="py-string">"create a default config when doing a --create-project-directory"</tt> </tt>
+<a name="L261"></a><tt class="py-lineno">261</tt>  <tt class="py-line">                                <tt class="py-string">"instead of writing the current config"</tt><tt class="py-op">)</tt>         </tt>
+<a name="L262"></a><tt class="py-lineno">262</tt>  <tt class="py-line">        <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">add_option</tt><tt class="py-op">(</tt><tt class="py-string">"-L"</tt><tt class="py-op">,</tt> <tt class="py-string">"--logfile"</tt><tt class="py-op">,</tt> </tt>
+<a name="L263"></a><tt class="py-lineno">263</tt>  <tt class="py-line">                          <tt class="py-name">action</tt><tt class="py-op">=</tt><tt class="py-string">"store"</tt><tt class="py-op">,</tt> <tt class="py-name">dest</tt><tt class="py-op">=</tt><tt class="py-string">"logfile"</tt><tt class="py-op">,</tt> <tt class="py-name">default</tt><tt class="py-op">=</tt><tt class="py-name">None</tt><tt class="py-op">,</tt><tt class="py-name">metavar</tt><tt class="py-op">=</tt><tt class="py-string">"FILE"</tt><tt class="py-op">,</tt> </tt>
+<a name="L264"></a><tt class="py-lineno">264</tt>  <tt class="py-line">                          <tt class="py-name">help</tt><tt class="py-op">=</tt><tt class="py-string">"log to FILE"</tt><tt class="py-op">)</tt> </tt>
+<a name="L265"></a><tt class="py-lineno">265</tt>  <tt class="py-line"> </tt>
+<a name="L266"></a><tt class="py-lineno">266</tt>  <tt class="py-line">        <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">options</tt><tt class="py-op">,</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-15" class="py-name" targets="Variable exceptions.BaseException.args=exceptions.BaseException-class.html#args"><a title="exceptions.BaseException.args" class="py-name" href="#" onclick="return doclink('link-15', 'args', 'link-15');">args</a></tt><tt class="py-op">)</tt> <tt class="py-op">=</tt> <tt class="py-name">parser</tt><tt class="py-op">.</tt><tt class="py-name">parse_args</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L267"></a><tt class="py-lineno">267</tt>  <tt class="py-line">        <tt class="py-name">opt</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">options</tt> <tt class="py-comment"># shorthand</tt> </tt>
+<a name="L268"></a><tt class="py-lineno">268</tt>  <tt class="py-line">         </tt>
+<a name="L269"></a><tt class="py-lineno">269</tt>  <tt class="py-line"> </tt>
+<a name="L270"></a><tt class="py-lineno">270</tt>  <tt class="py-line">             </tt>
+<a name="L271"></a><tt class="py-lineno">271</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">project_dir</tt> <tt class="py-keyword">and</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">create_project_dir</tt><tt class="py-op">:</tt> </tt>
+<a name="L272"></a><tt class="py-lineno">272</tt>  <tt class="py-line">            <tt id="link-16" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-16', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-string">"--create-project-directory and --project-directory"</tt> </tt>
+<a name="L273"></a><tt class="py-lineno">273</tt>  <tt class="py-line">                          <tt class="py-string">" options are mutually exclusive"</tt><tt class="py-op">)</tt> </tt>
+<a name="L274"></a><tt class="py-lineno">274</tt>  <tt class="py-line">            <tt class="py-keyword">raise</tt> <tt id="link-17" class="py-name" targets="Class exceptions.OptionError=exceptions.OptionError-class.html"><a title="exceptions.OptionError" class="py-name" href="#" onclick="return doclink('link-17', 'OptionError', 'link-17');">OptionError</a></tt> </tt>
+<a name="L275"></a><tt class="py-lineno">275</tt>  <tt class="py-line"> </tt>
+<a name="L276"></a><tt class="py-lineno">276</tt>  <tt class="py-line"> </tt>
+<a name="L277"></a><tt class="py-lineno">277</tt>  <tt class="py-line">  </tt>
+<a name="L278"></a><tt class="py-lineno">278</tt>  <tt class="py-line">        <tt class="py-comment"># pecking order for config file:</tt> </tt>
+<a name="L279"></a><tt class="py-lineno">279</tt>  <tt class="py-line">        <tt class="py-comment"># 1. explicit -C &lt;configfile&gt;</tt> </tt>
+<a name="L280"></a><tt class="py-lineno">280</tt>  <tt class="py-line">        <tt class="py-comment"># 2. if projectdir, user projectdir/config/dxf2gcode.cfg</tt> </tt>
+<a name="L281"></a><tt class="py-lineno">281</tt>  <tt class="py-line">        <tt class="py-comment"># 3. Use environment</tt> </tt>
+<a name="L282"></a><tt class="py-lineno">282</tt>  <tt class="py-line">        <tt class="py-comment"># 4. Use built-in default config/dxf2gcode.cfg</tt> </tt>
+<a name="L283"></a><tt class="py-lineno">283</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt><tt class="py-op">:</tt> </tt>
+<a name="L284"></a><tt class="py-lineno">284</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt> <tt class="py-op">=</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt> </tt>
+<a name="L285"></a><tt class="py-lineno">285</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L286"></a><tt class="py-lineno">286</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">project_dir</tt><tt class="py-op">:</tt> </tt>
+<a name="L287"></a><tt class="py-lineno">287</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">project_dir</tt><tt class="py-op">,</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-18" class="py-name" targets="Variable constants.DEFAULT_CONFIG_FILE=constants-module.html#DEFAULT_CONFIG_FILE"><a title="constants.DEFAULT_CONFIG_FILE" class="py-name" href="#" onclick="return doclink('link-18', 'DEFAULT_CONFIG_FILE', 'link-18');">DEFAULT_CONFIG_FILE</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L288"></a><tt class="py-lineno">288</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L289"></a><tt class="py-lineno">289</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">getenv</tt><tt class="py-op">(</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-19" class="py-name" targets="Variable constants.DXF2GCODE_CONFIG=constants-module.html#DXF2GCODE_CONFIG"><a title="constants.DXF2GCODE_CONFIG" class="py-name" href="#" onclick="return doclink('link-19', 'DXF2GCODE_CONFIG', 'link-19');">DXF2GCODE_CONFIG</a></tt><tt class="py-op">,</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-20" class="py-name"><a title="constants.DEFAULT_CONFIG_FILE" class="py-name" href="#" onclick="return doclink('link-20', 'DEFAULT_CONFIG_FILE', 'link-18');">DEFAULT_CONFIG_FILE</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L290"></a><tt class="py-lineno">290</tt>  <tt class="py-line">        <tt id="link-21" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-21', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"using config file %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L291"></a><tt class="py-lineno">291</tt>  <tt class="py-line"> </tt>
+<a name="L292"></a><tt class="py-lineno">292</tt>  <tt class="py-line"> </tt>
+<a name="L293"></a><tt class="py-lineno">293</tt>  <tt class="py-line">        <tt class="py-comment"># try hard to read a config file</tt> </tt>
+<a name="L294"></a><tt class="py-lineno">294</tt>  <tt class="py-line">        <tt class="py-name">n_errors</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-22" class="py-name" targets="Method globalconfig.GlobalConfig.get_config()=globalconfig.GlobalConfig-class.html#get_config"><a title="globalconfig.GlobalConfig.get_config" class="py-name" href="#" onclick="return doclink('link-22', 'get_config', 'link-22');">get_config</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L295"></a><tt class="py-lineno">295</tt>  <tt class="py-line">    </tt>
+<a name="L296"></a><tt class="py-lineno">296</tt>  <tt class="py-line">        <tt class="py-comment"># convenience - flatten nested config dict to access it via self.config.sectionname.varname</tt> </tt>
+<a name="L297"></a><tt class="py-lineno">297</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-23" class="py-name" targets="Variable globals.config=globals-module.html#config"><a title="globals.config" class="py-name" href="#" onclick="return doclink('link-23', 'config', 'link-23');">config</a></tt> <tt class="py-op">=</tt> <tt id="link-24" class="py-name"><a title="dotdictlookup.DictDotLookup" class="py-name" href="#" onclick="return doclink('link-24', 'DictDotLookup', 'link-4');">DictDotLookup</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">)</tt> </tt>
+<a name="L298"></a><tt class="py-lineno">298</tt>  <tt class="py-line">        <tt class="py-name">cfg</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-25" class="py-name"><a title="globals.config" class="py-name" href="#" onclick="return doclink('link-25', 'config', 'link-23');">config</a></tt> <tt class="py-comment">#  shorthand</tt> </tt>
+<a name="L299"></a><tt class="py-lineno">299</tt>  <tt class="py-line"> </tt>
+<a name="L300"></a><tt class="py-lineno">300</tt>  <tt class="py-line">        <tt class="py-comment"># adjust to value from config </tt> </tt>
+<a name="L301"></a><tt class="py-lineno">301</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-26" class="py-name" targets="Method logger.Log.set_console_loglevel()=logger.Log-class.html#set_console_loglevel"><a title="logger.Log.set_console_loglevel" class="py-name" href="#" onclick="return doclink('link-26', 'set_console_loglevel', 'link-26');">set_console_loglevel</a></tt><tt class="py-op">(</tt><tt class="py-name">log_level</tt><tt class="py-op">=</tt><tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Logging</tt><tt class="py-op">.</tt><tt class="py-name">console_loglevel</tt><tt class="py-op">)</tt>    </tt>
+<a name="L302"></a><tt class="py-lineno">302</tt>  <tt class="py-line">         </tt>
+<a name="L303"></a><tt class="py-lineno">303</tt>  <tt class="py-line"> </tt>
+<a name="L304"></a><tt class="py-lineno">304</tt>  <tt class="py-line">                         </tt>
+<a name="L305"></a><tt class="py-lineno">305</tt>  <tt class="py-line">        <tt class="py-comment"># merge options into config, program arguments override</tt> </tt>
+<a name="L306"></a><tt class="py-lineno">306</tt>  <tt class="py-line">        <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">import_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">import_dir</tt> <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">import_dir</tt> <tt class="py-keyword">else</tt> <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">import_dir</tt> </tt>
+<a name="L307"></a><tt class="py-lineno">307</tt>  <tt class="py-line">        <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">output_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">output_dir</tt> <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">output_dir</tt> <tt class="py-keyword">else</tt> <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">output_dir</tt> </tt>
+<a name="L308"></a><tt class="py-lineno">308</tt>  <tt class="py-line">        <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">plugin_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">plugin_dir</tt> <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">plugin_dir</tt> <tt class="py-keyword">else</tt> <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">plugin_dir</tt> </tt>
+<a name="L309"></a><tt class="py-lineno">309</tt>  <tt class="py-line">        <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">varspaces_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">varspaces_dir</tt> <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">varspaces_dir</tt> <tt class="py-keyword">else</tt> <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Paths</tt><tt class="py-op">.</tt><tt class="py-name">varspaces_dir</tt> </tt>
+<a name="L310"></a><tt class="py-lineno">310</tt>  <tt class="py-line">         </tt>
+<a name="L311"></a><tt class="py-lineno">311</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">logfile</tt><tt class="py-op">:</tt> </tt>
+<a name="L312"></a><tt class="py-lineno">312</tt>  <tt class="py-line">            <tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Logging</tt><tt class="py-op">.</tt><tt class="py-name">logfile</tt> <tt class="py-op">=</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">logfile</tt> </tt>
+<a name="L313"></a><tt class="py-lineno">313</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-27" class="py-name" targets="Method logger.Log.add_file_logger()=logger.Log-class.html#add_file_logger"><a title="logger.Log.add_file_logger" class="py-name" href="#" onclick="return doclink('link-27', 'add_file_logger', 'link-27');">add_file_logger</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">,</tt><tt class="py-name">logfile</tt><tt class="py-op">=</tt><tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">logfile</tt><tt class="py-op">)</tt>   </tt>
+<a name="L314"></a><tt class="py-lineno">314</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L315"></a><tt class="py-lineno">315</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Logging</tt><tt class="py-op">.</tt><tt class="py-name">logfile</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">:</tt>  </tt>
+<a name="L316"></a><tt class="py-lineno">316</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-28" class="py-name"><a title="logger.Log.add_file_logger" class="py-name" href="#" onclick="return doclink('link-28', 'add_file_logger', 'link-27');">add_file_logger</a></tt><tt class="py-op">(</tt><tt class="py-name">logfile</tt><tt class="py-op">=</tt><tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Logging</tt><tt class="py-op">.</tt><tt class="py-name">logfile</tt><tt class="py-op">)</tt> </tt>
+<a name="L317"></a><tt class="py-lineno">317</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-29" class="py-name" targets="Method logger.Log.set_file_loglevel()=logger.Log-class.html#set_file_loglevel"><a title="logger.Log.set_file_loglevel" class="py-name" href="#" onclick="return doclink('link-29', 'set_file_loglevel', 'link-29');">set_file_loglevel</a></tt><tt class="py-op">(</tt><tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Logging</tt><tt class="py-op">.</tt><tt class="py-name">file_loglevel</tt><tt class="py-op">)</tt> </tt>
+<a name="L318"></a><tt class="py-lineno">318</tt>  <tt class="py-line">         </tt>
+<a name="L319"></a><tt class="py-lineno">319</tt>  <tt class="py-line">         </tt>
+<a name="L320"></a><tt class="py-lineno">320</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">create_project_dir</tt><tt class="py-op">:</tt> </tt>
+<a name="L321"></a><tt class="py-lineno">321</tt>  <tt class="py-line">            <tt class="py-name">path</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">abspath</tt><tt class="py-op">(</tt><tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">create_project_dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L322"></a><tt class="py-lineno">322</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">isdir</tt><tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L323"></a><tt class="py-lineno">323</tt>  <tt class="py-line">                <tt id="link-30" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-30', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-string">"create project directory: %s already exists"</tt> <tt class="py-op">%</tt> <tt class="py-name">path</tt><tt class="py-op">)</tt> </tt>
+<a name="L324"></a><tt class="py-lineno">324</tt>  <tt class="py-line">                <tt class="py-keyword">raise</tt> <tt id="link-31" class="py-name"><a title="exceptions.OptionError" class="py-name" href="#" onclick="return doclink('link-31', 'OptionError', 'link-17');">OptionError</a></tt> </tt>
+<a name="L325"></a><tt class="py-lineno">325</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L326"></a><tt class="py-lineno">326</tt>  <tt class="py-line">                <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L327"></a><tt class="py-lineno">327</tt>  <tt class="py-line">                    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">makedirs</tt><tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">)</tt> </tt>
+<a name="L328"></a><tt class="py-lineno">328</tt>  <tt class="py-line">                <tt class="py-keyword">except</tt> <tt id="link-32" class="py-name" targets="Class exceptions.OSError=exceptions.OSError-class.html"><a title="exceptions.OSError" class="py-name" href="#" onclick="return doclink('link-32', 'OSError', 'link-32');">OSError</a></tt><tt class="py-op">,</tt> <tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L329"></a><tt class="py-lineno">329</tt>  <tt class="py-line">                    <tt id="link-33" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-33', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-string">"can't create directory %s: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">,</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt id="link-34" class="py-name" targets="Variable exceptions.EnvironmentError.strerror=exceptions.EnvironmentError-class.html#strerror"><a title="exceptions.EnvironmentError.strerror" class="py-name" href="#" onclick="return doclink('link-34', 'strerror', 'link-34');">strerror</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L330"></a><tt class="py-lineno">330</tt>  <tt class="py-line">                    <tt class="py-keyword">raise</tt> </tt>
+<a name="L331"></a><tt class="py-lineno">331</tt>  <tt class="py-line">                <tt id="link-35" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-35', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"created project directory %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L332"></a><tt class="py-lineno">332</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">default_config</tt><tt class="py-op">:</tt> </tt>
+<a name="L333"></a><tt class="py-lineno">333</tt>  <tt class="py-line">                    <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-36" class="py-name" targets="Method globalconfig.GlobalConfig.create_default_config()=globalconfig.GlobalConfig-class.html#create_default_config"><a title="globalconfig.GlobalConfig.create_default_config" class="py-name" href="#" onclick="return doclink('link-36', 'create_default_config', 'link-36');">create_default_config</a></tt><tt class="py-op">(</tt><tt id="link-37" class="py-name"><a title="globalconfig.CONFIG_SPEC" class="py-name" href="#" onclick="return doclink('link-37', 'CONFIG_SPEC', 'link-10');">CONFIG_SPEC</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L334"></a><tt class="py-lineno">334</tt>  <tt class="py-line">                <tt class="py-keyword">for</tt> <tt class="py-name">d</tt> <tt class="py-keyword">in</tt> <tt id="link-38" class="py-name"><a title="globalconfig.DEFDIR_DICT" class="py-name" href="#" onclick="return doclink('link-38', 'DEFDIR_DICT', 'link-7');">DEFDIR_DICT</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L335"></a><tt class="py-lineno">335</tt>  <tt class="py-line">                    <tt class="py-name">v</tt> <tt class="py-op">=</tt> <tt id="link-39" class="py-name"><a title="globalconfig.DEFDIR_DICT" class="py-name" href="#" onclick="return doclink('link-39', 'DEFDIR_DICT', 'link-7');">DEFDIR_DICT</a></tt><tt class="py-op">[</tt><tt class="py-name">d</tt><tt class="py-op">]</tt> </tt>
+<a name="L336"></a><tt class="py-lineno">336</tt>  <tt class="py-line">                    <tt class="py-name">_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">,</tt> <tt class="py-name">d</tt><tt class="py-op">)</tt> </tt>
+<a name="L337"></a><tt class="py-lineno">337</tt>  <tt class="py-line">                    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">mkdir</tt><tt class="py-op">(</tt><tt class="py-name">_dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L338"></a><tt class="py-lineno">338</tt>  <tt class="py-line">                    <tt id="link-40" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-40', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"created dir %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">_dir</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L339"></a><tt class="py-lineno">339</tt>  <tt class="py-line">                    <tt class="py-comment"># adjust paths</tt> </tt>
+<a name="L340"></a><tt class="py-lineno">340</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">v</tt><tt class="py-op">:</tt> </tt>
+<a name="L341"></a><tt class="py-lineno">341</tt>  <tt class="py-line">                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">[</tt><tt class="py-string">'Paths'</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-name">v</tt><tt class="py-op">]</tt> <tt class="py-op">=</tt> <tt class="py-name">_dir</tt> </tt>
+<a name="L342"></a><tt class="py-lineno">342</tt>  <tt class="py-line">                         </tt>
+<a name="L343"></a><tt class="py-lineno">343</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">,</tt><tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-41" class="py-name"><a title="constants.DEFAULT_CONFIG_FILE" class="py-name" href="#" onclick="return doclink('link-41', 'DEFAULT_CONFIG_FILE', 'link-18');">DEFAULT_CONFIG_FILE</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L344"></a><tt class="py-lineno">344</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-42" class="py-name" targets="Method globalconfig.GlobalConfig.write_current_config()=globalconfig.GlobalConfig-class.html#write_current_config"><a title="globalconfig.GlobalConfig.write_current_config" class="py-name" href="#" onclick="return doclink('link-42', 'write_current_config', 'link-42');">write_current_config</a></tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L345"></a><tt class="py-lineno">345</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">opt</tt><tt class="py-op">.</tt><tt class="py-name">default_config</tt><tt class="py-op">:</tt> </tt>
+<a name="L346"></a><tt class="py-lineno">346</tt>  <tt class="py-line">                    <tt id="link-43" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-43', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"created default config in %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L347"></a><tt class="py-lineno">347</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L348"></a><tt class="py-lineno">348</tt>  <tt class="py-line">                    <tt id="link-44" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-44', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"created current config in %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L349"></a><tt class="py-lineno">349</tt>  <tt class="py-line"> </tt>
+<a name="L350"></a><tt class="py-lineno">350</tt>  <tt class="py-line">  </tt>
+<a name="L351"></a><tt class="py-lineno">351</tt>  <tt class="py-line">        <tt class="py-comment"># CK: execute this code once the logging window is established</tt> </tt>
+<a name="L352"></a><tt class="py-lineno">352</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">False</tt><tt class="py-op">:</tt> </tt>
+<a name="L353"></a><tt class="py-lineno">353</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-45" class="py-name" targets="Method logger.Log.add_window_logger()=logger.Log-class.html#add_window_logger"><a title="logger.Log.add_window_logger" class="py-name" href="#" onclick="return doclink('link-45', 'add_window_logger', 'link-45');">add_window_logger</a></tt><tt class="py-op">(</tt><tt class="py-name">log_level</tt><tt class="py-op">=</tt><tt class="py-name">cfg</tt><tt class="py-op">.</tt><tt class="py-name">Logging</tt><tt class="py-op">.</tt><tt class="py-name">window_loglevelconfig</tt><tt class="py-op">)</tt> </tt>
+<a name="L354"></a><tt class="py-lineno">354</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-46" class="py-name" targets="Method logger.Log.set_window_logstream()=logger.Log-class.html#set_window_logstream"><a title="logger.Log.set_window_logstream" class="py-name" href="#" onclick="return doclink('link-46', 'set_window_logstream', 'link-46');">set_window_logstream</a></tt><tt class="py-op">(</tt><tt class="py-name">stream</tt><tt class="py-op">=</tt><tt class="py-name">sys</tt><tt class="py-op">.</tt><tt class="py-name">stderr</tt><tt class="py-op">)</tt> <tt class="py-comment"># set to window file handle</tt> </tt>
+<a name="L355"></a><tt class="py-lineno">355</tt>  <tt class="py-line">            <tt class="py-comment"># change window loglevel like so:</tt> </tt>
+<a name="L356"></a><tt class="py-lineno">356</tt>  <tt class="py-line">            <tt class="py-comment">#self.log.set_window_loglevel(self,log_level)</tt> </tt>
+<a name="L357"></a><tt class="py-lineno">357</tt>  <tt class="py-line">             </tt>
+<a name="L358"></a><tt class="py-lineno">358</tt>  <tt class="py-line">             </tt>
+<a name="L359"></a><tt class="py-lineno">359</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_errors</tt><tt class="py-op">:</tt> </tt>
+<a name="L360"></a><tt class="py-lineno">360</tt>  <tt class="py-line">            <tt id="link-47" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-47', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">"%d error(s) reading '%s'"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">n_errors</tt><tt class="py-op">,</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L361"></a><tt class="py-lineno">361</tt>  <tt class="py-line">        <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L362"></a><tt class="py-lineno">362</tt>  <tt class="py-line">            <tt id="link-48" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-48', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"config read sucessfully: %s"</tt><tt class="py-op">,</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_file</tt> <tt class="py-op">)</tt> </tt>
+</div><a name="L363"></a><tt class="py-lineno">363</tt>  <tt class="py-line">           </tt>
+<a name="L364"></a><tt class="py-lineno">364</tt>  <tt class="py-line">             </tt>
+<a name="L365"></a><tt class="py-lineno">365</tt>  <tt class="py-line"> </tt>
+<a name="L366"></a><tt class="py-lineno">366</tt>  <tt class="py-line"> </tt>
+<a name="GlobalConfig.get_config"></a><div id="GlobalConfig.get_config-def"><a name="L367"></a><tt class="py-lineno">367</tt> <a class="py-toggle" href="#" id="GlobalConfig.get_config-toggle" onclick="return toggle('GlobalConfig.get_config');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="globalconfig.GlobalConfig-class.html#get_config">get_config</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">config_file</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GlobalConfig.get_config-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GlobalConfig.get_config-expanded"><a name="L368"></a><tt class="py-lineno">368</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L369"></a><tt class="py-lineno">369</tt>  <tt class="py-line"><tt class="py-docstring">        try to arrive at, and read a valid config file</tt> </tt>
+<a name="L370"></a><tt class="py-lineno">370</tt>  <tt class="py-line"><tt class="py-docstring">        </tt> </tt>
+<a name="L371"></a><tt class="py-lineno">371</tt>  <tt class="py-line"><tt class="py-docstring">        if the config dir doesnt exist, create it</tt> </tt>
+<a name="L372"></a><tt class="py-lineno">372</tt>  <tt class="py-line"><tt class="py-docstring">        if the file doesnt exist, create a default config derived from CONFIG_SPEC</tt> </tt>
+<a name="L373"></a><tt class="py-lineno">373</tt>  <tt class="py-line"><tt class="py-docstring">        at this point, a config file does exist - new or old, so read it</tt> </tt>
+<a name="L374"></a><tt class="py-lineno">374</tt>  <tt class="py-line"><tt class="py-docstring">        if the version number mismatches or the config file doesnt</tt> </tt>
+<a name="L375"></a><tt class="py-lineno">375</tt>  <tt class="py-line"><tt class="py-docstring">        validate, rename the bad config file by adding a time stamp, re-create a</tt> </tt>
+<a name="L376"></a><tt class="py-lineno">376</tt>  <tt class="py-line"><tt class="py-docstring">        default file and read that</tt> </tt>
+<a name="L377"></a><tt class="py-lineno">377</tt>  <tt class="py-line"><tt class="py-docstring">        results are in self.config_dict</tt> </tt>
+<a name="L378"></a><tt class="py-lineno">378</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L379"></a><tt class="py-lineno">379</tt>  <tt class="py-line">        <tt id="link-49" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-49', 'logger', 'link-5');">logger</a></tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">log</tt><tt class="py-op">.</tt><tt id="link-50" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-50', 'logger', 'link-5');">logger</a></tt>    <tt class="py-comment"># shorthand</tt> </tt>
+<a name="L380"></a><tt class="py-lineno">380</tt>  <tt class="py-line"> </tt>
+<a name="L381"></a><tt class="py-lineno">381</tt>  <tt class="py-line">        <tt class="py-comment"># create config subdir and default config if needed</tt> </tt>
+<a name="L382"></a><tt class="py-lineno">382</tt>  <tt class="py-line">        <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">isfile</tt><tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L383"></a><tt class="py-lineno">383</tt>  <tt class="py-line">            <tt class="py-name">config_dir</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">dirname</tt><tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L384"></a><tt class="py-lineno">384</tt>  <tt class="py-line">            <tt class="py-keyword">if</tt> <tt class="py-keyword">not</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">isdir</tt><tt class="py-op">(</tt><tt class="py-name">config_dir</tt><tt class="py-op">)</tt> <tt class="py-keyword">and</tt> <tt class="py-op">(</tt><tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">config_dir</tt><tt class="py-op">)</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L385"></a><tt class="py-lineno">385</tt>  <tt class="py-line">                <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L386"></a><tt class="py-lineno">386</tt>  <tt class="py-line">                    <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">makedirs</tt><tt class="py-op">(</tt><tt class="py-name">config_dir</tt><tt class="py-op">)</tt> </tt>
+<a name="L387"></a><tt class="py-lineno">387</tt>  <tt class="py-line">                <tt class="py-keyword">except</tt> <tt id="link-51" class="py-name"><a title="exceptions.OSError" class="py-name" href="#" onclick="return doclink('link-51', 'OSError', 'link-32');">OSError</a></tt><tt class="py-op">,</tt><tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L388"></a><tt class="py-lineno">388</tt>  <tt class="py-line">                    <tt id="link-52" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-52', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-string">"can't create directory %s: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_dir</tt><tt class="py-op">,</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt id="link-53" class="py-name"><a title="exceptions.EnvironmentError.strerror" class="py-name" href="#" onclick="return doclink('link-53', 'strerror', 'link-34');">strerror</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L389"></a><tt class="py-lineno">389</tt>  <tt class="py-line">                    <tt class="py-keyword">raise</tt> </tt>
+<a name="L390"></a><tt class="py-lineno">390</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L391"></a><tt class="py-lineno">391</tt>  <tt class="py-line">                    <tt id="link-54" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-54', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"created config directory %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_dir</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L392"></a><tt class="py-lineno">392</tt>  <tt class="py-line"> </tt>
+<a name="L393"></a><tt class="py-lineno">393</tt>  <tt class="py-line">            <tt class="py-comment"># we have a directory, create default config</tt> </tt>
+<a name="L394"></a><tt class="py-lineno">394</tt>  <tt class="py-line">            <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-55" class="py-name"><a title="globalconfig.GlobalConfig.create_default_config" class="py-name" href="#" onclick="return doclink('link-55', 'create_default_config', 'link-36');">create_default_config</a></tt><tt class="py-op">(</tt><tt id="link-56" class="py-name"><a title="globalconfig.CONFIG_SPEC" class="py-name" href="#" onclick="return doclink('link-56', 'CONFIG_SPEC', 'link-10');">CONFIG_SPEC</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L395"></a><tt class="py-lineno">395</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L396"></a><tt class="py-lineno">396</tt>  <tt class="py-line">                <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-57" class="py-name"><a title="globalconfig.GlobalConfig.write_current_config" class="py-name" href="#" onclick="return doclink('link-57', 'write_current_config', 'link-42');">write_current_config</a></tt><tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L397"></a><tt class="py-lineno">397</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt id="link-58" class="py-name" targets="Class exceptions.Exception=exceptions.Exception-class.html"><a title="exceptions.Exception" class="py-name" href="#" onclick="return doclink('link-58', 'Exception', 'link-58');">Exception</a></tt><tt class="py-op">,</tt><tt class="py-name">inst</tt><tt class="py-op">:</tt> </tt>
+<a name="L398"></a><tt class="py-lineno">398</tt>  <tt class="py-line">                <tt id="link-59" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-59', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-name">inst</tt><tt class="py-op">)</tt> </tt>
+<a name="L399"></a><tt class="py-lineno">399</tt>  <tt class="py-line">                <tt id="link-60" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-60', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-string">"unexpected error creating default config %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L400"></a><tt class="py-lineno">400</tt>  <tt class="py-line">                <tt class="py-keyword">raise</tt>                 </tt>
+<a name="L401"></a><tt class="py-lineno">401</tt>  <tt class="py-line">            <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L402"></a><tt class="py-lineno">402</tt>  <tt class="py-line">                <tt id="link-61" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-61', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"created default config file %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L403"></a><tt class="py-lineno">403</tt>  <tt class="py-line">        <tt class="py-comment"># we have a default config file</tt> </tt>
+<a name="L404"></a><tt class="py-lineno">404</tt>  <tt class="py-line">        <tt class="py-name">keep_trying</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt> </tt>
+<a name="L405"></a><tt class="py-lineno">405</tt>  <tt class="py-line">        <tt class="py-keyword">while</tt> <tt class="py-name">keep_trying</tt><tt class="py-op">:</tt> </tt>
+<a name="L406"></a><tt class="py-lineno">406</tt>  <tt class="py-line">            <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L407"></a><tt class="py-lineno">407</tt>  <tt class="py-line">                <tt class="py-name">n_errors</tt> <tt class="py-op">=</tt> <tt class="py-number">0</tt> </tt>
+<a name="L408"></a><tt class="py-lineno">408</tt>  <tt class="py-line">                <tt class="py-name">result</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-62" class="py-name" targets="Method globalconfig.GlobalConfig.read_config_file()=globalconfig.GlobalConfig-class.html#read_config_file"><a title="globalconfig.GlobalConfig.read_config_file" class="py-name" href="#" onclick="return doclink('link-62', 'read_config_file', 'link-62');">read_config_file</a></tt><tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">,</tt> <tt id="link-63" class="py-name"><a title="globalconfig.CONFIG_SPEC" class="py-name" href="#" onclick="return doclink('link-63', 'CONFIG_SPEC', 'link-10');">CONFIG_SPEC</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L409"></a><tt class="py-lineno">409</tt>  <tt class="py-line">                <tt class="py-name">error_dict</tt> <tt class="py-op">=</tt> <tt class="py-name">flatten_errors</tt><tt class="py-op">(</tt><tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">,</tt><tt class="py-name">result</tt><tt class="py-op">)</tt> </tt>
+<a name="L410"></a><tt class="py-lineno">410</tt>  <tt class="py-line">                <tt class="py-name">n_errors</tt> <tt class="py-op">+=</tt> <tt class="py-name">len</tt><tt class="py-op">(</tt><tt class="py-name">error_dict</tt><tt class="py-op">)</tt> </tt>
+<a name="L411"></a><tt class="py-lineno">411</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">n_errors</tt><tt class="py-op">:</tt> </tt>
+<a name="L412"></a><tt class="py-lineno">412</tt>  <tt class="py-line">                    <tt id="link-64" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-64', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">"%d error(s) reading %s :"</tt> <tt class="py-op">%</tt><tt class="py-op">(</tt><tt class="py-name">n_errors</tt><tt class="py-op">,</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L413"></a><tt class="py-lineno">413</tt>  <tt class="py-line"> </tt>
+<a name="L414"></a><tt class="py-lineno">414</tt>  <tt class="py-line">                <tt class="py-keyword">for</tt> <tt class="py-name">entry</tt> <tt class="py-keyword">in</tt> <tt class="py-name">error_dict</tt><tt class="py-op">:</tt>  </tt>
+<a name="L415"></a><tt class="py-lineno">415</tt>  <tt class="py-line">                    <tt class="py-name">section_list</tt><tt class="py-op">,</tt> <tt class="py-name">key</tt><tt class="py-op">,</tt> <tt class="py-name">error</tt> <tt class="py-op">=</tt> <tt class="py-name">entry</tt> </tt>
+<a name="L416"></a><tt class="py-lineno">416</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">key</tt> <tt class="py-keyword">is</tt> <tt class="py-keyword">not</tt> <tt class="py-name">None</tt><tt class="py-op">:</tt> </tt>
+<a name="L417"></a><tt class="py-lineno">417</tt>  <tt class="py-line">                        <tt class="py-name">section_list</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-name">key</tt><tt class="py-op">)</tt> </tt>
+<a name="L418"></a><tt class="py-lineno">418</tt>  <tt class="py-line">                    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L419"></a><tt class="py-lineno">419</tt>  <tt class="py-line">                        <tt class="py-name">section_list</tt><tt class="py-op">.</tt><tt class="py-name">append</tt><tt class="py-op">(</tt><tt class="py-string">'[missing section]'</tt><tt class="py-op">)</tt> </tt>
+<a name="L420"></a><tt class="py-lineno">420</tt>  <tt class="py-line">                    <tt class="py-name">section_string</tt> <tt class="py-op">=</tt> <tt class="py-string">', '</tt><tt class="py-op">.</tt><tt class="py-name">join</tt><tt class="py-op">(</tt><tt class="py-name">section_list</tt><tt class="py-op">)</tt> </tt>
+<a name="L421"></a><tt class="py-lineno">421</tt>  <tt class="py-line">                    <tt class="py-keyword">if</tt> <tt class="py-name">error</tt> <tt class="py-op">==</tt> <tt class="py-name">False</tt><tt class="py-op">:</tt> </tt>
+<a name="L422"></a><tt class="py-lineno">422</tt>  <tt class="py-line">                        <tt class="py-name">error</tt> <tt class="py-op">=</tt> <tt class="py-string">'Missing value or section.'</tt> </tt>
+<a name="L423"></a><tt class="py-lineno">423</tt>  <tt class="py-line">                    <tt id="link-65" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-65', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-name">section_string</tt> <tt class="py-op">+</tt> <tt class="py-string">' = '</tt> <tt class="py-op">+</tt> <tt class="py-name">str</tt><tt class="py-op">(</tt><tt class="py-name">error</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L424"></a><tt class="py-lineno">424</tt>  <tt class="py-line">                    <tt class="py-name">keep_trying</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt>  </tt>
+<a name="L425"></a><tt class="py-lineno">425</tt>  <tt class="py-line"> </tt>
+<a name="L426"></a><tt class="py-lineno">426</tt>  <tt class="py-line">                <tt class="py-name">fileversion</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">[</tt><tt class="py-string">'Version'</tt><tt class="py-op">]</tt><tt class="py-op">[</tt><tt class="py-string">'config_version'</tt><tt class="py-op">]</tt> </tt>
+<a name="L427"></a><tt class="py-lineno">427</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-name">fileversion</tt> <tt class="py-op">!=</tt> <tt id="link-66" class="py-name"><a title="globalconfig.CONFIG_VERSION" class="py-name" href="#" onclick="return doclink('link-66', 'CONFIG_VERSION', 'link-9');">CONFIG_VERSION</a></tt><tt class="py-op">:</tt> </tt>
+<a name="L428"></a><tt class="py-lineno">428</tt>  <tt class="py-line">                    <tt id="link-67" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-67', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">warning</tt><tt class="py-op">(</tt><tt class="py-string">'config file versions do not match - internal: "%s", config file "%s"'</tt> <tt class="py-op">%</tt><tt class="py-op">(</tt><tt id="link-68" class="py-name"><a title="globalconfig.CONFIG_VERSION" class="py-name" href="#" onclick="return doclink('link-68', 'CONFIG_VERSION', 'link-9');">CONFIG_VERSION</a></tt><tt class="py-op">,</tt><tt class="py-name">fileversion</tt><tt class="py-op">)</tt><tt class="py-op">)</tt>        </tt>
+<a name="L429"></a><tt class="py-lineno">429</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L430"></a><tt class="py-lineno">430</tt>  <tt class="py-line">                    <tt id="link-69" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-69', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"config file version '%s' - ok: "</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">fileversion</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L431"></a><tt class="py-lineno">431</tt>  <tt class="py-line"> </tt>
+<a name="L432"></a><tt class="py-lineno">432</tt>  <tt class="py-line">                <tt class="py-comment"># giive up on this cfg file?</tt> </tt>
+<a name="L433"></a><tt class="py-lineno">433</tt>  <tt class="py-line">                <tt class="py-keyword">if</tt> <tt class="py-op">(</tt><tt class="py-name">fileversion</tt> <tt class="py-op">!=</tt> <tt id="link-70" class="py-name"><a title="globalconfig.CONFIG_VERSION" class="py-name" href="#" onclick="return doclink('link-70', 'CONFIG_VERSION', 'link-9');">CONFIG_VERSION</a></tt><tt class="py-op">)</tt> <tt class="py-keyword">or</tt> <tt class="py-op">(</tt><tt id="link-71" class="py-name"><a title="globalconfig.RENEW_ERRORED_CFG" class="py-name" href="#" onclick="return doclink('link-71', 'RENEW_ERRORED_CFG', 'link-8');">RENEW_ERRORED_CFG</a></tt> <tt class="py-keyword">and</tt> <tt class="py-op">(</tt><tt class="py-name">n_errors</tt> <tt class="py-op">&gt;</tt> <tt class="py-number">0</tt><tt class="py-op">)</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+<a name="L434"></a><tt class="py-lineno">434</tt>  <tt class="py-line">                    <tt class="py-comment"># This config file wont work.</tt> </tt>
+<a name="L435"></a><tt class="py-lineno">435</tt>  <tt class="py-line">                    <tt class="py-comment"># we move the file out of the way, create</tt> </tt>
+<a name="L436"></a><tt class="py-lineno">436</tt>  <tt class="py-line">                    <tt class="py-comment"># a new default and retry.</tt> </tt>
+<a name="L437"></a><tt class="py-lineno">437</tt>  <tt class="py-line"> </tt>
+<a name="L438"></a><tt class="py-lineno">438</tt>  <tt class="py-line">                    <tt class="py-op">(</tt><tt class="py-name">base</tt><tt class="py-op">,</tt><tt class="py-name">ext</tt><tt class="py-op">)</tt> <tt class="py-op">=</tt> <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">path</tt><tt class="py-op">.</tt><tt class="py-name">splitext</tt><tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L439"></a><tt class="py-lineno">439</tt>  <tt class="py-line">                    <tt class="py-name">badfilename</tt> <tt class="py-op">=</tt> <tt class="py-name">base</tt> <tt class="py-op">+</tt> <tt class="py-name">c</tt><tt class="py-op">.</tt><tt id="link-72" class="py-name" targets="Variable constants.BAD_CONFIG_EXTENSION=constants-module.html#BAD_CONFIG_EXTENSION"><a title="constants.BAD_CONFIG_EXTENSION" class="py-name" href="#" onclick="return doclink('link-72', 'BAD_CONFIG_EXTENSION', 'link-72');">BAD_CONFIG_EXTENSION</a></tt> </tt>
+<a name="L440"></a><tt class="py-lineno">440</tt>  <tt class="py-line">                    <tt id="link-73" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-73', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">debug</tt><tt class="py-op">(</tt><tt class="py-string">"trying to rename bad cfg %s to %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">,</tt><tt class="py-name">badfilename</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L441"></a><tt class="py-lineno">441</tt>  <tt class="py-line">                    <tt class="py-keyword">try</tt><tt class="py-op">:</tt> </tt>
+<a name="L442"></a><tt class="py-lineno">442</tt>  <tt class="py-line">                        <tt class="py-name">os</tt><tt class="py-op">.</tt><tt class="py-name">rename</tt><tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">,</tt><tt class="py-name">badfilename</tt><tt class="py-op">)</tt> </tt>
+<a name="L443"></a><tt class="py-lineno">443</tt>  <tt class="py-line">             </tt>
+<a name="L444"></a><tt class="py-lineno">444</tt>  <tt class="py-line">                    <tt class="py-keyword">except</tt> <tt id="link-74" class="py-name"><a title="exceptions.OSError" class="py-name" href="#" onclick="return doclink('link-74', 'OSError', 'link-32');">OSError</a></tt><tt class="py-op">,</tt><tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L445"></a><tt class="py-lineno">445</tt>  <tt class="py-line">                        <tt id="link-75" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-75', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-string">"rename(%s,%s) failed: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">,</tt><tt class="py-name">badfilename</tt><tt class="py-op">,</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt id="link-76" class="py-name"><a title="exceptions.EnvironmentError.strerror" class="py-name" href="#" onclick="return doclink('link-76', 'strerror', 'link-34');">strerror</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L446"></a><tt class="py-lineno">446</tt>  <tt class="py-line">                        <tt class="py-keyword">raise</tt> </tt>
+<a name="L447"></a><tt class="py-lineno">447</tt>  <tt class="py-line"> </tt>
+<a name="L448"></a><tt class="py-lineno">448</tt>  <tt class="py-line">                    <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L449"></a><tt class="py-lineno">449</tt>  <tt class="py-line">                        <tt id="link-77" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-77', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"renamed bad config to %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">badfilename</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L450"></a><tt class="py-lineno">450</tt>  <tt class="py-line">                        <tt class="py-comment"># create a fresh default cfg</tt> </tt>
+<a name="L451"></a><tt class="py-lineno">451</tt>  <tt class="py-line">                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-78" class="py-name"><a title="globalconfig.GlobalConfig.create_default_config" class="py-name" href="#" onclick="return doclink('link-78', 'create_default_config', 'link-36');">create_default_config</a></tt><tt class="py-op">(</tt><tt id="link-79" class="py-name"><a title="globalconfig.CONFIG_SPEC" class="py-name" href="#" onclick="return doclink('link-79', 'CONFIG_SPEC', 'link-10');">CONFIG_SPEC</a></tt><tt class="py-op">)</tt> </tt>
+<a name="L452"></a><tt class="py-lineno">452</tt>  <tt class="py-line">                        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt id="link-80" class="py-name"><a title="globalconfig.GlobalConfig.write_current_config" class="py-name" href="#" onclick="return doclink('link-80', 'write_current_config', 'link-42');">write_current_config</a></tt><tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt> </tt>
+<a name="L453"></a><tt class="py-lineno">453</tt>  <tt class="py-line">                        <tt class="py-comment"># a new file exists, read it once more so we </tt> </tt>
+<a name="L454"></a><tt class="py-lineno">454</tt>  <tt class="py-line">                        <tt id="link-81" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-81', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">info</tt><tt class="py-op">(</tt><tt class="py-string">"created default cfg %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L455"></a><tt class="py-lineno">455</tt>  <tt class="py-line">                        <tt class="py-name">keep_trying</tt> <tt class="py-op">=</tt> <tt class="py-name">True</tt>                               </tt>
+<a name="L456"></a><tt class="py-lineno">456</tt>  <tt class="py-line">                <tt class="py-keyword">else</tt><tt class="py-op">:</tt> </tt>
+<a name="L457"></a><tt class="py-lineno">457</tt>  <tt class="py-line">                    <tt class="py-name">keep_trying</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt> <tt class="py-comment"># it's either this or that way                                    </tt> </tt>
+<a name="L458"></a><tt class="py-lineno">458</tt>  <tt class="py-line">                 </tt>
+<a name="L459"></a><tt class="py-lineno">459</tt>  <tt class="py-line">            <tt class="py-keyword">except</tt> <tt id="link-82" class="py-name" targets="Class exceptions.IOError=exceptions.IOError-class.html"><a title="exceptions.IOError" class="py-name" href="#" onclick="return doclink('link-82', 'IOError', 'link-82');">IOError</a></tt><tt class="py-op">,</tt><tt class="py-name">e</tt><tt class="py-op">:</tt> </tt>
+<a name="L460"></a><tt class="py-lineno">460</tt>  <tt class="py-line">                <tt id="link-83" class="py-name"><a title="globals.logger
+logger" class="py-name" href="#" onclick="return doclink('link-83', 'logger', 'link-5');">logger</a></tt><tt class="py-op">.</tt><tt class="py-name">error</tt><tt class="py-op">(</tt><tt class="py-string">"cant read %s: %s"</tt> <tt class="py-op">%</tt> <tt class="py-op">(</tt><tt class="py-name">config_file</tt><tt class="py-op">,</tt><tt class="py-name">e</tt><tt class="py-op">.</tt><tt id="link-84" class="py-name"><a title="exceptions.EnvironmentError.strerror" class="py-name" href="#" onclick="return doclink('link-84', 'strerror', 'link-34');">strerror</a></tt><tt class="py-op">)</tt><tt class="py-op">)</tt> </tt>
+<a name="L461"></a><tt class="py-lineno">461</tt>  <tt class="py-line">                <tt class="py-name">n_errors</tt> <tt class="py-op">+=</tt> <tt class="py-number">1</tt> </tt>
+<a name="L462"></a><tt class="py-lineno">462</tt>  <tt class="py-line">                <tt class="py-name">keep_trying</tt> <tt class="py-op">=</tt> <tt class="py-name">False</tt>  </tt>
+<a name="L463"></a><tt class="py-lineno">463</tt>  <tt class="py-line">     </tt>
+<a name="L464"></a><tt class="py-lineno">464</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">n_errors</tt> </tt>
+</div><a name="L465"></a><tt class="py-lineno">465</tt>  <tt class="py-line">         </tt>
+<a name="GlobalConfig.read_config_file"></a><div id="GlobalConfig.read_config_file-def"><a name="L466"></a><tt class="py-lineno">466</tt> <a class="py-toggle" href="#" id="GlobalConfig.read_config_file-toggle" onclick="return toggle('GlobalConfig.read_config_file');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="globalconfig.GlobalConfig-class.html#read_config_file">read_config_file</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">path</tt><tt class="py-op">,</tt><tt class="py-param">spec</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GlobalConfig.read_config_file-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GlobalConfig.read_config_file-expanded"><a name="L467"></a><tt class="py-lineno">467</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L468"></a><tt class="py-lineno">468</tt>  <tt class="py-line"><tt class="py-docstring">        read config &amp; validate against spec decorating self.config_dict</tt> </tt>
+<a name="L469"></a><tt class="py-lineno">469</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L470"></a><tt class="py-lineno">470</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt> <tt class="py-op">=</tt> <tt class="py-name">ConfigObj</tt><tt class="py-op">(</tt><tt class="py-name">path</tt><tt class="py-op">,</tt> <tt class="py-name">configspec</tt><tt class="py-op">=</tt><tt class="py-name">spec</tt><tt class="py-op">,</tt> <tt class="py-name">interpolation</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">,</tt> </tt>
+<a name="L471"></a><tt class="py-lineno">471</tt>  <tt class="py-line">                                     <tt class="py-name">file_error</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">,</tt><tt class="py-name">raise_errors</tt><tt class="py-op">=</tt><tt class="py-name">False</tt><tt class="py-op">)</tt> </tt>
+<a name="L472"></a><tt class="py-lineno">472</tt>  <tt class="py-line">        <tt class="py-name">_vdt</tt> <tt class="py-op">=</tt> <tt class="py-name">Validator</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L473"></a><tt class="py-lineno">473</tt>  <tt class="py-line">        <tt class="py-name">res</tt> <tt class="py-op">=</tt> <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">.</tt><tt class="py-name">validate</tt><tt class="py-op">(</tt><tt class="py-name">_vdt</tt><tt class="py-op">,</tt> <tt class="py-name">preserve_errors</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+<a name="L474"></a><tt class="py-lineno">474</tt>  <tt class="py-line">        <tt class="py-keyword">return</tt> <tt class="py-name">res</tt> </tt>
+</div><a name="L475"></a><tt class="py-lineno">475</tt>  <tt class="py-line">     </tt>
+<a name="GlobalConfig.write_current_config"></a><div id="GlobalConfig.write_current_config-def"><a name="L476"></a><tt class="py-lineno">476</tt> <a class="py-toggle" href="#" id="GlobalConfig.write_current_config-toggle" onclick="return toggle('GlobalConfig.write_current_config');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="globalconfig.GlobalConfig-class.html#write_current_config">write_current_config</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">path</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GlobalConfig.write_current_config-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GlobalConfig.write_current_config-expanded"><a name="L477"></a><tt class="py-lineno">477</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">.</tt><tt id="link-85" class="py-name" targets="Variable exceptions.EnvironmentError.filename=exceptions.EnvironmentError-class.html#filename,Variable exceptions.SyntaxError.filename=exceptions.SyntaxError-class.html#filename"><a title="exceptions.EnvironmentError.filename
+exceptions.SyntaxError.filename" class="py-name" href="#" onclick="return doclink('link-85', 'filename', 'link-85');">filename</a></tt> <tt class="py-op">=</tt> <tt class="py-name">path</tt> </tt>
+<a name="L478"></a><tt class="py-lineno">478</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">.</tt><tt class="py-name">write</tt><tt class="py-op">(</tt><tt class="py-op">)</tt>     </tt>
+</div><a name="L479"></a><tt class="py-lineno">479</tt>  <tt class="py-line">         </tt>
+<a name="GlobalConfig.create_default_config"></a><div id="GlobalConfig.create_default_config-def"><a name="L480"></a><tt class="py-lineno">480</tt> <a class="py-toggle" href="#" id="GlobalConfig.create_default_config-toggle" onclick="return toggle('GlobalConfig.create_default_config');">-</a><tt class="py-line">    <tt class="py-keyword">def</tt> <a class="py-def-name" href="globalconfig.GlobalConfig-class.html#create_default_config">create_default_config</a><tt class="py-op">(</tt><tt class="py-param">self</tt><tt class="py-op">,</tt><tt class="py-param">configspec</tt><tt class="py-op">)</tt><tt class="py-op">:</tt> </tt>
+</div><div id="GlobalConfig.create_default_config-collapsed" style="display:none;" pad="+++" indent="++++++++"></div><div id="GlobalConfig.create_default_config-expanded"><a name="L481"></a><tt class="py-lineno">481</tt>  <tt class="py-line">        <tt class="py-docstring">"""</tt> </tt>
+<a name="L482"></a><tt class="py-lineno">482</tt>  <tt class="py-line"><tt class="py-docstring">        decorate self.config_dict from configspec</tt> </tt>
+<a name="L483"></a><tt class="py-lineno">483</tt>  <tt class="py-line"><tt class="py-docstring">        """</tt> </tt>
+<a name="L484"></a><tt class="py-lineno">484</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt> <tt class="py-op">=</tt> <tt class="py-name">ConfigObj</tt><tt class="py-op">(</tt><tt class="py-name">configspec</tt><tt class="py-op">=</tt><tt class="py-name">configspec</tt><tt class="py-op">)</tt> </tt>
+<a name="L485"></a><tt class="py-lineno">485</tt>  <tt class="py-line">        <tt class="py-name">vdt</tt> <tt class="py-op">=</tt> <tt class="py-name">Validator</tt><tt class="py-op">(</tt><tt class="py-op">)</tt> </tt>
+<a name="L486"></a><tt class="py-lineno">486</tt>  <tt class="py-line">        <tt class="py-name">self</tt><tt class="py-op">.</tt><tt class="py-name">config_dict</tt><tt class="py-op">.</tt><tt class="py-name">validate</tt><tt class="py-op">(</tt><tt class="py-name">vdt</tt><tt class="py-op">,</tt> <tt class="py-name">copy</tt><tt class="py-op">=</tt><tt class="py-name">True</tt><tt class="py-op">)</tt> </tt>
+</div></div><a name="L487"></a><tt class="py-lineno">487</tt>  <tt class="py-line"> </tt><script type="text/javascript">
+<!--
+expandto(location.href);
+// -->
+</script>
+</pre>
+<br />
+<!-- ==================== NAVIGATION BAR ==================== -->
+<table class="navbar" border="0" width="100%" cellpadding="0"
+       bgcolor="#a0c0ff" cellspacing="0">
+  <tr valign="middle">
+
+  <!-- Tree link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="module-tree.html">Trees</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Index link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="identifier-index.html">Indices</a>&nbsp;&nbsp;&nbsp;</th>
+
+  <!-- Help link -->
+      <th>&nbsp;&nbsp;&nbsp;<a
+        href="help.html">Help</a>&nbsp;&nbsp;&nbsp;</th>
+
+      <th class="navbar" width="100%"></th>
+  </tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%%">
+  <tr>
+    <td align="left" class="footer">
+    Generated by Epydoc 3.0.1 on Mon Dec 21 18:16:22 2009
+    </td>
+    <td align="right" class="footer">
+      <a target="mainFrame" href="http://epydoc.sourceforge.net"
+        >http://epydoc.sourceforge.net</a>
+    </td>
+  </tr>
+</table>
+
+<script type="text/javascript">
+  <!--
+  // Private objects are initially displayed (because if
+  // javascript is turned off then we want them to be
+  // visible); but by default, we want to hide them.  So hide
+  // them unless we have a cookie that says to show them.
+  checkCookie();
+  // -->
+</script>
+</body>
+</html>

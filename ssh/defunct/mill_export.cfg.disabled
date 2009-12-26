@@ -1,0 +1,13 @@
+[Depth Coordinates]
+axis3_mill_depth = 3.2
+axis3_slice_depth = 4.5
+axis3_safe_margin = 2.0
+
+[Tool Parameters]
+tool_dia = 6
+start_radius = 3
+
+[Feed Rates]
+f_g1_plane = 50
+f_g1_depth = 150
+
