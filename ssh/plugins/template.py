@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: iso-8859-15 -*-
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -31,7 +31,7 @@ class Plugin(VarSpace):
     Template for a dxf2gcode plugin
     
     Plugin() class variables as listed are required - leave the names untouched, fill in the values
-    as needed. 
+    as needed. Make sure I{TAG} does not collide with another plugin's tag value. 
     
     The user interface will display an export option if the C{export} method is defined, and 
     a transform option if the C{transform} method is defined. If you dont need one of them, just
@@ -54,6 +54,11 @@ class Plugin(VarSpace):
         called once the plugin is syntactically validated
         """
         
+        self.callbacks = {'booltrue': self.varchanged_callback,
+                          'boolfalse': lambda name,old,new:g.logger.set_window_loglevel(new),
+
+        }
+
         self.shapeset_handlers = {
                 'export'    :  { 'menu_entry' : 'demo export','method':self.export},
                 'transform' :  { 'menu_entry' : 'demo pocketing','method':self.transform},
@@ -64,6 +69,13 @@ class Plugin(VarSpace):
         
         only methods actually defined in this plugin may be added
         """
+        
+
+        
+        self.TAG =           'template'
+        """short name (for tab riders, varspace subdir and varspace default prefix creation"""
+    
+
         
         self.DESCRIPTION =   'template for new plugins'
         """verbose plugin description  (for user interface 'About', hovers etc)"""
@@ -77,7 +89,7 @@ class Plugin(VarSpace):
         self.HIDDEN_AT_STARTUP = False
         """ displayed at startup """
         
-        self.SPECVERSION =   12      
+        self.SPECVERSION =   16     
         """running version number of the varspace .cfg file format
         
             Increment this value time you change a non-comment field in SPECNAME. 
@@ -156,6 +168,7 @@ class Plugin(VarSpace):
                 
                 # a OptionMenu - labeltext is first element, rest is choices:
                 option = string_list(default=list('Tick one of:','foo', 'bar', 'baz'))
+            
         
         ''').splitlines()  
         """ variable and UI description"""
@@ -278,4 +291,9 @@ class Plugin(VarSpace):
         demonstrate a button callback 
         """
         self.print_vars()
+        
+    def varchanged_callback(self,name,oldvalue,newvalue):
+        g.logger.logger.info("%s.%s(%s %s -> %s)  called" %
+                             (self.instance_name,sys._getframe(0).f_code.co_name,name,oldvalue,newvalue))
+
                  

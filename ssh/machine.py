@@ -37,7 +37,6 @@ class Plugin(VarSpace):
     def __init__(self):
         
         self.shapeset_handlers = {}
-
         self.DESCRIPTION =   'machine settings'
         self.VERSION =       '0.01'
         self.CLONABLE = False

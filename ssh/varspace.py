@@ -256,20 +256,25 @@ class VarSpace(object):
             g.logger.logger.debug("cleanup plugin %s after failed initialize()",self.instance_name)      
 
         return _result
-    
 
 
     def tkvar_changed_callback(self,varname,vdict,name,index,mode):
+        oldvalue = vdict[varname]
         try:
-            value = self.tkVars[varname].get()
+            newvalue = self.tkVars[varname].get()
         except ValueError:
-            # reset to default value if funny keys are pressed
+            # reset to default newvalue if funny keys are pressed
             self.tkVars[varname].set(vdict[varname])
             pass
         else:
-            #g.logger.logger.debug("%s changed from %s to %s" %(varname,vdict[varname],value))
-            vdict[varname] = value
+            #g.logger.logger.debug("%s changed from %s to %s" %(varname,vdict[varname],newvalue))
+            vdict[varname] = newvalue
 
+            if hasattr(self,'callbacks') and    self.callbacks.has_key(varname): # uh-oh
+                self.callbacks[varname](varname,oldvalue,newvalue)
+            vdict[varname] = newvalue
+
+        
     def save_callback(self):
         if self.is_default:
             self._save_varspace()
@@ -340,7 +345,7 @@ class VarSpace(object):
         
         
     def display_pane(self,tab_name):
-        self.nbook.add_screen(self.param_frame,tab_name)
+        self.nbook.add_screen(self.param_frame,tab_name) # ,highlightcolor='blue',disabledforeground='yellow')
         self.nbook.display(self.param_frame)    # switch to it
 
     def add_item(self,frame,name,value,text,line,vdict):
@@ -352,7 +357,9 @@ class VarSpace(object):
             label = text[0]
         else:
             label = text
-            
+        
+
+
         label = label % (self.var_dict[c.VARIABLES])
                         
         label = Label(frame, text=label)

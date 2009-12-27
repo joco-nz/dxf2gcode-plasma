@@ -75,7 +75,7 @@ class NotebookClass(object):
         frames (screens)"""
         return self.screen_fr
 
-    def add_screen(self, fr, title):
+    def add_screen(self, fr, title,**kwargs):
         """ 
         Add a new frame (screen) to the notebook
         @param fr: a Frame() instance to be displayed
@@ -86,7 +86,7 @@ class NotebookClass(object):
         
         # button stays on frame instance so we can rename and properly
         # select it later
-        fr._button = Radiobutton(self.rb_fr, text=title, indicatoron=0,bd=1,
+        fr._button = Radiobutton(self.rb_fr, kwargs,text=title, indicatoron=0,bd=1,
                         variable=self.choice, value=self.count, 
                         width=len(title)+self.xfuzz,
                         command=lambda: self.display(fr))

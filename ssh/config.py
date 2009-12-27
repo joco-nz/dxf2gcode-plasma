@@ -24,10 +24,12 @@
 @license: GPL
 """
 
+import sys
 
 from varspace import  VarSpace
 import globals as g
 import constants as c
+from logger import Log
 
 class Plugin(VarSpace):
 
@@ -40,10 +42,17 @@ class Plugin(VarSpace):
         self.CLONABLE = False
         self.HIDDEN_AT_STARTUP = False
         
-        self.shapeset_handlers = {}
-        """dictionary of function names and menu entries"""
+#        self.shapeset_handlers = {}
+#        """dictionary of function names and menu entries"""
+
         
-        self.SPECVERSION =   29
+        self.callbacks = {
+                          'window_loglevel': lambda name,old,new:g.logger.set_window_loglevel(new),
+                          'file_loglevel':   lambda name,old,new:g.logger.set_file_loglevel(new),
+                          'console_loglevel': lambda name,old,new:g.logger.set_console_loglevel(new),
+        }
+
+        self.SPECVERSION =   30
         self.SPECNAME = str('''
             # do not edit the following section name:
                 [Version]
@@ -135,7 +144,7 @@ class Plugin(VarSpace):
                 file_loglevel = string_list(default=list('File logging:', 'DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG'))
                 window_loglevel = string_list(default=list('Window logging:', 'DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='INFO'))
                 global_debug_level = string(default="Debug level:")
-                
+ 
         ''').splitlines()
         """ format, type and default value specification of the global config file"""
         pass
@@ -151,4 +160,9 @@ class Plugin(VarSpace):
         self.display_pane(self.instance_name)
         return True
 
+        
+    def varchanged_callback(self,name,oldvalue,newvalue):
+        g.logger.logger.info("%s.%s(%s %s -> %s)  called" %
+                             (self.instance_name,sys._getframe(0).f_code.co_name,name,oldvalue,newvalue))
 
+                 

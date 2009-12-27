@@ -262,11 +262,11 @@ class GlobalConfig(object):
                           " options are mutually exclusive")
             raise OptionError
 
-        # pecking order for config file:
-        # 1. explicit -C <configfile>
-        # 2. if projectdir, user projectdir/config/dxf2gcode.cfg
+        # pecking order for config dir:
+        # 1. explicit -C <configdir>
+        # 2. if projectdir, user projectdir/config/config.cfg
         # 3. Use environment
-        # 4. Use built-in default config/dxf2gcode.cfg
+        # 4. Use built-in default config/config.cfg
         if opt.config_dir:
             self.config_dir = opt.config_dir
         else:
