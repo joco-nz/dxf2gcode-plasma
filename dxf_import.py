@@ -24,7 +24,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from point import PointClass, ContourClass
+from point import PointClass
+from dxf_import_classes import ContourClass
 
 from geoent_arc import ArcClass
 from geoent_circle import CircleClass

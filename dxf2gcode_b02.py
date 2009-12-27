@@ -1074,6 +1074,7 @@ class CanvasContentClass:
 
         #Zuruecksetzen der Konturen
         self.Shapes = []
+        self.CCShapes = []
         self.LayerContents = []
         self.EntitiesRoot = EntitieContentClass(Nr=0, Name='Entities', parent=None, children=[],
                                             p0=p0, pb=pb, sca=sca, rot=rot)
@@ -1086,11 +1087,11 @@ class CanvasContentClass:
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
         self.makeshapes(parent=self.EntitiesRoot)
         
+        self.plot_shapes()
+        
         self.makeccshapes(parent=self.EntitiesRoot)
         
         self.plot_ccshapes()
-        
-        #self.plot_shapes()
         
         self.LayerContents.sort()     
 
@@ -1182,7 +1183,7 @@ class CanvasContentClass:
         
         for shape in self.Shapes:
             #self.CCShapes.append(self.SOC.do_compensation(shape, 2, 41))
-            self.CCShapes.append(self.SOC.do_compensation(shape, 2, 41))
+            self.CCShapes.append(self.SOC.do_compensation(shape))
             
     def plot_ccshapes(self):
         """

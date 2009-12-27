@@ -21,7 +21,8 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from point import PointClass, ContourClass
+from point import PointClass
+from dxf_import_classes import PointsClass, ContourClass
 from math import degrees, radians
 
 class InsertClass:

@@ -23,7 +23,9 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees
-from point import PointClass, LineGeo, PointsClass, ContourClass
+from point import PointClass
+from dxf_import_classes import PointsClass, ContourClass
+from base_geometries import  LineGeo 
 from tkMessageBox import showwarning
 
 

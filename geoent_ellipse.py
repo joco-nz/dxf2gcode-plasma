@@ -23,7 +23,10 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi, floor
-from point import PointClass, LineGeo, ArcGeo, PointsClass, ContourClass, BiarcClass
+from point import PointClass
+from dxf_import_classes import PointsClass, ContourClass
+from biarc import BiarcClass
+from base_geometries import  ArcGeo 
 
 
 class EllipseClass:

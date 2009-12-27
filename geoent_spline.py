@@ -22,7 +22,9 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from nurbs_calc import Spline2Arcs
-from point import PointClass, PointsClass, ContourClass
+from point import PointClass
+from dxf_import_classes import PointsClass, ContourClass
+from base_geometries import  ArcGeo 
 
 class SplineClass:
     def __init__(self, Nr=0, caller=None):

@@ -26,7 +26,9 @@
 DEBUG = 0
 
 #import sys, os, string, ConfigParser 
-from point import PointClass, LineGeo, ArcGeo, BoundingBoxClass
+from point import PointClass
+from base_geometries import LineGeo, ArcGeo
+from bounding_box import BoundingBoxClass
 from math import cos, sin, radians, degrees
 from copy import deepcopy
 from Canvas import Line

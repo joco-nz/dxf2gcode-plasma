@@ -23,7 +23,9 @@
 
 from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, degrees, pi
-from point import PointClass, PointsClass, ArcGeo, ContourClass
+from point import PointClass
+from dxf_import_classes import PointsClass, ContourClass
+from base_geometries import  ArcGeo 
 
 class CircleClass:
     def __init__(self, Nr=0, caller=None):

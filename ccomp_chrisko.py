@@ -1,5 +1,6 @@
 # -*- coding: ISO-8859-1 -*-
-from point import PointClass, ArcGeo, LineGeo
+from point import PointClass
+from base_geometries import  LineGeo, ArcGeo 
 from shape import ShapeClass
 
 from copy import deepcopy 
@@ -22,12 +23,12 @@ class ShapeOffsetClass:
         Standard method to initialize the class
         """ 
         self.tol = 0.01
-        self.ccshape = ShapeClass()
+        self.pretshape = ShapeClass()
         self.radius = 10
         self.dir = 41
         
         
-    def do_compensation(self, shape=None, radius=10, direction=41):
+    def do_compensation(self, shape=None, radius=2, direction=41):
         """ 
         Does the Cutter Compensation for the given Shape
         @param shape: The shape which shall be used for cutter correction
@@ -40,10 +41,12 @@ class ShapeOffsetClass:
         
         #Pretreatment of the shapes to have no LSIP
         pretshape = self.pretreatment()
+              
+        rawoffshape = self.make_raw_offsett(pretshape)
         
-        
-        
-        return pretshape
+        untroffshape = self.make_untrimmed_offset(rawoffshape)
+         
+        return untroffshape
         
 
     def pretreatment(self):
@@ -54,11 +57,13 @@ class ShapeOffsetClass:
         If Local self intersections exist the Elements will be splitted into new
         elements at their intersection point.
         """ 
-        
+
         pretshape = ShapeClass(parent=self.shape.parent,
                            cut_cor=40,
                            nr=self.shape.nr,
-                           plotoption=1)
+                           plotoption=1,
+                           geos=[],
+                           geos_hdls=[])
         
         pretshape.BB = self.shape.BB
         
@@ -85,247 +90,103 @@ class ShapeOffsetClass:
                 #and the element has to be seperated into 2 elements. this will
                 #result in a not self intersecting element. 
                 
-                if len(points):
-                    for point in points:
-                        #There can be only one Local Self Intersection Point.
-                        if geo1.isLSIP(point, self.tol):
-                            pretshape.geos += geo1.split_into_2geos(point)
-                else:
+                added = 0
+                
+                for point in points:
+                    #There can be only one Local Self Intersection Point.
+                    if geo1.isTIP(point, self.tol):
+                        pretshape.geos += geo1.split_into_2geos(point)
+                        added = 1
+                
+                if not(added):
                     pretshape.geos.append(geo1)
                     
-        #Add the last geometry             
-        pretshape.geos.append(geo2)
+                        
+            else:
+                pretshape.geos.append(geo1)
+                
+                    
+        #Add the last geometry
+        if len(self.shape.geos) > 1:           
+            pretshape.geos.append(geo2)
+        else:
+            pretshape.geos.append(self.shape.geos[0])
         
         return pretshape
+       
+    def make_raw_offsett(self, pretshape):
+        """ 
+        Generates the raw offset curves of the pretreated shape, which has no
+        local self intersections. 
+        According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
+        @param pretshape: The pretreated shape with not LSIP.
+        @return: Returns the raw offset shape which is not trimmed or joined.
+        """ 
         
-#        inshape=ShapeClass(parent=shape.parent,
-#                           cut_cor=40,
-#                           nr=shape.nr,
-#                           plotoption=1)
-#
-#        print('closed parent shape')
-#            
-#        pos=0;  
-#        while pos<len(shape.geos):
-#            npos=pos+1
-#            if(npos>=len(shape.geos)):
-#                npos=0
-#            if(shape.geos[pos].type=="LineGeo" and shape.geos[npos].type=="LineGeo"):
-#                self.CheckIntersectLineLine(shape.geos[pos], shape.geos[npos])
-#                inshape.geos.append(LineGeo(shape.geos[pos].Pa,shape.geos[pos].Pe))
-#                if(self.num>1):
-#                    print("ERROR Line/Line Intersect with 2 ponts is not possible")
-#            elif(shape.geos[pos].type=="LineGeo" and shape.geos[npos].type=="ArcGeo"):
-#                
-#                self.CheckIntersectLineArc(shape.geos[pos], shape.geos[npos])
-#                if(self.num>1):
-#                    
-#                   
-#                    v=PointClass(0.0, 0.0)
-#                    if(self.ISPstatus1a=='between' and self.ISPstatus1b=='between'):
-#                        if(self.v1>0 and self.v1<1):
-#                            v=(shape.geos[pos].Pe-shape.geos[pos].Pa)
-#                            nv=(self.v1+1)/2 
-#                    elif(self.ISPstatus2a=='between' and self.ISPstatus2b=='between' ):
-#                        
-#                        print("found intersect Line Arc, inserting additional Line")
-#                        if(self.v2>0 and self.v2<1):
-#                            v=(shape.geos[pos].Pe-shape.geos[pos].Pa)
-#                            nv=(self.v1+1)/2
-#                   
-#                    if((pow(v.x, 2)+pow(v.y, 2))>0):
-#                    
-#                        Pen=PointClass(0.0, 0.0)
-#                        Pen.x=shape.geos[pos].Pa.x+v.x*nv
-#                        Pen.y=shape.geos[pos].Pa.y+v.y*nv
-#                        inshape.geos.append(LineGeo(shape.geos[pos].Pa, Pen))
-#                        inshape.geos[-1].col='Black'
-#                        inshape.geos.append(LineGeo(Pen, shape.geos[pos].Pe))
-#                        inshape.geos[-1].col='Red'
-#                    else:
-#                       
-#                        inshape.geos.append(LineGeo(shape.geos[pos].Pa, shape.geos[pos].Pe))
-#                        inshape.geos[-1].col='Black'
-#                      
-#                else:
-#                    inshape.geos.append(LineGeo(shape.geos[pos].Pa, shape.geos[pos].Pe))
-#                    inshape.geos[-1].col='Black' 
-#                 
-#                    
-#            elif(shape.geos[pos].type=="ArcGeo" and shape.geos[npos].type=="ArcGeo"):
-#                self.CheckIntersectArcArc(shape.geos[pos], shape.geos[npos])
-#               
-#                delta=0
-#                if(self.ISPstatus1a=='between' and self.ISPstatus1b=='between' ):
-#                    print("found intersect Arc  Arc, inserting additional Arc")
-#                    delta=self.P1_ext_a/shape.geos[pos].ext
-#                elif(self.ISPstatus2a=='between' and self.ISPstatus2b=='between' ):
-#                    print("found intersect Arc  Arc, inserting additional Arc")
-#                    delta=self.P2_ext_a/shape.geos[pos].ext
-#                
-#              
-#                if(delta>0 and delta<1):
-#                    delta=delta*0.5
-#                    arc=shape.geos[pos].s_ang+delta*shape.geos[pos].ext
-#                   
-#                    Pen=PointClass(0.0, 0.0)
-#                    Pen.y=shape.geos[pos].r*sin(arc)+shape.geos[pos].O.y
-#                    Pen.x=shape.geos[pos].r*cos(arc)+shape.geos[pos].O.x
-#                  
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=Pen,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=arc, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                    inshape.geos.append(ArcGeo(Pa=Pen,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=arc, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Red'
-#                else:
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                 
-#                
-#            elif(shape.geos[pos].type=="ArcGeo" and shape.geos[npos].type=="LineGeo"):
-#                
-#                self.CheckIntersectArcLine(shape.geos[pos], shape.geos[npos])
-#                delta=0
-#                if(self.ISPstatus1a=='between' and self.ISPstatus1b=='between' ):
-#                    print("found intersect Arc  line, inserting additional Arc")
-#                    delta=self.P1_ext_a/shape.geos[pos].ext
-#                elif(self.ISPstatus2a=='between' and self.ISPstatus2b=='between' ):
-#                    print("found intersect Arc  line, inserting additional Arc")
-#                    delta=self.P2_ext_a/shape.geos[pos].ext
-#               
-#                
-#                
-#                if(delta>0 and delta<1):
-#                    #delta=delta*0.5 Correction according Michael
-#                    delta=(1+delta)/2
-#
-#                    arc=shape.geos[pos].s_ang+delta*shape.geos[pos].ext
-#                    Pen=PointClass(0.0, 0.0)
-#                    Pen.y=shape.geos[pos].r*sin(arc)+shape.geos[pos].O.y
-#                    Pen.x=shape.geos[pos].r*cos(arc)+shape.geos[pos].O.x
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=Pen,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=arc, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                    inshape.geos.append(ArcGeo(Pa=Pen,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=arc, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Red'
-#                else:
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                   
-#            pos+=1
-#        
-#       
-#        return (inshape)
-#      
-#    
-##---------------------------------------------------------------------------------------------
-## generate raw Compensation data
-##---------------------------------------------------------------------------------------------
-#
-#    def GenRawCompData(self,inshape,radius):
-#        print('----------------')
-#        print('generate segments')
-#        print('----------------')
-#        ccshape=ShapeClass(parent=inshape.parent,
-#                           cut_cor=40,
-#                           nr=inshape.nr,
-#                           plotoption=inshape.plotoption)
-#        ccshape.r=radius
-#        num_elements=len(inshape.geos)
-#        pos=0   
-#        pnew=0 
-#        
-#        while pos<num_elements:
-#            
-#            if(inshape.geos[pos].type=='LineGeo'):
-#                if(inshape.cut_cor!=41):
-#                    Pan=inshape.geos[pos].Pa
-#                    Pen=inshape.geos[pos].Pe
-#                    Pan.x-=inshape.geos[pos].nva.x*radius
-#                    Pan.y-=inshape.geos[pos].nva.y*radius
-#                    Pen.x-=inshape.geos[pos].nve.x*radius
-#                    Pen.y-=inshape.geos[pos].nve.y*radius
-#                 
-#                else:
-#                    
-#                    Pan=inshape.geos[pos].Pa
-#                    Pen=inshape.geos[pos].Pe
-#                    Pan.x+=inshape.geos[pos].nva.x*radius
-#                    Pan.y+=inshape.geos[pos].nva.y*radius
-#                    Pen.x+=inshape.geos[pos].nve.x*radius
-#                    Pen.y+=inshape.geos[pos].nve.y*radius
-#                ccshape.geos.append(LineGeo(Pa=Pan, Pe=Pen)) 
-#                ccshape.geos[-1].col='Green'
-#              
-#            elif(inshape.geos[pos].type=='ArcGeo'): 
-#                o=inshape.geos[pos].O
-#                s_ang=inshape.geos[pos].s_ang
-#                e_ang=inshape.geos[pos].e_ang
-#                if(inshape.cut_cor!=41):
-#                    if(inshape.geos[pos].ext<0):
-#                        rn=inshape.geos[pos].r+radius
-#                        Pan=inshape.geos[pos].Pa
-#                        Pen=inshape.geos[pos].Pe
-#                        Pan.y+=sin(s_ang)*radius
-#                        Pan.x+=cos(s_ang)*radius
-#                        Pen.y+=sin(e_ang)*radius
-#                        Pen.x+=cos(e_ang)*radius
-#                        ext=inshape.geos[pos].ext
-#                        ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext))
-#                        ccshape.geos[-1].col='Green'
-#                      
-#                    else:
-#                        r=inshape.geos[pos].r
-#                        if(r>=radius):
-#                            rn=inshape.geos[pos].r-radius
-#                            Pan=inshape.geos[pos].Pa
-#                            Pen=inshape.geos[pos].Pe
-#                            Pan.y-=sin(s_ang)*radius
-#                            Pan.x-=cos(s_ang)*radius
-#                            Pen.y-=sin(e_ang)*radius
-#                            Pen.x-=cos(e_ang)*radius
-#                            ext=inshape.geos[pos].ext
-#                            ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext, s_ang=s_ang, e_ang=e_ang, O=o))
-#                            ccshape.geos[-1].col='Green'
-#                          
-#                        else:
-#                            pass
-#                else:
-#                    if(inshape.geos[pos].ext>0):
-#                        rn=inshape.geos[pos].r+radius
-#                        Pan=inshape.geos[pos].Pa
-#                        Pen=inshape.geos[pos].Pe
-#                        Pan.y+=sin(s_ang)*radius
-#                        Pan.x+=cos(s_ang)*radius
-#                        Pen.y+=sin(e_ang)*radius
-#                        Pen.x+=cos(e_ang)*radius
-#                        ext=inshape.geos[pos].ext
-#                        ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext, s_ang=s_ang, e_ang=e_ang, O=o))
-#                        ccshape.geos[-1].col='Green'
-#                      
-#                    else:
-#                        r=inshape.geos[pos].r
-#                        if(r>=radius):
-#                            rn=inshape.geos[pos].r-radius
-#                            Pan=inshape.geos[pos].Pa
-#                            Pen=inshape.geos[pos].Pe
-#                            Pan.y-=sin(s_ang)*radius
-#                            Pan.x-=cos(s_ang)*radius
-#                            Pen.y-=sin(e_ang)*radius
-#                            Pen.x-=cos(e_ang)*radius
-#                            ext=inshape.geos[pos].ext
-#                            ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext, s_ang=s_ang, e_ang=e_ang, O=o))
-#                            ccshape.geos[-1].col='Green'
-#                           
-#                        else:
-#                            pass
-#                
-#                        
-#            pos+=1
-#        return (ccshape)
-#        
-##---------------------------------------------------------------------------------------------
-## handle lines Step1
-##---------------------------------------------------------------------------------------------
-#
+        rawoffshape = ShapeClass(parent=self.shape.parent,
+                           cut_cor=40,
+                           nr=self.shape.nr,
+                           plotoption=1,
+                           geos=[],
+                           geos_hdls=[])
+        
+        rawoffshape.BB = self.shape.BB
+        
+        for geo in pretshape.geos:
+            rawoffshape.geos.append(geo.rawoffset(radius=self.radius,
+                                                  direction=self.dir))
+            
+        return rawoffshape
+   
+    def make_untrimmed_offset(self, rawoffshape):
+        """ 
+        The untrimmed offset shape is generated according to para 3.2. It 
+        searches the intersection points and dependent on the type of 
+        intersection it used the rules for trimming and joining.
+        According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
+        @param rawoffshape: The untrimmed / unjoined offset shape
+        @return: Returns the joined untrimmed offset shape.
+        """  
+    
+        untroffshape = ShapeClass(parent=self.shape.parent,
+                           cut_cor=40,
+                           nr=self.shape.nr,
+                           plotoption=1,
+                           geos=[],
+                           geos_hdls=[])
+        
+        newPa = deepcopy(rawoffshape.geos[0].Pa)
+        
+        #Loop for all geometries in the shape
+        for geo_nr in range(1, len(rawoffshape.geos)):
+            
+            geo1 = rawoffshape.geos[geo_nr - 1]
+            #If the for loop is at the last geometry the first one is the 2nd
+            if len(rawoffshape.geos) <= 1:
+                break
+            geo2 = rawoffshape.geos[geo_nr]
+            
+            #Call the trim join algorithems for the elements.
+            untroffshape.geos += geo1.trim_join(geo2, newPa, self.tol)
+            newPa = untroffshape.geos[-1].Pe
+               
+        untroffshape.BB = untroffshape.BB
+        
+        #Add the last geometry Case 3 according to para 3.2
+        if len(self.shape.geos) > 1:
+            if geo2.type=='LineGeo':
+                untroffshape.geos.append(LineGeo(newPa,deepcopy(geo2.Pe)))
+            else:
+                print 'hab ich noch nicht'
+        else:
+            untroffshape.geos.append(self.shape.geos[0])
+        
+        return untroffshape
+    
+    
+    
+             
+
 #    def compsteplines(self,inshape):
 #        print('----------------')
 #        print('combine segments')

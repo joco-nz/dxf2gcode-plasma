@@ -22,7 +22,10 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from point import PointClass, ArcGeo, LineGeo, BiarcClass
+from point import PointClass
+from dxf_import_classes import PointsClass, ContourClass
+from base_geometries import  LineGeo, ArcGeo
+from biarc import BiarcClass 
 
 import sys, os, string
 from math import radians, cos, sin, tan, atan2, sqrt, pow, pi, ceil
