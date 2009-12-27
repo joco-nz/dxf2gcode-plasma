@@ -30,7 +30,7 @@ from Tkinter import Tk, IntVar, DoubleVar, Frame, Radiobutton
 class Notebook:    
     # initialization. receives the master widget
     # reference and the notebook orientation
-    def __init__(self, master,width=0,height=0):
+    def __init__(self, master, width=0, height=0):
 
         self.active_fr = None
         self.count = 0
@@ -38,20 +38,20 @@ class Notebook:
 
         self.dummy_x_fr = Frame(master, width=width, borderwidth=0)
         self.dummy_y_fr = Frame(master, height=height, borderwidth=0)
-        self.dummy_x_fr.grid(row=0,column=1)
+        self.dummy_x_fr.grid(row=0, column=1)
         self.dummy_x_fr.grid_propagate(0)
-        self.dummy_y_fr.grid(row=1,rowspan=2,column=0)
+        self.dummy_y_fr.grid(row=1, rowspan=2, column=0)
         self.dummy_y_fr.grid_propagate(0)
 
         # creates notebook's frames structure
         self.rb_fr = Frame(master, borderwidth=0)
-        self.rb_fr.grid(row=1,column=1, sticky=N+W)
+        self.rb_fr.grid(row=1, column=1, sticky=N + W)
         
         self.screen_fr = Frame(master, borderwidth=2, relief=RIDGE)
-        self.screen_fr.grid(row=2,column=1,sticky=N+W+E)
+        self.screen_fr.grid(row=2, column=1, sticky=N + W + E)
         
-        master.rowconfigure(2,weight=1)
-        master.columnconfigure(1,weight=1)
+        master.rowconfigure(2, weight=1)
+        master.columnconfigure(1, weight=1)
 
     # return a master frame reference for the external frames (screens)
     def __call__(self):
@@ -60,15 +60,15 @@ class Notebook:
     # add a new frame (screen) to the (bottom/left of the) notebook
     def add_screen(self, fr, title):
 
-        b = Radiobutton(self.rb_fr,bd=1, text=title, indicatoron=0, \
+        b = Radiobutton(self.rb_fr, bd=1, text=title, indicatoron=0, \
                         variable=self.choice, value=self.count, \
                         command=lambda: self.display(fr))
         
-        b.grid(column=self.count,row=0,sticky=N+E+W)
-        self.rb_fr.columnconfigure(self.count,weight=1)
+        b.grid(column=self.count, row=0, sticky=N + E + W)
+        self.rb_fr.columnconfigure(self.count, weight=1)
 
-        fr.grid(sticky=N+W+E)
-        self.screen_fr.columnconfigure(0,weight=1)
+        fr.grid(sticky=N + W + E)
+        self.screen_fr.columnconfigure(0, weight=1)
         fr.grid_remove()
 
         # ensures the first frame will be

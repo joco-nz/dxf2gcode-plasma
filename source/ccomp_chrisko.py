@@ -1,299 +1,192 @@
 # -*- coding: ISO-8859-1 -*-
-from point import PointClass, ArcGeo, LineGeo,floor ,ceil
+from point import PointClass
+from base_geometries import  LineGeo, ArcGeo 
 from shape import ShapeClass
-from copy import deepcopy 
 
-from math import sin,cos,  atan2, sqrt, pow,pi
+from copy import deepcopy 
+from math import sin, cos, atan2, sqrt, pow, pi
 
 #
 # based on an article of X.-Z Liu et al. /Computer in Industry 58(2007)
 #
 # WED 20.4.09
 
-debug_mode=1        
+DEBUG = 1        
         
 class ShapeOffsetClass:
+    """ 
+    Main Class to do the Cutter Compensation for a shape. It produces the 
+    Offset curve defined by radius and direction.
+    """
     def __init__(self, tol=0.01):
         """ 
         Standard method to initialize the class
         """ 
-        self.tol=0.01
+        self.tol = 0.01
+        self.pretshape = ShapeClass()
+        self.radius = 10
+        self.dir = 41
         
-    def do_compensation(self, shape=None, radius=10, dir=1):
+        
+    def do_compensation(self, shape=None, radius=2, direction=41):
         """ 
         Does the Cutter Compensation for the given Shape
         @param shape: The shape which shall be used for cutter correction
         @param radius: The offset to be used for correction
-        @param dir: The Direction of compensation 41 for left and 42 for right
+        @param direction: The Direction of compensation 41 for left and 42 for right
         """ 
-        self.shape=shape
-        self.radius=radius
-        self.dir=dir
+        self.shape = shape
+        self.radius = radius
+        self.dir = direction
         
-        ccshape=self.Pretreadment()
+        #Pretreatment of the shapes to have no LSIP
+        pretshape = self.pretreatment()
+              
+        rawoffshape = self.make_raw_offsett(pretshape)
         
-        return ccshape
+        untroffshape = self.make_untrimmed_offset(rawoffshape)
+         
+        return untroffshape
         
-#--------------------------------------------------------------------------------------------------------------------------------
-# adds additional segment if seg n intersects with seg n+1
-#--------------------------------------------------------------------------------------------------------------------------------
-    def Pretreadment(self):
+
+    def pretreatment(self):
         """ 
-        The Pretreadment searches for local self  inersection points (LSIP) 
+        The pretreatment searches for local self  intersection points (LSIP) 
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
         
         If Local self intersections exist the Elements will be splitted into new
         elements at their intersection point.
         """ 
+
+        pretshape = ShapeClass(parent=self.shape.parent,
+                           cut_cor=40,
+                           nr=self.shape.nr,
+                           plotoption=1,
+                           geos=[],
+                           geos_hdls=[])
+        
+        pretshape.BB = self.shape.BB
         
         #Loop for all geometries in the shape
-        for geo_nr in range(len(self.shape.geos)):
-            geo1=self.shape.geos[geo_nr]
+        for geo_nr in range(1, len(self.shape.geos)):
+            geo1 = self.shape.geos[geo_nr - 1]
             
             #If the for loop is at the last geometry the first one is the 2nd
-            if len(self.shape.geos)<=1:
+            if len(self.shape.geos) <= 1:
                 break
-            elif not (geo_nr==len(self.shape.geos)-1):
-                geo2= self.shape.geos[geo_nr+1]
+            
+            geo2 = self.shape.geos[geo_nr]
+            
+            #Check if the Bounding Box of geo1 has an intersection with BB of 
+            #geo2
+            intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
+            
+            if intersect:
+                points = geo1.find_inter_points(geo2)
+
+                
+                #Check if the point is in tolerance with the last point of geo1
+                #If not it is a Local Self Intersecting Point per Definition 2 
+                #and the element has to be seperated into 2 elements. this will
+                #result in a not self intersecting element. 
+                
+                added = 0
+                
+                for point in points:
+                    #There can be only one Local Self Intersection Point.
+                    if geo1.isTIP(point, self.tol):
+                        pretshape.geos += geo1.split_into_2geos(point)
+                        added = 1
+                
+                if not(added):
+                    pretshape.geos.append(geo1)
+                    
+                        
             else:
-                geo2=self.shape.geos[0]
-            
-            #Check if the Bounding Box of geo1 has an intersection with BB of geo2
-            intersect=geo1.BB.hasintersection(geo2.BB,self.tol)
-            print intersect
-            
-            #Assign 2nd geo to be first geo
-               
-        return self.shape
+                pretshape.geos.append(geo1)
+                
+                    
+        #Add the last geometry
+        if len(self.shape.geos) > 1:           
+            pretshape.geos.append(geo2)
+        else:
+            pretshape.geos.append(self.shape.geos[0])
         
-#        inshape=ShapeClass(parent=shape.parent,
-#                           cut_cor=40,
-#                           nr=shape.nr,
-#                           plotoption=1)
-#
-#        print('closed parent shape')
-#            
-#        pos=0;  
-#        while pos<len(shape.geos):
-#            npos=pos+1
-#            if(npos>=len(shape.geos)):
-#                npos=0
-#            if(shape.geos[pos].type=="LineGeo" and shape.geos[npos].type=="LineGeo"):
-#                self.CheckIntersectLineLine(shape.geos[pos], shape.geos[npos])
-#                inshape.geos.append(LineGeo(shape.geos[pos].Pa,shape.geos[pos].Pe))
-#                if(self.num>1):
-#                    print("ERROR Line/Line Intersect with 2 ponts is not possible")
-#            elif(shape.geos[pos].type=="LineGeo" and shape.geos[npos].type=="ArcGeo"):
-#                
-#                self.CheckIntersectLineArc(shape.geos[pos], shape.geos[npos])
-#                if(self.num>1):
-#                    
-#                   
-#                    v=PointClass(0.0, 0.0)
-#                    if(self.ISPstatus1a=='between' and self.ISPstatus1b=='between'):
-#                        if(self.v1>0 and self.v1<1):
-#                            v=(shape.geos[pos].Pe-shape.geos[pos].Pa)
-#                            nv=(self.v1+1)/2 
-#                    elif(self.ISPstatus2a=='between' and self.ISPstatus2b=='between' ):
-#                        
-#                        print("found intersect Line Arc, inserting additional Line")
-#                        if(self.v2>0 and self.v2<1):
-#                            v=(shape.geos[pos].Pe-shape.geos[pos].Pa)
-#                            nv=(self.v1+1)/2
-#                   
-#                    if((pow(v.x, 2)+pow(v.y, 2))>0):
-#                    
-#                        Pen=PointClass(0.0, 0.0)
-#                        Pen.x=shape.geos[pos].Pa.x+v.x*nv
-#                        Pen.y=shape.geos[pos].Pa.y+v.y*nv
-#                        inshape.geos.append(LineGeo(shape.geos[pos].Pa, Pen))
-#                        inshape.geos[-1].col='Black'
-#                        inshape.geos.append(LineGeo(Pen, shape.geos[pos].Pe))
-#                        inshape.geos[-1].col='Red'
-#                    else:
-#                       
-#                        inshape.geos.append(LineGeo(shape.geos[pos].Pa, shape.geos[pos].Pe))
-#                        inshape.geos[-1].col='Black'
-#                      
-#                else:
-#                    inshape.geos.append(LineGeo(shape.geos[pos].Pa, shape.geos[pos].Pe))
-#                    inshape.geos[-1].col='Black' 
-#                 
-#                    
-#            elif(shape.geos[pos].type=="ArcGeo" and shape.geos[npos].type=="ArcGeo"):
-#                self.CheckIntersectArcArc(shape.geos[pos], shape.geos[npos])
-#               
-#                delta=0
-#                if(self.ISPstatus1a=='between' and self.ISPstatus1b=='between' ):
-#                    print("found intersect Arc  Arc, inserting additional Arc")
-#                    delta=self.P1_ext_a/shape.geos[pos].ext
-#                elif(self.ISPstatus2a=='between' and self.ISPstatus2b=='between' ):
-#                    print("found intersect Arc  Arc, inserting additional Arc")
-#                    delta=self.P2_ext_a/shape.geos[pos].ext
-#                
-#              
-#                if(delta>0 and delta<1):
-#                    delta=delta*0.5
-#                    arc=shape.geos[pos].s_ang+delta*shape.geos[pos].ext
-#                   
-#                    Pen=PointClass(0.0, 0.0)
-#                    Pen.y=shape.geos[pos].r*sin(arc)+shape.geos[pos].O.y
-#                    Pen.x=shape.geos[pos].r*cos(arc)+shape.geos[pos].O.x
-#                  
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=Pen,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=arc, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                    inshape.geos.append(ArcGeo(Pa=Pen,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=arc, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Red'
-#                else:
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                 
-#                
-#            elif(shape.geos[pos].type=="ArcGeo" and shape.geos[npos].type=="LineGeo"):
-#                
-#                self.CheckIntersectArcLine(shape.geos[pos], shape.geos[npos])
-#                delta=0
-#                if(self.ISPstatus1a=='between' and self.ISPstatus1b=='between' ):
-#                    print("found intersect Arc  line, inserting additional Arc")
-#                    delta=self.P1_ext_a/shape.geos[pos].ext
-#                elif(self.ISPstatus2a=='between' and self.ISPstatus2b=='between' ):
-#                    print("found intersect Arc  line, inserting additional Arc")
-#                    delta=self.P2_ext_a/shape.geos[pos].ext
-#               
-#                
-#                
-#                if(delta>0 and delta<1):
-#                    #delta=delta*0.5 Correction according Michael
-#                    delta=(1+delta)/2
-#
-#                    arc=shape.geos[pos].s_ang+delta*shape.geos[pos].ext
-#                    Pen=PointClass(0.0, 0.0)
-#                    Pen.y=shape.geos[pos].r*sin(arc)+shape.geos[pos].O.y
-#                    Pen.x=shape.geos[pos].r*cos(arc)+shape.geos[pos].O.x
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=Pen,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=arc, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                    inshape.geos.append(ArcGeo(Pa=Pen,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=arc, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Red'
-#                else:
-#                    inshape.geos.append(ArcGeo(Pa=shape.geos[pos].Pa,Pe=shape.geos[pos].Pe,r=shape.geos[pos].r,s_ang=shape.geos[pos].s_ang, e_ang=shape.geos[pos].e_ang, dir=shape.geos[pos].ext, O=shape.geos[pos].O))
-#                    inshape.geos[-1].col='Black'
-#                   
-#            pos+=1
-#        
-#       
-#        return (inshape)
-#      
-#    
-##---------------------------------------------------------------------------------------------
-## generate raw Compensation data
-##---------------------------------------------------------------------------------------------
-#
-#    def GenRawCompData(self,inshape,radius):
-#        print('----------------')
-#        print('generate segments')
-#        print('----------------')
-#        ccshape=ShapeClass(parent=inshape.parent,
-#                           cut_cor=40,
-#                           nr=inshape.nr,
-#                           plotoption=inshape.plotoption)
-#        ccshape.r=radius
-#        num_elements=len(inshape.geos)
-#        pos=0   
-#        pnew=0 
-#        
-#        while pos<num_elements:
-#            
-#            if(inshape.geos[pos].type=='LineGeo'):
-#                if(inshape.cut_cor!=41):
-#                    Pan=inshape.geos[pos].Pa
-#                    Pen=inshape.geos[pos].Pe
-#                    Pan.x-=inshape.geos[pos].nva.x*radius
-#                    Pan.y-=inshape.geos[pos].nva.y*radius
-#                    Pen.x-=inshape.geos[pos].nve.x*radius
-#                    Pen.y-=inshape.geos[pos].nve.y*radius
-#                 
-#                else:
-#                    
-#                    Pan=inshape.geos[pos].Pa
-#                    Pen=inshape.geos[pos].Pe
-#                    Pan.x+=inshape.geos[pos].nva.x*radius
-#                    Pan.y+=inshape.geos[pos].nva.y*radius
-#                    Pen.x+=inshape.geos[pos].nve.x*radius
-#                    Pen.y+=inshape.geos[pos].nve.y*radius
-#                ccshape.geos.append(LineGeo(Pa=Pan, Pe=Pen)) 
-#                ccshape.geos[-1].col='Green'
-#              
-#            elif(inshape.geos[pos].type=='ArcGeo'): 
-#                o=inshape.geos[pos].O
-#                s_ang=inshape.geos[pos].s_ang
-#                e_ang=inshape.geos[pos].e_ang
-#                if(inshape.cut_cor!=41):
-#                    if(inshape.geos[pos].ext<0):
-#                        rn=inshape.geos[pos].r+radius
-#                        Pan=inshape.geos[pos].Pa
-#                        Pen=inshape.geos[pos].Pe
-#                        Pan.y+=sin(s_ang)*radius
-#                        Pan.x+=cos(s_ang)*radius
-#                        Pen.y+=sin(e_ang)*radius
-#                        Pen.x+=cos(e_ang)*radius
-#                        ext=inshape.geos[pos].ext
-#                        ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext))
-#                        ccshape.geos[-1].col='Green'
-#                      
-#                    else:
-#                        r=inshape.geos[pos].r
-#                        if(r>=radius):
-#                            rn=inshape.geos[pos].r-radius
-#                            Pan=inshape.geos[pos].Pa
-#                            Pen=inshape.geos[pos].Pe
-#                            Pan.y-=sin(s_ang)*radius
-#                            Pan.x-=cos(s_ang)*radius
-#                            Pen.y-=sin(e_ang)*radius
-#                            Pen.x-=cos(e_ang)*radius
-#                            ext=inshape.geos[pos].ext
-#                            ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext, s_ang=s_ang, e_ang=e_ang, O=o))
-#                            ccshape.geos[-1].col='Green'
-#                          
-#                        else:
-#                            pass
-#                else:
-#                    if(inshape.geos[pos].ext>0):
-#                        rn=inshape.geos[pos].r+radius
-#                        Pan=inshape.geos[pos].Pa
-#                        Pen=inshape.geos[pos].Pe
-#                        Pan.y+=sin(s_ang)*radius
-#                        Pan.x+=cos(s_ang)*radius
-#                        Pen.y+=sin(e_ang)*radius
-#                        Pen.x+=cos(e_ang)*radius
-#                        ext=inshape.geos[pos].ext
-#                        ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext, s_ang=s_ang, e_ang=e_ang, O=o))
-#                        ccshape.geos[-1].col='Green'
-#                      
-#                    else:
-#                        r=inshape.geos[pos].r
-#                        if(r>=radius):
-#                            rn=inshape.geos[pos].r-radius
-#                            Pan=inshape.geos[pos].Pa
-#                            Pen=inshape.geos[pos].Pe
-#                            Pan.y-=sin(s_ang)*radius
-#                            Pan.x-=cos(s_ang)*radius
-#                            Pen.y-=sin(e_ang)*radius
-#                            Pen.x-=cos(e_ang)*radius
-#                            ext=inshape.geos[pos].ext
-#                            ccshape.geos.append(ArcGeo(Pa=Pan, Pe=Pen, r=rn, dir=ext, s_ang=s_ang, e_ang=e_ang, O=o))
-#                            ccshape.geos[-1].col='Green'
-#                           
-#                        else:
-#                            pass
-#                
-#                        
-#            pos+=1
-#        return (ccshape)
-#        
-##---------------------------------------------------------------------------------------------
-## handle lines Step1
-##---------------------------------------------------------------------------------------------
-#
+        return pretshape
+       
+    def make_raw_offsett(self, pretshape):
+        """ 
+        Generates the raw offset curves of the pretreated shape, which has no
+        local self intersections. 
+        According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
+        @param pretshape: The pretreated shape with not LSIP.
+        @return: Returns the raw offset shape which is not trimmed or joined.
+        """ 
+        
+        rawoffshape = ShapeClass(parent=self.shape.parent,
+                           cut_cor=40,
+                           nr=self.shape.nr,
+                           plotoption=1,
+                           geos=[],
+                           geos_hdls=[])
+        
+        rawoffshape.BB = self.shape.BB
+        
+        for geo in pretshape.geos:
+            rawoffshape.geos.append(geo.rawoffset(radius=self.radius,
+                                                  direction=self.dir))
+            
+        return rawoffshape
+   
+    def make_untrimmed_offset(self, rawoffshape):
+        """ 
+        The untrimmed offset shape is generated according to para 3.2. It 
+        searches the intersection points and dependent on the type of 
+        intersection it used the rules for trimming and joining.
+        According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
+        @param rawoffshape: The untrimmed / unjoined offset shape
+        @return: Returns the joined untrimmed offset shape.
+        """  
+    
+        untroffshape = ShapeClass(parent=self.shape.parent,
+                           cut_cor=40,
+                           nr=self.shape.nr,
+                           plotoption=1,
+                           geos=[],
+                           geos_hdls=[])
+        
+        newPa = deepcopy(rawoffshape.geos[0].Pa)
+        
+        #Loop for all geometries in the shape
+        for geo_nr in range(1, len(rawoffshape.geos)):
+            
+            geo1 = rawoffshape.geos[geo_nr - 1]
+            #If the for loop is at the last geometry the first one is the 2nd
+            if len(rawoffshape.geos) <= 1:
+                break
+            geo2 = rawoffshape.geos[geo_nr]
+            
+            #Call the trim join algorithems for the elements.
+            untroffshape.geos += geo1.trim_join(geo2, newPa, self.tol)
+            newPa = untroffshape.geos[-1].Pe
+               
+        untroffshape.BB = untroffshape.BB
+        
+        #Add the last geometry Case 3 according to para 3.2
+        if len(self.shape.geos) > 1:
+            if geo2.type=='LineGeo':
+                untroffshape.geos.append(LineGeo(newPa,deepcopy(geo2.Pe)))
+            else:
+                print 'hab ich noch nicht'
+        else:
+            untroffshape.geos.append(self.shape.geos[0])
+        
+        return untroffshape
+    
+    
+    
+             
+
 #    def compsteplines(self,inshape):
 #        print('----------------')
 #        print('combine segments')
@@ -605,621 +498,5 @@ class ShapeOffsetClass:
 #        print(len(ccshape.geos))
 #        ccshape.geos[0].col='Yellow'
 #        return (ccshape)
-##---------------------------------------------------------------------------------------------
-## Check for intersection between 2 Lines
-##---------------------------------------------------------------------------------------------
-#
-#    def CheckIntersectLineLine(self,L1,L2):
-#       
-#        self.num=0
-#        self.ISPtype1='no'
-#        self.ISPstatus1='no'
-#        self.ISPtype2='no'
-#        self.ISPstatus2='no'
-#
-#        self.P2=PointClass(0.0,0.0)
-#        self.P1_ext=0.0
-#        self.P2_ext=0.0
-#        self.P1_v1=0.0
-#        self.P2_v2=0.0
-#        print('check line/line')
-#        dx1=L1.Pe.x-L1.Pa.x
-#        dy1=L1.Pe.y-L1.Pa.y
-#        dx2=L2.Pe.x-L2.Pa.x
-#        dy2=L2.Pe.y-L2.Pa.y
-#
-#        dax=L1.Pa.x-L2.Pa.x
-#        day=L1.Pa.y-L2.Pa.y
-#
-#        if dx1==0 and dy1==0:
-#            return
-#        if dx2==0 and dy2==0:
-#            return
-#        
-#        print dx1
-#        print dy1
-#        print dx2
-#        print dy2
-#        
-#        
-#        if(abs(dx2)>=abs(dy2)):
-#            n=(day-dax*dy2/dx2)/(dx1*dy2/dx2 -dy1)
-#            u=(dax+n*dx1)/dx2
-#            self.P1=PointClass(x=L1.Pa.x+n*dx1,
-#                               y=L1.Pa.y+n*dy1)
-#            self.v1=n
-#            self.v2=u
-#            
-#        else:
-#            print dy1*dx2/dy2 -dx1
-#           
-#            n=(dax-day*dx2/dy2)/(dy1*dx2/dy2 -dx1)
-#            u=(day+n*dy1)/dy2
-#            self.P1=PointClass(x=L1.Pa.x+n*dx1,
-#                               y=L1.Pa.y+n*dy1)
-#            self.v1=n
-#            self.v2=u
-#            
-#        self.num=1
-#        
-#        if 0.00001<self.v1 and self.v1<0.9999:
-#            self.ISPstatus1a='between'             
-#        elif 0.9999<self.v1 and self.v1<1.00001:
-#            self.ISPstatus1a='at_end'
-#        elif -0.00001<self.v1 and self.v1<0.00001:
-#            self.ISPstatus1a='at_start'    
-#        elif self.v1>1.00001:
-#            self.ISPstatus1a='above'
-#        else:
-#            self.ISPstatus1a='under'
-#            
-#        if 0.00001<self.v2 and self.v2<0.9999:
-#            self.ISPstatus1b='between'             
-#        elif 0.9999<self.v2 and self.v2<1.00001:
-#            self.ISPstatus1b='at_end'
-#        elif -0.00001<self.v2 and self.v2<0.00001:
-#            self.ISPstatus1b='at_start'    
-#        elif self.v2>1.00001:
-#            self.ISPstatus1b='above'
-#        else:
-#            self.ISPstatus1b='under'    
-#            
-#            
-#        
-#        print ('num,x1,y1,x2,y2',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y)
-#        print ('st1a,st2a,st1b,st2b,v1,v2',self.ISPstatus1a,self.ISPstatus2a,self.ISPstatus1b,self.ISPstatus2b, self.v1,self.v2, )
-#
-#        return 
-#
-##---------------------------------------------------------------------------------------------
-## Check for intersection between a line and an arc
-##---------------------------------------------------------------------------------------------
-#
-#    def CheckIntersectLineArc(self,L1,K1):
-#       
-#        self.num=0
-#        self.ISPtype1='no'
-#        self.ISPstatus1='no'
-#        self.ISPtype2='no'
-#        self.ISPstatus2='no'
-#        self.P1=PointClass(0.0,0.0)
-#        self.P2=PointClass(0.0,0.0)
-#        self.P1_ext=0.0
-#        self.P2_ext=0.0
-#        self.P1_v1=0.0
-#        self.P2_v2=0.0
-#        print('check line/arc')
-#
-#        y1=L1.Pa.y
-#        y2=L1.Pe.y
-#        x1=L1.Pa.x
-#        x2=L1.Pe.x
-#        r=K1.r
-#        x0=K1.O.x
-#        y0=K1.O.y
-#        vx=x2-x1
-#        vy=y2-y1
-#        a=pow(vx,2)+pow(vy,2)
-#        b=2*vx*(x1-x0)+2*vy*(y1-y0)
-#        c=pow(x1-x0,2)+pow(y1-y0,2)-pow(r,2)
-#        udw=pow(b,2)-4*a*c
-#       
-#        if udw<0:
-#            print('neg Wurzel')
-#            return
-#
-#        v1=(-b+sqrt(udw))/(2*a)
-#        v2=(-b-sqrt(udw))/(2*a)
-#        
-#        self.P1.x=x1+v1*vx
-#        self.P1.y=y1+v1*vy
-#        self.P2.x=x1+v2*vx
-#        self.P2.y=y1+v2*vy
-#       
-#        if(udw==0):
-#            self.num=1
-#        else:
-#            self.num=2
-#            
-#        dist1=L1.Pe.distance(self.P1)
-#        self.v1=v1
-#        self.v2=v2
-#            
-#      
-#        i_ext=K1.dif_ang(K1.Pa, self.P1, K1.ext)
-#        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-#        
-#        self.P1_ext_a=i_ext
-#        delta= i_ext/s_ext
-#        print('delta1',delta)
-#        
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus1b='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus1b='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus1b='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus1b='above'
-#        else:
-#            self.ISPstatus1b='under'
-#        
-#        i_ext=K1.dif_ang(K1.Pa, self.P2, K1.ext)
-#        self.P2_ext_a=i_ext
-#        
-#        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-#        delta= i_ext/s_ext   
-#        print('delta2',delta)
-#        
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus2b='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus2b='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus2b='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus2b='above'
-#        else:
-#            self.ISPstatus2b='under'
-#        
-#        if 0.00001<self.v1 and self.v1<0.9999:
-#            self.ISPstatus1a='between'             
-#        elif 0.9999<self.v1 and self.v1<1.00001:
-#            self.ISPstatus1a='at_end'
-#        elif -0.00001<self.v1 and self.v1<0.00001:
-#            self.ISPstatus1a='at_start'    
-#        elif self.v1>1.00001:
-#            self.ISPstatus1a='above'
-#        else:
-#            self.ISPstatus1a='under'
-#            
-#        if 0.00001<self.v2 and self.v2<0.9999:
-#            self.ISPstatus2a='between'             
-#        elif 0.9999<self.v2 and self.v2<1.00001:
-#            self.ISPstatus2a='at_end'
-#        elif -0.00001<self.v2 and self.v2<0.00001:
-#            self.ISPstatus2a='at_start'    
-#        elif self.v2>1.00001:
-#            self.ISPstatus2a='above'
-#        else:
-#            self.ISPstatus2a='under'    
-#        
-#       
-#
-#        print ('num,x1,y1,x2,y2',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y)
-#        print ('st1a,st1b,st2a,st2b,v1,v2,P1_ext,P2_ext',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2,self.P1_ext_a, self.P2_ext_a )
-#
-#        return 
-#
-##---------------------------------------------------------------------------------------------
-## Check for intersection between 2 arcs
-##---------------------------------------------------------------------------------------------
-#    def CheckIntersectArcArc(self,K1,K2):
-#       
-#
-#        self.num=0;
-#        self.ISPtype1='no'
-#        self.ISPstatus1='no'
-#        self.ISPtype2='no'
-#        self.ISPstatus2='no'
-#        self.num=0;
-#        self.P1=PointClass(0.0,0.0)
-#        self.P2=PointClass(0.0,0.0)
-#        self.P1_ext=0.0
-#        self.P2_ext=0.0
-#        print('check arc/arc')
-#        r1 = abs(K1.r);
-#        r2 = abs(K2.r);
-#        print('K1.r, K2.r, K1.O.x, K1.O.y, K2.O.x.K2.O.y, K1.Pe.x, K1.Pe.y, K2.Pa.x, K2.Pa.y', K1.r, K2.r, K1.O.x, K1.O.y, K2.O.x, K2.O.y, K1.Pe.x, K1.Pe.y, K2.Pa.x, K2.Pa.y)
-#        res = sqrt(pow(abs(K2.O.x - K1.O.x),2)+pow(abs(K2.O.y - K1.O.y),2));
-#      
-#
-#        if(res <= abs(r1-r2)):
-#            return 
-#
-#        if(res > abs(r1 + r2)):
-#            return 
-#            
-#        if((K1.O.x - K2.O.x == 0) and (K1.O.y - K2.O.y == 0)):
-#            return 
-#
-#        if(K1.O.x == K2.O.x):
-#            d1 = (K1.O.x - K2.O.x)/(K2.O.y - K1.O.y)
-#            d2 = ((pow(r1,2) - pow(r2,2))- (pow(K1.O.y,2) - pow(K2.O.y,2)) - (pow(K1.O.x,2) - pow(K2.O.x,2))  )/(2*K2.O.y - 2*K1.O.y)
-#            a = pow(d1,2)+1
-#            b = (2*d1*(d2-K1.O.y))-(2*K1.O.x)
-#            c = pow((d2-K1.O.y),2) -pow(r1,2) + pow(K1.O.x,2)
-#          
-#            self.P1.x = (-b + sqrt(pow(b,2) - 4*a*c) )/(2*a)
-#            self.P2.x = (-b - sqrt(pow(b,2) - 4*a*c) )/(2*a)
-#            self.P1.y = self.P1.x * d1 + d2
-#            self.P2.y = self.P2.x * d1 + d2
-#
-#        else:
-#            d1 =(K1.O.y - K2.O.y)/(K2.O.x - K1.O.x)
-#            d2 =((pow(r1,2) - pow(r2,2))- (pow(K1.O.x,2) - pow(K2.O.x,2)) -  (pow(K1.O.y,2) - pow(K2.O.y,2))  )/(2*K2.O.x - 2*K1.O.x)
-#            a = pow(d1,2)+1
-#            b = (2*d1*(d2-K1.O.x))-(2*K1.O.y)
-#            c = pow((d2-K1.O.x),2)-pow(r1,2) + pow(K1.O.y,2)
-#           
-#            self.P1.y = (-b + sqrt(pow(b,2) - 4*a*c) )/(2*a)
-#            self.P2.y = (-b - sqrt(pow(b,2) - 4*a*c) )/(2*a)
-#            self.P1.x = self.P1.y * d1 + d2
-#            self.P2.x = self.P2.y * d1 + d2
-#
-#
-#        if(self.P1.y == self.P2.y and self.P1.x == self.P2.x):
-#            self.num=1
-#        else:
-#            self.num=2
-#
-#    
-#        i_ext=K1.dif_ang(K1.Pa, self.P1, K1.ext)
-#        self.P1_ext_a=i_ext
-#        
-#        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-#        delta= i_ext/s_ext   
-#        print('delta1',delta)
-#      
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus1a='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus1a='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus1a='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus1a='above'
-#        else:
-#            self.ISPstatus1a='under'
-#        
-#            
-#
-#        i_ext=K1.dif_ang(K1.Pa, self.P2, K1.ext)
-#        self.P2_ext_a=i_ext
-#       
-#        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-#        delta= i_ext/s_ext   
-#        print('delta2',delta)
-#       
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus2a='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus2a='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus2a='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus2a='above'
-#        else:
-#            self.ISPstatus2a='under'
-#        
-#            
-#            
-#        i_ext=K2.dif_ang(K2.Pe, self.P1, -K2.ext)
-#        self.P1_ext_a=i_ext
-#        print ('K2.ext', K2.ext)
-#        s_ext=K2.dif_ang(K2.Pe, K2.Pa, -K2.ext)
-#        delta= i_ext/s_ext   
-#        print('*delta1',delta)
-#      
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus1b='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus1b='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus1b='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus1b='under'
-#        else:
-#            self.ISPstatus1b='above'
-#        
-#            
-#
-#        i_ext=K2.dif_ang(K2.Pe, self.P2, -K2.ext)
-#        self.P2_ext_a=i_ext
-#        
-#        s_ext=K2.dif_ang(K2.Pe, K2.Pa, -K2.ext)
-#        delta= i_ext/s_ext   
-#        print('*delta2',delta)
-#       
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus2b='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus2b='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus2b='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus2b='under'
-#        else:
-#            self.ISPstatus2b='above'
-#        
-#        
-#        print ('num,x1,y1,x2,y2, K1.ext, K2.ext',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y, K1.ext, K2.ext)
-#        print ('st1a,st1b,st2a,st2b,v1,v2',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2 )
-#
-##===============================================================================
-##    def CheckIntersectArcArc(self,K1,K2):
-##       
-## 
-##        self.num=0;
-##        self.ISPtype1='no'
-##        self.ISPstatus1='no'
-##        self.ISPtype2='no'
-##        self.ISPstatus2='no'
-##        self.num=0;
-##        self.P1=PointClass(0.0,0.0)
-##        self.P2=PointClass(0.0,0.0)
-##        self.P1_ext=0.0
-##        self.P2_ext=0.0
-##        print('check arc/arc')
-##        r1 = abs(K1.r);
-##        r2 = abs(K2.r);
-##        print('K1.r %0.2f, K2.r %0.2f, K1.O.x %0.2f, K1.O.y %0.2f, K2.O.x %0.2f,K2.O.y %0.2f \nK1.Pe.x %0.2f, K1.Pe.y %0.2f, K2.Pa.x %0.2f, K2.Pa.y %0.2f' %( K1.r, K2.r, K1.O.x, K1.O.y, K2.O.x, K2.O.y, K1.Pe.x, K1.Pe.y, K2.Pa.x, K2.Pa.y))
-##        res = sqrt(pow(abs(K2.O.x - K1.O.x),2)+pow(abs(K2.O.y - K1.O.y),2));
-##      
-## 
-##        if(res <= abs(r1-r2)):
-##            return 
-## 
-##        if(res > abs(r1 + r2)):
-##            return 
-##            
-##        if((K1.O.x - K2.O.x == 0) and (K1.O.y - K2.O.y == 0)):
-##            return 
-## 
-##        if(K1.O.x == K2.O.x):
-##            d1 = (K1.O.x - K2.O.x)/(K2.O.y - K1.O.y)
-##            d2 = ((pow(r1,2) - pow(r2,2))- (pow(K1.O.y,2) - pow(K2.O.y,2)) - (pow(K1.O.x,2) - pow(K2.O.x,2))  )/(2*K2.O.y - 2*K1.O.y)
-##            a = pow(d1,2)+1
-##            b = (2*d1*(d2-K1.O.y))-(2*K1.O.x)
-##            c = pow((d2-K1.O.y),2) -pow(r1,2) + pow(K1.O.x,2)
-##          
-##            self.P1.x = (-b + sqrt(pow(b,2) - 4*a*c) )/(2*a)
-##            self.P2.x = (-b - sqrt(pow(b,2) - 4*a*c) )/(2*a)
-##            self.P1.y = self.P1.x * d1 + d2
-##            self.P2.y = self.P2.x * d1 + d2
-## 
-##        else:
-##            d1 =(K1.O.y - K2.O.y)/(K2.O.x - K1.O.x)
-##            d2 =((pow(r1,2) - pow(r2,2))- (pow(K1.O.x,2) - pow(K2.O.x,2)) -  (pow(K1.O.y,2) - pow(K2.O.y,2))  )/(2*K2.O.x - 2*K1.O.x)
-##            a = pow(d1,2)+1
-##            b = (2*d1*(d2-K1.O.x))-(2*K1.O.y)
-##            c = pow((d2-K1.O.x),2)-pow(r1,2) + pow(K1.O.y,2)
-##           
-##            self.P1.y = (-b + sqrt(pow(b,2) - 4*a*c) )/(2*a)
-##            self.P2.y = (-b - sqrt(pow(b,2) - 4*a*c) )/(2*a)
-##            self.P1.x = self.P1.y * d1 + d2
-##            self.P2.x = self.P2.y * d1 + d2
-## 
-## 
-##        if(self.P1.y == self.P2.y and self.P1.x == self.P2.x):
-##            self.num=1
-##        else:
-##            self.num=2
-## 
-##    
-##        i_ext=K1.dif_ang(K1.Pa, self.P1, K1.ext)
-##        self.P1_ext_a=i_ext
-##        
-##        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-##        delta= i_ext/s_ext   
-##        print('delta1',delta)
-##      
-##        if 0.00001<delta and delta<0.9999:
-##            self.ISPstatus1a='between'             
-##        elif 0.9999<delta and delta<1.00001:
-##            self.ISPstatus1a='at_end'
-##        elif -0.00001<delta and delta<0.00001:
-##            self.ISPstatus1a='at_start'    
-##        elif delta>1.00001:
-##            self.ISPstatus1a='above'
-##        else:
-##            self.ISPstatus1a='under'
-##        
-##            
-## 
-##        i_ext=K1.dif_ang(K1.Pa, self.P2, K1.ext)
-##        self.P2_ext_a=i_ext
-##       
-##        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-##        delta= i_ext/s_ext   
-##        print('delta2',delta)
-##       
-##        if 0.00001<delta and delta<0.9999:
-##            self.ISPstatus2a='between'             
-##        elif 0.9999<delta and delta<1.00001:
-##            self.ISPstatus2a='at_end'
-##        elif -0.00001<delta and delta<0.00001:
-##            self.ISPstatus2a='at_start'    
-##        elif delta>1.00001:
-##            self.ISPstatus2a='above'
-##        else:
-##            self.ISPstatus2a='under'
-##        
-##            
-##            
-##        i_ext=K2.dif_ang(K2.Pe, self.P1, -K2.ext)
-##        self.P1_ext_a=i_ext
-##        print ('K2.ext', K2.ext)
-##        s_ext=K2.dif_ang(K2.Pe, K2.Pa, -K2.ext)
-##        delta= i_ext/s_ext   
-##        print('*delta1',delta)
-##      
-##        if 0.00001<delta and delta<0.9999:
-##            self.ISPstatus1b='between'             
-##        elif 0.9999<delta and delta<1.00001:
-##            self.ISPstatus1b='at_end'
-##        elif -0.00001<delta and delta<0.00001:
-##            self.ISPstatus1b='at_start'    
-##        elif delta>1.00001:
-##            self.ISPstatus1b='under'
-##        else:
-##            self.ISPstatus1b='above'
-##        
-##            
-## 
-##        i_ext=K2.dif_ang(K2.Pe, self.P2, -K2.ext)
-##        self.P2_ext_a=i_ext
-##        
-##        s_ext=K2.dif_ang(K2.Pe, K2.Pa, -K2.ext)
-##        delta= i_ext/s_ext   
-##        print('*delta2',delta)
-##       
-##        if 0.00001<delta and delta<0.9999:
-##            self.ISPstatus2b='between'             
-##        elif 0.9999<delta and delta<1.00001:
-##            self.ISPstatus2b='at_end'
-##        elif -0.00001<delta and delta<0.00001:
-##            self.ISPstatus2b='at_start'    
-##        elif delta>1.00001:
-##            self.ISPstatus2b='under'
-##        else:
-##            self.ISPstatus2b='above'
-##        
-##        
-##        print ('num %i,x1 %0.2f,y1 %0.2f,x2 %0.2f,y2 %0.2f, K1.ext %0.2f, K2.ext %0.2f' 
-##               %(self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y, K1.ext, K2.ext))
-##        print ('st1a,st1b,st2a,st2b,v1,v2',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2 )
-##===============================================================================
-#
-##---------------------------------------------------------------------------------------------
-## Check for intersection between an arc and a line
-##---------------------------------------------------------------------------------------------
-#
-#    def CheckIntersectArcLine(self,K1,L1):
-#        
-#        self.num=0
-#        self.ISPtype1='no'
-#        self.ISPstatus1='no'
-#        self.ISPtype2='no'
-#        self.ISPstatus2='no'
-#        self.P1=PointClass(0.0,0.0)
-#        self.P2=PointClass(0.0,0.0)
-#        self.P1_ext=0.0
-#        self.P2_ext=0.0
-#        self.P1_v1=0.0
-#        self.P2_v2=0.0
-#        
-#        print('check arc/line')
-#        y1=L1.Pa.y
-#        y2=L1.Pe.y
-#        x1=L1.Pa.x
-#        x2=L1.Pe.x
-#        r=K1.r
-#        x0=K1.O.x
-#        y0=K1.O.y
-#        vx=x2-x1
-#        vy=y2-y1
-#        a=pow(vx,2)+pow(vy,2)
-#        b=2*vx*(x1-x0)+2*vy*(y1-y0)
-#        c=pow(x1-x0,2)+pow(y1-y0,2)-pow(r,2)
-#        udw=pow(b,2)-4*a*c
-#      
-#        if udw<0:
-#            print('neg Wurzel')
-#            return
-#
-#        v1=(-b+sqrt(udw))/(2*a)
-#        v2=(-b-sqrt(udw))/(2*a)
-#        self.P1.x=x1+v1*vx
-#        self.P1.y=y1+v1*vy
-#        self.P2.x=x1+v2*vx
-#        self.P2.y=y1+v2*vy
-#      
-#        if(udw==0):
-#            self.num=1
-#        else:
-#            self.num=2
-#        self.v1=v1
-#        self.v2=v2
-#
-#        i_ext=K1.dif_ang(K1.Pa, self.P1, K1.ext)
-#        self.P1_ext_a=i_ext
-#       
-#        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-#        delta= i_ext/s_ext   
-#        print('delta1', delta)
-#        
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus1a='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus1a='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus1a='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus1a='above'
-#        else:
-#            self.ISPstatus1a='under'
-#        
-#        i_ext=K1.dif_ang(K1.Pa, self.P2, K1.ext)
-#        self.P2_ext_a=i_ext
-#        
-#        s_ext=K1.dif_ang(K1.Pa, K1.Pe, K1.ext)
-#        delta= i_ext/s_ext   
-#        print('delta2',delta)
-#        
-#        if 0.00001<delta and delta<0.9999:
-#            self.ISPstatus2a='between'             
-#        elif 0.9999<delta and delta<1.00001:
-#            self.ISPstatus2a='at_end'
-#        elif -0.00001<delta and delta<0.00001:
-#            self.ISPstatus2a='at_start'    
-#        elif delta>1.00001:
-#            self.ISPstatus2a='above'
-#        else:
-#            self.ISPstatus2a='under'    
-#            
-#        if 0.00001<self.v1 and self.v1<0.9999:
-#            self.ISPstatus1b='between'             
-#        elif 0.9999<self.v1 and self.v1<1.00001:
-#            self.ISPstatus1b='at_end'
-#        elif -0.00001<self.v1 and self.v1<0.00001:
-#            self.ISPstatus1b='at_start'    
-#        elif self.v1>1.00001:
-#            self.ISPstatus1b='above'
-#        else:
-#            self.ISPstatus1b='under'
-#            
-#        if 0.00001<self.v2 and self.v2<0.9999:
-#            self.ISPstatus2b='between'             
-#        elif 0.9999<self.v2 and self.v2<1.00001:
-#            self.ISPstatus2b='at_end'
-#        elif -0.00001<self.v2 and self.v2<0.00001:
-#            self.ISPstatus2b='at_start'    
-#        elif self.v2>1.00001:
-#            self.ISPstatus2b='above'
-#        else:
-#            self.ISPstatus2b='under'    
-#
-#
-#
-#        print ('num,x1,y1,x2,y2, K1.ext,',self.num,self.P1.x,self.P1.y,self.P2.x,self.P2.y, K1.ext)
-#        print ('st1a,st1b,st2a,st2b,v1,v2,P1_ext,P2_ext',self.ISPstatus1a,self.ISPstatus1b,self.ISPstatus2a,self.ISPstatus2b, self.v1,self.v2,self.P1_ext_a, self.P2_ext_a )
-#
-#        return 
-#    
-#
-##---------------------------------------------------------------------------------------------
-##---------------------------------------------------------------------------------------------
 
-
-
+#
