@@ -21,21 +21,22 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from point import PointClass, ContourClass
+from point import PointClass
+from dxf_import_classes import PointsClass, ContourClass
 from math import degrees, radians
 
 class InsertClass:
-    def __init__(self,Nr=0,caller=None):
-        self.Typ='Insert'
+    def __init__(self, Nr=0, caller=None):
+        self.Typ = 'Insert'
         self.Nr = Nr
 
         #Initialisieren der Werte        
         self.Layer_Nr = 0
         self.BlockName = ''
         self.Point = []
-        self.Scale=[1,1,1]
-        self.rot=0.0
-        self.length=0.0
+        self.Scale = [1, 1, 1]
+        self.rot = 0.0
+        self.length = 0.0
 
         #Lesen der Geometrie
         self.Read(caller)   
@@ -43,59 +44,59 @@ class InsertClass:
         
     def __str__(self):
         # how to print the object
-        return '\nTyp:          Insert'+\
-                '\nNr:          %i' %self.Nr +\
-                '\nLayer Nr:    %i' %self.Layer_Nr +\
-                '\nBlockName:   %s' %self.BlockName +\
-                '\nPoint:       %s' %self.Point +\
-                '\nrot:         %0.2f' %degrees(self.rot) +\
-                '\nScale:       %s' %self.Scale 
+        return '\nTyp:          Insert' + \
+                '\nNr:          %i' % self.Nr + \
+                '\nLayer Nr:    %i' % self.Layer_Nr + \
+                '\nBlockName:   %s' % self.BlockName + \
+                '\nPoint:       %s' % self.Point + \
+                '\nrot:         %0.2f' % degrees(self.rot) + \
+                '\nScale:       %s' % self.Scale 
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol,warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         
-        cont.append(ContourClass(len(cont),0,[[i,0]],0))
+        cont.append(ContourClass(len(cont), 0, [[i, 0]], 0))
         return warning
     
     
     def Read(self, caller):
         #K�rzere Namen zuweisen
-        lp=caller.line_pairs
-        e=lp.index_code(0,caller.start+1)
+        lp = caller.line_pairs
+        e = lp.index_code(0, caller.start + 1)
 
         #Block Name        
-        ind=lp.index_code(2,caller.start+1,e)
+        ind = lp.index_code(2, caller.start + 1, e)
         #print lp.line_pair[ind].value ####################################################################
-        self.BlockName=lp.line_pair[ind].value
+        self.BlockName = lp.line_pair[ind].value
         #Layer zuweisen        
-        s=lp.index_code(8,caller.start+1,e)
-        self.Layer_Nr=caller.Get_Layer_Nr(lp.line_pair[s].value)
+        s = lp.index_code(8, caller.start + 1, e)
+        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
         #XWert
-        s=lp.index_code(10,s+1,e)
-        x0=float(lp.line_pair[s].value)
+        s = lp.index_code(10, s + 1, e)
+        x0 = float(lp.line_pair[s].value)
         #YWert
-        s=lp.index_code(20,s+1,e)
-        y0=float(lp.line_pair[s].value)
-        self.Point=PointClass(x0,y0)
+        s = lp.index_code(20, s + 1, e)
+        y0 = float(lp.line_pair[s].value)
+        self.Point = PointClass(x0, y0)
         
         #XScale
-        s_temp=lp.index_code(41,s+1,e)
-        if s_temp!=None:
-            self.Scale[0]=float(lp.line_pair[s_temp].value)
+        s_temp = lp.index_code(41, s + 1, e)
+        if s_temp != None:
+            self.Scale[0] = float(lp.line_pair[s_temp].value)
         #YScale
-        s_temp=lp.index_code(42,s+1,e)
-        if s_temp!=None:
-            self.Scale[1]=float(lp.line_pair[s_temp].value) 
+        s_temp = lp.index_code(42, s + 1, e)
+        if s_temp != None:
+            self.Scale[1] = float(lp.line_pair[s_temp].value) 
         #ZScale
-        s_temp=lp.index_code(43,s+1,e)
-        if s_temp!=None:
-            self.Scale[2]=float(lp.line_pair[s_temp].value)
+        s_temp = lp.index_code(43, s + 1, e)
+        if s_temp != None:
+            self.Scale[2] = float(lp.line_pair[s_temp].value)
             
         #Rotation
-        s_temp=lp.index_code(50,s+1,e)
-        if s_temp!=None:
-            self.rot=radians(float(lp.line_pair[s_temp].value))
+        s_temp = lp.index_code(50, s + 1, e)
+        if s_temp != None:
+            self.rot = radians(float(lp.line_pair[s_temp].value))
 
 
         #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben
-        caller.start=e      
+        caller.start = e      
 
