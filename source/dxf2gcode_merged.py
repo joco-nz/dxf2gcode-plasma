@@ -39,6 +39,16 @@ if os.name == "posix" and sys.platform == "darwin":
     platform = "mac"
 # in case more per-platform determination warts are needed, fill in here:
  
+from globalconfig import GlobalConfig
+from varspace import PluginLoader
+from simplecallback import SimpleCallback
+import globals as g
+import constants as c
+import logging
+from logger import Log
+import mahnotebook # FIXME unify
+
+
 from config import ConfigClass, PostprocessorClass
 from point import PointClass
 from shape import ShapeClass, EntitieContentClass
@@ -57,18 +67,18 @@ from math import radians, degrees
 
 import webbrowser, gettext, tempfile, subprocess
 from Tkconstants import END, ALL, N, S, E, W, RIDGE, DISABLED, NORMAL, ACTIVE, \
-LEFT
+    LEFT, VERTICAL, BOTH, FALSE
 from tkMessageBox import showwarning
 from Tkinter import Tk, IntVar, DoubleVar, Canvas, Menu, Frame, Label, Entry, \
-Text, Scrollbar, Toplevel, Button
+Text, Scrollbar, Toplevel, Button, PanedWindow
 from tkFileDialog import askopenfile, asksaveasfilename
 from tkSimpleDialog import askfloat
 from Canvas import Rectangle, Line, Oval, Arc
 
 # Global Variables
 APPNAME = "dxf2gcode"
-VERSION = "TKINTER Beta 02"
-DATE = "2009-11-16"
+VERSION = "TKINTER plugin alpha "
+DATE = "2009-12-27"
 
 # Get folder of the main program
 FOLDER = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
@@ -123,71 +133,87 @@ class MyMainWindow:
         """
 
         self.master = master
+        
         self.menu = None
         self.filemenu = None
         self.exportmenu = None
         self.optionmenu = None
         self.helpmenu = None
-        self.viewemnu = None
+        self.viewmenu = None
             
-        #Skalierung der Kontur
+        # countour scake factor
         self.cont_scale = 1.0
         
-        #Verschiebung der Kontur
+        # countour displacement
         self.cont_dx = 0.0
         self.cont_dy = 0.0
         
-        #Rotieren um den WP zero
+        # countour rotation arount WP 0
         self.rotate = 0.0
         
-        #Uebergabe des load_filenames falls von EMC gestartet
+        # filename to load (if passed by EMC)
         self.load_filename = load_filename
 
-        #Linker Rahmen erstellen, in welchen später die Eingabefelder kommen       
-        self.frame_l = Frame(master) 
-        self.frame_l.grid(row=0, column=0, rowspan=2,
-                           padx=4, pady=4, sticky=N + E + W)
-        
-        #Erstellen des Canvas Rahmens
-        self.frame_c = Frame(master, relief=RIDGE, bd=2)
-        self.frame_c.grid(row=0, column=1,
-                          padx=4, pady=4, sticky=N + E + S + W)
-        
-        #Unterer Rahmen erstellen mit der Lisbox + Scrollbar zur Darstellung 
-        #der Ereignisse.
-        self.frame_u = Frame(master) 
-        self.frame_u.grid(row=1, column=1, padx=4, sticky=N + E + W + S)
-        #Erstellen des Statusfenster
-        self.textbox = TextboxClass(frame=self.frame_u, master=self.master)
+        master.option_add('*tearOff', FALSE)
+        master.rowconfigure(0, weight=1)    # propagate vertical resize
+        master.columnconfigure(0, weight=1) 
+        master.columnconfigure(1, weight=5) # most extra X space goes to canvas/log window
 
+        self.create_window_menu()
+        
+        self.pane_left = PanedWindow(master, orient=VERTICAL, width=240)
+        self.pane_left.grid(row=0, column=0, padx=4, pady=4, sticky=N + E + S + W)
+
+        self.pane_right = PanedWindow(master, orient=VERTICAL)
+        self.pane_right.grid(row=0, column=1, padx=4, pady=4, sticky=N + E + S + W)
+        
+        
+        self.top_nbook = mahnotebook.NotebookClass(self.pane_left, height=240,
+                                                   xfuzz=g.NOTEBOOK_BUTTON_EXTRASPACE)
+        
+        self.pane_left.rowconfigure(0, weight=1)
+        self.pane_left.columnconfigure(0, weight=1)
+        self.pane_left.add(self.top_nbook, sticky=N + E + W)
+
+
+        self.Canvas = CanvasClass(self.pane_right, relief=RIDGE, bd=2)
+        self.Canvas.rowconfigure(0, weight=1)
+        self.Canvas.columnconfigure(0, weight=1)
+        self.pane_right.add(self.Canvas, height=500, sticky=N + E + S + W)
+        
+
+        # log window
+        self.textbox = TextboxClass(frame=self.pane_right, master=self.master)       
+        self.textbox.rowconfigure(0, weight=1)
+        self.textbox.columnconfigure(0, weight=1)
+        
+        self.pane_right.add(self.textbox, minsize=80, height=80, sticky=N + E + S + W)
+                
         #Voreininstellungen fuer das Programm laden
         self.config = ConfigClass(self.textbox, FOLDER, APPNAME)
-
         #PostprocessorClass initialisieren (Voreinstellungen aus Config)
         self.postpro = PostprocessorClass(self.config, self.textbox, FOLDER,
                                            APPNAME, VERSION, DATE)
-
-        self.master.columnconfigure(0, weight=0)
-        self.master.columnconfigure(1, weight=1)
-        self.master.rowconfigure(0, weight=1)
-        self.master.rowconfigure(1, weight=0)
-            
-
+        #left bottom frame for layers+entities
+        self.frame_layers = Frame(self.pane_left) 
+        
         #Erstellen de Eingabefelder und des Canvas
-        self.MyNotebook = MyNotebookClass(self.frame_l, self.config, self.postpro, [])
-        self.Canvas = CanvasClass(self.frame_c, self)
+        self.MyNotebook = MyNotebookClass(self.frame_layers, [])
+        #self.MyNotebook = MyNotebookClass(self.frame_layers, self.config, self.postpro, [])
+        self.pane_left.add(self.frame_layers, sticky=N + S + E + W)
+
 
         #Erstellen der Canvas Content Klasse & Bezug in Canvas Klasse
         self.CanvasContent = CanvasContentClass(self.Canvas,
                                               self.textbox,
                                               self.config,
                                               self.MyNotebook)
-        
+
+
         self.MyNotebook.CanvasContent = self.CanvasContent
         self.Canvas.Content = self.CanvasContent
 
-        #Erstellen des Fenster Menus
-        self.create_window_menu()        
+
         
         #Falls ein load_filename_uebergeben wurde
         if not(self.load_filename is None):
@@ -195,27 +221,75 @@ class MyMainWindow:
             self.Canvas.canvas.update()
             self.Load_File()
 
+
     def create_window_menu(self):
         """
-        Creates the menu of the main window
+        Creates the menu of the main window, menu cascades and 
+        determine entry position (might vary between platforms)
         """
+
         self.menu = Menu(self.master)
         self.master.config(menu=self.menu)
 
-        self.filemenu = Menu(self.menu, tearoff=0)
+        self.filemenu = Menu(self.menu)
         self.menu.add_cascade(label=_("File"), menu=self.filemenu)
+        self.entry_filemenu = self.menu.index(_("File"))
+        
+        self.exportmenu = Menu(self.menu)
+        self.menu.add_cascade(label=_("Export"), menu=self.exportmenu)
+        self.entry_exportmenu = self.menu.index(_("Export"))
+        
+        self.viewmenu = Menu(self.menu)
+        self.menu.add_cascade(label=_("View"), menu=self.viewmenu)
+        self.entry_viewmenu = self.menu.index(_("View"))
+
+        self.optionmenu = Menu(self.menu)
+        self.menu.add_cascade(label=_("Options"), menu=self.optionmenu)
+        self.entry_optionmenu = self.menu.index(_("Options"))
+
+        self.helpmenu = Menu(self.menu)
+        self.menu.add_cascade(label=_("Help"), menu=self.helpmenu)
+        self.entry_helpmenu = self.menu.index(_("Help"))
+        
+        
+    def wipe_menu_entries(self, menu):
+        """ delete all entries in a menu"""
+        if menu:
+            if menu.index("last") is not None:
+                menu.delete(0, menu.index("last"))
+            
+    def rebuild_file_menu(self):
+        self.wipe_menu_entries(self.filemenu)
         self.filemenu.add_command(label=_("Read DXF"), command=self.Get_Load_File)
         self.filemenu.add_separator()
         self.filemenu.add_command(label=_("Exit"), command=self.ende)
 
-        self.exportmenu = Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label=_("Export"), menu=self.exportmenu)
+    def rebuild_export_menu(self):
+        old = self.exportmenu
+        self.exportmenu = Menu(self.menu)
         self.exportmenu.add_command(label=_("Write G-Code"), command=self.Write_GCode)
-        #Disabled bis was gelesen wurde
-        self.exportmenu.entryconfig(0, state=DISABLED)
+        self.exportmenu.add_separator()
 
-        self.viewmenu = Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label=_("View"), menu=self.viewmenu)
+        for k, v in g.plugins.items():
+            if not v.is_default:
+                sm = Menu(self.exportmenu)
+                if hasattr(v, c.METHOD_DICT):
+                    for ssh, descr in v.shapeset_handlers.items():  
+                        sm.add_command(label=descr['menu_entry'], command=SimpleCallback(descr['method'], ssh))
+                sm.add_separator()
+                sm.add_command(label="Close %s" % (k), command=lambda p=k:self.apply_close(p))
+                sm.add_command(label="Delete %s" % (k), command=lambda p=k:self.apply_delete(p))
+                self.exportmenu.add_cascade(label=k, menu=sm)
+        self.menu.entryconfigure(self.entry_exportmenu, menu=self.exportmenu)
+        old.destroy()
+ 
+ 
+        #Disabled bis was gelesen wurde
+#        self.exportmenu.entryconfig(0, state=DISABLED)
+            
+    def rebuild_view_menu(self):
+        self.wipe_menu_entries(self.viewmenu)
+
         self.viewmenu.add_checkbutton(label=_("Show workpiece zero"), \
                                       variable=self.CanvasContent.toggle_wp_zero, \
                                       command=self.CanvasContent.plot_wp_zero)
@@ -233,29 +307,102 @@ class MyMainWindow:
         self.viewmenu.add_separator()
         self.viewmenu.add_command(label=_('Delete Route'), command=self.del_route_and_menuentry)         
 
-        #Disabled bis was gelesen wurde
-        self.viewmenu.entryconfig(0, state=DISABLED)
-        self.viewmenu.entryconfig(1, state=DISABLED)
-        self.viewmenu.entryconfig(2, state=DISABLED)
-        self.viewmenu.entryconfig(4, state=DISABLED)
-        self.viewmenu.entryconfig(6, state=DISABLED)
+        self.viewmenu.add_separator()
+        for k, v in g.plugins.items():
+            if  v.is_default and not v.CLONABLE:
+                self.viewmenu.add_checkbutton(label=_("Show %s defaults" % (k)), \
+                                      variable=v.visible, command=lambda i=v:self.toggle_vis(i))
+        self.viewmenu.add_separator()
+        for k, v in g.plugins.items():
+            if  v.is_default and v.CLONABLE:
+                self.viewmenu.add_checkbutton(label=_("Show %s defaults" % (k)), \
+                                      variable=v.visible, command=lambda i=v:self.toggle_vis(i))                
 
-        self.optionmenu = Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label=_("Options"), menu=self.optionmenu)
+    def rebuild_option_menu(self):
+        self.wipe_menu_entries(self.optionmenu)
+
         self.optionmenu.add_command(label=_("Set tolerances"), command=self.Get_Cont_Tol)
         self.optionmenu.add_separator()
         self.optionmenu.add_command(label=_("Scale contours"), command=self.Get_Cont_Scale)
         self.optionmenu.add_command(label=_("Move workpiece zero"), command=self.Move_WP_zero)
         self.optionmenu.add_command(label=_("Rotate contours"), command=self.Rotate_Cont)
-        self.optionmenu.entryconfig(2, state=DISABLED)
-        self.optionmenu.entryconfig(3, state=DISABLED)
-        self.optionmenu.entryconfig(4, state=DISABLED)
-        
-        
-        self.helpmenu = Menu(self.menu, tearoff=0)
-        self.menu.add_cascade(label=_("Help"), menu=self.helpmenu)
-        self.helpmenu.add_command(label=_("About..."), command=self.Show_About)
+#        self.optionmenu.entryconfig(2, state=DISABLED)
+#        self.optionmenu.entryconfig(3, state=DISABLED)
+#        self.optionmenu.entryconfig(4, state=DISABLED)
+        self.optionmenu.add_separator()
+        for k, v in g.plugins.items():
+            if  v.is_default and v.CLONABLE:
+                sm = Menu(self.optionmenu)
+                sm.add_command(label="Clone %s" % (k), command=lambda p=k:self.add_instance(p))    #SimpleCallback(self.add_instance,k))
 
+                self.optionmenu.add_cascade(label=k, menu=sm)
+
+        
+    def rebuild_help_menu(self):
+        self.wipe_menu_entries(self.helpmenu)
+        self.helpmenu.add_command(label=_("About..."), command=self.Show_About)
+ 
+            
+    def set_state(self, state):
+        self.exportmenu.entryconfig(0, state=state)
+        self.optionmenu.entryconfig(2, state=state)
+        self.optionmenu.entryconfig(3, state=state)
+        self.optionmenu.entryconfig(4, state=state)   
+
+    def show_defaults(self):
+        """ 
+        display default instances like config, machine and exporter defaults
+        in the parameter notebook
+        """
+        for k, v in g.plugins.items():
+            if  v.is_default and v.visible.get():
+                self.toggle_vis(v)
+#        self.rebuild_view_menu()
+         
+    def hide_defaults(self):
+        for k, v in g.plugins.items():
+            if  v.is_default and not v.visible.get():
+                self.toggle_vis(v)
+#        self.rebuild_view_menu()
+    
+    def toggle_vis(self, inst):
+        if inst.visible.get():
+            self.top_nbook.display(inst.param_frame)
+        else:
+            self.top_nbook.hide(inst.param_frame)
+
+    def add_instance(self, tag):
+        p = g.plugins[tag]
+        if p.clone_instance():
+            self.rebuild_export_menu()
+ 
+ 
+    def apply_close(self, inst):
+        p = g.plugins[inst]
+        p.close_instance(inst)
+        self.rebuild_export_menu()
+        
+
+    def apply_delete(self, inst):
+        p = g.plugins[inst]
+        p.delete_instance(inst)
+        self.rebuild_export_menu()
+           
+    def apply_plugin_method(self, inst, method):
+        pass
+    
+    def finalize_menus(self):
+        """ the menus can only bea created after loading all plugins"""
+        #Erstellen des Fenster Menus
+ 
+        self.rebuild_file_menu()     
+        self.rebuild_export_menu()
+        self.rebuild_view_menu()
+        self.rebuild_option_menu()
+        self.rebuild_help_menu()
+        self.set_state(DISABLED) #FIXME
+    
+    
     # Callback des Menu Punkts File Laden
     def Get_Load_File(self):
         """
@@ -292,7 +439,7 @@ class MyMainWindow:
             filename = self.load_filename
             
         elif (ext.lower() == ".ps")or(ext.lower() == ".pdf"):
-            self.textbox.prt(_("\nSending Postscript/PDF to pstoedit"))
+            g.logger.info(_("Sending Postscript/PDF to pstoedit"))
             
             # temporäre Datei erzeugen
             filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf').encode("cp1252")
@@ -312,20 +459,20 @@ class MyMainWindow:
             #print retcode
 
         self.textbox.text.delete(7.0, END)
-        self.textbox.prt(_('\nLoading file: %s') % self.load_filename)
+        g.logger.info(_('Loading file: %s') % self.load_filename)
         
         self.values = ReadDXF(filename, self.config, self.textbox)
         
         #Ausgabe der Informationen im Text Fenster
-        self.textbox.prt(_('\nLoaded layers: %s') % len(self.values.layers))
-        self.textbox.prt(_('\nLoaded blocks: %s') % len(self.values.blocks.Entities))
+        g.logger.info(_('Loaded layers: %s') % len(self.values.layers))
+        g.logger.info(_('Loaded blocks: %s') % len(self.values.blocks.Entities))
         for i in range(len(self.values.blocks.Entities)):
             layers = self.values.blocks.Entities[i].get_used_layers()
-            self.textbox.prt(_('\nBlock %i includes %i Geometries, reduced to %i Contours, used layers: %s ')\
+            g.logger.info(_('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s ')\
                                % (i, len(self.values.blocks.Entities[i].geo), len(self.values.blocks.Entities[i].cont), layers))
         layers = self.values.entities.get_used_layers()
         insert_nr = self.values.entities.get_insert_nr()
-        self.textbox.prt(_('\nLoaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
+        g.logger.info(_('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
                              % (len(self.values.entities.geo), len(self.values.entities.cont), layers, insert_nr))
 
         #Skalierung der Kontur
@@ -382,7 +529,7 @@ class MyMainWindow:
         if self.load_filename is None:
             return
         self.Load_File()
-        self.textbox.prt(_("\nSet new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file")\
+        g.logger.info(_("Set new Contour tolerances (Pts: %0.3f, Fit: %0.3f) reloaded file")\
                               % (dialog.result[0], dialog.result[1]))
         
     def Get_Cont_Scale(self): 
@@ -399,7 +546,7 @@ class MyMainWindow:
         self.cont_scale = value
         
         #Falls noch kein File geladen wurde nichts machen
-        self.textbox.prt(_("\nScaled Contours by factor %0.3f") % self.cont_scale)
+        g.logger.info(_("Scaled Contours by factor %0.3f") % self.cont_scale)
 
         #Neu ausdrucken
         self.CanvasContent.makeplot(self.values,
@@ -422,7 +569,7 @@ class MyMainWindow:
         self.rotate = radians(value)
         
         #Falls noch kein File geladen wurde nichts machen
-        self.textbox.prt(_("\nRotated Contours by %0.3f deg") % degrees(self.rotate))
+        g.logger.info(_("Rotated Contours by %0.3f deg") % degrees(self.rotate))
 
         #Neu ausdrucken
         self.CanvasContent.makeplot(self.values,
@@ -453,7 +600,7 @@ class MyMainWindow:
         self.cont_dy = dialog.result[1]
 
         #Falls noch kein File geladen wurde nichts machen
-        self.textbox.prt(_("\nWorpiece zero offset: %s %0.2f; %s %0.2f") \
+        g.logger.info(_("Worpiece zero offset: %s %0.2f; %s %0.2f") \
                               % (self.config.ax1_letter, self.cont_dx,
                                 self.config.ax2_letter, self.cont_dy))
 
@@ -511,7 +658,7 @@ class MyMainWindow:
         #Bei 1 starten da 0 der Startpunkt ist
         for nr in range(1, len(self.TSP.opt_route)):
             shape = self.shapes_to_write[self.TSP.opt_route[nr]]
-            self.textbox.prt((_("\nWriting Shape: %s") % shape), 1)
+            g.logger.debug(_("Writing Shape: %s") % shape)
                 
 
 
@@ -529,11 +676,11 @@ class MyMainWindow:
         string = postpro.write_gcode_en(postpro)
 
         if status == 1:
-            self.textbox.prt(_("\nSuccessfully generated G-Code"))
+            g.logger.info(_("Successfully generated G-Code"))
             self.master.update_idletasks()
 
         else:
-            self.textbox.prt(_("\nError during G-Code Generation"))
+            g.logger.info(_("Error during G-Code Generation"))
             self.master.update_idletasks()
 
                     
@@ -611,17 +758,17 @@ class MyMainWindow:
         shapes_st_en_points.append([start, ende])
 
         #Optimieren der Reihenfolge
-        self.textbox.prt(_("\nTSP Starting"), 1)
+        g.logger.debug(_("TSP Starting"))
                 
         self.TSP = TSPoptimize(shapes_st_en_points, self.textbox, self.master, self.config)
-        self.textbox.prt(_("\nTSP start values initialised"), 1)
+        g.logger.debug(_("TSP start values initialised"))
         #self.CanvasContent.path_hdls=[]
         #self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
 
         for it_nr in range(iter):
             #Jeden 10ten Schrit rausdrucken
             if (it_nr % 10) == 0:
-                self.textbox.prt((_("\nTSP Iteration nr: %i") % it_nr), 1)
+                g.logger.debug(_("TSP Iteration nr: %i") % it_nr)
                 for hdl in self.CanvasContent.path_hdls:
                     self.Canvas.canvas.delete(hdl)
                 self.CanvasContent.path_hdls = []
@@ -630,8 +777,8 @@ class MyMainWindow:
                 
             self.TSP.calc_next_iteration()
             
-        self.textbox.prt(_("\nTSP done with result:"), 1)
-        self.textbox.prt(("\n%s" % self.TSP), 1)
+        g.logger.debug(_("TSP done with result:"))
+        g.logger.debug("%s" % self.TSP)
 
         self.viewmenu.entryconfig(6, state=NORMAL)        
 
@@ -663,7 +810,7 @@ class MyMainWindow:
         self.master.destroy()
         self.master.quit()
 
-class TextboxClass:
+class TextboxClass(Frame):
     """
     This class genreated the textbox at the bottom of the frame. The class is 
     called by the MyMainWindow Class and passed to all other classes which 
@@ -671,27 +818,28 @@ class TextboxClass:
     G{importgraph modules}
     """
 
-    def __init__(self, frame=None, master=None, DEBUG=0):
+    def __init__(self, frame=None, master=None, DEBUG=0, **options):
         """
         Initialisation of the class
         @param DEBUG: Parameter to define which detail of messages is displayed
         """
-      
+     
+        Frame.__init__(self, master, **options) 
+        
         self.DEBUG = DEBUG
         self.master = master
-        self.text = Text(frame, height=7)
+#        self.text = Text(frame, height=7)
+        self.text = Text(self, height=7) #FIXME mah
+        self.textscr = Scrollbar(self)
         
-        self.textscr = Scrollbar(frame)
-        self.text.grid(row=0, column=0, pady=4, sticky=E + W)
-        self.textscr.grid(row=0, column=1, pady=4, sticky=N + S)
-        frame.columnconfigure(0, weight=1)
-        frame.columnconfigure(1, weight=0)
+        self.text.grid(row=0, column=0, pady=4, sticky=N + S + E + W)
+        self.textscr.grid(row=0, column=1, pady=4, sticky=N + S + E + W)
+        
 
-        
         #Binding fuer Contextmenu
         self.text.bind("<Button-3>", self.text_contextmenu)
         # Mac OS x has right mouse button mapped to  Button-2
-        if platform in ("mac"):
+        if platform is  "mac":
             self.text.bind("<Button-2>", self.text_contextmenu)
             # for single-button macs..
             self.text.bind("<Option-Button-1>", self.text_contextmenu)
@@ -699,7 +847,7 @@ class TextboxClass:
         #Anfangstext einfuegen
         self.textscr.config(command=self.text.yview)
         self.text.config(yscrollcommand=self.textscr.set)
-        self.prt(_('Program started\n %s %s \nCoded by V. Schulz and C. Kohloeffel' % (VERSION, DATE)))
+        #self.prt(_('Program started\n %s %s \nCoded by V. Schulz and C. Kohloeffel' % (VERSION, DATE)))
 
     def set_debuglevel(self, DEBUG=0):
         """
@@ -707,6 +855,7 @@ class TextboxClass:
         config file. The debug level can be set in the config file.
         @param DEBUG: Parameter to define which detail of messages is displayed
         """
+        g.logger.error("BUGTRAP set_debuglevel is obsolete")
         self.DEBUG = DEBUG
         if DEBUG:
             self.text.config(height=15)
@@ -719,6 +868,7 @@ class TextboxClass:
         @param txt: Text to be displayed
         @param DEBUGLEVEL: At which DEBUGLEVEL the message shall be printed.
         """
+        g.logger.error("BUGTRAP textbox.prt is obsolete")
 
         if self.DEBUG >= DEBUGLEVEL:
             self.text.insert(END, txt)
@@ -734,7 +884,7 @@ class TextboxClass:
         """
 
         #Contextmenu erstellen zu der Geometrie        
-        popup = Menu(self.text, tearoff=0)        
+        popup = Menu(self.text)        
         popup.add_command(label='Delete text entries', command=self.text_delete_entries)
         popup.post(event.x_root, event.y_root)
         
@@ -747,11 +897,32 @@ class TextboxClass:
         self.text.delete(7.0, END)
         self.text.yview(END)           
 
-         
-#Klasse zum Erstellen des Plots
-class CanvasClass:
-    def __init__(self, master=None, text=None):
+
+    def write(self, txt=''):
+        """
+        prints a message in the message window
         
+        write and flush are stream-compatible methods so 
+        the window logger can just use the Textbox it like a file descriptor
+        
+        prt will be phased out and replaced by g.logger.log()  - FIXME
+        @param txt: Text to be displayed
+        """
+
+        self.text.insert(END, txt)
+        self.text.yview(END)
+        self.master.update_idletasks()
+            
+    def flush(self):
+        pass
+    
+    
+#Klasse zum Erstellen des Plots
+class CanvasClass(Frame):
+    def __init__(self, master=None, text=None, **options):
+        
+        Frame.__init__(self, master, **options)
+
         #Übergabe der Funktionswerte
         self.master = master
         self.Content = []
@@ -768,14 +939,13 @@ class CanvasClass:
         #Wird momentan nicht benoetigt, eventuell fuer Beschreibung von Aktionen im Textfeld #self.text=text
 
         #Erstellen des Labels am Unteren Rand fuer Status Leiste        
-        self.label = Label(self.master, text=_("Curser Coordinates: X=0.0, Y=0.0, Scale: 1.00"), bg="white", anchor="w")
+        self.label = Label(self, text=_("Cursor Coordinates: X=0.0, Y=0.0, Scale: 1.00"), bg="white", anchor="w")
         self.label.grid(row=1, column=0, sticky=E + W)
 
         #Canvas Erstellen und Fenster ausfuellen        
-        self.canvas = Canvas(self.master, width=650, height=500, bg="white")
+#        self.canvas = Canvas(self.master, width=650, height=500, bg="white")
+        self.canvas = Canvas(self, bg="white") #FIXME mah
         self.canvas.grid(row=0, column=0, sticky=N + E + S + W)
-        self.master.columnconfigure(0, weight=1)
-        self.master.rowconfigure(0, weight=1)
 
         #Binding fuer die Bewegung des Mousezeigers
         self.canvas.bind("<Motion>", self.moving)
@@ -790,6 +960,9 @@ class CanvasClass:
 
         #Binding fuer Contextmenu
         self.canvas.bind("<Button-3>", self.make_contextmenu)
+        
+        #MAX FIXME
+        self.canvas.bind("<Button-2>", self.make_contextmenu)
 
         #Bindings fuer Zoom und Bewegen des Bilds        
         self.canvas.bind("<Control-Button-1>", self.mouse_move)
@@ -799,7 +972,7 @@ class CanvasClass:
         self.canvas.bind("<Control-B3-Motion>", self.mouse_zoom_motion)
         self.canvas.bind("<Control-ButtonRelease-3>", self.mouse_zoom_release)  
 
-#	if platform in ("mac"):
+#	if platform in ("mac"): # FIXME
 #            # for macs with three button mice  Button-3  actually is reported as Button-2
 #            self.canvas.bind("<Button-2>", self.make_contextmenu)
 #            # and if that isnt available, the following does the trick (one-eyed mice)
@@ -814,14 +987,14 @@ class CanvasClass:
         y = self.dy + (self.canvas.winfo_height() - event.y) / self.scale
 
         if self.scale < 1:
-            self.label['text'] = (_("Curser Coordinates: X= %5.0f Y= %5.0f , Scale: %5.3f") \
+            self.label['text'] = (_("Cursor Coordinates: X= %5.0f Y= %5.0f , Scale: %5.3f") \
                                 % (x, y, self.scale))
             
         elif (self.scale >= 1)and(self.scale < 10):      
-            self.label['text'] = (_("Curser Coordinates: X= %5.1f Y= %5.1f , Scale: %5.2f") \
+            self.label['text'] = (_("Cursor Coordinates: X= %5.1f Y= %5.1f , Scale: %5.2f") \
                                 % (x, y, self.scale))
         elif self.scale >= 10:      
-            self.label['text'] = (_("Curser Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f") \
+            self.label['text'] = (_("Cursor Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f") \
                                 % (x, y, self.scale))
         
     #Callback fuer das Auswählen von Elementen
@@ -918,7 +1091,7 @@ class CanvasClass:
         self.close_contextmenu()
             
         #Contextmenu erstellen zu der Geometrie        
-        popup = Menu(self.canvas, tearoff=0)
+        popup = Menu(self.canvas)
         self.popup = popup
         popup.add_command(label=_('Invert Selection'), command=self.Content.invert_selection)
         popup.add_command(label=_('Disable Selection'), command=self.Content.disable_selection)
@@ -929,7 +1102,7 @@ class CanvasClass:
         
         #Untermenu fuer die Fräserkorrektur
         self.dir_var.set(self.Content.calc_dir_var())
-        cut_cor_menu = Menu(popup, tearoff=0)
+        cut_cor_menu = Menu(popup)
         cut_cor_menu.add_checkbutton(label=_("G40 No correction"), \
                                      variable=self.dir_var, onvalue=0, \
                                      command=lambda:self.Content.set_cut_cor(40))
@@ -940,6 +1113,16 @@ class CanvasClass:
                                      variable=self.dir_var, onvalue=2, \
                                      command=lambda:self.Content.set_cut_cor(42))
         popup.add_cascade(label=_('Set Cutter Correction'), menu=cut_cor_menu)
+
+        popup.add_separator()
+        
+        for k, v in g.plugins.items():
+            if not v.is_default:
+                #sm= Menu(self.exportmenu)
+                if hasattr(v, c.METHOD_DICT):
+                    for ssh, descr in v.shapeset_handlers.items():  
+                        popup.add_command(label="%s - %s" % (descr['menu_entry'], k),
+                                          command=SimpleCallback(descr['method'], self.Content))
 
         #Menus Disablen wenn nicht ausgewählt wurde        
         if len(self.Content.Selected) == 0:
@@ -1088,10 +1271,10 @@ class CanvasContentClass:
         self.makeshapes(parent=self.EntitiesRoot)
         
         self.plot_shapes()
-        
-        self.makeccshapes(parent=self.EntitiesRoot)
-        
-        self.plot_ccshapes()
+# FIXME as per skype message        
+#        self.makeccshapes(parent=self.EntitiesRoot)
+#        
+#        self.plot_ccshapes()
         
         self.LayerContents.sort()     
 
@@ -1321,11 +1504,11 @@ class CanvasContentClass:
         for shape in sel_shapes:
             if not(shape in self.Selected):
                 self.Selected.append(shape)
-                self.textbox.prt(_('\n\nAdded shape to selection %s:') % (shape), 3)
+                g.logger.debug(_('\n\nAdded shape to selection %s:') % (shape))
             else:
                 self.Deselected.append(shape)
                 self.Selected.remove(shape)
-                self.textbox.prt(_('\n\Removed shape to selection %s:') % (shape), 3)
+                g.logger.debug(_('\n\Removed shape to selection %s:') % (shape))
         
         self.plot_cut_info()
         self.set_shapes_color(self.Selected, 'selected')
@@ -1347,7 +1530,7 @@ class CanvasContentClass:
         
         self.plot_cut_info()
 
-        self.textbox.prt(_('\nInverting Selection'), 3)
+        g.logger.info(_('\nInverting Selection'), 3)
         
 
     def disable_selection(self):
@@ -1378,7 +1561,7 @@ class CanvasContentClass:
     def switch_shape_dir(self):
         for shape in self.Selected:
             shape.reverse()
-            self.textbox.prt(_('\n\nSwitched Direction at Shape: %s')\
+            g.logger.info(_('\n\nSwitched Direction at Shape: %s')\
                              % (shape), 3)
         self.plot_cut_info()
         
@@ -1386,7 +1569,7 @@ class CanvasContentClass:
         for shape in self.Selected: 
             shape.cut_cor = correction
             
-            self.textbox.prt(_('\n\nChanged Cutter Correction at Shape: %s')\
+            g.logger.info(_('\n\nChanged Cutter Correction at Shape: %s')\
                              % (shape), 3)
         self.plot_cut_info() 
         
@@ -1428,7 +1611,7 @@ class CanvasContentClass:
     def set_hdls_hidden(self, shapes):
         hdls = self.get_shape_hdls(shapes)
         for hdl in hdls:
-            self.Canvas.canvas.itemconfig(hdl, state='hidden')
+            self.Canvas.canvas.itemconfig(hdl, state='visible')
 
     def set_hdls_normal(self, shapes):
         hdls = self.get_shape_hdls(shapes)
@@ -1601,15 +1784,35 @@ if __name__ == "__main__":
     #sys.stdout = SysOutListener()
     #sys.stderr = SysErrListener()
 
-    master = Tk()
-    master.title("%s, Version: %s, Date: %s " % (APPNAME, VERSION, DATE))
-
-    #Falls das Programm mit Parametern von EMC gestartet wurde
-    if len(sys.argv) > 1:
-        MyMainWindow(sys.argv[1])
-    else:
-        MyMainWindow()
-
-    master.mainloop()
-
+#    master = Tk()
+#    master.title("%s, Version: %s, Date: %s " % (APPNAME, VERSION, DATE))
+#
+#    #Falls das Programm mit Parametern von EMC gestartet wurde
+#    if len(sys.argv) > 1:
+#        MyMainWindow(sys.argv[1])
+#    else:
+#        MyMainWindow()
+#
+#    master.mainloop()
+    try:
+        g.log = Log(c.APPNAME, console_loglevel=logging.DEBUG)
+        g.logger = g.log.logger
+        
+        master = Tk()
+        master.title("%s, Version: %s, Date: %s " % (APPNAME, VERSION, DATE))
+        
+        w = MyMainWindow() # sys.argv[1])
+        p = PluginLoader(w, w.top_nbook)
+        GlobalConfig(p, w.textbox)
+        g.logger.info(_('Program started - version %s %s') % (VERSION, DATE))
+        g.logger.info(_('Coded by V. Schulz and C. Kohloeffel'))
+        g.logger.info(_('bonus bugs by Michael Haberler'))
+        p.activate_all(g.config.plugin_dir, g.config.varspaces_dir)
+        w.finalize_menus()
+        if len(sys.argv) > 1:
+            w.load_file(sys.argv[1])
+        master.mainloop()
     
+    except Exception, msg:
+        print "debug breakpoint ", msg
+        raise

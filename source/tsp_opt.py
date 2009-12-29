@@ -122,7 +122,7 @@ class PopulationClass:
         self.size = size
         self.pop = []
         for pop_nr in range(size[1]):
-            self.textbox.prt(("\n======= TSP initializing population nr %i =======" % pop_nr), 1)
+            g.logger.debug("======= TSP initializing population nr %i =======" % pop_nr)
             
             if self.config.begin_art == 'ordered':
                 self.pop.append(range(size[0]))
@@ -155,7 +155,7 @@ class PopulationClass:
             possibilities.pop(possibilities.index(tour[-1]))
 
             if (counter % 10) == 0:
-                self.textbox.prt(("\nTSP heurestic searching nr %i" % counter), 1)
+                g.logger.debug("TSP heurestic searching nr %i" % counter)
         return tour
           
     def heurestic_find_next(self, start=1, possibilities=[], dmatrix=[]):

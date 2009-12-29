@@ -40,6 +40,9 @@ from tkMessageBox import showwarning
 from copy import deepcopy, copy
 from string import find, strip
 
+import globals as g
+import constants as c
+
 class ReadDXF:
     #Initialisierung der Klasse
     def __init__(self, filename=None, config=None, textbox=None):
@@ -53,8 +56,8 @@ class ReadDXF:
         self.line_pairs = self.Get_Line_Pairs(str)        
 
         #Debug Informationen 
-        self.textbox.prt(("\n\nFile has   %0.0f Lines" % len(str)), 1)
-        self.textbox.prt(("\nFile has   %0.0f Linepairs" % self.line_pairs.nrs), 1)
+        g.logger.debug("File has   %0.0f lines" % len(str))
+        g.logger.debug("File has   %0.0f Linepairs" % self.line_pairs.nrs)
 
         sections_pos = self.Get_Sections_pos()
         self.layers = self.Read_Layers(sections_pos)
@@ -96,8 +99,9 @@ class ReadDXF:
 
         except:
             
-            showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
-            self.textbox.prt(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
+            showwarning("Warning reading linepairs", ("Failure reading line stopped at line %d.\n Please check/correct line in dxf file" % (line)))
+            g.logger.warning("Failure reading lines - stopped at line %d" % (line))
+            g.logger.warning("Please check/correct line in dxf file")
             
             
         line_pairs.nrs = len(line_pairs.line_pair)
@@ -125,9 +129,9 @@ class ReadDXF:
             
             start = self.line_pairs.index_both(0, "SECTION", end)
             
-        self.textbox.prt(("\n\nSections found:"), 1)
+        g.logger.debug("Sections found:")
         for sect in sections:
-            self.textbox.prt(str(sect), 1)
+            g.logger.debug(str(sect))
                 
         return sections
 
@@ -151,9 +155,9 @@ class ReadDXF:
                     layers.append(LayerClass(len(layers)))
                     layers[-1].name = self.line_pairs.line_pair[start].value
                     
-        self.textbox.prt(("\n\nLayers found:"), 1)
+        g.logger.debug("Layers found:")
         for lay in layers:
-            self.textbox.prt(str(lay), 1)
+            g.logger.debug(str(lay))
             
         return layers
                     
@@ -180,9 +184,9 @@ class ReadDXF:
                 blocks[-1].end = end
                 start = self.line_pairs.index_both(0, "BLOCK", end + 1, blocks_section.end)
 
-        self.textbox.prt(("\n\nBlocks found:"), 1)
+        g.logger.debug("Blocks found:")
         for bl in blocks:
-            self.textbox.prt(str(bl), 1)
+            g.logger.debug(str(bl))
             
         return blocks
 
@@ -191,7 +195,7 @@ class ReadDXF:
         blocks = BlocksClass([])
         warning = 0
         for block_nr in range(len(blocks_pos)):
-            self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr), 1)
+            g.logger.debug("Reading Block Nr: %d" % block_nr)
             blocks.Entities.append(EntitiesClass(block_nr, blocks_pos[block_nr].name, []))
             #Lesen der BasisWerte f�r den Block
             s = blocks_pos[block_nr].begin + 1
@@ -208,7 +212,7 @@ class ReadDXF:
             (blocks.Entities[-1].geo, warning) = self.Get_Geo(s, e, warning)
             
             #Im Debug Modus 2 mehr Infos zum Block drucken
-            self.textbox.prt(("\n %s" % blocks.Entities[-1]), 2)
+            g.logger.debug(" %s" % blocks.Entities[-1])
             
         if warning == 1:
             showwarning("Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
@@ -219,7 +223,7 @@ class ReadDXF:
         warning = 0
         for section_nr in range(len(sections)):
             if (find(sections[section_nr - 1].name, "ENTITIES") == 0):
-                self.textbox.prt("\n\nReading Entities", 1)
+                g.logger.debug("Reading Entities")
                 entities = EntitiesClass(0, 'Entities', [])
                 (entities.geo, warning) = self.Get_Geo(sections[section_nr - 1].begin + 1,
                                                     sections[section_nr - 1].end - 1,
@@ -253,14 +257,14 @@ class ReadDXF:
 
             #Debug Informationen anzeigen falls erw�nscht                        
             if self.start == None:
-                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                        % (name, old_start, old_start * 2 + 4, end * 2 + 4)), 1)
+                g.logger.debug("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        % (name, old_start, old_start * 2 + 4, end * 2 + 4))
             else:
-                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                        % (name, old_start, old_start * 2 + 4, self.start * 2 + 4)), 1)
+                g.logger.debug("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        % (name, old_start, old_start * 2 + 4, self.start * 2 + 4))
 
             if len(geos) > 0:
-                self.textbox.prt(str(geos[-1]), 2)
+                g.logger.debug(str(geos[-1]))
 
             old_start = self.start
 
@@ -298,7 +302,7 @@ class ReadDXF:
         elif (name == "LWPOLYLINE"):
             geo = LWPolylineClass(geo_nr, self)
         else:  
-            self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" % name))
+            g.logger.warning(("\!!! Found unsupported geometry: %s !!!!" % name))
             self.start += 1 #Eins hochz�hlen sonst gibts ne dauer Schleife
             warning = 2
             return [], warning
