@@ -25,10 +25,11 @@
 from Canvas import Line
 from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil, copysign
 from point import PointClass
+from bounding_box import BoundingBoxClass
 from copy import copy
 
 #Length of the cross.
-dl = 1
+dl = 0.2
 DEBUG = 0
 
 class ArcGeo:
@@ -314,25 +315,34 @@ class ArcGeo:
         @param other: the instance of the 2nd geometry element.
         @return: a list of intersection points. 
         """
+        
+        tol=0.01
             
         O_dis = self.O.distance(other.O)
         
         #If self circle is surrounded by the other no intersection
-        if(O_dis <= abs(self.r - other.r)):
-            return []
+        if(O_dis < abs(self.r - other.r)-tol):
+            return [1]
 
         #If other circle is surrounded by the self no intersection
-        if(O_dis > abs(self.r + other.r)):
-            return []
+        if(O_dis < abs(other.r - self.r)-tol):
+            return [2]
         
-        #If both circels have the same center no intersection
-        if abs(O_dis) == 0.0:
-            return []
+        #If both circles have the same center and radius
+        if abs(O_dis) == 0.0 and abs(self.r-other.r) ==0.0:
+            return [self.Pa, self.Pe]
 
         #The following algorithm was found on :
         #http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
-        root = sqrt((pow(self.r + other.r , 2) - pow(O_dis, 2)) * 
+        
+        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) * 
                   (pow(O_dis, 2) - pow(other.r - self.r, 2)))
+        
+        #If the Line is a tangent the root is 0.0.
+        if root<=0.0:
+            root=0.0
+        else:  
+            root=sqrt(root)
         
         xbase = (other.O.x + self.O.x) / 2 + \
         (other.O.x - self.O.x) * \
@@ -397,12 +407,12 @@ class ArcGeo:
         """
         
         #The linear tolerance in angle
-        atol = 0.01 / 2 / pi / self.r
+        atol = tol / 2 / pi / self.r
         pang = self.O.norm_angle(point)
         
          
         if self.ext >= 0.0:
-            return self.angle_between(self.s_ang + atol, self.e_ang - tol, pang)
+            return self.angle_between(self.s_ang - atol, self.e_ang + tol, pang)
         else:
             return self.angle_between(self.e_ang + atol, self.s_ang - tol, pang)
     
@@ -445,6 +455,7 @@ class ArcGeo:
         @return: The offseted geometry
         """  
         
+        
         #For Arcs in ccw direction
         if self.ext < 0.0 and direction == 41:
             offr = self.r + radius
@@ -454,6 +465,11 @@ class ArcGeo:
             offr = self.r - radius
         else:
             offr = self.r + radius
+            
+        #If the radius of the new element is smaller then 0.0 return nothing 
+        #and therefore ignor this geom.
+        if offr <= 0.0:
+            return []
                     
         offPa = self.O.get_arc_point(ang=degrees(self.s_ang), r=offr)
         offPe = self.O.get_arc_point(ang=degrees(self.e_ang), r=offr)
@@ -461,7 +477,145 @@ class ArcGeo:
         offArc = ArcGeo(Pa=offPa, Pe=offPe, O=self.O, r=offr, direction=self.ext)
         offArc.calc_bounding_box()
         
-        return offArc
+        return [offArc]
+    
+    def trim_join(self, other, newPa, orgPe, tol):
+        """
+        Returns a new geometry based on the input parameters and the self 
+        geometry
+        @param other: The 2nd Line Geometry
+        @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
+        identical to the end point of the last geometry)
+        @return: A list of geos
+        """ 
+        if other.type == "LineGeo":
+            return self.trim_join_al(other, newPa, orgPe, tol)
+        else:
+            return self.trim_join_aa(other, newPa, orgPe, tol)
+            print 'gibts noch nicht'
+            #return self.trim_join_la(other, newPa, orgPe, tol)
+        
+            #print 'Hab ich noch nicht' 
+            
+    def trim_join_al(self, other, newPa, orgPe, tol):
+        """
+        Returns a new geometry based on the input parameters and the self 
+        geometry
+        @param other: The 2nd Line Geometry
+        @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
+        identical to the end point of the last geometry)
+        @return: A list of geos
+        """ 
+        geos = []
+        
+        points = self.find_inter_points(other)
+        
+        #Case 1 according to Algorithm 2
+        if len(points):
+            ipoint = self.Pe.get_nearest_point(points)
+            
+            isTIP1 = self.isTIP(ipoint, tol)
+            isTIP2 = other.isTIP(ipoint, tol)
+            
+            #Case 1 a
+            if isTIP1 and isTIP2:
+                geos.append(ArcGeo(Pa=newPa, Pe=ipoint, O=self.O,
+                                   r=self.r, direction= self.ext))
+                
+            #Case 1 b
+            elif not(isTIP1) and not(isTIP2):
+                direction=-other.Pe.get_arc_direction(other.Pa,orgPe)
+                r=self.Pe.distance(orgPe)
+                
+                geos.append(ArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
+                                   r=self.r, direction= self.ext))
+                geos.append(ArcGeo(Pa=self.Pe,Pe=other.Pa,
+                                   O=orgPe,
+                                   r=r, direction=direction))
+                
+            #Case 1 c & d
+            else:
+                geos.append(ArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
+                                   r=self.r, direction= self.ext))
+                geos.append(LineGeo(self.Pe, other.Pa))
+                
+        #Case 2
+        else: 
+            direction=-other.Pe.get_arc_direction(other.Pa,orgPe)
+            
+            r=self.Pe.distance(orgPe)
+            geos.append(ArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
+                                   r=self.r, direction= self.ext))
+            geos.append(ArcGeo(Pa=self.Pe,Pe=other.Pa,
+                               O=orgPe, direction=direction, 
+                               r=r))
+            
+        return geos
+    
+    
+    def trim_join_aa(self, other, newPa, orgPe, tol):
+        """
+        Returns a new geometry based on the input parameters and the self 
+        geometry
+        @param other: The 2nd Line Geometry
+        @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
+        identical to the end point of the last geometry)
+        @return: A list of geos
+        """ 
+        geos = [] 
+        points = self.find_inter_points(other)
+        
+        
+        #Case 1 according to Algorithm 2
+        if len(points):
+            ipoint = self.Pe.get_nearest_point(points)
+            
+            isTIP1 = self.isTIP(ipoint, tol)
+            isTIP2 = other.isTIP(ipoint, tol)
+            
+            #Case 1 a
+            if (isTIP1 and isTIP2) or (not(isTIP1) and not(isTIP2)):
+                geos.append(ArcGeo(Pa=newPa, Pe=ipoint, O=self.O,
+                                   r=self.r, direction= self.ext))
+                                 
+            #Case 1 b
+            else:
+                geos.append(ArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
+                                   r=self.r, direction= self.ext))
+                geos.append(LineGeo(self.Pe, other.Pa))
+                
+        #Case 2
+        else: 
+            direction=self.get_arc_direction(orgPe)
+            r=self.Pe.distance(orgPe)
+          
+            geos.append(ArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
+                                   r=self.r, direction= self.ext))
+            geos.append(ArcGeo(Pa=self.Pe,Pe=other.Pa,
+                               O=orgPe, direction=-direction,
+                               r=r))
+            
+        return geos
+    
+    def get_arc_direction(self,newO):
+        """ 
+        Calculate the arc direction given from the Arc and O of the new Arc.
+        @param O: The center of the arc
+        @return: Returns the direction (+ or - pi/2)
+        """ 
+        
+        a1= self.e_ang - pi/2 * self.ext / abs(self.ext)
+        a2=self.Pe.norm_angle(newO)
+        direction=a2-a1
+        
+        if direction>pi:
+            direction=direction-2*pi
+        elif direction<-pi:
+            direction=direction+2*pi
+            
+        print ('Die Direction ist: %s' %direction)
+        
+        return direction
     
     def angle_between(self, min_ang, max_ang, angle):
         """
@@ -717,7 +871,7 @@ class LineGeo:
        
         #If the value under the sqrt is negative there is no intersection.
         if root < 0:
-            return
+            return []
 
         v1 = (-b + sqrt(root)) / (2 * a)
         v2 = (-b - sqrt(root)) / (2 * a)
@@ -785,15 +939,15 @@ class LineGeo:
             offPa = Pa.get_arc_point(s_angle + 90, radius)
             offPe = Pe.get_arc_point(e_angle - 90, radius)
         elif direction == 42:
-            offPa = Pa.get_arc_point(s_angle + 90, radius)
-            offPe = Pe.get_arc_point(e_angle - 90, radius)
+            offPa = Pa.get_arc_point(s_angle - 90, radius)
+            offPe = Pe.get_arc_point(e_angle + 90, radius)
             
         offLine = LineGeo(Pa=offPa, Pe=offPe)
         offLine.calc_bounding_box()
         
-        return offLine
+        return [offLine]
     
-    def trim_join(self, other, newPa, tol):
+    def trim_join(self, other, newPa, orgPe, tol):
         """
         Returns a new geometry based on the input parameters and the self 
         geometry
@@ -805,7 +959,9 @@ class LineGeo:
         if other.type == "LineGeo":
             return self.trim_join_ll(other, newPa, tol)
         else:
-            print 'Hab ich noch nicht'
+            return self.trim_join_la(other, newPa, orgPe, tol)
+        
+            #print 'Hab ich noch nicht'
     
       
     def trim_join_ll(self, other, newPa, tol):
@@ -819,17 +975,23 @@ class LineGeo:
         """ 
         geos = []
         
+        #Find the nearest intersection point
+        points = self.find_inter_points(other)
+        
+        #Problem??
+        if len(points)==0:
+            return []
+        
         #Case 1 according to para 3.2
         if self.Pe.isintol(other.Pa, tol):
             geos.append(LineGeo(newPa, self.Pe))
         #Case 2 according to para 3.2
         else:
-            #Find the nearest intersection point
-            points = self.find_inter_points(other)
+            
             ipoint = self.Pe.get_nearest_point(points)
             
-            isTIP1 = self.isTIP(ipoint)
-            isTIP2 = other.isTIP(ipoint)
+            isTIP1 = self.isTIP(ipoint,-tol)
+            isTIP2 = other.isTIP(ipoint,-tol)
             
             #Case 2a according to para 3.2
             if isTIP1 and isTIP2:
@@ -847,7 +1009,59 @@ class LineGeo:
                 geos.append(LineGeo(self.Pe, other.Pa))
 
         return geos
-       
+    
+    def trim_join_la(self, other, newPa, orgPe, tol):
+        """
+        Returns a new geometry based on the input parameters and the self 
+        geometry
+        @param other: The 2nd Line Geometry
+        @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
+        identical to the end point of the last geometry)
+        @return: A list of geos
+        """ 
+        geos = []
+        
+        points = self.find_inter_points(other)
+        
+        #Case 1 according to Algorithm 2
+        if len(points):
+            ipoint = self.Pe.get_nearest_point(points)
+            
+            isTIP1 = self.isTIP(ipoint, -tol)
+            isTIP2 = other.isTIP(ipoint, -tol)
+            
+            #Case 1 a
+            if isTIP1 and isTIP2:
+                geos.append(LineGeo(newPa, ipoint))
+                
+            #Case 1 b
+            elif not(isTIP1) and not(isTIP2):
+                direction=newPa.get_arc_direction(self.Pe,orgPe)
+                r=self.Pe.distance(orgPe)
+                
+                geos.append(LineGeo(newPa, self.Pe))
+                geos.append(ArcGeo(Pa=self.Pe,Pe=other.Pa,
+                                   O=orgPe, direction=direction,
+                                   r=r))
+                
+            #Case 1 c & d
+            else:
+                geos.append(LineGeo(newPa, self.Pe))
+                geos.append(LineGeo(self.Pe, other.Pa))
+                
+        #Case 2
+        else: 
+            direction=newPa.get_arc_direction(self.Pe,orgPe)
+            
+            r=self.Pe.distance(orgPe)
+            geos.append(LineGeo(newPa, self.Pe))
+            geos.append(ArcGeo(Pa=self.Pe,Pe=other.Pa,
+                               O=orgPe, direction=direction, 
+                               r=r))
+            
+        return geos
+    
+     
     def Write_GCode(self, postpro=None):
         """
         To be calles if a LineGeo shall be wirtten to the postprocessor.
@@ -872,84 +1086,3 @@ class LineGeo:
         except:
             return 1e10
             
-class BoundingBoxClass:
-    """ 
-    Bounding Box Class. This is the standard class which provides all std. 
-    Bounding Box methods.
-    """ 
-    def __init__(self, Pa=PointClass(0, 0), Pe=PointClass(0, 0), hdl=[]):
-        """ 
-        Standard method to initialize the class
-        """ 
-        self.Pa = Pa
-        self.Pe = Pe
-        
-    def __str__(self):
-        """ 
-        Standard method to print the object
-        @return: A string
-        """ 
-        s = ("\nPa : %s" % (self.Pa)) + \
-           ("\nPe : %s" % (self.Pe))
-        return s
-    
-    def joinBB(self, other):
-        """
-        Joins two Bounding Box Classes and returns the new one
-        @param other: The 2nd Bounding Box
-        @return: Returns the joined Bounding Box Class
-        """
-        
-        if type(self.Pa) == type(None) or type(self.Pe) == type(None):
-            return BoundingBoxClass(copy(other.Pa), copy(other.Pe))
-        
-        xmin = min(self.Pa.x, other.Pa.x)
-        xmax = max(self.Pe.x, other.Pe.x)
-        ymin = min(self.Pa.y, other.Pa.y)
-        ymax = max(self.Pe.y, other.Pe.y)
-        
-        return BoundingBoxClass(Pa=PointClass(xmin, ymin), Pe=PointClass(xmax, ymax))
-    
-    def hasintersection(self, other=None, tol=0.0):
-        """
-        Checks if the two bounding boxes have an intersection
-        @param other: The 2nd Bounding Box
-        @return: Returns true or false
-        """        
-        x_inter_pos = (self.Pe.x - tol > other.Pa.x) and \
-        (self.Pa.x + tol < other.Pe.x)
-        y_inter_pos = (self.Pe.y - tol > other.Pa.y) and \
-        (self.Pa.y + tol < other.Pe.y)
-     
-        return x_inter_pos and y_inter_pos
-    
-    def pointisinBB(self, point=PointClass(), tol=0.01):
-        """
-        Checks if the point is within the bounding box
-        @param point: The Point which shall be ckecke
-        @return: Returns true or false
-        """
-        x_inter_pos = (self.Pe.x - tol > point.x) and \
-        (self.Pa.x + tol < point.x)
-        y_inter_pos = (self.Pe.y - tol > point.y) and \
-        (self.Pa.y + tol < point.y)
-        return x_inter_pos and y_inter_pos
-     
-    def plot2can(self, canvas=None, tag=None, col='red', hdl=[]):
-        """
-        Plots the geometry of self into the defined canvas.
-        @param canvas: The canvas instance to plot in
-        @param tag: the number of the parent shape
-        @param col: The color in which the shape shall be ploted
-        @param hdl: The existing hdls where to append the additional ones
-        @return: Returns the hdl or hdls of the ploted objects.
-        """
-        hdl.append(Line(canvas,
-                        self.Pa.x, -self.Pa.y, self.Pe.x, -self.Pa.y, tag=tag, fill=col))
-        hdl.append(Line(canvas,
-                        self.Pe.x, -self.Pa.y, self.Pe.x, -self.Pe.y, tag=tag, fill=col))
-        hdl.append(Line(canvas,
-                        self.Pe.x, -self.Pe.y, self.Pa.x, -self.Pe.y, tag=tag, fill=col))
-        hdl.append(Line(canvas,
-                        self.Pa.x, -self.Pe.y, self.Pa.x, -self.Pa.y, tag=tag, fill=col))
-        return hdl
