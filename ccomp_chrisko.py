@@ -81,7 +81,7 @@ class ShapeOffsetClass:
             
             #Check if the Bounding Box of geo1 has an intersection with BB of 
             #geo2
-            intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
+            intersect = geo1.BB.hasintersection(geo2.BB, -self.tol)
             
             if intersect:
                 points = geo1.find_inter_points(geo2)
@@ -95,9 +95,8 @@ class ShapeOffsetClass:
                 added = 0
                 
                 for point in points:
-                    print point
                     #There can be only one Local Self Intersection Point.
-                    if geo1.isTIP(point, self.tol):
+                    if geo1.isTIP(point, -self.tol):
                         pretshape.geos += geo1.split_into_2geos(point)
                         added = 1
                 
@@ -178,6 +177,7 @@ class ShapeOffsetClass:
             orgPe=self.pretshape.geos[geo_nr-1].Pe
             #Call the trim join algorithms for the elements.
             untroffshape.geos += geo1.trim_join(geo2, newPa, orgPe, self.tol)
+            
             newPa = untroffshape.geos[-1].Pe
                
         untroffshape.BB = untroffshape.BB

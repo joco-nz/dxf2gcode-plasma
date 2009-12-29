@@ -1183,8 +1183,8 @@ class CanvasContentClass:
         
         for shape in self.Shapes:
             #self.CCShapes.append(self.SOC.do_compensation(shape, 2, 41))
-            #self.CCShapes.append(self.SOC.do_compensation(shape,2,direction=41))
-            self.CCShapes.append(self.SOC.do_compensation(shape,2,direction=42))
+            self.CCShapes.append(self.SOC.do_compensation(shape,1.5,direction=41))
+            self.CCShapes.append(self.SOC.do_compensation(shape,1.5,direction=42))
             
     def plot_ccshapes(self):
         """

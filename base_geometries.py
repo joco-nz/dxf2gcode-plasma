@@ -29,7 +29,7 @@ from bounding_box import BoundingBoxClass
 from copy import copy
 
 #Length of the cross.
-dl = 0.2
+dl = 0.1
 DEBUG = 0
 
 class ArcGeo:
@@ -409,12 +409,11 @@ class ArcGeo:
         #The linear tolerance in angle
         atol = tol / 2 / pi / self.r
         pang = self.O.norm_angle(point)
-        
          
         if self.ext >= 0.0:
             return self.angle_between(self.s_ang - atol, self.e_ang + tol, pang)
         else:
-            return self.angle_between(self.e_ang + atol, self.s_ang - tol, pang)
+            return self.angle_between(self.e_ang - atol, self.s_ang + tol, pang)
     
         
     def split_into_2geos(self, ipoint=PointClass()):
@@ -513,6 +512,7 @@ class ArcGeo:
         #Case 1 according to Algorithm 2
         if len(points):
             ipoint = self.Pe.get_nearest_point(points)
+            
             
             isTIP1 = self.isTIP(ipoint, tol)
             isTIP2 = other.isTIP(ipoint, tol)
@@ -613,7 +613,7 @@ class ArcGeo:
         elif direction<-pi:
             direction=direction+2*pi
             
-        print ('Die Direction ist: %s' %direction)
+        #print ('Die Direction ist: %s' %direction)
         
         return direction
     
@@ -979,8 +979,8 @@ class LineGeo:
         points = self.find_inter_points(other)
         
         #Problem??
-        if len(points)==0:
-            return []
+        #if len(points)==0:
+        #    return []
         
         #Case 1 according to para 3.2
         if self.Pe.isintol(other.Pa, tol):
@@ -990,8 +990,8 @@ class LineGeo:
             
             ipoint = self.Pe.get_nearest_point(points)
             
-            isTIP1 = self.isTIP(ipoint,-tol)
-            isTIP2 = other.isTIP(ipoint,-tol)
+            isTIP1 = self.isTIP(ipoint, tol)
+            isTIP2 = other.isTIP(ipoint, tol)
             
             #Case 2a according to para 3.2
             if isTIP1 and isTIP2:
@@ -1027,8 +1027,8 @@ class LineGeo:
         if len(points):
             ipoint = self.Pe.get_nearest_point(points)
             
-            isTIP1 = self.isTIP(ipoint, -tol)
-            isTIP2 = other.isTIP(ipoint, -tol)
+            isTIP1 = self.isTIP(ipoint, tol)
+            isTIP2 = other.isTIP(ipoint, tol)
             
             #Case 1 a
             if isTIP1 and isTIP2:
