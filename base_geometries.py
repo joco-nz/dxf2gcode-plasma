@@ -751,7 +751,7 @@ class LineGeo:
         @param ipoint: The Point which shall be ckecke
         @return: Returns true or false
         """
-        return self.Pa.distance(ipoint)>self.Pe.distance(ipoint)
+        return self.Pa.distance(ipoint) > self.Pe.distance(ipoint)
     
     def split_into_2geos(self, ipoint=PointClass()):
         """

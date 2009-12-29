@@ -174,8 +174,8 @@ class ShapeOffsetClass:
         
         #Add the last geometry Case 3 according to para 3.2
         if len(self.shape.geos) > 1:
-            if geo2.type=='LineGeo':
-                untroffshape.geos.append(LineGeo(newPa,deepcopy(geo2.Pe)))
+            if geo2.type == 'LineGeo':
+                untroffshape.geos.append(LineGeo(newPa, deepcopy(geo2.Pe)))
             else:
                 print 'hab ich noch nicht'
         else:
