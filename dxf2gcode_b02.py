@@ -1155,17 +1155,16 @@ class CanvasContentClass:
                         ent_geo.geo.reverse()
                         for geo in ent_geo.geo:
                             abs_geo = geo.make_abs_geo(parent=parent, reverse=1)
-                            abs_geo.calc_bounding_box()
+                            #abs_geo.calc_bounding_box()
                             self.Shapes[-1].geos.append(abs_geo)
-                            self.Shapes[-1].BB = self.Shapes[-1].BB.joinBB(abs_geo.BB)
+                            #self.Shapes[-1].BB = self.Shapes[-1].BB.joinBB(abs_geo.BB)
 
                         ent_geo.geo.reverse()
                     else:
                         for geo in ent_geo.geo:
                             abs_geo = geo.make_abs_geo(parent=parent, reverse=0)
-                            abs_geo.calc_bounding_box()
                             self.Shapes[-1].geos.append(abs_geo)
-                            self.Shapes[-1].BB = self.Shapes[-1].BB.joinBB(abs_geo.BB)
+                            #self.Shapes[-1].BB = self.Shapes[-1].BB.joinBB(abs_geo.BB)
                         
                 self.addtoLayerContents(self.Shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.Shapes[-1])
@@ -1182,9 +1181,10 @@ class CanvasContentClass:
         self.SOC = ShapeOffsetClass()
         
         for shape in self.Shapes:
-            #self.CCShapes.append(self.SOC.do_compensation(shape, 2, 41))
-            self.CCShapes.append(self.SOC.do_compensation(shape,1.5,direction=41))
-            self.CCShapes.append(self.SOC.do_compensation(shape,1.5,direction=42))
+            self.CCShapes.append(self.SOC.do_compensation(shape, 5.5, 42))
+            #self.CCShapes.append(self.SOC.do_compensation(shape,2.5,direction=41))
+            #self.CCShapes.append(self.SOC.do_compensation(shape,1.5,direction=42))
+            #self.CCShapes.append(self.SOC.do_compensation(shape,1,direction=41))
             
     def plot_ccshapes(self):
         """
