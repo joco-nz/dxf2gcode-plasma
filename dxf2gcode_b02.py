@@ -1076,8 +1076,9 @@ class CanvasContentClass:
         self.Shapes = []
         self.CCShapes = []
         self.LayerContents = []
-        self.EntitiesRoot = EntitieContentClass(Nr=0, Name='Entities', parent=None, children=[],
-                                            p0=p0, pb=pb, sca=sca, rot=rot)
+        self.EntitiesRoot = EntitieContentClass(Nr=0, Name='Entities',
+                                                 parent=None, children=[],
+                                                 p0=p0, pb=pb, sca=sca, rot=rot)
         self.Selected = []
         self.Disabled = []
         self.wp_zero_hdls = []
