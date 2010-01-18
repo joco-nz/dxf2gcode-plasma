@@ -1,0 +1,8 @@
+POCKET FMS    ZOFFSET    XOFFSET   DIAMETER  FRONTANGLE   BACKANGLE ORIENT  COMMENT
+
+     1   1 +66.483000 -65.478000   1.000000   +0.000000  +60.000000      2  # Planmesser klein dreieckig
+     2   2 +68.331000 -64.576000   3.000000  +30.000000  +90.000000      2  # Abdrehmesser rechts gross
+     3   3 +24.871000 -47.620000   1.000000  +90.000000 +150.000000      1  # Abdrehmesser links klein - z offset ungenau
+     4   4  +0.000000  +0.000000   6.000000  +90.000000  +90.000000      6  # Abstichmesser 3.5mm breit
+     5   5  +0.000000  +0.000000   1.000000 +277.000000 +337.000000      8  # Innenausdrehmesser klein
+     6   6  +0.000000  +0.000000   1.000000 +300.000000 +240.000000      8  # Innengewindemesser
