@@ -1,0 +1,7 @@
+; lathe format, cradek patch 
+; http://timeguy.com/cradek-files/emc/0001-preserve-fms-values-for-nonrandom-tc-and-more.patch
+;
+TOOLNO POCKET      ZOFFSET      XOFFSET   DIAMETER  FRONTANGLE   BACKANGLE  ORIENT  COMMENT 
+     1      1    +0.100000    +0.000000   0.100000  +95.000000 +155.000000       1  a lathe tool
+
+
