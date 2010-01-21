@@ -85,6 +85,7 @@ class ArcGeo:
         if type(self.e_ang) == type(None):
             self.e_ang = self.O.norm_angle(Pe)
         
+        #self.ext=self.dif_ang(self.Pa, self.Pe, direction)
         self.get_arc_extend(direction)
 
         #Falls es ein Kreis ist Umfang 2pi einsetzen        
@@ -127,23 +128,26 @@ class ArcGeo:
         """ 
         sa = self.O.norm_angle(P1)
        
-        if(sa < 0):
-            sa += 2 * pi
-        
+#        if(sa < 0):
+#            sa += 2 * pi
+#        
         ea = self.O.norm_angle(P2)
-        if(ea < 0):
-            ea += 2 * pi
+#        if(ea < 0):
+#            ea += 2 * pi
         
         if(direction > 0):     # GU
-            if(sa > ea):
-                ang = (2 * pi - sa + ea)
-            else:
-                ang = (ea - sa)
+            return (ea-sa)%(2*pi)
+            
+#            if(sa > ea):
+#                ang = (2 * pi - sa + ea)
+#            else:
+#                ang = (ea - sa)
         else:
-            if(ea > sa):
-                ang = (sa + 2 * pi - ea)
-            else:
-                ang = (sa - ea)
+            return (ea-sa)%(-2*pi)
+#            if(ea > sa):
+#                ang = (sa + 2 * pi - ea)
+#            else:
+#                ang = (sa - ea)
         
         return(ang)        
         

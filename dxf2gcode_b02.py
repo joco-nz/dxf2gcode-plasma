@@ -1181,12 +1181,26 @@ class CanvasContentClass:
         self.CCShapes = []
         self.SOC = ShapeOffsetClass()
         
-        for shape in self.Shapes:
-            self.CCShapes.append(self.SOC.do_compensation(shape, 5.5, 42))
-            #self.CCShapes.append(self.SOC.do_compensation(shape,2.5,direction=41))
-            #self.CCShapes.append(self.SOC.do_compensation(shape,1.5,direction=42))
-            #self.CCShapes.append(self.SOC.do_compensation(shape,1,direction=41))
-            
+        for shape in  self.Shapes: #[self.Shapes[0]]: #
+            self.CCShapes+=self.SOC.do_compensation(shape, 0.6, 42,
+                                                    len(self.Shapes)+len(self.CCShapes))
+#            self.CCShapes+=self.SOC.do_compensation(shape, 3, 42,
+#                                                    len(self.Shapes)+len(self.CCShapes))
+#            self.CCShapes+=self.SOC.do_compensation(shape, 1.6, 42,
+#                                                    len(self.Shapes)+len(self.CCShapes))
+#            self.CCShapes+=self.SOC.do_compensation(shape, 7.6, 42,
+#                                                    len(self.Shapes)+len(self.CCShapes))
+#            self.CCShapes+=self.SOC.do_compensation(shape, 2.6, 42,
+#                                                    len(self.Shapes)+len(self.CCShapes))
+#            self.CCShapes+=self.SOC.do_compensation(shape, 12, 42,
+#                                                    len(self.Shapes)+len(self.CCShapes))
+#            self.CCShapes+=self.SOC.do_compensation(shape, 1.5, 41,
+#                                                    len(self.Shapes)+len(self.CCShapes))
+#            self.CCShapes.append(self.SOC.do_compensation(shape,8.5,direction=41))
+#            self.CCShapes.append(self.SOC.do_compensation(shape,1.5,direction=42))
+#            self.CCShapes.append(self.SOC.do_compensation(shape,1,direction=41))
+        self.Shapes+=self.CCShapes
+          
     def plot_ccshapes(self):
         """
         Plots the Cutter Compesated shapes to the canvas
