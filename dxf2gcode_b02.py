@@ -66,7 +66,7 @@ DATE=   "2009-11-16"
 # elif os.name == 'nt': 
 #    FOLDER = os.path.join(os.environ.get('APPDATA'), APPNAME.capitalize()).replace("\\", "/")
 #===============================================================================
- FOLDER=os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
+FOLDER=os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 
 
 if os.path.islink(sys.argv[0]):
