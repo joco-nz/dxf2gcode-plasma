@@ -187,8 +187,7 @@ class ShapeOffsetClass:
         
         for geo in pretshape.geos:
             rawoffshape.geos+=geo.rawoffset(radius=self.radius,
-                                            direction=self.dir)
-            
+                                            direction=self.dir)  
         return rawoffshape
    
     def make_untrimmed_offset(self, rawoffshape):
@@ -231,8 +230,6 @@ class ShapeOffsetClass:
             
             if len(untroffshape.geos):
                 newPa = untroffshape.geos[-1].Pe
-               
-        untroffshape.BB = untroffshape.BB
         
         #Add the last geometry Case 3 according to para 3.2
         if len(rawoffshape.geos)==1:
@@ -266,10 +263,9 @@ class ShapeOffsetClass:
                     modgeo=untroffshape.geos[0]
                     modgeo.Pa=untroffshape.geos[-1].Pe
                     modgeo.s_ang = modgeo.O.norm_angle(modgeo.Pa)
-                    modgeo.get_arc_extend(modgeo.ext)
+                    modgeo.ext=modgeo.dif_ang(modgeo.Pa, modgeo.Pe, modgeo.ext)
                     untroffshape.geos[0].calc_bounding_box()
-                
-        
+         
         
         return untroffshape
     
@@ -519,12 +515,18 @@ class CCArcGeo(ArcGeo):
             return []
         
         #If both circles have the same center and radius
-        if abs(O_dis) == 0.0 and abs(self.r-other.r) ==0.0:
-            Pi1=IPointClass(x=self.Pe.x,y=self.Pe.y,
+        if abs(O_dis) < tol/2 and abs(self.r-other.r) < tol/2:
+            Pi1=IPointClass(x=self.Pa.x,y=self.Pa.y,
+                         v1=0.0, v2=-1.0,
+                        geo1=self, geo2=other)
+            
+            Pi2=IPointClass(x=self.Pe.x,y=self.Pe.y,
                          v1=1.0, v2=0.0,
                         geo1=self, geo2=other)
+            
+            
             #return [self.Pa, self.Pe]
-            return [Pi1]
+            return [Pi1, Pi2]
 
         #The following algorithm was found on :
         #http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
@@ -552,10 +554,6 @@ class CCArcGeo(ArcGeo):
                     (2 * pow(O_dis, 2)) * root,
                     geo1=self, geo2=other,
                     v1=0.0,v2=0.0)
-        
-#        print self.dif_ang(self.Pa, Pi1, self.ext)
-#        print self.dif_ang(self.Pa, self.Pe, self.ext)
-#        print self.ext
         
         Pi1.v1 = self.dif_ang(self.Pa, Pi1, self.ext)/self.ext
         Pi1.v2 = other.dif_ang(other.Pa, Pi1, other.ext)/other.ext
@@ -665,10 +663,9 @@ class CCArcGeo(ArcGeo):
         #Generate the 2 geometries and their bounding boxes.
         Arc1 = CCArcGeo(Pa=self.Pa, Pe=spoint, r=self.r,
                        O=self.O, direction=self.ext)
-        Arc1.calc_bounding_box()
+        
         Arc2 = CCArcGeo(Pa=spoint, Pe=self.Pe, r=self.r,
                        O=self.O, direction=self.ext)
-        Arc2.calc_bounding_box()
         
         return [Arc1, Arc2]
     
@@ -718,8 +715,7 @@ class CCArcGeo(ArcGeo):
             return self.trim_join_al(other, newPa, orgPe, tol)
         else:
             return self.trim_join_aa(other, newPa, orgPe, tol)
-            print 'gibts noch nicht'
-            #return self.trim_join_la(other, newPa, orgPe, tol)
+            
         
             #print 'Hab ich noch nicht' 
             
@@ -826,11 +822,15 @@ class CCArcGeo(ArcGeo):
                 geos.append(CCArcGeo(Pa=newPa, Pe=ipoint, O=self.O,
                                    r=self.r, direction= self.ext))
                                  
-            #Case 1 b
+            #Case 1 b########################################################################################FALSCH############
             else:
+                direction=self.get_arc_direction(orgPe)
+                r=self.Pe.distance(orgPe)
                 geos.append(CCArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
                                    r=self.r, direction= self.ext))
-                geos.append(CCLineGeo(self.Pe, other.Pa))
+                geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
+                               O=orgPe, direction=-direction,
+                               r=r))
                 
         #Case 2
         else: 
@@ -1110,9 +1110,7 @@ class CCLineGeo(LineGeo):
         @return: A list of 2 CCArcGeo's will be returned.
         """
         Li1 = CCLineGeo(Pa=self.Pa, Pe=spoint)
-        Li1.calc_bounding_box()
         Li2 = CCLineGeo(Pa=spoint, Pe=self.Pe)
-        Li2.calc_bounding_box()
         
         return [Li1, Li2]
      

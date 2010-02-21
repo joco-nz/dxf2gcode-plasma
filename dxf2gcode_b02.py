@@ -52,7 +52,6 @@ import locale
 #===============================================================================
 from ccomp_chrisko import ShapeOffsetClass
 
-
 from math import radians, degrees
 
 import webbrowser, gettext, tempfile, subprocess
@@ -1181,11 +1180,11 @@ class CanvasContentClass:
         self.CCShapes = []
         self.SOC = ShapeOffsetClass()
         
-        for shape in  self.Shapes: #[self.Shapes[0]]: #
-            self.CCShapes+=self.SOC.do_compensation(shape, 0.6, 42,
+        for shape in self.Shapes: # [self.Shapes[2]]: #[self.Shapes[0]]: #
+            self.CCShapes+=self.SOC.do_compensation(shape, 1.0, 42,
                                                     len(self.Shapes)+len(self.CCShapes))
-#            self.CCShapes+=self.SOC.do_compensation(shape, 3, 42,
-#                                                    len(self.Shapes)+len(self.CCShapes))
+            self.CCShapes+=self.SOC.do_compensation(shape, 1.0, 41,
+                                                    len(self.Shapes)+len(self.CCShapes))
 #            self.CCShapes+=self.SOC.do_compensation(shape, 1.6, 42,
 #                                                    len(self.Shapes)+len(self.CCShapes))
 #            self.CCShapes+=self.SOC.do_compensation(shape, 7.6, 42,
@@ -1621,10 +1620,18 @@ if __name__ == "__main__":
     master.title("%s, Version: %s, Date: %s " % (APPNAME, VERSION, DATE))
 
     #Falls das Programm mit Parametern von EMC gestartet wurde
-    if len(sys.argv) > 1:
-        MyMainWindow(sys.argv[1])
-    else:
-        MyMainWindow()
+    import pstats, cProfile
+    cProfile.run('MyMainWindow("D:/Eclipse_Workspace/DXF2GCODE/trunk/dxf/1997.dxf")',
+                 sort=2)
+
+#    s = pstats.Stats("Profile.prof")
+#    s.strip_dirs().sort_stats("cumtime").print_stats()
+   
+    
+#    if len(sys.argv) > 1:
+#        MyMainWindow(sys.argv[1])
+#    else:
+#        MyMainWindow()
 
     master.mainloop()
 

@@ -85,8 +85,8 @@ class ArcGeo:
         if type(self.e_ang) == type(None):
             self.e_ang = self.O.norm_angle(Pe)
         
-        #self.ext=self.dif_ang(self.Pa, self.Pe, direction)
-        self.get_arc_extend(direction)
+        self.ext=self.dif_ang(self.Pa, self.Pe, direction)
+        #self.get_arc_extend(direction)
 
         #Falls es ein Kreis ist Umfang 2pi einsetzen        
         if self.ext == 0.0:
@@ -95,15 +95,15 @@ class ArcGeo:
         
         self.length = self.r * abs(self.ext)
 
-    def get_arc_extend(self,direction):
-        #Aus dem Vorzeichen von direction den extend ausrechnen
-        self.ext = self.e_ang - self.s_ang
-        if direction > 0.0:
-            self.ext = self.ext % (-2 * pi)
-            self.ext -= floor(self.ext / (2 * pi)) * (2 * pi)
-        else:
-            self.ext = self.ext % (-2 * pi)
-            self.ext += ceil(self.ext / (2 * pi)) * (2 * pi)
+#    def get_arc_extend(self,direction):
+#        #Aus dem Vorzeichen von direction den extend ausrechnen
+#        self.ext = self.e_ang - self.s_ang
+#        if direction > 0.0:
+#            self.ext = self.ext % (-2 * pi)
+#            self.ext -= floor(self.ext / (2 * pi)) * (2 * pi)
+#        else:
+#            self.ext = self.ext % (-2 * pi)
+#            self.ext += ceil(self.ext / (2 * pi)) * (2 * pi)
 
     def __str__(self):
         """ 
@@ -117,7 +117,7 @@ class ArcGeo:
                ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
 
     
-    def dif_ang(self, P1, P2, direction):
+    def dif_ang(self, P1, P2, direction,tol=0.005):
         """
         Calculated the angle of extend based on the 3 given points. Center Point,
         P1 and P2.
@@ -126,6 +126,9 @@ class ArcGeo:
         @param direction: the direction of the arc
         @return: Returns the angle between -2* pi and 2 *pi for the arc extend
         """ 
+        if P1.isintol(P2,tol):
+            return 0.0
+        
         sa = self.O.norm_angle(P1)
        
 #        if(sa < 0):
