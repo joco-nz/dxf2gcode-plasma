@@ -1272,6 +1272,7 @@ class CanvasContentClass:
         
     def addselection(self,items,mode):
         for item in items:
+            
             try:
                 tag=int(self.Canvas.canvas.gettags(item)[-1])
                 if not(tag in self.Selected):

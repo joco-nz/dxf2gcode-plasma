@@ -421,7 +421,6 @@ class Load_DXF:
                 #Common Endpunkt
                 else:
                     points[p_list[l_nr][-2]].en_cp.append(p_list[int_p][3:5])
-
         return points
     
     def Remove_Redundant_Geos(self,geo=None,points=None):
@@ -449,6 +448,7 @@ class Load_DXF:
         points=deepcopy(all_points)
         
         while(len(points))>0:
+        #for i in range(min(len(points),2)):
             #print '\n Neue Suche'
             #Wenn nichts gefunden wird dann einfach die Kontur hochzählen
             if (len(points[0].be_cp)==0)&( len(points[0].en_cp)==0):
@@ -470,21 +470,29 @@ class Load_DXF:
                 new_cont_pos=self.Search_Paths(0,[],points[0].point_nr,1,points)
                 #Bestimmen des besten Pfades und übergabe in cont                
                 cont.append(self.Get_Best_Contour(len(cont),new_cont_pos,geo,points))
+                #points=self.Remove_Used_Points(cont[-1],points)
 
                 #Falls der Pfad nicht durch den ersten Punkt geschlossen ist
-                if cont[-1].closed==0:
-                    #print '\nPfad nicht durch den ersten Punkt geschlossen'
-                    cont[-1].reverse()
-                    #print ("Neue Kontur umgedrejt %s" %cont[-1])
-                    new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
-                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
-                    
+#                if cont[-1].closed==0:
+#                    print '\nPfad nicht durch den ersten Punkt geschlossen'
+#                    cont[-1].reverse()
+#                    #print ("Neue Kontur umgedrejt %s" %cont[-1])
+#                    new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
+#                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
+#                    
             else:
                 print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         
-            points=self.Remove_Used_Points(cont[-1],points)
+           
                        
             cont[-1]=self.Contours_Points2Geo(cont[-1],all_points)
+            points=self.Remove_Used_Points(cont[-1],points)
+        
+#            print cont
+#            if len(cont)>1:
+#                print cont[-1]
+#                return [cont[-1]]
+        
         return cont
 
     #Suchen die Wege duch die Konturn !!! REKURSIVE SCHLEIFE WAR SAU SCHWIERIG
@@ -582,19 +590,20 @@ class Load_DXF:
     
     #Alle Punkte im Pfad aus Points löschen um nächte Suche zu beschleunigen               
     def Remove_Used_Points(self,cont=None,points=None):
-        for i in range(len(cont.order)):
-            for j in range(len(points)):
-                if cont.order[i][0]==points[j].point_nr:
-                    del points[j]
-                    break
-                for k in range(len(points[j].be_cp)):
-                    if cont.order[i][0]==points[j].be_cp[k][0]:
-                        del points[j].be_cp[k]
+        for p_nr in cont.order:
+            for point in points:
+                if p_nr[0]==point.point_nr:
+                    #print points.index(point)
+                    del points[points.index(point)]
+                    
+                for be_cp in point.be_cp:
+                    if p_nr[0]==be_cp[0]:
+                        del point.be_cp[point.be_cp.index(be_cp)]
                         break
-                
-                for k in range(len(points[j].en_cp)):
-                    if cont.order[i][0]==points[j].en_cp[k][0]:
-                        del points[j].en_cp[k]
+                    
+                for en_cp in point.en_cp:
+                    if p_nr[0]==en_cp[0]:
+                        del point.en_cp[point.en_cp.index(en_cp)]
                         break
                     
         #Rückgabe der Kontur       
