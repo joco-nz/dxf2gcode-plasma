@@ -462,10 +462,8 @@ class Load_DXF:
                 #print '\nGibt was Vorwärt (Ende in pos dir)'
                 new_cont_neg=self.Search_Paths(0,[],points[0].point_nr,1,points)
                 cont.append(self.Get_Best_Contour(len(cont),new_cont_neg,geo,points))
-            elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):
+            elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):                
                 #print '\nGibt was in beiden Richtungen'
-                #print points[0].be_cp
-                #print points[0].en_cp
                 #Suchen der möglichen Pfade                
                 new_cont_pos=self.Search_Paths(0,[],points[0].point_nr,1,points)
                 #Bestimmen des besten Pfades und übergabe in cont                
@@ -484,14 +482,8 @@ class Load_DXF:
                 print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         
            
-                       
+            points=self.Remove_Used_Points(cont[-1],points)        
             cont[-1]=self.Contours_Points2Geo(cont[-1],all_points)
-            points=self.Remove_Used_Points(cont[-1],points)
-        
-#            print cont
-#            if len(cont)>1:
-#                print cont[-1]
-#                return [cont[-1]]
         
         return cont
 
@@ -503,12 +495,13 @@ class Load_DXF:
         #Wenn es der erste Aufruf ist und eine neue Kontur angelegt werden muss         
         if len(c)==0:
             c.append(ContourClass(cont_nr=0,order=[[p_nr,dir]]))   
-
-            
+   
         #Suchen des Punktes innerhalb der points List (nötig da verwendete Punkte gelöscht werden)
         for new_p_nr in range(len(points)):
                 if points[new_p_nr].point_nr==p_nr:
                     break
+                if new_p_nr==len(points)-1:
+                    print 'WIR HABEN EIN PROBLEM'
         
         #Nächster Punkt abhängig von der Richtung
         if dir==0:
@@ -591,11 +584,13 @@ class Load_DXF:
     #Alle Punkte im Pfad aus Points löschen um nächte Suche zu beschleunigen               
     def Remove_Used_Points(self,cont=None,points=None):
         for p_nr in cont.order:
+            
+            #This have to be 2 seperate loops, otherwise one element is missing
             for point in points:
                 if p_nr[0]==point.point_nr:
-                    #print points.index(point)
                     del points[points.index(point)]
                     
+            for point in points:
                 for be_cp in point.be_cp:
                     if p_nr[0]==be_cp[0]:
                         del point.be_cp[point.be_cp.index(be_cp)]
@@ -605,7 +600,7 @@ class Load_DXF:
                     if p_nr[0]==en_cp[0]:
                         del point.en_cp[point.en_cp.index(en_cp)]
                         break
-                    
+                                  
         #Rückgabe der Kontur       
         return points
     #Alle Punkte im Pfad aus Points löschen um nächte Suche zu beschleunigen               
