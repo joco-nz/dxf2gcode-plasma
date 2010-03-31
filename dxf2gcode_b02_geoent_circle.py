@@ -79,7 +79,7 @@ class CircleClass:
 
         #Anhängen der ArcGeo Klasse für die Geometrie
         self.geo.append(ArcGeo(Pa=Pa,Pe=Pm,O=O,r=r,s_ang=s_ang,e_ang=m_ang,dir=-1))
-        self.geo.append(ArcGeo(Pa=Pm,Pe=Pe,O=O,r=r,s_ang=m_ang,e_ang=m_ang,dir=-1))
+        self.geo.append(ArcGeo(Pa=Pm,Pe=Pe,O=O,r=r,s_ang=m_ang,e_ang=e_ang,dir=-1))
  
 
         #Länge entspricht der Länge des Kreises
