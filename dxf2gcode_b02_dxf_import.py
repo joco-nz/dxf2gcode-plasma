@@ -471,13 +471,13 @@ class Load_DXF:
                 #points=self.Remove_Used_Points(cont[-1],points)
 
                 #Falls der Pfad nicht durch den ersten Punkt geschlossen ist
-#                if cont[-1].closed==0:
-#                    print '\nPfad nicht durch den ersten Punkt geschlossen'
-#                    cont[-1].reverse()
-#                    #print ("Neue Kontur umgedrejt %s" %cont[-1])
-#                    new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
-#                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
-#                    
+                if cont[-1].closed==0:
+                    #print '\nPfad nicht durch den ersten Punkt geschlossen'
+                    cont[-1].reverse()
+                    #print ("Neue Kontur umgedrejt %s" %cont[-1])
+                    new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
+                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
+                    
             else:
                 print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
         
