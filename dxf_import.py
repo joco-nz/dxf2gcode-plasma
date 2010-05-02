@@ -459,22 +459,25 @@ class ReadDXF:
                 #print '\nGibt was Vorwï¿½rt (Ende in pos dir)'
                 new_cont_neg = self.Search_Paths(0, [], points[0].point_nr, 1, points)
                 cont.append(self.Get_Best_Contour(len(cont), new_cont_neg, geo, points))
-            elif (len(points[0].be_cp) > 0) & (len(points[0].en_cp) > 0):
+                
+                
+                
+                
+            elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):                
                 #print '\nGibt was in beiden Richtungen'
-                #print points[0].be_cp
-                #print points[0].en_cp
-                #Suchen der mï¿½glichen Pfade                
-                new_cont_pos = self.Search_Paths(0, [], points[0].point_nr, 1, points)
-                #Bestimmen des besten Pfades und ï¿½bergabe in cont                
-                cont.append(self.Get_Best_Contour(len(cont), new_cont_pos, geo, points))
+                #Suchen der möglichen Pfade                
+                new_cont_pos=self.Search_Paths(0,[],points[0].point_nr,1,points)
+                #Bestimmen des besten Pfades und übergabe in cont                
+                cont.append(self.Get_Best_Contour(len(cont),new_cont_pos,geo,points))
+                #points=self.Remove_Used_Points(cont[-1],points)
 
                 #Falls der Pfad nicht durch den ersten Punkt geschlossen ist
-                if cont[-1].closed == 0:
+                if cont[-1].closed==0:
                     #print '\nPfad nicht durch den ersten Punkt geschlossen'
                     cont[-1].reverse()
                     #print ("Neue Kontur umgedrejt %s" %cont[-1])
-                    new_cont_neg = self.Search_Paths(0, [cont[-1]], points[0].point_nr, 0, points)
-                    cont[-1] = self.Get_Best_Contour(len(cont) - 1, new_cont_neg + new_cont_pos, geo, points)
+                    new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
+                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
                     
             else:
                 print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
@@ -577,24 +580,27 @@ class ReadDXF:
 
         return best_c
     
-    #Alle Punkte im Pfad aus Points lï¿½schen um nï¿½chte Suche zu beschleunigen               
-    def Remove_Used_Points(self, cont=None, points=None):
-        for i in range(len(cont.order)):
-            for j in range(len(points)):
-                if cont.order[i][0] == points[j].point_nr:
-                    del points[j]
-                    break
-                for k in range(len(points[j].be_cp)):
-                    if cont.order[i][0] == points[j].be_cp[k][0]:
-                        del points[j].be_cp[k]
-                        break
-                
-                for k in range(len(points[j].en_cp)):
-                    if cont.order[i][0] == points[j].en_cp[k][0]:
-                        del points[j].en_cp[k]
+    #Alle Punkte im Pfad aus Points lÃ¶schen um nÃ¤chte Suche zu beschleunigen               
+    def Remove_Used_Points(self,cont=None,points=None):
+        for p_nr in cont.order:
+            
+            #This have to be 2 seperate loops, otherwise one element is missing
+            for point in points:
+                if p_nr[0]==point.point_nr:
+                    del points[points.index(point)]
+                    
+            for point in points:
+                for be_cp in point.be_cp:
+                    if p_nr[0]==be_cp[0]:
+                        del point.be_cp[point.be_cp.index(be_cp)]
                         break
                     
-        #Rï¿½ckgabe der Kontur       
+                for en_cp in point.en_cp:
+                    if p_nr[0]==en_cp[0]:
+                        del point.en_cp[point.en_cp.index(en_cp)]
+                        break
+                                  
+        #Rückgabe der Kontur       
         return points
     #Alle Punkte im Pfad aus Points lï¿½schen um nï¿½chte Suche zu beschleunigen               
     def Contours_Points2Geo(self, cont=None, points=None):

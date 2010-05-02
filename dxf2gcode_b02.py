@@ -69,6 +69,8 @@ APPNAME = "dxf2gcode"
 VERSION = "TKINTER Beta 02"
 DATE = "2009-11-16"
 
+PROFILE=1
+
 # Get folder of the main program
 FOLDER = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 if os.path.islink(sys.argv[0]):
@@ -250,6 +252,9 @@ class MyMainWindow:
         self.optionmenu.entryconfig(3, state=DISABLED)
         self.optionmenu.entryconfig(4, state=DISABLED)
         
+        self.optionmenu.add_separator()
+        self.optionmenu.add_command(label=_("Open Config Dir"), command=self.OpenConfigDir)
+        self.optionmenu.add_command(label=_("Open Postpro. Dir"), command=self.OpenPostproDir)
         
         self.helpmenu = Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label=_("Help"), menu=self.helpmenu)
@@ -645,6 +650,20 @@ class MyMainWindow:
             self.CanvasContent.delete_opt_path()
         except:
             pass
+        
+    def OpenConfigDir(self):
+        """
+        Called by the Option Menu to open the Config Direction in a explorer
+        window
+        """
+        os.startfile(os.path.join(FOLDER, 'config'))
+        
+    def OpenPostproDir(self):
+        """
+        Called by the Option Menu to open the Postprocessor Config Direction in
+        a explorer window
+        """
+        os.startfile(os.path.join(FOLDER, 'postprocessor'))
         
     def Show_About(self):
         """
@@ -1180,12 +1199,15 @@ class CanvasContentClass:
         self.CCShapes = []
         self.SOC = ShapeOffsetClass()
         
-        for shape in self.Shapes: # [self.Shapes[2]]: #[self.Shapes[0]]: #
-            self.CCShapes+=self.SOC.do_compensation(shape, 1.0, 42,
-                                                    len(self.Shapes)+len(self.CCShapes))
+        for shape in self.Shapes: #[self.Shapes[1]]: #
+            
+            
             self.CCShapes+=self.SOC.do_compensation(shape, 1.0, 41,
                                                     len(self.Shapes)+len(self.CCShapes))
-#            self.CCShapes+=self.SOC.do_compensation(shape, 1.6, 42,
+            self.CCShapes+=self.SOC.do_compensation(shape, 1.6, 42,
+                                                    len(self.Shapes)+len(self.CCShapes))
+#            
+#            self.CCShapes+=self.SOC.do_compensation(shape, 1.0, 42,
 #                                                    len(self.Shapes)+len(self.CCShapes))
 #            self.CCShapes+=self.SOC.do_compensation(shape, 7.6, 42,
 #                                                    len(self.Shapes)+len(self.CCShapes))
@@ -1529,12 +1551,13 @@ class AboutDialogWindow(Toplevel):
         text.config(cursor="arrow")
 
         #add a link with data
-        href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
+        href = "http://code.google.com/p/dxf2gcode/"
         text.insert(END, _("You are using DXF2GCODE"))
         text.insert(END, ("\nVersion %s (%s)" % (VERSION, DATE)))
         text.insert(END, _("\nFor more information und updates about"))
-        text.insert(END, _("\nplease visit my homepage at:"))
-        text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:" + href))
+        text.insert(END, _("\nplease visit the Google Code Project"))
+        text.insert(END, _("\nhomepage at:"))
+        text.insert(END, _("\nhttp://code.google.com/p/dxf2gcode/"), ("a", "href:" + href))
 
 
 
@@ -1619,19 +1642,18 @@ if __name__ == "__main__":
     master = Tk()
     master.title("%s, Version: %s, Date: %s " % (APPNAME, VERSION, DATE))
 
-    #Falls das Programm mit Parametern von EMC gestartet wurde
-    import pstats, cProfile
-    cProfile.run('MyMainWindow("D:/Eclipse_Workspace/DXF2GCODE/trunk/dxf/1997.dxf")',
-                 sort=2)
-
-#    s = pstats.Stats("Profile.prof")
-#    s.strip_dirs().sort_stats("cumtime").print_stats()
-   
     
-#    if len(sys.argv) > 1:
-#        MyMainWindow(sys.argv[1])
-#    else:
-#        MyMainWindow()
+    #Falls das Programm mit Parametern von EMC gestartet wurde
+    if PROFILE:
+        import pstats, cProfile
+        cProfile.run(('MyMainWindow("%s")' %sys.argv[1]),
+                     sort=2)
+    else:
+
+        if len(sys.argv) > 1:
+            MyMainWindow(sys.argv[1])
+        else:
+            MyMainWindow()
 
     master.mainloop()
 

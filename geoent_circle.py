@@ -70,25 +70,29 @@ class CircleClass:
                                 
         #Berechnen der Start und Endwerte des Kreises ohne �berschneidung              
         s_ang = -3 * pi / 4
+        m_ang = s_ang -pi
         e_ang = -3 * pi / 4
 
         #Berechnen der Start und Endwerte des Arcs
         Pa = PointClass(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
+        Pm = PointClass(x=cos(m_ang) * r, y=sin(m_ang) * r) + O
         Pe = PointClass(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
 
         #Anh�ngen der ArcGeo Klasse f�r die Geometrie
-        self.geo.append(ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r,
-                               s_ang=s_ang, e_ang=e_ang, direction=1))
-        self.geo[-1].reverse()
+        self.geo.append(ArcGeo(Pa=Pa, Pe=Pm, O=O, r=r,
+                               s_ang=s_ang, e_ang=m_ang, direction=-1))
+        self.geo.append(ArcGeo(Pa=Pm, Pe=Pe, O=O, r=r,
+                               s_ang=m_ang, e_ang=e_ang, direction=-1))
 
         #L�nge entspricht der L�nge des Kreises
-        self.length = self.geo[-1].length
+        self.length = self.geo[-1].length+self.geo[-2].length
        
         #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben        
         caller.start = s        
 
-    def get_start_end_points(self, direction):
-        punkt, angle = self.geo[-1].get_start_end_points(direction)
+    def get_start_end_points(self, direction=0):
+        if not(direction):
+            punkt, angle = self.geo[0].get_start_end_points(direction)
+        elif direction:
+            punkt, angle = self.geo[-1].get_start_end_points(direction)
         return punkt, angle
-    
-        

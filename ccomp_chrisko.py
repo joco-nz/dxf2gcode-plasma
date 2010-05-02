@@ -7,7 +7,6 @@ from shape import ShapeClass
 from copy import deepcopy 
 from math import sin, cos, atan2, sqrt, pow, pi, degrees
 
-#
 # based on an article of X.-Z Liu et al. /Computer in Industry 58(2007)
 #
 # WED 20.4.09
@@ -29,7 +28,6 @@ class ShapeOffsetClass:
         self.radius = 10
         self.dir = 42
         
-        
     def do_compensation(self, shape=None, radius=10, direction=41, shape_nr=1):
         """ 
         Does the Cutter Compensation for the given Shape
@@ -42,23 +40,17 @@ class ShapeOffsetClass:
         self.dir = direction
         self.shape_nr=shape_nr
         
-        
         joinedshape=self.joinshapepoints(self.shape)
         
         #Pretreatment of the shapes to have no LSIP
-        self.pretshape = self.pretreatment(joinedshape)
-              
+        self.pretshape = self.pretreatment(joinedshape)      
         rawoffshape = self.make_raw_offsett(self.pretshape)
-        
         untroffshape = self.make_untrimmed_offset(rawoffshape)
-
         clippedshapes = self.do_clipping(untroffshape)
         
         return clippedshapes
         #return [untroffshape]
         
-
-
     def joinshapepoints(self,shape):
         """ 
         The pretreatment searches for local self  intersection points (LSIP) 
@@ -72,7 +64,7 @@ class ShapeOffsetClass:
                            cut_cor=40,
                            nr=shape.nr,
                            closed=shape.closed,
-                           plotoption=1,
+                           plotoption=0,
                            geos=[],
                            geos_hdls=[])
         
@@ -112,7 +104,7 @@ class ShapeOffsetClass:
                            cut_cor=40,
                            nr=joinedshape.nr,
                            closed=joinedshape.closed,
-                           plotoption=1,
+                           plotoption=0,
                            geos=[],
                            geos_hdls=[])
         
@@ -135,7 +127,6 @@ class ShapeOffsetClass:
                 else:
                     geo1=pretshape.geos[-1]
                     geo2=pretshape.geos[0]
-                    
                 
                 #A intersection may only ocurre if the Bounding Boxes have an
                 #intersection too
@@ -164,8 +155,6 @@ class ShapeOffsetClass:
                                             
         return pretshape 
         
-
-       
     def make_raw_offsett(self, pretshape):
         """ 
         Generates the raw offset curves of the pretreated shape, which has no
@@ -179,7 +168,7 @@ class ShapeOffsetClass:
                            cut_cor=40,
                            nr=self.shape.nr,
                            closed=self.shape.closed,
-                           plotoption=1,
+                           plotoption=0,
                            geos=[],
                            geos_hdls=[])
         
@@ -208,7 +197,6 @@ class ShapeOffsetClass:
                            geos=[],
                            geos_hdls=[])
          
-         
         #Return nothing if there is no geo in shape
         if len(rawoffshape.geos)==0:
             return untroffshape
@@ -223,7 +211,8 @@ class ShapeOffsetClass:
                 break
             geo2 = rawoffshape.geos[geo_nr]
             
-            orgPe=geo1.Pe
+            orgPe=self.pretshape.geos[geo_nr-1].Pe #DAS STIMMT NICHT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DA BRAUCH IHC DIE ORGINA KURVE
+           
             #Call the trim join algorithms for the elements.
             untroffshape.geos += geo1.trim_join(geo2, newPa,
                                                  orgPe, self.tol)
@@ -265,7 +254,6 @@ class ShapeOffsetClass:
                     modgeo.s_ang = modgeo.O.norm_angle(modgeo.Pa)
                     modgeo.ext=modgeo.dif_ang(modgeo.Pa, modgeo.Pe, modgeo.ext)
                     untroffshape.geos[0].calc_bounding_box()
-         
         
         return untroffshape
     
@@ -277,39 +265,103 @@ class ShapeOffsetClass:
         @return: Returns the final offset shapes.
         """
         
-        clippedshapes=[]
+        #First add a nr to the geomety in a list and sort them
+
+
+        BBListPa=[]
+        BBListPe=[]
         
-        #pretshape.BB = self.shape.BB
+        geo_nrs=len(untroffshape.geos)
         
-        #Find all intersection points between the geometries of the untrimmed 
-        #offset shape and append them to geo.inters.
-        #Do for all Geometries -1 (if closed for all)
-        for geo_nr1 in range(len(untroffshape.geos)):
-            for geo_nr2 in range(geo_nr1+2,len(untroffshape.geos)):
+        for geo_nr in range(len(untroffshape.geos)):
+            geo=untroffshape.geos[geo_nr]
+            geo.Nr=geo_nr
+            
+        BBListPa=untroffshape.geos[:]
+        BBListPe=untroffshape.geos[:]
+        
+        BBListPa.sort(self.cmp_Pa)
+        BBListPe.sort(self.cmp_Pe)
+        
+        
+        while len(BBListPe):
+            geo1=BBListPe[0]
+            geo2_index=0
+            while 1:
+                geo2=BBListPa[geo2_index]
+               
+                #If intersection
+                if (geo1.BB.Pe.x<geo2.BB.Pa.x):
+                    BBListPe.pop(0)
+                    BBListPa.pop(BBListPa.index(geo1))
+                    break
+                #intersection with itself or the next element have to be not counted.
+                elif geo2.Nr in range(geo1.Nr-1, geo1.Nr+2):
+                    pass
+                elif geo1.Nr==geo_nrs\
+                        and geo2.Nr==0\
+                        and untroffshape.closed==1:
+                    pass
+                elif geo1.Nr==0\
+                        and geo2.Nr==geo_nrs\
+                        and untroffshape.closed==1:
+                    pass
+                else:
+                    
+                    intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
+                    
+                    if intersect:
+                        points = geo1.find_inter_points(geo2)  
+                        for point in points:
+                             
+                            if point.isTIP(geo1, self.tol, 'all') and \
+                             point.isTIP(geo2, self.tol, 'all'):
+    #                            print 'Intersection'
+    #                            print geo1
+    #                            print geo2
+                                
+                                geo1.inters.append(point)
+                                geo2.inters.append(point)
                 
-                geo1=untroffshape.geos[geo_nr1]
-                geo2=untroffshape.geos[geo_nr2]
-                                             
-                intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
-                
-                if intersect:
-                    points = geo1.find_inter_points(geo2)  
-                    for point in points:
-#                        print geo1
-#                        print geo2
-#                        print point
-                        #print geo1.isTIP(point, self.tol, 'all')
-                        #print geo2.isTIP(point, self.tol, 'all')
-                         
-                        if point.isTIP(geo1, self.tol, 'all') and \
-                         point.isTIP(geo2, self.tol, 'all'):
-                            #if not(point.isintol(geo1.Pe, self.tol))and \
-                            #not(point.isintol(geo2.Pa, self. tol)):
-                            geo1.inters.append(point)
-                            geo2.inters.append(point)
-                            
+                geo2_index+=1
+                if geo2_index==len(BBListPa):
+                    BBListPe.pop(0)
+                    break
+##    
+##  
+##        #pretshape.BB = self.shape.BB
+##        
+##        #Find all intersection points between the geometries of the untrimmed 
+##        #offset shape and append them to geo.inters.
+##        #Do for all Geometries -1 (if closed for all)
+##        for geo_nr1 in range(len(untroffshape.geos)):
+##            for geo_nr2 in range(geo_nr1+2,len(untroffshape.geos)):
+##                
+##                geo1=untroffshape.geos[geo_nr1]
+##                geo2=untroffshape.geos[geo_nr2]
+##                                             
+##                intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
+##                
+##                if intersect:
+##                    points = geo1.find_inter_points(geo2)  
+##                    for point in points:
+###                        print geo1
+###                        print geo2
+###                        print point
+##                        #print geo1.isTIP(point, self.tol, 'all')
+##                        #print geo2.isTIP(point, self.tol, 'all')
+##                         
+##                        if point.isTIP(geo1, self.tol, 'all') and \
+##                         point.isTIP(geo2, self.tol, 'all'):
+##                            #if not(point.isintol(geo1.Pe, self.tol))and \
+##                            #not(point.isintol(geo2.Pa, self. tol)):
+##                            geo1.inters.append(point)
+##                            geo2.inters.append(point)
+
+                           
         #Sort the intersection Points in asscending order and then splits the 
         #shape at the intersection points into new shapes.
+        clippedshapes=[]
         clippedshapes.append(self.return_new_clippedshape())       
         for geo in untroffshape.geos:
             if len(geo.inters)==0:
@@ -329,50 +381,98 @@ class ShapeOffsetClass:
         #Find all intersection points between the geometries of the untrimmed 
         #offset shape and the initial geos of shape and delete them from the 
         #returned shape list.
+        
         #Second:
         #Find all Closest Points between the Geometries if the Closest Distance 
         #is smaller then the offset distance also delete them from the returned 
         #shape list.
+        
+        
         del_shapes=[]
         for s_nr in range(len(clippedshapes)):
-            break_l=0
-            for geo_nr1 in range(len(clippedshapes[s_nr].geos)):
-                if break_l==1:
-                    break
-                for geo_nr2 in range(len(self.pretshape.geos)):
-                    if break_l==1:
-                        break
-                    geo1=clippedshapes[s_nr].geos[geo_nr1]
-                    geo2=self.pretshape.geos[geo_nr2]
-                                             
-                    intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
+            
+            BBListPe1=clippedshapes[s_nr].geos[:]
+            BBListPa2=self.pretshape.geos[:]
+            
+            BBListPe1.sort(self.cmp_Pe)
+            BBListPa2.sort(self.cmp_Pa)
+                  
+            break_l=1
+        
+            while break_l and len(BBListPe1):
+                geo1=BBListPe1[0]
+                geo2_index=0
                 
-                    if intersect:
-                        points = geo1.find_inter_points(geo2)  
-                        for point in points:
-                         
-                            if point.isTIP(geo1, self.tol) and \
-                             point.isTIP(geo2, self.tol):
-                                #print geo1
-                                #print geo2
-                                #print point
-                                del_shapes.append(clippedshapes[s_nr])
-                                break_l=1
-                                break
+                while break_l:
+                    geo2=BBListPa2[geo2_index]
                     
-                    if not(len(del_shapes)) or \
-                    not(clippedshapes[s_nr]==del_shapes[-1]):
-                        intersect = geo1.BB.hasintersection(geo2.BB, 
-                                                            self.radius+self.tol)
-                        if intersect:
-                            
-                            
-                            if geo1.distance_to_geo(geo2)<self.radius-self.tol:
-                                #print geo1
-                                #print geo2
-                                #print geo1.distance_to_geo(geo2)
-                                del_shapes.append(clippedshapes[s_nr])
-                                break_l=1
+#                    #Break if no further distance lower the radius is possible
+                    if (geo1.BB.Pe.x+self.radius+self.tol)<(geo2.BB.Pa.x):
+                        #print "Abbruch 1"
+                        BBListPe1.pop(0)
+                        break
+                    
+                    #A distance lower then radius is general possible
+                    if geo1.BB.hasintersection(geo2.BB, self.tol+self.radius):
+                        #There is a true intersection
+                        #print geo1.distance_to_geo(geo2)
+               
+                        if geo1.distance_to_geo(geo2)<(self.radius-self.tol):
+#                            print geo1
+#                            print geo2
+#                            print geo1.distance_to_geo(geo2)
+                            del_shapes.append(clippedshapes[s_nr])
+                            break_l=0
+                            break
+                        
+                    geo2_index+=1
+                    if geo2_index==len(BBListPa2):
+                        BBListPe1.pop(0)
+                        break
+##                    
+##        
+##        print del_shapes
+##        
+##        del_shapes=[]
+##        for s_nr in range(len(clippedshapes)):
+##            break_l=0
+##            for geo_nr1 in range(len(clippedshapes[s_nr].geos)):
+##                if break_l==1:
+##                    break
+##                for geo_nr2 in range(len(self.pretshape.geos)):
+##                    if break_l==1:
+##                        break
+##                    geo1=clippedshapes[s_nr].geos[geo_nr1]
+##                    geo2=self.pretshape.geos[geo_nr2]
+##                                             
+##                    intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
+##                
+##                    if intersect:
+##                        points = geo1.find_inter_points(geo2)  
+##                        for point in points:
+##                         
+##                            if point.isTIP(geo1, self.tol) and \
+##                             point.isTIP(geo2, self.tol):
+##                                #print geo1
+##                                #print geo2
+##                                #print point
+##                                del_shapes.append(clippedshapes[s_nr])
+##                                break_l=1
+##                                break
+##                    
+##                    if not(len(del_shapes)) or \
+##                    not(clippedshapes[s_nr]==del_shapes[-1]):
+##                        intersect = geo1.BB.hasintersection(geo2.BB, 
+##                                                            self.radius+self.tol)
+##                        if intersect:
+##                            
+##                            
+##                            if geo1.distance_to_geo(geo2)<self.radius-self.tol:
+##                                #print geo1
+##                                #print geo2
+##                                #print geo1.distance_to_geo(geo2)
+##                                del_shapes.append(clippedshapes[s_nr])
+##                                break_l=1
                                     
         for del_shape in del_shapes:
             clippedshapes.pop(clippedshapes.index(del_shape))
@@ -392,10 +492,34 @@ class ShapeOffsetClass:
                            geos=[],
                            geos_hdls=[])
         return clippedshape
+       
+    def cmp_Pa(self,geo1,geo2):
+        """
+        Compare Function for the sorting
+        """  
+        if geo1.BB.Pa.x<geo2.BB.Pa.x:
+            return -1
+        elif geo1.BB.Pa.x>geo2.BB.Pa.x:
+            return 1
+        else:
+            return 0
+        #return geo1.BB.Pa.x<=geo2.BB.Pa.x
+
+    def cmp_Pe(self,geo1,geo2):
+        """
+        Compare Function for the sorting
+        """
+        if geo1.BB.Pe.x<geo2.BB.Pe.x:
+            return -1
+        elif geo1.BB.Pe.x>geo2.BB.Pe.x:
+            return 1
+        else:
+            return 0
+        #return geo1.BB.Pe.x<=geo2.BB.Pe.x    
           
 class CCArcGeo(ArcGeo):
     def __init__(self, Pa=None, Pe=None, O=None, r=1,
-                         s_ang=None, e_ang=None, direction=1):
+                         s_ang=None, e_ang=None, direction=1, Nr=None):
         """
         Standard Method to initialise the CCArcGeo
         """
@@ -406,6 +530,7 @@ class CCArcGeo(ArcGeo):
         self.type = 'CCArcGeo'
         self.col = 'Blue'
         self.inters=[]
+        self.Nr=Nr
         self.calc_bounding_box()
         
 
@@ -415,6 +540,7 @@ class CCArcGeo(ArcGeo):
         @return: A string
         """ 
         return ("\nCCArcGeo") + \
+               ("\nNr : %s" % (self.Nr)) + \
                ("\nPa : %s; s_ang: %0.5f" % (self.Pa, self.s_ang)) + \
                ("\nPe : %s; e_ang: %0.5f" % (self.Pe, self.e_ang)) + \
                ("\nO  : %s; r: %0.3f" % (self.O, self.r)) + \
@@ -1075,20 +1201,18 @@ class CCLineGeo(LineGeo):
             #our point is lying "behind" the segment
             #so end point 1 is closest to point and distance is length of
             #vector from end point 1 to point.
-            distance=self.Pa.distance(point)
+            return self.Pa.distance(point)
         elif t>=dotProd(d,d):
             #our point is lying "ahead" of the segment
             #so end point 2 is closest to point and distance is length of
             #vector from end point 2 to point.
-            distance=self.Pe.distance(point)
+            return self.Pe.distance(point)
         else:
             #our point is lying "inside" the segment
             #i.e.:a perpendicular from it to the line that contains the line
             #segment has an end point inside the segment
-            distance=sqrt(dotProd(v,v) - (t*t)/dotProd(d,d));
-            
-        return distance
-         
+            return sqrt(dotProd(v,v) - (t*t)/dotProd(d,d));
+                     
     def split_into_2geos(self, ipoint=PointClass()):
         """
         Splits the given geometry into 2 not self intersection geometries. The
@@ -1210,6 +1334,7 @@ class CCLineGeo(LineGeo):
         @return: A list of geos
         """ 
         geos = []
+       
         
         #Fast Case 1a
         if self.Pe.isintol(other.Pa,tol):
@@ -1225,8 +1350,8 @@ class CCLineGeo(LineGeo):
             isTIP1 = ipoint.isTIP(self, tol, 'all')
             isTIP2 = ipoint.isTIP(other, tol, 'all')
             
-#            print isTIP1
-#            print isTIP2
+            #print isTIP1
+            #print isTIP2
      
             #Case 1 a
             if isTIP1 and isTIP2:
@@ -1247,6 +1372,7 @@ class CCLineGeo(LineGeo):
                 geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
                                    O=orgPe, direction=direction,
                                    r=r))
+                
                 
             #Case 1 c & d
             else:
