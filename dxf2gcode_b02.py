@@ -56,7 +56,7 @@ from copy import copy
 # Globale "Konstanten"
 APPNAME = "dxf2gcode_b02"
 VERSION= "TKINTER Beta 02"
-DATE=   "2010-05-04"
+DATE=   "2010-11-20"
 
 # Config Verzeichniss
 
@@ -121,7 +121,7 @@ class Erstelle_Fenster:
         self.cont_scale=1.0
         
         #Verschiebung der Kontur
-        self.cont_dx=0.0
+        self.cont_dx = 0.0
         self.cont_dy=0.0
         
         #Rotieren um den WP zero
@@ -389,7 +389,14 @@ class Erstelle_Fenster:
                                     rot=self.rotate)       
         
         
-    def Move_WP_zero(self):
+    def Move_WP_zero(self, x=None, y=None):
+
+        if x==None:
+            self.cont_dx=dialog.result[0]
+            self.cont_dy=dialog.result[1]
+        else:
+            self.cont_dx=self.cont_dx-x
+            self.cont_dy=self.cont_dy-y
 
         #Dialog mit den definierten Parametern oeffnen       
         title=_('Workpiece zero offset')
@@ -400,10 +407,7 @@ class Erstelle_Fenster:
 
         #Abbruch wenn nicht uebergeben wurde
         if dialog.result==False:
-            return
-        
-        self.cont_dx=dialog.result[0]
-        self.cont_dy=dialog.result[1]
+            return        
 
         #Falls noch kein File geladen wurde nichts machen
         self.textbox.prt(_("\nWorpiece zero offset: %s %0.2f; %s %0.2f") \
@@ -750,16 +754,21 @@ class ExportParasClass:
          
 #Klasse zum Erstellen des Plots
 class CanvasClass:
-    def __init__(self, master = None,text=None):
+    def __init__(self, master = None,window=None):
         
         #Übergabe der Funktionswerte
         self.master=master
+        self.window=window
         self.Content=[]
 
         #Erstellen der Standardwerte
         self.lastevent=[]
         self.sel_rect_hdl=[]
         self.dir_var = IntVar()
+        
+        self.x=0.0
+        self.y=0.0 
+        
         self.dx=0.0
         self.dy=0.0
         self.scale=1.0
@@ -801,19 +810,19 @@ class CanvasClass:
 
     #Callback fuer das Bewegen der Mouse mit Darstellung in untere Leiste
     def moving(self,event):
-        x=self.dx+(event.x/self.scale)
-        y=self.dy+(self.canvas.winfo_height()-event.y)/self.scale
+        self.x=self.dx+(event.x/self.scale)
+        self.y=self.dy+(self.canvas.winfo_height()-event.y)/self.scale
 
         if self.scale<1:
             self.label['text']=(_("Curser Coordinates: X= %5.0f Y= %5.0f , Scale: %5.3f") \
-                                %(x,y,self.scale))
+                                %(self.x,self.y,self.scale))
             
         elif (self.scale>=1)and(self.scale<10):      
             self.label['text']=(_("Curser Coordinates: X= %5.1f Y= %5.1f , Scale: %5.2f") \
-                                %(x,y,self.scale))
+                                %(self.x,self.y,self.scale))
         elif self.scale>=10:      
             self.label['text']=(_("Curser Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f") \
-                                %(x,y,self.scale))
+                                %(self.x,self.y,self.scale))
         
     #Callback fuer das Auswählen von Elementen
     def select_cont(self,event):
@@ -902,6 +911,7 @@ class CanvasClass:
                 
     #Contextmenu mit Bindings beim Rechtsklick
     def make_contextmenu(self,event):
+        self.moving(event)
         self.lastevent=event
 
         #Abfrage ob das Contextfenster schon existiert, speziell fuer Linux
@@ -930,6 +940,9 @@ class CanvasClass:
                                      variable=self.dir_var,onvalue=2,\
                                      command=lambda:self.Content.set_cut_cor(42))
         popup.add_cascade(label=_('Set Cutter Correction'),menu=cut_cor_menu)
+        
+        popup.add_separator()
+        popup.add_command(label=_('Set WP Zero'),command=self.Content.set_wp_zero)
 
         #Menus Disablen wenn nicht ausgewählt wurde        
         if len(self.Content.Selected)==0:
@@ -1168,6 +1181,12 @@ class CanvasContentClass:
     def plot_shapes(self):
         for shape in self.Shapes:
             shape.plot2can(self.Canvas.canvas)
+            
+    #Verschieben des Werkstücknullpunkts auf die momentane Cursor Position
+    def set_wp_zero(self):
+        #print("Hier gehts dann")
+        #print ("X %0.2f Y %0.2f" %(self.Canvas.x, self.Canvas.y))
+        self.Canvas.window.Move_WP_zero(x=self.Canvas.x, y=self.Canvas.y)
             
     #Drucken des Werkstuecknullpunkts
     def plot_wp_zero(self):
