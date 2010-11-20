@@ -297,7 +297,7 @@ class Spline2Arcs:
                         anz=len(NewCurve)
                         del NewCurve[anz-2:anz]
                         NewCurve.append(JointLine)
-                        points=[geo.Pe]
+                        Pts=[geo.Pe]
                     #Wenn nicht nicht anhängen und Pts zurücksetzen
                     else:
                         Pts=[geo.Pe]
@@ -391,7 +391,7 @@ class Spline2Arcs:
             Biarc=(BiarcClass(PtsVec[-1][0],PtsVec[-1][1],PtVec[0],PtVec[1],nom_tol*0.5))
 
             if Biarc.shape=="Zero":
-                self.cur_step=min([cur_step*2,self.max_step])
+                cur_step=min([cur_step*2,self.max_step])
             elif Biarc.shape=="LineGeo":
                 BiarcCurve.append(Biarc)
                 cur_step=min([cur_step*2,self.max_step])
