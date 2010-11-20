@@ -1,0 +1,1306 @@
+Program started
+ TKINTER Beta 02 2009-11-16 
+Coded by V. Schulz and C. Kohloeffel
+Lade Config Datei: D:/Eclipse_Workspace/DXF2GCODE/tags/2009-11-16-b02_tkinter157\config\dxf2gcode_b02_config.cfg
+Debug Level: 3
+Section: Paths
+Lade Datei: D:/Eclipse_Workspace/DXF2GCODE/trunk/dxf/erin.dxf
+
+File has   6070 Lines
+File has   3034 Linepairs
+
+Sections found:
+Nr ->0
+Name ->HEADER
+Begin ->0
+End: ->24
+Nr ->1
+Name ->TABLES
+Begin ->25
+End: ->563
+Nr ->2
+Name ->BLOCKS
+Begin ->564
+End: ->619
+Nr ->3
+Name ->ENTITIES
+Begin ->620
+End: ->2764
+Nr ->4
+Name ->OBJECTS
+Begin ->2765
+End: ->3032
+
+Layers found:
+Nr ->0
+Name ->0
+
+Blocks found:
+Nr ->1
+Name ->*Model_Space
+Begin ->566
+End: ->578
+Nr ->2
+Name ->*Paper_Space
+Begin ->583
+End: ->596
+Nr ->3
+Name ->*Paper_Space0
+Begin ->602
+End: ->614
+
+Reading Block Nr: 0
+ 
+Nr:      0
+Name:    *Model_Space
+Basep:   X -> 0.000  Y -> 0.000
+Number or Geometries: 0
+Number of Contours:   0
+
+Reading Block Nr: 1
+ 
+Nr:      1
+Name:    *Paper_Space
+Basep:   X -> 0.000  Y -> 0.000
+Number or Geometries: 0
+Number of Contours:   0
+
+Reading Block Nr: 2
+ 
+Nr:      2
+Name:    *Paper_Space0
+Basep:   X -> 0.000  Y -> 0.000
+Number or Geometries: 0
+Number of Contours:   0
+
+Reading Entities
+Found LINE at Linepair 622 (Line 1248 till 1276)
+Typ: Line
+Nr: 0
+Layer Nr: 0
+LineGeo
+Pa : X ->34.897  Y ->51.222
+Pe : X ->32.030  Y ->48.355
+length: 4.05508
+Found LINE at Linepair 636 (Line 1276 till 1304)
+Typ: Line
+Nr: 1
+Layer Nr: 0
+LineGeo
+Pa : X ->32.030  Y ->48.355
+Pe : X ->32.030  Y ->42.620
+length: 5.73477
+Found LINE at Linepair 650 (Line 1304 till 1332)
+Typ: Line
+Nr: 2
+Layer Nr: 0
+LineGeo
+Pa : X ->32.030  Y ->42.620
+Pe : X ->34.897  Y ->39.753
+length: 4.05509
+Found LINE at Linepair 664 (Line 1332 till 1360)
+Typ: Line
+Nr: 3
+Layer Nr: 0
+LineGeo
+Pa : X ->34.897  Y ->39.753
+Pe : X ->40.632  Y ->39.753
+length: 5.73477
+Found LINE at Linepair 678 (Line 1360 till 1388)
+Typ: Line
+Nr: 4
+Layer Nr: 0
+LineGeo
+Pa : X ->40.632  Y ->39.753
+Pe : X ->43.499  Y ->45.488
+length: 6.41167
+Found LINE at Linepair 692 (Line 1388 till 1416)
+Typ: Line
+Nr: 5
+Layer Nr: 0
+LineGeo
+Pa : X ->43.499  Y ->45.488
+Pe : X ->43.499  Y ->51.222
+length: 5.73477
+Found LINE at Linepair 706 (Line 1416 till 1444)
+Typ: Line
+Nr: 6
+Layer Nr: 0
+LineGeo
+Pa : X ->43.499  Y ->51.222
+Pe : X ->40.632  Y ->56.957
+length: 6.41167
+Found LINE at Linepair 720 (Line 1444 till 1472)
+Typ: Line
+Nr: 7
+Layer Nr: 0
+LineGeo
+Pa : X ->40.632  Y ->56.957
+Pe : X ->34.897  Y ->59.824
+length: 6.41167
+Found LINE at Linepair 734 (Line 1472 till 1500)
+Typ: Line
+Nr: 8
+Layer Nr: 0
+LineGeo
+Pa : X ->34.897  Y ->59.824
+Pe : X ->26.295  Y ->59.824
+length: 8.60214
+Found LINE at Linepair 748 (Line 1500 till 1528)
+Typ: Line
+Nr: 9
+Layer Nr: 0
+LineGeo
+Pa : X ->26.295  Y ->59.824
+Pe : X ->20.560  Y ->56.957
+length: 6.41167
+Found LINE at Linepair 762 (Line 1528 till 1556)
+Typ: Line
+Nr: 10
+Layer Nr: 0
+LineGeo
+Pa : X ->20.560  Y ->56.957
+Pe : X ->17.693  Y ->54.090
+length: 4.05509
+Found LINE at Linepair 776 (Line 1556 till 1584)
+Typ: Line
+Nr: 11
+Layer Nr: 0
+LineGeo
+Pa : X ->17.693  Y ->54.090
+Pe : X ->14.825  Y ->48.355
+length: 6.41166
+Found LINE at Linepair 790 (Line 1584 till 1612)
+Typ: Line
+Nr: 12
+Layer Nr: 0
+LineGeo
+Pa : X ->14.825  Y ->48.355
+Pe : X ->14.825  Y ->42.620
+length: 5.73477
+Found LINE at Linepair 804 (Line 1612 till 1640)
+Typ: Line
+Nr: 13
+Layer Nr: 0
+LineGeo
+Pa : X ->14.825  Y ->42.620
+Pe : X ->17.693  Y ->36.885
+length: 6.41166
+Found LINE at Linepair 818 (Line 1640 till 1668)
+Typ: Line
+Nr: 14
+Layer Nr: 0
+LineGeo
+Pa : X ->17.693  Y ->36.885
+Pe : X ->23.427  Y ->34.018
+length: 6.41167
+Found LINE at Linepair 832 (Line 1668 till 1696)
+Typ: Line
+Nr: 15
+Layer Nr: 0
+LineGeo
+Pa : X ->26.295  Y ->59.824
+Pe : X ->20.560  Y ->54.090
+length: 8.11018
+Found LINE at Linepair 846 (Line 1696 till 1724)
+Typ: Line
+Nr: 16
+Layer Nr: 0
+LineGeo
+Pa : X ->20.560  Y ->54.090
+Pe : X ->17.693  Y ->48.355
+length: 6.41167
+Found LINE at Linepair 860 (Line 1724 till 1752)
+Typ: Line
+Nr: 17
+Layer Nr: 0
+LineGeo
+Pa : X ->17.693  Y ->48.355
+Pe : X ->17.693  Y ->39.753
+length: 8.60216
+Found LINE at Linepair 874 (Line 1752 till 1780)
+Typ: Line
+Nr: 18
+Layer Nr: 0
+LineGeo
+Pa : X ->17.693  Y ->39.753
+Pe : X ->23.427  Y ->34.018
+length: 8.11018
+Found LINE at Linepair 888 (Line 1780 till 1808)
+Typ: Line
+Nr: 19
+Layer Nr: 0
+LineGeo
+Pa : X ->23.427  Y ->34.018
+Pe : X ->17.693  Y ->34.018
+length: 5.73477
+Found LINE at Linepair 902 (Line 1808 till 1836)
+Typ: Line
+Nr: 20
+Layer Nr: 0
+LineGeo
+Pa : X ->17.693  Y ->34.018
+Pe : X -> 9.090  Y ->31.151
+length: 9.06746
+Found LINE at Linepair 916 (Line 1836 till 1864)
+Typ: Line
+Nr: 21
+Layer Nr: 0
+LineGeo
+Pa : X -> 9.090  Y ->31.151
+Pe : X -> 3.356  Y ->25.416
+length: 8.11018
+Found LINE at Linepair 930 (Line 1864 till 1892)
+Typ: Line
+Nr: 22
+Layer Nr: 0
+LineGeo
+Pa : X -> 3.356  Y ->25.416
+Pe : X -> 0.488  Y ->19.681
+length: 6.41167
+Found LINE at Linepair 944 (Line 1892 till 1920)
+Typ: Line
+Nr: 23
+Layer Nr: 0
+LineGeo
+Pa : X -> 0.488  Y ->19.681
+Pe : X -> 0.488  Y ->11.079
+length: 8.60216
+Found LINE at Linepair 958 (Line 1920 till 1948)
+Typ: Line
+Nr: 24
+Layer Nr: 0
+LineGeo
+Pa : X -> 0.488  Y ->11.079
+Pe : X -> 3.356  Y -> 5.344
+length: 6.41167
+Found LINE at Linepair 972 (Line 1948 till 1976)
+Typ: Line
+Nr: 25
+Layer Nr: 0
+LineGeo
+Pa : X -> 3.356  Y -> 5.344
+Pe : X -> 6.223  Y -> 2.477
+length: 4.05508
+Found LINE at Linepair 986 (Line 1976 till 2004)
+Typ: Line
+Nr: 26
+Layer Nr: 0
+LineGeo
+Pa : X -> 6.223  Y -> 2.477
+Pe : X ->11.958  Y ->-0.391
+length: 6.41167
+Found LINE at Linepair 1000 (Line 2004 till 2032)
+Typ: Line
+Nr: 27
+Layer Nr: 0
+LineGeo
+Pa : X ->11.958  Y ->-0.391
+Pe : X ->20.560  Y ->-0.391
+length: 8.60216
+Found LINE at Linepair 1014 (Line 2032 till 2060)
+Typ: Line
+Nr: 28
+Layer Nr: 0
+LineGeo
+Pa : X ->20.560  Y ->-0.391
+Pe : X ->29.162  Y -> 2.477
+length: 9.06746
+Found LINE at Linepair 1028 (Line 2060 till 2088)
+Typ: Line
+Nr: 29
+Layer Nr: 0
+LineGeo
+Pa : X ->29.162  Y -> 2.477
+Pe : X ->34.897  Y -> 8.212
+length: 8.11018
+Found LINE at Linepair 1042 (Line 2088 till 2116)
+Typ: Line
+Nr: 30
+Layer Nr: 0
+LineGeo
+Pa : X ->34.897  Y -> 8.212
+Pe : X ->37.764  Y ->13.946
+length: 6.41167
+Found LINE at Linepair 1056 (Line 2116 till 2144)
+Typ: Line
+Nr: 31
+Layer Nr: 0
+LineGeo
+Pa : X ->37.764  Y ->13.946
+Pe : X ->37.764  Y ->19.681
+length: 5.73477
+Found LINE at Linepair 1070 (Line 2144 till 2172)
+Typ: Line
+Nr: 32
+Layer Nr: 0
+LineGeo
+Pa : X ->37.764  Y ->19.681
+Pe : X ->34.897  Y ->25.416
+length: 6.41167
+Found LINE at Linepair 1084 (Line 2172 till 2200)
+Typ: Line
+Nr: 33
+Layer Nr: 0
+LineGeo
+Pa : X ->34.897  Y ->25.416
+Pe : X ->29.162  Y ->25.416
+length: 5.73477
+Found LINE at Linepair 1098 (Line 2200 till 2228)
+Typ: Line
+Nr: 34
+Layer Nr: 0
+LineGeo
+Pa : X ->29.162  Y ->25.416
+Pe : X ->23.427  Y ->22.548
+length: 6.41167
+Found LINE at Linepair 1112 (Line 2228 till 2256)
+Typ: Line
+Nr: 35
+Layer Nr: 0
+LineGeo
+Pa : X ->23.427  Y ->22.548
+Pe : X ->20.560  Y ->16.814
+length: 6.41166
+Found LINE at Linepair 1126 (Line 2256 till 2284)
+Typ: Line
+Nr: 36
+Layer Nr: 0
+LineGeo
+Pa : X ->17.693  Y ->34.018
+Pe : X ->11.958  Y ->31.151
+length: 6.41166
+Found LINE at Linepair 1140 (Line 2284 till 2312)
+Typ: Line
+Nr: 37
+Layer Nr: 0
+LineGeo
+Pa : X ->11.958  Y ->31.151
+Pe : X -> 6.223  Y ->25.416
+length: 8.11018
+Found LINE at Linepair 1154 (Line 2312 till 2340)
+Typ: Line
+Nr: 38
+Layer Nr: 0
+LineGeo
+Pa : X -> 6.223  Y ->25.416
+Pe : X -> 3.356  Y ->19.681
+length: 6.41166
+Found LINE at Linepair 1168 (Line 2340 till 2368)
+Typ: Line
+Nr: 39
+Layer Nr: 0
+LineGeo
+Pa : X -> 3.356  Y ->19.681
+Pe : X -> 3.356  Y -> 8.212
+length: 11.46953
+Found LINE at Linepair 1182 (Line 2368 till 2396)
+Typ: Line
+Nr: 40
+Layer Nr: 0
+LineGeo
+Pa : X -> 3.356  Y -> 8.212
+Pe : X -> 6.223  Y -> 2.477
+length: 6.41166
+Found LINE at Linepair 1196 (Line 2396 till 2424)
+Typ: Line
+Nr: 41
+Layer Nr: 0
+LineGeo
+Pa : X ->116.976  Y ->56.957
+Pe : X ->114.108  Y ->54.090
+length: 4.05508
+Found LINE at Linepair 1210 (Line 2424 till 2452)
+Typ: Line
+Nr: 42
+Layer Nr: 0
+LineGeo
+Pa : X ->114.108  Y ->54.090
+Pe : X ->111.241  Y ->48.355
+length: 6.41167
+Found LINE at Linepair 1224 (Line 2452 till 2480)
+Typ: Line
+Nr: 43
+Layer Nr: 0
+LineGeo
+Pa : X ->111.241  Y ->48.355
+Pe : X ->105.506  Y ->34.018
+length: 15.44134
+Found LINE at Linepair 1238 (Line 2480 till 2508)
+Typ: Line
+Nr: 44
+Layer Nr: 0
+LineGeo
+Pa : X ->105.506  Y ->34.018
+Pe : X ->99.771  Y ->16.814
+length: 18.13492
+Found LINE at Linepair 1252 (Line 2508 till 2536)
+Typ: Line
+Nr: 45
+Layer Nr: 0
+LineGeo
+Pa : X ->99.771  Y ->16.814
+Pe : X ->96.904  Y ->11.079
+length: 6.41166
+Found LINE at Linepair 1266 (Line 2536 till 2564)
+Typ: Line
+Nr: 46
+Layer Nr: 0
+LineGeo
+Pa : X ->96.904  Y ->11.079
+Pe : X ->91.169  Y -> 2.477
+length: 10.33849
+Found LINE at Linepair 1280 (Line 2564 till 2592)
+Typ: Line
+Nr: 47
+Layer Nr: 0
+LineGeo
+Pa : X ->91.169  Y -> 2.477
+Pe : X ->85.435  Y ->-0.391
+length: 6.41167
+Found LINE at Linepair 1294 (Line 2592 till 2620)
+Typ: Line
+Nr: 48
+Layer Nr: 0
+LineGeo
+Pa : X ->114.108  Y ->54.090
+Pe : X ->111.241  Y ->45.488
+length: 9.06747
+Found LINE at Linepair 1308 (Line 2620 till 2648)
+Typ: Line
+Nr: 49
+Layer Nr: 0
+LineGeo
+Pa : X ->111.241  Y ->45.488
+Pe : X ->105.506  Y ->22.548
+length: 23.64505
+Found LINE at Linepair 1322 (Line 2648 till 2676)
+Typ: Line
+Nr: 50
+Layer Nr: 0
+LineGeo
+Pa : X ->105.506  Y ->22.548
+Pe : X ->102.639  Y ->13.946
+length: 9.06746
+Found LINE at Linepair 1336 (Line 2676 till 2704)
+Typ: Line
+Nr: 51
+Layer Nr: 0
+LineGeo
+Pa : X ->102.639  Y ->13.946
+Pe : X ->99.771  Y -> 8.212
+length: 6.41167
+Found LINE at Linepair 1350 (Line 2704 till 2732)
+Typ: Line
+Nr: 52
+Layer Nr: 0
+LineGeo
+Pa : X ->99.771  Y -> 8.212
+Pe : X ->94.037  Y -> 2.477
+length: 8.11018
+Found LINE at Linepair 1364 (Line 2732 till 2760)
+Typ: Line
+Nr: 53
+Layer Nr: 0
+LineGeo
+Pa : X ->94.037  Y -> 2.477
+Pe : X ->85.435  Y ->-0.391
+length: 9.06746
+Found LINE at Linepair 1378 (Line 2760 till 2788)
+Typ: Line
+Nr: 54
+Layer Nr: 0
+LineGeo
+Pa : X ->85.435  Y ->-0.391
+Pe : X ->79.700  Y ->-0.391
+length: 5.73477
+Found LINE at Linepair 1392 (Line 2788 till 2816)
+Typ: Line
+Nr: 55
+Layer Nr: 0
+LineGeo
+Pa : X ->79.700  Y ->-0.391
+Pe : X ->76.832  Y -> 2.477
+length: 4.05510
+Found LINE at Linepair 1406 (Line 2816 till 2844)
+Typ: Line
+Nr: 56
+Layer Nr: 0
+LineGeo
+Pa : X ->76.832  Y -> 2.477
+Pe : X ->76.832  Y -> 8.212
+length: 5.73477
+Found LINE at Linepair 1420 (Line 2844 till 2872)
+Typ: Line
+Nr: 57
+Layer Nr: 0
+LineGeo
+Pa : X ->76.832  Y -> 8.212
+Pe : X ->79.700  Y ->11.079
+length: 4.05509
+Found LINE at Linepair 1434 (Line 2872 till 2900)
+Typ: Line
+Nr: 58
+Layer Nr: 0
+LineGeo
+Pa : X ->79.700  Y ->11.079
+Pe : X ->82.567  Y -> 8.212
+length: 4.05508
+Found LINE at Linepair 1448 (Line 2900 till 2928)
+Typ: Line
+Nr: 59
+Layer Nr: 0
+LineGeo
+Pa : X ->82.567  Y -> 8.212
+Pe : X ->79.700  Y -> 5.344
+length: 4.05509
+Found LINE at Linepair 1462 (Line 2928 till 2956)
+Typ: Line
+Nr: 60
+Layer Nr: 0
+LineGeo
+Pa : X ->99.771  Y ->42.620
+Pe : X ->96.904  Y ->36.885
+length: 6.41166
+Found LINE at Linepair 1476 (Line 2956 till 2984)
+Typ: Line
+Nr: 61
+Layer Nr: 0
+LineGeo
+Pa : X ->96.904  Y ->36.885
+Pe : X ->94.037  Y ->34.018
+length: 4.05510
+Found LINE at Linepair 1490 (Line 2984 till 3012)
+Typ: Line
+Nr: 62
+Layer Nr: 0
+LineGeo
+Pa : X ->94.037  Y ->34.018
+Pe : X ->88.302  Y ->34.018
+length: 5.73477
+Found LINE at Linepair 1504 (Line 3012 till 3040)
+Typ: Line
+Nr: 63
+Layer Nr: 0
+LineGeo
+Pa : X ->88.302  Y ->34.018
+Pe : X ->85.435  Y ->36.885
+length: 4.05509
+Found LINE at Linepair 1518 (Line 3040 till 3068)
+Typ: Line
+Nr: 64
+Layer Nr: 0
+LineGeo
+Pa : X ->85.435  Y ->36.885
+Pe : X ->85.435  Y ->42.620
+length: 5.73477
+Found LINE at Linepair 1532 (Line 3068 till 3096)
+Typ: Line
+Nr: 65
+Layer Nr: 0
+LineGeo
+Pa : X ->85.435  Y ->42.620
+Pe : X ->88.302  Y ->48.355
+length: 6.41166
+Found LINE at Linepair 1546 (Line 3096 till 3124)
+Typ: Line
+Nr: 66
+Layer Nr: 0
+LineGeo
+Pa : X ->88.302  Y ->48.355
+Pe : X ->94.037  Y ->54.090
+length: 8.11018
+Found LINE at Linepair 1560 (Line 3124 till 3152)
+Typ: Line
+Nr: 67
+Layer Nr: 0
+LineGeo
+Pa : X ->94.037  Y ->54.090
+Pe : X ->99.771  Y ->56.957
+length: 6.41166
+Found LINE at Linepair 1574 (Line 3152 till 3180)
+Typ: Line
+Nr: 68
+Layer Nr: 0
+LineGeo
+Pa : X ->99.771  Y ->56.957
+Pe : X ->108.374  Y ->59.824
+length: 9.06747
+Found LINE at Linepair 1588 (Line 3180 till 3208)
+Typ: Line
+Nr: 69
+Layer Nr: 0
+LineGeo
+Pa : X ->108.374  Y ->59.824
+Pe : X ->122.711  Y ->59.824
+length: 14.33691
+Found LINE at Linepair 1602 (Line 3208 till 3236)
+Typ: Line
+Nr: 70
+Layer Nr: 0
+LineGeo
+Pa : X ->122.711  Y ->59.824
+Pe : X ->131.313  Y ->56.957
+length: 9.06747
+Found LINE at Linepair 1616 (Line 3236 till 3264)
+Typ: Line
+Nr: 71
+Layer Nr: 0
+LineGeo
+Pa : X ->131.313  Y ->56.957
+Pe : X ->134.180  Y ->51.222
+length: 6.41166
+Found LINE at Linepair 1630 (Line 3264 till 3292)
+Typ: Line
+Nr: 72
+Layer Nr: 0
+LineGeo
+Pa : X ->134.180  Y ->51.222
+Pe : X ->134.180  Y ->45.488
+length: 5.73477
+Found LINE at Linepair 1644 (Line 3292 till 3320)
+Typ: Line
+Nr: 73
+Layer Nr: 0
+LineGeo
+Pa : X ->134.180  Y ->45.488
+Pe : X ->131.313  Y ->39.753
+length: 6.41166
+Found LINE at Linepair 1658 (Line 3320 till 3348)
+Typ: Line
+Nr: 74
+Layer Nr: 0
+LineGeo
+Pa : X ->131.313  Y ->39.753
+Pe : X ->128.445  Y ->36.885
+length: 4.05509
+Found LINE at Linepair 1672 (Line 3348 till 3376)
+Typ: Line
+Nr: 75
+Layer Nr: 0
+LineGeo
+Pa : X ->128.445  Y ->36.885
+Pe : X ->119.843  Y ->34.018
+length: 9.06746
+Found LINE at Linepair 1686 (Line 3376 till 3404)
+Typ: Line
+Nr: 76
+Layer Nr: 0
+LineGeo
+Pa : X ->119.843  Y ->34.018
+Pe : X ->108.374  Y ->34.018
+length: 11.46953
+Found LINE at Linepair 1700 (Line 3404 till 3432)
+Typ: Line
+Nr: 77
+Layer Nr: 0
+LineGeo
+Pa : X ->122.711  Y ->59.824
+Pe : X ->128.445  Y ->56.957
+length: 6.41167
+Found LINE at Linepair 1714 (Line 3432 till 3460)
+Typ: Line
+Nr: 78
+Layer Nr: 0
+LineGeo
+Pa : X ->128.445  Y ->56.957
+Pe : X ->131.313  Y ->51.222
+length: 6.41167
+Found LINE at Linepair 1728 (Line 3460 till 3488)
+Typ: Line
+Nr: 79
+Layer Nr: 0
+LineGeo
+Pa : X ->131.313  Y ->51.222
+Pe : X ->131.313  Y ->45.488
+length: 5.73477
+Found LINE at Linepair 1742 (Line 3488 till 3516)
+Typ: Line
+Nr: 80
+Layer Nr: 0
+LineGeo
+Pa : X ->131.313  Y ->45.488
+Pe : X ->128.445  Y ->39.753
+length: 6.41167
+Found LINE at Linepair 1756 (Line 3516 till 3544)
+Typ: Line
+Nr: 81
+Layer Nr: 0
+LineGeo
+Pa : X ->128.445  Y ->39.753
+Pe : X ->125.578  Y ->36.885
+length: 4.05508
+Found LINE at Linepair 1770 (Line 3544 till 3572)
+Typ: Line
+Nr: 82
+Layer Nr: 0
+LineGeo
+Pa : X ->125.578  Y ->36.885
+Pe : X ->119.843  Y ->34.018
+length: 6.41167
+Found LINE at Linepair 1784 (Line 3572 till 3600)
+Typ: Line
+Nr: 83
+Layer Nr: 0
+LineGeo
+Pa : X ->108.374  Y ->34.018
+Pe : X ->116.976  Y ->31.151
+length: 9.06746
+Found LINE at Linepair 1798 (Line 3600 till 3628)
+Typ: Line
+Nr: 84
+Layer Nr: 0
+LineGeo
+Pa : X ->116.976  Y ->31.151
+Pe : X ->119.843  Y ->25.416
+length: 6.41167
+Found LINE at Linepair 1812 (Line 3628 till 3656)
+Typ: Line
+Nr: 85
+Layer Nr: 0
+LineGeo
+Pa : X ->119.843  Y ->25.416
+Pe : X ->122.711  Y -> 5.344
+length: 20.27547
+Found LINE at Linepair 1826 (Line 3656 till 3684)
+Typ: Line
+Nr: 86
+Layer Nr: 0
+LineGeo
+Pa : X ->122.711  Y -> 5.344
+Pe : X ->125.578  Y ->-0.391
+length: 6.41167
+Found LINE at Linepair 1840 (Line 3684 till 3712)
+Typ: Line
+Nr: 87
+Layer Nr: 0
+LineGeo
+Pa : X ->108.374  Y ->34.018
+Pe : X ->114.108  Y ->31.151
+length: 6.41166
+Found LINE at Linepair 1854 (Line 3712 till 3740)
+Typ: Line
+Nr: 88
+Layer Nr: 0
+LineGeo
+Pa : X ->114.108  Y ->31.151
+Pe : X ->116.976  Y ->25.416
+length: 6.41166
+Found LINE at Linepair 1868 (Line 3740 till 3768)
+Typ: Line
+Nr: 89
+Layer Nr: 0
+LineGeo
+Pa : X ->116.976  Y ->25.416
+Pe : X ->119.843  Y -> 5.344
+length: 20.27547
+Found LINE at Linepair 1882 (Line 3768 till 3796)
+Typ: Line
+Nr: 90
+Layer Nr: 0
+LineGeo
+Pa : X ->119.843  Y -> 5.344
+Pe : X ->125.578  Y ->-0.391
+length: 8.11018
+Found LINE at Linepair 1896 (Line 3796 till 3824)
+Typ: Line
+Nr: 91
+Layer Nr: 0
+LineGeo
+Pa : X ->125.578  Y ->-0.391
+Pe : X ->128.445  Y ->-0.391
+length: 2.86738
+Found LINE at Linepair 1910 (Line 3824 till 3852)
+Typ: Line
+Nr: 92
+Layer Nr: 0
+LineGeo
+Pa : X ->128.445  Y ->-0.391
+Pe : X ->134.180  Y -> 2.477
+length: 6.41167
+Found LINE at Linepair 1924 (Line 3852 till 3880)
+Typ: Line
+Nr: 93
+Layer Nr: 0
+LineGeo
+Pa : X ->134.180  Y -> 2.477
+Pe : X ->139.915  Y -> 8.212
+length: 8.11018
+Found LINE at Linepair 1938 (Line 3880 till 3908)
+Typ: Line
+Nr: 94
+Layer Nr: 0
+LineGeo
+Pa : X ->213.392  Y ->54.090
+Pe : X ->207.657  Y ->45.488
+length: 10.33850
+Found LINE at Linepair 1952 (Line 3908 till 3936)
+Typ: Line
+Nr: 95
+Layer Nr: 0
+LineGeo
+Pa : X ->207.657  Y ->45.488
+Pe : X ->201.922  Y ->31.151
+length: 15.44133
+Found LINE at Linepair 1966 (Line 3936 till 3964)
+Typ: Line
+Nr: 96
+Layer Nr: 0
+LineGeo
+Pa : X ->201.922  Y ->31.151
+Pe : X ->196.187  Y ->16.814
+length: 15.44134
+Found LINE at Linepair 1980 (Line 3964 till 3992)
+Typ: Line
+Nr: 97
+Layer Nr: 0
+LineGeo
+Pa : X ->196.187  Y ->16.814
+Pe : X ->193.320  Y ->11.079
+length: 6.41166
+Found LINE at Linepair 1994 (Line 3992 till 4020)
+Typ: Line
+Nr: 98
+Layer Nr: 0
+LineGeo
+Pa : X ->193.320  Y ->11.079
+Pe : X ->187.585  Y -> 2.477
+length: 10.33849
+Found LINE at Linepair 2008 (Line 4020 till 4048)
+Typ: Line
+Nr: 99
+Layer Nr: 0
+LineGeo
+Pa : X ->187.585  Y -> 2.477
+Pe : X ->181.850  Y ->-0.391
+length: 6.41167
+Found LINE at Linepair 2022 (Line 4048 till 4076)
+Typ: Line
+Nr: 100
+Layer Nr: 0
+LineGeo
+Pa : X ->219.126  Y ->42.620
+Pe : X ->213.392  Y ->36.885
+length: 8.11018
+Found LINE at Linepair 2036 (Line 4076 till 4104)
+Typ: Line
+Nr: 101
+Layer Nr: 0
+LineGeo
+Pa : X ->213.392  Y ->36.885
+Pe : X ->204.789  Y ->34.018
+length: 9.06746
+Found LINE at Linepair 2050 (Line 4104 till 4132)
+Typ: Line
+Nr: 102
+Layer Nr: 0
+LineGeo
+Pa : X ->204.789  Y ->34.018
+Pe : X ->196.187  Y ->34.018
+length: 8.60216
+Found LINE at Linepair 2064 (Line 4132 till 4160)
+Typ: Line
+Nr: 103
+Layer Nr: 0
+LineGeo
+Pa : X ->196.187  Y ->34.018
+Pe : X ->190.452  Y ->36.885
+length: 6.41167
+Found LINE at Linepair 2078 (Line 4160 till 4188)
+Typ: Line
+Nr: 104
+Layer Nr: 0
+LineGeo
+Pa : X ->190.452  Y ->36.885
+Pe : X ->187.585  Y ->42.620
+length: 6.41166
+Found LINE at Linepair 2092 (Line 4188 till 4216)
+Typ: Line
+Nr: 105
+Layer Nr: 0
+LineGeo
+Pa : X ->187.585  Y ->42.620
+Pe : X ->187.585  Y ->48.355
+length: 5.73477
+Found LINE at Linepair 2106 (Line 4216 till 4244)
+Typ: Line
+Nr: 106
+Layer Nr: 0
+LineGeo
+Pa : X ->187.585  Y ->48.355
+Pe : X ->190.452  Y ->54.090
+length: 6.41166
+Found LINE at Linepair 2120 (Line 4244 till 4272)
+Typ: Line
+Nr: 107
+Layer Nr: 0
+LineGeo
+Pa : X ->190.452  Y ->54.090
+Pe : X ->196.187  Y ->56.957
+length: 6.41166
+Found LINE at Linepair 2134 (Line 4272 till 4300)
+Typ: Line
+Nr: 108
+Layer Nr: 0
+LineGeo
+Pa : X ->196.187  Y ->56.957
+Pe : X ->207.657  Y ->59.824
+length: 11.82253
+Found LINE at Linepair 2148 (Line 4300 till 4328)
+Typ: Line
+Nr: 109
+Layer Nr: 0
+LineGeo
+Pa : X ->207.657  Y ->59.824
+Pe : X ->219.126  Y ->59.824
+length: 11.46953
+Found LINE at Linepair 2162 (Line 4328 till 4356)
+Typ: Line
+Nr: 110
+Layer Nr: 0
+LineGeo
+Pa : X ->219.126  Y ->59.824
+Pe : X ->213.392  Y ->54.090
+length: 8.11018
+Found LINE at Linepair 2176 (Line 4356 till 4384)
+Typ: Line
+Nr: 111
+Layer Nr: 0
+LineGeo
+Pa : X ->213.392  Y ->54.090
+Pe : X ->210.524  Y ->48.355
+length: 6.41166
+Found LINE at Linepair 2190 (Line 4384 till 4412)
+Typ: Line
+Nr: 112
+Layer Nr: 0
+LineGeo
+Pa : X ->210.524  Y ->48.355
+Pe : X ->204.789  Y ->31.151
+length: 18.13492
+Found LINE at Linepair 2204 (Line 4412 till 4440)
+Typ: Line
+Nr: 113
+Layer Nr: 0
+LineGeo
+Pa : X ->204.789  Y ->31.151
+Pe : X ->199.055  Y ->13.946
+length: 18.13492
+Found LINE at Linepair 2218 (Line 4440 till 4468)
+Typ: Line
+Nr: 114
+Layer Nr: 0
+LineGeo
+Pa : X ->199.055  Y ->13.946
+Pe : X ->196.187  Y -> 8.212
+length: 6.41167
+Found LINE at Linepair 2232 (Line 4468 till 4496)
+Typ: Line
+Nr: 115
+Layer Nr: 0
+LineGeo
+Pa : X ->196.187  Y -> 8.212
+Pe : X ->190.452  Y -> 2.477
+length: 8.11018
+Found LINE at Linepair 2246 (Line 4496 till 4524)
+Typ: Line
+Nr: 116
+Layer Nr: 0
+LineGeo
+Pa : X ->190.452  Y -> 2.477
+Pe : X ->181.850  Y ->-0.391
+length: 9.06746
+Found LINE at Linepair 2260 (Line 4524 till 4552)
+Typ: Line
+Nr: 117
+Layer Nr: 0
+LineGeo
+Pa : X ->181.850  Y ->-0.391
+Pe : X ->176.116  Y ->-0.391
+length: 5.73477
+Found LINE at Linepair 2274 (Line 4552 till 4580)
+Typ: Line
+Nr: 118
+Layer Nr: 0
+LineGeo
+Pa : X ->176.116  Y ->-0.391
+Pe : X ->173.248  Y -> 2.477
+length: 4.05510
+Found LINE at Linepair 2288 (Line 4580 till 4608)
+Typ: Line
+Nr: 119
+Layer Nr: 0
+LineGeo
+Pa : X ->173.248  Y -> 2.477
+Pe : X ->173.248  Y -> 8.212
+length: 5.73477
+Found LINE at Linepair 2302 (Line 4608 till 4636)
+Typ: Line
+Nr: 120
+Layer Nr: 0
+LineGeo
+Pa : X ->173.248  Y -> 8.212
+Pe : X ->176.116  Y ->11.079
+length: 4.05509
+Found LINE at Linepair 2316 (Line 4636 till 4664)
+Typ: Line
+Nr: 121
+Layer Nr: 0
+LineGeo
+Pa : X ->176.116  Y ->11.079
+Pe : X ->178.983  Y -> 8.212
+length: 4.05508
+Found LINE at Linepair 2330 (Line 4664 till 4692)
+Typ: Line
+Nr: 122
+Layer Nr: 0
+LineGeo
+Pa : X ->178.983  Y -> 8.212
+Pe : X ->176.116  Y -> 5.344
+length: 4.05509
+Found LINE at Linepair 2344 (Line 4692 till 4720)
+Typ: Line
+Nr: 123
+Layer Nr: 0
+LineGeo
+Pa : X ->289.736  Y ->59.824
+Pe : X ->286.868  Y ->48.355
+length: 11.82253
+Found LINE at Linepair 2358 (Line 4720 till 4748)
+Typ: Line
+Nr: 124
+Layer Nr: 0
+LineGeo
+Pa : X ->286.868  Y ->48.355
+Pe : X ->281.133  Y ->31.151
+length: 18.13492
+Found LINE at Linepair 2372 (Line 4748 till 4776)
+Typ: Line
+Nr: 125
+Layer Nr: 0
+LineGeo
+Pa : X ->281.133  Y ->31.151
+Pe : X ->275.399  Y ->16.814
+length: 15.44134
+Found LINE at Linepair 2386 (Line 4776 till 4804)
+Typ: Line
+Nr: 126
+Layer Nr: 0
+LineGeo
+Pa : X ->275.399  Y ->16.814
+Pe : X ->272.531  Y ->11.079
+length: 6.41166
+Found LINE at Linepair 2400 (Line 4804 till 4832)
+Typ: Line
+Nr: 127
+Layer Nr: 0
+LineGeo
+Pa : X ->272.531  Y ->11.079
+Pe : X ->266.797  Y -> 2.477
+length: 10.33849
+Found LINE at Linepair 2414 (Line 4832 till 4860)
+Typ: Line
+Nr: 128
+Layer Nr: 0
+LineGeo
+Pa : X ->266.797  Y -> 2.477
+Pe : X ->261.062  Y ->-0.391
+length: 6.41167
+Found LINE at Linepair 2428 (Line 4860 till 4888)
+Typ: Line
+Nr: 129
+Layer Nr: 0
+LineGeo
+Pa : X ->261.062  Y ->-0.391
+Pe : X ->255.327  Y ->-0.391
+length: 5.73477
+Found LINE at Linepair 2442 (Line 4888 till 4916)
+Typ: Line
+Nr: 130
+Layer Nr: 0
+LineGeo
+Pa : X ->255.327  Y ->-0.391
+Pe : X ->252.460  Y -> 2.477
+length: 4.05510
+Found LINE at Linepair 2456 (Line 4916 till 4944)
+Typ: Line
+Nr: 131
+Layer Nr: 0
+LineGeo
+Pa : X ->252.460  Y -> 2.477
+Pe : X ->252.460  Y -> 8.212
+length: 5.73477
+Found LINE at Linepair 2470 (Line 4944 till 4972)
+Typ: Line
+Nr: 132
+Layer Nr: 0
+LineGeo
+Pa : X ->252.460  Y -> 8.212
+Pe : X ->255.327  Y ->11.079
+length: 4.05509
+Found LINE at Linepair 2484 (Line 4972 till 5000)
+Typ: Line
+Nr: 133
+Layer Nr: 0
+LineGeo
+Pa : X ->255.327  Y ->11.079
+Pe : X ->258.194  Y -> 8.212
+length: 4.05508
+Found LINE at Linepair 2498 (Line 5000 till 5028)
+Typ: Line
+Nr: 134
+Layer Nr: 0
+LineGeo
+Pa : X ->258.194  Y -> 8.212
+Pe : X ->255.327  Y -> 5.344
+length: 4.05509
+Found LINE at Linepair 2512 (Line 5028 till 5056)
+Typ: Line
+Nr: 135
+Layer Nr: 0
+LineGeo
+Pa : X ->289.736  Y ->59.824
+Pe : X ->289.736  Y ->45.488
+length: 14.33692
+Found LINE at Linepair 2526 (Line 5056 till 5084)
+Typ: Line
+Nr: 136
+Layer Nr: 0
+LineGeo
+Pa : X ->289.736  Y ->45.488
+Pe : X ->292.603  Y ->13.946
+length: 31.67128
+Found LINE at Linepair 2540 (Line 5084 till 5112)
+Typ: Line
+Nr: 137
+Layer Nr: 0
+LineGeo
+Pa : X ->292.603  Y ->13.946
+Pe : X ->295.470  Y ->-0.391
+length: 14.62085
+Found LINE at Linepair 2554 (Line 5112 till 5140)
+Typ: Line
+Nr: 138
+Layer Nr: 0
+LineGeo
+Pa : X ->289.736  Y ->59.824
+Pe : X ->292.603  Y ->45.488
+length: 14.62085
+Found LINE at Linepair 2568 (Line 5140 till 5168)
+Typ: Line
+Nr: 139
+Layer Nr: 0
+LineGeo
+Pa : X ->292.603  Y ->45.488
+Pe : X ->295.470  Y ->13.946
+length: 31.67128
+Found LINE at Linepair 2582 (Line 5168 till 5196)
+Typ: Line
+Nr: 140
+Layer Nr: 0
+LineGeo
+Pa : X ->295.470  Y ->13.946
+Pe : X ->295.470  Y ->-0.391
+length: 14.33692
+Found LINE at Linepair 2596 (Line 5196 till 5224)
+Typ: Line
+Nr: 141
+Layer Nr: 0
+LineGeo
+Pa : X ->329.879  Y ->56.957
+Pe : X ->327.012  Y ->54.090
+length: 4.05509
+Found LINE at Linepair 2610 (Line 5224 till 5252)
+Typ: Line
+Nr: 142
+Layer Nr: 0
+LineGeo
+Pa : X ->327.012  Y ->54.090
+Pe : X ->329.879  Y ->51.222
+length: 4.05510
+Found LINE at Linepair 2624 (Line 5252 till 5280)
+Typ: Line
+Nr: 143
+Layer Nr: 0
+LineGeo
+Pa : X ->329.879  Y ->51.222
+Pe : X ->332.746  Y ->54.090
+length: 4.05509
+Found LINE at Linepair 2638 (Line 5280 till 5308)
+Typ: Line
+Nr: 144
+Layer Nr: 0
+LineGeo
+Pa : X ->332.746  Y ->54.090
+Pe : X ->332.746  Y ->56.957
+length: 2.86738
+Found LINE at Linepair 2652 (Line 5308 till 5336)
+Typ: Line
+Nr: 145
+Layer Nr: 0
+LineGeo
+Pa : X ->332.746  Y ->56.957
+Pe : X ->329.879  Y ->59.824
+length: 4.05509
+Found LINE at Linepair 2666 (Line 5336 till 5364)
+Typ: Line
+Nr: 146
+Layer Nr: 0
+LineGeo
+Pa : X ->329.879  Y ->59.824
+Pe : X ->324.144  Y ->59.824
+length: 5.73477
+Found LINE at Linepair 2680 (Line 5364 till 5392)
+Typ: Line
+Nr: 147
+Layer Nr: 0
+LineGeo
+Pa : X ->324.144  Y ->59.824
+Pe : X ->318.409  Y ->56.957
+length: 6.41167
+Found LINE at Linepair 2694 (Line 5392 till 5420)
+Typ: Line
+Nr: 148
+Layer Nr: 0
+LineGeo
+Pa : X ->318.409  Y ->56.957
+Pe : X ->312.675  Y ->48.355
+length: 10.33849
+Found LINE at Linepair 2708 (Line 5420 till 5448)
+Typ: Line
+Nr: 149
+Layer Nr: 0
+LineGeo
+Pa : X ->312.675  Y ->48.355
+Pe : X ->309.807  Y ->42.620
+length: 6.41167
+Found LINE at Linepair 2722 (Line 5448 till 5476)
+Typ: Line
+Nr: 150
+Layer Nr: 0
+LineGeo
+Pa : X ->309.807  Y ->42.620
+Pe : X ->304.073  Y ->28.283
+length: 15.44134
+Found LINE at Linepair 2736 (Line 5476 till 5504)
+Typ: Line
+Nr: 151
+Layer Nr: 0
+LineGeo
+Pa : X ->304.073  Y ->28.283
+Pe : X ->298.338  Y ->11.079
+length: 18.13492
+Found LINE at Linepair 2750 (Line 5504 till 5530)
+Typ: Line
+Nr: 152
+Layer Nr: 0
+LineGeo
+Pa : X ->298.338  Y ->11.079
+Pe : X ->295.470  Y ->-0.391
+length: 11.82252
+Geladene Layers 1
+Loaded blocks: 3
+Block 0 beinhaltet 0 Geometrien. Ergeben 0 Konturen. Verwendete Layer: []
+Block 1 beinhaltet 0 Geometrien. Ergeben 0 Konturen. Verwendete Layer: []
+Block 2 beinhaltet 0 Geometrien. Ergeben 0 Konturen. Verwendete Layer: []
+153 Entitie Geometrien geladen. Ergeben 12 Konturen. Verwendete Layer: [0]. Anzahl der Inserts: 0
