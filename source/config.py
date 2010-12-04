@@ -31,8 +31,6 @@ import ConfigParser
 import time
 
 from tkMessageBox import showerror
-import globals as g
-import constants as c
 
 
 from point import PointClass
@@ -46,17 +44,17 @@ class ConfigClass:
 
         # eine ConfigParser Instanz oeffnen und evt. vorhandenes Config File Laden        
         self.parser = ConfigParser.ConfigParser()
-        self.cfg_file_name = 'oldconfig.cfg'
+        self.cfg_file_name = 'config.cfg'
         self.parser.read(os.path.join(self.folder, self.cfg_file_name))
 
         # Falls kein Config File vorhanden ist oder File leer ist neue File anlegen und neu laden
         if len(self.parser.sections()) == 0:
             self.make_new_Config_file()
             self.parser.read(os.path.join(self.folder, self.cfg_file_name))
-            g.logger.info((_('\nNo config file found generated new on at: %s') \
+            textbox.prt((_('\nNo config file found generated new on at: %s') \
                              % os.path.join(self.folder, self.cfg_file_name)))
         else:
-            g.logger.info((_('\nLoading config file:%s') \
+            textbox.prt((_('\nLoading config file:%s') \
                              % os.path.join(self.folder, self.cfg_file_name)))
 
         #Tkinter Variablen erstellen zur sp�teren Verwendung in den Eingabefeldern        
@@ -64,9 +62,9 @@ class ConfigClass:
 
         #DEBUG INFORMATIONEN
         #�bergeben des geladenen Debug Level
-#        textbox.set_debuglevel(DEBUG=self.debug)
-#        g.logger.info(_('\nDebug Level: %i') % (self.debug), 1)
-#        g.logger.info(str(self), 1)
+        textbox.set_debuglevel(DEBUG=self.debug)
+        textbox.prt(_('\nDebug Level: %i') % (self.debug), 1)
+        textbox.prt(str(self), 1)
 
     def make_settings_folder(self): 
         # create settings folder if necessary 
@@ -195,7 +193,7 @@ class PostprocessorClass:
             
             self.make_new_postpro_file()
             self.parser.read(os.path.join(self.folder, self.postpro_file_name))
-            g.logger.info((_('\nNo postprocessor file found generated new on at: %s') \
+            textbox.prt((_('\nNo postprocessor file found generated new on at: %s') \
                              % os.path.join(self.folder, self.postpro_file_name)))
             
             lfiles = os.listdir(self.folder)

@@ -1,6 +1,0 @@
-; lathe format, developer version 
-; http://www.linuxcnc.org/docs/devel/html/gcode_tool_compensation.html
-;
-Pocket	FMS      ZOFFSET      XOFFSET   	DIAMETER  FRONTANGLE   	BACKANGLE  	ORIENT  COMMENT
-1      	1    	+0.100000    +0.000000  0.100000  +95.000000 	+155.000000 1  		some tool
-

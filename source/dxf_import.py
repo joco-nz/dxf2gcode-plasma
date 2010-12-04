@@ -40,9 +40,6 @@ from tkMessageBox import showwarning
 from copy import deepcopy, copy
 from string import find, strip
 
-import globals as g
-import constants as c
-
 class ReadDXF:
     #Initialisierung der Klasse
     def __init__(self, filename=None, config=None, textbox=None):
@@ -56,8 +53,8 @@ class ReadDXF:
         self.line_pairs = self.Get_Line_Pairs(str)        
 
         #Debug Informationen 
-        g.logger.debug("File has   %0.0f lines" % len(str))
-        g.logger.debug("File has   %0.0f Linepairs" % self.line_pairs.nrs)
+        self.textbox.prt(("\n\nFile has   %0.0f Lines" % len(str)), 1)
+        self.textbox.prt(("\nFile has   %0.0f Linepairs" % self.line_pairs.nrs), 1)
 
         sections_pos = self.Get_Sections_pos()
         self.layers = self.Read_Layers(sections_pos)
@@ -99,9 +96,8 @@ class ReadDXF:
 
         except:
             
-            showwarning("Warning reading linepairs", ("Failure reading line stopped at line %d.\n Please check/correct line in dxf file" % (line)))
-            g.logger.warning("Failure reading lines - stopped at line %d" % (line))
-            g.logger.warning("Please check/correct line in dxf file")
+            showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
+            self.textbox.prt(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
             
             
         line_pairs.nrs = len(line_pairs.line_pair)
@@ -129,9 +125,9 @@ class ReadDXF:
             
             start = self.line_pairs.index_both(0, "SECTION", end)
             
-        g.logger.debug("Sections found:")
+        self.textbox.prt(("\n\nSections found:"), 1)
         for sect in sections:
-            g.logger.debug(str(sect))
+            self.textbox.prt(str(sect), 1)
                 
         return sections
 
@@ -155,9 +151,9 @@ class ReadDXF:
                     layers.append(LayerClass(len(layers)))
                     layers[-1].name = self.line_pairs.line_pair[start].value
                     
-        g.logger.debug("Layers found:")
+        self.textbox.prt(("\n\nLayers found:"), 1)
         for lay in layers:
-            g.logger.debug(str(lay))
+            self.textbox.prt(str(lay), 1)
             
         return layers
                     
@@ -184,9 +180,9 @@ class ReadDXF:
                 blocks[-1].end = end
                 start = self.line_pairs.index_both(0, "BLOCK", end + 1, blocks_section.end)
 
-        g.logger.debug("Blocks found:")
+        self.textbox.prt(("\n\nBlocks found:"), 1)
         for bl in blocks:
-            g.logger.debug(str(bl))
+            self.textbox.prt(str(bl), 1)
             
         return blocks
 
@@ -195,7 +191,7 @@ class ReadDXF:
         blocks = BlocksClass([])
         warning = 0
         for block_nr in range(len(blocks_pos)):
-            g.logger.debug("Reading Block Nr: %d" % block_nr)
+            self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr), 1)
             blocks.Entities.append(EntitiesClass(block_nr, blocks_pos[block_nr].name, []))
             #Lesen der BasisWerte fï¿½r den Block
             s = blocks_pos[block_nr].begin + 1
@@ -212,7 +208,7 @@ class ReadDXF:
             (blocks.Entities[-1].geo, warning) = self.Get_Geo(s, e, warning)
             
             #Im Debug Modus 2 mehr Infos zum Block drucken
-            g.logger.debug(" %s" % blocks.Entities[-1])
+            self.textbox.prt(("\n %s" % blocks.Entities[-1]), 2)
             
         if warning == 1:
             showwarning("Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
@@ -223,7 +219,7 @@ class ReadDXF:
         warning = 0
         for section_nr in range(len(sections)):
             if (find(sections[section_nr - 1].name, "ENTITIES") == 0):
-                g.logger.debug("Reading Entities")
+                self.textbox.prt("\n\nReading Entities", 1)
                 entities = EntitiesClass(0, 'Entities', [])
                 (entities.geo, warning) = self.Get_Geo(sections[section_nr - 1].begin + 1,
                                                     sections[section_nr - 1].end - 1,
@@ -257,14 +253,14 @@ class ReadDXF:
 
             #Debug Informationen anzeigen falls erwï¿½nscht                        
             if self.start == None:
-                g.logger.debug("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                        % (name, old_start, old_start * 2 + 4, end * 2 + 4))
+                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        % (name, old_start, old_start * 2 + 4, end * 2 + 4)), 1)
             else:
-                g.logger.debug("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                        % (name, old_start, old_start * 2 + 4, self.start * 2 + 4))
+                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        % (name, old_start, old_start * 2 + 4, self.start * 2 + 4)), 1)
 
             if len(geos) > 0:
-                g.logger.debug(str(geos[-1]))
+                self.textbox.prt(str(geos[-1]), 2)
 
             old_start = self.start
 
@@ -302,7 +298,7 @@ class ReadDXF:
         elif (name == "LWPOLYLINE"):
             geo = LWPolylineClass(geo_nr, self)
         else:  
-            g.logger.warning(("\!!! Found unsupported geometry: %s !!!!" % name))
+            self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" % name))
             self.start += 1 #Eins hochzï¿½hlen sonst gibts ne dauer Schleife
             warning = 2
             return [], warning
@@ -463,22 +459,25 @@ class ReadDXF:
                 #print '\nGibt was Vorwï¿½rt (Ende in pos dir)'
                 new_cont_neg = self.Search_Paths(0, [], points[0].point_nr, 1, points)
                 cont.append(self.Get_Best_Contour(len(cont), new_cont_neg, geo, points))
-            elif (len(points[0].be_cp) > 0) & (len(points[0].en_cp) > 0):
+                
+                
+                
+                
+            elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):                
                 #print '\nGibt was in beiden Richtungen'
-                #print points[0].be_cp
-                #print points[0].en_cp
-                #Suchen der mï¿½glichen Pfade                
-                new_cont_pos = self.Search_Paths(0, [], points[0].point_nr, 1, points)
-                #Bestimmen des besten Pfades und ï¿½bergabe in cont                
-                cont.append(self.Get_Best_Contour(len(cont), new_cont_pos, geo, points))
+                #Suchen der möglichen Pfade                
+                new_cont_pos=self.Search_Paths(0,[],points[0].point_nr,1,points)
+                #Bestimmen des besten Pfades und übergabe in cont                
+                cont.append(self.Get_Best_Contour(len(cont),new_cont_pos,geo,points))
+                #points=self.Remove_Used_Points(cont[-1],points)
 
                 #Falls der Pfad nicht durch den ersten Punkt geschlossen ist
-                if cont[-1].closed == 0:
+                if cont[-1].closed==0:
                     #print '\nPfad nicht durch den ersten Punkt geschlossen'
                     cont[-1].reverse()
                     #print ("Neue Kontur umgedrejt %s" %cont[-1])
-                    new_cont_neg = self.Search_Paths(0, [cont[-1]], points[0].point_nr, 0, points)
-                    cont[-1] = self.Get_Best_Contour(len(cont) - 1, new_cont_neg + new_cont_pos, geo, points)
+                    new_cont_neg=self.Search_Paths(0,[cont[-1]],points[0].point_nr,0,points)
+                    cont[-1]=self.Get_Best_Contour(len(cont)-1,new_cont_neg+new_cont_pos,geo,points)
                     
             else:
                 print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
@@ -581,24 +580,27 @@ class ReadDXF:
 
         return best_c
     
-    #Alle Punkte im Pfad aus Points lï¿½schen um nï¿½chte Suche zu beschleunigen               
-    def Remove_Used_Points(self, cont=None, points=None):
-        for i in range(len(cont.order)):
-            for j in range(len(points)):
-                if cont.order[i][0] == points[j].point_nr:
-                    del points[j]
-                    break
-                for k in range(len(points[j].be_cp)):
-                    if cont.order[i][0] == points[j].be_cp[k][0]:
-                        del points[j].be_cp[k]
-                        break
-                
-                for k in range(len(points[j].en_cp)):
-                    if cont.order[i][0] == points[j].en_cp[k][0]:
-                        del points[j].en_cp[k]
+    #Alle Punkte im Pfad aus Points lÃ¶schen um nÃ¤chte Suche zu beschleunigen               
+    def Remove_Used_Points(self,cont=None,points=None):
+        for p_nr in cont.order:
+            
+            #This have to be 2 seperate loops, otherwise one element is missing
+            for point in points:
+                if p_nr[0]==point.point_nr:
+                    del points[points.index(point)]
+                    
+            for point in points:
+                for be_cp in point.be_cp:
+                    if p_nr[0]==be_cp[0]:
+                        del point.be_cp[point.be_cp.index(be_cp)]
                         break
                     
-        #Rï¿½ckgabe der Kontur       
+                for en_cp in point.en_cp:
+                    if p_nr[0]==en_cp[0]:
+                        del point.en_cp[point.en_cp.index(en_cp)]
+                        break
+                                  
+        #Rückgabe der Kontur       
         return points
     #Alle Punkte im Pfad aus Points lï¿½schen um nï¿½chte Suche zu beschleunigen               
     def Contours_Points2Geo(self, cont=None, points=None):

@@ -27,8 +27,6 @@
 
 import sys, os, string
 import ConfigParser
-import globals as g
-import constants as c
 
 PROGRAMDIRECTORY = os.path.dirname(os.path.abspath(sys.argv[0]))
 BITMAPDIRECTORY = PROGRAMDIRECTORY + "/bitmaps"
@@ -47,7 +45,7 @@ class MyNotebookClass(Notebook):
         
         self.LayerContents = LayerContents
         
-#        self.ExportParas = ExportParasClass(self.nb_f1, config)
+        self.ExportParas = ExportParasClass(self.nb_f1, config)
         
         self.LayerListbox = LayerListboxClass(self.nb_f1, self)
         self.LayerListbox.grid(row=0, column=0, padx=2, pady=2, sticky=N + W + E)
@@ -63,7 +61,7 @@ class MyNotebookClass(Notebook):
 
     def CreateLayerContent(self, LayerContents):
         self.LayerListbox.CreateLayerContent(LayerContents)
-#        self.ExportParas.LayerContents = LayerContents
+        self.ExportParas.LayerContents = LayerContents
         
     def change_selection(self, sel_shapes):
         self.CanvasContent.deselect()
@@ -199,7 +197,7 @@ class LayerListboxClass(Listbox):
         #Sonst Werte anzeigen
         else:
             sel = int(self.curselection()[0])
-#            self.MyNotebook.ExportParas.ShowParas(self.LayerContents[sel])
+            self.MyNotebook.ExportParas.ShowParas(self.LayerContents[sel])
             self.MyNotebook.change_selection(self.LayerContents[sel].Shapes)
         
         
@@ -223,11 +221,11 @@ class LayerContentClass:
         if len(self.parser.sections()) == 0:
             self.MakeNewLayerContentFile()
             self.parser.read(os.path.join(self.folder, self.layer_content_file_name))
-            g.logger.info(_('No LayerContent file found generated new on at: %s') 
-                             % os.path.join(self.folder, self.layer_content_file_name))
+            MyMessages.prt((_('\nNo LayerContent file found generated new on at: %s') \
+                             % os.path.join(self.folder, self.layer_content_file_name)))
         else:
-            g.logger.info(_('Loading LayerContent file:%s') \
-                             % os.path.join(self.folder, self.layer_content_file_name))
+            MyMessages.prt((_('\nLoading LayerContent file:%s') \
+                             % os.path.join(self.folder, self.layer_content_file_name)))
 
         #Read the variables from the existing layer config file  
         self.GetAllVars()

@@ -24,7 +24,7 @@
 from math import sqrt, sin, cos, atan2, radians, degrees
 from point import PointClass
 from dxf_import_classes import PointsClass, ContourClass
-from base_geometries import  ArcGeo 
+from base_geometries import  LineGeo, ArcGeo 
 
 class PolylineClass:
     def __init__(self, Nr=0, caller=None):

@@ -1,6 +1,0 @@
-; mill format, cradek patch 
-; http://timeguy.com/cradek-files/emc/0001-preserve-fms-values-for-nonrandom-tc-and-more.patch
-;
-TOOLNO POCKET    LENGTH    	  DIAMETER  COMMENT
-     1      1    +0.511000    0.125000  1/8 end mill
-     2      2    +0.100000    0.062500  1/16 end mill

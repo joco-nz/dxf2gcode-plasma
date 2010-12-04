@@ -71,10 +71,10 @@ class BoundingBoxClass:
         @param other: The 2nd Bounding Box
         @return: Returns true or false
         """        
-        x_inter_pos = (self.Pe.x - tol > other.Pa.x) and \
-        (self.Pa.x + tol < other.Pe.x)
-        y_inter_pos = (self.Pe.y - tol > other.Pa.y) and \
-        (self.Pa.y + tol < other.Pe.y)
+        x_inter_pos = (self.Pe.x + tol > other.Pa.x) and \
+        (self.Pa.x - tol < other.Pe.x)
+        y_inter_pos = (self.Pe.y + tol > other.Pa.y) and \
+        (self.Pa.y - tol < other.Pe.y)
      
         return x_inter_pos and y_inter_pos
     
@@ -84,10 +84,10 @@ class BoundingBoxClass:
         @param point: The Point which shall be ckecke
         @return: Returns true or false
         """
-        x_inter_pos = (self.Pe.x - tol > point.x) and \
-        (self.Pa.x + tol < point.x)
-        y_inter_pos = (self.Pe.y - tol > point.y) and \
-        (self.Pa.y + tol < point.y)
+        x_inter_pos = (self.Pe.x + tol > point.x) and \
+        (self.Pa.x - tol < point.x)
+        y_inter_pos = (self.Pe.y + tol > point.y) and \
+        (self.Pa.y - tol < point.y)
         return x_inter_pos and y_inter_pos
      
     def plot2can(self, canvas=None, tag=None, col='red', hdl=[]):
