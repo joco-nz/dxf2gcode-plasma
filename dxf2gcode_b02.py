@@ -69,7 +69,7 @@ APPNAME = "dxf2gcode"
 VERSION = "TKINTER Beta 02"
 DATE = "2009-11-16"
 
-PROFILE=1
+PROFILE=0
 
 # Get folder of the main program
 FOLDER = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
