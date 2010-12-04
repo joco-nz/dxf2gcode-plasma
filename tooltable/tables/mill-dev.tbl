@@ -1,8 +1,0 @@
-; mill tools, developer version as per manual
-; http://www.linuxcnc.org/docs/devel/html/gcode_tool_compensation.html
-;
-Pocket FMS	TLO    	Diameter  	Comment
-1		1	2.0		1.0
-2		2	1.0		0.2
-5		5	1.5		0.25		endmill
-10		10	2.4		-0.3		for testing

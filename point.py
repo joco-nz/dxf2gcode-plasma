@@ -26,7 +26,9 @@
 from math import sqrt, sin, cos, atan2, radians, pi, ceil
 
 class PointClass:
+    __slots__=["x","y"]  
     def __init__(self, x=0, y=0):
+        
         self.x = x
         self.y = y
     def __str__(self):
@@ -160,4 +162,23 @@ class PointClass:
                     
         return point
 
+    def get_arc_direction(self,Pe,O):
+        """ 
+        Calculate the arc direction given from the 3 point. Pa (self), Pe, O
+        @param Pe: End Point
+        @param O: The center of the arc
+        @return: Returns the direction (+ or - pi/2)
+        """ 
+        a1=self.norm_angle(Pe)
+        a2=Pe.norm_angle(O)
+        direction=a2-a1
+        
+        if direction>pi:
+            direction=direction-2*pi
+        elif direction<-pi:
+            direction=direction+2*pi
+            
+        #print ('Die Direction ist: %s' %direction)
+        
+        return direction
 
