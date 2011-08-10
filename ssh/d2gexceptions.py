@@ -24,6 +24,21 @@ class BadConfigFileError(SyntaxError):
     """
     syntax error in .cfg file
     """
+    def __init__(self, value):
+        print "bin hier"
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+    
+class VersionMismatchError(SyntaxError):
+    """
+    syntax error in .cfg file
+    """
+    def __init__(self, value):
+        print "bin hier"
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
 class OptionError(SyntaxError):
     """

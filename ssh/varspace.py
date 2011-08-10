@@ -31,9 +31,7 @@ import os
 import sys
 import glob
 
-from Tkconstants import  N, E, W, GROOVE
-from Tkinter import OptionMenu, Frame, Checkbutton, Button, Label, Entry,LabelFrame
-from Tkinter import StringVar, DoubleVar, IntVar,BooleanVar
+
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
 
