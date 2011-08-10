@@ -11,6 +11,9 @@ class myLineItem(QGraphicsLineItem):
 app=QApplication(sys.argv)
 scene=QGraphicsScene()
 l=myLineItem(QLineF(-20,0,20,2000))
+
+
+
 scene.addItem(l)
 
 view= QGraphicsView(scene)

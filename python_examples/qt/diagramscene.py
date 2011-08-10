@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
-import math
 
-from PyQt4 import QtCore, QtGui
+
+
 
 import diagramscene_rc
-
+from PyQt4 import QtCore, QtGui
+import math
 
 class Arrow(QtGui.QGraphicsLineItem):
     def __init__(self, startItem, endItem, parent=None, scene=None):
