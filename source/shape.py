@@ -23,17 +23,23 @@
 #
 #Main Class Shape
 
-DEBUG = 0
+
 
 #import sys, os, string, ConfigParser 
 
+from PyQt4 import QtCore, QtGui
+
+import globals as g
+import constants as c
 
 from point import PointClass
 from base_geometries import LineGeo, ArcGeo
 from bounding_box import BoundingBoxClass
 from math import cos, sin, radians, degrees
 from copy import deepcopy
-from Canvas import Line
+
+
+#from Canvas import Line
 
 class ShapeClass:
     def __init__(self, nr='None', closed=0,
@@ -122,31 +128,40 @@ class ShapeClass:
         @param direction: 0 to return start point and 1 to return end point
         @return: a list of point and angle 
         """
-        start, start_ang = self.geos[0].get_start_end_points(0)
-        ende, end_ang = self.geos[-1].get_start_end_points(1)
+        start, start_ang=self.geos[0].get_start_end_points(0,self.parent)
+        ende, end_ang=self.geos[-1].get_start_end_points(1,self.parent)
         
-        if dir == None:
-            return start, ende
-        elif dir == 0:
-            return start, start_ang
-        elif dir == 1:
+        if dir==None:
+            return start,ende
+        elif dir==0:
+            return start,start_ang
+        elif dir==1:
             return ende, end_ang
         
-
-    def plot2can(self, canvas, col='black'):
+    def make_papath(self):
         """
         To be called if a Shape shall be printed to the canvas
         @param canvas: The canvas to be printed in
         @param pospro: The color of the shape 
         """
+        start, start_ang=self.get_st_en_points()
+        
+        papath=QtGui.QPainterPath()
+        papath.moveTo(start.x,-start.y)
+        
+        g.logger.logger.debug("Adding shape %s:" % (self))
+        
         for geo in self.geos:
-            self.geos_hdls += geo.plot2can(canvas=canvas,
-                                         tag=self.nr,
-                                         col=col,
-                                         plotoption=self.plotoption)
+            geo.add2path(papath=papath,parent=self.parent)
             
-        if DEBUG:
-            self.BB.plot2can(canvas=canvas, tag=self.nr, col='green', hdl=self.geos_hdls)
+        return papath
+            
+#                                         tag=self.nr,
+#                                         col=col,
+#                                         plotoption=self.plotoption)
+            
+#        if DEBUG:
+#            self.BB.plot2can(canvas=canvas, tag=self.nr, col='green', hdl=self.geos_hdls)
             
     def plot_cut_info(self, CanvasClass, config):
         hdls = []
@@ -412,34 +427,3 @@ class ShapeClass:
 
         return 1    
     
-class EntitieContentClass:
-    def __init__(self, type="Entitie", Nr=None, Name='', parent=None, children=[],
-                p0=PointClass(x=0.0, y=0.0), pb=PointClass(x=0.0, y=0.0), sca=[1, 1, 1], rot=0.0):
-                    
-        self.type = type
-        self.Nr = Nr
-        self.Name = Name
-        self.children = children
-        self.p0 = p0
-        self.pb = pb
-        self.sca = sca
-        self.rot = rot
-        self.parent = parent
-
-    def __cmp__(self, other):
-         return cmp(self.EntNr, other.EntNr)        
-        
-    def __str__(self):
-        return ('\ntype:        %s' % self.type) + \
-               ('\nNr :      %i' % self.Nr) + \
-               ('\nName:     %s' % self.Name) + \
-               ('\np0:          %s' % self.p0) + \
-               ('\npb:          %s' % self.pb) + \
-               ('\nsca:         %s' % self.sca) + \
-               ('\nrot:         %s' % self.rot) + \
-               ('\nchildren:    %s' % self.children)
-            
-    #Hinzufuegen der Kontur zu den Entities
-    def addchild(self, child):
-        self.children.append(child)
-        
