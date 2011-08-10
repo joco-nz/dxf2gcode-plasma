@@ -1,0 +1,89 @@
+
+            # do not edit the following section name:
+[Version]
+                
+                # do not edit the following value:
+                specversion = 29
+
+
+[Variables]
+                
+                # look here for DXF files
+                import_dir = dxf
+                
+                # store gcode output here 
+                output_dir = ngc
+                
+                # search here for plugins
+                plugin_dir = plugins
+                
+                # plugin varspaces are stored here
+                varspaces_dir = varspaces
+                
+                # Set to True for running under EMC       
+                write_to_stdout = False
+                
+                # wether to save a plugin's varspace if the instance is deleted
+                save_on_instance_delete = True
+                
+                point_tolerance = 0.01
+                spline_check = True
+                fitting_tolerance = 0.01
+                
+                pscmd = /opt/local/bin/pstoedit
+                psoptions = -f dxf -mm
+                psextensions = ".ps "
+                
+                log2file = False
+                
+                # set this to 'logfile = <pathname>' to turn on file logging
+                # or give the '-L logfile' program option
+                logfile = dxf2gcode.log
+                
+                # log levels are one in increasing importance:
+                #      DEBUG INFO WARNING  ERROR CRITICAL
+                # log events with importance >= loglevel are logged to the
+                # corresponding output
+                
+                # this really goes to stderr
+                console_loglevel = DEBUG
+                
+                file_loglevel = DEBUG
+                
+                # logging level for the message window
+                window_loglevel = INFO
+                
+                # backwards compatibility
+                global_debug_level = 3
+
+
+
+[Appearance]
+                
+                # Variables listed here are displayed in the UI and are editable
+                # the string value is the descriptive text displayed in a Label
+                # variables from the Variables section can be interpolated into
+                # e.g. Label names
+                
+                [[Import_Parameters]]
+                                point_tolerance = Tolerance for common points [mm]:
+                                fitting_tolerance = Tolerance for curve fitting [mm]:
+                                spline_check = Spline check
+                
+                [[Filters]]
+                                
+                                [[[PStoEdit]]]
+                                                
+                                                pscmd = location:
+                                                psoptions = options:
+                                                psextensions = extensions:
+                
+                [[Logging]]
+                                log2file = log to file
+                                logfile = Logfile:
+                                console_loglevel = Console logging:, DEBUG, INFO, WARNING, ERROR, CRITICAL, DEBUG
+                                file_loglevel = File logging:, DEBUG, INFO, WARNING, ERROR, CRITICAL, DEBUG
+                                window_loglevel = Window logging:, DEBUG, INFO, WARNING, ERROR, CRITICAL, INFO
+                                global_debug_level = Debug level:
+                
+        
