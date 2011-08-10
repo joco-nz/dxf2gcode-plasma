@@ -32,7 +32,7 @@ class BiarcClass:
     Ellipse fitting and the Nurbs convertion to Line and Arc segements.
     """
     def __init__(self, Pa=PointClass(), tan_a=0.0,
-                  Pb=PointClass, tan_b=0.0, min_r=5e-4):
+                  Pb=PointClass, tan_b=0.0, min_r=1e-6):
         """ 
         Std. method to initialise the class.
         @param Pa: Start Point for the Biarc
@@ -41,7 +41,7 @@ class BiarcClass:
         @param tan_b: Tangent of the End Point
         @param min_r: The minimu radius of a arc section.
         """
-        min_len = 1e-9        #Min Abstand für doppelten Punkt
+        min_len = 1e-12       #Min Abstand für doppelten Punkt
         min_alpha = 1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
         max_r = 5e3           #Max Radius ab welchem Gerade angenommen wird (5m)
         min_r = min_r         #Min Radius ab welchem nichts gemacht wird

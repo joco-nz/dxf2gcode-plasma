@@ -21,6 +21,8 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+import globals as g
+
 from nurbs_calc import Spline2Arcs
 from point import PointClass
 from dxf_import_classes import PointsClass, ContourClass
@@ -45,8 +47,8 @@ class SplineClass:
         self.Read(caller)
 
         #Zuweisen der Toleranz f�rs Fitting
-        tol = caller.config.fitting_tolerance
-        check = caller.config.spline_check
+        tol = g.config.vars.Import_Parameters['fitting_tolerance']
+        check = g.config.vars.Import_Parameters['spline_check']
 
         #Umwandeln zu einem ArcSpline
         Spline2ArcsClass = Spline2Arcs(degree=self.degree, Knots=self.Knots, \

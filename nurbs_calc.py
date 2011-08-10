@@ -34,7 +34,7 @@ class Spline2Arcs:
     def __init__(self, degree=0, Knots=[], Weights=[], CPoints=[], tol=0.01, check=1):
         #Max Abweichung f�r die Biarc Kurve
         self.epsilon = tol
-        self.epsilon_high = self.epsilon * 0.03
+        self.epsilon_high = self.epsilon * 0.1
         self.segments = 50
 
         #NURBS Klasse initialisieren
@@ -374,7 +374,9 @@ class Spline2Arcs:
         return u_sections
 
     def calc_Biarc_section(self, u_sect, nom_tol, max_tol):
-        min_u = 1e-9
+        #max_tol=0.1
+        #print(max_tol)
+        min_u = 1e-12
         BiarcCurve = []
         cur_step = self.max_step
         u = u_sect[0] + min_u
@@ -390,32 +392,40 @@ class Spline2Arcs:
                 cur_step = u_sect[-1] - (u - cur_step) - min_u
                 u = u_sect[-1] - min_u
 
+
             PtVec = self.NURBS.NURBS_evaluate(n=1, u=u)
 
             #Aus den letzten 2 Punkten den n�chsten Biarc berechnen
             Biarc = (BiarcClass(PtsVec[-1][0], PtsVec[-1][1], PtVec[0], PtVec[1], nom_tol * 0.5))
 
             if Biarc.shape == "Zero":
-                self.cur_step = min([cur_step * 2, self.max_step])
+                #print("zero")
+                #self.cur_step = min([cur_step * 2, self.max_step])
+                cur_step = min([cur_step * 2, self.max_step])
             elif Biarc.shape == "LineGeo":
+                #print("LineGeo")
                 BiarcCurve.append(Biarc)
                 cur_step = min([cur_step * 2, self.max_step])
                 PtsVec.append(PtVec)
             else:
+                
                 if self.check_biarc_fitting_tolerance(Biarc, max_tol, u - cur_step, u):
+                    #print("fit1")
                     PtsVec.append(PtVec)
                     BiarcCurve.append(Biarc)
                     cur_step = min([cur_step / 0.7, self.max_step])
                 else:
+                    #print("else")
                     u -= cur_step
                     cur_step *= 0.7
-                    
+            #print cur_step         
             if step > 10000:
                 raise ValueError, "Iteraitions above 10000 reduce tolerance"
             
         return BiarcCurve, PtsVec
     
     def check_biarc_fitting_tolerance(self, Biarc, epsilon, u0, u1):
+        
         check_step = (u1 - u0) / 5
         check_u = []
         check_Pts = []
@@ -425,6 +435,11 @@ class Spline2Arcs:
             check_u.append(u0 + check_step * i)
             check_Pts.append(self.NURBS.NURBS_evaluate(n=0, u=check_u[-1]))
             fit_error.append(Biarc.get_biarc_fitting_error(check_Pts[-1]))
+#        print(u0)
+#        print(u1)
+#        print(Biarc)
+#        print(check_Pts)
+#        print(fit_error)
         if max(fit_error) >= epsilon:
             return 0
         else:

@@ -24,6 +24,9 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
+import globals as g
+import constants as c
+
 from point import PointClass
 from dxf_import_classes import ContourClass
 
@@ -42,10 +45,10 @@ from string import find, strip
 
 class ReadDXF:
     #Initialisierung der Klasse
-    def __init__(self, filename=None, config=None, textbox=None):
+    def __init__(self, filename=None):
 
-        self.textbox = textbox
-        self.config = config        
+        #Setting up logger
+        logger=g.logger.logger
 
         #Laden der Kontur und speichern der Werte in die Klassen  
         str = self.Read_File(filename)
@@ -53,8 +56,8 @@ class ReadDXF:
         self.line_pairs = self.Get_Line_Pairs(str)        
 
         #Debug Informationen 
-        self.textbox.prt(("\n\nFile has   %0.0f Lines" % len(str)), 1)
-        self.textbox.prt(("\nFile has   %0.0f Linepairs" % self.line_pairs.nrs), 1)
+        #logger.info(("\n\nFile has   %0.0f Lines" % len(str)), 1)
+        #logger.info(("\nFile has   %0.0f Linepairs" % self.line_pairs.nrs), 1)
 
         sections_pos = self.Get_Sections_pos()
         self.layers = self.Read_Layers(sections_pos)
@@ -97,7 +100,7 @@ class ReadDXF:
         except:
             
             showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
-            self.textbox.prt(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
+            #g.logger.logger.info(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
             
             
         line_pairs.nrs = len(line_pairs.line_pair)
@@ -125,9 +128,9 @@ class ReadDXF:
             
             start = self.line_pairs.index_both(0, "SECTION", end)
             
-        self.textbox.prt(("\n\nSections found:"), 1)
-        for sect in sections:
-            self.textbox.prt(str(sect), 1)
+        #g.logger.logger.info(("\n\nSections found:"), 1)
+        #for sect in sections:
+            #g.logger.logger.info(str(sect), 1)
                 
         return sections
 
@@ -151,9 +154,9 @@ class ReadDXF:
                     layers.append(LayerClass(len(layers)))
                     layers[-1].name = self.line_pairs.line_pair[start].value
                     
-        self.textbox.prt(("\n\nLayers found:"), 1)
-        for lay in layers:
-            self.textbox.prt(str(lay), 1)
+        #g.logger.logger.info(("Layers found:"), 1)
+        #for lay in layers:
+            #g.logger.logger.info(str(lay), 1)
             
         return layers
                     
@@ -180,9 +183,9 @@ class ReadDXF:
                 blocks[-1].end = end
                 start = self.line_pairs.index_both(0, "BLOCK", end + 1, blocks_section.end)
 
-        self.textbox.prt(("\n\nBlocks found:"), 1)
-        for bl in blocks:
-            self.textbox.prt(str(bl), 1)
+        #g.logger.logger.info(("Blocks found:"), 1)
+        #for bl in blocks:
+            #g.logger.logger.info(str(bl), 1)
             
         return blocks
 
@@ -191,7 +194,7 @@ class ReadDXF:
         blocks = BlocksClass([])
         warning = 0
         for block_nr in range(len(blocks_pos)):
-            self.textbox.prt(("\n\nReading Block Nr: %0.0f" % block_nr), 1)
+            #g.logger.logger.info(("Reading Block Nr: %0.0f" % block_nr), 1)
             blocks.Entities.append(EntitiesClass(block_nr, blocks_pos[block_nr].name, []))
             #Lesen der BasisWerte f�r den Block
             s = blocks_pos[block_nr].begin + 1
@@ -208,7 +211,7 @@ class ReadDXF:
             (blocks.Entities[-1].geo, warning) = self.Get_Geo(s, e, warning)
             
             #Im Debug Modus 2 mehr Infos zum Block drucken
-            self.textbox.prt(("\n %s" % blocks.Entities[-1]), 2)
+            #g.logger.logger.info(("%s" % blocks.Entities[-1]), 2)
             
         if warning == 1:
             showwarning("Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
@@ -219,7 +222,7 @@ class ReadDXF:
         warning = 0
         for section_nr in range(len(sections)):
             if (find(sections[section_nr - 1].name, "ENTITIES") == 0):
-                self.textbox.prt("\n\nReading Entities", 1)
+                #g.logger.logger.info("Reading Entities", 1)
                 entities = EntitiesClass(0, 'Entities', [])
                 (entities.geo, warning) = self.Get_Geo(sections[section_nr - 1].begin + 1,
                                                     sections[section_nr - 1].end - 1,
@@ -252,15 +255,15 @@ class ReadDXF:
             self.start = self.line_pairs.index_code(0, self.start, end)            
 
             #Debug Informationen anzeigen falls erw�nscht                        
-            if self.start == None:
-                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                        % (name, old_start, old_start * 2 + 4, end * 2 + 4)), 1)
-            else:
-                self.textbox.prt(("\nFound %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
-                                        % (name, old_start, old_start * 2 + 4, self.start * 2 + 4)), 1)
+            #if self.start == None:
+                #g.logger.logger.info(("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        #% (name, old_start, old_start * 2 + 4, end * 2 + 4)), 1)
+            #else:
+                #g.logger.logger.info(("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
+                                        #% (name, old_start, old_start * 2 + 4, self.start * 2 + 4)), 1)
 
-            if len(geos) > 0:
-                self.textbox.prt(str(geos[-1]), 2)
+            #if len(geos) > 0:
+                #g.logger.logger.info(str(geos[-1]), 2)
 
             old_start = self.start
 
@@ -298,7 +301,7 @@ class ReadDXF:
         elif (name == "LWPOLYLINE"):
             geo = LWPolylineClass(geo_nr, self)
         else:  
-            self.textbox.prt(("\n!!!!WARNING Found unsupported geometry: %s !!!!" % name))
+            #g.logger.logger.info(("!!!!WARNING Found unsupported geometry: %s !!!!" % name))
             self.start += 1 #Eins hochz�hlen sonst gibts ne dauer Schleife
             warning = 2
             return [], warning
@@ -340,7 +343,7 @@ class ReadDXF:
     #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
     def App_Cont_or_Calc_IntPts(self, geo=None, cont=None):
 
-        tol = self.config.points_tolerance
+        tol = g.config.vars.Import_Parameters['point_tolerance']
         points = []
         warning = 0
         for i in range(len(geo)) :
@@ -357,7 +360,7 @@ class ReadDXF:
     #Suchen von gemeinsamen Punkten
     def Find_Common_Points(self, points=None):
         #tol=self.config.points_tolerance.get()
-        tol = self.config.points_tolerance
+        tol = g.config.vars.Import_Parameters['point_tolerance']
 
         p_list = []
         
@@ -614,14 +617,14 @@ class dxflinepairClass:
         self.code = code
         self.value = value
     def __str__(self):
-        return '\nCode ->' + str(self.code) + '\nvalue ->' + self.value
+        return 'Code ->' + str(self.code) + '\nvalue ->' + self.value
     
 class dxflinepairsClass:
     def __init__(self, line_pair=[]):
         self.nrs = 0
         self.line_pair = line_pair
     def __str__(self):
-        return '\nNumber of Line Pairs: ' + str(self.nrs)
+        return 'Number of Line Pairs: ' + str(self.nrs)
 
     #Sucht nach beiden Angaben in den Line Pairs code & value
     #optional mit start und endwert f�r die Suche
@@ -662,7 +665,7 @@ class LayerClass:
         self.name = name
     def __str__(self):
         # how to print the object
-        return '\nNr ->' + str(self.Nr) + '\nName ->' + self.name
+        return 'Nr ->' + str(self.Nr) + '\nName ->' + self.name
     def __len__(self):
         return self.__len__
 
@@ -674,7 +677,7 @@ class SectionClass:
         self.end = end  
     def __str__(self):
         # how to print the object
-        return '\nNr ->' + str(self.Nr) + '\nName ->' + self.name + '\nBegin ->' + str(self.begin) + '\nEnd: ->' + str(self.end)
+        return 'Nr ->' + str(self.Nr) + '\nName ->' + self.name + '\nBegin ->' + str(self.begin) + '\nEnd: ->' + str(self.end)
     def __len__(self):
         return self.__len__
 
@@ -718,7 +721,7 @@ class BlocksClass:
         self.Entities = Entities
     def __str__(self):
         # how to print the object
-        s = '\nBlocks:\nNumber of Blocks ->' + str(len(self.Entities))
+        s = 'Blocks:\nNumber of Blocks ->' + str(len(self.Entities))
         for entitie in self.ties:
             s = s + str(entitie)
         return s

@@ -117,6 +117,57 @@ class ArcGeo:
                ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
 
     
+    def add2path(self, papath=None, parent=None):
+                 #, tag=None, col='black', plotoption=0):
+        """
+        Plots the geometry of self into the defined canvas. Arcs will be ploted
+        as line segments.
+        @param canvas: The canvas instance to plot in
+        @param tag: the number of the parent shape
+        @param col: The color in which the shape shall be ploted
+        @param plotoption: Additional option for Debug print use
+        @return: Returns the hdl or hdls of the ploted objects.
+        """
+        
+        abs_geo=self.make_abs_geo(parent, 0)
+        papath.arcTo(abs_geo.O.x-abs_geo.r, -abs_geo.O.y-self.r,
+                          2*abs_geo.r, 2*abs_geo.r, degrees(abs_geo.s_ang), degrees(abs_geo.ext))
+        
+        #papath.lineTo(self.Pe.x, self.Pe.y)
+
+                        
+#        x = []; y = []; hdl = []
+#        #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
+#        segments = int((abs(degrees(self.ext)) // 2) + 1)
+#        
+#        for i in range(segments + 1):
+#            
+#            ang = self.s_ang + i * self.ext / segments
+#            p_cur = PointClass(x=(self.O.x + cos(ang) * abs(self.r)), \
+#                       y=(self.O.y + sin(ang) * abs(self.r)))
+#                    
+#            x.append(p_cur.x)
+#            y.append(p_cur.y)
+#            
+#            if i >= 1:
+#                hdl.append(Line(canvas, x[i - 1], -y[i - 1], x[i], -y[i], tag=tag, fill=col))       
+#               
+#        if plotoption:
+#            hdl.append(Line(canvas, self.Pa.x - dl, -self.Pa.y - dl,
+#                            self.Pa.x + dl, -self.Pa.y + dl, tag=tag, fill=col))
+#            hdl.append(Line(canvas, self.Pa.x + dl, -self.Pa.y - dl,
+#                            self.Pa.x - dl, -self.Pa.y + dl, tag=tag, fill=col))
+#            hdl.append(Line(canvas, self.Pe.x - dl, -self.Pe.y - dl,
+#                            self.Pe.x + dl, -self.Pe.y + dl, tag=tag, fill=col))
+#            hdl.append(Line(canvas, self.Pe.x + dl, -self.Pe.y - dl,
+#                            self.Pe.x - dl, -self.Pe.y + dl, tag=tag, fill=col))
+#         
+#        #if DEBUG:   
+#            #self.BB.plot2can(canvas=canvas, tag=tag, col='red', hdl=hdl)
+#         
+#        return hdl  
+
+    
     def dif_ang(self, P1, P2, direction,tol=0.005):
         """
         Calculated the angle of extend based on the 3 given points. Center Point,
@@ -192,64 +243,22 @@ class ArcGeo:
         return abs_geo
     
    
-    
-    
-    def plot2can(self, canvas=None, tag=None, col='black', plotoption=0):
-        """
-        Plots the geometry of self into the defined canvas. Arcs will be ploted
-        as line segments.
-        @param canvas: The canvas instance to plot in
-        @param tag: the number of the parent shape
-        @param col: The color in which the shape shall be ploted
-        @param plotoption: Additional option for Debug print use
-        @return: Returns the hdl or hdls of the ploted objects.
-        """
-                        
-        x = []; y = []; hdl = []
-        #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
-        segments = int((abs(degrees(self.ext)) // 2) + 1)
-        
-        for i in range(segments + 1):
-            
-            ang = self.s_ang + i * self.ext / segments
-            p_cur = PointClass(x=(self.O.x + cos(ang) * abs(self.r)), \
-                       y=(self.O.y + sin(ang) * abs(self.r)))
-                    
-            x.append(p_cur.x)
-            y.append(p_cur.y)
-            
-            if i >= 1:
-                hdl.append(Line(canvas, x[i - 1], -y[i - 1], x[i], -y[i], tag=tag, fill=col))       
-               
-        if plotoption:
-            hdl.append(Line(canvas, self.Pa.x - dl, -self.Pa.y - dl,
-                            self.Pa.x + dl, -self.Pa.y + dl, tag=tag, fill=col))
-            hdl.append(Line(canvas, self.Pa.x + dl, -self.Pa.y - dl,
-                            self.Pa.x - dl, -self.Pa.y + dl, tag=tag, fill=col))
-            hdl.append(Line(canvas, self.Pe.x - dl, -self.Pe.y - dl,
-                            self.Pe.x + dl, -self.Pe.y + dl, tag=tag, fill=col))
-            hdl.append(Line(canvas, self.Pe.x + dl, -self.Pe.y - dl,
-                            self.Pe.x - dl, -self.Pe.y + dl, tag=tag, fill=col))
-         
-        #if DEBUG:   
-            #self.BB.plot2can(canvas=canvas, tag=tag, col='red', hdl=hdl)
-         
-        return hdl  
-
-    def get_start_end_points(self, direction):
+    def get_start_end_points(self, direction,parent=None):
         """
         Returns the start/end point and its direction
         @param direction: 0 to return start point and 1 to return end point
         @return: a list of point and angle Returns the hdl or hdls of the ploted objects.
         """
+        
         if not(direction):
-            point = self.Pa
-            angle = degrees(self.s_ang) + 90 * self.ext / abs(self.ext)
+            punkt=self.Pa.rot_sca_abs(parent=parent)
+            angle=self.rot_angle(degrees(self.s_ang)+90*self.ext/abs(self.ext),parent)
         elif direction:
-            point = self.Pe
-            angle = degrees(self.e_ang) - 90 * self.ext / abs(self.ext)
-        return point, angle
-    
+            punkt=self.Pe.rot_sca_abs(parent=parent)
+            angle=self.rot_angle(degrees(self.e_ang)-90*self.ext/abs(self.ext),parent)
+        return punkt,angle
+        
+          
 
     def angle_between(self, min_ang, max_ang, angle):
         """
@@ -381,7 +390,8 @@ class LineGeo:
     
     
         
-    def plot2can(self, canvas=None, tag=None, col='black', plotoption=0):
+    def add2path(self, papath=None, parent=None): 
+    #plot2can(self, canvas=None, tag=None, col='black', plotoption=0):
         """
         Plots the geometry of self into the defined canvas.
         @param canvas: The canvas instance to plot in
@@ -390,39 +400,43 @@ class LineGeo:
         @param plotoption: Additional option for Debug print use
         @return: Returns the hdl or hdls of the ploted objects.
         """
-        
-        hdl = []
 
-        hdl.append(Line(canvas, self.Pa.x, -self.Pa.y,
-                        self.Pe.x, -self.Pe.y, tag=tag, fill=col))
-        
-        if plotoption:
-            hdl.append(Line(canvas, self.Pa.x - dl, -self.Pa.y - dl,
-                            self.Pa.x + dl, -self.Pa.y + dl, tag=tag, fill=col))
-            hdl.append(Line(canvas, self.Pa.x + dl, -self.Pa.y - dl,
-                            self.Pa.x - dl, -self.Pa.y + dl, tag=tag, fill=col))
-            hdl.append(Line(canvas, self.Pe.x - dl, -self.Pe.y - dl,
-                            self.Pe.x + dl, -self.Pe.y + dl, tag=tag, fill=col))
-            hdl.append(Line(canvas, self.Pe.x + dl, -self.Pe.y - dl,
-                            self.Pe.x - dl, -self.Pe.y + dl, tag=tag, fill=col))
-         
-        #if DEBUG:   
-            #self.BB.plot2can(canvas=canvas, tag=tag, col='red', hdl=hdl)
-            
-        return hdl
+        abs_geo=self.make_abs_geo(parent, 0)
+        papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
+#        hdl = []
+#
+#        hdl.append(Line(canvas, self.Pa.x, -self.Pa.y,
+#                        self.Pe.x, -self.Pe.y, tag=tag, fill=col))
+#        
+#        if plotoption:
+#            hdl.append(Line(canvas, self.Pa.x - dl, -self.Pa.y - dl,
+#                            self.Pa.x + dl, -self.Pa.y + dl, tag=tag, fill=col))
+#            hdl.append(Line(canvas, self.Pa.x + dl, -self.Pa.y - dl,
+#                            self.Pa.x - dl, -self.Pa.y + dl, tag=tag, fill=col))
+#            hdl.append(Line(canvas, self.Pe.x - dl, -self.Pe.y - dl,
+#                            self.Pe.x + dl, -self.Pe.y + dl, tag=tag, fill=col))
+#            hdl.append(Line(canvas, self.Pe.x + dl, -self.Pe.y - dl,
+#                            self.Pe.x - dl, -self.Pe.y + dl, tag=tag, fill=col))
+#         
+#        #if DEBUG:   
+#            #self.BB.plot2can(canvas=canvas, tag=tag, col='red', hdl=hdl)
+#            
+#        return hdl
 
-    def get_start_end_points(self, direction):
+    def get_start_end_points(self, direction, parent=None):
         """
         Returns the start/end point and its direction
         @param direction: 0 to return start point and 1 to return end point
         @return: a list of point and angle 
         """
         if not(direction):
-            punkt = self.Pa
-            angle = degrees(self.Pa.norm_angle(self.Pe))
+            punkt=self.Pa.rot_sca_abs(parent=parent)
+            punkt_e=self.Pe.rot_sca_abs(parent=parent)
+            angle=degrees(punkt.norm_angle(punkt_e))
         elif direction:
-            punkt = self.Pe
-            angle = degrees(self.Pe.norm_angle(self.Pa))
+            punkt_a=self.Pa.rot_sca_abs(parent=parent)
+            punkt=self.Pe.rot_sca_abs(parent=parent)
+            angle=degrees(punkt.norm_angle(punkt_a))
         return punkt, angle
     
     def Write_GCode(self, postpro=None):
