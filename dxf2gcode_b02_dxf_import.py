@@ -202,11 +202,16 @@ class Load_DXF:
             e=blocks_pos[block_nr].end-1
             lp=self.line_pairs
             #XWert
-            s=lp.index_code(10,s+1,e)
-            blocks.Entities[-1].basep.x=float(lp.line_pair[s].value)
+            pos=lp.index_code(10,s+1,e)
+            if pos:
+                blocks.Entities[-1].basep.x=float(lp.line_pair[pos].value)
+                s=pos
+            
             #YWert
-            s=lp.index_code(20,s+1,e)
-            blocks.Entities[-1].basep.y=float(lp.line_pair[s].value)
+            pos=lp.index_code(20,s+1,e)
+            if pos:
+                blocks.Entities[-1].basep.y=float(lp.line_pair[pos].value)
+                s=pos
             
             #Lesen der Geometrien
             (blocks.Entities[-1].geo,warning)=self.Get_Geo(s,e,warning)
