@@ -50,6 +50,7 @@ class Main(QtGui.QMainWindow):
     
         # This is always the same
         self.ui = Ui_MainWindow()
+        
         self.ui.setupUi(self)
         
         self.createActions()
@@ -241,6 +242,8 @@ def main():
 
     app = QtGui.QApplication(sys.argv)
     window = Main()
+    g.window=window
+    
     window.show()
     
     setup_logging(window.myMessageBox)
@@ -248,7 +251,6 @@ def main():
     logger=g.logger.logger
     g.config=MyConfig()
     
-
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")

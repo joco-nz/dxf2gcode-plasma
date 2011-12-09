@@ -38,6 +38,8 @@ config = None
 # Folder of the main instance
 folder = None
 
+window = None
+
 
 #-------------------------------------
 

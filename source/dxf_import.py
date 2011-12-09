@@ -39,7 +39,9 @@ from geoent_spline import SplineClass
 from geoent_ellipse import EllipseClass
 from geoent_lwpolyline import LWPolylineClass
 
-from tkMessageBox import showwarning
+#from tkMessageBox import showwarning
+from PyQt4 import QtGui
+
 from copy import deepcopy, copy
 from string import find, strip
 
@@ -98,8 +100,11 @@ class ReadDXF:
                 line += 2
 
         except:
+            QtGui.QMessageBox.warning(g.window,"Warning reading linepairs",
+                    "Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line))
+
             
-            showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
+            #showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
             #g.logger.logger.info(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
             
             
@@ -229,7 +234,10 @@ class ReadDXF:
                                                     warning)
     
         if warning == 1:
-            showwarning("Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+            QtGui.QMessageBox.warning(g.window,"Import Warning",
+                                 "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+            
+            #showwarning("Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
             
         return entities
 
@@ -351,7 +359,7 @@ class ReadDXF:
         
     
         if warning:
-            showwarning("Short Elements", ("Length of some Elements too short!"\
+            QtGui.QMessageBox.warning(g.window,"Short Elements", ("Length of some Elements too short!"\
                                                "\nLenght must be greater then tolerance."\
                                                "\nSkipped Geometries"))
     

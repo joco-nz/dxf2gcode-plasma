@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Wed Dec 08 22:03:02 2010
+# Created: Sun Dec 04 21:00:42 2011
 #      by: PyQt4 UI code generator 4.5.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,7 +78,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addLayout(self.formLayout)
         self.mytabWidget.addTab(self.tab_2, "")
         self.horizontalLayout.addWidget(self.mytabWidget)
-        self.mygraphicsView = QtGui.QGraphicsView(self.centralwidget)
+        self.mygraphicsView = MyGraphicsView(self.centralwidget)
         self.mygraphicsView.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         self.mygraphicsView.setObjectName("mygraphicsView")
         self.horizontalLayout.addWidget(self.mygraphicsView)
@@ -206,4 +206,5 @@ class Ui_MainWindow(object):
         self.actionMove_WP_zero.setText(QtGui.QApplication.translate("MainWindow", "Move WP zero", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
 
+from myCanvasClass import MyGraphicsView
 import dxf2gcode_images_rc
