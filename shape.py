@@ -41,7 +41,9 @@ from copy import deepcopy
 
 #from Canvas import Line
 
-class ShapeClass:
+
+
+class ShapeClass(QtGui.QGraphicsItem):
     def __init__(self, nr='None', closed=0,
                 cut_cor=40, length=0.0,
                 parent=None,
@@ -49,9 +51,13 @@ class ShapeClass:
                 plotoption=0):
         """ 
         Standard method to initialize the class
-        """ 
-                
-                    
+        """
+        QtGui.QGraphicsItem.__init__(self) 
+        self.pen=QtGui.QPen(QtCore.Qt.black) 
+        
+        #super(ShapeClass, self).__init__(parent)      
+               
+            
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -75,6 +81,30 @@ class ShapeClass:
                ('\nlen(geos):   %i' % len(self.geos)) + \
                ('\ngeos:        %s' % self.geos) + \
                ('\ngeo_hdls:    %s' % self.geos_hdls)
+
+    def setPen(self,pen):
+        self.pen=pen
+        self.update(self.boundingRect())
+
+        
+    def paint(self, painter, option, _widget):  
+        print('wird gemalt')
+        
+        
+
+        
+        print self.pen
+        
+        painter.setPen(self.pen)  
+        painter.drawPath(self.path) 
+
+    def boundingRect(self):
+        return self.path.boundingRect()
+
+    def shape(self):
+        print('wurde aufgerufen')
+        stroke = QtGui.QPainterPathStroker().createStroke(self.path)
+        return stroke
 
 
     def AnalyseAndOptimize(self, MyConfig=None):
@@ -146,15 +176,15 @@ class ShapeClass:
         """
         start, start_ang=self.get_st_en_points()
         
-        papath=QtGui.QPainterPath()
-        papath.moveTo(start.x,-start.y)
+        self.path=QtGui.QPainterPath()
+        self.path.moveTo(start.x,-start.y)
         
         g.logger.logger.debug("Adding shape %s:" % (self))
         
         for geo in self.geos:
-            geo.add2path(papath=papath,parent=self.parent)
+            geo.add2path(papath=self.path,parent=self.parent)
             
-        return papath
+        
             
 #                                         tag=self.nr,
 #                                         col=col,

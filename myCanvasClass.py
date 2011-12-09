@@ -38,6 +38,10 @@ class myCanvasClass:
         self.dir_hdls=[]
         self.path_hdls=[]
         
+        
+        self.myGraphicsView.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
+        #self.myGraphicsView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        
 
     def __str__(self):
         s='\nNr. of Shapes -> %s' %len(self.Shapes)
@@ -162,7 +166,8 @@ class myCanvasClass:
 
     def plot_shapes(self):
         for shape in self.Shapes:
-            self.myGraphicsScene.addPath(shape.make_papath())
+            shape.make_papath()
+            self.myGraphicsScene.addItem(shape)
         
         #g.logger.logger.debug("Update GrapicsScene %s:" % (dir(self.myGraphicsScene)))
         
@@ -434,10 +439,46 @@ class myCanvasClass:
         self.myGraphicsView.addAction(quitAction)
         self.myGraphicsView.addAction(quitAction2)
         
+
+        
     def close(self):
         pass
                          
                          
+                         
+class MyGraphicsView(QtGui.QGraphicsView): 
+    #moved = QtCore.pyqtSignal(QtGui.QMouseEvent) 
+ 
+    def __init__(self, parent = None): 
+        super(MyGraphicsView, self).__init__(parent) 
+        self.currentItem=None
+        
+    def mousePressEvent(self, event):
+        
+        delta=2
+        rect=QtCore.QRect(event.pos().x()-delta,event.pos().y()-delta,
+                          2*delta,2*delta)
+        
+        self.currentItems=self.items(event.pos())
+        print self.currentItems
+        
+        for item in self.currentItems:
+            item.setPen(QtGui.QPen(QtCore.Qt.red)); 
+        
+        if event.button() == QtCore.Qt.LeftButton:
+            print "left"
+        else:
+            print 'right'
+
+
+    def mouseMoveEvent(self, event): 
+        # call the base method to be sure the events are forwarded to the scene 
+        #super(MyGraphicsView, self).mouseMoveEvent(event) 
+ 
+        #print "Mouse Pointer is currently hovering at: ", event.pos() 
+        #self.moved.emit(event) 
+        pass
+                                            
 class myGraphicsScene(QtGui.QGraphicsScene): 
     """
     This is the used Canvas to print the graphical interface of dxf2gcode.
@@ -456,28 +497,19 @@ class myGraphicsScene(QtGui.QGraphicsScene):
                 
         
     def wheelEvent(self,event):
-
-
         scale=(1000+event.delta())/1000.0
-        #screenpos=event.screenPos()
+
         
-        #screenpos2=self.myGraphicsView.mapToScene(screenpos.x(),screenpos.y())
-        #self.myGraphicsView.centerOn(screenpos2.x(),screenpos2.y())
+        # self.myGraphicsView.setAttribute(QtCore.Qt.WA_MouseTracking, True)
+        #  setAttribute  setAttribute(Qt::WA_MouseTracking, true) 
+
+        self.myGraphicsView.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse) 
+        self.myGraphicsView.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter) 
         
-        #self.myGraphicsView.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse) 
-        #self.myGraphicsView.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter) 
+        self.myGraphicsView.setAttribute(QtCore.Qt.WA_MouseTracking, True)
         self.myGraphicsView.scale(scale,scale)
         
-        #print screenpos
-        #print screenpos2
-        matrix=self.myGraphicsView.matrix()
-        self.scale=matrix.m11()
 
-        print ('m11: %s' %matrix.m11())
-
-
-
-        
         
 
 #    def mouse_move_motion(self,event):
