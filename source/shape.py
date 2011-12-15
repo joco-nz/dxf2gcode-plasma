@@ -53,7 +53,14 @@ class ShapeClass(QtGui.QGraphicsItem):
         Standard method to initialize the class
         """
         QtGui.QGraphicsItem.__init__(self) 
-        self.pen=QtGui.QPen(QtCore.Qt.black) 
+        self.pen=QtGui.QPen(QtCore.Qt.black,2)
+        self.pen.setCosmetic(True)
+        self.sel_pen=QtGui.QPen(QtCore.Qt.red,2,QtCore.Qt.DashLine)
+        self.sel_pen.setCosmetic(True)
+        
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+        self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
+
         
         #super(ShapeClass, self).__init__(parent)      
                
@@ -83,29 +90,71 @@ class ShapeClass(QtGui.QGraphicsItem):
                ('\ngeo_hdls:    %s' % self.geos_hdls)
 
     def setPen(self,pen):
+        """ 
+        Method to change the Pen of the outline of the object and update the
+        drawing
+        """ 
         self.pen=pen
         self.update(self.boundingRect())
 
-        
-    def paint(self, painter, option, _widget):  
-        print('wird gemalt')
-        
-        
-
-        
-        print self.pen
-        
-        painter.setPen(self.pen)  
+    def paint(self, painter, option, _widget):
+        """ 
+        Method will be triggered with each paint event. Possible to give
+        options
+        @param painter: Reference to std. painter
+        @param option: Possible options here
+        @param _widget: The widget which is painted on.
+        """ 
+        if self.isSelected():
+            painter.setPen(self.sel_pen)
+            #self.starrow.show()
+        else:
+            painter.setPen(self.pen)
+            #self.starrow.hide()  
+            
         painter.drawPath(self.path) 
-
+        
     def boundingRect(self):
+        """ 
+        Required method for painting. Inherited by Painterpath
+        @return: Gives the Bounding Box
+        """ 
         return self.path.boundingRect()
 
     def shape(self):
-        print('wurde aufgerufen')
-        stroke = QtGui.QPainterPathStroker().createStroke(self.path)
+        """ 
+        Reimplemented function to select outline only.
+        @return: Returns the Outline only
+        """ 
+        painterStrock=QtGui.QPainterPathStroker()
+        painterStrock.setWidth(3.0)  
+
+        stroke = painterStrock.createStroke(self.path)
         return stroke
 
+    def mousePressEvent(self, event):
+        """
+        Right Mouse click shall have no function, Therefore pass only left 
+        click event
+        @purpose: Change inherited mousePressEvent
+        @param event: Event Parameters passed to function
+        """
+        pass
+        #scene=self.scene()
+        #print 'habs erwischt shape'
+     
+#        if event.button() == QtCore.Qt.LeftButton:
+#            super(ShapeClass, self).mousePressEvent(event)
+
+    def setSelected(self,flag=True):
+        """
+        Override inherited function to turn off selection of Arrows.
+        @param flag: The flag to enable or disable Selection
+        """
+        self.starrow.setSelected(flag)
+        self.enarrow.setSelected(flag)
+
+        super(ShapeClass, self).setSelected(flag)
 
     def AnalyseAndOptimize(self, MyConfig=None):
         """ 
@@ -456,4 +505,6 @@ class ShapeClass(QtGui.QGraphicsItem):
             postpro.deactivate_cut_cor(ende)        
 
         return 1    
+    
+
     

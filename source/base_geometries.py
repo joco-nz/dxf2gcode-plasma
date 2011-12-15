@@ -118,7 +118,6 @@ class ArcGeo:
 
     
     def add2path(self, papath=None, parent=None):
-                 #, tag=None, col='black', plotoption=0):
         """
         Plots the geometry of self into the defined canvas. Arcs will be ploted
         as line segments.
@@ -130,42 +129,26 @@ class ArcGeo:
         """
         
         abs_geo=self.make_abs_geo(parent, 0)
-        papath.arcTo(abs_geo.O.x-abs_geo.r, -abs_geo.O.y-self.r,
-                          2*abs_geo.r, 2*abs_geo.r, degrees(abs_geo.s_ang), degrees(abs_geo.ext))
-        
-        #papath.lineTo(self.Pe.x, self.Pe.y)
+        #papath.arcTo(abs_geo.O.x-abs_geo.r, -abs_geo.O.y-self.r,
+        #                  2*abs_geo.r, 2*abs_geo.r, degrees(abs_geo.s_ang), degrees(abs_geo.ext))
+
+        #papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
 
                         
-#        x = []; y = []; hdl = []
-#        #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
-#        segments = int((abs(degrees(self.ext)) // 2) + 1)
-#        
-#        for i in range(segments + 1):
-#            
-#            ang = self.s_ang + i * self.ext / segments
-#            p_cur = PointClass(x=(self.O.x + cos(ang) * abs(self.r)), \
-#                       y=(self.O.y + sin(ang) * abs(self.r)))
-#                    
-#            x.append(p_cur.x)
-#            y.append(p_cur.y)
-#            
-#            if i >= 1:
-#                hdl.append(Line(canvas, x[i - 1], -y[i - 1], x[i], -y[i], tag=tag, fill=col))       
-#               
-#        if plotoption:
-#            hdl.append(Line(canvas, self.Pa.x - dl, -self.Pa.y - dl,
-#                            self.Pa.x + dl, -self.Pa.y + dl, tag=tag, fill=col))
-#            hdl.append(Line(canvas, self.Pa.x + dl, -self.Pa.y - dl,
-#                            self.Pa.x - dl, -self.Pa.y + dl, tag=tag, fill=col))
-#            hdl.append(Line(canvas, self.Pe.x - dl, -self.Pe.y - dl,
-#                            self.Pe.x + dl, -self.Pe.y + dl, tag=tag, fill=col))
-#            hdl.append(Line(canvas, self.Pe.x + dl, -self.Pe.y - dl,
-#                            self.Pe.x - dl, -self.Pe.y + dl, tag=tag, fill=col))
-#         
-#        #if DEBUG:   
-#            #self.BB.plot2can(canvas=canvas, tag=tag, col='red', hdl=hdl)
-#         
-#        return hdl  
+        x = []; y = []; hdl = []
+        #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
+        segments = int((abs(degrees(abs_geo.ext)) // 10) + 1)
+        
+        for i in range(segments + 1):
+            
+            ang = abs_geo.s_ang + i * abs_geo.ext / segments
+            p_cur = PointClass(x=(abs_geo.O.x + cos(ang) * abs(abs_geo.r)), \
+                       y=(abs_geo.O.y + sin(ang) * abs(abs_geo.r)))
+
+            if i >= 1:
+                papath.lineTo(p_cur.x, -p_cur.y)    
+               
+
 
     
     def dif_ang(self, P1, P2, direction,tol=0.005):
@@ -177,34 +160,23 @@ class ArcGeo:
         @param direction: the direction of the arc
         @return: Returns the angle between -2* pi and 2 *pi for the arc extend
         """ 
-        if P1.isintol(P2,tol):
-            return 0.0
         
-        sa = self.O.norm_angle(P1)
-       
-#        if(sa < 0):
-#            sa += 2 * pi
+        #FIXME Das könnte Probleme geben bei einem reelen Kreis
+#        if P1.isintol(P2,tol):
+#            return 0.0
 #        
+        sa = self.O.norm_angle(P1)
         ea = self.O.norm_angle(P2)
-#        if(ea < 0):
-#            ea += 2 * pi
-        
-        if(direction > 0):     # GU
-            return (ea-sa)%(2*pi)
-            
-#            if(sa > ea):
-#                ang = (2 * pi - sa + ea)
-#            else:
-#                ang = (ea - sa)
+
+        if(direction > 0.0):     # GU
+            dif_ang = (ea-sa)%(-2*pi)
+            dif_ang -= floor(dif_ang / (2 * pi)) * (2 * pi)     
         else:
-            return (ea-sa)%(-2*pi)
-#            if(ea > sa):
-#                ang = (sa + 2 * pi - ea)
-#            else:
-#                ang = (sa - ea)
-        
-        return(ang)        
-        
+            dif_ang = (ea-sa)%(-2*pi)
+            dif_ang += ceil(dif_ang / (2 * pi)) * (2 * pi)    
+            
+        return dif_ang
+    
     def reverse(self):
         """ 
         Reverses the direction of the arc (switch direction).

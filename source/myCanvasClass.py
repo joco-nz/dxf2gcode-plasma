@@ -16,89 +16,301 @@ from PyQt4 import QtCore, QtGui
 from point import PointClass
 from shape import ShapeClass
 
+import math
 import globals as g
 import constants as c
 
-class myCanvasClass:
-    def __init__(self,myGraphicsView,parent):
-        
-        self.myGraphicsView=myGraphicsView
-        self.myGraphicsScene=None
-        self.parent=parent
-        
-        self.createContextMenu()
+       
+class MyGraphicsView(QtGui.QGraphicsView): 
+    """
+    This is the used Canvas to print the graphical interface of dxf2gcode. 
+    All GUI things should be performed in the View and plotting functions in 
+    the scene
+    @sideeffect: None                            
+    """  
 
-        self.Shapes=[]
+    def __init__(self, parent = None): 
+        """
+        Initialisation of the View Object. This is called by the ui created
+        with the QTDesigner.
+        @param parent: Main is passed as a pointer for reference.
+        """
+        super(MyGraphicsView, self).__init__(parent) 
+        self.currentItem=None
+        
+        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse) 
+        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter) 
+        
+        #self.setDragMode(QtGui.QGraphicsView.RubberBandDrag )
+        self.setDragMode(QtGui.QGraphicsView.NoDrag)
+        
+        self.parent=parent
+        self.mppos=None
+        self.selmode=0
+        
+        self.rubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, self)
+        #self.origin = QPoint()
+        
+        #self.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+        #self.createContextMenu()
+    
+    def contextMenuEvent(self, event):
+        """
+        Create the contextmenu.
+        @purpose: Links the callbacks to the actions in the menu
+        """
+        
+        scene=self.scene()
+        items=scene.selectedItems()
+        
+        if  len(items):
+            menu = QtGui.QMenu(self)
+            invertAction = menu.addAction("Invert Selection")
+            disableAction = menu.addAction("Disable Selection")
+            enableAction = menu.addAction("Enable Selection")
+            
+            menu.addSeparator()
+            
+            swdirectionAction = menu.addAction("Switch Directtion")
+            
+            quitAction.triggered.connect(self.close)
+    
+#            action = menu.exec_(self.mapToGlobal(event.pos()))
+#            if action == quitAction:
+#                pass
+
+
+
+#        popup.add_command(label=_('Invert Selection'),command=self.Content.invert_selection)
+#        popup.add_command(label=_('Disable Selection'),command=self.Content.disable_selection)
+#        popup.add_command(label=_('Enable Selection'),command=self.Content.enable_selection)
+#
+#        popup.add_separator()
+#        popup.add_command(label=_('Switch Direction'),command=self.Content.switch_shape_dir)
+#        
+#        #Untermenu fuer die Fräserkorrektur
+#        self.dir_var.set(self.Content.calc_dir_var())
+#        cut_cor_menu = Menu(popup,tearoff=0)
+#        cut_cor_menu.add_checkbutton(label=_("G40 No correction"),\
+#                                     variable=self.dir_var,onvalue=0,\
+#                                     command=lambda:self.Content.set_cut_cor(40))
+#        cut_cor_menu.add_checkbutton(label=_("G41 Cutting left"),\
+#                                     variable=self.dir_var,onvalue=1,\
+#                                     command=lambda:self.Content.set_cut_cor(41))
+#        cut_cor_menu.add_checkbutton(label=_("G42 Cutting right"),\
+#                                     variable=self.dir_var,onvalue=2,\
+#                                     command=lambda:self.Content.set_cut_cor(42))
+#        popup.add_cascade(label=_('Set Cutter Correction'),menu=cut_cor_menu)
+#
+
+
+#            
+    def close(self):
+        print 'Jaja'
+
+    def keyPressEvent(self,event):
+        """
+        Rewritten KeyPressEvent to get other behavior while Shift is pressed.
+        @purpose: Changes to ScrollHandDrag while Control pressed
+        @param event:    Event Parameters passed to function
+        """
+        if (event.key()==QtCore.Qt.Key_Shift):   
+            self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        elif (event.key()==QtCore.Qt.Key_Control):
+            self.selmode=1
+        else:
+            pass
+        
+        super(MyGraphicsView, self).keyPressEvent(event)  
+           
+    def keyReleaseEvent (self,event):
+        """
+        Rewritten KeyReleaseEvent to get other behavior while Shift is pressed.
+        @purpose: Changes to RubberBandDrag while Control released
+        @param event:    Event Parameters passed to function
+        """
+        if (event.key()==QtCore.Qt.Key_Shift):   
+            self.setDragMode(QtGui.QGraphicsView.NoDrag)
+            #self.setDragMode(QtGui.QGraphicsView.RubberBandDrag )
+        elif (event.key()==QtCore.Qt.Key_Control):
+            self.selmode=0
+        else:
+            pass
+        
+        super(MyGraphicsView, self).keyPressEvent(event)  
+
+    def wheelEvent(self,event):
+        """
+        With Mouse Wheel the Thing is scaled
+        @purpose: Scale by mouse wheel
+        @param event: Event Parameters passed to function
+        """
+        scale=(1000+event.delta())/1000.0
+        self.scale(scale,scale)
+        
+    def mousePressEvent(self, event):
+        """
+        Right Mouse click shall have no function, Therefore pass only left 
+        click event
+        @purpose: Change inherited mousePressEvent
+        @param event: Event Parameters passed to function
+        """
+        
+        if(self.dragMode())==1:
+            super(MyGraphicsView, self).mousePressEvent(event)
+        elif event.button() == QtCore.Qt.LeftButton:
+            self.mppos=event.pos() 
+        else:
+            pass
+        
+    def mouseReleaseEvent(self, event):
+        """
+        Right Mouse click shall have no function, Therefore pass only left 
+        click event
+        @purpose: Change inherited mousePressEvent
+        @param event: Event Parameters passed to function
+        """
+        delta=2
+        
+        if(self.dragMode())==1:
+            super(MyGraphicsView, self).mousePressEvent(event)
+        
+        #Selection only enabled for left Button
+        elif event.button() == QtCore.Qt.LeftButton:
+            #If the mouse button is pressed without movement of rubberband
+            if self.rubberBand.isHidden():
+                rect=QtCore.QRect(event.pos().x()-delta,event.pos().y()-delta,
+                          2*delta,2*delta)
+            #If movement is bigger and rubberband is enabled
+            else:
+                rect=self.rubberBand.geometry()
+                self.rubberBand.hide()
+
+            #All items in the selection
+            self.currentItems=self.items(rect)
+            #print self.currentItems
+            scene=self.scene()
+            
+            if self.selmode==0:
+                for item in scene.selectedItems():
+                    item.starrow.setSelected(False)
+                    item.enarrow.setSelected(False)
+                    item.setSelected(False)
+                
+            
+            for item in self.currentItems:
+                if item.isSelected():
+                    item.setSelected(False)
+                else:
+                    #print (item.flags())
+                    item.setSelected(True)
+                    
+        else:
+            pass
+        
+        self.mppos=None
+        #super(MyGraphicsView, self).mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """
+        MouseMoveEvent of the Graphiscview. May also be used for the Statusbar.
+        @purpose: Get the MouseMoveEvent and use it for the Rubberband Selection
+        @param event: Event Parameters passed to function
+        """
+        if not(self.mppos is None):
+            point = event.pos() - self.mppos
+            if (point.manhattanLength() > 3):
+                #print 'the mouse has moved more than 3 pixels since the oldPosition'
+                #print "Mouse Pointer is currently hovering at: ", event.pos() 
+                self.rubberBand.show()
+                self.rubberBand.setGeometry(QtCore.QRect(self.mppos, event.pos()).normalized())
+            
+        super(MyGraphicsView, self).mouseMoveEvent(event)        
+         
+    def autoscale(self):
+        """
+        Automatically zooms to the full extend of the current GraphicsScene
+        """
+        scene=self.scene()
+        scext=scene.itemsBoundingRect()
+        self.fitInView(scext,QtCore.Qt.KeepAspectRatio)
+        g.logger.logger.debug("Autoscaling to extend: %s" % (scext))
+        
+    def show_path_direction(self,flag):
+        """
+        This function is called by the Main Window from the Menubar.
+        @param flag: This flag is true if all Path Direction shall be shown
+        """
+        scene=self.scene()
+        for shape in scene.shapes:
+            shape.starrow.setallwaysshow(flag)
+            shape.enarrow.setallwaysshow(flag)
+            
+    def show_wp_zero(self,flag):
+        """
+        This function is called by the Main Window from the Menubar.
+        @param flag: This flag is true if all Path Direction shall be shown
+        """
+        scene=self.scene()
+        if flag is True:
+            scene.wpzero.show()
+        else:
+            scene.wpzero.hide()
+        
+      
+    def clearScene(self):
+        """
+        Deletes the existing GraphicsScene.
+        """
+        scene=self.scene()
+        del(scene) 
+        
+class MyGraphicsScene(QtGui.QGraphicsScene): 
+    """
+    This is the used Canvas to print the graphical interface of dxf2gcode.
+    The Scene is rendered into the previously defined mygraphicsView class. 
+    All performed plotting functions should be defined here.
+    @sideeffect: None                            
+    """       
+    def __init__(self):
+        QtGui.QGraphicsScene.__init__(self)
+       
+        self.shapes=[]
+        self.wpzero=[]
         self.LayerContents=[]
         self.EntitiesRoot=EntitieContentClass()
         self.BaseEntities=EntitieContentClass()
-        self.Selected=[]
-        self.Disabled=[]
-        self.wp_zero_hdls=[]
-        self.dir_hdls=[]
-        self.path_hdls=[]
-        
-        
-        self.myGraphicsView.setDragMode(QtGui.QGraphicsView.RubberBandDrag)
-        #self.myGraphicsView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
-        
 
-    def __str__(self):
-        s='\nNr. of Shapes -> %s' %len(self.Shapes)
-        for lay in self.LayerContents:
-            s=s+'\n'+str(lay)
-        for ent in self.EntitieContents:
-            s=s+'\n'+str(ent)
-        s=s+'\nSelected -> %s'%(self.Selected)\
-           +'\nDisabled -> %s'%(self.Disabled)
-        return s
-
-    def calc_dir_var(self):
-        if len(self.Selected)==0:
-            return -1
-        dir=self.Shapes[self.Selected[0]].cut_cor
-        for shape_nr in self.Selected[1:len(self.Selected)]: 
-            if not(dir==self.Shapes[shape_nr].cut_cor):
-                return -1   
-        return dir-40
-                
-    #Erstellen des Gesamten Ausdrucks      
+                   
     def makeplot(self,values,p0,pb,sca,rot):
         self.values=values
 
-        #Loeschen des Inhalts
-        self.clearScene()
-        
-        self.myGraphicsScene = myGraphicsScene(self.myGraphicsView)
-        self.myGraphicsView.setScene(self.myGraphicsScene)
-        self.myGraphicsView.show()
-        
-        #Standardwerte fuer scale, dx, dy zuweisen
-        #self.Canvas.scale=1
-        #self.Canvas.dx=0
-        #self.Canvas.dy=-self.Canvas.canvas.winfo_height()
 
         #Zuruecksetzen der Konturen
-        self.Shapes=[]
+        self.shapes=[]
+        self.wpzero=[]
         self.LayerContents=[]
         self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
                                             p0=p0,pb=pb,sca=sca,rot=rot)
-        self.Selected=[]
-        self.Disabled=[]
-        self.wp_zero_hdls=[]
-        self.dir_hdls=[]
-        self.path_hdls=[]
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
         self.makeshapes(parent=self.EntitiesRoot)
         self.plot_shapes()
+        self.plot_wp_zero()
         self.LayerContents.sort()
         #self.EntitieContents.sort()
 
-        #Autoscale des Canvas      
-        self.autoscale()
 
-   
+       #Drucken des Werkstuecknullpunkts
+    def plot_wp_zero(self):
+        
+        self.wpzero=WpZero(QtCore.QPointF(0,0))
+        self.addItem(self.wpzero)
+        
+        
+        #self.wpzero.hide()
+
+
     def makeshapes(self,parent=None,ent_nr=-1):
 
         if parent.Name=="Entities":      
@@ -140,7 +352,7 @@ class myCanvasClass:
                 
             else:
                 #Schleife fuer die Anzahl der Geometrien
-                self.Shapes.append(ShapeClass(len(self.Shapes),\
+                self.shapes.append(ShapeClass(len(self.shapes),\
                                                 cont.closed,\
                                                 40,\
                                                 0.0,\
@@ -154,93 +366,64 @@ class myCanvasClass:
                         for geo in ent_geo.geo:
                             geo=copy(geo)
                             geo.reverse()
-                            self.Shapes[-1].geos.append(geo)
+                            self.shapes[-1].geos.append(geo)
 
                         ent_geo.geo.reverse()
                     else:
                         for geo in ent_geo.geo:
-                            self.Shapes[-1].geos.append(copy(geo))
+                            self.shapes[-1].geos.append(copy(geo))
                         
-                self.addtoLayerContents(self.Shapes[-1],ent_geo.Layer_Nr)
-                parent.addchild(self.Shapes[-1])
+                self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
+                parent.addchild(self.shapes[-1])
+
 
     def plot_shapes(self):
-        for shape in self.Shapes:
+        for shape in self.shapes:
             shape.make_papath()
-            self.myGraphicsScene.addItem(shape)
-        
-        #g.logger.logger.debug("Update GrapicsScene %s:" % (dir(self.myGraphicsScene)))
-        
-        #self.myGraphicsScene.update()
-        
-    #Verschieben des Werkst�cknullpunkts auf die momentane Cursor Position
-    def set_wp_zero(self):
-        #print("Hier gehts dann")
-        #print ("X %0.2f Y %0.2f" %(self.Canvas.x, self.Canvas.y))
-        self.Canvas.window.Move_WP_zero(x=self.Canvas.x, y=self.Canvas.y)
+            self.addItem(shape)
+
+            shape.starrow=self.createstarrow(shape)
+            shape.enarrow=self.createenarrow(shape)
             
-    #Drucken des Werkstuecknullpunkts
-    def plot_wp_zero(self):
-        for hdl in self.wp_zero_hdls:
-            self.Canvas.canvas.delete(hdl) 
-        self.wp_zero_hdls=[]
-        if self.toggle_wp_zero.get(): 
-            x_zero,y_zero=self.Canvas.get_can_coordinates(0,0)
-            xy=x_zero-8,-y_zero-8,x_zero+8,-y_zero+8
-            hdl=Oval(self.Canvas.canvas,xy,outline="gray")
-            self.wp_zero_hdls.append(hdl)
+           
+            
+        g.logger.logger.debug("Update GrapicsScene %s:" % (dir(self)))
+        self.update()
+        
+            #Hinzufuegen der Kontur zum Layer
+            
+        #Erstellen des Gesamten Ausdrucks      
 
-            xy=x_zero-6,-y_zero-6,x_zero+6,-y_zero+6
-            hdl=Arc(self.Canvas.canvas,xy,start=0,extent=180,style="pieslice",outline="gray")
-            self.wp_zero_hdls.append(hdl)
-            hdl=Arc(self.Canvas.canvas,xy,start=90,extent=180,style="pieslice",outline="gray")
-            self.wp_zero_hdls.append(hdl)
-            hdl=Arc(self.Canvas.canvas,xy,start=270,extent=90,style="pieslice",outline="gray",fill="gray")
-            self.wp_zero_hdls.append(hdl)
-    def plot_cut_info(self):
-        for hdl in self.dir_hdls:
-            self.Canvas.canvas.delete(hdl) 
-        self.dir_hdls=[]
-
-        if not(self.toggle_start_stop.get()):
-            draw_list=self.Selected[:]
-        else:
-            draw_list=range(len(self.Shapes))
-               
-        for shape_nr in draw_list:
-            if not(shape_nr in self.Disabled):
-                self.dir_hdls+=self.Shapes[shape_nr].plot_cut_info(self.Canvas,self.config)
-
-
-    def plot_opt_route(self,shapes_st_en_points,route):
-        #Ausdrucken der optimierten Route
-        for en_nr in range(len(route)):
-            if en_nr==0:
-                st_nr=-1
-                col='gray'
-            elif en_nr==1:
-                st_nr=en_nr-1
-                col='gray'
-            else:
-                st_nr=en_nr-1
-                col='peru'
-                
-            st=shapes_st_en_points[route[st_nr]][1]
-            en=shapes_st_en_points[route[en_nr]][0]
-
-            x_ca_s,y_ca_s=self.Canvas.get_can_coordinates(st.x,st.y)
-            x_ca_e,y_ca_e=self.Canvas.get_can_coordinates(en.x,en.y)
-
-            self.path_hdls.append(Line(self.Canvas.canvas,x_ca_s,-y_ca_s,x_ca_e,-y_ca_e,fill=col,arrow='last'))
-        self.Canvas.canvas.update()
-
-
-    #Hinzufuegen der Kontur zum Layer        
+    def createstarrow(self,shape):
+        
+        length=20
+        start, start_ang = shape.get_st_en_points(0)
+        arrow=Arrow(QtCore.QPointF(start.x,-start.y),
+                    length,start_ang,
+                    QtGui.QColor(50, 200, 255),
+                    QtGui.QColor(50, 100, 255))
+        arrow.hide()
+        self.addItem(arrow)
+        return arrow
+        
+        
+    def createenarrow(self,shape):
+        
+        length=20
+        end, end_ang = shape.get_st_en_points(1)
+        arrow=Arrow(QtCore.QPointF(end.x,-end.y),
+                    length,end_ang,
+                    QtGui.QColor(0, 245, 100),
+                    QtGui.QColor(0, 180, 50),1)
+        arrow.hide()
+        self.addItem(arrow)
+        return arrow
+           
     def addtoLayerContents(self,shape_nr,lay_nr):
         #Abfrage of der gesuchte Layer schon existiert
         for LayCon in self.LayerContents:
             if LayCon.LayerNr==lay_nr:
-                LayCon.Shapes.append(shape_nr)
+                LayCon.shapes.append(shape_nr)
                 return
 
         #Falls er nicht gefunden wurde neuen erstellen
@@ -253,9 +436,9 @@ class myCanvasClass:
         for EntCon in self.EntitieContents:
             if EntCon.EntNr==ent_nr:
                 if c_nr==0:
-                    EntCon.Shapes.append([])
+                    EntCon.shapes.append([])
                 
-                EntCon.Shapes[-1].append(shape_nr)
+                EntCon.shapes[-1].append(shape_nr)
                 return
 
         #Falls er nicht gefunden wurde neuen erstellen
@@ -265,6 +448,64 @@ class myCanvasClass:
             EntName=self.values.blocks.Entities[ent_nr].Name
             
         self.EntitieContents.append(EntitieContentClass(ent_nr,EntName,[[shape_nr]]))
+        
+        
+        
+#    def calc_dir_var(self):
+#        if len(self.Selected)==0:
+#            return -1
+#        dir=self.shapes[self.Selected[0]].cut_cor
+#        for shape_nr in self.Selected[1:len(self.Selected)]: 
+#            if not(dir==self.shapes[shape_nr].cut_cor):
+#                return -1   
+#        return dir-40
+#        
+#    #Verschieben des Werkst�cknullpunkts auf die momentane Cursor Position
+#    def set_wp_zero(self):
+#        #print("Hier gehts dann")
+#        #print ("X %0.2f Y %0.2f" %(self.Canvas.x, self.Canvas.y))
+#        self.Canvas.window.Move_WP_zero(x=self.Canvas.x, y=self.Canvas.y)
+#            
+
+#    def plot_cut_info(self):
+#        for hdl in self.dir_hdls:
+#            self.Canvas.canvas.delete(hdl) 
+#        self.dir_hdls=[]
+#
+#        if not(self.toggle_start_stop.get()):
+#            draw_list=self.Selected[:]
+#        else:
+#            draw_list=range(len(self.shapes))
+#               
+#        for shape_nr in draw_list:
+#            if not(shape_nr in self.Disabled):
+#                self.dir_hdls+=self.shapes[shape_nr].plot_cut_info(self.Canvas,self.config)
+#
+#
+#    def plot_opt_route(self,shapes_st_en_points,route):
+#        #Ausdrucken der optimierten Route
+#        for en_nr in range(len(route)):
+#            if en_nr==0:
+#                st_nr=-1
+#                col='gray'
+#            elif en_nr==1:
+#                st_nr=en_nr-1
+#                col='gray'
+#            else:
+#                st_nr=en_nr-1
+#                col='peru'
+#                
+#            st=shapes_st_en_points[route[st_nr]][1]
+#            en=shapes_st_en_points[route[en_nr]][0]
+#
+#            x_ca_s,y_ca_s=self.Canvas.get_can_coordinates(st.x,st.y)
+#            x_ca_e,y_ca_e=self.Canvas.get_can_coordinates(en.x,en.y)
+#
+#            self.path_hdls.append(Line(self.Canvas.canvas,x_ca_s,-y_ca_s,x_ca_e,-y_ca_e,fill=col,arrow='last'))
+#        self.Canvas.canvas.update()
+
+
+
 
     def delete_opt_path(self):
         for hdl in self.path_hdls:
@@ -272,35 +513,9 @@ class myCanvasClass:
             
         self.path_hdls=[]
         
-    def deselect(self): 
-        self.set_shapes_color(self.Selected,'deselected')
-        
-        if not(self.toggle_start_stop.get()):
-            for hdl in self.dir_hdls:
-                self.Canvas.canvas.delete(hdl) 
-            self.dir_hdls=[]
-        
-    def addselection(self,items,mode):
-        for item in items:
-            
-            try:
-                tag=int(self.Canvas.canvas.gettags(item)[-1])
-                if not(tag in self.Selected):
-                    self.Selected.append(tag)
-
-                    self.textbox.prt(_('\n\nAdded shape to selection %s:')%(self.Shapes[tag]),3)
-                    
-                    if mode=='single':
-                        break
-            except:
-                pass
-            
-        self.plot_cut_info()
-        self.set_shapes_color(self.Selected,'selected')
- 
     def invert_selection(self):
         new_sel=[]
-        for shape_nr in range(len(self.Shapes)):
+        for shape_nr in range(len(self.shapes)):
             if (not(shape_nr in self.Disabled)) & (not(shape_nr in self.Selected)):
                 new_sel.append(shape_nr)
 
@@ -339,223 +554,27 @@ class myCanvasClass:
 
     def switch_shape_dir(self):
         for shape_nr in self.Selected:
-            self.Shapes[shape_nr].reverse()
+            self.shapes[shape_nr].reverse()
             self.textbox.prt(_('\n\nSwitched Direction at Shape: %s')\
-                             %(self.Shapes[shape_nr]),3)
+                             %(self.shapes[shape_nr]),3)
         self.plot_cut_info()
         
     def set_cut_cor(self,correction):
         for shape_nr in self.Selected: 
-            self.Shapes[shape_nr].cut_cor=correction
+            self.shapes[shape_nr].cut_cor=correction
             
             self.textbox.prt(_('\n\nChanged Cutter Correction at Shape: %s')\
-                             %(self.Shapes[shape_nr]),3)
+                             %(self.shapes[shape_nr]),3)
         self.plot_cut_info() 
         
-    def set_shapes_color(self,shape_nrs,state):
-        s_shape_nrs=[]
-        d_shape_nrs=[]
-        for shape in shape_nrs:
-            if not(shape in self.Disabled):
-                s_shape_nrs.append(shape)
-            else:
-                d_shape_nrs.append(shape)
-        
-        s_hdls=self.get_shape_hdls(s_shape_nrs)
-        d_hdls=self.get_shape_hdls(d_shape_nrs)
-    
-        if state=='deselected':
-            s_color='black'
-            d_color='gray'
-            self.Selected=[]
-        elif state=='selected':
-            s_color='red'
-            d_color='blue'
-        elif state=='disabled':
-            s_color='gray'
-            d_color='gray'
-            
-        self.set_color(s_hdls,s_color)
-        self.set_color(d_hdls,d_color)
-
-        if (self.toggle_show_disabled.get()==0):
-            self.set_hdls_hidden(d_shape_nrs)
-        
-    def set_color(self,hdls,color):
-        for hdl in hdls:
-            if (self.Canvas.canvas.type(hdl)=="oval") :
-                self.Canvas.canvas.itemconfig(hdl, outline=color)
-            else:
-                self.Canvas.canvas.itemconfig(hdl, fill=color)
-
-    def set_hdls_hidden(self,shape_nrs):
-        hdls=self.get_shape_hdls(shape_nrs)
-        for hdl in hdls:
-            self.Canvas.canvas.itemconfig(hdl,state='hidden')
-
-    def set_hdls_normal(self,shape_nrs):
-        hdls=self.get_shape_hdls(shape_nrs)
-        for hdl in hdls:
-            self.Canvas.canvas.itemconfig(hdl,state='normal')            
-        
-    def get_shape_hdls(self,shape_nrs):        
-        hdls=[]
-        for s_nr in shape_nrs:
-            if type(self.Shapes[s_nr].geos_hdls[0]) is list:
-                for subcont in self.Shapes[s_nr].geos_hdls:
-                    hdls=hdls+subcont
-            else:
-                hdls=hdls+self.Shapes[s_nr].geos_hdls
-        return hdls   
-    def autoscale(self):
-        """
-        Automatically zooms to the full extend of the current GraphicsScene
-        """
-        scext=self.myGraphicsScene.itemsBoundingRect()
-        self.myGraphicsView.fitInView(scext,QtCore.Qt.KeepAspectRatio)
-        g.logger.logger.debug("Autoscaling to extend: %s" % (scext))
-        
-    def clearScene(self):
-        """
-        Deletes the existing GraphicsScene.
-        """
-        del(self.myGraphicsScene) 
-        
-
-    def createContextMenu(self):
-        """
-        Create the actions of the main toolbar.
-        @purpose: Links the callbacks to the actions in the menu
-        """
-
-        self.myGraphicsView.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
-
-        quitAction = QtGui.QAction("Quit", self.parent)
-        quitAction.triggered.connect(self.close)
-        
-        quitAction2 = QtGui.QAction("Quit", self.parent)
-        quitAction2.triggered.connect(self.close)
-        
-        self.myGraphicsView.addAction(quitAction)
-        self.myGraphicsView.addAction(quitAction2)
-        
-
-        
-    def close(self):
-        pass
+         
                          
-                         
-                         
-class MyGraphicsView(QtGui.QGraphicsView): 
-    #moved = QtCore.pyqtSignal(QtGui.QMouseEvent) 
- 
-    def __init__(self, parent = None): 
-        super(MyGraphicsView, self).__init__(parent) 
-        self.currentItem=None
-        
-    def mousePressEvent(self, event):
-        
-        delta=2
-        rect=QtCore.QRect(event.pos().x()-delta,event.pos().y()-delta,
-                          2*delta,2*delta)
-        
-        self.currentItems=self.items(event.pos())
-        print self.currentItems
-        
-        for item in self.currentItems:
-            item.setPen(QtGui.QPen(QtCore.Qt.red)); 
-        
-        if event.button() == QtCore.Qt.LeftButton:
-            print "left"
-        else:
-            print 'right'
 
-
-    def mouseMoveEvent(self, event): 
-        # call the base method to be sure the events are forwarded to the scene 
-        #super(MyGraphicsView, self).mouseMoveEvent(event) 
- 
-        #print "Mouse Pointer is currently hovering at: ", event.pos() 
-        #self.moved.emit(event) 
-        pass
-                                            
-class myGraphicsScene(QtGui.QGraphicsScene): 
-    """
-    This is the used Canvas to print the graphical interface of dxf2gcode.
-    The Scene is rendered into the previously defined mygraphicsView class. 
-    All performed plotting functions should be defined here.
-    @sideeffect: None                            
-    """       
-    def __init__(self, myGraphicsView):
-        QtGui.QGraphicsScene.__init__(self)
-        self.myGraphicsView=myGraphicsView
-        
-        self.myGraphicsView.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
-        #self.myGraphicsView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
-
-
-                
-        
-    def wheelEvent(self,event):
-        scale=(1000+event.delta())/1000.0
-
-        
-        # self.myGraphicsView.setAttribute(QtCore.Qt.WA_MouseTracking, True)
-        #  setAttribute  setAttribute(Qt::WA_MouseTracking, true) 
-
-        self.myGraphicsView.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse) 
-        self.myGraphicsView.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter) 
-        
-        self.myGraphicsView.setAttribute(QtCore.Qt.WA_MouseTracking, True)
-        self.myGraphicsView.scale(scale,scale)
-        
-
-        
-
-#    def mouse_move_motion(self,event):
-#        self.moving(event)
-#        dx=event.x-self.lastevent.x
-#        dy=event.y-self.lastevent.y
-#        self.dx=self.dx-dx/self.scale
-#        self.dy=self.dy+dy/self.scale
-#        self.canvas.move(ALL,dx,dy)
-#        self.lastevent=event
-#
-#    def mouse_move_release(self,event):
-#        self.master.config(cursor="")      
-#
-#    #Callback fuer das Zoomen des Bildes     
-#    def mouse_zoom(self,event):
-#        self.canvas.focus_set()
-#        self.master.config(cursor="sizing")
-#        self.firstevent=event
-#        self.lastevent=event
-#
-#    def mouse_zoom_motion(self,event):
-#        self.moving(event)
-#        dy=self.lastevent.y-event.y
-#        sca=(1+(dy*3)/float(self.canvas.winfo_height()))
-#       
-#        self.dx=(self.firstevent.x+((-self.dx*self.scale)-self.firstevent.x)*sca)/sca/-self.scale
-#        eventy=self.canvas.winfo_height()-self.firstevent.y
-#        self.dy=(eventy+((-self.dy*self.scale)-eventy)*sca)/sca/-self.scale
-#        
-#        self.scale=self.scale*sca
-#        self.canvas.scale( ALL, self.firstevent.x,self.firstevent.y,sca,sca)
-#        self.lastevent=event
-#
-#        self.Content.plot_cut_info() 
-#        self.Content.plot_wp_zero()
-#
-#    def mouse_zoom_release(self,event):
-#        self.master.config(cursor="")
-        
-            
 class LayerContentClass:
-    def __init__(self,LayerNr=None,LayerName='',Shapes=[]):
+    def __init__(self,LayerNr=None,LayerName='',shapes=[]):
         self.LayerNr=LayerNr
         self.LayerName=LayerName
-        self.Shapes=Shapes
+        self.shapes=shapes
         
     def __cmp__(self, other):
          return cmp(self.LayerNr, other.LayerNr)
@@ -564,7 +583,7 @@ class LayerContentClass:
         return ('\ntype:        %s' %self.type) +\
                ('\nLayerNr :      %i' %self.LayerNr) +\
                ('\nLayerName:     %s' %self.LayerName)+\
-               ('\nShapes:    %s' %self.Shapes)       
+               ('\nshapes:    %s' %self.shapes)       
                
    
 class EntitieContentClass:
@@ -598,3 +617,188 @@ class EntitieContentClass:
     def addchild(self,child):
         self.children.append(child)
                       
+                      
+class Arrow(QtGui.QGraphicsLineItem):
+    def __init__(self, startp, length, angle, 
+                 color=QtCore.Qt.red,pencolor=QtCore.Qt.green,
+                 dir=0):
+        self.sc=1
+        super(Arrow, self).__init__()
+
+        self.startp=startp
+        self.endp=startp
+        self.length=length
+        self.angle=angle
+        self.dir=dir
+        self.allwaysshow=False
+        
+        
+        self.arrowHead = QtGui.QPolygonF()
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
+        self.myColor=color
+        self.pen=QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
+                QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.arrowSize = 8.0
+        
+        self.pen.setCosmetic(True)
+        
+    def setSelected(self,flag=True):
+        """
+        Override inherited function to turn off selection of Arrows.
+        @param flag: The flag to enable or disable Selection
+        """
+        if self.allwaysshow:
+            pass
+        elif flag is True:
+            self.show()
+        else:
+            self.hide()
+        
+        self.update(self.boundingRect())
+        
+    def setallwaysshow(self,flag=False):
+        """
+        If the directions shall be allwaysshown the paramerter will be set and 
+        all paths will be shown.
+        @param flag: The flag to enable or disable Selection
+        """
+        self.allwaysshow=flag
+        if flag is True:
+            self.show()
+        elif flag is True and self.isSelected():
+            self.show()
+        else:
+            self.hide()
+        self.update(self.boundingRect())
+            
+               
+    def paint(self, painter, option, widget=None):
+        demat=painter.deviceTransform()
+        self.sc=demat.m11()
+        
+        dx = math.cos(math.radians(self.angle)) * self.length/self.sc
+        dy = math.sin(math.radians(self.angle)) * self.length/self.sc
+        
+        self.endp=QtCore.QPointF(self.startp.x()+dx,self.startp.y()-dy)
+        
+        
+        arrowSize=self.arrowSize/self.sc
+        #print(demat.m11())
+       
+    
+        painter.setPen(self.pen)
+        painter.setBrush(self.myColor)
+
+        centerLine = QtCore.QLineF(self.startp, self.endp)
+        
+
+        
+        self.setLine(QtCore.QLineF(self.endp,self.startp))
+        line = self.line()
+
+        angle = math.acos(line.dx() / line.length())
+        if line.dy() >= 0:
+            angle = (math.pi * 2.0) - angle
+
+        if self.dir==0:
+            arrowP1 = line.p1() + QtCore.QPointF(math.sin(angle + math.pi / 3.0) * arrowSize,
+                                            math.cos(angle + math.pi / 3) * arrowSize)
+            arrowP2 = line.p1() + QtCore.QPointF(math.sin(angle + math.pi - math.pi / 3.0) * arrowSize,
+                                            math.cos(angle + math.pi - math.pi / 3.0) * arrowSize)
+            self.arrowHead.clear()
+            for point in [line.p1(), arrowP1, arrowP2]:
+                self.arrowHead.append(point)
+                
+        else:
+            arrowP1 = line.p2() - QtCore.QPointF(math.sin(angle + math.pi / 3.0) * arrowSize,
+                                            math.cos(angle + math.pi / 3) * arrowSize)
+            arrowP2 = line.p2() - QtCore.QPointF(math.sin(angle + math.pi - math.pi / 3.0) * arrowSize,
+                                            math.cos(angle + math.pi - math.pi / 3.0) * arrowSize)
+            self.arrowHead.clear()
+            for point in [line.p2(), arrowP1, arrowP2]:
+                self.arrowHead.append(point)
+
+        
+
+        painter.drawLine(line)
+        painter.drawPolygon(self.arrowHead)
+
+
+    def boundingRect(self):
+        """
+        Override inherited function to enlarge selection of Arrow to include all
+        @param flag: The flag to enable or disable Selection
+        """
+        
+        #print("super: %s" %super(Arrow, self).boundingRect())
+        arrowSize=self.arrowSize/self.sc
+        extra = (self.pen.width() + arrowSize) / 2.0
+      
+        return QtCore.QRectF(self.startp,
+                              QtCore.QSizeF(self.endp.x()-self.startp.x(),
+                                             self.endp.y()-self.startp.y())).normalized().adjusted(-extra, -extra, extra, extra)
+
+class WpZero(QtGui.QGraphicsItem):
+    def __init__(self, center,color=QtCore.Qt.gray):
+        self.sc=1
+        super(WpZero, self).__init__()
+
+        self.center=center
+        self.allwaysshow=False
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
+        self.color=color
+        self.pen=QtGui.QPen(self.color, 1, QtCore.Qt.SolidLine,
+                QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen.setCosmetic(True)
+        
+        self.diameter = 20.0
+ 
+    def setSelected(self,flag=True):
+        """
+        Override inherited function to turn off selection of Arrows.
+        @param flag: The flag to enable or disable Selection
+        """
+        pass
+        
+    def setallwaysshow(self,flag=False):
+        """
+        If the directions shall be allwaysshown the paramerter will be set and 
+        all paths will be shown.
+        @param flag: The flag to enable or disable Selection
+        """
+        self.allwaysshow=flag
+        if flag is True:
+            self.show()
+        else:
+            self.hide()
+        self.update(self.boundingRect())
+               
+    def paint(self, painter, option, widget=None):
+        demat=painter.deviceTransform()
+        self.sc=demat.m11()
+        
+        diameter1=self.diameter/self.sc
+        diameter2=(self.diameter-4)/self.sc
+       
+        rectangle1=QtCore.QRectF(-diameter1/2, -diameter1/2, diameter1, diameter1)
+        rectangle2=QtCore.QRectF(-diameter2/2, -diameter2/2, diameter2, diameter2)
+        startAngle1 = 90 * 16
+        spanAngle = 90 * 16
+        startAngle2 = 270 * 16
+    
+        painter.drawEllipse(rectangle1)
+        painter.drawEllipse(rectangle2)
+        painter.drawPie(rectangle2, startAngle1, spanAngle)
+
+        painter.setBrush(self.color)
+        painter.drawPie(rectangle2, startAngle2, spanAngle)
+        
+    def boundingRect(self):
+        """
+        Override inherited function to enlarge selection of Arrow to include all
+        @param flag: The flag to enable or disable Selection
+        """
+        diameter=self.diameter/self.sc
+        return QtCore.QRectF(-20, -20.0, 40.0, 40.0)
+
+ 
