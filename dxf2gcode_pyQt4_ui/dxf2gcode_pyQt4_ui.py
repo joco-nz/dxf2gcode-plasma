@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Sun Dec 04 21:00:42 2011
+# Created: Wed Dec 14 16:35:28 2011
 #      by: PyQt4 UI code generator 4.5.4
 #
 # WARNING! All changes made in this file will be lost!
@@ -78,10 +78,10 @@ class Ui_MainWindow(object):
         self.verticalLayout_3.addLayout(self.formLayout)
         self.mytabWidget.addTab(self.tab_2, "")
         self.horizontalLayout.addWidget(self.mytabWidget)
-        self.mygraphicsView = MyGraphicsView(self.centralwidget)
-        self.mygraphicsView.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
-        self.mygraphicsView.setObjectName("mygraphicsView")
-        self.horizontalLayout.addWidget(self.mygraphicsView)
+        self.MyGraphicsView = MyGraphicsView(self.centralwidget)
+        self.MyGraphicsView.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
+        self.MyGraphicsView.setObjectName("MyGraphicsView")
+        self.horizontalLayout.addWidget(self.MyGraphicsView)
         self.verticalLayout.addLayout(self.horizontalLayout)
         self.myMessageBox = QtGui.QTextBrowser(self.centralwidget)
         self.myMessageBox.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
@@ -121,12 +121,12 @@ class Ui_MainWindow(object):
         self.actionShow_WP_Zero.setObjectName("actionShow_WP_Zero")
         self.actionShow_path_directions = QtGui.QAction(MainWindow)
         self.actionShow_path_directions.setCheckable(True)
-        self.actionShow_path_directions.setChecked(True)
+        self.actionShow_path_directions.setChecked(False)
         self.actionShow_path_directions.setEnabled(False)
         self.actionShow_path_directions.setObjectName("actionShow_path_directions")
         self.actionShow_hiden_paths = QtGui.QAction(MainWindow)
         self.actionShow_hiden_paths.setCheckable(True)
-        self.actionShow_hiden_paths.setChecked(True)
+        self.actionShow_hiden_paths.setChecked(False)
         self.actionShow_hiden_paths.setEnabled(False)
         self.actionShow_hiden_paths.setObjectName("actionShow_hiden_paths")
         self.actionAutoscale = QtGui.QAction(MainWindow)
@@ -181,7 +181,7 @@ class Ui_MainWindow(object):
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Linie 1 Edit Feld", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("MainWindow", "Linie 2 Edit Feld", None, QtGui.QApplication.UnicodeUTF8))
         self.mytabWidget.setTabText(self.mytabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Layers", None, QtGui.QApplication.UnicodeUTF8))
-        self.mygraphicsView.setToolTip(QtGui.QApplication.translate("MainWindow", "Graphic Area for drawing\n"
+        self.MyGraphicsView.setToolTip(QtGui.QApplication.translate("MainWindow", "Graphic Area for drawing\n"
 "", None, QtGui.QApplication.UnicodeUTF8))
         self.menuFile.setTitle(QtGui.QApplication.translate("MainWindow", "File", None, QtGui.QApplication.UnicodeUTF8))
         self.menuExport.setStatusTip(QtGui.QApplication.translate("MainWindow", "Export the current project to G-Code", None, QtGui.QApplication.UnicodeUTF8))

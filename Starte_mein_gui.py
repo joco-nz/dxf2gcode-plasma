@@ -55,7 +55,7 @@ class Main(QtGui.QMainWindow):
         
         self.createActions()
 
-        self.myCanvasClass=myCanvasClass(self.ui.mygraphicsView,self)
+        self.MyGraphicsView=self.ui.MyGraphicsView
         
         self.myMessageBox=myMessageBox(self.ui.myMessageBox)
  
@@ -70,9 +70,24 @@ class Main(QtGui.QMainWindow):
         self.ui.actionExit.triggered.connect(self.close)
         self.ui.actionLoad_File.triggered.connect(self.showDialog)
         self.ui.actionAbout.triggered.connect(self.about)
+        self.ui.actionAutoscale.triggered.connect(self.autoscale)
+        self.ui.actionShow_path_directions.triggered.connect(self.show_path_directions)
+        self.ui.actionShow_WP_Zero.triggered.connect(self.show_wp_zero)
         
+    def enableplotmenu(self,status=True):
+        """
+        Enable the Toolbar buttons.
+        @param status: Set True to enable False to disable
+        """
         
-
+        self.ui.actionShow_path_directions.setEnabled(status)
+        self.ui.actionShow_hiden_paths.setEnabled(status)
+        self.ui.actionAutoscale.setEnabled(status)
+        #self.ui.actionDelete_G0_paths.setEnabled(status)
+        self.ui.actionScale_all.setEnabled(status)
+        self.ui.actionRotate_all.setEnabled(status)
+        self.ui.actionMove_WP_zero.setEnabled(status)
+        self.ui.actionShow_WP_Zero.setEnabled(status)
         
     def showDialog(self):
         """
@@ -97,7 +112,20 @@ class Main(QtGui.QMainWindow):
         #If there is something to load then call the load function callback
         if not(filename==""):
             values=self.loadFile(filename)
+            
+    def autoscale(self):
+        """
+        This function is called by the menu "Autoscal" of the main forwards the
+        call to MyGraphicsview.autoscale() 
+        """
+        self.MyGraphicsView.autoscale()
 
+    def autoscale(self):
+        """
+        This function is called by the menu "Autoscal" of the main forwards the
+        call to MyGraphicsview.autoscale() 
+        """
+        self.MyGraphicsView.autoscale()
             
     def about(self):
         """
@@ -108,6 +136,23 @@ class Main(QtGui.QMainWindow):
                 "The <b>Diagram Scene</b> example shows use" +\
                 " of the graphics framework.")
      
+    def show_path_directions(self):
+        """
+        This function is called by the menu "Show all path directions" of the
+        main and forwards the call to MyGraphicsview.show_path_directions() 
+        """
+        flag=self.ui.actionShow_path_directions.isChecked()
+        self.MyGraphicsView.show_path_direction(flag)
+        
+    def show_wp_zero(self):
+        """
+        This function is called by the menu "Show WP Zero" of the
+        main and forwards the call to MyGraphicsview.show_wp_zero() 
+        """
+        flag=self.ui.actionShow_WP_Zero.isChecked()
+        self.MyGraphicsView.show_wp_zero(flag)
+        
+        
     def loadFile(self,filename):
         """
         Loads the defined file of filename also calls the command to 
@@ -151,12 +196,18 @@ class Main(QtGui.QMainWindow):
                              % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
         
         self.plotall(values)
+        
+        #After all is plotted enable the Menu entities
+        self.enableplotmenu()
 
     def plotall(self,values):
         """
         Plots all data stored in the values paramter to the Canvas
         @param values: Includes all values loaded from the dxf file
         """
+        
+        
+        
         #Skalierung der Kontur
         self.cont_scale = 1.0
         
@@ -167,13 +218,23 @@ class Main(QtGui.QMainWindow):
         #Rotieren um den WP zero
         self.rotate = 0.0
 
-        #Ausdrucken der Werte        
-        self.myCanvasClass.makeplot(values,
+        #Ausdrucken der Werte     
+        self.MyGraphicsView.clearScene()
+        self.MyGraphicsScene=MyGraphicsScene()   
+        self.MyGraphicsScene.makeplot(values,
                                     p0=PointClass(x=0.0, y=0.0),
                                     pb=PointClass(x=0, y=0),
                                     sca=[1.0,1.0,1.0],
                                     rot=0.0)
-#
+        
+        
+        self.MyGraphicsView.setScene(self.MyGraphicsScene)
+        self.MyGraphicsView.show()
+        self.MyGraphicsView.setFocus()
+        
+        #Autoscale des Canvas      
+        self.MyGraphicsView.autoscale()
+
 #        #Loeschen alter Route Menues
 #        self.del_route_and_menuentry()
      
