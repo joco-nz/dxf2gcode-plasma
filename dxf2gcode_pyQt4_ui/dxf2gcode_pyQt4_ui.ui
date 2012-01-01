@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1024</width>
-    <height>799</height>
+    <width>1146</width>
+    <height>848</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -132,7 +132,19 @@
        </layout>
       </item>
       <item>
-       <widget class="QTextBrowser" name="myMessageBox">
+       <widget class="myMessageBox" name="myMessageBox">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>16777215</width>
+          <height>120</height>
+         </size>
+        </property>
         <property name="verticalScrollBarPolicy">
          <enum>Qt::ScrollBarAlwaysOn</enum>
         </property>
@@ -147,8 +159,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1024</width>
-     <height>22</height>
+     <width>1146</width>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -176,7 +188,7 @@
     </property>
     <addaction name="actionShow_WP_Zero"/>
     <addaction name="actionShow_path_directions"/>
-    <addaction name="actionShow_hiden_paths"/>
+    <addaction name="actionShow_disabled_paths"/>
     <addaction name="separator"/>
     <addaction name="actionAutoscale"/>
     <addaction name="separator"/>
@@ -260,7 +272,7 @@
     <string>Show path directions</string>
    </property>
   </action>
-  <action name="actionShow_hiden_paths">
+  <action name="actionShow_disabled_paths">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -271,7 +283,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show hiden paths</string>
+    <string>Show disabled paths</string>
    </property>
   </action>
   <action name="actionAutoscale">
@@ -330,6 +342,11 @@
    <class>MyGraphicsView</class>
    <extends>QGraphicsView</extends>
    <header>myCanvasClass</header>
+  </customwidget>
+  <customwidget>
+   <class>myMessageBox</class>
+   <extends>QTextBrowser</extends>
+   <header>myMessageBox</header>
   </customwidget>
  </customwidgets>
  <resources>

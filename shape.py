@@ -47,7 +47,7 @@ class ShapeClass(QtGui.QGraphicsItem):
     def __init__(self, nr='None', closed=0,
                 cut_cor=40, length=0.0,
                 parent=None,
-                geos=[], geos_hdls=[],
+                geos=[],
                 plotoption=0):
         """ 
         Standard method to initialize the class
@@ -57,14 +57,16 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.pen.setCosmetic(True)
         self.sel_pen=QtGui.QPen(QtCore.Qt.red,2,QtCore.Qt.DashLine)
         self.sel_pen.setCosmetic(True)
+        self.dis_pen=QtGui.QPen(QtCore.Qt.gray,2,QtCore.Qt.DotLine)
+        self.dis_pen.setCosmetic(True)
+        self.sel_dis_pen=QtGui.QPen(QtCore.Qt.blue,2,QtCore.Qt.DotLine)
+        self.sel_dis_pen.setCosmetic(True)
         
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
         
-        #super(ShapeClass, self).__init__(parent)      
-               
-            
+        self.disabled=False
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -72,7 +74,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.length = length
         self.parent = parent
         self.geos = geos
-        self.geos_hdls = geos_hdls
         self.BB = BoundingBoxClass(Pa=None, Pe=None)
         self.plotoption = plotoption
 
@@ -86,8 +87,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                ('\nclosed:      %i' % self.closed) + \
                ('\ncut_cor:     %s' % self.cut_cor) + \
                ('\nlen(geos):   %i' % len(self.geos)) + \
-               ('\ngeos:        %s' % self.geos) + \
-               ('\ngeo_hdls:    %s' % self.geos_hdls)
+               ('\ngeos:        %s' % self.geos)
 
     def setPen(self,pen):
         """ 
@@ -105,12 +105,16 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param option: Possible options here
         @param _widget: The widget which is painted on.
         """ 
-        if self.isSelected():
+        
+        if self.isSelected() and not(self.isDisabled()):
             painter.setPen(self.sel_pen)
-            #self.starrow.show()
-        else:
+        elif not(self.isDisabled()):
             painter.setPen(self.pen)
-            #self.starrow.hide()  
+        elif self.isSelected() and self.isDisabled():
+            painter.setPen(self.sel_dis_pen)
+        else:
+            painter.setPen(self.dis_pen)
+    
             
         painter.drawPath(self.path) 
         
@@ -153,14 +157,40 @@ class ShapeClass(QtGui.QGraphicsItem):
         """
         self.starrow.setSelected(flag)
         self.enarrow.setSelected(flag)
+        self.stmove.setSelected(flag)
 
         super(ShapeClass, self).setSelected(flag)
 
+    def setDisable(self,flag=False):
+        """
+        New implemented function which is in parallel to show and hide. 
+        @param flag: The flag to enable or disable Selection
+        """
+        self.disabled=flag
+        scene=self.scene()
+
+        if not(scene.showDisabled) and flag:
+            self.hide()
+            self.starrow.setSelected(False)
+            self.enarrow.setSelected(False)
+            self.stmove.setSelected(False)
+        else:
+            self.show()
+        
+    def isDisabled(self):
+        """
+        Returns the state of self.Disabled
+        """
+        return self.disabled
+        
     def AnalyseAndOptimize(self, MyConfig=None):
         """ 
-        Standard method to print the object
-        @return: A string
+        This method is called after the shape has been generated before it gets
+        plotted to change all shape direction to a CW shape.
+        FIXME
         """ 
+        
+        g.logger.logger.debug("Analysing the shape for CW direction %s:" % (self))
         #Optimisation for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
@@ -181,9 +211,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                                         
             if summe > 0.0:
                 self.reverse()
-                    
-            
-     
+                     
     def reverse(self):
         """ 
         Reverses the direction of the whole shape (switch direction).
@@ -191,7 +219,15 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.geos.reverse()
         for geo in self.geos: 
             geo.reverse()
+            
+        start, start_ang = self.get_st_en_points(0)
+        end, end_ang = self.get_st_en_points(1)
 
+        self.update(self.boundingRect())
+        self.enarrow.reverseshape(end,end_ang)
+        self.starrow.reverseshape(start,start_ang)
+        self.stmove.reverseshape(start,start_ang)
+        
     def switch_cut_cor(self):
         """ 
         Switches the cutter direction between 41 and 42.
@@ -200,6 +236,8 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.cut_cor = 42
         elif self.cut_cor == 42:
             self.cut_cor = 41
+            
+        self.updateCutCor()
 
     def get_st_en_points(self, dir=None):
         """
@@ -226,165 +264,26 @@ class ShapeClass(QtGui.QGraphicsItem):
         start, start_ang=self.get_st_en_points()
         
         self.path=QtGui.QPainterPath()
+
         self.path.moveTo(start.x,-start.y)
         
-        g.logger.logger.debug("Adding shape %s:" % (self))
+        g.logger.logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
         
         for geo in self.geos:
             geo.add2path(papath=self.path,parent=self.parent)
             
+            
+    def updateCutCor(self):
+        """
+        This function is called to update the Cutter Correction and therefore 
+        the  startmoves if smth. has changed or it shall be generated for 
+        first time.
+        """
         
-            
-#                                         tag=self.nr,
-#                                         col=col,
-#                                         plotoption=self.plotoption)
-            
-#        if DEBUG:
-#            self.BB.plot2can(canvas=canvas, tag=self.nr, col='green', hdl=self.geos_hdls)
-            
-    def plot_cut_info(self, CanvasClass, config):
-        hdls = []
-        hdls.append(self.plot_start(CanvasClass))
-        hdls.append(self.plot_end(CanvasClass))
-        if self.cut_cor > 40:
-            hdls.append(self.plot_cut_cor(CanvasClass))
-          
-            self.make_start_moves(config)
+        self.stmove.updateCutCor(self.cut_cor)
             
             
-            #Versatz des Zeichnens durch Position
-            P0 = PointClass(x= -CanvasClass.dx * CanvasClass.scale,
-                        y= -CanvasClass.dy * CanvasClass.scale - CanvasClass.canvas.winfo_height())
-                        
-            #Korrektur der Skalierung
-            sca = [CanvasClass.scale] * 3
-            
-            #BaseEntitie erstellen um auf oberster Ebene zu Fr�sen
-            BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
-                                        parent=None,
-                                        children=[],
-                                        p0=P0,
-                                        pb=PointClass(x=0.0, y=0.0),
-                                        sca=sca,
-                                        rot=0.0)
-            
-            
-            hdls += self.st_move[1].plot2can(CanvasClass.canvas, BaseEntitie, tag=self.nr, col='SteelBlue3')
-            hdls += self.st_move[2].plot2can(CanvasClass.canvas, BaseEntitie, tag=self.nr, col='SteelBlue3')
-        return hdls
-            
-    def plot_start(self, Canvas=None, length=20):
-        #st_point, st_angle=self.geos[0].get_start_end_points(0,parent)
-                
-        start, start_ang = self.get_st_en_points(0)
 
-        x_ca, y_ca = Canvas.get_can_coordinates(start.x, start.y)
-
-        dx = cos(radians(start_ang)) * length
-        dy = sin(radians(start_ang)) * length
-
-        hdl = Line(Canvas.canvas, x_ca, -y_ca, x_ca + dx, -y_ca - dy, fill='SteelBlue3', arrow='last')
-        return hdl
-    
-    
-    #Funktion zum drucken der zu fr�senden Kontur mit den Richtungspfeilen usw.
-    def plot_cut_cor(self, Canvas=None, length=20):
-        start, start_ang = self.get_st_en_points(0)
-
-        #BaseEntitie erstellen um auf oberster Ebene zu Fr�sen
-        BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
-                                        parent=None,
-                                        children=[],
-                                        p0=PointClass(x=0.0, y=0.0),
-                                        pb=PointClass(x=0.0, y=0.0),
-                                        sca=[1, 1, 1],
-                                        rot=0.0)
-
-
-        x_ca, y_ca = Canvas.get_can_coordinates(start.x, start.y)
-        
-        if self.cut_cor == 41:
-            start_ang = start_ang + 90
-        else:
-            start_ang = start_ang - 90
-            
-        dx = cos(radians(start_ang)) * length
-        dy = sin(radians(start_ang)) * length
-
-        hdl = Line(Canvas.canvas, x_ca, -y_ca, x_ca + dx, -y_ca - dy, fill='SteelBlue3', arrow='last')
-        return hdl
-            
-    def plot_end(self, Canvas=None, length=20):
-        ende, en_angle = self.get_st_en_points(1)
-      
-        dx = cos(radians(en_angle)) * length
-        dy = sin(radians(en_angle)) * length
-
-        x_ca, y_ca = Canvas.get_can_coordinates(ende.x, ende.y)
-
-        hdl = Line(Canvas.canvas, x_ca, -y_ca, x_ca + dx, -y_ca - dy, fill='PaleGreen2', arrow='first')
-        return hdl
-
-    def make_start_moves(self, config):
-        self.st_move = []
-
-        #Einlaufradius und Versatz 
-        start_rad = config.start_rad.get()
-        start_ver = start_rad
-
-        #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad = config.tool_dia.get() / 2
-    
-        #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
-        start, start_ang = self.get_st_en_points(0)
-      
-        if self.cut_cor == 40:              
-            self.st_move.append(start)
-
-        #Fr�sradiuskorrektur Links        
-        elif self.cut_cor == 41:
-            #Mittelpunkts f�r Einlaufradius
-            Oein = start.get_arc_point(start_ang + 90, start_rad + tool_rad)
-            #Startpunkts f�r Einlaufradius
-            Pa_ein = Oein.get_arc_point(start_ang + 180, start_rad + tool_rad)
-            #Startwerts f�r Einlaufgerade
-            Pg_ein = Pa_ein.get_arc_point(start_ang + 90, start_ver)
-            
-            #Eintauchpunkt errechnete Korrektur
-            start_ein = Pg_ein.get_arc_point(start_ang, tool_rad)
-            self.st_move.append(start_ein)
-
-            #Einlaufgerade mit Korrektur
-            start_line = LineGeo(Pg_ein, Pa_ein)
-            self.st_move.append(start_line)
-
-            #Einlaufradius mit Korrektur
-            start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, r=start_rad + tool_rad, dir=1)
-            self.st_move.append(start_rad)
-            
-        #Fr�sradiuskorrektur Rechts        
-        elif self.cut_cor == 42:
-
-            #Mittelpunkt f�r Einlaufradius
-            Oein = start.get_arc_point(start_ang - 90, start_rad + tool_rad)
-            #Startpunkt f�r Einlaufradius
-            Pa_ein = Oein.get_arc_point(start_ang + 180, start_rad + tool_rad)
-            #IJ=Oein-Pa_ein
-            #Startwerts f�r Einlaufgerade
-            Pg_ein = Pa_ein.get_arc_point(start_ang - 90, start_ver)
-            
-            #Eintauchpunkts errechnete Korrektur
-            start_ein = Pg_ein.get_arc_point(start_ang, tool_rad)
-            self.st_move.append(start_ein)
-
-            #Einlaufgerade mit Korrektur
-            start_line = LineGeo(Pg_ein, Pa_ein)
-            self.st_move.append(start_line)
-
-            #Einlaufradius mit Korrektur
-            start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, r=start_rad + tool_rad, dir=0)
-            self.st_move.append(start_rad)
-    
     def Write_GCode(self, config, postpro):
 
         #Erneutes erstellen der Einlaufgeometrien

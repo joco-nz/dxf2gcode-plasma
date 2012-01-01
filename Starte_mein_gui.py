@@ -3,14 +3,13 @@
 """
 The main
 @newfield purpose: Purpose
-@newfield sideeffect: Side effect, Side effects
 
 @purpose:  program arguments & options handling, read the config file
 @author: Christian Kohlöffel 
 @since:  21.12.2010
 @license: GPL
 """
-#Test
+
 
 
 # Import Qt modules
@@ -57,8 +56,7 @@ class Main(QtGui.QMainWindow):
 
         self.MyGraphicsView=self.ui.MyGraphicsView
         
-        self.myMessageBox=myMessageBox(self.ui.myMessageBox)
- 
+        self.myMessageBox=self.ui.myMessageBox 
       
         
     def createActions(self):
@@ -71,8 +69,9 @@ class Main(QtGui.QMainWindow):
         self.ui.actionLoad_File.triggered.connect(self.showDialog)
         self.ui.actionAbout.triggered.connect(self.about)
         self.ui.actionAutoscale.triggered.connect(self.autoscale)
-        self.ui.actionShow_path_directions.triggered.connect(self.show_path_directions)
-        self.ui.actionShow_WP_Zero.triggered.connect(self.show_wp_zero)
+        self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
+        self.ui.actionShow_WP_Zero.triggered.connect(self.setShow_wp_zero)
+        self.ui.actionShow_disabled_paths.triggered.connect(self.setShow_disabled_paths)
         
     def enableplotmenu(self,status=True):
         """
@@ -81,7 +80,7 @@ class Main(QtGui.QMainWindow):
         """
         
         self.ui.actionShow_path_directions.setEnabled(status)
-        self.ui.actionShow_hiden_paths.setEnabled(status)
+        self.ui.actionShow_disabled_paths.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
         #self.ui.actionDelete_G0_paths.setEnabled(status)
         self.ui.actionScale_all.setEnabled(status)
@@ -136,22 +135,29 @@ class Main(QtGui.QMainWindow):
                 "The <b>Diagram Scene</b> example shows use" +\
                 " of the graphics framework.")
      
-    def show_path_directions(self):
+    def setShow_path_directions(self):
         """
         This function is called by the menu "Show all path directions" of the
         main and forwards the call to MyGraphicsview.show_path_directions() 
         """
         flag=self.ui.actionShow_path_directions.isChecked()
-        self.MyGraphicsView.show_path_direction(flag)
+        self.MyGraphicsView.setShow_path_direction(flag)
         
-    def show_wp_zero(self):
+    def setShow_wp_zero(self):
         """
         This function is called by the menu "Show WP Zero" of the
-        main and forwards the call to MyGraphicsview.show_wp_zero() 
+        main and forwards the call to MyGraphicsview.set_Show_wp_zero() 
         """
         flag=self.ui.actionShow_WP_Zero.isChecked()
-        self.MyGraphicsView.show_wp_zero(flag)
+        self.MyGraphicsView.setShow_wp_zero(flag)
         
+    def setShow_disabled_paths(self):
+        """
+        This function is called by the menu "Show disabled paths" of the
+        main and forwards the call to MyGraphicsview.setShow_disabled_paths() 
+        """
+        flag=self.ui.actionShow_disabled_paths.isChecked()
+        self.MyGraphicsView.setShow_disabled_paths(flag)
         
     def loadFile(self,filename):
         """
@@ -238,47 +244,7 @@ class Main(QtGui.QMainWindow):
 #        #Loeschen alter Route Menues
 #        self.del_route_and_menuentry()
      
-class myMessageBox(object):
-    """
-    The myMessageBox Class performs the write functions in the Message Window.
-    The pervious defined MyMessageBox_org class is used as output (Within ui). 
-    @sideeffect: None                            
-    """
-        
-    def __init__(self, origobj):
-        """
-        Initialization of the myMessageBox class.
-        @param origobj: This is the reference to to parent class initialized 
-        previously.
-        """
-        self.myMessageBox_org=origobj
-#        
-#                #add a link with data
-#        href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
-#        text.insert(END, _("You are using DXF2GCODE"))
-#        text.insert(END, ("\nVersion %s (%s)" %(VERSION,DATE)))
-#        text.insert(END, _("\nFor more information und updates about"))
-#        text.insert(END, _("\nplease visit my homepage at:"))
-#        text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:"+href))
-        #print((self.myMessageBox_org.verticalScrollBar().sliderPosition()))
-        
-    def write(self,charstr):
-        """
-        The function is called by the window logger to write the log message to
-        the Messagebox
-        @param charstr: The log message which will be written.
-        """
-#        self.prt(charstr)
 
-#    def prt(self, charstr):
-#        """
-#        If you want to write something to the window use this function
-#        @param charstr: The message which will be written.
-#        """
-        self.myMessageBox_org.append(charstr[0:-1])
-        self.scrollbar=self.myMessageBox_org.verticalScrollBar().setValue(1e9)
-        #print((self.myMessageBox_org.verticalScrollBar().sliderPosition()))
-        
 
 
 def setup_logging(myMessageBox):
