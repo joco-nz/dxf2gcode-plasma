@@ -21,11 +21,11 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
+from Core.Point import Point
+from DxfImport.Classes import ContourClass
 from math import degrees, radians
 
-class InsertClass:
+class GeoentInsert:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Insert'
         self.Nr = Nr
@@ -76,7 +76,7 @@ class InsertClass:
         #YWert
         s = lp.index_code(20, s + 1, e)
         y0 = float(lp.line_pair[s].value)
-        self.Point = PointClass(x0, y0)
+        self.Point = Point(x0, y0)
         
         #XScale
         s_temp = lp.index_code(41, s + 1, e)

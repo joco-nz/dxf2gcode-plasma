@@ -22,13 +22,12 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
-from base_geometries import  LineGeo, ArcGeo
-from biarc import BiarcClass 
+from Core.Point import Point
+from Core.ArcGeo import ArcGeo
+from Core.LineGeo import  LineGeo
+from DxfImport.Biarc import BiarcClass 
 
-import sys, os, string
-from math import radians, cos, sin, tan, atan2, sqrt, pow, pi, ceil
+from math import atan2, pow
 
 class Spline2Arcs:
     def __init__(self, degree=0, Knots=[], Weights=[], CPoints=[], tol=0.01, check=1):
@@ -588,7 +587,7 @@ class NURBSClass:
 
     #Umwandeln eines Homogenen PunktVektor in einen Punkt
     def HPt_2_Pt(self, HPt):
-        return PointClass(x=HPt[0] / HPt[-1], y=HPt[1] / HPt[-1])
+        return Point(x=HPt[0] / HPt[-1], y=HPt[1] / HPt[-1])
             
 
 class BSplineClass:
@@ -625,7 +624,7 @@ class BSplineClass:
             CK = self.bspline_ders_evaluate(n=n, u=u)
 
             #Den Punkt in einem Punkt List abspeichern            
-            Points.append(PointClass(x=CK[0][0], y=CK[0][1]))
+            Points.append(Point(x=CK[0][0], y=CK[0][1]))
             
             #F�r die erste Ableitung wird den Winkel der tangente errechnet
             if n >= 1:

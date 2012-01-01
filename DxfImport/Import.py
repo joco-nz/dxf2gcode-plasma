@@ -24,20 +24,19 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-import globals as g
-import constants as c
+import Core.Globals as g
 
-from point import PointClass
-from dxf_import_classes import ContourClass
+from Core.Point import Point
+from DxfImport.Classes import ContourClass
 
-from geoent_arc import ArcClass
-from geoent_circle import CircleClass
-from geoent_insert import InsertClass
-from geoent_line import LineClass
-from geoent_polyline import PolylineClass
-from geoent_spline import SplineClass
-from geoent_ellipse import EllipseClass
-from geoent_lwpolyline import LWPolylineClass
+from DxfImport.GeoentArc import GeoentArc
+from DxfImport.GeoentCircle import GeoentCircle
+from DxfImport.GeoentInsert import GeoentInsert
+from DxfImport.GeoentLine import GeoentLine
+from DxfImport.GeoentPolyline import GeoentPolyline
+from DxfImport.GeoentSpline import GeoentSpline
+from DxfImport.GeoentEllipse import GeoentEllipse
+from DxfImport.GeoentLwpolyline import GeoentLwPolyline
 
 #from tkMessageBox import showwarning
 from PyQt4 import QtGui
@@ -293,21 +292,21 @@ class ReadDXF:
 
         # Instanz des neuen Objekts anlegen und gleichzeitig laden
         if(name == "POLYLINE"):
-            geo = PolylineClass(geo_nr, self)
+            geo = GeoentPolyline(geo_nr, self)
         elif (name == "SPLINE"):
-            geo = SplineClass(geo_nr, self)
+            geo = GeoentSpline(geo_nr, self)
         elif (name == "ARC"):
-            geo = ArcClass(geo_nr, self)
+            geo = GeoentArc(geo_nr, self)
         elif (name == "CIRCLE"):
-            geo = CircleClass(geo_nr, self)
+            geo = GeoentCircle(geo_nr, self)
         elif (name == "LINE"):
-            geo = LineClass(geo_nr, self)
+            geo = GeoentLine(geo_nr, self)
         elif (name == "INSERT"):
-            geo = InsertClass(geo_nr, self)
+            geo = GeoentInsert(geo_nr, self)
         elif (name == "ELLIPSE"):
-            geo = EllipseClass(geo_nr, self)
+            geo = GeoentEllipse(geo_nr, self)
         elif (name == "LWPOLYLINE"):
-            geo = LWPolylineClass(geo_nr, self)
+            geo = GeoentLwPolyline(geo_nr, self)
         else:  
             #g.logger.logger.info(("!!!!WARNING Found unsupported geometry: %s !!!!" % name))
             self.start += 1 #Eins hochz�hlen sonst gibts ne dauer Schleife
@@ -693,7 +692,7 @@ class EntitiesClass:
     def __init__(self, Nr=0, Name='', geo=[], cont=[]):
         self.Nr = Nr
         self.Name = Name
-        self.basep = PointClass(x=0.0, y=0.0)
+        self.basep = Point(x=0.0, y=0.0)
         self.geo = geo
         self.cont = cont
         

@@ -21,15 +21,12 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, degrees
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
-from base_geometries import  LineGeo 
-from tkMessageBox import showwarning
+from Core.Point import Point
+from DxfImport.Classes import PointsClass
+from Core.LineGeo import  LineGeo 
 
 
-class LineClass:
+class GeoentLine:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Line'
         self.Nr = Nr
@@ -80,8 +77,8 @@ class LineClass:
         s = lp.index_code(21, s + 1)
         y1 = float(lp.line_pair[s].value)
 
-        Pa = PointClass(x0, y0)
-        Pe = PointClass(x1, y1)               
+        Pa = Point(x0, y0)
+        Pe = Point(x1, y1)               
 
         #Anhängen der LineGeo Klasse für die Geometrie
         self.geo.append(LineGeo(Pa=Pa, Pe=Pe))

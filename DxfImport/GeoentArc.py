@@ -21,14 +21,12 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, degrees
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
-from base_geometries import  ArcGeo 
-from tkMessageBox import showwarning
+from math import  sin, cos,  radians
+from Core.Point import Point
+from DxfImport.Classes import PointsClass
+from Core.ArcGeo import  ArcGeo 
 
-class ArcClass:
+class GeoentArc:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Arc'
         self.Nr = Nr
@@ -54,9 +52,6 @@ class ArcClass:
                               en=self.geo[-1].Pe, \
                               be_cp=[], en_cp=[]))
         else:
-#            showwarning("Short Arc Elemente", ("Length of Arc Element too short!"\
-#                                               "\nLenght must be greater then tolerance."\
-#                                               "\nSkipping Arc Geometrie"))
             warning = 1
         return warning
     
@@ -73,7 +68,7 @@ class ArcClass:
         #YWert
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
-        O = PointClass(x0, y0)
+        O = Point(x0, y0)
         #Radius
         s = lp.index_code(40, s + 1)
         r = float(lp.line_pair[s].value)
@@ -85,8 +80,8 @@ class ArcClass:
         e_ang = radians(float(lp.line_pair[s].value))
 
         #Berechnen der Start und Endwerte des Arcs
-        Pa = PointClass(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
-        Pe = PointClass(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
+        Pa = Point(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
+        Pe = Point(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
 
         #Anhängen der ArcGeo Klasse für die Geometrie
         self.geo.append(ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r,

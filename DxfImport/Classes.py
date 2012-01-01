@@ -23,8 +23,6 @@
 
 
 #from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil, copysign
-from copy import copy
 
 class PointsClass:
     #Initialisieren der Klasse

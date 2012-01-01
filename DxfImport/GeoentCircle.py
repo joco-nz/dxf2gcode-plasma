@@ -21,13 +21,12 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, degrees, pi
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
-from base_geometries import  ArcGeo 
+from math import  sin, cos, pi
+from Core.Point import Point
+from DxfImport.Classes import ContourClass
+from Core.ArcGeo import  ArcGeo 
 
-class CircleClass:
+class GeoentCircle:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Circle'
         self.Nr = Nr
@@ -63,7 +62,7 @@ class CircleClass:
         #YWert
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
-        O = PointClass(x0, y0)
+        O = Point(x0, y0)
         #Radius
         s = lp.index_code(40, s + 1)
         r = float(lp.line_pair[s].value)
@@ -74,9 +73,9 @@ class CircleClass:
         e_ang = -3 * pi / 4
 
         #Berechnen der Start und Endwerte des Arcs
-        Pa = PointClass(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
-        Pm = PointClass(x=cos(m_ang) * r, y=sin(m_ang) * r) + O
-        Pe = PointClass(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
+        Pa = Point(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
+        Pm = Point(x=cos(m_ang) * r, y=sin(m_ang) * r) + O
+        Pe = Point(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
 
         #Anh�ngen der ArcGeo Klasse f�r die Geometrie
         self.geo.append(ArcGeo(Pa=Pa, Pe=Pm, O=O, r=r,
