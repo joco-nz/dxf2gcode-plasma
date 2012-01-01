@@ -219,7 +219,7 @@ class ReadDXF:
             #g.logger.logger.info(("%s" % blocks.Entities[-1]), 2)
             
         if warning == 1:
-            showwarning("Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+            QtGui.QMessageBox.warning(g.window,"Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
             
         return blocks
     #Lesen der Entities Geometrien

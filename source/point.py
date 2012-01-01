@@ -24,6 +24,7 @@
 
 #from Canvas import Oval, Arc, Line
 from math import sqrt, sin, cos, atan2, radians, pi, ceil
+import globals as g
 
 class PointClass:
     __slots__=["x","y"]  
@@ -85,8 +86,15 @@ class PointClass:
         point = self.rot_sca_abs(parent=parent)
         return postpro.rap_pos_xy(point)
     
-    def plot2can(self, canvas=None, parent=None, tag=None, col='black'):
-        pass
+    def add2path(self, papath=None, parent=None):
+        """
+        Plots the geometry of self into the defined canvas. Arcs will be ploted
+        as line segments.
+        @param papath: The painterpath where the geometries shall be added
+        @param parent: FIXME
+        """
+        g.logger.logger.debug('Punkt: x: %0.2f, y: %0.2f' %(self.x,self.y))
+        papath.moveTo(self.x,-self.y)
     
     def triangle_height(self, other1, other2):
         #Die 3 Längen des Dreiecks ausrechnen
