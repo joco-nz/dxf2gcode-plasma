@@ -26,7 +26,7 @@
 from math import sqrt, sin, cos, atan2, radians, pi, ceil
 import globals as g
 
-class PointClass:
+class Point:
     __slots__=["x","y"]  
     def __init__(self, x=0, y=0):
         
@@ -34,21 +34,21 @@ class PointClass:
         self.y = y
     def __str__(self):
         return ('X ->%6.3f  Y ->%6.3f' % (self.x, self.y))
-        #return ('CPoints.append(PointClass(x=%6.5f, y=%6.5f))' %(self.x,self.y))
+        #return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
     def __cmp__(self, other) : 
         return (self.x == other.x) and (self.y == other.y)
     def __neg__(self):
         return - 1.0 * self
     def __add__(self, other): # add to another point
-        return PointClass(self.x + other.x, self.y + other.y)
+        return Point(self.x + other.x, self.y + other.y)
     def __sub__(self, other):
         return self + -other
     def __rmul__(self, other):
-        return PointClass(other * self.x, other * self.y)
+        return Point(other * self.x, other * self.y)
     def __mul__(self, other):
         if type(other) == list:
             #Skalieren des Punkts
-            return PointClass(x=self.x * other[0], y=self.y * other[1])
+            return Point(x=self.x * other[0], y=self.y * other[1])
         else:
             #Skalarprodukt errechnen
             return self.x * other.x + self.y * other.y
@@ -56,21 +56,21 @@ class PointClass:
     def unit_vector(self, Pto=None):
         diffVec = Pto - self
         l = diffVec.distance()
-        return PointClass(diffVec.x / l, diffVec.y / l)
+        return Point(diffVec.x / l, diffVec.y / l)
     def distance(self, other=None):
         if type(other) == type(None):
-            other = PointClass(x=0.0, y=0.0)
+            other = Point(x=0.0, y=0.0)
         return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
     def norm_angle(self, other=None):
         if type(other) == type(None):
-            other = PointClass(x=0.0, y=0.0)
+            other = Point(x=0.0, y=0.0)
         return atan2(other.y - self.y, other.x - self.x)
     def isintol(self, other, tol):
         return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) < tol)
     def transform_to_Norm_Coord(self, other, alpha):
         xt = other.x + self.x * cos(alpha) + self.y * sin(alpha)
         yt = other.y + self.x * sin(alpha) + self.y * cos(alpha)
-        return PointClass(x=xt, y=yt)
+        return Point(x=xt, y=yt)
     def get_arc_point(self, ang=0, r=1):
         """ 
         Returns the point on the arc defined by r and the given angel
@@ -79,7 +79,7 @@ class PointClass:
         @return: A point on given given radius from Point self
         """ 
         
-        return PointClass(x=self.x + cos(radians(ang)) * r, \
+        return Point(x=self.x + cos(radians(ang)) * r, \
                           y=self.y + sin(radians(ang)) * r)
 
     def Write_GCode(self, parent=None, postpro=None):
@@ -113,15 +113,15 @@ class PointClass:
             pc = self - pb
             rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
             roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
-            p1 = PointClass(x=rotx, y=roty) + p0
+            p1 = Point(x=rotx, y=roty) + p0
             
             #Rekursive Schleife falls selbst eingefügt
             if type(parent.parent) != type(None):
                 p1 = p1.rot_sca_abs(parent=parent.parent)
             
         elif type(parent) == type(None) and type(sca) == type(None):
-            p0 = PointClass(0, 0)
-            pb = PointClass(0, 0)
+            p0 = Point(0, 0)
+            pb = Point(0, 0)
             sca = [0, 0, 0]
             rot = 0
             
@@ -129,13 +129,13 @@ class PointClass:
             rot = rot
             rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
             roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
-            p1 = PointClass(x=rotx, y=roty) + p0
+            p1 = Point(x=rotx, y=roty) + p0
         else:
             pc = self - pb
             rot = rot
             rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
             roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
-            p1 = PointClass(x=rotx, y=roty) + p0
+            p1 = Point(x=rotx, y=roty) + p0
         
         
 #        print(("Self:    %s\n" %self)+\

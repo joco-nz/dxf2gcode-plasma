@@ -21,14 +21,13 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import globals as g
+import Core.Globals as g
 
-from nurbs_calc import Spline2Arcs
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
-from base_geometries import  ArcGeo 
+from DxfImport.SplineConvert import Spline2Arcs
+from Core.Point import Point
+from DxfImport.Classes import PointsClass, ContourClass
 
-class SplineClass:
+class GeoentSpline:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Spline'
         self.Nr = Nr
@@ -101,7 +100,7 @@ class SplineClass:
         summe = 0
 
         #Richtung in welcher der Anfang liegen soll (unten links)        
-        Popt = PointClass(x= -1e3, y= -1e6)
+        Popt = Point(x= -1e3, y= -1e6)
         
         #Berechnung der Fl�ch nach Gau�-Elling Positive Wert bedeutet CW
         #negativer Wert bedeutet CCW geschlossenes Polygon            
@@ -180,7 +179,7 @@ class SplineClass:
             s = lp.index_code(20, s + 1, e)
             y = float(lp.line_pair[s].value)
 
-            self.CPoints.append(PointClass(x, y))                
+            self.CPoints.append(Point(x, y))                
 
         if len(self.Weights) == 0:
             for nr in range(len(self.CPoints)):

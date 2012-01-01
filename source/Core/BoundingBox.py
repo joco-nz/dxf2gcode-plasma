@@ -22,12 +22,12 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from Canvas import Line
+
 from point import PointClass
 from copy import copy
 
             
-class BoundingBoxClass:
+class BoundingBox:
     """ 
     Bounding Box Class. This is the standard class which provides all std. 
     Bounding Box methods.
@@ -56,14 +56,14 @@ class BoundingBoxClass:
         """
         
         if type(self.Pa) == type(None) or type(self.Pe) == type(None):
-            return BoundingBoxClass(copy(other.Pa), copy(other.Pe))
+            return BoundingBox(copy(other.Pa), copy(other.Pe))
         
         xmin = min(self.Pa.x, other.Pa.x)
         xmax = max(self.Pe.x, other.Pe.x)
         ymin = min(self.Pa.y, other.Pa.y)
         ymax = max(self.Pe.y, other.Pe.y)
         
-        return BoundingBoxClass(Pa=PointClass(xmin, ymin), Pe=PointClass(xmax, ymax))
+        return BoundingBox(Pa=PointClass(xmin, ymin), Pe=PointClass(xmax, ymax))
     
     def hasintersection(self, other=None, tol=0.0):
         """

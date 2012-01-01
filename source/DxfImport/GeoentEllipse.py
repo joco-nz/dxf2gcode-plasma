@@ -21,25 +21,23 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import globals as g
+import Core.Globals as g
 
-from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, tan, atan, atan2, radians, degrees, pi, floor
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
-from biarc import BiarcClass
-from base_geometries import  ArcGeo 
+from math import sqrt, sin, cos, atan2, degrees, pi
+from Core.Point import Point
+from DxfImport.Classes import PointsClass, ContourClass
+from DxfImport.biarc import BiarcClass
 
 
 
-class EllipseClass:
+class GeoentEllipse:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Ellipse'
         self.Nr = Nr
         #Initialisieren der Werte        
         self.Layer_Nr = 0
-        self.center = PointClass(0, 0) #Mittelpunkt der Geometrie
-        self.vector = PointClass(1, 0) #Vektor A = gro�e Halbachse a, = Drehung der Ellipse
+        self.center = Point(0, 0) #Mittelpunkt der Geometrie
+        self.vector = Point(1, 0) #Vektor A = gro�e Halbachse a, = Drehung der Ellipse
                                       # http://de.wikipedia.org/wiki/Gro%C3%9Fe_Halbachse
         self.ratio = 1                #Verh�ltnis der kleinen zur gro�en Halbachse (b/a)
         #self.AngS = 0                 #Startwinkel beim zeichnen eines Ellipsensegments
@@ -105,13 +103,13 @@ class EllipseClass:
         x0 = float(lp.line_pair[s].value)
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
-        self.center = PointClass(x0, y0)
+        self.center = Point(x0, y0)
         #XWert, YWert. Vektor, relativ zum Zentrum, Gro�e Halbachse
         s = lp.index_code(11, s + 1)
         x1 = float(lp.line_pair[s].value)
         s = lp.index_code(21, s + 1)
         y1 = float(lp.line_pair[s].value)
-        self.vector = PointClass(x1, y1)
+        self.vector = Point(x1, y1)
         #Ratio minor to major axis
         s = lp.index_code(40, s + 1)
         self.ratio = float(lp.line_pair[s].value)
@@ -127,7 +125,7 @@ class EllipseClass:
 
     def analyse_and_opt(self):
         #Richtung in welcher der Anfang liegen soll (unten links)        
-        Popt = PointClass(x= -1e3, y= -1e6)
+        Popt = Point(x= -1e3, y= -1e6)
         
         #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
         min_distance = self.geo[0].Pa.distance(Popt)
@@ -228,13 +226,13 @@ class EllipseClass:
         #self.ext=self.ext%(-2*pi)
         #self.ext-=floor(self.ext/(2*pi))*(2*pi)
    
-    def Ellipse_Point(self, alpha=0):#PointClass(0,0)
+    def Ellipse_Point(self, alpha=0):#Point(0,0)
         #gro�e Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         Ex = self.a * cos(alpha) * cos(self.rotation) - self.b * sin(alpha) * sin(self.rotation);
         Ey = self.a * cos(alpha) * sin(self.rotation) + self.b * sin(alpha) * cos(self.rotation);
-        return PointClass(self.center.x + Ex, self.center.y + Ey)
+        return Point(self.center.x + Ex, self.center.y + Ey)
     
-    def Ellipse_Tangent(self, alpha=0):#PointClass(0,0)
+    def Ellipse_Tangent(self, alpha=0):#Point(0,0)
         #gro�e Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         phi = atan2(self.a * sin(alpha), self.b * cos(alpha)) + self.rotation + pi / 2
         return phi

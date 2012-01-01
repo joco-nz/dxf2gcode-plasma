@@ -21,12 +21,12 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-from math import sqrt, sin, cos, atan2, radians, degrees
-from point import PointClass
-from dxf_import_classes import PointsClass, ContourClass
-from base_geometries import  LineGeo, ArcGeo 
+from Core.Point import Point
+from DxfImport.Classes import PointsClass, ContourClass
+from Core.ArcGeo import ArcGeo 
+from Core.LineGeo import LineGeo
 
-class PolylineClass:
+class GeoentPolyline:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Polyline'
         self.Nr = Nr
@@ -82,7 +82,7 @@ class PolylineClass:
         summe = 0
 
         #Richtung in welcher der Anfang liegen soll (unten links)        
-        Popt = PointClass(x= -1e3, y= -1e6)
+        Popt = Point(x= -1e3, y= -1e6)
         
         #Berechnung der Fl‰ch nach Gauﬂ-Elling Positive Wert bedeutet CW
         #negativer Wert bedeutet CCW geschlossenes Polygon            
@@ -136,7 +136,7 @@ class PolylineClass:
             #YWert
             s = lp.index_code(20, s + 1, e)
             y = float(lp.line_pair[s].value)
-            Pe = PointClass(x=x, y=y)
+            Pe = Point(x=x, y=y)
 
             #Bulge
             bulge = 0
@@ -202,7 +202,7 @@ class PolylineClass:
         c = (1 / bulge - bulge) / 2
         
         #Berechnung des Mittelpunkts (Formel von Mickes!
-        O = PointClass(x=(Pa.x + Pe.x - (Pe.y - Pa.y) * c) / 2, \
+        O = Point(x=(Pa.x + Pe.x - (Pe.y - Pa.y) * c) / 2, \
                      y=(Pa.y + Pe.y + (Pe.x - Pa.x) * c) / 2)
                     
         #Abstand zwischen dem Mittelpunkt und PA ist der Radius
