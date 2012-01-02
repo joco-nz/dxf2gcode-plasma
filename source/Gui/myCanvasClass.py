@@ -24,6 +24,8 @@ from Gui.StMove import StMove
 import Core.Globals as g
 import Core.constants as c
 
+import logging
+logger=logging.getLogger("DxfImport.Core") 
        
 class MyGraphicsView(QtGui.QGraphicsView): 
     """
@@ -188,7 +190,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
         scene=self.scene()
         scext=scene.itemsBoundingRect()
         self.fitInView(scext,QtCore.Qt.KeepAspectRatio)
-        g.logger.logger.debug("Autoscaling to extend: %s" % (scext))
+        logger.debug("Autoscaling to extend: %s" % (scext))
         
     def setShow_path_direction(self,flag):
         """
@@ -255,7 +257,7 @@ class MyDropDownMenu(QtGui.QMenu):
         self.reCompAction = submenu1.addAction("G42 Right Compensation")
         self.reCompAction.setCheckable(True)
         
-        g.logger.logger.debug("The selected shapes have the following direction: %i" % (self.calcMenuDir()))
+        logger.debug("The selected shapes have the following direction: %i" % (self.calcMenuDir()))
         self.checkMenuDir(self.calcMenuDir())
         
         self.addMenu(submenu1)
@@ -350,7 +352,7 @@ class MyDropDownMenu(QtGui.QMenu):
         for shape in self.MyGraphicsScene.shapes:
             shape.reverse()
 
-            g.logger.logger.debug(_('Switched Direction at Shape Nr: %i')\
+            logger.debug(_('Switched Direction at Shape Nr: %i')\
                              %(shape.nr))
         
             shape.updateCutCor()
@@ -363,7 +365,7 @@ class MyDropDownMenu(QtGui.QMenu):
         items=self.MyGraphicsScene.selectedItems()
         for item in items:
             item.cut_cor=40
-            g.logger.logger.debug(_('Changed Cutter Correction to None Shape Nr: %i')\
+            logger.debug(_('Changed Cutter Correction to None Shape Nr: %i')\
                              %(item.nr))
             
             item.updateCutCor()
@@ -375,7 +377,7 @@ class MyDropDownMenu(QtGui.QMenu):
         items=self.MyGraphicsScene.selectedItems()
         for item in items:
             item.cut_cor=41
-            g.logger.logger.debug(_('Changed Cutter Correction to left Shape Nr: %i')\
+            logger.debug(_('Changed Cutter Correction to left Shape Nr: %i')\
                              %(item.nr))
             item.updateCutCor()
             
@@ -386,7 +388,7 @@ class MyDropDownMenu(QtGui.QMenu):
         items=self.MyGraphicsScene.selectedItems()
         for item in items:
             item.cut_cor=42
-            g.logger.logger.debug(_('Changed Cutter Correction to right Shape Nr: %i')\
+            logger.debug(_('Changed Cutter Correction to right Shape Nr: %i')\
                              %(item.nr))
             item.updateCutCor()
  
@@ -541,7 +543,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             shape.enarrow.setParentItem(shape)
             shape.stmove.setParentItem(shape)
  
-        g.logger.logger.debug("Update GrapicsScene %s:" % (dir(self)))
+        logger.debug("Update GrapicsScene %s:" % (dir(self)))
         
             #Hinzufuegen der Kontur zum Layer
             

@@ -17,7 +17,7 @@ The main
 import os
 import sys
 import logging
-
+logger=logging.getLogger() 
 
 from optparse import OptionParser
 from PyQt4 import QtGui
@@ -25,7 +25,7 @@ from PyQt4 import QtGui
 # Import the compiled UI module
 from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
 
-from Core.Logger import Log
+from Core.Logger import LoggerClass
 from Core.Config import MyConfig
 from Core.Point import Point
 import Core.Globals as g
@@ -106,7 +106,6 @@ class Main(QtGui.QMainWindow):
                     "PDF files (*.pdf);;"\
                     "all files (*.*)")
         
-        logger=g.logger.logger
         logger.info("File: %s selected" %filename)
         
         #If there is something to load then call the load function callback
@@ -161,7 +160,7 @@ class Main(QtGui.QMainWindow):
         """
 
         #Setting up logger
-        logger=g.logger.logger
+        #logger=g.logger.logger
 
         #Check File Extension
         (name, ext) = os.path.splitext(str(filename))
@@ -241,7 +240,7 @@ class Main(QtGui.QMainWindow):
 
 
 
-def setup_logging(myMessageBox):
+def setup_logging(Log,myMessageBox):
     """
     Function to set up the logging to the myMessageBox Class. 
     This function can only be called if the myMessageBox Class has been created.
@@ -249,8 +248,8 @@ def setup_logging(myMessageBox):
     shall be sent to. This Class needs a function "def write(self,charstr):"
     """
     # LogText window exists, setup logging
-    g.logger.add_window_logger(log_level=logging.INFO)
-    g.logger.set_window_logstream(myMessageBox)
+    Log.add_window_logger(log_level=logging.INFO)
+    Log.set_window_logstream(myMessageBox)
     
  
 def main():
@@ -259,7 +258,7 @@ def main():
     """
     # Again, this is boilerplate, it's going to be the same on
     # almost every app you write
-    g.logger = Log(c.APPNAME,console_loglevel=logging.DEBUG)
+    Log=LoggerClass(rootlogger=logger, console_loglevel=logging.DEBUG)
 
     app = QtGui.QApplication(sys.argv)
     window = Main()
@@ -267,7 +266,7 @@ def main():
     
     window.show()
     
-    setup_logging(window.myMessageBox)
+    setup_logging(Log, window.myMessageBox)
     
     g.config=MyConfig()
     
@@ -281,7 +280,7 @@ def main():
 
     
     (options, args) = parser.parse_args()
-    g.logger.logger.debug("Started with following options \n%s" % (options))
+    logger.debug("Started with following options \n%s" % (options))
     
     if not(options.filename is None):
         window.loadFile(options.filename)

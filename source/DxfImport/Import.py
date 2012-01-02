@@ -44,12 +44,16 @@ from PyQt4 import QtGui
 from copy import deepcopy, copy
 from string import find, strip
 
+import logging
+logger=logging.getLogger("DxfImport.Core") 
+
+
 class ReadDXF:
     #Initialisierung der Klasse
     def __init__(self, filename=None):
 
         #Setting up logger
-        logger=g.logger.logger
+        #logger=g.logger.logger
 
         #Laden der Kontur und speichern der Werte in die Klassen  
         str = self.Read_File(filename)

@@ -36,7 +36,8 @@ from Core.BoundingBox import BoundingBox
 from math import cos, sin, degrees
 from copy import deepcopy
 
-
+import logging
+logger=logging.getLogger("Core.Shape") 
 #from Canvas import Line
 
 
@@ -188,7 +189,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         FIXME
         """ 
         
-        g.logger.logger.debug("Analysing the shape for CW direction %s:" % (self))
+        logger.debug("Analysing the shape for CW direction %s:" % (self))
         #Optimisation for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
@@ -265,7 +266,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         self.path.moveTo(start.x,-start.y)
         
-        g.logger.logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
+        logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
         
         for geo in self.geos:
             geo.add2path(papath=self.path,parent=self.parent)

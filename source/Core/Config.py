@@ -36,6 +36,8 @@ import Core.constants as c
 import Core.Globals as g
 from d2gexceptions import *
 
+import logging
+logger = logging.getLogger("Core.Config") 
 
 CONFIG_VERSION = "2"
 """
@@ -150,7 +152,7 @@ class MyConfig:
         #try:
         self.load_config()
         #except Exception,msg:
-        #    g.logger.logger.warning("Config loading failed: %s" % (msg))      
+        #    logger.warning("Config loading failed: %s" % (msg))      
         #    return False
 
 
@@ -195,35 +197,33 @@ class MyConfig:
                     fileversion = self.var_dict['Version']['config_version'] # this could raise KeyError
 
                     if fileversion != CONFIG_VERSION:
-                        #print 
-                        #g.logger.logger.error( 
                         raise VersionMismatchError, (fileversion, CONFIG_VERSION)
               
             except VersionMismatchError, values:
                 raise VersionMismatchError, (fileversion, CONFIG_VERSION)
                        
             except Exception,inst:
-                # g.logger.logger.error(inst)               
+                logger.error(inst)               
                 (base,ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
                 g.logger.logger.debug("trying to rename bad cfg %s to %s" % (self.filename,badfilename))
                 try:
                     os.rename(self.filename,badfilename)
                 except OSError,e:
-                    g.logger.logger.error("rename(%s,%s) failed: %s" % (self.filename,badfilename,e.strerror))
+                    logger.error("rename(%s,%s) failed: %s" % (self.filename,badfilename,e.strerror))
                     raise
                 else:
-                    g.logger.logger.debug("renamed bad varspace %s to '%s'" %(self.filename,badfilename))
+                    logger.debug("renamed bad varspace %s to '%s'" %(self.filename,badfilename))
                     self.create_default_config()
                     self.default_config = True
-                    g.logger.logger.debug("created default varspace '%s'" %(self.filename))
+                    logger.debug("created default varspace '%s'" %(self.filename))
             else:
                 self.default_config = False
-                g.logger.logger.debug("read existing varspace '%s'" %(self.filename))
+                logger.debug("read existing varspace '%s'" %(self.filename))
         else:
             self.create_default_config()
             self.default_config = True
-            g.logger.logger.debug("created default varspace '%s'" %(self.filename))
+            logger.debug("created default varspace '%s'" %(self.filename))
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
