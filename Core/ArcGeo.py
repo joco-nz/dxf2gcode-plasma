@@ -22,10 +22,8 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from Canvas import Line
-from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil, copysign
-from point import PointClass
-from copy import copy
+from math import sqrt, sin, cos, degrees, pi, floor, ceil, copysign
+from Core.Point import Point
 
 #Length of the cross.
 dl = 0.2
@@ -95,15 +93,6 @@ class ArcGeo:
         
         self.length = self.r * abs(self.ext)
 
-#    def get_arc_extend(self,direction):
-#        #Aus dem Vorzeichen von direction den extend ausrechnen
-#        self.ext = self.e_ang - self.s_ang
-#        if direction > 0.0:
-#            self.ext = self.ext % (-2 * pi)
-#            self.ext -= floor(self.ext / (2 * pi)) * (2 * pi)
-#        else:
-#            self.ext = self.ext % (-2 * pi)
-#            self.ext += ceil(self.ext / (2 * pi)) * (2 * pi)
 
     def __str__(self):
         """ 
@@ -142,7 +131,7 @@ class ArcGeo:
         for i in range(segments + 1):
             
             ang = abs_geo.s_ang + i * abs_geo.ext / segments
-            p_cur = PointClass(x=(abs_geo.O.x + cos(ang) * abs(abs_geo.r)), \
+            p_cur = Point(x=(abs_geo.O.x + cos(ang) * abs(abs_geo.r)), \
                        y=(abs_geo.O.y + sin(ang) * abs(abs_geo.r)))
 
             if i >= 1:
@@ -155,8 +144,8 @@ class ArcGeo:
         """
         Calculated the angle of extend based on the 3 given points. Center Point,
         P1 and P2.
-        @param P1: the start point of the arc 
-        @param P2: the end point of the arc
+        @param P1: the start Point of the arc 
+        @param P2: the end Point of the arc
         @param direction: the direction of the arc
         @return: Returns the angle between -2* pi and 2 *pi for the arc extend
         """ 
@@ -217,9 +206,9 @@ class ArcGeo:
    
     def get_start_end_points(self, direction,parent=None):
         """
-        Returns the start/end point and its direction
-        @param direction: 0 to return start point and 1 to return end point
-        @return: a list of point and angle Returns the hdl or hdls of the ploted objects.
+        Returns the start/end Point and its direction
+        @param direction: 0 to return start Point and 1 to return end Point
+        @return: a list of Point and angle Returns the hdl or hdls of the ploted objects.
         """
         
         if not(direction):

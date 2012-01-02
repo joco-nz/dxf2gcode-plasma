@@ -26,18 +26,15 @@
 
 import os
 
-from configobj import ConfigObj,flatten_errors
-from validate import Validator
+from Core.configobj import ConfigObj,flatten_errors
+from Core.validate import Validator
 
 #from dotdictlookup import DictDotLookup
 import time
 
-import constants as c
-import globals as g
+import Core.constants as c
+import Core.Globals as g
 from d2gexceptions import *
-
-from point import PointClass
-
 
 
 CONFIG_VERSION = "2"

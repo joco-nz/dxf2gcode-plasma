@@ -23,7 +23,7 @@
 
 
 
-from point import PointClass
+from Core.Point import Point
 from copy import copy
 
             
@@ -32,7 +32,7 @@ class BoundingBox:
     Bounding Box Class. This is the standard class which provides all std. 
     Bounding Box methods.
     """ 
-    def __init__(self, Pa=PointClass(0, 0), Pe=PointClass(0, 0), hdl=[]):
+    def __init__(self, Pa=Point(0, 0), Pe=Point(0, 0), hdl=[]):
         """ 
         Standard method to initialize the class
         """ 
@@ -63,7 +63,7 @@ class BoundingBox:
         ymin = min(self.Pa.y, other.Pa.y)
         ymax = max(self.Pe.y, other.Pe.y)
         
-        return BoundingBox(Pa=PointClass(xmin, ymin), Pe=PointClass(xmax, ymax))
+        return BoundingBox(Pa=Point(xmin, ymin), Pe=Point(xmax, ymax))
     
     def hasintersection(self, other=None, tol=0.0):
         """
@@ -78,33 +78,16 @@ class BoundingBox:
      
         return x_inter_pos and y_inter_pos
     
-    def pointisinBB(self, point=PointClass(), tol=0.01):
+    def pointisinBB(self, Point=Point(), tol=0.01):
         """
-        Checks if the point is within the bounding box
-        @param point: The Point which shall be ckecke
+        Checks if the Point is within the bounding box
+        @param Point: The Point which shall be ckecke
         @return: Returns true or false
         """
-        x_inter_pos = (self.Pe.x + tol > point.x) and \
-        (self.Pa.x - tol < point.x)
-        y_inter_pos = (self.Pe.y + tol > point.y) and \
-        (self.Pa.y - tol < point.y)
+        x_inter_pos = (self.Pe.x + tol > Point.x) and \
+        (self.Pa.x - tol < Point.x)
+        y_inter_pos = (self.Pe.y + tol > Point.y) and \
+        (self.Pa.y - tol < Point.y)
         return x_inter_pos and y_inter_pos
      
-    def plot2can(self, canvas=None, tag=None, col='red', hdl=[]):
-        """
-        Plots the geometry of self into the defined canvas.
-        @param canvas: The canvas instance to plot in
-        @param tag: the number of the parent shape
-        @param col: The color in which the shape shall be ploted
-        @param hdl: The existing hdls where to append the additional ones
-        @return: Returns the hdl or hdls of the ploted objects.
-        """
-        hdl.append(Line(canvas,
-                        self.Pa.x, -self.Pa.y, self.Pe.x, -self.Pa.y, tag=tag, fill=col))
-        hdl.append(Line(canvas,
-                        self.Pe.x, -self.Pa.y, self.Pe.x, -self.Pe.y, tag=tag, fill=col))
-        hdl.append(Line(canvas,
-                        self.Pe.x, -self.Pe.y, self.Pa.x, -self.Pe.y, tag=tag, fill=col))
-        hdl.append(Line(canvas,
-                        self.Pa.x, -self.Pe.y, self.Pa.x, -self.Pa.y, tag=tag, fill=col))
-        return hdl
+

@@ -33,7 +33,7 @@ import time
 from tkMessageBox import showerror
 
 
-from point import PointClass
+from Point import PointClass
 
 class ConfigClass:
     def __init__(self, textbox, FOLDER, APPNAME):

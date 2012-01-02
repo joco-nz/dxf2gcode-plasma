@@ -11,9 +11,6 @@ Special purpose canvas including all required plotting function etc.
 """
 from PyQt4 import QtCore, QtGui
 
-import globals as g
-import constants as c
-
 class myMessageBox(QtGui.QTextBrowser):
     """
     The myMessageBox Class performs the write functions in the Message Window.

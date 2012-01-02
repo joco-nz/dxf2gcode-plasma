@@ -23,16 +23,17 @@
 
 #from Canvas import Oval, Arc, Line
 from math import sin, cos, pi, ceil
-from base_geometries import LineGeo, ArcGeo
-from point import PointClass
+from Core.LineGeo import LineGeo
+from Core.ArcGeo import ArcGeo
+from Core.Point import Point
 
 class BiarcClass:
     """ 
     BiarcClass Class for the generation of Biarc Section. It is used for the
     Ellipse fitting and the Nurbs convertion to Line and Arc segements.
     """
-    def __init__(self, Pa=PointClass(), tan_a=0.0,
-                  Pb=PointClass, tan_b=0.0, min_r=1e-6):
+    def __init__(self, Pa=Point(), tan_a=0.0,
+                  Pb=Point, tan_b=0.0, min_r=1e-6):
         """ 
         Std. method to initialise the class.
         @param Pa: Start Point for the Biarc
@@ -110,11 +111,11 @@ class BiarcClass:
         #print("N1: x: %0.3f, y: %0.3f" %(-sin(tan_a), cos(tan_a)))
         #print("V: x: %0.3f, y: %0.3f" %(-sin(teta+tan_a),cos(teta+tan_a)))
 
-        O1 = PointClass(x=self.Pa.x - r1 * sin(tan_a), \
+        O1 = Point(x=self.Pa.x - r1 * sin(tan_a), \
                       y=self.Pa.y + r1 * cos(tan_a))
-        k = PointClass(x=self.Pa.x + r1 * (-sin(tan_a) + sin(teta + tan_a)), \
+        k = Point(x=self.Pa.x + r1 * (-sin(tan_a) + sin(teta + tan_a)), \
                      y=self.Pa.y + r1 * (cos(tan_a) - cos(tan_a + teta)))
-        O2 = PointClass(x=k.x + r2 * (-sin(teta + tan_a)), \
+        O2 = Point(x=k.x + r2 * (-sin(teta + tan_a)), \
                       y=k.y + r2 * (cos(teta + tan_a)))
         return O1, O2, k
 

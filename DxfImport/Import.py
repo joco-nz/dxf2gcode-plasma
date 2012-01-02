@@ -595,19 +595,19 @@ class ReadDXF:
         for p_nr in cont.order:
             
             #This have to be 2 seperate loops, otherwise one element is missing
-            for point in points:
-                if p_nr[0]==point.point_nr:
-                    del points[points.index(point)]
+            for Point in points:
+                if p_nr[0]==Point.point_nr:
+                    del points[points.index(Point)]
                     
-            for point in points:
-                for be_cp in point.be_cp:
+            for Point in points:
+                for be_cp in Point.be_cp:
                     if p_nr[0]==be_cp[0]:
-                        del point.be_cp[point.be_cp.index(be_cp)]
+                        del Point.be_cp[Point.be_cp.index(be_cp)]
                         break
                     
-                for en_cp in point.en_cp:
+                for en_cp in Point.en_cp:
                     if p_nr[0]==en_cp[0]:
-                        del point.en_cp[point.en_cp.index(en_cp)]
+                        del Point.en_cp[Point.en_cp.index(en_cp)]
                         break
                                   
         #Rückgabe der Kontur       

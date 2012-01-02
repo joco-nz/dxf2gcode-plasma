@@ -6,10 +6,10 @@ Generates the python file based on the defined uifile
 import os, sys
 import subprocess
 
-PYT = "C:/Python26/pythonw.exe"
+PYT = "C:/Python27/pythonw.exe"
 
 
-UICPATH = "C:\Python26\Lib\site-packages\PyQt4"
+UICPATH = "C:\Python27\Lib\site-packages\PyQt4"
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
 
 UIFILE = "dxf2gcode_pyQt4_ui.ui"

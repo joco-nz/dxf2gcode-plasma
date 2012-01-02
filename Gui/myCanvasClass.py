@@ -13,16 +13,16 @@ Special purpose canvas including all required plotting function etc.
 from copy import copy
 
 from PyQt4 import QtCore, QtGui
-from point import PointClass
-from shape import ShapeClass
+from Core.Point import Point
+from Core.Shape import ShapeClass
 
-from WpZero import WpZero
-from Arrow import Arrow
-from StMove import StMove
+from Gui.WpZero import WpZero
+from Gui.Arrow import Arrow
+from Gui.StMove import StMove
 
-import math
-import globals as g
-import constants as c
+#import math
+import Core.Globals as g
+import Core.constants as c
 
        
 class MyGraphicsView(QtGui.QGraphicsView): 
@@ -172,8 +172,8 @@ class MyGraphicsView(QtGui.QGraphicsView):
         @param event: Event Parameters passed to function
         """
         if not(self.mppos is None):
-            point = event.pos() - self.mppos
-            if (point.manhattanLength() > 3):
+            Point = event.pos() - self.mppos
+            if (Point.manhattanLength() > 3):
                 #print 'the mouse has moved more than 3 pixels since the oldPosition'
                 #print "Mouse Pointer is currently hovering at: ", event.pos() 
                 self.rubberBand.show()
@@ -405,7 +405,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         self.LayerContents=[]
         self.showDisabled=False
         self.EntitiesRoot=EntitieContentClass(Nr=-1, Name='Base',parent=None,children=[],
-                                              p0=PointClass(0,0),pb=PointClass(0,0),
+                                              p0=Point(0,0),pb=Point(0,0),
                                               sca=1,rot=0)
         self.BaseEntities=EntitieContentClass()
                
@@ -417,7 +417,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         
         @param values: The loaded dxf values fro mthe dxf_import.py file
         @param p0: The Starting Point to plot (Default x=0 and y=0)
-        @param bp: The Base point to insert the geometry and base for rotation 
+        @param bp: The Base Point to insert the geometry and base for rotation 
         (Default is also x=0 and y=0)
         @param sca: The scale of the basis function (default =1)
         @param rot: The rotation of the geometries around base (default =0)
@@ -693,7 +693,7 @@ class LayerContentClass:
                
 class EntitieContentClass:
     def __init__(self,type="Entitie",Nr=None,Name='',parent=None,children=[],
-                p0=PointClass(x=0.0,y=0.0),pb=PointClass(x=0.0,y=0.0),sca=[1,1,1],rot=0.0):
+                p0=Point(x=0.0,y=0.0),pb=Point(x=0.0,y=0.0),sca=[1,1,1],rot=0.0):
                     
         self.type=type
         self.Nr=Nr
