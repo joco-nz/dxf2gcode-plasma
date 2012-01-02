@@ -23,24 +23,26 @@ import logging
 
 import Core.Globals as g
 
-class Log(object):
+class LoggerClass():
     '''
     handle 3 log streams:
         console
         file
         message window
     '''
-    def __init__(self, tag, console_loglevel):
+    def __init__(self, rootlogger, console_loglevel):
         self.file_handler = None
         self.window_handler = None
-        self.logger = logging.getLogger(tag)
-        self.logger.setLevel(logging.DEBUG)
+        self.rootlogger = rootlogger
+        self.rootlogger.setLevel(logging.DEBUG)
         
         # always log to the console window
         self.console_handler = logging.StreamHandler()
-        self.console_handler.setFormatter(logging.Formatter("%(levelname)s %(module)s:%(funcName)s:%(lineno)d - %(message)s"))
+        self.console_handler.setFormatter(logging.Formatter("%(levelname)-5s %(module)-13s %(name)-15s %(funcName)-12s %(lineno)-3d:  - %(message)s"))
         self.console_handler.setLevel(self._cvtlevel(console_loglevel))
-        self.logger.addHandler(self.console_handler)
+        self.console_handler.addFilter(FilterModule()) 
+        
+        self.rootlogger.addHandler(self.console_handler)
 
     # allow  'INFO' or logging.INFO  args
     def _cvtlevel(self, level):
@@ -53,7 +55,7 @@ class Log(object):
     def add_file_logger(self, logfile, log_level):
         
         self.file_handler = logging.FileHandler(logfile, 'w')  # recreate 
-        self.file_handler.setFormatter(logging.Formatter("%(levelname)s %(module)s:%(funcName)s:%(lineno)d  - %(message)s"))
+        self.file_handler.setFormatter(logging.Formatter("%(levelname)-10s %(module)-15s %(name)-15s %(funcName)-10s %(lineno)-4d:  - %(message)s"))
         self.file_handler.setLevel(self._cvtlevel(log_level))
         #self.logger.addHandler(self.file_handler)
     
@@ -61,11 +63,11 @@ class Log(object):
         if onoff:
             if not hasattr(self.logger, 'file_handler'):
                 self.add_file_logger(g.config.logfile, g.config.file_loglevel)
-            self.logger.addHandler(self.file_handler)
-            self.logger.info("file logging started at %s", time.asctime())
+            self.rootlogger.addHandler(self.file_handler)
+            self.rootlogger.info("file logging started at %s", time.asctime())
         else:
-            self.logger.info("file logging stopped at %s", time.asctime())
-            self.logger.removeHandler(self.file_handler)
+            self.rootlogger.info("file logging stopped at %s", time.asctime())
+            self.rootlogger.removeHandler(self.file_handler)
     
     def add_window_logger(self, log_level):
         
@@ -76,7 +78,7 @@ class Log(object):
             self.window_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
             
         self.window_handler.setLevel(self._cvtlevel(log_level))
-        self.logger.addHandler(self.window_handler)
+        self.rootlogger.addHandler(self.window_handler)
         
     def set_window_logstream(self, stream=sys.stderr):
         if self.window_handler:
@@ -94,3 +96,13 @@ class Log(object):
         if self.console_handler:
             self.console_handler.setLevel(self._cvtlevel(log_level))
             
+
+
+class FilterModule(logging.Filter): 
+    def filter(self, record): 
+        #return 'Core.Shape' in record.name
+        return True
+
+
+
+
