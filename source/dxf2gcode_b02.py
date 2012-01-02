@@ -40,7 +40,7 @@ if os.name == "posix" and sys.platform == "darwin":
 # in case more per-platform determination warts are needed, fill in here:
  
 from config import ConfigClass, PostprocessorClass
-from point import PointClass
+from Point import PointClass
 from shape import ShapeClass, EntitieContentClass
 from notebook import MyNotebookClass, LayerContentClass
 from dxf_import import ReadDXF 

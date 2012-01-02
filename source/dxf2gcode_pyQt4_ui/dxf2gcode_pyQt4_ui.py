@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Sun Jan 01 11:46:20 2012
+# Created: Mon Jan 02 10:05:03 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -217,6 +217,6 @@ class Ui_MainWindow(object):
         self.mytabWidget.setTabText(self.mytabWidget.indexOf(self.tab), QtGui.QApplication.translate("MainWindow", "Entities", None, QtGui.QApplication.UnicodeUTF8))
         self.mytabWidget.setTabText(self.mytabWidget.indexOf(self.tab_2), QtGui.QApplication.translate("MainWindow", "Layers", None, QtGui.QApplication.UnicodeUTF8))
 
-from myMessageBox import myMessageBox
-from myCanvasClass import MyGraphicsView
+from Gui.myCanvasClass import MyGraphicsView
+from Gui.myMessageBox import myMessageBox
 import dxf2gcode_images_rc

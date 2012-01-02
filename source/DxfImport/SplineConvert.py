@@ -25,7 +25,7 @@
 from Core.Point import Point
 from Core.ArcGeo import ArcGeo
 from Core.LineGeo import  LineGeo
-from DxfImport.Biarc import BiarcClass 
+from DxfImport.biarc import BiarcClass 
 
 from math import atan2, pow
 
@@ -292,8 +292,8 @@ class Spline2Arcs:
                     
                     #�berpr�fung der Abweichung
                     res = []
-                    for point in Pts:
-                        res.append(JointLine.distance2point(point))
+                    for Point in Pts:
+                        res.append(JointLine.distance2point(Point))
                     #print res
                         
                     #Wenn die Abweichung OK ist Vorheriges anh�ngen

@@ -1,5 +1,5 @@
 # -*- coding: ISO-8859-1 -*-
-from point import PointClass
+from Point import PointClass
 from base_geometries import  LineGeo, ArcGeo 
 from bounding_box import BoundingBoxClass
 from shape import ShapeClass
@@ -57,7 +57,7 @@ class ShapeOffsetClass:
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
         
         If Local self intersections exist the Elements will be splitted into new
-        elements at their intersection point.
+        elements at their intersection Point.
         """ 
 
         joinedshape = ShapeClass(parent=shape.parent,
@@ -97,7 +97,7 @@ class ShapeOffsetClass:
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
         
         If Local self intersections exist the Elements will be splitted into new
-        elements at their intersection point.
+        elements at their intersection Point.
         """ 
 
         pretshape = ShapeClass(parent=joinedshape.parent,
@@ -134,22 +134,22 @@ class ShapeOffsetClass:
                     
                 if intersect:
                     points = geo1.find_inter_points(geo2, tol=self.tol)
-                    #Check if the point is in tolerance with the last point of geo1
+                    #Check if the Point is in tolerance with the last Point of geo1
                     #If not it is a Local Self Intersecting Point per Definition 2 
                     #and the element has to be seperated into 2 elements. this will
                     #result in a not self intersecting element. 
                                
-                    for point in points:
+                    for Point in points:
                         #print geo1
                         #print geo2
-                        #print point
+                        #print Point
                         #There can be only one Local Self Intersection Point.
-                        if point.isTIP(geo1, self.tol, 'inside'):
+                        if Point.isTIP(geo1, self.tol, 'inside'):
                             
                             if not(geo_nr==len(self.shape.geos)):
                                 pretshape.geos.pop()
                             pretshape.geos.pop()
-                            pretshape.geos += geo1.split_into_2geos(point)
+                            pretshape.geos += geo1.split_into_2geos(Point)
                             if not(geo_nr==len(self.shape.geos)):
                                 pretshape.geos += [geo2]
                                             
@@ -312,16 +312,16 @@ class ShapeOffsetClass:
                     
                     if intersect:
                         points = geo1.find_inter_points(geo2)  
-                        for point in points:
+                        for Point in points:
                              
-                            if point.isTIP(geo1, self.tol, 'all') and \
-                             point.isTIP(geo2, self.tol, 'all'):
+                            if Point.isTIP(geo1, self.tol, 'all') and \
+                             Point.isTIP(geo2, self.tol, 'all'):
     #                            print 'Intersection'
     #                            print geo1
     #                            print geo2
                                 
-                                geo1.inters.append(point)
-                                geo2.inters.append(point)
+                                geo1.inters.append(Point)
+                                geo2.inters.append(Point)
                 
                 geo2_index+=1
                 if geo2_index==len(BBListPa):
@@ -344,19 +344,19 @@ class ShapeOffsetClass:
 ##                
 ##                if intersect:
 ##                    points = geo1.find_inter_points(geo2)  
-##                    for point in points:
+##                    for Point in points:
 ###                        print geo1
 ###                        print geo2
-###                        print point
-##                        #print geo1.isTIP(point, self.tol, 'all')
-##                        #print geo2.isTIP(point, self.tol, 'all')
+###                        print Point
+##                        #print geo1.isTIP(Point, self.tol, 'all')
+##                        #print geo2.isTIP(Point, self.tol, 'all')
 ##                         
-##                        if point.isTIP(geo1, self.tol, 'all') and \
-##                         point.isTIP(geo2, self.tol, 'all'):
-##                            #if not(point.isintol(geo1.Pe, self.tol))and \
-##                            #not(point.isintol(geo2.Pa, self. tol)):
-##                            geo1.inters.append(point)
-##                            geo2.inters.append(point)
+##                        if Point.isTIP(geo1, self.tol, 'all') and \
+##                         Point.isTIP(geo2, self.tol, 'all'):
+##                            #if not(Point.isintol(geo1.Pe, self.tol))and \
+##                            #not(Point.isintol(geo2.Pa, self. tol)):
+##                            geo1.inters.append(Point)
+##                            geo2.inters.append(Point)
 
                            
         #Sort the intersection Points in asscending order and then splits the 
@@ -449,13 +449,13 @@ class ShapeOffsetClass:
 ##                
 ##                    if intersect:
 ##                        points = geo1.find_inter_points(geo2)  
-##                        for point in points:
+##                        for Point in points:
 ##                         
-##                            if point.isTIP(geo1, self.tol) and \
-##                             point.isTIP(geo2, self.tol):
+##                            if Point.isTIP(geo1, self.tol) and \
+##                             Point.isTIP(geo2, self.tol):
 ##                                #print geo1
 ##                                #print geo2
-##                                #print point
+##                                #print Point
 ##                                del_shapes.append(clippedshapes[s_nr])
 ##                                break_l=1
 ##                                break
@@ -710,20 +710,20 @@ class CCArcGeo(ArcGeo):
         return 1e99
 
 
-#    def isTIP(self, point=PointClass, tol=0.01, type='all'):
+#    def isTIP(self, Point=PointClass, tol=0.01, type='all'):
 #        """
-#        Checks if the point is a Local Self Intersection Point of the CCArcGeo
-#        @param point: The Point which shall be checked
+#        Checks if the Point is a Local Self Intersection Point of the CCArcGeo
+#        @param Point: The Point which shall be checked
 #        @return: Returns true or false
 #        """
 #        
 #        if type=='inside':
-#            if (self.Pa.isintol(point,tol) or self.Pe.isintol(point,tol)):
+#            if (self.Pa.isintol(Point,tol) or self.Pe.isintol(Point,tol)):
 #                return False
 #        else:
 #            #The linear tolerance in angle
 #            atol = tol / 2 / pi / self.r
-#            pang = self.O.norm_angle(point)
+#            pang = self.O.norm_angle(Point)
 #             
 #            if self.ext >= 0.0:
 #                return self.angle_between(self.s_ang - atol, self.e_ang + tol, pang)
@@ -772,7 +772,7 @@ class CCArcGeo(ArcGeo):
         if d_e_ang > self.ext:
             d_e_ang -= 2 * pi
             
-        #The point where the geo shall be splitted
+        #The Point where the geo shall be splitted
         spoint = self.O.get_arc_point(ang=degrees(self.e_ang - d_e_ang / 2),
                                       r=self.r)
         
@@ -781,7 +781,7 @@ class CCArcGeo(ArcGeo):
     def split_geo_at_point(self,spoint):
         """
         Splits the given geometry into 2 geometries. The
-        geometry will be splitted at point spoint.
+        geometry will be splitted at Point spoint.
         @param ipoint: The Point where the intersection occures
         @return: A list of 2 CCArcGeo's will be returned.
         """
@@ -834,7 +834,7 @@ class CCArcGeo(ArcGeo):
         geometry
         @param other: The 2nd Line Geometry
         @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
-        identical to the end point of the last geometry)
+        identical to the end Point of the last geometry)
         @return: A list of geos
         """ 
         if other.type == "CCLineGeo":
@@ -851,7 +851,7 @@ class CCArcGeo(ArcGeo):
         geometry
         @param other: The 2nd Line Geometry
         @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
-        identical to the end point of the last geometry)
+        identical to the end Point of the last geometry)
         @return: A list of geos
         """ 
         geos = []
@@ -918,7 +918,7 @@ class CCArcGeo(ArcGeo):
         geometry
         @param other: The 2nd Line Geometry
         @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
-        identical to the end point of the last geometry)
+        identical to the end Point of the last geometry)
         @return: A list of geos
         """ 
         geos = [] 
@@ -1182,35 +1182,35 @@ class CCLineGeo(LineGeo):
                    other.distance_point_line(self.Pe))
             
         
-    def distance_point_line(self,point):
+    def distance_point_line(self,Point):
         """
-        Find the shortest distance between CCLineGeo and point elements.  
+        Find the shortest distance between CCLineGeo and Point elements.  
         Algorithm acc. to 
-        http://notejot.com/2008/09/distance-from-point-to-line-segment-in-2d/
+        http://notejot.com/2008/09/distance-from-Point-to-line-segment-in-2d/
         http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm
-        @param point: the point
-        @return: The shortest distance between the point and Line
+        @param Point: the Point
+        @return: The shortest distance between the Point and Line
         """
         
         d=self.Pe-self.Pa
-        v=point-self.Pa
+        v=Point-self.Pa
     
         t=dotProd(d,v)
         
         if t<=0:
-            #our point is lying "behind" the segment
-            #so end point 1 is closest to point and distance is length of
-            #vector from end point 1 to point.
-            return self.Pa.distance(point)
+            #our Point is lying "behind" the segment
+            #so end Point 1 is closest to Point and distance is length of
+            #vector from end Point 1 to Point.
+            return self.Pa.distance(Point)
         elif t>=dotProd(d,d):
-            #our point is lying "ahead" of the segment
-            #so end point 2 is closest to point and distance is length of
-            #vector from end point 2 to point.
-            return self.Pe.distance(point)
+            #our Point is lying "ahead" of the segment
+            #so end Point 2 is closest to Point and distance is length of
+            #vector from end Point 2 to Point.
+            return self.Pe.distance(Point)
         else:
-            #our point is lying "inside" the segment
+            #our Point is lying "inside" the segment
             #i.e.:a perpendicular from it to the line that contains the line
-            #segment has an end point inside the segment
+            #segment has an end Point inside the segment
             return sqrt(dotProd(v,v) - (t*t)/dotProd(d,d));
                      
     def split_into_2geos(self, ipoint=PointClass()):
@@ -1220,7 +1220,7 @@ class CCLineGeo(LineGeo):
         @param ipoint: The Point where the intersection occures
         @return: A list of 2 CCLineGeo's will be returned.
         """
-        #The point where the geo shall be splitted
+        #The Point where the geo shall be splitted
         spoint = PointClass(x=(ipoint.x + self.Pe.x) / 2,
                           y=(ipoint.y + self.Pe.y) / 2)
         
@@ -1229,7 +1229,7 @@ class CCLineGeo(LineGeo):
     def split_geo_at_point(self,spoint):
         """
         Splits the given geometry into 2 geometries. The
-        geometry will be splitted at point spoint.
+        geometry will be splitted at Point spoint.
         @param ipoint: The Point where the intersection occures
         @return: A list of 2 CCArcGeo's will be returned.
         """
@@ -1266,7 +1266,7 @@ class CCLineGeo(LineGeo):
         geometry
         @param other: The 2nd Line Geometry
         @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
-        identical to the end point of the last geometry)
+        identical to the end Point of the last geometry)
         @return: A list of geos
         """ 
         if other.type == "CCLineGeo":
@@ -1283,12 +1283,12 @@ class CCLineGeo(LineGeo):
         geometry
         @param other: The 2nd Line Geometry
         @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
-        identical to the end point of the last geometry)
+        identical to the end Point of the last geometry)
         @return: A list of geos
         """ 
         geos = []
         
-        #Find the nearest intersection point
+        #Find the nearest intersection Point
         points = self.find_inter_points(other)
         
         #Problem??
@@ -1330,7 +1330,7 @@ class CCLineGeo(LineGeo):
         geometry
         @param other: The 2nd Line Geometry
         @param Pe: The hdl to the newPa. (Trying to make the startpoint Pa 
-        identical to the end point of the last geometry)
+        identical to the end Point of the last geometry)
         @return: A list of geos
         """ 
         geos = []
@@ -1426,8 +1426,8 @@ class IPointClass(PointClass):
                 
     def isTIP(self, geo=[], tol=0.0, type='all'):
         """
-        Checks if the point is on the CCLineGeo, therefore a true intersection
-        point.
+        Checks if the Point is on the CCLineGeo, therefore a true intersection
+        Point.
         @param other: The Point which shall be ckecke
         @return: Returns true or false
         """
@@ -1453,13 +1453,13 @@ class IPointClass(PointClass):
         
         return False    
 #        else:
-#            return self.BB.pointisinBB(point=point, tol=tol)
+#            return self.BB.pointisinBB(Point=Point, tol=tol)
     
     def isPFIP(self, geo):
         """
         Checks if the Intersectionpoint is on the Positiv ray of the line.
-        Therefore is a positiv false intersection point. Therefore it's just 
-        needed to check if the point is nearer to Pe then to Pa
+        Therefore is a positiv false intersection Point. Therefore it's just 
+        needed to check if the Point is nearer to Pe then to Pa
         @param ipoint: The Point which shall be ckecke
         @return: Returns true or false
         """
@@ -1476,8 +1476,8 @@ class IPointClass(PointClass):
 def dotProd(P1,P2):
     """
     Returns the dotProduct of two points
-    @param P1: The first point
-    @param P2: The 2nd point
+    @param P1: The first Point
+    @param P2: The 2nd Point
     @return: dot Product of the points.
     """ 
     

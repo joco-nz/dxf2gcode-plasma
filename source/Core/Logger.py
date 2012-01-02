@@ -21,8 +21,7 @@ import sys
 import time
 import logging
 
-import constants as c
-import globals as g
+import Core.Globals as g
 
 class Log(object):
     '''

@@ -18,21 +18,25 @@ import os
 import sys
 import logging
 
-from logger import Log
-from optparse import OptionParser
-from PyQt4 import QtCore, QtGui
 
+from optparse import OptionParser
+from PyQt4 import QtGui
 
 # Import the compiled UI module
 from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
 
-import globals as g
-import constants as c
+from Core.Logger import Log
+from Core.Config import MyConfig
+from Core.Point import Point
+import Core.Globals as g
+import Core.constants as c
 
-from config import MyConfig
-from dxf_import import ReadDXF
+from DxfImport.Import import ReadDXF
 
-from myCanvasClass import *
+from Gui.myCanvasClass import MyGraphicsScene
+
+
+#from Gui.myCanvasClass import *
 
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
@@ -43,7 +47,6 @@ if os.path.islink(sys.argv[0]):
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
     def __init__(self):
-        logger=g.logger.logger
 
         QtGui.QMainWindow.__init__(self)
     
@@ -94,8 +97,6 @@ class Main(QtGui.QMainWindow):
         it creates the file selection dialog and calls the loadFile function to
         load the selected file.
         """
-        
-        config=g.config
 
         filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
                     g.config.vars.Paths['import_dir'],
@@ -110,18 +111,11 @@ class Main(QtGui.QMainWindow):
         
         #If there is something to load then call the load function callback
         if not(filename==""):
-            values=self.loadFile(filename)
+            self.loadFile(filename)
             
     def autoscale(self):
         """
-        This function is called by the menu "Autoscal" of the main forwards the
-        call to MyGraphicsview.autoscale() 
-        """
-        self.MyGraphicsView.autoscale()
-
-    def autoscale(self):
-        """
-        This function is called by the menu "Autoscal" of the main forwards the
+        This function is called by the menu "Autoscale" of the main forwards the
         call to MyGraphicsview.autoscale() 
         """
         self.MyGraphicsView.autoscale()
@@ -228,8 +222,8 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView.clearScene()
         self.MyGraphicsScene=MyGraphicsScene()   
         self.MyGraphicsScene.makeplot(values,
-                                    p0=PointClass(x=0.0, y=0.0),
-                                    pb=PointClass(x=0, y=0),
+                                    p0=Point(x=0.0, y=0.0),
+                                    pb=Point(x=0, y=0),
                                     sca=[1.0,1.0,1.0],
                                     rot=0.0)
         
@@ -275,7 +269,6 @@ def main():
     
     setup_logging(window.myMessageBox)
     
-    logger=g.logger.logger
     g.config=MyConfig()
     
     parser = OptionParser("usage: %prog [options]")

@@ -22,10 +22,7 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from Canvas import Line
-from math import sqrt, sin, cos, atan2, radians, degrees, pi, floor, ceil, copysign
-from point import PointClass
-from copy import copy
+from math import sqrt, degrees
 
 #Length of the cross.
 dl = 0.2
@@ -84,7 +81,6 @@ class LineGeo:
     
         
     def add2path(self, papath=None, parent=None): 
-    #plot2can(self, canvas=None, tag=None, col='black', plotoption=0):
         """
         Plots the geometry of self into the defined canvas.
         @param canvas: The canvas instance to plot in
@@ -96,31 +92,13 @@ class LineGeo:
 
         abs_geo=self.make_abs_geo(parent, 0)
         papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
-#        hdl = []
-#
-#        hdl.append(Line(canvas, self.Pa.x, -self.Pa.y,
-#                        self.Pe.x, -self.Pe.y, tag=tag, fill=col))
-#        
-#        if plotoption:
-#            hdl.append(Line(canvas, self.Pa.x - dl, -self.Pa.y - dl,
-#                            self.Pa.x + dl, -self.Pa.y + dl, tag=tag, fill=col))
-#            hdl.append(Line(canvas, self.Pa.x + dl, -self.Pa.y - dl,
-#                            self.Pa.x - dl, -self.Pa.y + dl, tag=tag, fill=col))
-#            hdl.append(Line(canvas, self.Pe.x - dl, -self.Pe.y - dl,
-#                            self.Pe.x + dl, -self.Pe.y + dl, tag=tag, fill=col))
-#            hdl.append(Line(canvas, self.Pe.x + dl, -self.Pe.y - dl,
-#                            self.Pe.x - dl, -self.Pe.y + dl, tag=tag, fill=col))
-#         
-#        #if DEBUG:   
-#            #self.BB.plot2can(canvas=canvas, tag=tag, col='red', hdl=hdl)
-#            
-#        return hdl
+
 
     def get_start_end_points(self, direction, parent=None):
         """
-        Returns the start/end point and its direction
-        @param direction: 0 to return start point and 1 to return end point
-        @return: a list of point and angle 
+        Returns the start/end Point and its direction
+        @param direction: 0 to return start Point and 1 to return end Point
+        @return: a list of Point and angle 
         """
         if not(direction):
             punkt=self.Pa.rot_sca_abs(parent=parent)
@@ -140,16 +118,16 @@ class LineGeo:
         """
         return postpro.lin_pol_xy(self.Pa, self.Pe)
 
-    def distance2point(self, point):
+    def distance2point(self, Point):
         """
-        Returns the distance between a line and a given point
-        @param point: The Point which shall be checked
+        Returns the distance between a line and a given Point
+        @param Point: The Point which shall be checked
         @return: returns the distance to the Line
         """
         try:
             AE = self.Pa.distance(self.Pe)
-            AP = self.Pa.distance(point)
-            EP = self.Pe.distance(point)
+            AP = self.Pa.distance(Point)
+            EP = self.Pe.distance(Point)
             AEPA = (AE + AP + EP) / 2
             return abs(2 * sqrt(abs(AEPA * (AEPA - AE) * \
                                      (AEPA - AP) * (AEPA - EP))) / AE)

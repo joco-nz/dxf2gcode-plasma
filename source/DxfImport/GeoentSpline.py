@@ -72,8 +72,8 @@ class GeoentSpline:
            ('\nWeights: %s' % self.Weights) + \
            ('\nCPoints: ')
            
-        for point in self.CPoints:
-            s = s + "\n" + str(point)
+        for Point in self.CPoints:
+            s = s + "\n" + str(Point)
         s += ('\ngeo: ')
 
         return s

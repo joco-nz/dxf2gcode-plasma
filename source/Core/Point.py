@@ -23,8 +23,8 @@
 
 
 #from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, pi, ceil
-import globals as g
+from math import sqrt, sin, cos, atan2, radians, pi
+import Core.Globals as g
 
 class Point:
     __slots__=["x","y"]  
@@ -39,7 +39,7 @@ class Point:
         return (self.x == other.x) and (self.y == other.y)
     def __neg__(self):
         return - 1.0 * self
-    def __add__(self, other): # add to another point
+    def __add__(self, other): # add to another Point
         return Point(self.x + other.x, self.y + other.y)
     def __sub__(self, other):
         return self + -other
@@ -73,18 +73,18 @@ class Point:
         return Point(x=xt, y=yt)
     def get_arc_point(self, ang=0, r=1):
         """ 
-        Returns the point on the arc defined by r and the given angel
-        @param ang: The angle of the point
-        @param radius: The radius around the given point
-        @return: A point on given given radius from Point self
+        Returns the Point on the arc defined by r and the given angel
+        @param ang: The angle of the Point
+        @param radius: The radius around the given Point
+        @return: A Point on given given radius from Point self
         """ 
         
         return Point(x=self.x + cos(radians(ang)) * r, \
                           y=self.y + sin(radians(ang)) * r)
 
     def Write_GCode(self, parent=None, postpro=None):
-        point = self.rot_sca_abs(parent=parent)
-        return postpro.rap_pos_xy(point)
+        Point = self.rot_sca_abs(parent=parent)
+        return postpro.rap_pos_xy(Point)
     
     def add2path(self, papath=None, parent=None):
         """
@@ -152,27 +152,27 @@ class Point:
     def get_nearest_point(self, points):
         """ 
         If there are more then 1 intersection points then use the nearest one to
-        be the intersection point.
+        be the intersection Point.
         @param points: A list of points to be checked for nearest
-        @param epoint: The 2nd point which shall be nearest 
-        @return: Returns the nearest point
+        @param epoint: The 2nd Point which shall be nearest 
+        @return: Returns the nearest Point
         """ 
         if len(points) == 1:
-            point = points[0]
+            Point = points[0]
         else:
             mindis = points[0].distance(self)
-            point = points[0]
+            Point = points[0]
             for i in range(1, len(points)):
                 curdis = points[i].distance(self)
                 if curdis < mindis:
                     mindis = curdis
-                    point = points[i]
+                    Point = points[i]
                     
-        return point
+        return Point
 
     def get_arc_direction(self,Pe,O):
         """ 
-        Calculate the arc direction given from the 3 point. Pa (self), Pe, O
+        Calculate the arc direction given from the 3 Point. Pa (self), Pe, O
         @param Pe: End Point
         @param O: The center of the arc
         @return: Returns the direction (+ or - pi/2)

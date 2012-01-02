@@ -22,12 +22,9 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from math import sqrt, sin, cos, acos, atan2, radians, degrees, pi, floor, ceil, copysign
-from point import PointClass
-from copy import copy
-
-import globals as g
-from base_geometries import *
+import Core.Globals as g
+from Core.LineGeo import LineGeo
+from Core.ArcGeo import ArcGeo
 
 from PyQt4 import QtCore, QtGui
 
@@ -178,7 +175,7 @@ class StMove(QtGui.QGraphicsLineItem):
     def reverseshape(self,startp,angle):
         """
         Method is called when the shape direction is changed and therefor the
-        arrow gets new point and direction
+        arrow gets new Point and direction
         @param startp: The new startpoint
         @param angle: The new angle of the arrow
         """

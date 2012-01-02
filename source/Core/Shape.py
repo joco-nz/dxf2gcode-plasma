@@ -29,13 +29,11 @@
 
 from PyQt4 import QtCore, QtGui
 
-import globals as g
-import constants as c
+import Core.Globals as g
 
-from point import PointClass
-from base_geometries import LineGeo, ArcGeo
-from bounding_box import BoundingBoxClass
-from math import cos, sin, radians, degrees
+from Core.Point import Point
+from Core.BoundingBox import BoundingBox
+from math import cos, sin, degrees
 from copy import deepcopy
 
 
@@ -74,7 +72,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.length = length
         self.parent = parent
         self.geos = geos
-        self.BB = BoundingBoxClass(Pa=None, Pe=None)
+        self.BB = BoundingBox(Pa=None, Pe=None)
         self.plotoption = plotoption
 
     def __str__(self):
@@ -205,7 +203,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                     segments = int((abs(degrees(geo.ext)) // 90) + 1)
                     for i in range(segments): 
                         ang = geo.s_ang + (i + 1) * geo.ext / segments
-                        ende = PointClass(x=(geo.O.x + cos(ang) * abs(geo.r)), y=(geo.O.y + sin(ang) * abs(geo.r)))
+                        ende = Point(x=(geo.O.x + cos(ang) * abs(geo.r)), y=(geo.O.y + sin(ang) * abs(geo.r)))
                         summe += (start.x + ende.x) * (ende.y - start.y) / 2
                         start = deepcopy(ende)
                                         
@@ -241,9 +239,9 @@ class ShapeClass(QtGui.QGraphicsItem):
 
     def get_st_en_points(self, dir=None):
         """
-        Returns the start/end point and its direction
-        @param direction: 0 to return start point and 1 to return end point
-        @return: a list of point and angle 
+        Returns the start/end Point and its direction
+        @param direction: 0 to return start Point and 1 to return end Point
+        @return: a list of Point and angle 
         """
         start, start_ang=self.geos[0].get_start_end_points(0,self.parent)
         ende, end_ang=self.geos[-1].get_start_end_points(1,self.parent)
@@ -296,8 +294,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
                                         parent=None,
                                         children=[],
-                                        p0=PointClass(x=0.0, y=0.0),
-                                        pb=PointClass(x=0.0, y=0.0),
+                                        p0=Point(x=0.0, y=0.0),
+                                        pb=Point(x=0.0, y=0.0),
                                         sca=[1, 1, 1],
                                         rot=0.0)
         

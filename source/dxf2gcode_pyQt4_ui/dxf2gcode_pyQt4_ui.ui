@@ -341,12 +341,12 @@
   <customwidget>
    <class>MyGraphicsView</class>
    <extends>QGraphicsView</extends>
-   <header>myCanvasClass</header>
+   <header>Gui.myCanvasClass</header>
   </customwidget>
   <customwidget>
    <class>myMessageBox</class>
    <extends>QTextBrowser</extends>
-   <header>myMessageBox</header>
+   <header>Gui.myMessageBox</header>
   </customwidget>
  </customwidgets>
  <resources>

@@ -22,11 +22,6 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from math import sqrt, sin, cos, acos, atan2, radians, degrees, pi, floor, ceil, copysign
-from point import PointClass
-from copy import copy
-
-import globals as g
 
 from PyQt4 import QtCore, QtGui
 
