@@ -35,6 +35,8 @@ from DxfImport.Import import ReadDXF
 
 from Gui.myCanvasClass import MyGraphicsScene
 
+from PostPro.TspOptimisation import TSPoptimize
+
 
 #from Gui.myCanvasClass import *
 
@@ -46,11 +48,13 @@ if os.path.islink(sys.argv[0]):
 
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
-    def __init__(self):
+    def __init__(self,app):
 
         QtGui.QMainWindow.__init__(self)
     
         # This is always the same
+        self.app =app
+        
         self.ui = Ui_MainWindow()
         
         self.ui.setupUi(self)
@@ -68,13 +72,20 @@ class Main(QtGui.QMainWindow):
         @purpose: Links the callbacks to the actions in the menu
         """
         
-        self.ui.actionExit.triggered.connect(self.close)
+        
         self.ui.actionLoad_File.triggered.connect(self.showDialog)
-        self.ui.actionAbout.triggered.connect(self.about)
+        
+        self.ui.actionExit.triggered.connect(self.close)
+        
+        self.ui.actionOptimize_Shape.triggered.connect(self.optimize_TSP)
+        self.ui.actionExport_Shapes.triggered.connect(self.export_shapes)
+       
         self.ui.actionAutoscale.triggered.connect(self.autoscale)
         self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
         self.ui.actionShow_WP_Zero.triggered.connect(self.setShow_wp_zero)
         self.ui.actionShow_disabled_paths.triggered.connect(self.setShow_disabled_paths)
+        
+        self.ui.actionAbout.triggered.connect(self.about)
         
     def enableplotmenu(self,status=True):
         """
@@ -112,6 +123,85 @@ class Main(QtGui.QMainWindow):
         if not(filename==""):
             self.loadFile(filename)
             
+            
+    def optimize_TSP(self):
+        """
+        Method is called to optimize the order of the shapes. This is performed
+        by solving the TSP Problem.
+        """
+        logger.debug('Optimize order of enabled shapes')
+
+        #Errechnen der Iterationen
+        iter =min(g.config.vars.Route_Optimisation['max_iterations'],
+                  len(self.MyGraphicsScene.shapes)*50)
+        
+        #Anfangswerte fuer das Sortieren der Shapes
+        self.shapes_to_write=[]
+        shapes_st_en_points=[]
+        
+        #Alle Shapes die geschrieben werden zusammenfassen
+        for shape in self.MyGraphicsScene.shapes:
+            
+            if not(shape.isDisabled()):
+                self.shapes_to_write.append(shape)
+                shapes_st_en_points.append(shape.get_st_en_points())
+                
+
+        #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
+        x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
+        y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
+        start=Point(x=x_st,y=y_st)
+        ende=Point(x=x_st,y=y_st)
+        shapes_st_en_points.append([start,ende])
+
+        #Optimieren der Reihenfolge
+        logger.info("")    
+            
+        TSP=TSPoptimize(shapes_st_en_points)
+        logger.info("TSP start values initialised")
+        
+        self.MyGraphicsScene.iniexproute(shapes_st_en_points,
+                                                  TSP.opt_route)
+       
+
+        for it_nr in range(iter):
+            #Jeden 10ten Schrit rausdrucken
+            if (it_nr%10)==0:
+                logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
+                            %(it_nr,TSP.Fittness.best_fittness[-1]))
+                
+                #FIXME
+                                
+                TSP.calc_next_iteration()
+                self.MyGraphicsScene.updateexproute(shapes_st_en_points,
+                                                  TSP.opt_route)
+                
+                self.app.processEvents() 
+                
+                
+#viewport = view->viewport();
+#
+#
+#
+#
+#
+#2
+#
+#viewport->update();
+
+                
+            
+        logger.debug("TSP done with result: %s" %TSP)
+        #self.viewmenu.entryconfig(6,state=NORMAL)      
+
+        
+    def export_shapes(self):
+        """
+        This method is called to export the shapes with the selected postprocessor.
+        """
+        logger.debug('Export the enabled shapes')
+        
+        
     def autoscale(self):
         """
         This function is called by the menu "Autoscale" of the main forwards the
@@ -261,7 +351,7 @@ def main():
     Log=LoggerClass(rootlogger=logger, console_loglevel=logging.DEBUG)
 
     app = QtGui.QApplication(sys.argv)
-    window = Main()
+    window = Main(app)
     g.window=window
     
     window.show()
@@ -291,3 +381,137 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+
+
+#   # Callback des Menu Punkts Exportieren
+#    def Write_GCode(self):
+#        
+#       #Config & postpro in einen kurzen Namen speichern
+#        config=self.config
+#        postpro=self.postpro
+#
+#        if not(config.write_to_stdout):
+#           
+#                #Abfrage des Namens um das File zu speichern
+#                self.save_filename=self.Get_Save_File()
+#                
+#                
+#                 #Wenn Cancel gedrueckt wurde
+#                if not self.save_filename:
+#                    return
+#                
+#                (beg, ende)=os.path.split(self.save_filename)
+#                (fileBaseName, fileExtension)=os.path.splitext(ende) 
+#        
+#                pp_file_nr=postpro.output_format.index(fileExtension)
+#                
+#                postpro.get_all_vars(pp_file_nr)
+#        else:
+#                postpro.get_all_vars(0)
+#        
+#               
+#        #Funktion zum optimieren des Wegs aufrufen
+#        self.opt_export_route()
+#
+#        #Initial Status fuer den Export
+#        status=1
+#
+#        #Schreiben der Standardwert am Anfang        
+#        postpro.write_gcode_be(postpro,self.load_filename)
+#
+#        #Maschine auf die Anfangshoehe bringen
+#        postpro.rap_pos_z(config.axis3_retract.get())
+#
+#        #Bei 1 starten da 0 der Startpunkt ist
+#        for nr in range(1,len(self.TSP.opt_route)):
+#            shape=self.shapes_to_write[self.TSP.opt_route[nr]]
+#            self.textbox.prt((_("\nWriting Shape: %s") %shape),1)
+#                
+#
+#
+#            #Drucken falls die Shape nicht disabled ist
+#            if not(shape.nr in self.CanvasContent.Disabled):
+#                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
+#                stat =shape.Write_GCode(config,postpro)
+#                status=status*stat
+#
+#        #Maschine auf den Endwert positinieren
+#        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
+#                                              y=config.axis2_st_en.get()))
+#
+#        #Schreiben der Standardwert am Ende        
+#        string=postpro.write_gcode_en(postpro)
+#
+#        if status==1:
+#            self.textbox.prt(_("\nSuccessfully generated G-Code"))
+#            self.master.update_idletasks()
+#
+#        else:
+#            self.textbox.prt(_("\nError during G-Code Generation"))
+#            self.master.update_idletasks()
+#
+#                    
+#        #Drucken in den Stdout, speziell fuer EMC2 
+#        if config.write_to_stdout:
+#            print(string)
+#            self.ende()     
+#        else:
+#            #Exportieren der Daten
+#                try:
+#                    #Das File oeffnen und schreiben    
+#                    f = open(self.save_filename, "w")
+#                    f.write(string)
+#                    f.close()       
+#                except IOError:
+#                    showwarning(_("Save As"), _("Cannot save the file."))
+#            
+#
+#    def opt_export_route(self):
+#        
+#        #Errechnen der Iterationen
+#        iter =min(self.config.max_iterations,len(self.CanvasContent.Shapes)*20)
+#        
+#        #Anfangswerte fuer das Sortieren der Shapes
+#        self.shapes_to_write=[]
+#        shapes_st_en_points=[]
+#        
+#        #Alle Shapes die geschrieben werden zusammenfassen
+#        for shape_nr in range(len(self.CanvasContent.Shapes)):
+#            shape=self.CanvasContent.Shapes[shape_nr]
+#            if not(shape.nr in self.CanvasContent.Disabled):
+#                self.shapes_to_write.append(shape)
+#                shapes_st_en_points.append(shape.get_st_en_points())
+#                
+#
+#        #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
+#        x_st=self.config.axis1_st_en.get()
+#        y_st=self.config.axis2_st_en.get()
+#        start=PointClass(x=x_st,y=y_st)
+#        ende=PointClass(x=x_st,y=y_st)
+#        shapes_st_en_points.append([start,ende])
+#
+#        #Optimieren der Reihenfolge
+#        self.textbox.prt(_("\nTSP Starting"),1)
+#                
+#        self.TSP=tsp.TSPoptimize(shapes_st_en_points,self.textbox,self.master,self.config)
+#        self.textbox.prt(_("\nTSP start values initialised"),1)
+#        #self.CanvasContent.path_hdls=[]
+#        #self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
+#
+#        for it_nr in range(iter):
+#            #Jeden 10ten Schrit rausdrucken
+#            if (it_nr%10)==0:
+#                self.textbox.prt((_("\nTSP Iteration nr: %i") %it_nr),1)
+#                for hdl in self.CanvasContent.path_hdls:
+#                    self.Canvas.canvas.delete(hdl)
+#                self.CanvasContent.path_hdls=[]
+#                self.CanvasContent.plot_opt_route(shapes_st_en_points,self.TSP.opt_route)
+#                self.master.update_idletasks()
+#                
+#            self.TSP.calc_next_iteration()
+#            
+#        self.textbox.prt(_("\nTSP done with result:"),1)
+#        self.textbox.prt(("\n%s" %self.TSP),1)
+#
+#        self.viewmenu.entryconfig(6,state=NORMAL)      

@@ -38,7 +38,7 @@ class LoggerClass():
         
         # always log to the console window
         self.console_handler = logging.StreamHandler()
-        self.console_handler.setFormatter(logging.Formatter("%(levelname)-5s %(module)-13s %(name)-15s %(funcName)-12s %(lineno)-3d:  - %(message)s"))
+        self.console_handler.setFormatter(logging.Formatter("%(name)-25s %(funcName)-12s %(lineno)-3d:  - %(message)s"))
         self.console_handler.setLevel(self._cvtlevel(console_loglevel))
         self.console_handler.addFilter(FilterModule()) 
         
@@ -100,7 +100,7 @@ class LoggerClass():
 
 class FilterModule(logging.Filter): 
     def filter(self, record): 
-        #return 'Core.Shape' in record.name
+        #return 'PostPro' in record.name
         return True
 
 

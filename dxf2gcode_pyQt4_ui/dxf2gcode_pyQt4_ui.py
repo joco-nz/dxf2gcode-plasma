@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Mon Jan 02 10:05:03 2012
+# Created: Wed Jan 04 22:56:14 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -79,10 +79,10 @@ class Ui_MainWindow(object):
         self.treeView = QtGui.QTreeView(self.tab_2)
         self.treeView.setMinimumSize(QtCore.QSize(0, 250))
         self.treeView.setObjectName(_fromUtf8("treeView"))
-        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.treeView)
+        self.formLayout.setWidget(0, QtGui.QFormLayout.SpanningRole, self.treeView)
         self.tableView = QtGui.QTableView(self.tab_2)
         self.tableView.setObjectName(_fromUtf8("tableView"))
-        self.formLayout.setWidget(6, QtGui.QFormLayout.LabelRole, self.tableView)
+        self.formLayout.setWidget(6, QtGui.QFormLayout.SpanningRole, self.tableView)
         self.verticalLayout_3.addLayout(self.formLayout)
         self.mytabWidget.addTab(self.tab_2, _fromUtf8(""))
         self.horizontalLayout.addWidget(self.mytabWidget)
@@ -186,9 +186,18 @@ class Ui_MainWindow(object):
         self.actionAbout = QtGui.QAction(MainWindow)
         self.actionAbout.setText(QtGui.QApplication.translate("MainWindow", "About", None, QtGui.QApplication.UnicodeUTF8))
         self.actionAbout.setObjectName(_fromUtf8("actionAbout"))
+        self.actionOptimize_Shape = QtGui.QAction(MainWindow)
+        self.actionOptimize_Shape.setText(QtGui.QApplication.translate("MainWindow", "Optimize Shape ", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionOptimize_Shape.setObjectName(_fromUtf8("actionOptimize_Shape"))
+        self.actionExport_Shapes = QtGui.QAction(MainWindow)
+        self.actionExport_Shapes.setText(QtGui.QApplication.translate("MainWindow", "Export Shapes", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionExport_Shapes.setObjectName(_fromUtf8("actionExport_Shapes"))
         self.menuFile.addAction(self.actionLoad_File)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
+        self.menuExport.addSeparator()
+        self.menuExport.addAction(self.actionOptimize_Shape)
+        self.menuExport.addAction(self.actionExport_Shapes)
         self.menuView.addAction(self.actionShow_WP_Zero)
         self.menuView.addAction(self.actionShow_path_directions)
         self.menuView.addAction(self.actionShow_disabled_paths)
@@ -210,7 +219,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.mytabWidget.setCurrentIndex(1)
+        self.mytabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):

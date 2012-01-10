@@ -39,7 +39,7 @@ from d2gexceptions import *
 import logging
 logger = logging.getLogger("Core.Config") 
 
-CONFIG_VERSION = "2"
+CONFIG_VERSION = "4"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -87,10 +87,10 @@ CONFIG_SPEC = str('''
     
     
     [Route_Optimisation]
-    mutation rate = float(default= 0.95)
-    max. population = float(default= 20)
-    max. iterations = float(default= 300)
-    begin art = string(default="heurestic")
+    mutation_rate = float(default= 0.95)
+    max_population = integer(default= 20)
+    max_iterations = integer(default= 300)
+    begin_art = string(default="heurestic")
     
     [Import_Parameters]
     point_tolerance = float(default= 0.01)
@@ -188,7 +188,6 @@ class MyConfig:
                     g.logger.logger.error( section_string + ' = ' + error)       
     
                 if validate_errors:
-                    print "hab ich"
                     raise BadConfigFileError,"syntax errors in config file"
                     
                 # check config file version against internal version
@@ -206,7 +205,7 @@ class MyConfig:
                 logger.error(inst)               
                 (base,ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
-                g.logger.logger.debug("trying to rename bad cfg %s to %s" % (self.filename,badfilename))
+                logger.debug("trying to rename bad cfg %s to %s" % (self.filename,badfilename))
                 try:
                     os.rename(self.filename,badfilename)
                 except OSError,e:
@@ -239,7 +238,6 @@ class MyConfig:
         _vdt = Validator()
         self.var_dict.validate(_vdt, copy=True)
         self.var_dict.filename = self.filename
-        print self.filename
         self.var_dict.write()
         
         

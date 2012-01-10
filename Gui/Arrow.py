@@ -32,7 +32,8 @@ dl = 0.2
 DEBUG = 1
                                                 
 class Arrow(QtGui.QGraphicsLineItem):
-    def __init__(self, startp, length, angle, 
+    def __init__(self, startp=Point(x=0.0,y=0.0), endp=None,
+                 length=60.0, angle=50.0, 
                  color=QtCore.Qt.red,pencolor=QtCore.Qt.green,
                  dir=0):
         """
@@ -42,7 +43,8 @@ class Arrow(QtGui.QGraphicsLineItem):
         super(Arrow, self).__init__()
 
         self.startp = QtCore.QPointF(startp.x,-startp.y)
-        self.endp=QtCore.QPointF(startp.x,-startp.y)
+        self.endp = endp
+
         self.length=length
         self.angle=angle
         self.dir=dir
@@ -98,7 +100,16 @@ class Arrow(QtGui.QGraphicsLineItem):
             self.hide()
         self.update(self.boundingRect())
             
-               
+    def updatepos(self,startp,endp):
+        """
+        Method to update the position after optimisation of the shape.
+        """
+        self.startp = QtCore.QPointF(startp.x,-startp.y)
+        self.endp = endp
+        self.hide()
+        self.show()
+        #self.update
+            
     def paint(self, painter, option, widget=None):
         """
         Method for painting the arrow.
@@ -107,10 +118,13 @@ class Arrow(QtGui.QGraphicsLineItem):
         demat=painter.deviceTransform()
         self.sc=demat.m11()
         
-        dx = cos(radians(self.angle)) * self.length/self.sc
-        dy = sin(radians(self.angle)) * self.length/self.sc
-        
-        self.endp=QtCore.QPointF(self.startp.x()+dx,self.startp.y()-dy)
+        if self.endp is None:
+            dx = cos(radians(self.angle)) * self.length/self.sc
+            dy = sin(radians(self.angle)) * self.length/self.sc
+            
+            endp=QtCore.QPointF(self.startp.x()+dx,self.startp.y()-dy)
+        else:
+            endp=QtCore.QPointF(self.endp.x, -self.endp.y)
         
         
         arrowSize=self.arrowSize/self.sc
@@ -120,11 +134,11 @@ class Arrow(QtGui.QGraphicsLineItem):
         painter.setPen(self.pen)
         painter.setBrush(self.myColor)
 
-        centerLine = QtCore.QLineF(self.startp, self.endp)
+        centerLine = QtCore.QLineF(self.startp, endp)
         
 
         
-        self.setLine(QtCore.QLineF(self.endp,self.startp))
+        self.setLine(QtCore.QLineF(endp,self.startp))
         line = self.line()
 
         angle = acos(line.dx() / line.length())
@@ -162,11 +176,19 @@ class Arrow(QtGui.QGraphicsLineItem):
         """
         
         #print("super: %s" %super(Arrow, self).boundingRect())
-        arrowSize=self.arrowSize/self.sc
-        extra = (self.pen.width() + arrowSize) / 2.0
+        arrowSize=self.arrowSize*self.sc
+        extra = (arrowSize) / 2.0 #self.pen.width() +
+        
+        if self.endp is None:
+            dx = cos(radians(self.angle)) * self.length/self.sc
+            dy = sin(radians(self.angle)) * self.length/self.sc
+            
+            endp=QtCore.QPointF(self.startp.x()+dx,self.startp.y()-dy)
+        else:
+            endp=QtCore.QPointF(self.endp.x, -self.endp.y)
       
         return QtCore.QRectF(self.startp,
-                              QtCore.QSizeF(self.endp.x()-self.startp.x(),
-                                             self.endp.y()-self.startp.y())).normalized().adjusted(-extra, -extra, extra, extra)
+                              QtCore.QSizeF(endp.x()-self.startp.x(),
+                                             endp.y()-self.startp.y())).normalized().adjusted(-extra, -extra, extra, extra)
 
 
