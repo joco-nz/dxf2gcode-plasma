@@ -19,13 +19,13 @@ from Core.Shape import ShapeClass
 from Gui.WpZero import WpZero
 from Gui.Arrow import Arrow
 from Gui.StMove import StMove
-
+from Gui.RouteText import RouteText
 #import math
 import Core.Globals as g
 import Core.constants as c
 
 import logging
-logger=logging.getLogger("DxfImport.Core") 
+logger=logging.getLogger("DxfImport.myCanvasClass") 
        
 class MyGraphicsView(QtGui.QGraphicsView): 
     """
@@ -317,7 +317,7 @@ class MyDropDownMenu(QtGui.QMenu):
         @purpose: It is used to invert the selection of all shapes. 
         """
         #scene=self.scene()
-        for shape in self.MyGraphicsScene: 
+        for shape in self.MyGraphicsScene.shapes: 
             if shape.isSelected():
                 shape.setSelected(False)
             else:
@@ -405,6 +405,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         self.shapes=[]
         self.wpzero=[]
         self.LayerContents=[]
+        self.routearrows=[]
+        self.routetext=[]
         self.showDisabled=False
         self.EntitiesRoot=EntitieContentClass(Nr=-1, Name='Base',parent=None,children=[],
                                               p0=Point(0,0),pb=Point(0,0),
@@ -543,7 +545,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             shape.enarrow.setParentItem(shape)
             shape.stmove.setParentItem(shape)
  
-        logger.debug("Update GrapicsScene %s:" % (dir(self)))
+        logger.debug("Update GrapicsScene")
         
             #Hinzufuegen der Kontur zum Layer
             
@@ -553,10 +555,11 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         
         length=20
         start, start_ang = shape.get_st_en_points(0)
-        arrow=Arrow(start,
-                    length,start_ang,
-                    QtGui.QColor(50, 200, 255),
-                    QtGui.QColor(50, 100, 255))
+        arrow=Arrow(startp=start,
+                    length=length,
+                    angle=start_ang,
+                    color=QtGui.QColor(50, 200, 255),
+                    pencolor=QtGui.QColor(50, 100, 255))
         arrow.hide()
         return arrow
         
@@ -564,10 +567,11 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         
         length=20
         end, end_ang = shape.get_st_en_points(1)
-        arrow=Arrow(end,
-                    length,end_ang,
-                    QtGui.QColor(0, 245, 100),
-                    QtGui.QColor(0, 180, 50),1)
+        arrow=Arrow(startp=end,
+                    length=length,angle=end_ang,
+                    color=QtGui.QColor(0, 245, 100),
+                    pencolor=QtGui.QColor(0, 180, 50),
+                    dir=1)
         arrow.hide()
         return arrow
     
@@ -581,6 +585,68 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                     shape.cut_cor,self.EntitiesRoot)
         stmove.hide()
         return stmove
+    
+    def iniexproute(self,shapes_st_en_points,route):
+        
+        self.delete_opt_path()
+
+        #Ausdrucken der optimierten Route
+        for en_nr in range(len(route)):
+            if en_nr==0:
+                st_nr=-1
+                #col='gray'
+            elif en_nr==1:
+                st_nr=en_nr-1
+                col='gray'
+            else:
+                st_nr=en_nr-1
+                #col='peru'
+                
+            st=shapes_st_en_points[route[st_nr]][1]
+            en=shapes_st_en_points[route[en_nr]][0]
+
+#            self.routearrows.append(Arrow(startp=st,
+#                  endp=en,
+#                  color=QtCore.Qt.red,
+#                  pencolor=QtCore.Qt.red))
+            
+            self.routetext.append(RouteText(text=("%s" %en_nr),startp=st)) 
+            
+            #self.routetext[-1].ItemIgnoresTransformations 
+            
+            self.addItem(self.routetext[-1])   
+            #self.addItem(self.routearrows[-1])
+
+    def updateexproute(self,shapes_st_en_points,route):
+        
+        
+        for en_nr in range(len(route)):
+            if en_nr==0:
+                st_nr=-1
+            elif en_nr==1:
+                st_nr=en_nr-1
+            else:
+                st_nr=en_nr-1
+            
+            st=shapes_st_en_points[route[st_nr]][1]
+            en=shapes_st_en_points[route[en_nr]][0]
+            
+            #self.routearrows[en_nr].updatepos(st,en)
+            self.routetext[en_nr].updatepos(st)
+        
+
+    def delete_opt_path(self):
+        while self.routearrows:
+            item = self.routearrows.pop()
+            item.hide()
+            self.removeItem(item)
+            del item
+            
+        while self.routetext:
+            item = self.routetext.pop()
+            item.hide()
+            self.removeItem(item)
+            del item
            
     def addtoLayerContents(self,shape_nr,lay_nr):
         #Abfrage of der gesuchte Layer schon existiert
@@ -672,11 +738,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 #            self.path_hdls.append(Line(self.Canvas.canvas,x_ca_s,-y_ca_s,x_ca_e,-y_ca_e,fill=col,arrow='last'))
 #        self.Canvas.canvas.update()
 
-    def delete_opt_path(self):
-        for hdl in self.path_hdls:
-            self.Canvas.canvas.delete(hdl)
-            
-        self.path_hdls=[]
+
             
 class LayerContentClass:
     def __init__(self,LayerNr=None,LayerName='',shapes=[]):

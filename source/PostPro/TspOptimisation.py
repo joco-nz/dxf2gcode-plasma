@@ -21,39 +21,41 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-import sys, os, string
 from copy import copy
 
 from random import random, shuffle
 from math import floor, ceil
 
-from Tkconstants import END
+import Core.Globals as g
 
+import logging
+logger = logging.getLogger("PostPro.TSP") 
 
-          
 class TSPoptimize:
-    def __init__(self, st_end_points=[], textbox=[], master=[], config=[]):
+    def __init__(self, st_end_points=[]):
         self.shape_nrs = len(st_end_points)        
-        self.iterations = int(self.shape_nrs) * 2
-        self.pop_nr = min(int(ceil(self.shape_nrs / 8.0) * 4.0), config.max_population)
-        self.mutate_rate = config.mutate_rate
+        self.iterations = int(self.shape_nrs) * 10
+        self.pop_nr = min(int(ceil(self.shape_nrs / 8.0) * 8.0),
+                        g.config.vars.Route_Optimisation['max_population'])
+        self.mutate_rate = g.config.vars.Route_Optimisation['mutation_rate']
         self.opt_route = []
         self.order = []
         self.st_end_points = st_end_points
-        self.config = config
- 
-        #Creating Lines    
+        
         #Generating the Distance Matrix
-        self.DistanceMatrix = DistanceMatrixClass()
+        self.DistanceMatrix = DistanceMatrixClass(matrix=[])
         self.DistanceMatrix.generate_matrix(st_end_points)
 
         #Generation Population 
-        self.Population = PopulationClass(textbox=textbox, master=master, config=config)
-        self.Population.ini_population(size=[self.shape_nrs, self.pop_nr], dmatrix=self.DistanceMatrix.matrix)
+        self.Population = PopulationClass(size=[self.shape_nrs, self.pop_nr],
+                                         dmatrix=self.DistanceMatrix.matrix,
+                                         pop=[])
 
         #Initialisieren der Result Class
-        self.Fittness = FittnessClass(population=self.Population, cur_fittness=range(self.Population.size[1]))
-        self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix, range(self.shape_nrs))
+        self.Fittness = FittnessClass(population=self.Population,
+                                     cur_fittness=range(self.Population.size[1]))
+        self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,
+                                     range(self.shape_nrs))
         self.Fittness.order = self.order
 
         #Anfang der Reihenfolge immer auf den letzen Punkt legen
@@ -62,6 +64,8 @@ class TSPoptimize:
         #Korrektur Funktion um die Reihenfolge der Elemente zu korrigieren
         self.Fittness.correct_constrain_order()
         
+        logger.debug('Calculation of start fitness TSP: %s' %self)
+        #logger.debug('Size Distance matrix: %s',len(self.DistanceMatrix.matrix))
         #Erstellen der ersten Ergebnisse
         self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
         self.Fittness.select_best_fittness()
@@ -88,6 +92,7 @@ class TSPoptimize:
         #Beste Route auswählen
         self.Fittness.select_best_fittness()
         self.opt_route = self.Population.pop[self.Fittness.best_route]
+        #logger.debug('Calculation next iteration of TSP: %s' %self)
 
     def __str__(self):
         #res=self.Population.pop
@@ -100,36 +105,28 @@ class TSPoptimize:
                ("\nOpt. length:    %0.1f" % self.Fittness.best_fittness[-1]) + \
                ("\nOpt. route:     %s" % self.opt_route)
     
-def print_matrix(matrix=[], format='%6.2f'):
-    str = ''
-    for line in matrix:
-        str += '\n'
-        for wert in line:
-            str += (format % (wert))
-    return str
-#Population Class
 class PopulationClass:
-    def __init__(self, pop=[], rot=[], order=[], size=[0, 0], mutate_rate=0.95, textbox=[], master=[], config=[]):
-        self.pop = pop
-        self.rot = rot
+    def __init__(self, size=[5, 8], mutate_rate=0.95,
+                 dmatrix=[], pop=[], rot=[], order=[]):
+        
         self.size = size
         self.mutate_rate = mutate_rate
-        self.textbox = textbox
-        self.master = master
-        self.config = config
+        self.pop = pop
+        self.rot = rot
         
-    def ini_population(self, size=[5, 8], dmatrix=[]):
-        self.size = size
-        self.pop = []
-        for pop_nr in range(size[1]):
-            self.textbox.prt(("\n======= TSP initializing population nr %i =======" % pop_nr), 1)
+        logger.debug('The Population size is: %s' %self.size)
+
+        for pop_nr in range(self.size[1]):
+            logger.debug("======= TSP initializing population nr %i =======" % pop_nr)
             
-            if self.config.begin_art == 'ordered':
+            if g.config.vars.Route_Optimisation['begin_art'] == 'ordered':
                 self.pop.append(range(size[0]))
-            elif self.config.begin_art == 'random':
+            elif g.config.vars.Route_Optimisation['begin_art'] == 'random':
                 self.pop.append(self.random_begin(size[0]))
-            elif self.config.begin_art == 'heurestic':
+            elif g.config.vars.Route_Optimisation['begin_art'] == 'heurestic':
                 self.pop.append(self.heurestic_begin(dmatrix[:]))
+            else:
+                logger.error('Wrong begin art of TSP choosen')
           
         for rot_nr in range(size[0]):
             self.rot.append(0)  
@@ -155,7 +152,7 @@ class PopulationClass:
             possibilities.pop(possibilities.index(tour[-1]))
 
             if (counter % 10) == 0:
-                self.textbox.prt(("\nTSP heurestic searching nr %i" % counter), 1)
+                logger.debug("TSP heurestic searching nr %i" % counter)
         return tour
           
     def heurestic_find_next(self, start=1, possibilities=[], dmatrix=[]):
@@ -273,13 +270,10 @@ class PopulationClass:
             string += '\n' + str(line)
         return string
 
-
-
-#Distance Matrix Class
 class DistanceMatrixClass:
-    def __init__(self, matrix=[], size=[0, 0]):
-        self.matrix = matrix
-        
+    def __init__(self, matrix=[]):
+        self.matrix = matrix      
+        self.size=[0,0]  
     def generate_matrix(self, st_end_points):
         x_vals = range(len(st_end_points));
         self.matrix = []
@@ -312,15 +306,19 @@ class FittnessClass:
         self.best_fittness.append(dis)
 
     def calc_cur_fittness(self, matrix):
+        #logger.debug("Calculating current fittness len(self.population.pop): %s"
+        #             %(len(self.population.pop)))
+        #logger.debug("Length of self.cur_fittness: %s" %(len(self.cur_fittness)))
+        
         for pop_nr in range(len(self.population.pop)):
             pop = self.population.pop[pop_nr]
-
+            #logger.debug("pop_nr: %s" %pop_nr)
             dis = matrix[pop[-1]][pop[0]]
             for nr in range(1, len(pop)):
                 dis += matrix[pop[nr - 1]][pop[nr]]
             self.cur_fittness[pop_nr] = dis
             
-        
+     
     #Erste Möglichkeite um die Reihenfolge festzulegen (Straffunktion=Passiv)   
     def calc_constrain_fittness(self):
         for pop_nr in range(len(self.population.pop)):
@@ -361,80 +359,8 @@ class FittnessClass:
         self.best_fittness.append(min(self.cur_fittness))
         self.best_route = self.cur_fittness.index(self.best_fittness[-1])
 
- 
+
     def __str__(self):
         return ("\nBest Fittness: %s \nBest Route: %s \nBest Pop: %s" \
                 % (self.best_fittness[-1], self.best_route, self.population.pop[self.best_route]))
 
-##class ClassOptMove:
-##    def __init__(self,dmatrix=[],nei_nr=5):
-##        self.dmatrix=dmatrix
-##        self.nei_nr=nei_nr
-##        self.nei_matrix=[]
-##        for city_nr in range(len(dmatrix)):
-##            nei_array=self.gen_nr_array(city_nr)
-##            self.nei_matrix.append(nei_array[:])    
-##            
-##    def gen_nr_array(self,city_nr):
-##        array=self.dmatrix[city_nr]        
-##        new_array=[]
-##        nei_array=[]
-##        for d_nr in range(len(array)):
-##            new_array.append([array[d_nr],d_nr])
-##        new_array.sort()
-##        for c_nr in range(1,self.nei_nr+1):
-##            nei_array.append(new_array[c_nr][1])
-##        return nei_array
-##    
-##    def calc_tour_length(self,tour):
-##        length=self.dmatrix[tour[-1]][tour[0]]
-##        for nr in range(1,len(tour)):
-##            length+=self.dmatrix[tour[nr-1]][tour[nr]]
-##        return length
-##
-##    def do2optmove(self,tour):
-##        #print_matrix(self.dmatrix,format='%6.2f')
-##        #print_matrix(self.nei_matrix,format='%4.0f')
-##        pos=0
-##        iter=0
-##        #print tour
-##
-##        #While Schleife durchführen solange nicht das Ende der Tour erreicht ist
-##        while pos<len(tour):
-##            c_fr=tour[pos]
-##            c_to_index=pos+1
-##            if pos==len(tour)-1:
-##                c_to_index=0
-##            c_to=tour[c_to_index]
-##                
-##            for nx_c in self.nei_matrix[c_fr]:
-##                print ("Next City: %i" %(nx_c))
-##                if self.dmatrix[c_fr][c_to]>self.dmatrix[c_fr][nx_c]:
-##                    #Erstellen der neuen Tour
-##                    c2_to_index=tour.index(nx_c)
-##                    c2_to=nx_c
-##                    c2_fr=tour[c2_to_index-1]
-##                    if c2_to_index==0:
-##                        c2_fr_index=len(tour)
-##                        c2_fr=tour[-1]
-##                                          
-##                    #Errechnen ob Neue Tour kürzer ist
-##                    print ("c_fr: %i, c_to: %i, c2_fr: %i, c2_to: %i" %(c_fr,c_to,c2_fr,c2_to))
-##        
-##                    old=self.dmatrix[c_fr][c_to]+self.dmatrix[c2_fr][c2_to]
-##                    new=self.dmatrix[c_fr][c2_fr]+self.dmatrix[c_to][c2_to]
-##                    print ("Differenz Old: %0.2f, New: %0.2f" %(old,new))
-##
-##                    if new<old:
-##                        list=[c_to_index,c2_to_index]
-##                        list.sort()
-##                        cut=tour[list[0]:list[1]]
-##                        cut.reverse()
-##                        tour[list[0]:list[1]]=cut
-##                        pos=0
-##                        print tour
-##                        break
-##
-##            iter+=1
-##            pos+=1
-##        return tour

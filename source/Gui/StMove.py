@@ -25,6 +25,10 @@
 import Core.Globals as g
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
+from Gui.Arrow import Arrow
+
+import logging
+logger=logging.getLogger('Gui.StMove')
 
 from PyQt4 import QtCore, QtGui
 
@@ -59,6 +63,7 @@ class StMove(QtGui.QGraphicsLineItem):
         self.pen.setCosmetic(True)
         
         self.make_start_moves()
+        self.createccarrow()
         self.make_papath()
         
         
@@ -136,14 +141,47 @@ class StMove(QtGui.QGraphicsLineItem):
         the  startmoves if smth. has changed or it shall be generated for 
         first time.
         """
+        logger.debug("Updating CutterCorrection of Selected shape")
+        
+        if not(self.ccarrow is None):
+            logger.debug("Removing ccarrow from scene")
+            self.ccarrow.hide()
+            logger.debug("Parent Item: %s" %self.ccarrow.parentItem())
+            del(self.ccarrow)
+            self.ccarrow=None
         
         self.cutcor=cutcor
         self.make_start_moves()
+        self.createccarrow()
         self.make_papath()
         self.update()
         
-        g.logger.logger.debug("Updating CutterCorrection of Selected shape")
+        
+        
+       
+       
+    def createccarrow(self):
+        
+        
+        length=20
+        if self.cutcor==40:
+            self.ccarrow=None
+        elif self.cutcor==41:
+            self.ccarrow=Arrow(startp=self.startp,
+                        length=length,
+                        angle=self.angle+90,
+                        color=QtGui.QColor(200, 200, 255),
+                        pencolor=QtGui.QColor(200, 100, 255))
+            self.ccarrow.setParentItem(self)
+        else:
+            self.ccarrow=Arrow(startp=self.startp,
+                        length=length,
+                        angle=self.angle-90,
+                        color=QtGui.QColor(200, 200, 255),
+                        pencolor=QtGui.QColor(200, 100, 255))
+            self.ccarrow.setParentItem(self)
             
+         
     def make_papath(self):
         """
         To be called if a Shape shall be printed to the canvas

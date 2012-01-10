@@ -28,7 +28,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -99,7 +99,7 @@
               <item row="5" column="1">
                <widget class="QLineEdit" name="lineEdit_5"/>
               </item>
-              <item row="0" column="0">
+              <item row="0" column="0" colspan="2">
                <widget class="QTreeView" name="treeView">
                 <property name="minimumSize">
                  <size>
@@ -109,7 +109,7 @@
                 </property>
                </widget>
               </item>
-              <item row="6" column="0">
+              <item row="6" column="0" colspan="2">
                <widget class="QTableView" name="tableView"/>
               </item>
              </layout>
@@ -181,6 +181,9 @@
     <property name="title">
      <string>Export</string>
     </property>
+    <addaction name="separator"/>
+    <addaction name="actionOptimize_Shape"/>
+    <addaction name="actionExport_Shapes"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -334,6 +337,16 @@
   <action name="actionAbout">
    <property name="text">
     <string>About</string>
+   </property>
+  </action>
+  <action name="actionOptimize_Shape">
+   <property name="text">
+    <string>Optimize Shape </string>
+   </property>
+  </action>
+  <action name="actionExport_Shapes">
+   <property name="text">
+    <string>Export Shapes</string>
    </property>
   </action>
  </widget>
