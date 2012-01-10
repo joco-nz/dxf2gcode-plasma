@@ -38,6 +38,7 @@ class RouteText(QtGui.QGraphicsItem):
         
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
         
+        self.text=text
         self.sc=1.0
         self.startp = QtCore.QPointF(startp.x,-startp.y)
         
@@ -48,43 +49,28 @@ class RouteText(QtGui.QGraphicsItem):
                 QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.pen.setCosmetic(True)
 
-        #self.setFont(QtGui.QFont("Arial",10/self.sc))
-        #self.setTextWidth(150)
-        #self.setPos(QtCore.QPointF(startp.x,-startp.y))
-        #self.setTextInteractionFlags(QtCore.Qt.NoTextInteraction)
-        
-        #ItemIgnoresTransformations ( using
-        
-        #self.setFlag(QtGui.QGraphicsItem.ItemIgnoresTransformations, True)
-        
         self.path=QtGui.QPainterPath()
         self.path.addText(QtCore.QPointF(0, 0),
-                          QtGui.QFont("Arial",8/self.sc),
-                          text)
+                          QtGui.QFont("Arial",10/self.sc),
+                          self.text)
 
    
     def updatepos(self,startp):
         """
         Method to update the position after optimisation of the shape.
         """
+        self.prepareGeometryChange()
         self.startp = QtCore.QPointF(startp.x,-startp.y)
-        self.update
-        
-               
+      
     def paint(self, painter, option, widget=None):
         """
         Method for painting the arrow.
         """
         demat=painter.deviceTransform()
         self.sc=demat.m11()
-        #self.setScale(1/self.sc)
+
         
-        #self.resetTransform()
-        
-        
-        #logger.debug('Scale: %s' %self.scale())
-        
-        painter.setClipRect(self.boundingRect())
+        #painter.setClipRect(self.boundingRect())
         painter.setPen(self.pen)
         painter.setBrush(self.brush)
         painter.scale(1/self.sc,1/self.sc)
@@ -92,8 +78,15 @@ class RouteText(QtGui.QGraphicsItem):
                           self.startp.y()*(self.sc))
         
         painter.drawPath(self.path)
-
         
+    def shape(self):
+        """ 
+        Reimplemented function to select outline only.
+        @return: Returns the Outline only
+        """ 
+        logger.debug("Hier sollte ich nicht sein")
+        return super(RouteText, self).shape()
+    
     def boundingRect(self):
         """ 
         Required method for painting. Inherited by Painterpath
@@ -101,19 +94,9 @@ class RouteText(QtGui.QGraphicsItem):
         """ 
         rect=self.path.boundingRect().getRect()
  
-        logger.debug(rect)
-        logger.debug(self.startp)
-       
         newrect= QtCore.QRectF(self.startp.x()+rect[0]/self.sc,
                              self.startp.y()+rect[1]/self.sc,
                              rect[2]/self.sc,
                              rect[3]/self.sc)
         
-        logger.debug(newrect)
-        
         return newrect
-        
-#        extra=15/self.sc
-#        return QtCore.QRectF(self.startp,
-#                              QtCore.QSizeF(0,0)).normalized().adjusted(-extra, -extra, extra, extra)
-    

@@ -605,17 +605,17 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             st=shapes_st_en_points[route[st_nr]][1]
             en=shapes_st_en_points[route[en_nr]][0]
 
-#            self.routearrows.append(Arrow(startp=st,
-#                  endp=en,
-#                  color=QtCore.Qt.red,
-#                  pencolor=QtCore.Qt.red))
+            self.routearrows.append(Arrow(startp=st,
+                  endp=en,
+                  color=QtCore.Qt.red,
+                  pencolor=QtCore.Qt.red))
             
             self.routetext.append(RouteText(text=("%s" %en_nr),startp=st)) 
             
             #self.routetext[-1].ItemIgnoresTransformations 
             
             self.addItem(self.routetext[-1])   
-            #self.addItem(self.routearrows[-1])
+            self.addItem(self.routearrows[-1])
 
     def updateexproute(self,shapes_st_en_points,route):
         
@@ -631,21 +631,22 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             st=shapes_st_en_points[route[st_nr]][1]
             en=shapes_st_en_points[route[en_nr]][0]
             
-            #self.routearrows[en_nr].updatepos(st,en)
+            self.routearrows[en_nr].updatepos(st,en)
             self.routetext[en_nr].updatepos(st)
         
 
     def delete_opt_path(self):
+
         while self.routearrows:
             item = self.routearrows.pop()
             item.hide()
-            self.removeItem(item)
+            #self.removeItem(item)
             del item
             
         while self.routetext:
             item = self.routetext.pop()
             item.hide()
-            self.removeItem(item)
+            #self.removeItem(item)
             del item
            
     def addtoLayerContents(self,shape_nr,lay_nr):

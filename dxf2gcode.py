@@ -84,6 +84,7 @@ class Main(QtGui.QMainWindow):
         self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
         self.ui.actionShow_WP_Zero.triggered.connect(self.setShow_wp_zero)
         self.ui.actionShow_disabled_paths.triggered.connect(self.setShow_disabled_paths)
+        self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
         
         self.ui.actionAbout.triggered.connect(self.about)
         
@@ -96,7 +97,7 @@ class Main(QtGui.QMainWindow):
         self.ui.actionShow_path_directions.setEnabled(status)
         self.ui.actionShow_disabled_paths.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
-        #self.ui.actionDelete_G0_paths.setEnabled(status)
+        
         self.ui.actionScale_all.setEnabled(status)
         self.ui.actionRotate_all.setEnabled(status)
         self.ui.actionMove_WP_zero.setEnabled(status)
@@ -146,7 +147,6 @@ class Main(QtGui.QMainWindow):
                 self.shapes_to_write.append(shape)
                 shapes_st_en_points.append(shape.get_st_en_points())
                 
-
         #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
         x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
         y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
@@ -163,44 +163,32 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsScene.iniexproute(shapes_st_en_points,
                                                   TSP.opt_route)
        
-
         for it_nr in range(iter):
             #Jeden 10ten Schrit rausdrucken
-            if (it_nr%10)==0:
+            if (it_nr%50)==0:
                 logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
                             %(it_nr,TSP.Fittness.best_fittness[-1]))
-                
-                #FIXME
-                                
+                  
                 TSP.calc_next_iteration()
                 self.MyGraphicsScene.updateexproute(shapes_st_en_points,
                                                   TSP.opt_route)
-                
-                self.app.processEvents() 
-                
-                
-#viewport = view->viewport();
-#
-#
-#
-#
-#
-#2
-#
-#viewport->update();
-
-                
+                self.app.processEvents()                   
             
         logger.debug("TSP done with result: %s" %TSP)
-        #self.viewmenu.entryconfig(6,state=NORMAL)      
+        self.ui.actionDelete_G0_paths.setEnabled(True)
 
-        
+    def deleteG0paths(self):
+        """
+        Delets the optimisation paths from the scene.
+        """
+        self.MyGraphicsScene.delete_opt_path()
+        self.ui.actionDelete_G0_paths.setEnabled(False)
+    
     def export_shapes(self):
         """
         This method is called to export the shapes with the selected postprocessor.
         """
         logger.debug('Export the enabled shapes')
-        
         
     def autoscale(self):
         """
@@ -249,13 +237,8 @@ class Main(QtGui.QMainWindow):
         @param filename: The string of the filename which should be loaded
         """
 
-        #Setting up logger
-        #logger=g.logger.logger
-
-        #Check File Extension
         (name, ext) = os.path.splitext(str(filename))
 
-       
         if (ext.lower() == ".ps")or(ext.lower() == ".pdf"):
             logger.info(_("Sending Postscript/PDF to pstoedit"))
             
@@ -294,9 +277,7 @@ class Main(QtGui.QMainWindow):
         Plots all data stored in the values paramter to the Canvas
         @param values: Includes all values loaded from the dxf file
         """
-        
-        
-        
+    
         #Skalierung der Kontur
         self.cont_scale = 1.0
         
@@ -316,7 +297,6 @@ class Main(QtGui.QMainWindow):
                                     sca=[1.0,1.0,1.0],
                                     rot=0.0)
         
-        
         self.MyGraphicsView.setScene(self.MyGraphicsScene)
         self.MyGraphicsView.show()
         self.MyGraphicsView.setFocus()
@@ -327,9 +307,6 @@ class Main(QtGui.QMainWindow):
 #        #Loeschen alter Route Menues
 #        self.del_route_and_menuentry()
      
-
-
-
 def setup_logging(Log,myMessageBox):
     """
     Function to set up the logging to the myMessageBox Class. 
@@ -341,7 +318,6 @@ def setup_logging(Log,myMessageBox):
     Log.add_window_logger(log_level=logging.INFO)
     Log.set_window_logstream(myMessageBox)
     
- 
 def main():
     """
     The main function which is executed after program start. 
@@ -368,7 +344,6 @@ def main():
 #    parser.add_option("-q", "--quiet",
 #                      action="store_false", dest="verbose")
 
-    
     (options, args) = parser.parse_args()
     logger.debug("Started with following options \n%s" % (options))
     

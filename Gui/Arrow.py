@@ -27,9 +27,9 @@ from Core.Point import Point
 
 from PyQt4 import QtCore, QtGui
 
-#Length of the cross.
-dl = 0.2
-DEBUG = 1
+import logging
+logger=logging.getLogger("Gui.Arrow") 
+
                                                 
 class Arrow(QtGui.QGraphicsLineItem):
     def __init__(self, startp=Point(x=0.0,y=0.0), endp=None,
@@ -104,11 +104,9 @@ class Arrow(QtGui.QGraphicsLineItem):
         """
         Method to update the position after optimisation of the shape.
         """
+        self.prepareGeometryChange()
         self.startp = QtCore.QPointF(startp.x,-startp.y)
         self.endp = endp
-        self.hide()
-        self.show()
-        #self.update
             
     def paint(self, painter, option, widget=None):
         """
@@ -126,17 +124,10 @@ class Arrow(QtGui.QGraphicsLineItem):
         else:
             endp=QtCore.QPointF(self.endp.x, -self.endp.y)
         
-        
         arrowSize=self.arrowSize/self.sc
-        #print(demat.m11())
-       
     
         painter.setPen(self.pen)
         painter.setBrush(self.myColor)
-
-        centerLine = QtCore.QLineF(self.startp, endp)
-        
-
         
         self.setLine(QtCore.QLineF(endp,self.startp))
         line = self.line()
@@ -187,8 +178,8 @@ class Arrow(QtGui.QGraphicsLineItem):
         else:
             endp=QtCore.QPointF(self.endp.x, -self.endp.y)
       
-        return QtCore.QRectF(self.startp,
+        brect= QtCore.QRectF(self.startp,
                               QtCore.QSizeF(endp.x()-self.startp.x(),
                                              endp.y()-self.startp.y())).normalized().adjusted(-extra, -extra, extra, extra)
-
+        return brect
 
