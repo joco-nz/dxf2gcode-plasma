@@ -103,8 +103,6 @@ gettext.bindtextdomain(APPNAME, FOLDER)
 gettext.textdomain(APPNAME)
 # Get the language to use
 
-print langs
-
 trans = gettext.translation(APPNAME, localedir='languages', languages=langs, fallback = True)
 trans.install()
 
