@@ -260,6 +260,9 @@
    <property name="text">
     <string>Show WP zero</string>
    </property>
+   <property name="statusTip">
+    <string>Show the Workpiece Zero symbol in the plot.</string>
+   </property>
   </action>
   <action name="actionShow_path_directions">
    <property name="checkable">
@@ -273,6 +276,9 @@
    </property>
    <property name="text">
     <string>Show path directions</string>
+   </property>
+   <property name="statusTip">
+    <string>Always shows the path direction in the plot (not only while selected)</string>
    </property>
   </action>
   <action name="actionShow_disabled_paths">

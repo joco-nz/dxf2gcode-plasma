@@ -128,7 +128,9 @@ class MyGraphicsView(QtGui.QGraphicsView):
         delta=2
         
         if(self.dragMode())==1:
-            super(MyGraphicsView, self).mousePressEvent(event)
+            #if (event.key()==QtCore.Qt.Key_Shift):   
+            #self.setDragMode(QtGui.QGraphicsView.NoDrag)
+            super(MyGraphicsView, self).mouseReleaseEvent(event)
         
         #Selection only enabled for left Button
         elif event.button() == QtCore.Qt.LeftButton:
@@ -180,6 +182,9 @@ class MyGraphicsView(QtGui.QGraphicsView):
                 #print "Mouse Pointer is currently hovering at: ", event.pos() 
                 self.rubberBand.show()
                 self.rubberBand.setGeometry(QtCore.QRect(self.mppos, event.pos()).normalized())
+                
+        self.setStatusTip('X: %3.1f; Y: %3.1f' %(event.pos().x(),event.pos().y()))
+        self.setToolTip('X: %3.1f; Y: %3.1f' %(event.pos().x(),event.pos().y()))
             
         super(MyGraphicsView, self).mouseMoveEvent(event)        
          
