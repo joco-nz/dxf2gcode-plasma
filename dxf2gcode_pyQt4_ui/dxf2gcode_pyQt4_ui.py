@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Wed Jan 04 22:56:14 2012
+# Created: Sun Jan 15 14:55:41 2012
 #      by: PyQt4 UI code generator 4.8.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -147,12 +147,14 @@ class Ui_MainWindow(object):
         self.actionShow_WP_Zero.setChecked(True)
         self.actionShow_WP_Zero.setEnabled(False)
         self.actionShow_WP_Zero.setText(QtGui.QApplication.translate("MainWindow", "Show WP zero", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_WP_Zero.setStatusTip(QtGui.QApplication.translate("MainWindow", "Show the Workpiece Zero symbol in the plot.", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_WP_Zero.setObjectName(_fromUtf8("actionShow_WP_Zero"))
         self.actionShow_path_directions = QtGui.QAction(MainWindow)
         self.actionShow_path_directions.setCheckable(True)
         self.actionShow_path_directions.setChecked(False)
         self.actionShow_path_directions.setEnabled(False)
         self.actionShow_path_directions.setText(QtGui.QApplication.translate("MainWindow", "Show path directions", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionShow_path_directions.setStatusTip(QtGui.QApplication.translate("MainWindow", "Always shows the path direction in the plot (not only while selected)", None, QtGui.QApplication.UnicodeUTF8))
         self.actionShow_path_directions.setObjectName(_fromUtf8("actionShow_path_directions"))
         self.actionShow_disabled_paths = QtGui.QAction(MainWindow)
         self.actionShow_disabled_paths.setCheckable(True)
