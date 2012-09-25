@@ -31,6 +31,8 @@ from Core.Point import Point
 import Core.Globals as g
 import Core.constants as c
 
+from PostPro.PostProcessor import MyPostProcessor
+
 from DxfImport.Import import ReadDXF
 
 from Gui.myCanvasClass import MyGraphicsScene
@@ -64,8 +66,7 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView=self.ui.MyGraphicsView
         
         self.myMessageBox=self.ui.myMessageBox 
-      
-        
+       
     def createActions(self):
         """
         Create the actions of the main toolbar.
@@ -123,8 +124,7 @@ class Main(QtGui.QMainWindow):
         #If there is something to load then call the load function callback
         if not(filename==""):
             self.loadFile(filename)
-            
-            
+                
     def optimize_TSP(self):
         """
         Method is called to optimize the order of the shapes. This is performed
@@ -190,36 +190,33 @@ class Main(QtGui.QMainWindow):
         """
         logger.debug('Export the enabled shapes')
         
-        #   # Callback des Menu Punkts Exportieren
-#    def Write_GCode(self):
-#        
-#       #Config & postpro in einen kurzen Namen speichern
-#        config=self.config
-#        postpro=self.postpro
-#
-#        if not(config.write_to_stdout):
-#           
-#                #Abfrage des Namens um das File zu speichern
-#                self.save_filename=self.Get_Save_File()
-#                
-#                
-#                 #Wenn Cancel gedrueckt wurde
-#                if not self.save_filename:
-#                    return
-#                
-#                (beg, ende)=os.path.split(self.save_filename)
-#                (fileBaseName, fileExtension)=os.path.splitext(ende) 
-#        
-#                pp_file_nr=postpro.output_format.index(fileExtension)
-#                
-#                postpro.get_all_vars(pp_file_nr)
-#        else:
-#                postpro.get_all_vars(0)
-#        
-#               
-#        #Funktion zum optimieren des Wegs aufrufen
-#        self.opt_export_route()
-#
+        
+        #Config & postpro in einen kurzen Namen speichern
+        logger.debug(dir(g.config))
+
+        if not(g.config.vars.General['write_to_stdout']):
+           
+                #Abfrage des Namens um das File zu speichern
+                self.save_filename=self.showSaveDialog()
+                
+                
+                 #Wenn Cancel gedrueckt wurde
+                if not self.save_filename:
+                    return
+                
+                (beg, ende)=os.path.split(self.save_filename)
+                (fileBaseName, fileExtension)=os.path.splitext(ende) 
+        
+                pp_file_nr=postpro.output_format.index(fileExtension)
+                
+                postpro.get_all_vars(pp_file_nr)
+        else:
+                postpro.get_all_vars(0)
+        
+               
+        #Funktion zum optimieren des Wegs aufrufen
+        #self.opt_export_route()
+
 #        #Initial Status fuer den Export
 #        status=1
 #
@@ -272,8 +269,41 @@ class Main(QtGui.QMainWindow):
 #                except IOError:
 #                    showwarning(_("Save As"), _("Cannot save the file."))
 #            
-#
-#
+
+    def showSaveDialog(self):
+        """
+        This function is called by the menu "Export\Export Shapes" of the main toolbar
+        it creates the selection dialog for the exporter
+        @return: Returns the filename of the selected file.
+        """
+        
+        MyFormats=""
+        for i in range(len(g.postpro.output_format)):
+            name="%s " %(g.postpro.output_text[i])
+            format="(*%s);;" %(g.postpro.output_format[i])
+            MyFormats=MyFormats+name+format
+            
+        logger.debug(MyFormats)
+
+        (beg, ende)=os.path.split(self.load_filename)
+        (fileBaseName, fileExtension)=os.path.splitext(ende)
+        
+        logger.debug(fileBaseName)
+        logger.debug(g.config.vars.Paths['output_dir'])
+        
+        default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
+        
+        logger.debug(default_name)
+        
+
+        filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
+                    default_name,
+                    MyFormats)
+
+        
+        logger.info("File: %s selected" %filename)
+        
+        return filename
         
     def autoscale(self):
         """
@@ -322,6 +352,7 @@ class Main(QtGui.QMainWindow):
         @param filename: The string of the filename which should be loaded
         """
 
+        self.load_filename=filename
         (name, ext) = os.path.splitext(str(filename))
 
         if (ext.lower() == ".ps")or(ext.lower() == ".pdf"):
@@ -418,6 +449,7 @@ def main():
     setup_logging(Log, window.myMessageBox)
     
     g.config=MyConfig()
+    g.postpro=MyPostProcessor()
     
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",

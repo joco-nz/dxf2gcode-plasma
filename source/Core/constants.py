@@ -34,16 +34,16 @@ import logging
 # Global Variables
 APPNAME = "dxf2gcode"
 VERSION = "pyQT Beta"
-DATE = "2010-12-21"
+DATE = "2012-09-25"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
-#DEFAULT_EXTENSION = '.def'
+
 #rename unreadable config/varspace files to .bad
 BAD_CONFIG_EXTENSION = '.bad'
 DEFAULT_CONFIG_DIR = 'config' 
 
-
+DEFAULT_POSTPRO_DIR = 'postpro_config'
 
 # log related
 DEFAULT_LOGFILE = 'dxf2gcode.log'
