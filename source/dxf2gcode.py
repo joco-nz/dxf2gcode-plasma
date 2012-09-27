@@ -51,6 +51,11 @@ if os.path.islink(sys.argv[0]):
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
     def __init__(self,app):
+        """
+        Initialization of the Main window. This is directly called after the 
+        Logger has been initialized. The Function loads the GUI, creates the
+        used Classes  and connects the actions to the GUI.
+        """
 
         QtGui.QMainWindow.__init__(self)
     
@@ -66,6 +71,8 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView=self.ui.MyGraphicsView
         
         self.myMessageBox=self.ui.myMessageBox 
+        
+        self.MyPostProcessor=MyPostProcessor()
        
     def createActions(self):
         """
@@ -79,7 +86,7 @@ class Main(QtGui.QMainWindow):
         self.ui.actionExit.triggered.connect(self.close)
         
         self.ui.actionOptimize_Shape.triggered.connect(self.optimize_TSP)
-        self.ui.actionExport_Shapes.triggered.connect(self.export_shapes)
+        self.ui.actionExport_Shapes.triggered.connect(self.exportShapes)
        
         self.ui.actionAutoscale.triggered.connect(self.autoscale)
         self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
@@ -164,7 +171,7 @@ class Main(QtGui.QMainWindow):
                                                   TSP.opt_route)
        
         for it_nr in range(iter):
-            #Jeden 10ten Schrit rausdrucken
+            #Only show each 50 step.
             if (it_nr%50)==0:
                 logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
                             %(it_nr,TSP.Fittness.best_fittness[-1]))
@@ -176,6 +183,15 @@ class Main(QtGui.QMainWindow):
             
         logger.debug("TSP done with result: %s" %TSP)
         self.ui.actionDelete_G0_paths.setEnabled(True)
+        
+        logger.debug(TSP.opt_route)
+        logger.debug(len(self.shapes_to_write))
+        
+        #Start at 1 since the point 0 is the start move and does not exist in shapes.
+        for nr in range(1,len(TSP.opt_route)):
+            self.shape_order.append(self.shapes_to_write[TSP.opt_route[nr]].nr)
+  
+        logger.debug(self.shape_order)
 
     def deleteG0paths(self):
         """
@@ -184,91 +200,36 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsScene.delete_opt_path()
         self.ui.actionDelete_G0_paths.setEnabled(False)
     
-    def export_shapes(self):
+    def exportShapes(self):
         """
-        This method is called to export the shapes with the selected postprocessor.
+        This function is called by the menu "Export\Export Shapes". It may open
+        up a Save Dialog it it is used without EMC2 integration. Otherwise it's
+        possible to select multiple postprocessor files, which are located
+        in the folder.
         """
         logger.debug('Export the enabled shapes')
-        
-        
-        #Config & postpro in einen kurzen Namen speichern
-        logger.debug(dir(g.config))
 
         if not(g.config.vars.General['write_to_stdout']):
            
-                #Abfrage des Namens um das File zu speichern
+                #Get the name of the File to export
                 self.save_filename=self.showSaveDialog()
-                
-                
-                 #Wenn Cancel gedrueckt wurde
+            
+                #If Cancel was pressed
                 if not self.save_filename:
                     return
-                
-                (beg, ende)=os.path.split(self.save_filename)
+    
+                (beg, ende)=os.path.split(str(self.save_filename))
                 (fileBaseName, fileExtension)=os.path.splitext(ende) 
         
-                pp_file_nr=postpro.output_format.index(fileExtension)
+                pp_file_nr=self.MyPostProcessor.output_format.index(fileExtension)
                 
-                postpro.get_all_vars(pp_file_nr)
+                self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
-                postpro.get_all_vars(0)
+                self.MyPostProcessor.getPostProVars(0)
         
-               
-        #Funktion zum optimieren des Wegs aufrufen
-        #self.opt_export_route()
-
-#        #Initial Status fuer den Export
-#        status=1
-#
-#        #Schreiben der Standardwert am Anfang        
-#        postpro.write_gcode_be(postpro,self.load_filename)
-#
-#        #Maschine auf die Anfangshoehe bringen
-#        postpro.rap_pos_z(config.axis3_retract.get())
-#
-#        #Bei 1 starten da 0 der Startpunkt ist
-#        for nr in range(1,len(self.TSP.opt_route)):
-#            shape=self.shapes_to_write[self.TSP.opt_route[nr]]
-#            self.textbox.prt((_("\nWriting Shape: %s") %shape),1)
-#                
-#
-#
-#            #Drucken falls die Shape nicht disabled ist
-#            if not(shape.nr in self.CanvasContent.Disabled):
-#                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
-#                stat =shape.Write_GCode(config,postpro)
-#                status=status*stat
-#
-#        #Maschine auf den Endwert positinieren
-#        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
-#                                              y=config.axis2_st_en.get()))
-#
-#        #Schreiben der Standardwert am Ende        
-#        string=postpro.write_gcode_en(postpro)
-#
-#        if status==1:
-#            self.textbox.prt(_("\nSuccessfully generated G-Code"))
-#            self.master.update_idletasks()
-#
-#        else:
-#            self.textbox.prt(_("\nError during G-Code Generation"))
-#            self.master.update_idletasks()
-#
-#                    
-#        #Drucken in den Stdout, speziell fuer EMC2 
-#        if config.write_to_stdout:
-#            print(string)
-#            self.ende()     
-#        else:
-#            #Exportieren der Daten
-#                try:
-#                    #Das File oeffnen und schreiben    
-#                    f = open(self.save_filename, "w")
-#                    f.write(string)
-#                    f.close()       
-#                except IOError:
-#                    showwarning(_("Save As"), _("Cannot save the file."))
-#            
+        
+        self.MyPostProcessor.exportShapes(self.load_filename,self.shape_order)
+      
 
     def showSaveDialog(self):
         """
@@ -276,30 +237,20 @@ class Main(QtGui.QMainWindow):
         it creates the selection dialog for the exporter
         @return: Returns the filename of the selected file.
         """
-        
         MyFormats=""
-        for i in range(len(g.postpro.output_format)):
-            name="%s " %(g.postpro.output_text[i])
-            format="(*%s);;" %(g.postpro.output_format[i])
+        for i in range(len(self.MyPostProcessor.output_format)):
+            name="%s " %(self.MyPostProcessor.output_text[i])
+            format="(*%s);;" %(self.MyPostProcessor.output_format[i])
             MyFormats=MyFormats+name+format
             
-        logger.debug(MyFormats)
-
         (beg, ende)=os.path.split(self.load_filename)
         (fileBaseName, fileExtension)=os.path.splitext(ende)
         
-        logger.debug(fileBaseName)
-        logger.debug(g.config.vars.Paths['output_dir'])
-        
         default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
-        
-        logger.debug(default_name)
-        
 
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
                     default_name,
                     MyFormats)
-
         
         logger.info("File: %s selected" %filename)
         
@@ -383,13 +334,13 @@ class Main(QtGui.QMainWindow):
         logger.info(_('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
                              % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
         
-        self.plotall(values)
+        self.makeShapesAndPlot(values)
         
         #After all is plotted enable the Menu entities
         self.enableplotmenu()
         self.ui.actionDelete_G0_paths.setEnabled(False)
 
-    def plotall(self,values):
+    def makeShapesAndPlot(self,values):
         """
         Plots all data stored in the values paramter to the Canvas
         @param values: Includes all values loaded from the dxf file
@@ -408,9 +359,9 @@ class Main(QtGui.QMainWindow):
         #Ausdrucken der Werte     
         self.MyGraphicsView.clearScene()
         self.MyGraphicsScene=MyGraphicsScene()   
-        self.MyGraphicsScene.makeplot(values,
+        self.MyGraphicsScene.makeShapesAndPlot(values,
                                     p0=Point(x=0.0, y=0.0),
-                                    pb=Point(x=0, y=0),
+                                    pb=Point(x=0.0, y=0.0),
                                     sca=[1.0,1.0,1.0],
                                     rot=0.0)
         
@@ -420,24 +371,14 @@ class Main(QtGui.QMainWindow):
         
         #Autoscale des Canvas      
         self.MyGraphicsView.autoscale()
+        
+        #Generate the shape order for export
+        self.shape_order=range(len(self.MyGraphicsScene.shapes))
      
-def setup_logging(Log,myMessageBox):
-    """
-    Function to set up the logging to the myMessageBox Class. 
-    This function can only be called if the myMessageBox Class has been created.
-    @param myMessageBox: This is the handle to the GUI where the log message 
-    shall be sent to. This Class needs a function "def write(self,charstr):"
-    """
-    # LogText window exists, setup logging
-    Log.add_window_logger(log_level=logging.INFO)
-    Log.set_window_logstream(myMessageBox)
-    
-def main():
+if __name__ == "__main__":
     """
     The main function which is executed after program start. 
     """
-    # Again, this is boilerplate, it's going to be the same on
-    # almost every app you write
     Log=LoggerClass(rootlogger=logger, console_loglevel=logging.DEBUG)
 
     app = QtGui.QApplication(sys.argv)
@@ -446,31 +387,31 @@ def main():
     
     window.show()
     
-    setup_logging(Log, window.myMessageBox)
+    # LogText window exists, setup logging
+    Log.add_window_logger(log_level=logging.INFO)
+    #This is the handle to the GUI where the log message 
+    #shall be sent to. This Class needs a function "def write(self,charstr)
+    Log.set_window_logstream(window.myMessageBox)
     
     g.config=MyConfig()
-    g.postpro=MyPostProcessor()
-    
+
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")
+    
 #    parser.add_option("-v", "--verbose",
 #                      action="store_true", dest="verbose")
 #    parser.add_option("-q", "--quiet",
 #                      action="store_false", dest="verbose")
 
     (options, args) = parser.parse_args()
-    logger.debug("Started with following options \n%s" % (options))
+    logger.debug("Started with following options \n%s" %(options))
     
     if not(options.filename is None):
         window.loadFile(options.filename)
      
     # It's exec_ because exec is a reserved word in Python
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    main()
-
 
 
 

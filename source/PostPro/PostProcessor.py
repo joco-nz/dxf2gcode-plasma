@@ -40,8 +40,6 @@ from PostPro.PostProcessorConfig import MyPostProConfig
 class MyPostProcessor:
     def __init__(self):
 
-        #Get the List of all PostProcessor Config Files in the Postprocessor
-        # Config Directory
            
         try:
             lfiles = os.listdir(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR))
@@ -77,20 +75,80 @@ class MyPostProcessor:
             self.output_format.append(PostProConfig.vars.General['output_format'])
             self.output_text.append(PostProConfig.vars.General['output_text'])
 
-#    def write_gcode_be(self, postpro, load_filename):
-#        #Schreiben in einen String
-#        if self.output_type == 'g-code':
-#            str = "(Generated with: %s, Version: %s, Date: %s)\n" % (self.appname, self.version, self.date)
-#            str += "(Time: %s)\n" % time.asctime()
-#            str += "(Created from file: %s)\n" % load_filename
-#        elif self.output_type == 'dxf':
-#            str = ''
-#            
-#        self.string = (str.encode("utf-8"))
-#         
-#        #Daten aus dem Textfelder an string anhï¿½ngen
-#        self.string += ("%s\n" % postpro.gcode_be)
-#
+    def getPostProVars(self,file_index):
+        
+        PostProConfig=MyPostProConfig(filename=self.postprocessor_files[file_index])
+        PostProConfig.load_config()
+        self.vars=PostProConfig.vars
+        
+    def exportShapes(self,load_filename,shape_order):
+
+
+        #Initialisation of the Export
+        status=1
+
+        self.write_gcode_be(postpro,load_filename)
+        
+        #Move Maschine go retraction Area
+        self.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
+
+        #Bei 1 starten da 0 der Startpunkt ist
+        for nr in range(1,len(shape_order)):
+            shape=self.shapes_to_write[shape_order[nr]]
+            logger.debug.prt("Writing Shape: %s" %shape)
+                
+            #Drucken falls die Shape nicht disabled ist
+            if not(shape.nr in self.CanvasContent.Disabled):
+                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
+                stat =shape.Write_GCode(config,postpro)
+                status=status*stat
+
+        #Maschine auf den Endwert positinieren
+        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
+                                              y=config.axis2_st_en.get()))
+
+        #Schreiben der Standardwert am Ende        
+        string=postpro.write_gcode_en(postpro)
+
+        if status==1:
+            self.textbox.prt(_("\nSuccessfully generated G-Code"))
+            self.master.update_idletasks()
+
+        else:
+            self.textbox.prt(_("\nError during G-Code Generation"))
+            self.master.update_idletasks()
+
+                    
+        #Drucken in den Stdout, speziell fuer EMC2 
+        if config.write_to_stdout:
+            print(string)
+            self.ende()     
+        else:
+            #Exportieren der Daten
+                try:
+                    #Das File oeffnen und schreiben    
+                    f = open(self.save_filename, "w")
+                    f.write(string)
+                    f.close()       
+                except IOError:
+                    showwarning(_("Save As"), _("Cannot save the file."))
+            
+    
+
+    def write_gcode_be(self, postpro, load_filename):
+        #Schreiben in einen String
+        if self.output_type == 'g-code':
+            str = "(Generated with: %s, Version: %s, Date: %s)\n" % (self.appname, self.version, self.date)
+            str += "(Time: %s)\n" % time.asctime()
+            str += "(Created from file: %s)\n" % load_filename
+        elif self.output_type == 'dxf':
+            str = ''
+            
+        self.string = (str.encode("utf-8"))
+         
+        #Daten aus dem Textfelder an string anhï¿½ngen
+        self.string += ("%s\n" % postpro.gcode_be)
+
 #    def write_gcode_en(self, postpro):
 #        #Daten aus dem Textfelder an string anhï¿½ngen   
 #        self.string += postpro.gcode_en

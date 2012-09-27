@@ -418,7 +418,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                                               sca=1,rot=0)
         self.BaseEntities=EntitieContentClass()
                
-    def makeplot(self,values,p0,pb,sca,rot):
+    def makeShapesAndPlot(self,values,p0,pb,sca,rot):
         """
         Instance is called by the Main Window after the defined file is loaded.
         It generates all ploting functionallity. The parameters are generally 
