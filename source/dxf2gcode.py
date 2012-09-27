@@ -19,6 +19,8 @@ import sys
 import logging
 logger=logging.getLogger() 
 
+from copy import copy
+
 from optparse import OptionParser
 from PyQt4 import QtGui
 
@@ -28,8 +30,11 @@ from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
 from Core.Logger import LoggerClass
 from Core.Config import MyConfig
 from Core.Point import Point
+from Core.LayerContent import LayerContentClass
+from Core.EntitieContent import EntitieContentClass
 import Core.Globals as g
 import Core.constants as c
+from Core.Shape import ShapeClass
 
 from PostPro.PostProcessor import MyPostProcessor
 
@@ -73,6 +78,11 @@ class Main(QtGui.QMainWindow):
         self.myMessageBox=self.ui.myMessageBox 
         
         self.MyPostProcessor=MyPostProcessor()
+        
+        self.shapes=[]
+        self.LayerContents=[]
+        self.EntitieContents=[]
+        self.EntitiesRoot=[]
        
     def createActions(self):
         """
@@ -137,61 +147,59 @@ class Main(QtGui.QMainWindow):
         Method is called to optimize the order of the shapes. This is performed
         by solving the TSP Problem.
         """
-        logger.debug('Optimize order of enabled shapes')
+        logger.debug('Optimize order of enabled shapes per layer')
+        self.MyGraphicsScene.resetexproutes()
 
-        #Errechnen der Iterationen
-        iter =min(g.config.vars.Route_Optimisation['max_iterations'],
-                  len(self.MyGraphicsScene.shapes)*50)
-        
-        #Anfangswerte fuer das Sortieren der Shapes
-        self.shapes_to_write=[]
-        shapes_st_en_points=[]
-        
-        #Alle Shapes die geschrieben werden zusammenfassen
-        for shape in self.MyGraphicsScene.shapes:
+        for  LayerContent in self.LayerContents:
+            #Errechnen der Iterationen
+            iter =min(g.config.vars.Route_Optimisation['max_iterations'],
+                      len(LayerContent.shapes)*50)
             
-            if not(shape.isDisabled()):
-                self.shapes_to_write.append(shape)
-                shapes_st_en_points.append(shape.get_st_en_points())
+            #Anfangswerte fuer das Sortieren der Shapes
+            self.shapes_to_write=[]
+            shapes_st_en_points=[]
+            
+            #Alle Shapes die geschrieben werden zusammenfassen
+            for shape in LayerContent.shapes:
                 
-        #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
-        x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
-        y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
-        start=Point(x=x_st,y=y_st)
-        ende=Point(x=x_st,y=y_st)
-        shapes_st_en_points.append([start,ende])
-
-        #Optimieren der Reihenfolge
-        logger.info("")    
+                if not(shape.isDisabled()):
+                    self.shapes_to_write.append(shape)
+                    shapes_st_en_points.append(shape.get_st_en_points())
+                    
+            #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
+            x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
+            y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
+            start=Point(x=x_st,y=y_st)
+            ende=Point(x=x_st,y=y_st)
+            shapes_st_en_points.append([start,ende])
+    
+            #Optimieren der Reihenfolge
+            logger.info("")    
+                
+            TSPs=[]
+            TSPs.append(TSPoptimize(shapes_st_en_points))
+            logger.info("TSP start values initialised for Layer %s" %LayerContent.LayerName)
             
-        TSP=TSPoptimize(shapes_st_en_points)
-        logger.info("TSP start values initialised")
-        
-        self.MyGraphicsScene.iniexproute(shapes_st_en_points,
-                                                  TSP.opt_route)
-       
-        for it_nr in range(iter):
-            #Only show each 50 step.
-            if (it_nr%50)==0:
-                logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
-                            %(it_nr,TSP.Fittness.best_fittness[-1]))
-                  
-                TSP.calc_next_iteration()
-                self.MyGraphicsScene.updateexproute(shapes_st_en_points,
-                                                  TSP.opt_route)
-                self.app.processEvents()                   
+            self.MyGraphicsScene.addexproute(TSPs[-1].st_end_points,
+                                                      TSPs[-1].opt_route,
+                                                      LayerContent.LayerNr)
+           
+            for it_nr in range(iter):
+                #Only show each 50 step.
+                if (it_nr%100)==0:
+                    logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
+                                %(it_nr,TSPs[-1].Fittness.best_fittness[-1]))
+                      
+                    TSPs[-1].calc_next_iteration()
+                    self.MyGraphicsScene.updateexproute(TSPs[-1].st_end_points,
+                                                      TSPs[-1].opt_route)
+                    self.app.processEvents()                   
+                
+            logger.debug("TSP done with result: %s" %TSPs[-1])
             
-        logger.debug("TSP done with result: %s" %TSP)
-        self.ui.actionDelete_G0_paths.setEnabled(True)
-        
-        logger.debug(TSP.opt_route)
-        logger.debug(len(self.shapes_to_write))
-        
-        #Start at 1 since the point 0 is the start move and does not exist in shapes.
-        for nr in range(1,len(TSP.opt_route)):
-            self.shape_order.append(self.shapes_to_write[TSP.opt_route[nr]].nr)
-  
-        logger.debug(self.shape_order)
+            LayerContent.exp_order=TSPs[-1].opt_route;
+            
+            self.ui.actionDelete_G0_paths.setEnabled(True)           
 
     def deleteG0paths(self):
         """
@@ -355,26 +363,159 @@ class Main(QtGui.QMainWindow):
         
         #Rotieren um den WP zero
         self.rotate = 0.0
+      
+        #Generate the Shapes  
+        self.makeShapes(values,
+                            p0=Point(x=0.0, y=0.0),
+                            pb=Point(x=0.0, y=0.0),
+                            sca=[1.0,1.0,1.0],
+                            rot=0.0)
 
         #Ausdrucken der Werte     
         self.MyGraphicsView.clearScene()
         self.MyGraphicsScene=MyGraphicsScene()   
-        self.MyGraphicsScene.makeShapesAndPlot(values,
-                                    p0=Point(x=0.0, y=0.0),
-                                    pb=Point(x=0.0, y=0.0),
-                                    sca=[1.0,1.0,1.0],
-                                    rot=0.0)
         
+        self.MyGraphicsScene.plotAll(self.shapes, self.EntitiesRoot)
         self.MyGraphicsView.setScene(self.MyGraphicsScene)
         self.MyGraphicsView.show()
         self.MyGraphicsView.setFocus()
         
         #Autoscale des Canvas      
         self.MyGraphicsView.autoscale()
+               
+        """FIXME
+        Export will be performed in the order of the Structure self.LayerContents
+        You can sort the Layers and the Shapes of LayerContent itself in the correct
+        order. With this sort function it is sorted in increasing number of Layer only"""
+        self.LayerContents.sort()
         
-        #Generate the shape order for export
-        self.shape_order=range(len(self.MyGraphicsScene.shapes))
-     
+        for LayerContent in self.LayerContents:
+            LayerContent.exp_order=len(LayerContent.shapes)
+   
+        """FIXME
+        Here are the two structures which give the things to show in the treeview"""
+        logger.debug(self.LayerContents)
+        logger.debug(self.EntitiesRoot)
+        
+               
+    def makeShapes(self,values,p0,pb,sca,rot):
+        """
+        Instance is called by the Main Window after the defined file is loaded.
+        It generates all ploting functionallity. The parameters are generally 
+        used to scale or offset the base geometry (by Menu in GUI).
+        
+        @param values: The loaded dxf values fro mthe dxf_import.py file
+        @param p0: The Starting Point to plot (Default x=0 and y=0)
+        @param bp: The Base Point to insert the geometry and base for rotation 
+        (Default is also x=0 and y=0)
+        @param sca: The scale of the basis function (default =1)
+        @param rot: The rotation of the geometries around base (default =0)
+        """
+        self.values=values
+
+        #Zuruecksetzen der Konturen
+        del(self.shapes[:])
+        del(self.LayerContents[:])
+        del(self.EntitiesRoot)
+        self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
+                                            p0=p0,pb=pb,sca=sca,rot=rot)
+
+        #Start mit () bedeutet zuweisen der Entities -1 = Standard
+        self.makeEntitiesShapes(parent=self.EntitiesRoot)
+        self.LayerContents.sort()
+        
+    def makeEntitiesShapes(self,parent=None,ent_nr=-1):
+        """
+        Instance is called prior to the plotting of the shapes. It creates
+        all shape classes which are later plotted into the graphics.
+        
+        @param parent: The parent of a shape is always a Entities. It may be root 
+        or if it is a Block this is the Block. 
+        @param ent_nr: The values given in self.values are sorted in that way 
+        that 0 is the Root Entities and  1 is beginning with the first block. 
+        This value gives the index of self.values to be used.
+        """
+
+        if parent.Name=="Entities":      
+            entities=self.values.entities
+        else:
+            ent_nr=self.values.Get_Block_Nr(parent.Name)
+            entities=self.values.blocks.Entities[ent_nr]
+            
+        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
+        ent_geos=entities.geo
+               
+        #Schleife fuer die Anzahl der Konturen 
+        for cont in entities.cont:
+            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
+            if ent_geos[cont.order[0][0]].Typ=="Insert":
+                ent_geo=ent_geos[cont.order[0][0]]
+                
+                #Zuweisen des Basispunkts f�r den Block
+                new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
+                new_entities=self.values.blocks.Entities[new_ent_nr]
+                pb=new_entities.basep
+                
+                #Skalierung usw. des Blocks zuweisen
+                p0=ent_geos[cont.order[0][0]].Point
+                sca=ent_geos[cont.order[0][0]].Scale
+                rot=ent_geos[cont.order[0][0]].rot
+                
+                #Erstellen des neuen Entitie Contents f�r das Insert
+                NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
+                                        parent=parent,children=[],
+                                        p0=p0,
+                                        pb=pb,
+                                        sca=sca,
+                                        rot=rot)
+
+                parent.addchild(NewEntitieContent)
+            
+                self.makeEntitiesShapes(parent=NewEntitieContent,ent_nr=ent_nr)
+                
+            else:
+                #Schleife fuer die Anzahl der Geometrien
+                self.shapes.append(ShapeClass(len(self.shapes),\
+                                                cont.closed,\
+                                                40,\
+                                                0.0,\
+                                                parent,\
+                                                []))
+                for ent_geo_nr in range(len(cont.order)):
+                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
+                    if cont.order[ent_geo_nr][1]:
+                        ent_geo.geo.reverse()
+                        for geo in ent_geo.geo:
+                            geo=copy(geo)
+                            geo.reverse()
+                            self.shapes[-1].geos.append(geo)
+
+                        ent_geo.geo.reverse()
+                    else:
+                        for geo in ent_geo.geo:
+                            self.shapes[-1].geos.append(copy(geo))
+                        
+                self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
+                parent.addchild(self.shapes[-1])
+                
+    def addtoLayerContents(self,shape_nr,lay_nr):
+        """
+        Instance is called while the shapes are created. This gives the 
+        structure which shape is laying on which layer.
+        
+        @param shape_nr: The Nr. of the shape 
+        @param lay_nr: The Nr. of the layer
+        """
+        #Check if the layer is already existing and add shape if it is.
+        for LayCon in self.LayerContents:
+            if LayCon.LayerNr==lay_nr:
+                LayCon.shapes.append(shape_nr)
+                return
+
+        #If the Layer is not existing create a new one.
+        LayerName=self.values.layers[lay_nr].name
+        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
+        
 if __name__ == "__main__":
     """
     The main function which is executed after program start. 
