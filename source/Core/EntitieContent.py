@@ -40,7 +40,7 @@ class EntitieContentClass:
         self.parent=parent
 
     def __cmp__(self, other):
-         return cmp(self.EntNr, other.EntNr)        
+        return cmp(self.EntNr, other.EntNr)        
         
     def __str__(self):
         return ('\ntype:        %s' %self.type) +\

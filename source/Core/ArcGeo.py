@@ -270,32 +270,36 @@ class ArcGeo:
                 
         return sR
 
-    def Write_GCode(self, postpro=None):
+    def Write_GCode(self, parent=None, PostPro=None):
         """
         Writes the GCODE for a ARC.
-        @param postpro: The postprocessor instance to be used
+        @param parent: This is the parent EntitieContent Class
+        @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-       
+
+        anf, anf_ang=self.get_start_end_points(0,parent)
+        O=self.O.rot_sca_abs(parent=parent)
+        IJ=(O-anf)
+        ende, en_ang=self.get_start_end_points(1,parent)
+        
+        s_ang=self.rot_angle(self.s_ang,parent)
+        e_ang=self.rot_angle(self.e_ang,parent)
+        
+        sR=self.scaleR(self.r,parent)
+
         #If the radius of the element is bigger then the max. radius export
         #the element as an line.
-        if self.r > postpro.max_arc_radius:
-            string = postpro.lin_pol_xy(self.Pa, self.Pe)
+
+        if sR>PostPro.vars.General["max_arc_radius"]:
+            string=PostPro.lin_pol_xy(anf,ende)
         else:
-            if (self.ext > 0):
-                string = postpro.lin_pol_arc("ccw", self.Pa, self.Pe,
-                                           self.s_ang, self.e_ang,
-                                           self.r, self.O, self.O - self.Pa)
-                
-            elif (self.ext < 0) and postpro.export_ccw_arcs_only:
-                string = postpro.lin_pol_arc("ccw", self.Pe, self.Pa,
-                                           self.e_ang, self.s_ang,
-                                           self.r, self.O, self.O - self.Pe)
+            if (self.ext>0):
+                #string=("G3 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+                string=PostPro.lin_pol_arc("ccw",anf,ende,s_ang,e_ang,sR,O,IJ)
+            elif (self.ext<0) and PostPro.vars.General["export_ccw_arcs_only"]:
+                string=PostPro.lin_pol_arc("ccw",ende,anf,e_ang,s_ang,sR,O,(O-ende))
             else:
-                string = postpro.lin_pol_arc("cw", self.Pa, self.Pe,
-                                           self.s_ang, self.e_ang,
-                                           self.r, self.O, self.O - self.Pa)
+                #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
+                string=PostPro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,sR,O,IJ)
         return string  
-
-
-    

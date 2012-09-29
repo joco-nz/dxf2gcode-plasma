@@ -367,37 +367,40 @@ class MyDropDownMenu(QtGui.QMenu):
             
     def setNoComp(self):
         """
-        Sets the compensation 40, which is none for the selected items.
+        Sets the compensation 40, which is none for the selected shapes.
         """
-        items=self.MyGraphicsScene.selectedItems()
-        for item in items:
-            item.cut_cor=40
+        shapes=self.MyGraphicsScene.selectedItems()
+        for shape in shapes:
+            shape.cut_cor=40
             logger.debug(_('Changed Cutter Correction to None Shape Nr: %i')\
-                             %(item.nr))
+                             %(shape.nr))
             
-            item.updateCutCor()
+            shape.updateCutCor()
+            shape.updateCCplot()
             
     def setLeftComp(self):
         """
-        Sets the compensation 41, which is Left for the selected items.
+        Sets the compensation 41, which is Left for the selected shapes.
         """
-        items=self.MyGraphicsScene.selectedItems()
-        for item in items:
-            item.cut_cor=41
+        shapes=self.MyGraphicsScene.selectedItems()
+        for shape in shapes:
+            shape.cut_cor=41
             logger.debug(_('Changed Cutter Correction to left Shape Nr: %i')\
-                             %(item.nr))
-            item.updateCutCor()
+                             %(shape.nr))
+            shape.updateCutCor()
+            shape.updateCCplot()
             
     def setRightComp(self):
         """
-        Sets the compensation 42, which is Right for the selected items.
+        Sets the compensation 42, which is Right for the selected shapes.
         """
-        items=self.MyGraphicsScene.selectedItems()
-        for item in items:
-            item.cut_cor=42
+        shapes=self.MyGraphicsScene.selectedItems()
+        for shape in shapes:
+            shape.cut_cor=42
             logger.debug(_('Changed Cutter Correction to right Shape Nr: %i')\
-                             %(item.nr))
-            item.updateCutCor()
+                             %(shape.nr))
+            shape.updateCutCor()
+            shape.updateCCplot()
  
 class MyGraphicsScene(QtGui.QGraphicsScene): 
     """
@@ -515,7 +518,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         stmove=StMove(start,
                     start_ang,
                     QtGui.QColor(50, 100, 255),
-                    shape.cut_cor,self.EntitiesRoot)
+                    shape,self.EntitiesRoot)
         stmove.hide()
         return stmove
     

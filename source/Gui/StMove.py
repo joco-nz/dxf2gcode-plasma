@@ -37,11 +37,23 @@ dl = 0.2
 DEBUG = 1
 
 class StMove(QtGui.QGraphicsLineItem):
+    """
+    This is the Functio nwhich generated the StartMove for each shape. This 
+    function also performs the Plotting and Export of this moves. It is linked
+    to the shape as it's parent
+    """
     def __init__(self, startp, angle, 
                  pencolor=QtCore.Qt.green,
-                 cutcor=40,parent=None):
+                 shape=None,parent=None):
         """
         Initialisation of the class.
+        @param startp: This is the Startpoint of the shape where to add the move.
+        The coordinates are given in scaled coordinates.
+        @param angle: The Angle of the Startmove to end with.
+        @param pencolor: This is only used for plotting purpose
+        @param shape: This is the shape for which the start move is created
+        @param parent: This is the parent EntitieContent Class on which the 
+        geometries are added.
         """
         self.sc=1
         super(StMove, self).__init__()
@@ -49,7 +61,7 @@ class StMove(QtGui.QGraphicsLineItem):
         self.startp = startp
         self.endp=startp
         self.angle=angle
-        self.cutcor=cutcor
+        self.shape=shape
         self.parent=parent
         self.allwaysshow=False
         self.geos=[]
@@ -71,11 +83,11 @@ class StMove(QtGui.QGraphicsLineItem):
         del(self.geos[:])
 
         #Einlaufradius und Versatz 
-        start_rad = g.config.vars.Tool_Parameters['start_radius']
+        start_rad = self.shape.LayerContent.start_radius
         start_ver = start_rad
 
         #Werkzeugdurchmesser in Radius umrechnen        
-        tool_rad = g.config.vars.Tool_Parameters['diameter'] / 2
+        tool_rad = self.shape.LayerContent.tool_diameter/2
         
         #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
         start=self.startp
@@ -85,11 +97,11 @@ class StMove(QtGui.QGraphicsLineItem):
 #        print tool_rad
 #        print start
       
-        if self.cutcor == 40:              
+        if self.shape.cut_cor == 40:              
             self.geos.append(start)
 
         #Fr�sradiuskorrektur Links        
-        elif self.cutcor == 41:
+        elif self.shape.cut_cor == 41:
             #Mittelpunkts f�r Einlaufradius
             Oein = start.get_arc_point(angle + 90, start_rad + tool_rad)
             #Startpunkts f�r Einlaufradius
@@ -111,7 +123,7 @@ class StMove(QtGui.QGraphicsLineItem):
             self.geos.append(start_rad)
             
         #Fr�sradiuskorrektur Rechts        
-        elif self.cutcor == 42:
+        elif self.shape.cut_cor == 42:
 
             #Mittelpunkt f�r Einlaufradius
             Oein = start.get_arc_point(angle - 90, start_rad + tool_rad)
@@ -142,6 +154,17 @@ class StMove(QtGui.QGraphicsLineItem):
         first time.
         """
         logger.debug("Updating CutterCorrection of Selected shape")
+
+        self.cutcor=cutcor
+        self.make_start_moves()
+   
+    def updateCCplot(self):
+        """
+        This function is called to update the Cutter Correction and therefore 
+        the  startmoves if smth. has changed or it shall be generated for 
+        first time.
+        """
+        logger.debug("Updating CutterCorrection of Selected shape plotting")
         
         if not(self.ccarrow is None):
             logger.debug("Removing ccarrow from scene")
@@ -150,23 +173,16 @@ class StMove(QtGui.QGraphicsLineItem):
             del(self.ccarrow)
             self.ccarrow=None
         
-        self.cutcor=cutcor
-        self.make_start_moves()
         self.createccarrow()
         self.make_papath()
         self.update()
         
-        
-        
-       
-       
     def createccarrow(self):
-        
-        
+         
         length=20
-        if self.cutcor==40:
+        if self.shape.cut_cor==40:
             self.ccarrow=None
-        elif self.cutcor==41:
+        elif self.shape.cut_cor==41:
             self.ccarrow=Arrow(startp=self.startp,
                         length=length,
                         angle=self.angle+90,

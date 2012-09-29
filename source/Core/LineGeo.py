@@ -110,13 +110,16 @@ class LineGeo:
             angle=degrees(punkt.norm_angle(punkt_a))
         return punkt, angle
     
-    def Write_GCode(self, postpro=None):
+    def Write_GCode(self,parent=None, PostPro=None):
         """
-        To be calles if a LineGeo shall be wirtten to the postprocessor.
+        To be calles if a LineGeo shall be wirtten to the PostProcessor.
         @param pospro: The used Posprocessor instance
         @return: a string to be written into the file
         """
-        return postpro.lin_pol_xy(self.Pa, self.Pe)
+        anf, anf_ang=self.get_start_end_points(0,parent)
+        ende, end_ang=self.get_start_end_points(1,parent)
+
+        return PostPro.lin_pol_xy(anf,ende)
 
     def distance2point(self, Point):
         """
