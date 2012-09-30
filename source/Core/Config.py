@@ -99,6 +99,7 @@ CONFIG_SPEC = str('''
     
     [Tool_Parameters]
     diameter = float(default= 2.0)
+    speed = float(default=6000)
     start_radius = float(default= 0.2)
     
     [Filters]

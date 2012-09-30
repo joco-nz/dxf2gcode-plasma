@@ -51,12 +51,14 @@ class LayerContentClass:
         self.exp_order=[]
         self.axis3_slice_depth=vars.Depth_Coordinates['axis3_slice_depth']
         self.axis3_mill_depth=vars.Depth_Coordinates['axis3_mill_depth']
-        self.tool_diameter=vars.Tool_Parameters['diameter']
+        
+        
         """FIXME
         Tool Nr. may be added in config file later on.
         """
         self.tool_nr=1
         self.tool_diameter=vars.Tool_Parameters['diameter'] 
+        self.speed=vars.Tool_Parameters['speed']
         self.start_radius=vars.Tool_Parameters['start_radius']
         self.f_g1_plane=vars.Feed_Rates['f_g1_plane']
         self.f_g1_depth=vars.Feed_Rates['f_g1_depth']

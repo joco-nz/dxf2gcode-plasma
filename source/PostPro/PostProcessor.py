@@ -159,8 +159,11 @@ class MyPostProcessor:
             logger.debug("Nr. of Shapes %s; Nr. of Shapes in Route %s" 
                          %(len(LayerContent.shapes),len(LayerContent.exp_order)))
             
+            
             #Perform export only for Layers which have min. 1 Shape to export
             if len(LayerContent.exp_order):
+                #Adding the Tool change for each LayerContent
+                exstr+=self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
             
                 for shape_nr in LayerContent.exp_order:
                     shape=LayerContent.shapes[shape_nr]
@@ -211,6 +214,8 @@ class MyPostProcessor:
         
         #Initialization of the General Postprocessor parameters
         self.feed=0
+        self.speed=0
+        self.tool_nr=1
         
         self.abs_export=self.vars.General["abs_export"]
         
@@ -233,6 +238,8 @@ class MyPostProcessor:
         self.ze=g.config.vars.Plane_Coordinates['axis3_retract']
         self.lz=self.ze
         self.keyvars={"%feed":'self.iprint(self.feed)',\
+                   "%speed":'self.iprint(self.speed)',\
+                   "%tool_nr":'self.iprint(self.tool_nr)',\
                    "%nl":'self.nlprint()',\
                    "%XE":'self.fnprint(self.Pe.x)',\
                    "%-XE":'self.fnprint(-self.Pe.x)',\
@@ -321,6 +328,18 @@ class MyPostProcessor:
                 nr = exstr.find('\n', nr + len(((line_format) % line_nr)) + 2)
                           
         return exstr
+            
+    def chg_tool(self,tool_nr,speed):
+        """
+        This Method is called to change the tool it can change the tool or
+        change the tool speed
+        @param tool_nr: The tool_nr of the new tool
+        @param speed: The speed for the tool
+        """
+        self.tool_nr=tool_nr
+        self.speed=speed
+        return self.make_print_str(self.vars.Program["tool_change"]) 
+        
             
     def chg_feed_rate(self, feed):
         """

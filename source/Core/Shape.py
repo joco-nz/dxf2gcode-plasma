@@ -348,8 +348,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         else:
             mom_depth = -abs(max_slice)
 
-        #Move the tool to the start.
-        self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+        #Move the tool to the start.          
+        exstr+=self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
         
         exstr+=PostPro.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_safe_margin'])
         exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_depth)

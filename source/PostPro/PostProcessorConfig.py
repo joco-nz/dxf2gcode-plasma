@@ -55,7 +55,7 @@ POSTPRO_SPEC = str('''
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
   
-    code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.) T1M6 (Tool change to T1) M8 (Coolant flood on) S5000M03 (Spindle 5000rpm cw)")                    
+    code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
     code_end=string(default="M9 (Coolant off) M5 (Spindle off) M2 (Prgram end)")
     
     [Number_Format]
@@ -72,8 +72,8 @@ POSTPRO_SPEC = str('''
     line_nrs_step = integer(default=10)
     
     [Program]
-    tool_change = string(default=T%tool_nr M6%nl S%speed M3%nl)
-    feed_change = string(default=T%tool_nr M6%nl S%speed M3%nl)
+    tool_change = string(default=T%tool_nr M6%nlS%speed M3 M8%nl)
+    feed_change = string(default=F%feed%nl)
     rap_pos_plane = string(default=G0 X%XE Y%YE%nl)
     rap_pos_depth = string(default=G0 Z%ZE %nl)
     lin_mov_plane = string(default= G1 X%XE Y%YE%nl)
