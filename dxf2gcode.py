@@ -19,6 +19,8 @@ import sys
 import logging
 logger=logging.getLogger() 
 
+from copy import copy
+
 from optparse import OptionParser
 from PyQt4 import QtGui
 
@@ -28,8 +30,11 @@ from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
 from Core.Logger import LoggerClass
 from Core.Config import MyConfig
 from Core.Point import Point
+from Core.LayerContent import LayerContentClass
+from Core.EntitieContent import EntitieContentClass
 import Core.Globals as g
 import Core.constants as c
+from Core.Shape import ShapeClass
 
 from PostPro.PostProcessor import MyPostProcessor
 
@@ -51,6 +56,11 @@ if os.path.islink(sys.argv[0]):
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
     def __init__(self,app):
+        """
+        Initialization of the Main window. This is directly called after the 
+        Logger has been initialized. The Function loads the GUI, creates the
+        used Classes  and connects the actions to the GUI.
+        """
 
         QtGui.QMainWindow.__init__(self)
     
@@ -66,6 +76,13 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView=self.ui.MyGraphicsView
         
         self.myMessageBox=self.ui.myMessageBox 
+        
+        self.MyPostProcessor=MyPostProcessor()
+        
+        self.shapes=[]
+        self.LayerContents=[]
+        self.EntitieContents=[]
+        self.EntitiesRoot=[]
        
     def createActions(self):
         """
@@ -79,7 +96,7 @@ class Main(QtGui.QMainWindow):
         self.ui.actionExit.triggered.connect(self.close)
         
         self.ui.actionOptimize_Shape.triggered.connect(self.optimize_TSP)
-        self.ui.actionExport_Shapes.triggered.connect(self.export_shapes)
+        self.ui.actionExport_Shapes.triggered.connect(self.exportShapes)
        
         self.ui.actionAutoscale.triggered.connect(self.autoscale)
         self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
@@ -130,52 +147,59 @@ class Main(QtGui.QMainWindow):
         Method is called to optimize the order of the shapes. This is performed
         by solving the TSP Problem.
         """
-        logger.debug('Optimize order of enabled shapes')
+        logger.debug('Optimize order of enabled shapes per layer')
+        self.MyGraphicsScene.resetexproutes()
 
-        #Errechnen der Iterationen
-        iter =min(g.config.vars.Route_Optimisation['max_iterations'],
-                  len(self.MyGraphicsScene.shapes)*50)
-        
-        #Anfangswerte fuer das Sortieren der Shapes
-        self.shapes_to_write=[]
-        shapes_st_en_points=[]
-        
-        #Alle Shapes die geschrieben werden zusammenfassen
-        for shape in self.MyGraphicsScene.shapes:
+        for  LayerContent in self.LayerContents:
+            #Errechnen der Iterationen
+            iter =min(g.config.vars.Route_Optimisation['max_iterations'],
+                      len(LayerContent.shapes)*50)
             
-            if not(shape.isDisabled()):
-                self.shapes_to_write.append(shape)
-                shapes_st_en_points.append(shape.get_st_en_points())
+            #Anfangswerte fuer das Sortieren der Shapes
+            self.shapes_to_write=[]
+            shapes_st_en_points=[]
+            
+            #Alle Shapes die geschrieben werden zusammenfassen
+            for shape in LayerContent.shapes:
                 
-        #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
-        x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
-        y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
-        start=Point(x=x_st,y=y_st)
-        ende=Point(x=x_st,y=y_st)
-        shapes_st_en_points.append([start,ende])
-
-        #Optimieren der Reihenfolge
-        logger.info("")    
+                if not(shape.isDisabled()):
+                    self.shapes_to_write.append(shape)
+                    shapes_st_en_points.append(shape.get_st_en_points())
+                    
+            #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
+            x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
+            y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
+            start=Point(x=x_st,y=y_st)
+            ende=Point(x=x_st,y=y_st)
+            shapes_st_en_points.append([start,ende])
+    
+            #Optimieren der Reihenfolge
+            logger.info("")    
+                
+            TSPs=[]
+            TSPs.append(TSPoptimize(shapes_st_en_points))
+            logger.info("TSP start values initialised for Layer %s" %LayerContent.LayerName)
             
-        TSP=TSPoptimize(shapes_st_en_points)
-        logger.info("TSP start values initialised")
-        
-        self.MyGraphicsScene.iniexproute(shapes_st_en_points,
-                                                  TSP.opt_route)
-       
-        for it_nr in range(iter):
-            #Jeden 10ten Schrit rausdrucken
-            if (it_nr%50)==0:
-                logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
-                            %(it_nr,TSP.Fittness.best_fittness[-1]))
-                  
-                TSP.calc_next_iteration()
-                self.MyGraphicsScene.updateexproute(shapes_st_en_points,
-                                                  TSP.opt_route)
-                self.app.processEvents()                   
+            self.MyGraphicsScene.addexproute(TSPs[-1].st_end_points,
+                                                      TSPs[-1].opt_route,
+                                                      LayerContent.LayerNr)
+           
+            for it_nr in range(iter):
+                #Only show each 50 step.
+                if (it_nr%100)==0:
+                    logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
+                                %(it_nr,TSPs[-1].Fittness.best_fittness[-1]))
+                      
+                    TSPs[-1].calc_next_iteration()
+                    self.MyGraphicsScene.updateexproute(TSPs[-1].st_end_points,
+                                                      TSPs[-1].opt_route)
+                    self.app.processEvents()                   
+                
+            logger.debug("TSP done with result: %s" %TSPs[-1])
             
-        logger.debug("TSP done with result: %s" %TSP)
-        self.ui.actionDelete_G0_paths.setEnabled(True)
+            LayerContent.exp_order=TSPs[-1].opt_route;
+            
+            self.ui.actionDelete_G0_paths.setEnabled(True)           
 
     def deleteG0paths(self):
         """
@@ -184,91 +208,36 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsScene.delete_opt_path()
         self.ui.actionDelete_G0_paths.setEnabled(False)
     
-    def export_shapes(self):
+    def exportShapes(self):
         """
-        This method is called to export the shapes with the selected postprocessor.
+        This function is called by the menu "Export\Export Shapes". It may open
+        up a Save Dialog it it is used without EMC2 integration. Otherwise it's
+        possible to select multiple postprocessor files, which are located
+        in the folder.
         """
         logger.debug('Export the enabled shapes')
-        
-        
-        #Config & postpro in einen kurzen Namen speichern
-        logger.debug(dir(g.config))
 
         if not(g.config.vars.General['write_to_stdout']):
            
-                #Abfrage des Namens um das File zu speichern
+                #Get the name of the File to export
                 self.save_filename=self.showSaveDialog()
-                
-                
-                 #Wenn Cancel gedrueckt wurde
+            
+                #If Cancel was pressed
                 if not self.save_filename:
                     return
-                
-                (beg, ende)=os.path.split(self.save_filename)
+    
+                (beg, ende)=os.path.split(str(self.save_filename))
                 (fileBaseName, fileExtension)=os.path.splitext(ende) 
         
-                pp_file_nr=postpro.output_format.index(fileExtension)
+                pp_file_nr=self.MyPostProcessor.output_format.index(fileExtension)
                 
-                postpro.get_all_vars(pp_file_nr)
+                self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
-                postpro.get_all_vars(0)
+                self.MyPostProcessor.getPostProVars(0)
         
-               
-        #Funktion zum optimieren des Wegs aufrufen
-        #self.opt_export_route()
-
-#        #Initial Status fuer den Export
-#        status=1
-#
-#        #Schreiben der Standardwert am Anfang        
-#        postpro.write_gcode_be(postpro,self.load_filename)
-#
-#        #Maschine auf die Anfangshoehe bringen
-#        postpro.rap_pos_z(config.axis3_retract.get())
-#
-#        #Bei 1 starten da 0 der Startpunkt ist
-#        for nr in range(1,len(self.TSP.opt_route)):
-#            shape=self.shapes_to_write[self.TSP.opt_route[nr]]
-#            self.textbox.prt((_("\nWriting Shape: %s") %shape),1)
-#                
-#
-#
-#            #Drucken falls die Shape nicht disabled ist
-#            if not(shape.nr in self.CanvasContent.Disabled):
-#                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
-#                stat =shape.Write_GCode(config,postpro)
-#                status=status*stat
-#
-#        #Maschine auf den Endwert positinieren
-#        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
-#                                              y=config.axis2_st_en.get()))
-#
-#        #Schreiben der Standardwert am Ende        
-#        string=postpro.write_gcode_en(postpro)
-#
-#        if status==1:
-#            self.textbox.prt(_("\nSuccessfully generated G-Code"))
-#            self.master.update_idletasks()
-#
-#        else:
-#            self.textbox.prt(_("\nError during G-Code Generation"))
-#            self.master.update_idletasks()
-#
-#                    
-#        #Drucken in den Stdout, speziell fuer EMC2 
-#        if config.write_to_stdout:
-#            print(string)
-#            self.ende()     
-#        else:
-#            #Exportieren der Daten
-#                try:
-#                    #Das File oeffnen und schreiben    
-#                    f = open(self.save_filename, "w")
-#                    f.write(string)
-#                    f.close()       
-#                except IOError:
-#                    showwarning(_("Save As"), _("Cannot save the file."))
-#            
+        
+        self.MyPostProcessor.exportShapes(self.load_filename,self.shape_order)
+      
 
     def showSaveDialog(self):
         """
@@ -276,30 +245,20 @@ class Main(QtGui.QMainWindow):
         it creates the selection dialog for the exporter
         @return: Returns the filename of the selected file.
         """
-        
         MyFormats=""
-        for i in range(len(g.postpro.output_format)):
-            name="%s " %(g.postpro.output_text[i])
-            format="(*%s);;" %(g.postpro.output_format[i])
+        for i in range(len(self.MyPostProcessor.output_format)):
+            name="%s " %(self.MyPostProcessor.output_text[i])
+            format="(*%s);;" %(self.MyPostProcessor.output_format[i])
             MyFormats=MyFormats+name+format
             
-        logger.debug(MyFormats)
-
         (beg, ende)=os.path.split(self.load_filename)
         (fileBaseName, fileExtension)=os.path.splitext(ende)
         
-        logger.debug(fileBaseName)
-        logger.debug(g.config.vars.Paths['output_dir'])
-        
         default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
-        
-        logger.debug(default_name)
-        
 
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
                     default_name,
                     MyFormats)
-
         
         logger.info("File: %s selected" %filename)
         
@@ -383,13 +342,13 @@ class Main(QtGui.QMainWindow):
         logger.info(_('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
                              % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
         
-        self.plotall(values)
+        self.makeShapesAndPlot(values)
         
         #After all is plotted enable the Menu entities
         self.enableplotmenu()
         self.ui.actionDelete_G0_paths.setEnabled(False)
 
-    def plotall(self,values):
+    def makeShapesAndPlot(self,values):
         """
         Plots all data stored in the values paramter to the Canvas
         @param values: Includes all values loaded from the dxf file
@@ -404,40 +363,163 @@ class Main(QtGui.QMainWindow):
         
         #Rotieren um den WP zero
         self.rotate = 0.0
+      
+        #Generate the Shapes  
+        self.makeShapes(values,
+                            p0=Point(x=0.0, y=0.0),
+                            pb=Point(x=0.0, y=0.0),
+                            sca=[1.0,1.0,1.0],
+                            rot=0.0)
 
         #Ausdrucken der Werte     
         self.MyGraphicsView.clearScene()
         self.MyGraphicsScene=MyGraphicsScene()   
-        self.MyGraphicsScene.makeplot(values,
-                                    p0=Point(x=0.0, y=0.0),
-                                    pb=Point(x=0, y=0),
-                                    sca=[1.0,1.0,1.0],
-                                    rot=0.0)
         
+        self.MyGraphicsScene.plotAll(self.shapes, self.EntitiesRoot)
         self.MyGraphicsView.setScene(self.MyGraphicsScene)
         self.MyGraphicsView.show()
         self.MyGraphicsView.setFocus()
         
         #Autoscale des Canvas      
         self.MyGraphicsView.autoscale()
-     
-def setup_logging(Log,myMessageBox):
-    """
-    Function to set up the logging to the myMessageBox Class. 
-    This function can only be called if the myMessageBox Class has been created.
-    @param myMessageBox: This is the handle to the GUI where the log message 
-    shall be sent to. This Class needs a function "def write(self,charstr):"
-    """
-    # LogText window exists, setup logging
-    Log.add_window_logger(log_level=logging.INFO)
-    Log.set_window_logstream(myMessageBox)
-    
-def main():
+               
+        """FIXME
+        Export will be performed in the order of the Structure self.LayerContents
+        You can sort the Layers and the Shapes of LayerContent itself in the correct
+        order. With this sort function it is sorted in increasing number of Layer only"""
+        self.LayerContents.sort()
+        
+        for LayerContent in self.LayerContents:
+            LayerContent.exp_order=len(LayerContent.shapes)
+   
+        """FIXME
+        Here are the two structures which give the things to show in the treeview"""
+        logger.debug(self.LayerContents)
+        logger.debug(self.EntitiesRoot)
+        
+               
+    def makeShapes(self,values,p0,pb,sca,rot):
+        """
+        Instance is called by the Main Window after the defined file is loaded.
+        It generates all ploting functionallity. The parameters are generally 
+        used to scale or offset the base geometry (by Menu in GUI).
+        
+        @param values: The loaded dxf values fro mthe dxf_import.py file
+        @param p0: The Starting Point to plot (Default x=0 and y=0)
+        @param bp: The Base Point to insert the geometry and base for rotation 
+        (Default is also x=0 and y=0)
+        @param sca: The scale of the basis function (default =1)
+        @param rot: The rotation of the geometries around base (default =0)
+        """
+        self.values=values
+
+        #Zuruecksetzen der Konturen
+        del(self.shapes[:])
+        del(self.LayerContents[:])
+        del(self.EntitiesRoot)
+        self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
+                                            p0=p0,pb=pb,sca=sca,rot=rot)
+
+        #Start mit () bedeutet zuweisen der Entities -1 = Standard
+        self.makeEntitiesShapes(parent=self.EntitiesRoot)
+        self.LayerContents.sort()
+        
+    def makeEntitiesShapes(self,parent=None,ent_nr=-1):
+        """
+        Instance is called prior to the plotting of the shapes. It creates
+        all shape classes which are later plotted into the graphics.
+        
+        @param parent: The parent of a shape is always a Entities. It may be root 
+        or if it is a Block this is the Block. 
+        @param ent_nr: The values given in self.values are sorted in that way 
+        that 0 is the Root Entities and  1 is beginning with the first block. 
+        This value gives the index of self.values to be used.
+        """
+
+        if parent.Name=="Entities":      
+            entities=self.values.entities
+        else:
+            ent_nr=self.values.Get_Block_Nr(parent.Name)
+            entities=self.values.blocks.Entities[ent_nr]
+            
+        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
+        ent_geos=entities.geo
+               
+        #Schleife fuer die Anzahl der Konturen 
+        for cont in entities.cont:
+            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
+            if ent_geos[cont.order[0][0]].Typ=="Insert":
+                ent_geo=ent_geos[cont.order[0][0]]
+                
+                #Zuweisen des Basispunkts f�r den Block
+                new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
+                new_entities=self.values.blocks.Entities[new_ent_nr]
+                pb=new_entities.basep
+                
+                #Skalierung usw. des Blocks zuweisen
+                p0=ent_geos[cont.order[0][0]].Point
+                sca=ent_geos[cont.order[0][0]].Scale
+                rot=ent_geos[cont.order[0][0]].rot
+                
+                #Erstellen des neuen Entitie Contents f�r das Insert
+                NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
+                                        parent=parent,children=[],
+                                        p0=p0,
+                                        pb=pb,
+                                        sca=sca,
+                                        rot=rot)
+
+                parent.addchild(NewEntitieContent)
+            
+                self.makeEntitiesShapes(parent=NewEntitieContent,ent_nr=ent_nr)
+                
+            else:
+                #Schleife fuer die Anzahl der Geometrien
+                self.shapes.append(ShapeClass(len(self.shapes),\
+                                                cont.closed,\
+                                                40,\
+                                                0.0,\
+                                                parent,\
+                                                []))
+                for ent_geo_nr in range(len(cont.order)):
+                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
+                    if cont.order[ent_geo_nr][1]:
+                        ent_geo.geo.reverse()
+                        for geo in ent_geo.geo:
+                            geo=copy(geo)
+                            geo.reverse()
+                            self.shapes[-1].geos.append(geo)
+
+                        ent_geo.geo.reverse()
+                    else:
+                        for geo in ent_geo.geo:
+                            self.shapes[-1].geos.append(copy(geo))
+                        
+                self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
+                parent.addchild(self.shapes[-1])
+                
+    def addtoLayerContents(self,shape_nr,lay_nr):
+        """
+        Instance is called while the shapes are created. This gives the 
+        structure which shape is laying on which layer.
+        
+        @param shape_nr: The Nr. of the shape 
+        @param lay_nr: The Nr. of the layer
+        """
+        #Check if the layer is already existing and add shape if it is.
+        for LayCon in self.LayerContents:
+            if LayCon.LayerNr==lay_nr:
+                LayCon.shapes.append(shape_nr)
+                return
+
+        #If the Layer is not existing create a new one.
+        LayerName=self.values.layers[lay_nr].name
+        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
+        
+if __name__ == "__main__":
     """
     The main function which is executed after program start. 
     """
-    # Again, this is boilerplate, it's going to be the same on
-    # almost every app you write
     Log=LoggerClass(rootlogger=logger, console_loglevel=logging.DEBUG)
 
     app = QtGui.QApplication(sys.argv)
@@ -446,31 +528,31 @@ def main():
     
     window.show()
     
-    setup_logging(Log, window.myMessageBox)
+    # LogText window exists, setup logging
+    Log.add_window_logger(log_level=logging.INFO)
+    #This is the handle to the GUI where the log message 
+    #shall be sent to. This Class needs a function "def write(self,charstr)
+    Log.set_window_logstream(window.myMessageBox)
     
     g.config=MyConfig()
-    g.postpro=MyPostProcessor()
-    
+
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")
+    
 #    parser.add_option("-v", "--verbose",
 #                      action="store_true", dest="verbose")
 #    parser.add_option("-q", "--quiet",
 #                      action="store_false", dest="verbose")
 
     (options, args) = parser.parse_args()
-    logger.debug("Started with following options \n%s" % (options))
+    logger.debug("Started with following options \n%s" %(options))
     
     if not(options.filename is None):
         window.loadFile(options.filename)
      
     # It's exec_ because exec is a reserved word in Python
     sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    main()
-
 
 
 

@@ -183,8 +183,10 @@ class MyGraphicsView(QtGui.QGraphicsView):
                 self.rubberBand.show()
                 self.rubberBand.setGeometry(QtCore.QRect(self.mppos, event.pos()).normalized())
                 
-        self.setStatusTip('X: %3.1f; Y: %3.1f' %(event.pos().x(),event.pos().y()))
-        self.setToolTip('X: %3.1f; Y: %3.1f' %(event.pos().x(),event.pos().y()))
+        scpoint=self.mapToScene(event.pos().x(),event.pos().y()) 
+        
+        self.setStatusTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),scpoint.y()))
+        self.setToolTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),scpoint.y()))
             
         super(MyGraphicsView, self).mouseMoveEvent(event)        
          
@@ -409,16 +411,16 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
        
         self.shapes=[]
         self.wpzero=[]
-        self.LayerContents=[]
+#        self.LayerContents=[]
         self.routearrows=[]
         self.routetext=[]
         self.showDisabled=False
-        self.EntitiesRoot=EntitieContentClass(Nr=-1, Name='Base',parent=None,children=[],
-                                              p0=Point(0,0),pb=Point(0,0),
-                                              sca=1,rot=0)
-        self.BaseEntities=EntitieContentClass()
+#        self.EntitiesRoot=EntitieContentClass(Nr=-1, Name='Base',parent=None,children=[],
+#                                              p0=Point(0,0),pb=Point(0,0),
+#                                              sca=1,rot=0)
+#        self.BaseEntities=EntitieContentClass()
                
-    def makeplot(self,values,p0,pb,sca,rot):
+    def plotAll(self,shapes,EntitiesRoot):
         """
         Instance is called by the Main Window after the defined file is loaded.
         It generates all ploting functionallity. The parameters are generally 
@@ -431,23 +433,14 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param sca: The scale of the basis function (default =1)
         @param rot: The rotation of the geometries around base (default =0)
         """
-        self.values=values
 
-        #Zuruecksetzen der Konturen
-        del(self.shapes[:])
+        self.shapes=shapes
+        self.EntitiesRoot=EntitiesRoot
+
         del(self.wpzero)
-        del(self.LayerContents[:])
-        del(self.EntitiesRoot)
-        self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
-                                            p0=p0,pb=pb,sca=sca,rot=rot)
-
-        #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.makeshapes(parent=self.EntitiesRoot)
+     
         self.plot_shapes()
-        self.plot_wp_zero()
-        self.LayerContents.sort()
-        #self.EntitieContents.sort()
-        
+        self.plot_wp_zero() 
         self.update()
 
     def plot_wp_zero(self):
@@ -458,80 +451,6 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         """  
         self.wpzero=WpZero(QtCore.QPointF(0,0))
         self.addItem(self.wpzero)
-
-    def makeshapes(self,parent=None,ent_nr=-1):
-        """
-        Instance is called prior to the plotting of the shapes. It creates
-        all shape classes which are later plotted into the graphics.
-        
-        @param parent: The parent of a shape is always a Entities. It may be root 
-        or if it is a Block this is the Block. 
-        @param ent_nr: The values given in self.values are sorted in that way 
-        that 0 is the Root Entities and  1 is beginning with the first block. 
-        This value gives the index of self.values to be used.
-        """
-
-        if parent.Name=="Entities":      
-            entities=self.values.entities
-        else:
-            ent_nr=self.values.Get_Block_Nr(parent.Name)
-            entities=self.values.blocks.Entities[ent_nr]
-            
-        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
-        ent_geos=entities.geo
-               
-        #Schleife fuer die Anzahl der Konturen 
-        for cont in entities.cont:
-            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-            if ent_geos[cont.order[0][0]].Typ=="Insert":
-                ent_geo=ent_geos[cont.order[0][0]]
-                
-                #Zuweisen des Basispunkts f�r den Block
-                new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
-                new_entities=self.values.blocks.Entities[new_ent_nr]
-                pb=new_entities.basep
-                
-                #Skalierung usw. des Blocks zuweisen
-                p0=ent_geos[cont.order[0][0]].Point
-                sca=ent_geos[cont.order[0][0]].Scale
-                rot=ent_geos[cont.order[0][0]].rot
-                
-                #Erstellen des neuen Entitie Contents f�r das Insert
-                NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
-                                        parent=parent,children=[],
-                                        p0=p0,
-                                        pb=pb,
-                                        sca=sca,
-                                        rot=rot)
-
-                parent.addchild(NewEntitieContent)
-            
-                self.makeshapes(parent=NewEntitieContent,ent_nr=ent_nr)
-                
-            else:
-                #Schleife fuer die Anzahl der Geometrien
-                self.shapes.append(ShapeClass(len(self.shapes),\
-                                                cont.closed,\
-                                                40,\
-                                                0.0,\
-                                                parent,\
-                                                []))
-                for ent_geo_nr in range(len(cont.order)):
-                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
-                    if cont.order[ent_geo_nr][1]:
-                        ent_geo.geo.reverse()
-                        for geo in ent_geo.geo:
-                            geo=copy(geo)
-                            geo.reverse()
-                            self.shapes[-1].geos.append(geo)
-
-                        ent_geo.geo.reverse()
-                    else:
-                        for geo in ent_geo.geo:
-                            self.shapes[-1].geos.append(copy(geo))
-                        
-                self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
-                parent.addchild(self.shapes[-1])
 
     def plot_shapes(self):
         """
@@ -550,13 +469,14 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             shape.enarrow.setParentItem(shape)
             shape.stmove.setParentItem(shape)
  
-        logger.debug("Update GrapicsScene")
-        
-            #Hinzufuegen der Kontur zum Layer
-            
-        #Erstellen des Gesamten Ausdrucks      
+        logger.debug("Update GrapicsScene") 
 
     def createstarrow(self,shape):
+        """
+        This function created the Arrows at the end point of a shape when the 
+        shape is selected.
+        @param shape: The shape for which the Arrow shall be created.
+        """
         
         length=20
         start, start_ang = shape.get_st_en_points(0)
@@ -569,7 +489,11 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         return arrow
         
     def createenarrow(self,shape):
-        
+        """
+        This function created the Arrows at the start point of a shape when the 
+        shape is selected.
+        @param shape: The shape for which the Arrow shall be created.
+        """
         length=20
         end, end_ang = shape.get_st_en_points(1)
         arrow=Arrow(startp=end,
@@ -582,7 +506,11 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     
 
     def createstmove(self,shape):
-        
+        """
+        This function created the Additional Start and End Moves in the plot
+        window when the shape is selected
+        @param shape: The shape for which the Move shall be created.
+        """
         start, start_ang = shape.get_st_en_points(0)
         stmove=StMove(start,
                     start_ang,
@@ -591,10 +519,21 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         stmove.hide()
         return stmove
     
-    def iniexproute(self,shapes_st_en_points,route):
-        
+    def resetexproutes(self):
+        """
+        This function resets all of the export route
+        """
         self.delete_opt_path()
 
+    
+    def addexproute(self,shapes_st_en_points,route,layer_nr):
+        """
+        This function initialisates the Arrows of the export route order and 
+        its numbers. 
+        @param shapes_st_en_points: The start and end points of the shapes.
+        @param route: The order of the shapes to be ploted. 
+        """
+    
         #Ausdrucken der optimierten Route
         for en_nr in range(len(route)):
             if en_nr==0:
@@ -602,7 +541,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                 #col='gray'
             elif en_nr==1:
                 st_nr=en_nr-1
-                col='gray'
+                #col='gray'
             else:
                 st_nr=en_nr-1
                 #col='peru'
@@ -615,7 +554,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                   color=QtCore.Qt.red,
                   pencolor=QtCore.Qt.red))
             
-            self.routetext.append(RouteText(text=("%s" %en_nr),startp=st)) 
+            self.routetext.append(RouteText(text=("%s,%s" %(layer_nr,en_nr)),
+                                            startp=st)) 
             
             #self.routetext[-1].ItemIgnoresTransformations 
             
@@ -623,7 +563,12 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             self.addItem(self.routearrows[-1])
 
     def updateexproute(self,shapes_st_en_points,route):
-        
+        """
+        This function updates the Arrows of the export route order and 
+        its numbers. 
+        @param shapes_st_en_points: The start and end points of the shapes.
+        @param route: The order of the shapes to be plotted. 
+        """
         
         for en_nr in range(len(route)):
             if en_nr==0:
@@ -636,12 +581,15 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             st=shapes_st_en_points[route[st_nr]][1]
             en=shapes_st_en_points[route[en_nr]][0]
             
-            self.routearrows[en_nr].updatepos(st,en)
-            self.routetext[en_nr].updatepos(st)
+            arrownr=len(self.routearrows)-len(route)+en_nr
+            
+            self.routearrows[arrownr].updatepos(st,en)
+            self.routetext[arrownr].updatepos(st)
         
-
     def delete_opt_path(self):
-
+        """
+        This function deletes all the plotted export routes. 
+        """
         while self.routearrows:
             item = self.routearrows.pop()
             item.hide()
@@ -654,35 +602,6 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             #self.removeItem(item)
             del item
            
-    def addtoLayerContents(self,shape_nr,lay_nr):
-        #Abfrage of der gesuchte Layer schon existiert
-        for LayCon in self.LayerContents:
-            if LayCon.LayerNr==lay_nr:
-                LayCon.shapes.append(shape_nr)
-                return
-
-        #Falls er nicht gefunden wurde neuen erstellen
-        LayerName=self.values.layers[lay_nr].name
-        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
-        
-    def addtoEntitieContents(self,shape_nr,ent_nr,c_nr):
-        
-        for EntCon in self.EntitieContents:
-            if EntCon.EntNr==ent_nr:
-                if c_nr==0:
-                    EntCon.shapes.append([])
-                
-                EntCon.shapes[-1].append(shape_nr)
-                return
-
-        #Falls er nicht gefunden wurde neuen erstellen
-        if ent_nr==-1:
-            EntName='Entities'
-        else:
-            EntName=self.values.blocks.Entities[ent_nr].Name
-            
-        self.EntitieContents.append(EntitieContentClass(ent_nr,EntName,[[shape_nr]]))
-        
     def setShow_disabled_paths(self,flag):
         """
         This function is called by the Main Menu and is passed from Main to 
@@ -698,97 +617,4 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                 shape.show()
             elif not(flag) and shape.isDisabled():
                 shape.hide()
-
-#        
-#    #Verschieben des Werkst�cknullpunkts auf die momentane Cursor Position
-#    def set_wp_zero(self):
-#        #print("Hier gehts dann")
-#        #print ("X %0.2f Y %0.2f" %(self.Canvas.x, self.Canvas.y))
-#        self.Canvas.window.Move_WP_zero(x=self.Canvas.x, y=self.Canvas.y)
-#            
-
-#    def plot_cut_info(self):
-#        for hdl in self.dir_hdls:
-#            self.Canvas.canvas.delete(hdl) 
-#        self.dir_hdls=[]
-#
-#        if not(self.toggle_start_stop.get()):
-#            draw_list=self.Selected[:]
-#        else:
-#            draw_list=range(len(self.shapes))
-#               
-#        for shape_nr in draw_list:
-#            if not(shape_nr in self.Disabled):
-#                self.dir_hdls+=self.shapes[shape_nr].plot_cut_info(self.Canvas,self.config)
-#
-#
-#    def plot_opt_route(self,shapes_st_en_points,route):
-#        #Ausdrucken der optimierten Route
-#        for en_nr in range(len(route)):
-#            if en_nr==0:
-#                st_nr=-1
-#                col='gray'
-#            elif en_nr==1:
-#                st_nr=en_nr-1
-#                col='gray'
-#            else:
-#                st_nr=en_nr-1
-#                col='peru'
-#                
-#            st=shapes_st_en_points[route[st_nr]][1]
-#            en=shapes_st_en_points[route[en_nr]][0]
-#
-#            x_ca_s,y_ca_s=self.Canvas.get_can_coordinates(st.x,st.y)
-#            x_ca_e,y_ca_e=self.Canvas.get_can_coordinates(en.x,en.y)
-#
-#            self.path_hdls.append(Line(self.Canvas.canvas,x_ca_s,-y_ca_s,x_ca_e,-y_ca_e,fill=col,arrow='last'))
-#        self.Canvas.canvas.update()
-
-
-            
-class LayerContentClass:
-    def __init__(self,LayerNr=None,LayerName='',shapes=[]):
-        self.LayerNr=LayerNr
-        self.LayerName=LayerName
-        self.shapes=shapes
-        
-    def __cmp__(self, other):
-         return cmp(self.LayerNr, other.LayerNr)
-
-    def __str__(self):
-        return ('\ntype:        %s' %self.type) +\
-               ('\nLayerNr :      %i' %self.LayerNr) +\
-               ('\nLayerName:     %s' %self.LayerName)+\
-               ('\nshapes:    %s' %self.shapes)       
-               
-class EntitieContentClass:
-    def __init__(self,type="Entitie",Nr=None,Name='',parent=None,children=[],
-                p0=Point(x=0.0,y=0.0),pb=Point(x=0.0,y=0.0),sca=[1,1,1],rot=0.0):
-                    
-        self.type=type
-        self.Nr=Nr
-        self.Name=Name
-        self.children=children
-        self.p0=p0
-        self.pb=pb
-        self.sca=sca
-        self.rot=rot
-        self.parent=parent
-
-    def __cmp__(self, other):
-         return cmp(self.EntNr, other.EntNr)        
-        
-    def __str__(self):
-        return ('\ntype:        %s' %self.type) +\
-               ('\nNr :      %i' %self.Nr) +\
-               ('\nName:     %s' %self.Name)+\
-               ('\np0:          %s' %self.p0)+\
-               ('\npb:          %s' %self.pb)+\
-               ('\nsca:         %s' %self.sca)+\
-               ('\nrot:         %s' %self.rot)+\
-               ('\nchildren:    %s' %self.children)
-            
-    #Hinzufuegen der Kontur zu den Entities
-    def addchild(self,child):
-        self.children.append(child)
-  
+     
