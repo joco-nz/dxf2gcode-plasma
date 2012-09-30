@@ -77,11 +77,24 @@ class MyPostProcessor:
             
             lfiles = os.listdir(PostProConfig.folder)
             
+        
+            
         #Only files with the ending *.cfg will be accepted.
         self.postprocessor_files = []
         for lfile in lfiles:
             if os.path.splitext(lfile)[1] == '.cfg':
                 self.postprocessor_files.append(lfile)
+                
+        if len(self.postprocessor_files)==0:
+            PostProConfig=MyPostProConfig()
+            PostProConfig.create_default_config()
+            PostProConfig.default_config = True
+            lfiles = os.listdir(PostProConfig.folder)
+            
+            self.postprocessor_files = []
+            for lfile in lfiles:
+                if os.path.splitext(lfile)[1] == '.cfg':
+                    self.postprocessor_files.append(lfile)
                 
         #Load all files to get the possible postprocessor configs to export
         self.get_output_vars()

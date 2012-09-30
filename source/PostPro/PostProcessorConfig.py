@@ -72,17 +72,17 @@ POSTPRO_SPEC = str('''
     line_nrs_step = integer(default=10)
     
     [Program]
-    tool_change = string(default=("T%tool_nr M6%nl S%speed M3%nl"))
-    feed_change = string(default=("T%tool_nr M6%nl S%speed M3%nl"))
-    rap_pos_plane = string(default=("G0 X%XE Y%YE%nl"))
-    rap_pos_depth = string(default=("G0 Z%ZE %nl"))
-    lin_mov_plane = string(default= ("G1 X%XE Y%YE%nl"))
-    lin_mov_depth = string(default= ("G1 Z%ZE%nl"))
-    arc_int_cw = string(default=("G2 X%XE Y%YE I%I J%J%nl"))
-    arc_int_ccw = string(default=("G3 X%XE Y%YE I%I J%J%nl"))
-    cutter_comp_off = string(default=("G40%nl"))
-    cutter_comp_left = string(default=("G41%nl"))
-    cutter_comp_right = string(default=("G42%nl"))                  
+    tool_change = string(default=T%tool_nr M6%nl S%speed M3%nl)
+    feed_change = string(default=T%tool_nr M6%nl S%speed M3%nl)
+    rap_pos_plane = string(default=G0 X%XE Y%YE%nl)
+    rap_pos_depth = string(default=G0 Z%ZE %nl)
+    lin_mov_plane = string(default= G1 X%XE Y%YE%nl)
+    lin_mov_depth = string(default= G1 Z%ZE%nl)
+    arc_int_cw = string(default=G2 X%XE Y%YE I%I J%J%nl)
+    arc_int_ccw = string(default=G3 X%XE Y%YE I%I J%J%nl)
+    cutter_comp_off = string(default=G40%nl)
+    cutter_comp_left = string(default=G41%nl)
+    cutter_comp_right = string(default=G42%nl)                  
 
 ''').splitlines()  
 """ format, type and default value specification of the global config file"""
