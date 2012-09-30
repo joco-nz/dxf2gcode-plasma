@@ -35,8 +35,7 @@ class LayerContentClass:
          return cmp(self.LayerNr, other.LayerNr)
 
     def __str__(self):
-        return ('\ntype:          %s' %self.type) +\
-               ('\nLayerNr :      %i' %self.LayerNr) +\
+        return ('\nLayerNr :      %i' %self.LayerNr) +\
                ('\nLayerName:     %s' %self.LayerName)+\
                ('\nshapes:        %s' %self.shapes)+\
                ('\nexp_order:     %s' %self.exp_order)    

@@ -371,6 +371,39 @@ class Main(QtGui.QMainWindow):
                             sca=[1.0,1.0,1.0],
                             rot=0.0)
 
+        print("\033[31;1mEntitieRoot = %s\033[m" %self.EntitiesRoot) #TODO : remove
+        for i, forme in enumerate(self.EntitiesRoot.children): #TODO : remove
+            print("\033[32mEntitieRoot.children[%i] = %s\033[m" %(i, forme)) #TODO : remove
+
+#        print("\033[31;1mLayerContents = %s\033[m" %self.LayerContents) #TODO : remove
+        print("\n") #TODO : remove
+        for i, layer in enumerate(self.LayerContents): #TODO : remove
+            print("\033[31;1mLayerContents[%i] = %s\033[m" %(i, layer)) #TODO : remove
+
+            for j, forme in enumerate(self.LayerContents[i].shapes): #TODO : remove
+                print("\033[32mLayerContents[%i].shape[%i] = %s\033[m" %(i, j, forme)) #TODO : remove
+
+        # populate the treeView with layout and shapes. TODO: place this in a separate file
+        # two columns for the treeView : first is layout/shape number and second is layout/shape name
+        self.ui.layoutShapeTreeView.clear()
+        self.ui.layoutShapeTreeView.setColumnCount(2)
+
+        for layer in self.LayerContents:
+            treeViewItemLayout = QtGui.QTreeWidgetItem(self.ui.layoutShapeTreeView)
+            treeViewItemLayout.setText(0, str(layer.LayerNr))
+            treeViewItemLayout.setText(1, layer.LayerName)
+            self.ui.layoutShapeTreeView.addTopLevelItem(treeViewItemLayout)
+
+            for shape in layer.shapes:
+                treeViewItemShape = QtGui.QTreeWidgetItem(treeViewItemLayout)
+                treeViewItemShape.setText(0, str(shape.nr))
+                treeViewItemShape.setText(1, shape.type)
+                self.ui.layoutShapeTreeView.addTopLevelItem(treeViewItemShape)
+
+        self.ui.layoutShapeTreeView.resizeColumnToContents(0)
+#        self.ui.layoutShapeTreeView.expandAll()
+
+
         #Ausdrucken der Werte     
         self.MyGraphicsView.clearScene()
         self.MyGraphicsScene=MyGraphicsScene()   
@@ -435,6 +468,7 @@ class Main(QtGui.QMainWindow):
         that 0 is the Root Entities and  1 is beginning with the first block. 
         This value gives the index of self.values to be used.
         """
+        print("\033[37;1mmakeEntitiesShapes() ; parent = %s\033[m" %parent.Name) #TODO : remove
 
         if parent.Name=="Entities":      
             entities=self.values.entities
@@ -443,25 +477,32 @@ class Main(QtGui.QMainWindow):
             entities=self.values.blocks.Entities[ent_nr]
             
         #Zuweisen der Geometrien in die Variable geos & Konturen in cont
+        #Assigning the geometries in the variables geos & contours in cont
         ent_geos=entities.geo
                
         #Schleife fuer die Anzahl der Konturen 
+        #Loop for the number of contours
         for cont in entities.cont:
+            print("\033[37;1mcont in entities.cont\033[m") #TODO : remove
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
+            #Query if it is in the contour of an insert of a block
             if ent_geos[cont.order[0][0]].Typ=="Insert":
                 ent_geo=ent_geos[cont.order[0][0]]
                 
                 #Zuweisen des Basispunkts f�r den Block
+                #Assign the base point for the block
                 new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
                 new_entities=self.values.blocks.Entities[new_ent_nr]
                 pb=new_entities.basep
                 
                 #Skalierung usw. des Blocks zuweisen
+                #Scaling, etc. assign the block
                 p0=ent_geos[cont.order[0][0]].Point
                 sca=ent_geos[cont.order[0][0]].Scale
                 rot=ent_geos[cont.order[0][0]].rot
                 
                 #Erstellen des neuen Entitie Contents f�r das Insert
+                #Creating the new Entitie Contents for the insert
                 NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
                                         parent=parent,children=[],
                                         p0=p0,
@@ -475,6 +516,7 @@ class Main(QtGui.QMainWindow):
                 
             else:
                 #Schleife fuer die Anzahl der Geometrien
+                #Loop for the number of geometries
                 self.shapes.append(ShapeClass(len(self.shapes),\
                                                 cont.closed,\
                                                 40,\

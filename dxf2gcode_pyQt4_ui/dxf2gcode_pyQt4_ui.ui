@@ -28,7 +28,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab">
            <attribute name="title">
@@ -100,7 +100,7 @@
                <widget class="QLineEdit" name="lineEdit_5"/>
               </item>
               <item row="0" column="0" colspan="2">
-               <widget class="QTreeView" name="treeView">
+               <widget class="QTreeWidget" name="layoutShapeTreeView">
                 <property name="minimumSize">
                  <size>
                   <width>0</width>
