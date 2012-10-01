@@ -55,7 +55,7 @@ POSTPRO_SPEC = str('''
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
   
-    code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.) T1M6 (Tool change to T1) M8 (Coolant flood on) S5000M03 (Spindle 5000rpm cw)")                    
+    code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
     code_end=string(default="M9 (Coolant off) M5 (Spindle off) M2 (Prgram end)")
     
     [Number_Format]
@@ -72,16 +72,17 @@ POSTPRO_SPEC = str('''
     line_nrs_step = integer(default=10)
     
     [Program]
-    tool_change = string(default=("T%tool_nr M6%nl S%speed M3%nl"))
-    feed_change = string(default=("T%tool_nr M6%nl S%speed M3%nl"))
-    rap_pos_plane = string(default=("G0 X%XE Y%YE%nl"))
-    rap_pos_depth = string(default=("G0 Z%ZE %nl"))
-    lin_mov_plane = string(default= ("G1 X%XE Y%YE%nl"))
-    arc_int_cw = string(default=("G2 X%XE Y%YE I%I J%J%nl"))
-    arc_int_ccw = string(default=("G3 X%XE Y%YE I%I J%J%nl"))
-    cutter_comp_off = string(default=("G40%nl"))
-    cutter_comp_left = string(default=("G41%nl"))
-    cutter_comp_right = string(default=("G42%nl"))                  
+    tool_change = string(default=T%tool_nr M6%nlS%speed M3 M8%nl)
+    feed_change = string(default=F%feed%nl)
+    rap_pos_plane = string(default=G0 X%XE Y%YE%nl)
+    rap_pos_depth = string(default=G0 Z%ZE %nl)
+    lin_mov_plane = string(default= G1 X%XE Y%YE%nl)
+    lin_mov_depth = string(default= G1 Z%ZE%nl)
+    arc_int_cw = string(default=G2 X%XE Y%YE I%I J%J%nl)
+    arc_int_ccw = string(default=G3 X%XE Y%YE I%I J%J%nl)
+    cutter_comp_off = string(default=G40%nl)
+    cutter_comp_left = string(default=G41%nl)
+    cutter_comp_right = string(default=G42%nl)                  
 
 ''').splitlines()  
 """ format, type and default value specification of the global config file"""
@@ -95,6 +96,8 @@ class MyPostProConfig:
         """
         initialize the varspace of an existing plugin instance
         init_varspace() is a superclass method of plugin
+        @param filename: The filename for the creation of a new config
+        file and the filename of the file to read config from.
         """
         
         self.folder = os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)
@@ -105,6 +108,10 @@ class MyPostProConfig:
         self.spec = ConfigObj(POSTPRO_SPEC, interpolation=False, list_values=False, _inspec=True)
 
     def load_config(self):
+        """
+        This method tries to load the defined postprocessor file given in 
+        self.filename. If this fail it will create a new one 
+        """
 
         try:
             # file exists, read & validate it
@@ -164,13 +171,19 @@ class MyPostProConfig:
         self.vars = DictDotLookup(self.var_dict) 
 
     def make_settings_folder(self): 
-        # create settings folder if necessary 
+        """
+        This method creates the  postprocessor settings folder if necessary
+        """ 
         try: 
             os.mkdir(self.folder) 
         except OSError: 
             pass        
 
     def create_default_config(self):
+        """
+        If no postprocessor config file exist this function is called in order
+        to generate the config file based on its specification.
+        """
         #check for existing setting folder or create one
         self.make_settings_folder()
         
@@ -184,10 +197,10 @@ class MyPostProConfig:
         self.var_dict.write()
         
         
-    def _save_varspace(self):
-        self.var_dict.filename = self.filename
-        self.var_dict.write()   
-    
+#    def _save_varspace(self):
+#        self.var_dict.filename = self.filename
+#        self.var_dict.write()   
+#    
     def print_vars(self):
         print "Variables:"
         for k,v in self.var_dict['Variables'].items():

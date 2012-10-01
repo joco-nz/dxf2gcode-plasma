@@ -100,13 +100,14 @@ class Arrow(QtGui.QGraphicsLineItem):
             self.hide()
         self.update(self.boundingRect())
             
-    def updatepos(self,startp,endp):
+    def updatepos(self,startp,endp=None, angle=None):
         """
         Method to update the position after optimisation of the shape.
         """
         self.prepareGeometryChange()
         self.startp = QtCore.QPointF(startp.x,-startp.y)
         self.endp = endp
+        self.angle = angle
             
     def paint(self, painter, option, widget=None):
         """

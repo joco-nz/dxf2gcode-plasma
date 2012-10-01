@@ -85,9 +85,18 @@ class Point:
         return Point(x=self.x + cos(radians(ang)) * r, \
                           y=self.y + sin(radians(ang)) * r)
 
-    def Write_GCode(self, parent=None, postpro=None):
+    def Write_GCode(self, parent=None, PostPro=None):
+        """
+        This function is used for the export of a point.
+        @param parent: The parent of the point is a EntitieContent Class, this
+        is used for rotating an scaling purpose
+        @param PostPro: This is the PostProcessor Class which includes all the 
+        export functionality
+        @return: The function returns the string which will be added to the 
+        string for export.
+        """  
         Point = self.rot_sca_abs(parent=parent)
-        return postpro.rap_pos_xy(Point)
+        return PostPro.rap_pos_xy(Point)
     
     def add2path(self, papath=None, parent=None):
         """

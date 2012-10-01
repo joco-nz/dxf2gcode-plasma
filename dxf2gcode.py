@@ -52,7 +52,6 @@ g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 if os.path.islink(sys.argv[0]):
     g.folder = os.path.dirname(os.readlink(sys.argv[0]))
 
-
 # Create a class for our main window
 class Main(QtGui.QMainWindow):
     def __init__(self,app):
@@ -89,7 +88,6 @@ class Main(QtGui.QMainWindow):
         Create the actions of the main toolbar.
         @purpose: Links the callbacks to the actions in the menu
         """
-        
         
         self.ui.actionLoad_File.triggered.connect(self.showDialog)
         
@@ -151,53 +149,62 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsScene.resetexproutes()
 
         for  LayerContent in self.LayerContents:
-            #Errechnen der Iterationen
-            iter =min(g.config.vars.Route_Optimisation['max_iterations'],
-                      len(LayerContent.shapes)*50)
-            
-            #Anfangswerte fuer das Sortieren der Shapes
+
+            #Initial values for the Lists to export.
             self.shapes_to_write=[]
             shapes_st_en_points=[]
             
-            #Alle Shapes die geschrieben werden zusammenfassen
+            #Check all shapes of Layer which shall be exported and create List
+            #for it.
             for shape in LayerContent.shapes:
                 
                 if not(shape.isDisabled()):
                     self.shapes_to_write.append(shape)
                     shapes_st_en_points.append(shape.get_st_en_points())
+            
+            #Perform Export only if the Number of shapes to export is bigger 0     
+            if len(self.shapes_to_write)>0:     
+                        #Errechnen der Iterationen
+                iter =min(g.config.vars.Route_Optimisation['max_iterations'],
+                          len(self.shapes_to_write)*50)
+                
+                #Adding the Start and End Points to the List.
+                x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
+                y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
+                start=Point(x=x_st,y=y_st)
+                ende=Point(x=x_st,y=y_st)
+                shapes_st_en_points.append([start,ende])
+        
+                #Optimieren der Reihenfolge
+                logger.info("")    
                     
-            #Hinzufuegen des Start- Endpunkte ausserhalb der Geometrie
-            x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
-            y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
-            start=Point(x=x_st,y=y_st)
-            ende=Point(x=x_st,y=y_st)
-            shapes_st_en_points.append([start,ende])
+                TSPs=[]
+                TSPs.append(TSPoptimize(shapes_st_en_points))
+                logger.info("TSP start values initialised for Layer %s" %LayerContent.LayerName)
+                
+                self.MyGraphicsScene.addexproute(TSPs[-1].st_end_points,
+                                                          TSPs[-1].opt_route,
+                                                          LayerContent.LayerNr)
+               
+                for it_nr in range(iter):
+                    #Only show each 50 step.
+                    if (it_nr%100)==0:
+                        logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
+                                    %(it_nr,TSPs[-1].Fittness.best_fittness[-1]))
+                          
+                        TSPs[-1].calc_next_iteration()
+                        self.MyGraphicsScene.updateexproute(TSPs[-1].st_end_points,
+                                                          TSPs[-1].opt_route)
+                        self.app.processEvents()                   
+                    
+                logger.debug("TSP done with result: %s" %TSPs[-1])
+                
     
-            #Optimieren der Reihenfolge
-            logger.info("")    
                 
-            TSPs=[]
-            TSPs.append(TSPoptimize(shapes_st_en_points))
-            logger.info("TSP start values initialised for Layer %s" %LayerContent.LayerName)
-            
-            self.MyGraphicsScene.addexproute(TSPs[-1].st_end_points,
-                                                      TSPs[-1].opt_route,
-                                                      LayerContent.LayerNr)
-           
-            for it_nr in range(iter):
-                #Only show each 50 step.
-                if (it_nr%100)==0:
-                    logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
-                                %(it_nr,TSPs[-1].Fittness.best_fittness[-1]))
-                      
-                    TSPs[-1].calc_next_iteration()
-                    self.MyGraphicsScene.updateexproute(TSPs[-1].st_end_points,
-                                                      TSPs[-1].opt_route)
-                    self.app.processEvents()                   
-                
-            logger.debug("TSP done with result: %s" %TSPs[-1])
-            
-            LayerContent.exp_order=TSPs[-1].opt_route;
+                LayerContent.exp_order=TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]
+                #logger.debug(TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)])
+            else:
+                LayerContent.exp_order=[]
             
             self.ui.actionDelete_G0_paths.setEnabled(True)           
 
@@ -235,8 +242,14 @@ class Main(QtGui.QMainWindow):
         else:
                 self.MyPostProcessor.getPostProVars(0)
         
+        """
+        Export will be performed according to LayerContents and their order
+        is given in this variable too.
+        """
         
-        self.MyPostProcessor.exportShapes(self.load_filename,self.shape_order)
+        self.MyPostProcessor.exportShapes(self.load_filename,
+                                          self.save_filename,
+                                          self.LayerContents)
       
 
     def showSaveDialog(self):
@@ -387,7 +400,6 @@ class Main(QtGui.QMainWindow):
         # two columns for the treeView : first is layout/shape number and second is layout/shape name
         self.ui.layoutShapeTreeView.clear()
         self.ui.layoutShapeTreeView.setColumnCount(2)
-
         for layer in self.LayerContents:
             treeViewItemLayout = QtGui.QTreeWidgetItem(self.ui.layoutShapeTreeView)
             treeViewItemLayout.setText(0, str(layer.LayerNr))
@@ -423,7 +435,7 @@ class Main(QtGui.QMainWindow):
         self.LayerContents.sort()
         
         for LayerContent in self.LayerContents:
-            LayerContent.exp_order=len(LayerContent.shapes)
+            LayerContent.exp_order=range(len(LayerContent.shapes))
    
         """FIXME
         Here are the two structures which give the things to show in the treeview"""
@@ -501,6 +513,8 @@ class Main(QtGui.QMainWindow):
                 sca=ent_geos[cont.order[0][0]].Scale
                 rot=ent_geos[cont.order[0][0]].rot
                 
+                logger.debug(new_entities)
+                
                 #Erstellen des neuen Entitie Contents f�r das Insert
                 #Creating the new Entitie Contents for the insert
                 NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
@@ -536,27 +550,34 @@ class Main(QtGui.QMainWindow):
                     else:
                         for geo in ent_geo.geo:
                             self.shapes[-1].geos.append(copy(geo))
-                        
+                
+                #All shapes have to be CCW direction.         
+                self.shapes[-1].AnalyseAndOptimize()
+                self.shapes[-1].FindNearestStPoint()
+                
                 self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])
                 
-    def addtoLayerContents(self,shape_nr,lay_nr):
+    def addtoLayerContents(self,shape,lay_nr):
         """
         Instance is called while the shapes are created. This gives the 
-        structure which shape is laying on which layer.
+        structure which shape is laying on which layer. It also writes into the
+        shape the reference to the LayerContent Class.
         
-        @param shape_nr: The Nr. of the shape 
+        @param shape: The shape to be appended of the shape 
         @param lay_nr: The Nr. of the layer
         """
         #Check if the layer is already existing and add shape if it is.
         for LayCon in self.LayerContents:
             if LayCon.LayerNr==lay_nr:
-                LayCon.shapes.append(shape_nr)
+                LayCon.shapes.append(shape)
+                shape.LayerContent=LayCon
                 return
 
         #If the Layer is not existing create a new one.
         LayerName=self.values.layers[lay_nr].name
-        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape_nr]))
+        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape]))
+        shape.LayerContent=self.LayerContents[-1]
         
 if __name__ == "__main__":
     """
