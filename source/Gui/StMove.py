@@ -196,7 +196,26 @@ class StMove(QtGui.QGraphicsLineItem):
                         color=QtGui.QColor(200, 200, 255),
                         pencolor=QtGui.QColor(200, 100, 255))
             self.ccarrow.setParentItem(self)
+    
+    def update_plot(self,startp,angle):
+        """
+        Method is called after update of the Shapes Startpoint
+        @param startp: The new startpoint
+        @param angle: the new Angle of the Startpoint
+        """  
+        self.startp = startp
+        self.endp=startp
+        self.angle=angle
+        
+        if self.shape.cut_cor==40:
+            self.ccarrow=None
+        elif self.shape.cut_cor==41:
+            self.ccarrow.updatepos(startp, angle=angle+90)
+        else:
+            self.ccarrow.updatepos(startp, angle=angle-90)
             
+        self.make_start_moves()
+        self.make_papath()
          
     def make_papath(self):
         """

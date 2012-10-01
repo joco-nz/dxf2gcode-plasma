@@ -61,7 +61,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
         Create the contextmenu.
         @purpose: Links the new Class of ContextMenu to Graphicsview.
         """
-        menu=MyDropDownMenu(self,self.scene(),self.mapToGlobal(event.pos()))
+        menu=MyDropDownMenu(self,self.scene(),event.pos())
 
     def keyPressEvent(self,event):
         """
@@ -183,10 +183,10 @@ class MyGraphicsView(QtGui.QGraphicsView):
                 self.rubberBand.show()
                 self.rubberBand.setGeometry(QtCore.QRect(self.mppos, event.pos()).normalized())
                 
-        scpoint=self.mapToScene(event.pos().x(),event.pos().y()) 
+        scpoint=self.mapToScene(event.pos()) 
         
-        self.setStatusTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),scpoint.y()))
-        self.setToolTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),scpoint.y()))
+        self.setStatusTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),-scpoint.y()))
+        self.setToolTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),-scpoint.y()))
             
         super(MyGraphicsView, self).mouseMoveEvent(event)        
          
@@ -241,6 +241,10 @@ class MyDropDownMenu(QtGui.QMenu):
         
         QtGui.QMenu.__init__(self)
         
+        self.position=MyGraphicsView.mapToGlobal(position)
+        GVPos=MyGraphicsView.mapToScene(position)
+        self.PlotPos=Point(x=GVPos.x(),y=-GVPos.y())
+        
         self.MyGraphicsScene=MyGraphicsScene
         self.MyGraphicsView=MyGraphicsView
              
@@ -254,8 +258,9 @@ class MyDropDownMenu(QtGui.QMenu):
         self.addSeparator()
         
         swdirectionAction = self.addAction("Switch Direction")
+        SetNxtStPAction = self.addAction("Set Nearest StartPoint")
         
-        
+        self.addSeparator()
         submenu1= QtGui.QMenu('Cutter Compensation',self)
         self.noCompAction = submenu1.addAction("G40 No Compensation")
         self.noCompAction.setCheckable(True)
@@ -274,13 +279,14 @@ class MyDropDownMenu(QtGui.QMenu):
         enableAction.triggered.connect(self.enableSelection)
         
         swdirectionAction.triggered.connect(self.switchDirection)
+        SetNxtStPAction.triggered.connect(self.setNearestStP)
         
         self.noCompAction.triggered.connect(self.setNoComp)
         self.leCompAction.triggered.connect(self.setLeftComp)
         self.reCompAction.triggered.connect(self.setRightComp)
         
 
-        self.exec_(position)
+        self.exec_(self.position)
         
             
     def calcMenuDir(self):
@@ -358,13 +364,26 @@ class MyDropDownMenu(QtGui.QMenu):
         """
         for shape in self.MyGraphicsScene.shapes:
             shape.reverse()
+            shape.reverseGUI()
 
             logger.debug(_('Switched Direction at Shape Nr: %i')\
                              %(shape.nr))
         
             shape.updateCutCor()
+            shape.updateCCplot()
             
-            
+    def setNearestStP(self):
+        """
+        Seach the nearest StartPoint to the clicked position of all selected 
+        shapes.
+        """
+        shapes=self.MyGraphicsScene.selectedItems()
+        
+        for shape in shapes:
+            shape.FindNearestStPoint(self.PlotPos)
+            #self.MyGraphicsScene.plot_shape(shape)
+            shape.update_plot()
+    
     def setNoComp(self):
         """
         Sets the compensation 40, which is none for the selected shapes.
@@ -462,17 +481,23 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         FIXME
         """
         for shape in self.shapes:
-            shape.make_papath()
             self.addItem(shape)
-
-            shape.starrow=self.createstarrow(shape)
-            shape.enarrow=self.createenarrow(shape)
-            shape.stmove=self.createstmove(shape)
-            shape.starrow.setParentItem(shape)
-            shape.enarrow.setParentItem(shape)
-            shape.stmove.setParentItem(shape)
- 
+            self.plot_shape(shape)
         logger.debug("Update GrapicsScene") 
+
+    def plot_shape(self,shape):
+        """
+        Create all plotting related parts of one shape. 
+        @param shape: The shape which shall be plotted.
+        """
+        shape.make_papath()
+        shape.starrow=self.createstarrow(shape)
+        shape.enarrow=self.createenarrow(shape)
+        shape.stmove=self.createstmove(shape)
+        shape.starrow.setParentItem(shape)
+        shape.enarrow.setParentItem(shape)
+        shape.stmove.setParentItem(shape)
+ 
 
     def createstarrow(self,shape):
         """

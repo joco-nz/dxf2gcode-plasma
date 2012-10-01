@@ -127,7 +127,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         else:
             painter.setPen(self.dis_pen)
     
-            
         painter.drawPath(self.path) 
         
     def boundingRect(self):
@@ -203,7 +202,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         """ 
         
         logger.debug("Analysing the shape for CW direction %s:" % (self))
-        #Optimisation for closed shapes
+        #Optimization for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
             start, dummy = self.geos[0].get_start_end_points(0)
@@ -220,9 +219,41 @@ class ShapeClass(QtGui.QGraphicsItem):
                         ende = Point(x=(geo.O.x + cos(ang) * abs(geo.r)), y=(geo.O.y + sin(ang) * abs(geo.r)))
                         summe += (start.x + ende.x) * (ende.y - start.y) / 2
                         start = deepcopy(ende)
-                                        
+
             if summe > 0.0:
                 self.reverse()
+                logger.debug("Had to reverse the shape to be ccw")
+               
+
+    def FindNearestStPoint(self,StPoint=Point(x=0.0, y=0.0)):                      
+        """
+        Find Nearest Point to given StartPoint. This is used to change the
+        start of closed contours
+        @param StPoint: This i sthe point for which the nearest point shall
+        be searched.
+        """
+        
+        
+        if self.closed:
+            logger.debug("Clicked Point: %s" %StPoint)
+            min_distance=self.geos[0].Pa.distance(StPoint)
+            
+            start, dummy=self.geos[0].get_start_end_points(0,self.parent)
+            logger.debug("Old Start Point: %s" %start)
+            
+            min_geo_nr=0
+            for geo_nr in range(1,len(self.geos)):
+                start, dummy=self.geos[geo_nr].get_start_end_points(0,self.parent)
+                
+                if (start.distance(StPoint)<min_distance):
+                    min_distance=start.distance(StPoint)
+                    min_geo_nr=geo_nr
+    
+            #Overwrite the goemeties in changed order.
+            self.geos=self.geos[min_geo_nr:len(self.geos)]+self.geos[0:min_geo_nr]
+            
+            start, dummy=self.geos[0].get_start_end_points(0,self.parent)
+            logger.debug("New Start Point: %s" %start)
                      
     def reverse(self):
         """ 
@@ -235,6 +266,11 @@ class ShapeClass(QtGui.QGraphicsItem):
         start, start_ang = self.get_st_en_points(0)
         end, end_ang = self.get_st_en_points(1)
 
+    def reverseGUI(self):
+        """
+        This function is called from the GUI if the GUI needs to be updated after
+        the reverse of the shape to.
+        """
         self.update(self.boundingRect())
         self.enarrow.reverseshape(end,end_ang)
         self.starrow.reverseshape(start,start_ang)
@@ -270,8 +306,6 @@ class ShapeClass(QtGui.QGraphicsItem):
     def make_papath(self):
         """
         To be called if a Shape shall be printed to the canvas
-        @param canvas: The canvas to be printed in
-        @param pospro: The color of the shape 
         """
         start, start_ang=self.get_st_en_points()
         
@@ -284,7 +318,21 @@ class ShapeClass(QtGui.QGraphicsItem):
         for geo in self.geos:
             geo.add2path(papath=self.path,parent=self.parent)
             
-            
+    
+    def update_plot(self):
+        """
+        This function is called from the GUI if the GUI needs to be updated after
+        the reverse of the shape to.
+        """
+        #self.update(self.boundingRect())
+        start, start_ang = self.get_st_en_points(0)
+        self.starrow.updatepos(start, angle=start_ang)
+        
+        end, end_ang = self.get_st_en_points(1)
+        self.enarrow.updatepos(end, angle=end_ang)
+
+        self.stmove.update_plot(start, angle=start_ang)
+        
     def updateCutCor(self):
         """
         This function is called to update the Cutter Correction and therefore 

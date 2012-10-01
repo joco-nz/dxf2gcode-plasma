@@ -510,6 +510,10 @@ class Main(QtGui.QMainWindow):
                         for geo in ent_geo.geo:
                             self.shapes[-1].geos.append(copy(geo))
                 
+                #All shapes have to be CCW direction.         
+                self.shapes[-1].AnalyseAndOptimize()
+                self.shapes[-1].FindNearestStPoint()
+                
                 self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])
                 
