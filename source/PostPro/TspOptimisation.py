@@ -318,18 +318,6 @@ class FittnessClass:
                 dis += matrix[pop[nr - 1]][pop[nr]]
             self.cur_fittness[pop_nr] = dis
             
-     
-    #Erste Möglichkeite um die Reihenfolge festzulegen (Straffunktion=Passiv)   
-    def calc_constrain_fittness(self):
-        for pop_nr in range(len(self.population.pop)):
-            pop = self.population.pop[pop_nr]
-            order_index = []
-            for val_nr in range(len(self.order)):
-                oorder_index = self.get_pop_index_list(self.population.pop[pop_nr])
-                if val_nr > 0:
-                    if order_index[-2] > order_index[-1]:
-                        self.cur_fittness[pop_nr] = self.cur_fittness[pop_nr] * 2
-                        
     #2te Möglichkeit die Reihenfolge festzulegen (Korrekturfunktion=Aktiv)                
     def correct_constrain_order(self):
         for pop_nr in range(len(self.population.pop)):

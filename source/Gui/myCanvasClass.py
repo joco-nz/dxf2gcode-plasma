@@ -125,7 +125,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
         @purpose: Change inherited mousePressEvent
         @param event: Event Parameters passed to function
         """
-        delta=2
+        delta=0.1
         
         if(self.dragMode())==1:
             #if (event.key()==QtCore.Qt.Key_Shift):   
@@ -136,23 +136,33 @@ class MyGraphicsView(QtGui.QGraphicsView):
         elif event.button() == QtCore.Qt.LeftButton:
             #If the mouse button is pressed without movement of rubberband
             if self.rubberBand.isHidden():
-                rect=QtCore.QRect(event.pos().x()-delta,event.pos().y()-delta,
-                          2*delta,2*delta)
+#                rect=QtCore.QRect(event.pos().x()-delta,event.pos().y()-delta,
+#                          2*delta,2*delta)
+                it=self.itemAt(event.pos())
+                if it==None:
+                    self.currentItems=[]
+                else:
+                    self.currentItems=[it]
+                #self.currentItems=[self.itemAt(event.pos())]
+                #logger.debug("No Rubberband")
             #If movement is bigger and rubberband is enabled
             else:
                 rect=self.rubberBand.geometry()
+                #All items in the selection mode=QtCore.Qt.ContainsItemShape
+                self.currentItems=self.items(rect)
                 self.rubberBand.hide()
+                #logger.debug("Rubberband Selection")
 
             #All items in the selection
-            self.currentItems=self.items(rect)
+            #self.currentItems=self.items(rect)
             #print self.currentItems
             scene=self.scene()
             
             if self.selmode==0:
                 for item in scene.selectedItems():
-                    item.starrow.setSelected(False)
-                    item.stmove.setSelected(False)
-                    item.enarrow.setSelected(False)
+#                    item.starrow.setSelected(False)
+#                    item.stmove.setSelected(False)
+#                    item.enarrow.setSelected(False)
                     item.setSelected(False)
                 
             

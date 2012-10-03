@@ -108,13 +108,11 @@ class ArcGeo:
     
     def add2path(self, papath=None, parent=None):
         """
-        Plots the geometry of self into the defined canvas. Arcs will be ploted
-        as line segments.
-        @param canvas: The canvas instance to plot in
-        @param tag: the number of the parent shape
-        @param col: The color in which the shape shall be ploted
-        @param plotoption: Additional option for Debug print use
-        @return: Returns the hdl or hdls of the ploted objects.
+        Plots the geometry of self into defined path for hit testing. Refer
+        to http://stackoverflow.com/questions/11734618/check-if-point-exists-in-qpainterpath
+        for description
+        @param hitpath: The hitpath to add the geometrie
+        @param parent: The parent of the shape
         """
         
         abs_geo=self.make_abs_geo(parent, 0)
@@ -126,7 +124,7 @@ class ArcGeo:
                         
         x = []; y = []; hdl = []
         #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
-        segments = int((abs(degrees(abs_geo.ext)) // 10) + 1)
+        segments = int((abs(degrees(abs_geo.ext)) // 3) + 1)
         
         for i in range(segments + 1):
             
@@ -136,10 +134,21 @@ class ArcGeo:
 
             if i >= 1:
                 papath.lineTo(p_cur.x, -p_cur.y)    
-               
-
-
-    
+#               
+#
+#    def add2hitpath(self, hitpath=None, parent=None, tolerance=None):
+#        """
+#        Plots the geometry of self into defined path for hit testing. Refer
+#        to http://stackoverflow.com/questions/11734618/check-if-point-exists-in-qpainterpath
+#        for description
+#        @param hitpath: The hitpath to add the geometrie
+#        @param parent: The parent of the shape
+#        @param tolerance: The tolerance to be added to geometrie for hit
+#        testing.
+#        """
+#        
+#        self.add2path(papath=hitpath, parent=parent)
+#    
     def dif_ang(self, P1, P2, direction,tol=0.005):
         """
         Calculated the angle of extend based on the 3 given points. Center Point,
