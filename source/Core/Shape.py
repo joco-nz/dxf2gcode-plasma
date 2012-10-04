@@ -156,8 +156,8 @@ class ShapeClass(QtGui.QGraphicsItem):
 #                            tolerance=tolerance)
         
         painterStrock=QtGui.QPainterPathStroker()
-        #painterStrock.setCurveThreshold(0.01)
-        #painterStrock.setWidth(0.)  
+        painterStrock.setCurveThreshold(0.01)
+        painterStrock.setWidth(0)  
 
         stroke = painterStrock.createStroke(self.path)
         return stroke
