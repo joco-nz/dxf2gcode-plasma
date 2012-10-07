@@ -41,6 +41,7 @@ from PostPro.PostProcessor import MyPostProcessor
 from DxfImport.Import import ReadDXF
 
 from Gui.myCanvasClass import MyGraphicsScene
+from Gui.TreeHandling import TreeHandler
 
 from PostPro.TspOptimisation import TSPoptimize
 
@@ -78,6 +79,8 @@ class Main(QtGui.QMainWindow):
         
         self.MyPostProcessor=MyPostProcessor()
         
+        self.TreeHandler=TreeHandler(self.ui)
+
         self.shapes=[]
         self.LayerContents=[]
         self.EntitieContents=[]
@@ -224,6 +227,13 @@ class Main(QtGui.QMainWindow):
         """
         logger.debug('Export the enabled shapes')
 
+        #Get the export order from the QTreeView
+        self.TreeHandler.updateExportOrder()
+        logger.debug("Sorted layers:")
+        for i, layer in enumerate(self.LayerContents):
+            logger.debug("LayerContents[%i] = %s" %(i, layer))
+
+
         if not(g.config.vars.General['write_to_stdout']):
            
                 #Get the name of the File to export
@@ -264,18 +274,19 @@ class Main(QtGui.QMainWindow):
             format="(*%s);;" %(self.MyPostProcessor.output_format[i])
             MyFormats=MyFormats+name+format
             
-        (beg, ende)=os.path.split(self.load_filename)
+        (beg, ende)=os.path.split(str(self.load_filename))
         (fileBaseName, fileExtension)=os.path.splitext(ende)
         
         default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
 
+        selected_filter = self.MyPostProcessor.output_format[0]
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
                     default_name,
-                    MyFormats)
+                    MyFormats, selected_filter)
         
-        logger.info("File: %s selected" %filename)
+        logger.info("File: %s selected" %filename+selected_filter)
         
-        return filename
+        return filename+selected_filter
         
     def autoscale(self):
         """
@@ -396,25 +407,10 @@ class Main(QtGui.QMainWindow):
             for j, forme in enumerate(self.LayerContents[i].shapes): #TODO : remove
                 print("\033[32mLayerContents[%i].shape[%i] = %s\033[m" %(i, j, forme)) #TODO : remove
 
-        # populate the treeView with layout and shapes. TODO: place this in a separate file
-        # two columns for the treeView : first is layout/shape number and second is layout/shape name
-        self.ui.layoutShapeTreeView.clear()
-        self.ui.layoutShapeTreeView.setColumnCount(2)
-        for layer in self.LayerContents:
-            treeViewItemLayout = QtGui.QTreeWidgetItem(self.ui.layoutShapeTreeView)
-            treeViewItemLayout.setText(0, str(layer.LayerNr))
-            treeViewItemLayout.setText(1, layer.LayerName)
-            self.ui.layoutShapeTreeView.addTopLevelItem(treeViewItemLayout)
 
-            for shape in layer.shapes:
-                treeViewItemShape = QtGui.QTreeWidgetItem(treeViewItemLayout)
-                treeViewItemShape.setText(0, str(shape.nr))
-                treeViewItemShape.setText(1, shape.type)
-                self.ui.layoutShapeTreeView.addTopLevelItem(treeViewItemShape)
-
-        self.ui.layoutShapeTreeView.resizeColumnToContents(0)
-#        self.ui.layoutShapeTreeView.expandAll()
-
+        #Populate the treeViews
+        self.TreeHandler.buildEntitiesTree(self.EntitiesRoot)
+        self.TreeHandler.buildLayerTree(self.LayerContents)
 
         #Ausdrucken der Werte     
         self.MyGraphicsView.clearScene()
@@ -427,22 +423,8 @@ class Main(QtGui.QMainWindow):
         
         #Autoscale des Canvas      
         self.MyGraphicsView.autoscale()
-               
-        """FIXME
-        Export will be performed in the order of the Structure self.LayerContents
-        You can sort the Layers and the Shapes of LayerContent itself in the correct
-        order. With this sort function it is sorted in increasing number of Layer only"""
-        self.LayerContents.sort()
-        
-        for LayerContent in self.LayerContents:
-            LayerContent.exp_order=range(len(LayerContent.shapes))
-   
-        """FIXME
-        Here are the two structures which give the things to show in the treeview"""
-        logger.debug(self.LayerContents)
-        logger.debug(self.EntitiesRoot)
-        
-               
+
+
     def makeShapes(self,values,p0,pb,sca,rot):
         """
         Instance is called by the Main Window after the defined file is loaded.
@@ -554,6 +536,10 @@ class Main(QtGui.QMainWindow):
                 #All shapes have to be CCW direction.         
                 self.shapes[-1].AnalyseAndOptimize()
                 self.shapes[-1].FindNearestStPoint()
+                
+                #Connect the shapeSelectionChanged and enableDisableShape signals to our treeView, so that selections of the shapes are reflected on the treeView
+                self.shapes[-1].setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
+                self.shapes[-1].setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
                 
                 self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])

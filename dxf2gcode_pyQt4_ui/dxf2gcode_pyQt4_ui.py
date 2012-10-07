@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Sun Sep 30 03:21:59 2012
+# Created: Sun Oct  7 01:15:55 2012
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -33,10 +33,10 @@ class Ui_MainWindow(object):
         self.tableView_2 = QtGui.QTableView(self.tab)
         self.tableView_2.setObjectName("tableView_2")
         self.verticalLayout_4.addWidget(self.tableView_2)
-        self.treeView_2 = QtGui.QTreeView(self.tab)
-        self.treeView_2.setObjectName("treeView_2")
-        self.verticalLayout_4.addWidget(self.treeView_2)
-        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding)
+        self.entitiesTreeView = MyTreeView(self.tab)
+        self.entitiesTreeView.setObjectName("entitiesTreeView")
+        self.verticalLayout_4.addWidget(self.entitiesTreeView)
+        spacerItem = QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Preferred)
         self.verticalLayout_4.addItem(spacerItem)
         self.horizontalLayout_2.addLayout(self.verticalLayout_4)
         self.mytabWidget.addTab(self.tab, "")
@@ -68,13 +68,13 @@ class Ui_MainWindow(object):
         self.lineEdit_5 = QtGui.QLineEdit(self.tab_2)
         self.lineEdit_5.setObjectName("lineEdit_5")
         self.formLayout.setWidget(5, QtGui.QFormLayout.FieldRole, self.lineEdit_5)
-        self.layoutShapeTreeView = QtGui.QTreeWidget(self.tab_2)
-        self.layoutShapeTreeView.setMinimumSize(QtCore.QSize(0, 250))
-        self.layoutShapeTreeView.setObjectName("layoutShapeTreeView")
-        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.layoutShapeTreeView)
         self.tableView = QtGui.QTableView(self.tab_2)
         self.tableView.setObjectName("tableView")
         self.formLayout.setWidget(6, QtGui.QFormLayout.LabelRole, self.tableView)
+        self.layersShapesTreeView = MyTreeView(self.tab_2)
+        self.layersShapesTreeView.setMinimumSize(QtCore.QSize(0, 400))
+        self.layersShapesTreeView.setObjectName("layersShapesTreeView")
+        self.formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, self.layersShapesTreeView)
         self.verticalLayout_3.addLayout(self.formLayout)
         self.mytabWidget.addTab(self.tab_2, "")
         self.horizontalLayout.addWidget(self.mytabWidget)
@@ -96,7 +96,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.addLayout(self.verticalLayout)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 1146, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1146, 25))
         self.menubar.setObjectName("menubar")
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName("menuFile")
@@ -185,7 +185,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.mytabWidget.setCurrentIndex(1)
+        self.mytabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -224,5 +224,6 @@ class Ui_MainWindow(object):
         self.actionExport_Shapes.setText(QtGui.QApplication.translate("MainWindow", "Export Shapes", None, QtGui.QApplication.UnicodeUTF8))
 
 from Gui.myCanvasClass import MyGraphicsView
+from Gui.myTreeView import MyTreeView
 from Gui.myMessageBox import myMessageBox
 import dxf2gcode_images_rc

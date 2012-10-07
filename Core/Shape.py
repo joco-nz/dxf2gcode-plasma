@@ -88,6 +88,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.geos = geos
         self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
+        self.selectionChangedCallback = None
+        self.enableDisableCallback = None
 
     def __str__(self):
         """ 
@@ -100,6 +102,22 @@ class ShapeClass(QtGui.QGraphicsItem):
                ('\ncut_cor:     %s' % self.cut_cor) + \
                ('\nlen(geos):   %i' % len(self.geos)) + \
                ('\ngeos:        %s' % self.geos)
+
+    def setSelectionChangedCallback(self, callback):
+        """
+        register a callback function in order to inform parents when the selection has changed.
+        Note: we can't use QT signals here because ShapeClass doesn't inherits from a QObject
+        @param callback: the function to be called, with the prototype callbackFunction(shape, select)
+        """
+        self.selectionChangedCallback = callback
+
+    def setEnableDisableCallback(self, callback):
+        """
+        register a callback function in order to inform parents when a shape has been enabled or disabled.
+        Note: we can't use QT signals here because ShapeClass doesn't inherits from a QObject
+        @param callback: the function to be called, with the prototype callbackFunction(shape, enabled)
+        """
+        self.enableDisableCallback = callback
 
     def setPen(self,pen):
         """ 
@@ -161,7 +179,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 #        if event.button() == QtCore.Qt.LeftButton:
 #            super(ShapeClass, self).mousePressEvent(event)
 
-    def setSelected(self,flag=True):
+    def setSelected(self,flag=True,blockSignals=False):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection
@@ -172,7 +190,10 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         super(ShapeClass, self).setSelected(flag)
 
-    def setDisable(self,flag=False):
+        if self.selectionChangedCallback and not blockSignals:
+            self.selectionChangedCallback(self, flag)
+
+    def setDisable(self,flag=False,blockSignals=False):
         """
         New implemented function which is in parallel to show and hide. 
         @param flag: The flag to enable or disable Selection
@@ -187,7 +208,12 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.stmove.setSelected(False)
         else:
             self.show()
-        
+
+        self.update(self.boundingRect()) #Needed to refresh view when setDisabled() function is called from a TreeView event
+
+        if self.enableDisableCallback and not blockSignals:
+            self.enableDisableCallback(self, not flag)
+
     def isDisabled(self):
         """
         Returns the state of self.Disabled
