@@ -45,6 +45,7 @@ class LayerContentClass:
         #Define Short Name for config.vars
         vars=g.config.vars
         
+        self.type = "Layer"
         self.LayerNr=LayerNr
         self.LayerName=LayerName
         self.shapes=shapes
@@ -76,7 +77,8 @@ class LayerContentClass:
         Standard method to print the object
         @return: A string
         """
-        return ('\nLayerNr :      %i' %self.LayerNr)+\
+        return ('\ntype:          %s' %self.type) +\
+               ('\nLayerNr :      %i' %self.LayerNr) +\
                ('\nLayerName:     %s' %self.LayerName)+\
                ('\nshapes:        %s' %self.shapes)+\
                ('\nexp_order:     %s' %self.exp_order)    

@@ -299,7 +299,7 @@ class MyPostProcessor:
         Return the text to be added at the end of the exported file.
         @return: The Function returns the string to be added.
         """
-        return self.vars.General["code_begin"]
+        return self.vars.General["code_end"]
 
     def make_line_numbers(self,exstr):
         """
