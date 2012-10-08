@@ -335,7 +335,7 @@ class Main(QtGui.QMainWindow):
         @param filename: The string of the filename which should be loaded
         """
 
-        self.load_filename=filename
+        self.load_filename=str(filename)
         (name, ext) = os.path.splitext(str(filename))
 
         if (ext.lower() == ".ps")or(ext.lower() == ".pdf"):

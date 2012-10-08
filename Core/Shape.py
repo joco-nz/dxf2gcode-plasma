@@ -86,7 +86,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.stmove = []
         self.LayerContent=None
         self.geos = geos
-        self.BB = BoundingBox(Pa=None, Pe=None)
+        #self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
@@ -159,11 +159,111 @@ class ShapeClass(QtGui.QGraphicsItem):
         Reimplemented function to select outline only.
         @return: Returns the Outline only
         """ 
+#        tolerance=5
+#        
+#        start, start_ang=self.get_st_en_points()
+#        hitpath=QtGui.QPainterPath()
+#        
+#        # begin with a circle around the start point 
+#        hitpath.addEllipse(start.x,start.y, tolerance, tolerance);  
+## 
+##    //input now starts with the 2nd point (there was a takeFirst) 
+#        for geo in self.geos:
+#            geo.add2hitpath(hitpath=hitpath,
+#                            parent=self.parent,
+#                            tolerance=tolerance)
+        
         painterStrock=QtGui.QPainterPathStroker()
-        painterStrock.setWidth(3.0)  
+        painterStrock.setCurveThreshold(0.01)
+        painterStrock.setWidth(0)  
 
         stroke = painterStrock.createStroke(self.path)
         return stroke
+    
+    
+#    def make_papath(self):
+#        """
+#        To be called if a Shape shall be printed to the canvas
+#        """
+#        start, start_ang=self.get_st_en_points()
+#        
+#        self.path=QtGui.QPainterPath()
+#
+#        self.path.moveTo(start.x,-start.y)
+#        
+#        logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
+#        
+#        for geo in self.geos:
+#            geo.add2path(papath=self.path,parent=self.parent)
+#            
+#    
+#    QPainterPath intersectionTestPath(QList<QPointF> input, qreal tolerance) 
+#{ 
+#    //will be the result 
+#    QPainterPath path; 
+# 
+#    //during the loop, p1 is the "previous" point, initially the first one 
+#    QPointF p1 = input.takeFirst();  
+# 
+#    //begin with a circle around the start point 
+#    path.addEllipse(p1, tolerance, tolerance);  
+# 
+#    //input now starts with the 2nd point (there was a takeFirst) 
+#    foreach(QPointF p2, input)  
+#    { 
+#        //note: during the algorithm, the pair of points (p1, p2) 
+#        //      describes the line segments defined by input. 
+# 
+#        //offset = the distance vector from p1 to p2 
+#        QPointF offset = p2 - p1; 
+# 
+#        //normalize offset to length of tolerance 
+#        qreal length = sqrt(offset.x() * offset.x() + offset.y() * offset.y()); 
+#        offset *= tolerance / length; 
+# 
+#        //"rotate" the offset vector 90 degrees to the left and right 
+#        QPointF leftOffset(-offset.y(), offset.x()); 
+#        QPointF rightOffset(offset.y(), -offset.x()); 
+# 
+#        //if (p1, p2) goes downwards, then left lies to the left and 
+#        //right to the right of the source path segment 
+#        QPointF left1 = p1 + leftOffset;  
+#        QPointF left2 = p2 + leftOffset; 
+#        QPointF right1 = p1 + rightOffset; 
+#        QPointF right2 = p2 + rightOffset; 
+# 
+#        //rectangular connection from p1 to p2 
+#        { 
+#            QPainterPath p; 
+#            p.moveTo(left1); 
+#            p.lineTo(left2); 
+#            p.lineTo(right2); 
+#            p.lineTo(right1); 
+#            p.lineTo(left1); 
+#            path += p; //add this to the result path 
+#        } 
+# 
+#        //circle around p2 
+#        { 
+#            QPainterPath p; 
+#            p.addEllipse(p2, tolerance, tolerance); 
+#            path += p; //add this to the result path 
+#        } 
+# 
+#        p1 = p2; 
+#    } 
+# 
+#    //This does some simplification; you should use this if you call 
+#    //path.contains() multiple times on a pre-calculated path, but 
+#    //you won't need this if you construct a new path for every call 
+#    //to path.contains(). 
+#    return path.simplified(); 
+#} 
+#
+#    
+#    
+    
+    
 
     def mousePressEvent(self, event):
         """
