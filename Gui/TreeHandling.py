@@ -17,6 +17,7 @@ This class is intented to deal with the drawing (.dxf) structure. It has the fol
 
 from PyQt4 import QtCore, QtGui
 from Gui.myTreeView import MyTreeView
+from math import degrees
 
 
 #defines some arbitrary types for the objects stored into the treeView. These types will eg help us to find which kind of data is stored in the element received from a click() event
@@ -24,6 +25,7 @@ ENTITY_OBJECT = QtCore.Qt.UserRole + 1 #For storing refs to the entities element
 LAYER_OBJECT = QtCore.Qt.UserRole + 2  #For storing refs to the layers elements (layers_list)
 SHAPE_OBJECT = QtCore.Qt.UserRole + 3  #For storing refs to the shape elements (entities_list & layers_list)
 
+SELECTION_COL = 1 #Column that is selectable in the treeViews
 
 
 
@@ -43,6 +45,7 @@ class TreeHandler(QtGui.QWidget):
         self.layer_item_model = None
         self.layers_list = None
         self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
+        self.ui.layersShapesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.layersShapesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.layersShapesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
@@ -50,6 +53,7 @@ class TreeHandler(QtGui.QWidget):
         self.entity_item_model = None
         self.entities_list = None
         self.ui.entitiesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
+        self.ui.entitiesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.entitiesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.entitiesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
@@ -66,28 +70,42 @@ class TreeHandler(QtGui.QWidget):
         if self.layer_item_model:
             self.layer_item_model.clear() #Remove any existing item_model
         self.layer_item_model = QtGui.QStandardItemModel() #This is the model view from QT. its the container for the data
-        self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[enab] Name"));
-        self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Nbr"));
+        self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"));
+        self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"));
+        self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nbr"));
         modele_root_element = self.layer_item_model.invisibleRootItem() #Root element of our tree
 
         for layer in layers_list:
+            icon = QtGui.QIcon()
+            icon.addPixmap(QtGui.QPixmap(":/images/layer.png"))
+            checkbox_element = QtGui.QStandardItem(icon, "")
+            checkbox_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
+            checkbox_element.setData(QtCore.QVariant(layer), LAYER_OBJECT) #store a ref to the layer in our treeView element - this is a method to map tree elements with real data
+            checkbox_element.setCheckState(QtCore.Qt.Checked)
+
             modele_element = QtGui.QStandardItem(layer.LayerName)
-            modele_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable)
-            modele_root_element.appendRow(modele_element)
-            modele_element.setData(QtCore.QVariant(layer), LAYER_OBJECT) #store a ref to the layer in our treeView element - this is a method to map tree elements with real data
-            modele_element.setCheckState(QtCore.Qt.Checked)
+            modele_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+
+            modele_root_element.appendRow([checkbox_element, modele_element])
 
             for shape in layer.shapes:
-                modele_element.appendRow([QtGui.QStandardItem(shape.type), QtGui.QStandardItem(str(shape.nr))])
-                item_row_0 = modele_element.child(modele_element.rowCount() - 1, 0)
-                item_row_0.setData(QtCore.QVariant(shape), SHAPE_OBJECT) #store a ref to the shape in our treeView element
-                item_row_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable)
+                icon = QtGui.QIcon()
+                icon.addPixmap(QtGui.QPixmap(":/images/shape.png"))
+                item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
+                item_col_0.setData(QtCore.QVariant(shape), SHAPE_OBJECT) #store a ref to the shape in our treeView element
+                item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
 
-                item_row_1 = modele_element.child(modele_element.rowCount() - 1, 1)
-                item_row_1.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
+                item_col_1 = QtGui.QStandardItem(shape.type)
+                item_col_1.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+
+                item_col_2 = QtGui.QStandardItem(str(shape.nr))
+                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
+
+                parent_item = modele_root_element.child(modele_root_element.rowCount() - 1, 0)
+                parent_item.appendRow([item_col_0, item_col_1, item_col_2])
 
                 #Deal with the checkbox (shape enabled or disabled)
-                item_row_0.setCheckState(QtCore.Qt.Unchecked if shape.disabled else QtCore.Qt.Checked)
+                item_col_0.setCheckState(QtCore.Qt.Unchecked if shape.disabled else QtCore.Qt.Checked)
 
         self.layer_item_model.itemChanged.connect(self.on_itemChanged) #Signal to get events when a checkbox state changes (enable or disable shapes)
 
@@ -98,9 +116,11 @@ class TreeHandler(QtGui.QWidget):
         self.ui.layersShapesTreeView.setDragDropMode(QtGui.QTreeView.InternalMove)
         #self.ui.layersShapesTreeView.setDefaultDropAction(QtCore.Qt.MoveAction)
         #self.ui.layersShapesTreeView.setDragDropOverwriteMode(True)
-        #self.ui.layersShapesTreeView.setAcceptDrops(True)
+        self.ui.layersShapesTreeView.setDropIndicatorShown(True)
+        self.ui.layersShapesTreeView.setAcceptDrops(True)
         self.ui.layersShapesTreeView.setDragEnabled(True)
 
+        self.ui.layersShapesTreeView.resizeColumnToContents(2)
         self.ui.layersShapesTreeView.resizeColumnToContents(1)
         self.ui.layersShapesTreeView.resizeColumnToContents(0)
 
@@ -119,12 +139,13 @@ class TreeHandler(QtGui.QWidget):
         if self.entity_item_model:
             self.entity_item_model.clear() #Remove any existing item_model
         self.entity_item_model = QtGui.QStandardItemModel()
-        self.entity_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("Name"));
-        self.entity_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Nr"));
-        self.entity_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Type"));
-        self.entity_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Base point"));
-        self.entity_item_model.setHorizontalHeaderItem(4, QtGui.QStandardItem("Scale"));
-        self.entity_item_model.setHorizontalHeaderItem(5, QtGui.QStandardItem("Rotation"));
+        self.entity_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"));
+        self.entity_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"));
+        self.entity_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nr"));
+        self.entity_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Type"));
+        self.entity_item_model.setHorizontalHeaderItem(4, QtGui.QStandardItem("Base point"));
+        self.entity_item_model.setHorizontalHeaderItem(5, QtGui.QStandardItem("Scale"));
+        self.entity_item_model.setHorizontalHeaderItem(6, QtGui.QStandardItem("Rotation"));
         modele_root_element = self.entity_item_model.invisibleRootItem()
 
         self.buildEntitiesSubTree(modele_root_element, entities_list)
@@ -133,7 +154,7 @@ class TreeHandler(QtGui.QWidget):
 
         self.ui.entitiesTreeView.setModel(self.entity_item_model)
 
-        self.ui.entitiesTreeView.expandAll() #A voir : deconseille s'il y a beaucoup d'items
+        self.ui.entitiesTreeView.expandToDepth(0)
 
         i = 0
         while(i < 6):
@@ -168,39 +189,50 @@ class TreeHandler(QtGui.QWidget):
         @param elements_model: the treeView model (used to store the data, see QT docs)
         @param element: the Entity or Shape element
         """
-        item_row_0 = None
+        item_col_0 = None
         if element.type == "Entitie":
-            elements_model.appendRow([QtGui.QStandardItem(element.Name), QtGui.QStandardItem(str(element.Nr)), QtGui.QStandardItem(element.type), QtGui.QStandardItem(str(element.p0)), QtGui.QStandardItem(str(element.sca)), QtGui.QStandardItem(str(element.rot))])
-            item_row_0 = elements_model.child(elements_model.rowCount() - 1, 0)
-            item_row_0.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable) #A voir : tests de securite
-            item_row_0.setData(QtCore.QVariant(element), ENTITY_OBJECT) #store a ref to the entity in our treeView element
+            icon = QtGui.QIcon()
+            icon.addPixmap(QtGui.QPixmap(":/images/blocks.png"))
+            item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
+            item_col_0.setData(QtCore.QVariant(element), ENTITY_OBJECT) #store a ref to the entity in our treeView element
+
+            item_col_1 = QtGui.QStandardItem(element.Name)
+            item_col_2 = QtGui.QStandardItem(str(element.Nr))
+            item_col_3 = QtGui.QStandardItem(element.type)
+
+            item_col_4 = QtGui.QStandardItem(str(element.p0))
+            item_col_4.setFlags(QtCore.Qt.ItemIsEnabled)
+
+            item_col_5 = QtGui.QStandardItem(str(element.sca))
+            item_col_5.setFlags(QtCore.Qt.ItemIsEnabled)
+
+            item_col_6 = QtGui.QStandardItem(str(round(degrees(element.rot), 3))) #convert the angle into degrees with 3 digit after the decimal point
+            item_col_6.setFlags(QtCore.Qt.ItemIsEnabled)
+
+            elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
 
             for sub_element in element.children:
-                self.buildEntitiesSubTree(item_row_0, sub_element)
-
-            item_row_3 = elements_model.child(elements_model.rowCount() - 1, 3)
-            item_row_3.setFlags(QtCore.Qt.ItemIsEnabled)
-
-            item_row_4 = elements_model.child(elements_model.rowCount() - 1, 4)
-            item_row_4.setFlags(QtCore.Qt.ItemIsEnabled)
-
-            item_row_5 = elements_model.child(elements_model.rowCount() - 1, 5)
-            item_row_5.setFlags(QtCore.Qt.ItemIsEnabled)
+                self.buildEntitiesSubTree(item_col_0, sub_element)
 
         elif element.type == "Shape":
-            elements_model.appendRow([QtGui.QStandardItem(element.type), QtGui.QStandardItem(str(element.nr)), QtGui.QStandardItem(element.type)])
-            item_row_0 = elements_model.child(elements_model.rowCount() - 1, 0)
-            item_row_0.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable) #A voir : tests de securite
-            item_row_0.setData(QtCore.QVariant(element), SHAPE_OBJECT) #store a ref to the entity in our treeView element
+            icon = QtGui.QIcon()
+            icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
+            item_col_0.setData(QtCore.QVariant(element), SHAPE_OBJECT) #store a ref to the entity in our treeView element
 
-        item_row_1 = elements_model.child(elements_model.rowCount() - 1, 1)
-        item_row_1.setFlags(QtCore.Qt.ItemIsEnabled)
+            item_col_1 = QtGui.QStandardItem(element.type)
+            item_col_2 = QtGui.QStandardItem(str(element.nr))
+            item_col_3 = QtGui.QStandardItem(element.type)
 
-        item_row_2 = elements_model.child(elements_model.rowCount() - 1, 2)
-        item_row_2.setFlags(QtCore.Qt.ItemIsEnabled)
+            elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
+
+        item_col_0.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
+        item_col_1.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        item_col_2.setFlags(QtCore.Qt.ItemIsEnabled)
+        item_col_3.setFlags(QtCore.Qt.ItemIsEnabled)
 
         #Deal with the checkbox (everything is enabled at start)
-        item_row_0.setCheckState(QtCore.Qt.Checked)
+        item_col_0.setCheckState(QtCore.Qt.Checked)
 
 
 
@@ -257,11 +289,11 @@ class TreeHandler(QtGui.QWidget):
             #we found the matching index for the shape in our layers treeView model
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             if select:
-                #Select the matching shape in the list
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
+                #Select the matching shape in the list. We select SELECTION_COL column (ie item name), since it's the only column that is selectable in the tree
+                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Select)
             else:
-                #Unselect the matching shape in the list
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
+                #Unselect the matching shape in the list. We select SELECTION_COL column (ie item name), since it's the only column that is selectable in the tree
+                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
             self.ui.layersShapesTreeView.blockSignals(False)
 
         #Entities treeView
@@ -272,11 +304,11 @@ class TreeHandler(QtGui.QWidget):
             #we found the matching index for the shape in our entities treeView model
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             if select:
-                #Select the matching shape in the list
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
+                #Select the matching shape in the list. We select SELECTION_COL column (ie item type), since it's the only column that is selectable in the tree
+                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Select)
             else:
-                #Unselect the matching shape in the list
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
+                #Unselect the matching shape in the list. We select SELECTION_COL column (ie item type), since it's the only column that is selectable in the tree
+                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
             self.ui.entitiesTreeView.blockSignals(False)
 
 
@@ -302,11 +334,11 @@ class TreeHandler(QtGui.QWidget):
             self.layer_item_model.blockSignals(True) #Avoid signal loops (we dont want the treeView to emit itemChanged signal)
             if enable:
                 #Select the matching shape in the list
-                item.setCheckState(QtCore.Qt.Checked)
+                self.updateCheckboxOfItem(item, QtCore.Qt.Checked)
 
             else:
                 #Unselect the matching shape in the list
-                item.setCheckState(QtCore.Qt.Unchecked)
+                self.updateCheckboxOfItem(item, QtCore.Qt.Unchecked)
 
             self.layer_item_model.blockSignals(False)
             self.ui.layersShapesTreeView.update(item_index) #update the treeList drawing
@@ -323,11 +355,11 @@ class TreeHandler(QtGui.QWidget):
             self.entity_item_model.blockSignals(True) #Avoid signal loops (we dont want the treeView to emit itemChanged signal)
             if enable:
                 #Select the matching shape in the list
-                item.setCheckState(QtCore.Qt.Checked)
+                self.updateCheckboxOfItem(item, QtCore.Qt.Checked)
 
             else:
                 #Unselect the matching shape in the list
-                item.setCheckState(QtCore.Qt.Unchecked)
+                self.updateCheckboxOfItem(item, QtCore.Qt.Unchecked)
 
             self.entity_item_model.blockSignals(False)
             self.ui.entitiesTreeView.update(item_index) #update the treeList drawing
@@ -407,7 +439,8 @@ class TreeHandler(QtGui.QWidget):
             if element:
                 if element.data(SHAPE_OBJECT).isValid():
                     #only select Shapes
-                    selection_model.select(sub_item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
+                    col_item_index = sub_item_index.sibling(sub_item_index.row(), SELECTION_COL) #Get the only column that is selectable (eg item name)
+                    selection_model.select(col_item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
 
             i += 1
 
@@ -432,7 +465,7 @@ class TreeHandler(QtGui.QWidget):
 
             item = item_model.itemFromIndex(sub_item_index)
             if item:
-                item.setCheckState(checked_state)
+                self.updateCheckboxOfItem(item, checked_state)
 
             i += 1
 
@@ -467,19 +500,15 @@ class TreeHandler(QtGui.QWidget):
 
         #Update the parent item according to its childs
         if item and item.parent():
-            item_model.blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
+            parent_state = item.parent().checkState()
             if has_checked and has_unchecked or has_partially_checked:
-                item.parent().setCheckState(QtCore.Qt.PartiallyChecked)
+                parent_state = QtCore.Qt.PartiallyChecked
             elif has_checked and not has_unchecked:
-                item.parent().setCheckState(QtCore.Qt.Checked)
+                parent_state = QtCore.Qt.Checked
             elif not has_checked and has_unchecked:
-                item.parent().setCheckState(QtCore.Qt.Unchecked)
-            item_model.blockSignals(False)
+                parent_state = QtCore.Qt.Unchecked
 
-            #update the treeList drawing
-            if item_index.parent():
-                self.ui.entitiesTreeView.update(item_index.parent())
-                self.ui.layersShapesTreeView.update(item_index.parent())
+            self.updateCheckboxOfItem(item.parent(), parent_state)
 
         #Handle the parent of the parent (recursive call)
         if parent_item_index and parent_item_index.parent().isValid():
@@ -500,6 +529,7 @@ class TreeHandler(QtGui.QWidget):
         for selection in deselected:
             for model_index in selection.indexes():
                 if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
                         if element.data(SHAPE_OBJECT).isValid():
@@ -513,6 +543,7 @@ class TreeHandler(QtGui.QWidget):
         for selection in selected:
             for model_index in selection.indexes():
                 if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
                         if element.data(SHAPE_OBJECT).isValid():
@@ -537,6 +568,7 @@ class TreeHandler(QtGui.QWidget):
         #Update the other TreeViews
         item_index = self.findEntityItemIndexFromShape(real_item)
         if model_index.model() == self.layer_item_model and item_index:
+            item_index = item_index.sibling(item_index.row(), SELECTION_COL) #Get the only column that is selectable (ie item type)
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             selection_model = self.ui.entitiesTreeView.selectionModel()
             selection_model.select(item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
@@ -544,10 +576,32 @@ class TreeHandler(QtGui.QWidget):
 
         item_index = self.findLayerItemIndexFromShape(real_item)
         if model_index.model() == self.entity_item_model and item_index:
+            item_index = item_index.sibling(item_index.row(), SELECTION_COL) #Get the only column that is selectable (ie item name)
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             selection_model = self.ui.layersShapesTreeView.selectionModel()
             selection_model.select(item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
             self.ui.layersShapesTreeView.blockSignals(False)
+
+
+
+    def actionOnKeyPress(self, key_code, item_index):
+        """
+        This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, then we capture it to enable/disable shape
+        @param key_code: the key code as defined by QT
+        @param item_index: the item on which the keyPress event occured
+        print("\033[31;1mactionOnKeyPress key = {0}\033[m".format(key_code))
+        """
+        result = False
+        if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
+            item_index = item_index.sibling(item_index.row(), 0) #Get the first column of the row (ie the one that contains the enable/disable checkbox)
+            item = item_index.model().itemFromIndex(item_index)
+            item.setCheckState(QtCore.Qt.Unchecked if item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked) #Toggle enable/disable checkbox
+            #Ensure that the first col is the current index, so that we can still traverse the tree with the keyboard
+            self.ui.layersShapesTreeView.setCurrentIndex(item_index)
+            self.ui.entitiesTreeView.setCurrentIndex(item_index)
+            result = True #Key handled
+
+        return result
 
 
 
@@ -560,28 +614,7 @@ class TreeHandler(QtGui.QWidget):
         print("\033[34;1mItemChanged !\033[m New checkbox state = {0}".format(item.checkState()))
         """
         if item.data(SHAPE_OBJECT).isValid():
-            #Checkbox concerns a shape object
-            real_item = item.data(SHAPE_OBJECT).toPyObject()
-            real_item.setDisable(False if item.checkState() == QtCore.Qt.Checked else True, True)
-
-            #Update the other TreeViews
-            item_index = self.findEntityItemIndexFromShape(real_item)
-            if item_index:
-                if item.model() == self.layer_item_model:
-                    self.entity_item_model.blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
-                    item_other_tree = self.entity_item_model.itemFromIndex(item_index)
-                    item_other_tree.setCheckState(item.checkState())
-                    self.entity_item_model.blockSignals(False)
-                self.traverseParentsAndUpdateEnableDisable(self.entity_item_model, item_index) #Update parents checkboxes
-
-            item_index = self.findLayerItemIndexFromShape(real_item)
-            if item_index:
-                if item.model() == self.entity_item_model:
-                    self.layer_item_model.blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
-                    item_other_tree = self.layer_item_model.itemFromIndex(item_index)
-                    item_other_tree.setCheckState(item.checkState())
-                    self.layer_item_model.blockSignals(False)
-                self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index) #Update parents checkboxes
+            self.updateCheckboxOfItem(item, item.checkState())
 
         elif item.data(LAYER_OBJECT).isValid():
             #Checkbox concerns a Layer object => check/uncheck each sub-items (shapes)
@@ -590,6 +623,84 @@ class TreeHandler(QtGui.QWidget):
         elif item.data(ENTITY_OBJECT).isValid():
             #Checkbox concerns an Entity object => check/uncheck each sub-items (shapes and/or other entities)
             self.traverseChildrenAndEnableDisable(self.entity_item_model, item.index(), item.checkState())
+
+
+
+    def updateCheckboxOfItem(self, item, check):
+        """
+        This function is used to effectively update the state of a checkbox and enable / disable texts when item is a shape
+        @param item: item is the modified element. It can be a Shape, a Layer or an Entity
+        @param check: the check state
+        print("\033[34;1mupdateCheckboxOfItem()\033[m New checkbox state = {0}".format(check))
+        """
+        item.model().blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
+        item.setCheckState(check)
+        item.model().blockSignals(False)
+
+        if item.data(SHAPE_OBJECT).isValid():
+            #Checkbox concerns a shape object
+            real_item = item.data(SHAPE_OBJECT).toPyObject()
+            real_item.setDisable(False if check == QtCore.Qt.Checked else True, True)
+
+            #Update the other TreeViews
+            item_index = self.findEntityItemIndexFromShape(real_item)
+            if item_index:
+                if item.model() == self.layer_item_model:
+                    self.entity_item_model.blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
+                    item_other_tree = self.entity_item_model.itemFromIndex(item_index)
+                    item_other_tree.setCheckState(check)
+                    self.enableDisableTreeRow(item_other_tree, check)
+                    self.entity_item_model.blockSignals(False)
+                self.traverseParentsAndUpdateEnableDisable(self.entity_item_model, item_index) #Update parents checkboxes
+
+            item_index = self.findLayerItemIndexFromShape(real_item)
+            if item_index:
+                if item.model() == self.entity_item_model:
+                    self.layer_item_model.blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
+                    item_other_tree = self.layer_item_model.itemFromIndex(item_index)
+                    item_other_tree.setCheckState(check)
+                    self.enableDisableTreeRow(item_other_tree, check)
+                    self.layer_item_model.blockSignals(False)
+                self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index) #Update parents checkboxes
+
+        self.enableDisableTreeRow(item, check)
+
+
+
+
+    def enableDisableTreeRow(self, item, check):
+        """
+        Enable / disable all the columns from a row, except the first one (because the first column contains the checkbox that must stay enabled in order to be clickable)
+        @param item: item is the modified element. It can be a Shape, a Layer or an Entity
+        print("\033[34;1mupdateCheckboxOfItem()\033[m New checkbox state = {0}".format(check))
+        """
+        current_tree_view = None
+        if item.model() == self.layer_item_model:
+            current_tree_view = self.ui.layersShapesTreeView
+        else:
+            current_tree_view = self.ui.entitiesTreeView
+
+        item.model().blockSignals(True)
+        i = 0
+        row = 0
+        if not item.parent():
+            row_item = item.model().invisibleRootItem() #parent is 0, so we need to get the root item of the tree as parent
+            i = item.columnCount()
+        else:
+            row_item = item.parent() #we are on one of the column of the row => take the parent, so that we get the complete row
+            i = row_item.columnCount()
+        row = item.row()
+        while i > 1:
+            i -= 1
+            column_item = row_item.child(row, i)
+            if column_item:
+                column_item.setEnabled(False if check == QtCore.Qt.Unchecked else True)
+                current_tree_view.update(column_item.index())
+        item.model().blockSignals(False)
+
+        #Update the display (refresh the treeView for the given item)
+        current_tree_view.update(item.index())
+
 
 
 
