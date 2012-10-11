@@ -153,6 +153,48 @@ class MyTreeView(QtGui.QTreeView):
 
 
 
+    def moveUpCurrentItem(self):
+        """
+        Move the current item up. This slot aims to be connected to a button.
+        If there is no current item, do nothing.
+        """
+        current_item_index = self.currentIndex()
+        if current_item_index and current_item_index.isValid():
+            current_item = current_item_index.model().itemFromIndex(current_item_index)
+            current_item_parent = current_item.parent()
+            if not current_item_parent:
+                current_item_parent = current_item.model().invisibleRootItem() #parent is 0, so we need to get the root item of the tree as parent
+
+            pop_row = current_item_index.row() #original row
+            push_row = pop_row - 1
+            if push_row >= 0:
+                item_to_be_moved = current_item_parent.takeRow(pop_row)
+                current_item_parent.insertRow(push_row, item_to_be_moved)
+                self.setCurrentIndex(current_item.index())
+
+
+
+    def moveDownCurrentItem(self):
+        """
+        Move the current item down. This slot aims to be connected to a button.
+        If there is no current item, do nothing.
+        """
+        current_item_index = self.currentIndex()
+        if current_item_index and current_item_index.isValid():
+            current_item = current_item_index.model().itemFromIndex(current_item_index)
+            current_item_parent = current_item.parent()
+            if not current_item_parent:
+                current_item_parent = current_item.model().invisibleRootItem() #parent is 0, so we need to get the root item of the tree as parent
+
+            pop_row = current_item_index.row() #original row
+            push_row = pop_row + 1
+            if push_row < current_item_parent.rowCount():
+                item_to_be_moved = current_item_parent.takeRow(pop_row)
+                current_item_parent.insertRow(push_row, item_to_be_moved)
+                self.setCurrentIndex(current_item.index())
+
+
+
     def blockSignals(self, block):
         """
         Blocks the signals from this class. Subclassed in order to also block selectionChanged "signal" (callback)

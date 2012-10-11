@@ -49,6 +49,9 @@ class TreeHandler(QtGui.QWidget):
         self.ui.layersShapesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.layersShapesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
+        QtCore.QObject.connect(self.ui.layersGoUpPushButton, QtCore.SIGNAL("clicked()"), self.ui.layersShapesTreeView.moveUpCurrentItem)
+        QtCore.QObject.connect(self.ui.layersGoDownPushButton, QtCore.SIGNAL("clicked()"), self.ui.layersShapesTreeView.moveDownCurrentItem)
+
         #Entities TreeView
         self.entity_item_model = None
         self.entities_list = None
@@ -56,6 +59,17 @@ class TreeHandler(QtGui.QWidget):
         self.ui.entitiesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.entitiesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.entitiesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+
+        QtCore.QObject.connect(self.ui.blocksCollapsePushButton, QtCore.SIGNAL("clicked()"), self.expandToDepth0)
+        QtCore.QObject.connect(self.ui.blocksExpandPushButton, QtCore.SIGNAL("clicked()"), self.ui.entitiesTreeView.expandAll)
+
+
+
+    def expandToDepth0(self):
+        """
+        Slot used to expand the entities treeView up to depth 0
+        """
+        self.ui.entitiesTreeView.expandToDepth(0)
 
 
 
