@@ -87,15 +87,10 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.stmove = []
         self.LayerContent=None
         self.geos = geos
-<<<<<<< .working
-        #self.BB = BoundingBox(Pa=None, Pe=None)
-        self.axis3_mill_depth = axis3_mill_depth
-=======
         #self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
->>>>>>> .merge-right.r304
 
     def __str__(self):
         """ 
@@ -326,10 +321,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         Returns the state of self.Disabled
         """
         return self.disabled
-<<<<<<< .working
-        
-    def AnalyseAndOptimize(self):
-=======
 
     def setToolPathOptimized(self,flag=False):
         """
@@ -345,7 +336,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         return self.send_to_TSP
 
     def AnalyseAndOptimize(self):
->>>>>>> .merge-right.r304
         """ 
         This method is called after the shape has been generated before it gets
         plotted to change all shape direction to a CW shape.

@@ -76,15 +76,6 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView=self.ui.MyGraphicsView
         
         self.myMessageBox=self.ui.myMessageBox 
-<<<<<<< .working
-        
-        self.MyPostProcessor=MyPostProcessor()
-        
-        self.shapes=[]
-        self.LayerContents=[]
-        self.EntitieContents=[]
-        self.EntitiesRoot=[]
-=======
         
         self.MyPostProcessor=MyPostProcessor()
         
@@ -94,7 +85,6 @@ class Main(QtGui.QMainWindow):
         self.LayerContents=[]
         self.EntitieContents=[]
         self.EntitiesRoot=[]
->>>>>>> .merge-right.r304
        
     def createActions(self):
         """
@@ -236,8 +226,6 @@ class Main(QtGui.QMainWindow):
         in the folder.
         """
         logger.debug('Export the enabled shapes')
-<<<<<<< .working
-=======
 
         #Get the export order from the QTreeView
         self.TreeHandler.updateExportOrder()
@@ -245,7 +233,6 @@ class Main(QtGui.QMainWindow):
         for i, layer in enumerate(self.LayerContents):
             logger.debug("LayerContents[%i] = %s" %(i, layer))
 
->>>>>>> .merge-right.r304
 
         if not(g.config.vars.General['write_to_stdout']):
            
@@ -287,11 +274,7 @@ class Main(QtGui.QMainWindow):
             format="(*%s);;" %(self.MyPostProcessor.output_format[i])
             MyFormats=MyFormats+name+format
             
-<<<<<<< .working
-        (beg, ende)=os.path.split(self.load_filename)
-=======
         (beg, ende)=os.path.split(str(self.load_filename))
->>>>>>> .merge-right.r304
         (fileBaseName, fileExtension)=os.path.splitext(ende)
         
         default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
@@ -299,11 +282,7 @@ class Main(QtGui.QMainWindow):
         selected_filter = self.MyPostProcessor.output_format[0]
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
                     default_name,
-<<<<<<< .working
-                    MyFormats)
-=======
                     MyFormats, selected_filter)
->>>>>>> .merge-right.r304
         
         logger.info("File: %s selected" %filename+selected_filter)
         
@@ -408,15 +387,6 @@ class Main(QtGui.QMainWindow):
         
         #Rotieren um den WP zero
         self.rotate = 0.0
-<<<<<<< .working
-      
-        #Generate the Shapes  
-        self.makeShapes(values,
-                            p0=Point(x=0.0, y=0.0),
-                            pb=Point(x=0.0, y=0.0),
-                            sca=[1.0,1.0,1.0],
-                            rot=0.0)
-=======
       
         #Generate the Shapes  
         self.makeShapes(values,
@@ -441,7 +411,6 @@ class Main(QtGui.QMainWindow):
         #Populate the treeViews
         self.TreeHandler.buildEntitiesTree(self.EntitiesRoot)
         self.TreeHandler.buildLayerTree(self.LayerContents)
->>>>>>> .merge-right.r304
 
         #Ausdrucken der Werte     
         self.MyGraphicsView.clearScene()
@@ -454,152 +423,6 @@ class Main(QtGui.QMainWindow):
         
         #Autoscale des Canvas      
         self.MyGraphicsView.autoscale()
-<<<<<<< .working
-               
-        """FIXME
-        Export will be performed in the order of the Structure self.LayerContents
-        You can sort the Layers and the Shapes of LayerContent itself in the correct
-        order. With this sort function it is sorted in increasing number of Layer only"""
-        self.LayerContents.sort()
-        
-        for LayerContent in self.LayerContents:
-            LayerContent.exp_order=range(len(LayerContent.shapes))
-   
-        """FIXME
-        Here are the two structures which give the things to show in the treeview"""
-        logger.debug(self.LayerContents)
-        logger.debug(self.EntitiesRoot)
-        
-               
-    def makeShapes(self,values,p0,pb,sca,rot):
-        """
-        Instance is called by the Main Window after the defined file is loaded.
-        It generates all ploting functionallity. The parameters are generally 
-        used to scale or offset the base geometry (by Menu in GUI).
-        
-        @param values: The loaded dxf values fro mthe dxf_import.py file
-        @param p0: The Starting Point to plot (Default x=0 and y=0)
-        @param bp: The Base Point to insert the geometry and base for rotation 
-        (Default is also x=0 and y=0)
-        @param sca: The scale of the basis function (default =1)
-        @param rot: The rotation of the geometries around base (default =0)
-        """
-        self.values=values
-
-        #Zuruecksetzen der Konturen
-        del(self.shapes[:])
-        del(self.LayerContents[:])
-        del(self.EntitiesRoot)
-        self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
-                                            p0=p0,pb=pb,sca=sca,rot=rot)
-
-        #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.makeEntitiesShapes(parent=self.EntitiesRoot)
-        self.LayerContents.sort()
-        
-    def makeEntitiesShapes(self,parent=None,ent_nr=-1):
-        """
-        Instance is called prior to the plotting of the shapes. It creates
-        all shape classes which are later plotted into the graphics.
-        
-        @param parent: The parent of a shape is always a Entities. It may be root 
-        or if it is a Block this is the Block. 
-        @param ent_nr: The values given in self.values are sorted in that way 
-        that 0 is the Root Entities and  1 is beginning with the first block. 
-        This value gives the index of self.values to be used.
-        """
-
-        if parent.Name=="Entities":      
-            entities=self.values.entities
-        else:
-            ent_nr=self.values.Get_Block_Nr(parent.Name)
-            entities=self.values.blocks.Entities[ent_nr]
-            
-        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
-        ent_geos=entities.geo
-               
-        #Schleife fuer die Anzahl der Konturen 
-        for cont in entities.cont:
-            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-            if ent_geos[cont.order[0][0]].Typ=="Insert":
-                ent_geo=ent_geos[cont.order[0][0]]
-                
-                #Zuweisen des Basispunkts f�r den Block
-                new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
-                new_entities=self.values.blocks.Entities[new_ent_nr]
-                pb=new_entities.basep
-                
-                #Skalierung usw. des Blocks zuweisen
-                p0=ent_geos[cont.order[0][0]].Point
-                sca=ent_geos[cont.order[0][0]].Scale
-                rot=ent_geos[cont.order[0][0]].rot
-                
-                logger.debug(new_entities)
-                
-                #Erstellen des neuen Entitie Contents f�r das Insert
-                NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
-                                        parent=parent,children=[],
-                                        p0=p0,
-                                        pb=pb,
-                                        sca=sca,
-                                        rot=rot)
-
-                parent.addchild(NewEntitieContent)
-            
-                self.makeEntitiesShapes(parent=NewEntitieContent,ent_nr=ent_nr)
-                
-            else:
-                #Schleife fuer die Anzahl der Geometrien
-                self.shapes.append(ShapeClass(len(self.shapes),\
-                                                cont.closed,\
-                                                40,\
-                                                0.0,\
-                                                parent,\
-                                                []))
-                for ent_geo_nr in range(len(cont.order)):
-                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
-                    if cont.order[ent_geo_nr][1]:
-                        ent_geo.geo.reverse()
-                        for geo in ent_geo.geo:
-                            geo=copy(geo)
-                            geo.reverse()
-                            self.shapes[-1].geos.append(geo)
-
-                        ent_geo.geo.reverse()
-                    else:
-                        for geo in ent_geo.geo:
-                            self.shapes[-1].geos.append(copy(geo))
-                
-                #All shapes have to be CCW direction.         
-                self.shapes[-1].AnalyseAndOptimize()
-                self.shapes[-1].FindNearestStPoint()
-                
-                self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
-                parent.addchild(self.shapes[-1])
-                
-    def addtoLayerContents(self,shape,lay_nr):
-        """
-        Instance is called while the shapes are created. This gives the 
-        structure which shape is laying on which layer. It also writes into the
-        shape the reference to the LayerContent Class.
-        
-        @param shape: The shape to be appended of the shape 
-        @param lay_nr: The Nr. of the layer
-        """
-        #Check if the layer is already existing and add shape if it is.
-        for LayCon in self.LayerContents:
-            if LayCon.LayerNr==lay_nr:
-                LayCon.shapes.append(shape)
-                shape.LayerContent=LayCon
-                return
-
-        #If the Layer is not existing create a new one.
-        LayerName=self.values.layers[lay_nr].name
-        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape]))
-        shape.LayerContent=self.LayerContents[-1]
-        
-if __name__ == "__main__":
-=======
 
 
     def makeShapes(self,values,p0,pb,sca,rot):
@@ -743,7 +566,6 @@ if __name__ == "__main__":
         shape.LayerContent=self.LayerContents[-1]
         
 if __name__ == "__main__":
->>>>>>> .merge-right.r304
     """
     The main function which is executed after program start. 
     """

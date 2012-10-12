@@ -45,6 +45,7 @@ class LayerContentClass:
         #Define Short Name for config.vars
         vars=g.config.vars
         
+        self.type = "Layer"
         self.LayerNr=LayerNr
         self.LayerName=LayerName
         self.shapes=shapes
