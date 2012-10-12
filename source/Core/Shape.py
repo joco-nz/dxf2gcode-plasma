@@ -404,14 +404,16 @@ class ShapeClass(QtGui.QGraphicsItem):
         for geo in self.geos: 
             geo.reverse()
             
-        start, start_ang = self.get_st_en_points(0)
-        end, end_ang = self.get_st_en_points(1)
+
 
     def reverseGUI(self):
         """
         This function is called from the GUI if the GUI needs to be updated after
         the reverse of the shape to.
         """
+        start, start_ang = self.get_st_en_points(0)
+        end, end_ang = self.get_st_en_points(1)
+        
         self.update(self.boundingRect())
         self.enarrow.reverseshape(end,end_ang)
         self.starrow.reverseshape(start,start_ang)
