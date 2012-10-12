@@ -553,8 +553,8 @@ class ShapeClass(QtGui.QGraphicsItem):
             start, start_ang = self.get_st_en_points(0)
             exstr+=PostPro.set_cut_cor(self.cut_cor, start)
             
-            exstr+=self.st_move.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-            exstr+=self.st_move.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
 
         #Schreiben der Geometrien f�r den ersten Schnitt
         for geo in self.geos:
