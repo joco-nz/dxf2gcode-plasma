@@ -26,6 +26,7 @@ LAYER_OBJECT = QtCore.Qt.UserRole + 2  #For storing refs to the layers elements 
 SHAPE_OBJECT = QtCore.Qt.UserRole + 3  #For storing refs to the shape elements (entities_list & layers_list)
 
 SELECTION_COL = 1 #Column that is selectable in the treeViews
+PATH_OPTIMISATION_COL = 3 #Column that corresponds to TSP enable checkbox
 
 
 
@@ -87,6 +88,7 @@ class TreeHandler(QtGui.QWidget):
         self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"));
         self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"));
         self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nbr"));
+        self.layer_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Opti.\npath"));
         modele_root_element = self.layer_item_model.invisibleRootItem() #Root element of our tree
 
         for layer in layers_list:
@@ -115,11 +117,15 @@ class TreeHandler(QtGui.QWidget):
                 item_col_2 = QtGui.QStandardItem(str(shape.nr))
                 item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
 
-                parent_item = modele_root_element.child(modele_root_element.rowCount() - 1, 0)
-                parent_item.appendRow([item_col_0, item_col_1, item_col_2])
+                item_col_3 = QtGui.QStandardItem()
+                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable)
 
-                #Deal with the checkbox (shape enabled or disabled)
-                item_col_0.setCheckState(QtCore.Qt.Unchecked if shape.disabled else QtCore.Qt.Checked)
+                parent_item = modele_root_element.child(modele_root_element.rowCount() - 1, 0)
+                parent_item.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
+
+                #Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
+                item_col_0.setCheckState(QtCore.Qt.Unchecked if shape.isDisabled() else QtCore.Qt.Checked)
+                item_col_3.setCheckState(QtCore.Qt.Checked if shape.isToolPathOptimized() else QtCore.Qt.Unchecked)
 
         self.layer_item_model.itemChanged.connect(self.on_itemChanged) #Signal to get events when a checkbox state changes (enable or disable shapes)
 
@@ -134,6 +140,7 @@ class TreeHandler(QtGui.QWidget):
         self.ui.layersShapesTreeView.setAcceptDrops(True)
         self.ui.layersShapesTreeView.setDragEnabled(True)
 
+        self.ui.layersShapesTreeView.resizeColumnToContents(3)
         self.ui.layersShapesTreeView.resizeColumnToContents(2)
         self.ui.layersShapesTreeView.resizeColumnToContents(1)
         self.ui.layersShapesTreeView.resizeColumnToContents(0)
@@ -627,7 +634,15 @@ class TreeHandler(QtGui.QWidget):
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         print("\033[34;1mItemChanged !\033[m New checkbox state = {0}".format(item.checkState()))
         """
-        if item.data(SHAPE_OBJECT).isValid():
+        if item.column() == PATH_OPTIMISATION_COL:
+            #User has clicked on the Path Optimisation (TSP) checkbox => update the corresponding data into the shape
+            item_model_index = item.index().sibling(item.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            first_col_item = item_model_index.model().itemFromIndex(item_model_index)
+            if first_col_item and first_col_item.data(SHAPE_OBJECT).isValid():
+                #Set tool path optimisation for the matching shape
+                first_col_item.data(SHAPE_OBJECT).toPyObject().setToolPathOptimized(False if item.checkState() == QtCore.Qt.Unchecked else True)
+
+        elif item.data(SHAPE_OBJECT).isValid():
             self.updateCheckboxOfItem(item, item.checkState())
 
         elif item.data(LAYER_OBJECT).isValid():

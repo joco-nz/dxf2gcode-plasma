@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Fri Oct 12 01:44:28 2012
+# Created: Fri Oct 12 02:07:26 2012
 #      by: PyQt4 UI code generator 4.7.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ class Ui_MainWindow(object):
         self.splitter.setObjectName("splitter")
         self.mytabWidget = QtGui.QTabWidget(self.splitter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Preferred, QtGui.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(1)
+        sizePolicy.setHorizontalStretch(2)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.mytabWidget.sizePolicy().hasHeightForWidth())
         self.mytabWidget.setSizePolicy(sizePolicy)
@@ -273,7 +273,7 @@ class Ui_MainWindow(object):
         self.mytabWidget.addTab(self.tab_2, "")
         self.MyGraphicsView = MyGraphicsView(self.splitter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
-        sizePolicy.setHorizontalStretch(4)
+        sizePolicy.setHorizontalStretch(7)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.MyGraphicsView.sizePolicy().hasHeightForWidth())
         self.MyGraphicsView.setSizePolicy(sizePolicy)

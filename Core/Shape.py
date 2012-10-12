@@ -77,6 +77,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
         self.disabled=False
+        self.send_to_TSP=True #True to optimize the toolpath for this shape
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -101,7 +102,8 @@ class ShapeClass(QtGui.QGraphicsItem):
                ('\nclosed:      %i' % self.closed) + \
                ('\ncut_cor:     %s' % self.cut_cor) + \
                ('\nlen(geos):   %i' % len(self.geos)) + \
-               ('\ngeos:        %s' % self.geos)
+               ('\ngeos:        %s' % self.geos) + \
+               ('\nsend_to_TSP: %i' % self.send_to_TSP)
 
     def setSelectionChangedCallback(self, callback):
         """
@@ -319,7 +321,20 @@ class ShapeClass(QtGui.QGraphicsItem):
         Returns the state of self.Disabled
         """
         return self.disabled
-        
+
+    def setToolPathOptimized(self,flag=False):
+        """
+        @param flag: The flag to enable or disable tool path optimisation for this shape
+        """
+        self.send_to_TSP=flag
+        #print("shape nr {0} optimisation is now {1}".format(self.nr, self.send_to_TSP))
+
+    def isToolPathOptimized(self):
+        """
+        Returns the state of self.send_to_TSP
+        """
+        return self.send_to_TSP
+
     def AnalyseAndOptimize(self):
         """ 
         This method is called after the shape has been generated before it gets

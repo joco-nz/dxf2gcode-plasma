@@ -26,7 +26,7 @@
       <widget class="QTabWidget" name="mytabWidget">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-         <horstretch>1</horstretch>
+         <horstretch>2</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
@@ -471,7 +471,7 @@
       <widget class="MyGraphicsView" name="MyGraphicsView">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>4</horstretch>
+         <horstretch>7</horstretch>
          <verstretch>0</verstretch>
         </sizepolicy>
        </property>
