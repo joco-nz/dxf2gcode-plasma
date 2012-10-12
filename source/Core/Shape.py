@@ -77,6 +77,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
         self.disabled=False
+        self.send_to_TSP=True #True to optimize the toolpath for this shape
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -86,8 +87,15 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.stmove = []
         self.LayerContent=None
         self.geos = geos
+<<<<<<< .working
         #self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
+=======
+        #self.BB = BoundingBox(Pa=None, Pe=None)
+        self.axis3_mill_depth = axis3_mill_depth
+        self.selectionChangedCallback = None
+        self.enableDisableCallback = None
+>>>>>>> .merge-right.r304
 
     def __str__(self):
         """ 
@@ -99,7 +107,24 @@ class ShapeClass(QtGui.QGraphicsItem):
                ('\nclosed:      %i' % self.closed) + \
                ('\ncut_cor:     %s' % self.cut_cor) + \
                ('\nlen(geos):   %i' % len(self.geos)) + \
-               ('\ngeos:        %s' % self.geos)
+               ('\ngeos:        %s' % self.geos) + \
+               ('\nsend_to_TSP: %i' % self.send_to_TSP)
+
+    def setSelectionChangedCallback(self, callback):
+        """
+        register a callback function in order to inform parents when the selection has changed.
+        Note: we can't use QT signals here because ShapeClass doesn't inherits from a QObject
+        @param callback: the function to be called, with the prototype callbackFunction(shape, select)
+        """
+        self.selectionChangedCallback = callback
+
+    def setEnableDisableCallback(self, callback):
+        """
+        register a callback function in order to inform parents when a shape has been enabled or disabled.
+        Note: we can't use QT signals here because ShapeClass doesn't inherits from a QObject
+        @param callback: the function to be called, with the prototype callbackFunction(shape, enabled)
+        """
+        self.enableDisableCallback = callback
 
     def setPen(self,pen):
         """ 
@@ -261,7 +286,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 #        if event.button() == QtCore.Qt.LeftButton:
 #            super(ShapeClass, self).mousePressEvent(event)
 
-    def setSelected(self,flag=True):
+    def setSelected(self,flag=True,blockSignals=False):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection
@@ -272,7 +297,10 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         super(ShapeClass, self).setSelected(flag)
 
-    def setDisable(self,flag=False):
+        if self.selectionChangedCallback and not blockSignals:
+            self.selectionChangedCallback(self, flag)
+
+    def setDisable(self,flag=False,blockSignals=False):
         """
         New implemented function which is in parallel to show and hide. 
         @param flag: The flag to enable or disable Selection
@@ -287,14 +315,37 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.stmove.setSelected(False)
         else:
             self.show()
-        
+
+        self.update(self.boundingRect()) #Needed to refresh view when setDisabled() function is called from a TreeView event
+
+        if self.enableDisableCallback and not blockSignals:
+            self.enableDisableCallback(self, not flag)
+
     def isDisabled(self):
         """
         Returns the state of self.Disabled
         """
         return self.disabled
+<<<<<<< .working
         
     def AnalyseAndOptimize(self):
+=======
+
+    def setToolPathOptimized(self,flag=False):
+        """
+        @param flag: The flag to enable or disable tool path optimisation for this shape
+        """
+        self.send_to_TSP=flag
+        #print("shape nr {0} optimisation is now {1}".format(self.nr, self.send_to_TSP))
+
+    def isToolPathOptimized(self):
+        """
+        Returns the state of self.send_to_TSP
+        """
+        return self.send_to_TSP
+
+    def AnalyseAndOptimize(self):
+>>>>>>> .merge-right.r304
         """ 
         This method is called after the shape has been generated before it gets
         plotted to change all shape direction to a CW shape.

@@ -15,6 +15,14 @@
     <file>images/background2.png</file>
     <file>images/background3.png</file>
     <file>images/background4.png</file>
+    <file>images/blocks.png</file>
+    <file>images/layer.png</file>
+    <file>images/shape.png</file>
+    <file>images/expand-all.png</file>
+    <file>images/collapse-all.png</file>
+    <file>images/pause.png</file>
+    <file>images/go-down.png</file>
+    <file>images/go-up.png</file>
 </qresource>
 </RCC>
 
