@@ -40,6 +40,7 @@ class TreeHandler(QtGui.QWidget):
         Standard method to initialize the class
         @param ui: the QT4 GUI
         """
+        QtGui.QWidget.__init__(self)
         self.ui = ui
 
         #Layers & Shapes TreeView
@@ -127,7 +128,8 @@ class TreeHandler(QtGui.QWidget):
                 item_col_0.setCheckState(QtCore.Qt.Unchecked if shape.isDisabled() else QtCore.Qt.Checked)
                 item_col_3.setCheckState(QtCore.Qt.Checked if shape.isToolPathOptimized() else QtCore.Qt.Unchecked)
 
-        self.layer_item_model.itemChanged.connect(self.on_itemChanged) #Signal to get events when a checkbox state changes (enable or disable shapes)
+        #Signal to get events when a checkbox state changes (enable or disable shapes)
+        QtCore.QObject.connect(self.layer_item_model, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.on_itemChanged)
 
         self.ui.layersShapesTreeView.setModel(self.layer_item_model) #Affect our model to the GUI TreeView, in order to display it
 
@@ -171,7 +173,8 @@ class TreeHandler(QtGui.QWidget):
 
         self.buildEntitiesSubTree(modele_root_element, entities_list)
 
-        self.entity_item_model.itemChanged.connect(self.on_itemChanged) #Signal to get events when a checkbox state changes (enable or disable shapes)
+        #Signal to get events when a checkbox state changes (enable or disable shapes)
+        QtCore.QObject.connect(self.entity_item_model, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.on_itemChanged)
 
         self.ui.entitiesTreeView.setModel(self.entity_item_model)
 
@@ -626,7 +629,6 @@ class TreeHandler(QtGui.QWidget):
 
 
 
-    @QtCore.pyqtSlot(QtGui.QStandardItem)
     def on_itemChanged(self, item):
         """
         This slot is called when some data change in one of the TreeView. For us, since rows are read only, it is only triggered when a checkbox is checked/unchecked

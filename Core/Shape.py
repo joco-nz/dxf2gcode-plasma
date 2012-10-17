@@ -404,14 +404,16 @@ class ShapeClass(QtGui.QGraphicsItem):
         for geo in self.geos: 
             geo.reverse()
             
-        start, start_ang = self.get_st_en_points(0)
-        end, end_ang = self.get_st_en_points(1)
+
 
     def reverseGUI(self):
         """
         This function is called from the GUI if the GUI needs to be updated after
         the reverse of the shape to.
         """
+        start, start_ang = self.get_st_en_points(0)
+        end, end_ang = self.get_st_en_points(1)
+        
         self.update(self.boundingRect())
         self.enarrow.reverseshape(end,end_ang)
         self.starrow.reverseshape(start,start_ang)
@@ -553,8 +555,8 @@ class ShapeClass(QtGui.QGraphicsItem):
             start, start_ang = self.get_st_en_points(0)
             exstr+=PostPro.set_cut_cor(self.cut_cor, start)
             
-            exstr+=self.st_move.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-            exstr+=self.st_move.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
 
         #Schreiben der Geometrien f�r den ersten Schnitt
         for geo in self.geos:

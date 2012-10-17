@@ -190,6 +190,7 @@ class MyPostProcessor:
         #If the String shall be given to STDOUT
         if g.config.vars.General['write_to_stdout']:
             print(exstr)
+            logger.debug("Export to STDOUT performed sucessfull")
             self.close
     
         else:
@@ -198,7 +199,8 @@ class MyPostProcessor:
                     #Das File oeffnen und schreiben    
                     f = open(save_filename, "w")
                     f.write(exstr)
-                    f.close()       
+                    f.close()
+                    logger.debug("Export to FILE performed sucessfull")    
                 except IOError:
                     QtGui.QMessageBox.warning(g.window,"Warning during Export",
                                               "Cannot Save the File")
