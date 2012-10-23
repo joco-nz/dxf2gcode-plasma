@@ -19,7 +19,7 @@
 
 @purpose:  TBD
 
-@author: Christian Kohlöffel
+@author: Christian KohlÃ¶ffel
 @since:  26.12.2009
 @license: GPL
 """
@@ -31,6 +31,7 @@ from Core.validate import Validator
 
 #from dotdictlookup import DictDotLookup
 import time
+import pprint
 
 import Core.constants as c
 import Core.Globals as g
@@ -39,7 +40,7 @@ from d2gexceptions import *
 import logging
 logger = logging.getLogger("Core.Config") 
 
-CONFIG_VERSION = "4"
+CONFIG_VERSION = "5"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -71,6 +72,7 @@ CONFIG_SPEC = str('''
     axis3_retract = float(default= 15.0)
     axis3_slice_depth = float(default= -1.5)
     axis3_safe_margin = float(default= 3.0)
+    axis3_start_mill_depth = float(default= 0.0)
     axis3_mill_depth = float(default= -3.0)
     
     [Axis_letters]
@@ -98,9 +100,15 @@ CONFIG_SPEC = str('''
     fitting_tolerance = float(default= 0.01)
     
     [Tool_Parameters]
-    diameter = float(default= 2.0)
-    speed = float(default=6000)
-    start_radius = float(default= 0.2)
+        [[1]]
+        diameter = float(default= 2.0)
+        speed = float(default=6000)
+        start_radius = float(default= 0.2)
+
+        [[__many__]]
+        diameter = float(default= 3.0)
+        speed = float(default=6000)
+        start_radius = float(default= 3.0)
     
     [Filters]
     pstoedit_cmd = string(default="/opt/local/bin/pstoedit")

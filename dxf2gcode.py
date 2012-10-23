@@ -571,6 +571,8 @@ if __name__ == "__main__":
     """
     Log=LoggerClass(rootlogger=logger, console_loglevel=logging.DEBUG)
 
+    g.config=MyConfig()
+
     app = QtGui.QApplication(sys.argv)
     window = Main(app)
     g.window=window
@@ -583,8 +585,6 @@ if __name__ == "__main__":
     #shall be sent to. This Class needs a function "def write(self,charstr)
     Log.set_window_logstream(window.myMessageBox)
     
-    g.config=MyConfig()
-
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")

@@ -49,7 +49,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 cut_cor=40, length=0.0,
                 parent=None,
                 geos=[],
-                axis3_mill_depth=None):
+                axis3_start_mill_depth=None, axis3_mill_depth=None):
         """ 
         Standard method to initialize the class
         @param nr: The number of the shape. Starting from 0 for the first one 
@@ -89,6 +89,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.geos = geos
         #self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
+        self.axis3_start_mill_depth = axis3_start_mill_depth
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
 
@@ -522,47 +523,61 @@ class ShapeClass(QtGui.QGraphicsItem):
                                         pb=Point(x=0.0, y=0.0),
                                         sca=[1, 1, 1],
                                         rot=0.0)
-        
-        """
-        FIXME if the Shape has a own mill depth use this one.
-        """
-        depth = LayerContent.axis3_mill_depth
+
+
+        #Get the mill settings defined in the GUI
+        safe_retract_depth = LayerContent.axis3_retract
+        safe_margin = LayerContent.axis3_safe_margin
+        #If defined, choose the parameters from the Shape itself. Otherwise, choose the parameters from the parent Layer
+        initial_mill_depth = LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
+        depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
         max_slice = LayerContent.axis3_slice_depth
-        
+
+
         #If the Output Format is DXF do not perform more then one cut.
         if PostPro.vars.General["output_type"] == 'dxf':
             depth = max_slice
 
-        #Do not cut below the depth.
-        if - abs(max_slice) <= depth:
-            mom_depth = depth
-        else:
-            mom_depth = -abs(max_slice)
+        if max_slice == 0:
+            logger.error("ERROR: Z infeed depth is null!")
+
+        if initial_mill_depth < depth:
+            logger.error("ERROR: start mill depth (%i) is lower than end mill depth (%i)" % (initial_mill_depth, depth))
+
+            #Do not cut below the depth.
+            initial_mill_depth = depth
+
+        mom_depth = initial_mill_depth
+
 
         #Move the tool to the start.          
         exstr+=self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-        
-        exstr+=PostPro.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_safe_margin'])
+
+
+        #When G41 or G42 is on: cutter radius compensation
+        #FIXME: code moved by Xavier, so that cutter compensation occurs at Z retract depth
+        if self.cut_cor != 40:
+            
+            #Calculate the starting point without tool compensation
+            #and add the compensation
+            start, start_ang = self.get_st_en_points(0)
+            exstr+=PostPro.set_cut_cor(self.cut_cor, start)
+            
+            exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_plane) #Added by Xavier because of code move (see above)
+            exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+
+
+        exstr+=PostPro.rap_pos_z(initial_mill_depth + abs(safe_margin)) #Compute the safe margin from the initial mill depth
         exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_depth)
         exstr+=PostPro.lin_pol_z(mom_depth)
         exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_plane)
 
-        #Wenn G41 oder G42 an ist Fr�sradiuskorrektur        
-        if self.cut_cor != 40:
-            
-            #Errechnen des Startpunkts ohne Werkzeug Kompensation
-            #und einschalten der Kompensation     
-            start, start_ang = self.get_st_en_points(0)
-            exstr+=PostPro.set_cut_cor(self.cut_cor, start)
-            
-            exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-            exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-
-        #Schreiben der Geometrien f�r den ersten Schnitt
+        #Write the geometries for the first cut
         for geo in self.geos:
             exstr+=geo.Write_GCode(self.parent, PostPro)
 
-        #Ausschalten der Fr�sradiuskorrektur
+        #Turning the cutter radius compensation
         if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):
             ende, en_angle = self.get_st_en_points(1)
             if self.cut_cor == 41:
@@ -571,10 +586,11 @@ class ShapeClass(QtGui.QGraphicsItem):
                 pos_cut_out = ende.get_arc_point(en_angle + 90, tool_rad)         
             exstr+=PostPro.deactivate_cut_cor(pos_cut_out)            
 
-        #Z�hlen der Schleifen
+
+        #Numbers of loops
         snr = 0
-        #Schleifen f�r die Anzahl der Schnitte
-        while mom_depth > depth:
+        #Loops for the number of cuts
+        while mom_depth > depth and max_slice != 0.0:
             snr += 1
             mom_depth = mom_depth - abs(max_slice)
             if mom_depth < depth:
@@ -585,43 +601,44 @@ class ShapeClass(QtGui.QGraphicsItem):
             exstr+=PostPro.lin_pol_z(mom_depth)
             exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_plane)
 
-            #Falls es keine geschlossene Kontur ist    
+            #If it is not a closed contour
             if self.closed == 0:
                 self.reverse()
                 self.switch_cut_cor()
                 
-            #Falls cut correction eingeschaltet ist diese einschalten.
+            #If cutter correction is enabled
             if ((not(self.cut_cor == 40)) & (self.closed == 0))or(PostPro.vars.General["cancel_cc_for_depth"] == 1):
-                #Errechnen des Startpunkts ohne Werkzeug Kompensation
-                #und einschalten der Kompensation     
+                #Calculate the starting point without tool compensation
+                #and add the compensation
+                #FIXME: throw error because start is undefined ...
                 exstr+=PostPro.set_cut_cor(self.cut_cor, start)
                 
             for geo_nr in range(len(self.geos)):
-                self.geos[geo_nr].Write_GCode(self.parent, PostPro)
+                exstr+=self.geos[geo_nr].Write_GCode(self.parent, PostPro)
 
-            #Errechnen des Konturwerte mit Fr�sradiuskorrektur und ohne
+            #Calculate the contour values ​​with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
             if self.cut_cor == 41:
                 pos_cut_out = ende.get_arc_point(en_angle - 90, tool_rad)
             elif self.cut_cor == 42:
                 pos_cut_out = ende.get_arc_point(en_angle + 90, tool_rad)
 
-            #Ausschalten der Fr�sradiuskorrektur falls ben�tigt          
+            #Turning off the cutter radius compensation if needed
             if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):         
                 exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
      
-        #Anfangswert f�r Direction wieder herstellen falls n�tig
+        #Initial value of direction restored if necessary
         if (snr % 2) > 0:
             self.reverse()
             self.switch_cut_cor()
 
-        #Fertig und Zur�ckziehen des Werkzeugs
-        exstr+=PostPro.lin_pol_z(g.config.vars.Depth_Coordinates['axis3_safe_margin'])
-        exstr+=PostPro.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
+        #Do the tool retraction
+        exstr+=PostPro.lin_pol_z(initial_mill_depth + abs(safe_margin))
+        exstr+=PostPro.rap_pos_z(safe_retract_depth)
 
-        #Falls Fr�sradius Korrektur noch nicht ausgeschaltet ist ausschalten.
+        #If cutter radius compensation is not turned off.
         if (not(self.cut_cor == 40)) & (not(PostPro.vars.General["cancel_cc_for_depth"])):
-            #Errechnen des Konturwerte mit Fr�sradiuskorrektur und ohne
+            #Calculate the contour values ​​with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
             exstr+=PostPro.deactivate_cut_cor(ende)        
 

@@ -146,13 +146,10 @@ class MyPostProcessor:
 
         exstr=self.write_gcode_be(load_filename)
         
-        #Move Machine to retraction Area before continuing anything.
+        #Move Machine to retraction Area before continuing anything. Note: none of the changes done in the GUI can affect this height, only the config file can do so (intended)
         exstr+=self.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
 
         #Do the export for each LayerContent in LayerContents List
-        """
-        FIXME Tool Change not included now.
-        """
         for LayerContent in LayerContents:
             logger.debug("Beginning export of Layer Nr. %s, Name%s" 
                          %(LayerContent.LayerNr,LayerContent.LayerName))
@@ -162,13 +159,21 @@ class MyPostProcessor:
             
             #Perform export only for Layers which have min. 1 Shape to export
             if len(LayerContent.exp_order):
+                #If comments are enabled, add the Layer name into the generated GCode
+                if self.vars.General["write_layer_and_shape_names"] and self.vars.General["comment_layer_name"].find("%s") != -1:
+                    exstr += "\n\n" + (self.vars.General["comment_layer_name"] % LayerContent.LayerName) + '\n'
+
                 #Adding the Tool change for each LayerContent
                 exstr+=self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
             
                 for shape_nr in LayerContent.exp_order:
                     shape=LayerContent.shapes[shape_nr]
                     logger.debug("Beginning export of  Shape Nr: %s" % shape.nr)
-                    
+
+                    #If comments are enabled, add the Shape number into the generated GCode
+                    if self.vars.General["write_layer_and_shape_names"] and self.vars.General["comment_shape_name"].find("%s") != -1:
+                        exstr += '\n' + (self.vars.General["comment_shape_name"] % str(shape.nr)) + '\n'
+
                     exstr+=shape.Write_GCode(LayerContent=LayerContent,
                                              PostPro=self)
 
@@ -369,7 +374,7 @@ class MyPostProcessor:
         if cut_cor == 41:
             return self.make_print_str(self.vars.Program["cutter_comp_left"])
         elif cut_cor == 42:
-            return self.make_print_str(self.vars.Program["cutter_comp_left"])
+            return self.make_print_str(self.vars.Program["cutter_comp_right"]) #FIXME: changed to cutter_comp_right, ok?
 
     def deactivate_cut_cor(self, Pe):
         """
