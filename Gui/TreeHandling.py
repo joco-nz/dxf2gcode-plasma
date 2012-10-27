@@ -583,31 +583,41 @@ class TreeHandler(QtGui.QWidget):
         """
 
         if not text.isEmpty():
+            new_diameter = g.config.vars.Tool_Parameters[str(text)]['diameter']
+            new_speed = g.config.vars.Tool_Parameters[str(text)]['speed']
+            new_start_radius = g.config.vars.Tool_Parameters[str(text)]['start_radius']
+
             self.ui.toolDiameterComboBox.setPalette(self.palette)
-            self.ui.toolDiameterLabel.setText(str(g.config.vars.Tool_Parameters[str(text)]['diameter']))
+            self.ui.toolDiameterLabel.setText(str(round(new_diameter, 3)))
             self.ui.toolDiameterLabel.setPalette(self.palette) #Restore color
-            self.ui.toolSpeedLabel.setText(str(g.config.vars.Tool_Parameters[str(text)]['speed']))
+            self.ui.toolSpeedLabel.setText(str(round(new_speed, 1)))
             self.ui.toolSpeedLabel.setPalette(self.palette) #Restore color
-            self.ui.startRadiusLabel.setText(str(g.config.vars.Tool_Parameters[str(text)]['start_radius']))
+            self.ui.startRadiusLabel.setText(str(round(new_start_radius, 3)))
             self.ui.startRadiusLabel.setPalette(self.palette) #Restore color
 
-        #Get the new value and convert it to int
-        val = text.toInt()
-        if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
-
-            for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
-                    element = model_index.model().itemFromIndex(model_index)
-                    real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent #Shape has no such property => update the parent layer
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
-                        real_item.tool_nr = val[0]
-                        self.tool_nr = real_item.tool_nr
+            #Get the new value and convert it to int
+            val = text.toInt()
+            if val[1]:
+                selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+    
+                for model_index in selected_indexes_list:
+                    if model_index.isValid():
+                        model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                        element = model_index.model().itemFromIndex(model_index)
+                        real_item = None
+                        if element.data(SHAPE_OBJECT).isValid():
+                            real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent #Shape has no such property => update the parent layer
+                        elif element and element.data(LAYER_OBJECT).isValid():
+                            real_item = element.data(LAYER_OBJECT).toPyObject()
+                        if not real_item is None:
+                            real_item.tool_nr = val[0]
+                            real_item.tool_diameter = new_diameter
+                            real_item.speed = new_speed
+                            real_item.start_radius = new_start_radius
+                            self.tool_nr = real_item.tool_nr
+                            self.tool_diameter = new_diameter
+                            self.speed = new_speed
+                            self.start_radius = new_start_radius
 
 
 
@@ -957,7 +967,7 @@ class TreeHandler(QtGui.QWidget):
         @param value: the value (parameter) of the selected item
         print("\033[31;1mupdateAndColorizeWidget() {0} {1}\033[m".format(previous_value, value))
         """
-        widget.setText(str(value))
+        widget.setText(str(round(value, 4))) #Round the value with at most 4 digits
 
         if previous_value != None and value != previous_value:
             #Several diffent tools parameter are currently selected (eg: mill deph = -3 for the first selected item and -2 for the second) => grey color for the text

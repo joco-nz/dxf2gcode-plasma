@@ -554,10 +554,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         exstr+=self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
 
 
-        #When G41 or G42 is on: cutter radius compensation
-        #FIXME: code moved by Xavier, so that cutter compensation occurs at Z retract depth
-        if self.cut_cor != 40:
-            
+        #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done outside the piece
+        if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
             #Calculate the starting point without tool compensation
             #and add the compensation
             start, start_ang = self.get_st_en_points(0)
@@ -572,6 +570,17 @@ class ShapeClass(QtGui.QGraphicsItem):
         exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_depth)
         exstr+=PostPro.lin_pol_z(mom_depth)
         exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_plane)
+
+        #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done inside the piece
+        if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
+            #Calculate the starting point without tool compensation
+            #and add the compensation
+            start, start_ang = self.get_st_en_points(0)
+            exstr+=PostPro.set_cut_cor(self.cut_cor, start)
+            
+            exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+
 
         #Write the geometries for the first cut
         for geo in self.geos:
@@ -628,9 +637,10 @@ class ShapeClass(QtGui.QGraphicsItem):
                 exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
      
         #Initial value of direction restored if necessary
-        if (snr % 2) > 0:
-            self.reverse()
-            self.switch_cut_cor()
+        #FIXME: removed by Xavier, I don't know the purpose of this code, but it causes the GCode to be wrong each two exports when cutter compensation is enabled (it switches automatically between G41 & G42 while it shouldn't)
+        #if (snr % 2) > 0:
+        #    self.reverse()
+        #    self.switch_cut_cor()
 
         #Do the tool retraction
         exstr+=PostPro.lin_pol_z(initial_mill_depth + abs(safe_margin))

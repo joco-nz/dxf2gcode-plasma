@@ -376,15 +376,16 @@ class MyDropDownMenu(QtGui.QMenu):
         Switched the Direction of all items. Example from CW direction to CCW
         """
         for shape in self.MyGraphicsScene.shapes:
-            shape.reverse()
-            shape.reverseGUI()
+            if shape.isSelected():
+                shape.reverse()
+                shape.reverseGUI()
 
-            logger.debug(_('Switched Direction at Shape Nr: %i')\
-                             %(shape.nr))
-        
-            shape.updateCutCor()
-            shape.updateCCplot()
-            
+                logger.debug(_('Switched Direction at Shape Nr: %i')\
+                                %(shape.nr))
+
+                shape.updateCutCor()
+                shape.updateCCplot()
+
     def setNearestStP(self):
         """
         Seach the nearest StartPoint to the clicked position of all selected 

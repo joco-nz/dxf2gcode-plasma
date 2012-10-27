@@ -52,6 +52,7 @@ POSTPRO_SPEC = str('''
     
     abs_export = boolean(default=True)
     cancel_cc_for_depth = boolean(default=False)
+    cc_outside_the_piece = boolean(default=True)
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
     write_layer_and_shape_names = boolean(default=True)
