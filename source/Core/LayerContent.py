@@ -51,16 +51,16 @@ class LayerContentClass:
         self.shapes=shapes
         self.exp_order=[]
         self.axis3_slice_depth=vars.Depth_Coordinates['axis3_slice_depth']
+        self.axis3_start_mill_depth=vars.Depth_Coordinates['axis3_start_mill_depth']
         self.axis3_mill_depth=vars.Depth_Coordinates['axis3_mill_depth']
-        
-        
-        """FIXME
-        Tool Nr. may be added in config file later on.
-        """
+        self.axis3_retract=vars.Depth_Coordinates['axis3_retract']
+        self.axis3_safe_margin=vars.Depth_Coordinates['axis3_safe_margin']
+
+        #Use default tool 1 (always exists in config)
         self.tool_nr=1
-        self.tool_diameter=vars.Tool_Parameters['diameter'] 
-        self.speed=vars.Tool_Parameters['speed']
-        self.start_radius=vars.Tool_Parameters['start_radius']
+        self.tool_diameter=vars.Tool_Parameters['1']['diameter']
+        self.speed=vars.Tool_Parameters['1']['speed']
+        self.start_radius=vars.Tool_Parameters['1']['start_radius']
         self.f_g1_plane=vars.Feed_Rates['f_g1_plane']
         self.f_g1_depth=vars.Feed_Rates['f_g1_depth']
         
@@ -81,5 +81,5 @@ class LayerContentClass:
                ('\nLayerNr :      %i' %self.LayerNr) +\
                ('\nLayerName:     %s' %self.LayerName)+\
                ('\nshapes:        %s' %self.shapes)+\
-               ('\nexp_order:     %s' %self.exp_order)    
-               
+               ('\nexp_order:     %s' %self.exp_order)+\
+               ('\ntool_diameter: %i' %self.tool_nr)

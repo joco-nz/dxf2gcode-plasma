@@ -26,7 +26,7 @@ from d2gexceptions import *
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig") 
 
-POSTPRO_VERSION = "1"
+POSTPRO_VERSION = "2"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -52,9 +52,13 @@ POSTPRO_SPEC = str('''
     
     abs_export = boolean(default=True)
     cancel_cc_for_depth = boolean(default=False)
+    cc_outside_the_piece = boolean(default=True)
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
-  
+    write_layer_and_shape_names = boolean(default=True)
+    comment_layer_name = string(default=(*** LAYER: %s ***))
+    comment_shape_name = string(default=(* SHAPE: %s *))
+
     code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
     code_end=string(default="M9 (Coolant off) M5 (Spindle off) M2 (Prgram end)")
     

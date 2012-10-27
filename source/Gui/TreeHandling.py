@@ -19,6 +19,7 @@ from PyQt4 import QtCore, QtGui
 from Gui.myTreeView import MyTreeView
 from math import degrees
 
+import Core.Globals as g
 
 #defines some arbitrary types for the objects stored into the treeView. These types will eg help us to find which kind of data is stored in the element received from a click() event
 ENTITY_OBJECT = QtCore.Qt.UserRole + 1 #For storing refs to the entities elements (entities_list)
@@ -43,6 +44,10 @@ class TreeHandler(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.ui = ui
 
+        #Used to store previous values in order to enable/disable text
+        self.palette = self.ui.zRetractionArealLineEdit.palette()
+        self.clearToolsParameters()
+
         #Layers & Shapes TreeView
         self.layer_item_model = None
         self.layers_list = None
@@ -53,6 +58,23 @@ class TreeHandler(QtGui.QWidget):
 
         QtCore.QObject.connect(self.ui.layersGoUpPushButton, QtCore.SIGNAL("clicked()"), self.ui.layersShapesTreeView.moveUpCurrentItem)
         QtCore.QObject.connect(self.ui.layersGoDownPushButton, QtCore.SIGNAL("clicked()"), self.ui.layersShapesTreeView.moveDownCurrentItem)
+
+        #Load the tools from the config file to the tool selection combobox
+        for tool in g.config.vars.Tool_Parameters:
+            self.ui.toolDiameterComboBox.addItem(tool)
+
+        #Select the first tool in the list and update the tools diameter, ... accordingly
+        self.ui.toolDiameterComboBox.setCurrentIndex(0)
+        self.toolUpdate(self.ui.toolDiameterComboBox.currentText())
+
+        QtCore.QObject.connect(self.ui.toolDiameterComboBox, QtCore.SIGNAL("activated(const QString &)"), self.toolUpdate)
+        QtCore.QObject.connect(self.ui.zRetractionArealLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzRetractionArealUpdate)
+        QtCore.QObject.connect(self.ui.zSafetyMarginLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzSafetyMarginUpdate)
+        QtCore.QObject.connect(self.ui.zInfeedDepthLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzInfeedDepthUpdate)
+        QtCore.QObject.connect(self.ui.zInitialMillDepthLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzInitialMillDepthUpdate)
+        QtCore.QObject.connect(self.ui.zFinalMillDepthLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzFinalMillDepthUpdate)
+        QtCore.QObject.connect(self.ui.g1FeedXYLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterg1FeedXYUpdate)
+        QtCore.QObject.connect(self.ui.g1FeedZLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterg1FeedZUpdate)
 
         #Entities TreeView
         self.entity_item_model = None
@@ -103,7 +125,12 @@ class TreeHandler(QtGui.QWidget):
             modele_element = QtGui.QStandardItem(layer.LayerName)
             modele_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
-            modele_root_element.appendRow([checkbox_element, modele_element])
+            nbr_element = QtGui.QStandardItem()
+            nbr_element.setFlags(QtCore.Qt.ItemIsEnabled)
+            optimise_element = QtGui.QStandardItem()
+            optimise_element.setFlags(QtCore.Qt.ItemIsEnabled)
+
+            modele_root_element.appendRow([checkbox_element, modele_element, nbr_element, optimise_element])
 
             for shape in layer.shapes:
                 icon = QtGui.QIcon()
@@ -313,11 +340,13 @@ class TreeHandler(QtGui.QWidget):
             #we found the matching index for the shape in our layers treeView model
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             if select:
-                #Select the matching shape in the list. We select SELECTION_COL column (ie item name), since it's the only column that is selectable in the tree
+                #Select the matching shape in the list. We select column 0 and SELECTION_COL column (ie item name)
                 selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Select)
+                selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
             else:
-                #Unselect the matching shape in the list. We select SELECTION_COL column (ie item name), since it's the only column that is selectable in the tree
+                #Unselect the matching shape in the list. We deselect column 0 and SELECTION_COL column (ie item name)
                 selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
+                selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
             self.ui.layersShapesTreeView.blockSignals(False)
 
         #Entities treeView
@@ -328,12 +357,18 @@ class TreeHandler(QtGui.QWidget):
             #we found the matching index for the shape in our entities treeView model
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             if select:
-                #Select the matching shape in the list. We select SELECTION_COL column (ie item type), since it's the only column that is selectable in the tree
+                #Select the matching shape in the list. We select column 0 and SELECTION_COL column (ie item type)
                 selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Select)
+                selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
             else:
-                #Unselect the matching shape in the list. We select SELECTION_COL column (ie item type), since it's the only column that is selectable in the tree
+                #Unselect the matching shape in the list. We deselect column 0 and SELECTION_COL column (ie item type)
                 selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
+                selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
             self.ui.entitiesTreeView.blockSignals(False)
+
+        #Uptate the tool parameters fields
+        self.clearToolsParameters()
+        self.displayToolParametersForItem(shape.LayerContent, shape)
 
 
 
@@ -540,6 +575,248 @@ class TreeHandler(QtGui.QWidget):
 
 
 
+    def toolUpdate(self, text):
+        """
+        Slot that updates the tools diameter, speed and start_radius when a new tool is selected
+        @param text: the name of the newly selected tool
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+
+        if not text.isEmpty():
+            new_diameter = g.config.vars.Tool_Parameters[str(text)]['diameter']
+            new_speed = g.config.vars.Tool_Parameters[str(text)]['speed']
+            new_start_radius = g.config.vars.Tool_Parameters[str(text)]['start_radius']
+
+            self.ui.toolDiameterComboBox.setPalette(self.palette)
+            self.ui.toolDiameterLabel.setText(str(round(new_diameter, 3)))
+            self.ui.toolDiameterLabel.setPalette(self.palette) #Restore color
+            self.ui.toolSpeedLabel.setText(str(round(new_speed, 1)))
+            self.ui.toolSpeedLabel.setPalette(self.palette) #Restore color
+            self.ui.startRadiusLabel.setText(str(round(new_start_radius, 3)))
+            self.ui.startRadiusLabel.setPalette(self.palette) #Restore color
+
+            #Get the new value and convert it to int
+            val = text.toInt()
+            if val[1]:
+                selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+    
+                for model_index in selected_indexes_list:
+                    if model_index.isValid():
+                        model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                        element = model_index.model().itemFromIndex(model_index)
+                        real_item = None
+                        if element.data(SHAPE_OBJECT).isValid():
+                            real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent #Shape has no such property => update the parent layer
+                        elif element and element.data(LAYER_OBJECT).isValid():
+                            real_item = element.data(LAYER_OBJECT).toPyObject()
+                        if not real_item is None:
+                            real_item.tool_nr = val[0]
+                            real_item.tool_diameter = new_diameter
+                            real_item.speed = new_speed
+                            real_item.start_radius = new_start_radius
+                            self.tool_nr = real_item.tool_nr
+                            self.tool_diameter = new_diameter
+                            self.speed = new_speed
+                            self.start_radius = new_start_radius
+
+
+
+    def toolParameterzRetractionArealUpdate(self, text):
+        """
+        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+        self.ui.zRetractionArealLineEdit.setPalette(self.palette) #Restore color
+
+        #Get the new value and convert it to float
+        val = text.toFloat()
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+            for model_index in selected_indexes_list:
+                if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    real_item = None
+                    if element.data(SHAPE_OBJECT).isValid():
+                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent #Shape has no such property => update the parent layer
+                    elif element and element.data(LAYER_OBJECT).isValid():
+                        real_item = element.data(LAYER_OBJECT).toPyObject()
+                    if not real_item is None:
+                        real_item.axis3_retract = val[0]
+                        self.axis3_retract = real_item.axis3_retract
+
+
+
+    def toolParameterzSafetyMarginUpdate(self, text):
+        """
+        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+        self.ui.zSafetyMarginLineEdit.setPalette(self.palette) #Restore color
+
+        #Get the new value and convert it to float
+        val = text.toFloat()
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+            for model_index in selected_indexes_list:
+                if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    real_item = None
+                    if element.data(SHAPE_OBJECT).isValid():
+                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
+                    elif element and element.data(LAYER_OBJECT).isValid():
+                        real_item = element.data(LAYER_OBJECT).toPyObject()
+                    if not real_item is None:
+                        real_item.axis3_safe_margin = val[0]
+                        self.axis3_safe_margin = real_item.axis3_safe_margin
+
+
+
+    def toolParameterzInfeedDepthUpdate(self, text):
+        """
+        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+        self.ui.zInfeedDepthLineEdit.setPalette(self.palette) #Restore color
+
+        #Get the new value and convert it to float
+        val = text.toFloat()
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+            for model_index in selected_indexes_list:
+                if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    real_item = None
+                    if element.data(SHAPE_OBJECT).isValid():
+                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
+                    elif element and element.data(LAYER_OBJECT).isValid():
+                        real_item = element.data(LAYER_OBJECT).toPyObject()
+                    if not real_item is None:
+                        real_item.axis3_slice_depth = val[0]
+                        self.axis3_slice_depth = real_item.axis3_slice_depth
+
+
+
+    def toolParameterg1FeedXYUpdate(self, text):
+        """
+        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+        self.ui.g1FeedXYLineEdit.setPalette(self.palette) #Restore color
+
+        #Get the new value and convert it to float
+        val = text.toFloat()
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+            for model_index in selected_indexes_list:
+                if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    real_item = None
+                    if element.data(SHAPE_OBJECT).isValid():
+                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
+                    elif element and element.data(LAYER_OBJECT).isValid():
+                        real_item = element.data(LAYER_OBJECT).toPyObject()
+                    if not real_item is None:
+                        real_item.f_g1_plane = val[0]
+                        self.f_g1_plane = real_item.f_g1_plane
+
+
+
+    def toolParameterg1FeedZUpdate(self, text):
+        """
+        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+        self.ui.g1FeedZLineEdit.setPalette(self.palette) #Restore color
+
+        #Get the new value and convert it to float
+        val = text.toFloat()
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+            for model_index in selected_indexes_list:
+                if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    real_item = None
+                    if element.data(SHAPE_OBJECT).isValid():
+                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
+                    elif element and element.data(LAYER_OBJECT).isValid():
+                        real_item = element.data(LAYER_OBJECT).toPyObject()
+                    if not real_item is None:
+                        real_item.f_g1_depth = val[0]
+                        self.f_g1_depth = real_item.f_g1_depth
+
+
+
+    def toolParameterzInitialMillDepthUpdate(self, text):
+        """
+        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+        self.ui.zInitialMillDepthLineEdit.setPalette(self.palette) #Restore color
+
+        #Get the new value and convert it to float
+        val = text.toFloat()
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+            for model_index in selected_indexes_list:
+                if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    real_item = None
+                    if element.data(SHAPE_OBJECT).isValid():
+                        real_item = element.data(SHAPE_OBJECT).toPyObject()
+                    elif element and element.data(LAYER_OBJECT).isValid():
+                        real_item = element.data(LAYER_OBJECT).toPyObject()
+                    if not real_item is None:
+                        real_item.axis3_start_mill_depth = val[0]
+                        self.axis3_start_mill_depth = real_item.axis3_start_mill_depth
+
+
+
+    def toolParameterzFinalMillDepthUpdate(self, text):
+        """
+        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
+        """
+        self.ui.zFinalMillDepthLineEdit.setPalette(self.palette) #Restore color
+
+        #Get the new value and convert it to float
+        val = text.toFloat()
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+            for model_index in selected_indexes_list:
+                if model_index.isValid():
+                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    real_item = None
+                    if element.data(SHAPE_OBJECT).isValid():
+                        real_item = element.data(SHAPE_OBJECT).toPyObject()
+                    elif element and element.data(LAYER_OBJECT).isValid():
+                        real_item = element.data(LAYER_OBJECT).toPyObject()
+                    if not real_item is None:
+                        real_item.axis3_mill_depth = val[0]
+                        self.axis3_mill_depth = real_item.axis3_mill_depth
+
+
+
     def actionOnSelectionChange(self, parent, selected, deselected):
         """
         This function is a callback called from QTreeView class when something changed in the selection. It aims to update the graphic view according to the tree selection. It also deals with children selection when a parent is selected
@@ -549,6 +826,8 @@ class TreeHandler(QtGui.QWidget):
         @param select: list of selected items in the treeView
         @param deselect: list of deselected items in the treeView
         """
+        self.clearToolsParameters() #disable tools parameters widgets, ...
+
         #Deselects all the shapes that are selected
         for selection in deselected:
             for model_index in selection.indexes():
@@ -558,10 +837,12 @@ class TreeHandler(QtGui.QWidget):
                     if element:
                         if element.data(SHAPE_OBJECT).isValid():
                             self.updateTreeViewSelection(model_index, element, False) #Effectively unselect the shape
+                        """ Disabled for now, because it's not really user friendly
                         elif element.data(LAYER_OBJECT).isValid():
                             self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, False)
                         elif element.data(ENTITY_OBJECT).isValid():
                             self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, False)
+                        """
 
         #Selects all the shapes that are selected
         for selection in selected:
@@ -571,11 +852,130 @@ class TreeHandler(QtGui.QWidget):
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
                         if element.data(SHAPE_OBJECT).isValid():
+                            real_item = element.data(SHAPE_OBJECT).toPyObject()
+                            #update the tools parameters according to the selection
+                            self.displayToolParametersForItem(real_item.LayerContent, real_item)
+
                             self.updateTreeViewSelection(model_index, element, True) #Effectively select the shape
+
                         elif element.data(LAYER_OBJECT).isValid():
-                            self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, True)
-                        elif element.data(ENTITY_OBJECT).isValid():
-                            self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, True)
+                            real_item = element.data(LAYER_OBJECT).toPyObject()
+                            #select all the child of a given layer when clicked. Code disabled for now, because it's not really user friendly
+                            #self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, True)
+
+                            #update the tools parameters according to the selection
+                            self.displayToolParametersForItem(real_item)
+
+                        #select all the child of a given entity when clicked. Code disabled for now, because it's not really user friendly
+                        #elif element.data(ENTITY_OBJECT).isValid():
+                        #    self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, True)
+
+
+
+    def clearToolsParameters(self):
+        """
+        This function restore defaults for tools parameters widgets (disabled, default color, ...)
+        """
+        number_of_selected_items = len(self.ui.layersShapesTreeView.selectedIndexes())
+
+        if number_of_selected_items <= 2: #2 selections = 1 row of 2 columns
+            # 0 or 1 row are selected => clear some states
+            self.tool_nr = None
+            self.tool_diameter = None
+            self.speed = None
+            self.start_radius = None
+            self.axis3_retract = None
+            self.axis3_safe_margin = None
+            self.axis3_slice_depth = None
+            self.axis3_start_mill_depth = None
+            self.axis3_mill_depth = None
+            self.f_g1_plane = None
+            self.f_g1_depth = None
+
+            self.ui.toolDiameterComboBox.setPalette(self.palette)
+            self.ui.toolDiameterLabel.setPalette(self.palette)
+            self.ui.toolSpeedLabel.setPalette(self.palette)
+            self.ui.startRadiusLabel.setPalette(self.palette)
+            self.ui.zRetractionArealLineEdit.setPalette(self.palette)
+            self.ui.zSafetyMarginLineEdit.setPalette(self.palette)
+            self.ui.zInfeedDepthLineEdit.setPalette(self.palette)
+            self.ui.g1FeedXYLineEdit.setPalette(self.palette)
+            self.ui.g1FeedZLineEdit.setPalette(self.palette)
+            self.ui.zInitialMillDepthLineEdit.setPalette(self.palette)
+            self.ui.zFinalMillDepthLineEdit.setPalette(self.palette)
+
+
+        if number_of_selected_items == 0:
+            self.ui.millSettingsFrame.setEnabled(False)
+
+        else:
+            self.ui.millSettingsFrame.setEnabled(True)
+
+
+
+    def displayToolParametersForItem(self, layer_item, shape_item = None):
+        """
+        Display the current tools settings (fill the QLineEdit, ...) for the Layer / Shape passed as parameter
+        @param layer_item: layer instance as defined in LayerContent.py
+        @param shape_item: shape instance as defined in Shape.py
+        print("\033[31;1mcolorizeWidget {0} {1}\033[m".format(self.tool_nr, layer_item.tool_nr))
+        """
+        #Selects the tool for the selected layer
+        self.ui.toolDiameterComboBox.setCurrentIndex(self.ui.toolDiameterComboBox.findText(str(layer_item.tool_nr)))
+        if not self.tool_nr is None and layer_item.tool_nr != self.tool_nr:
+            #Several diffent tools are currently selected => grey background for the combobox
+            palette = QtGui.QPalette()
+            palette.setColor(QtGui.QPalette.Button, QtCore.Qt.gray)
+            self.ui.toolDiameterComboBox.setPalette(palette)
+        self.tool_nr = layer_item.tool_nr
+
+        self.tool_diameter = self.updateAndColorizeWidget(self.ui.toolDiameterLabel, self.tool_diameter, layer_item.tool_diameter)
+
+        self.speed = self.updateAndColorizeWidget(self.ui.toolSpeedLabel, self.speed, layer_item.speed)
+
+        self.start_radius = self.updateAndColorizeWidget(self.ui.startRadiusLabel, self.start_radius, layer_item.start_radius)
+
+        self.axis3_retract = self.updateAndColorizeWidget(self.ui.zRetractionArealLineEdit, self.axis3_retract, layer_item.axis3_retract)
+
+        self.axis3_safe_margin = self.updateAndColorizeWidget(self.ui.zSafetyMarginLineEdit, self.axis3_safe_margin, layer_item.axis3_safe_margin)
+
+        self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit, self.axis3_slice_depth, layer_item.axis3_slice_depth)
+
+        if shape_item and shape_item.axis3_start_mill_depth is not None:
+            #If Shape initial mill_depth is defined, then use it instead of the one of the layer
+            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit, self.axis3_start_mill_depth, shape_item.axis3_start_mill_depth)
+        else:
+            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit, self.axis3_start_mill_depth, layer_item.axis3_start_mill_depth)
+
+        if shape_item and shape_item.axis3_mill_depth is not None:
+            #If Shape mill_depth is defined, then use it instead of the one of the layer
+            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit, self.axis3_mill_depth, shape_item.axis3_mill_depth)
+        else:
+            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit, self.axis3_mill_depth, layer_item.axis3_mill_depth)
+
+        self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit, self.f_g1_plane, layer_item.f_g1_plane)
+
+        self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit, self.f_g1_depth, layer_item.f_g1_depth)
+
+
+
+    def updateAndColorizeWidget(self, widget, previous_value, value):
+        """
+        This function colorize the text in grey when too values are different. It is used to show differences in tools settings when several layers / shapes are selected.
+        @param widget: QT widget to update (can be a QLabel or a QLineEdit
+        @param previous_value: the value of the previously selected item
+        @param value: the value (parameter) of the selected item
+        print("\033[31;1mupdateAndColorizeWidget() {0} {1}\033[m".format(previous_value, value))
+        """
+        widget.setText(str(round(value, 4))) #Round the value with at most 4 digits
+
+        if previous_value != None and value != previous_value:
+            #Several diffent tools parameter are currently selected (eg: mill deph = -3 for the first selected item and -2 for the second) => grey color for the text
+            palette = QtGui.QPalette()
+            palette.setColor(QtGui.QPalette.Text, QtCore.Qt.gray)
+            widget.setPalette(palette)
+
+        return value
 
 
 
