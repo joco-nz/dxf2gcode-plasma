@@ -159,21 +159,21 @@ class MyPostProcessor:
             
             #Perform export only for Layers which have min. 1 Shape to export
             if len(LayerContent.exp_order):
-                #If comments are enabled, add the Layer name into the generated GCode
-                if self.vars.General["write_layer_and_shape_names"] and self.vars.General["comment_layer_name"].find("%s") != -1:
-                    exstr += "\n\n" + (self.vars.General["comment_layer_name"] % LayerContent.LayerName) + '\n'
+#                #If comments are enabled, add the Layer name into the generated GCode
+#                if self.vars.General["write_layer_and_shape_names"] and self.vars.General["comment_layer_name"].find("%s") != -1:
+#                    exstr += "\n\n" + (self.vars.General["comment_layer_name"] % LayerContent.LayerName) + '\n'
 
+                exstr+=self.commentprint("*** LAYER: %s ****" %(LayerContent.LayerName))
+                
                 #Adding the Tool change for each LayerContent
                 exstr+=self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
             
                 for shape_nr in LayerContent.exp_order:
                     shape=LayerContent.shapes[shape_nr]
                     logger.debug("Beginning export of  Shape Nr: %s" % shape.nr)
-
-                    #If comments are enabled, add the Shape number into the generated GCode
-                    if self.vars.General["write_layer_and_shape_names"] and self.vars.General["comment_shape_name"].find("%s") != -1:
-                        exstr += '\n' + (self.vars.General["comment_shape_name"] % str(shape.nr)) + '\n'
-
+                    
+                    exstr+=self.commentprint("* SHAPE Nr: %i *" %(shape.nr))
+                    
                     exstr+=shape.Write_GCode(LayerContent=LayerContent,
                                              PostPro=self)
 
@@ -223,6 +223,7 @@ class MyPostProcessor:
         self.feed=0
         self.speed=0
         self.tool_nr=1
+        self.comment=""
         
         self.abs_export=self.vars.General["abs_export"]
         
@@ -270,7 +271,8 @@ class MyPostProcessor:
                    "%AngA":'self.fnprint(degrees(self.a_ang))',\
                    "%-AngA":'self.fnprint(degrees(-self.a_ang))',\
                    "%AngE":'self.fnprint(degrees(self.e_ang))',\
-                   "%-AngE":'self.fnprint(degrees(-self.e_ang))'}
+                   "%-AngE":'self.fnprint(degrees(-self.e_ang))',\
+                   "%comment":'self.sprint(self.comment)'}
         
     def write_gcode_be(self, load_filename):
         """
@@ -374,7 +376,7 @@ class MyPostProcessor:
         if cut_cor == 41:
             return self.make_print_str(self.vars.Program["cutter_comp_left"])
         elif cut_cor == 42:
-            return self.make_print_str(self.vars.Program["cutter_comp_right"]) #FIXME: changed to cutter_comp_right, ok?
+            return self.make_print_str(self.vars.Program["cutter_comp_right"]) 
 
     def deactivate_cut_cor(self, Pe):
         """
@@ -481,7 +483,16 @@ class MyPostProcessor:
         else:
             self.Pe = Pe
 
-        return self.make_print_str(self.vars.Program["lin_mov_plane"])      
+        return self.make_print_str(self.vars.Program["lin_mov_plane"])   
+    
+    
+    def commentprint(self,comment):
+        """
+        This function is performed to print a comment.
+        @return: Returns the comment 
+        """
+        self.comment=comment
+        return self.make_print_str(self.vars.Program["comment"])   
 
     def make_print_str(self, keystr):
         """
@@ -507,7 +518,16 @@ class MyPostProcessor:
         @return: The formated integer as a string.
         """
         return ('%i' % interger)
+    
+    def sprint(self, string):
+        """
+        This method is called to return a string formated as an string
+        @param integer: The integer values which shall be returned as a string
+        @return: The formated integer as a string.
+        """
+        return ('%s' % string)
 
+    
     
     def nlprint(self):
         """
@@ -515,7 +535,6 @@ class MyPostProcessor:
         @return: Returns the character set required to get a new line 
         """
         return '\n'
-
     
     def fnprint(self, number):
         """

@@ -619,7 +619,6 @@ class ShapeClass(QtGui.QGraphicsItem):
             if ((not(self.cut_cor == 40)) & (self.closed == 0))or(PostPro.vars.General["cancel_cc_for_depth"] == 1):
                 #Calculate the starting point without tool compensation
                 #and add the compensation
-                #FIXME: throw error because start is undefined ...
                 exstr+=PostPro.set_cut_cor(self.cut_cor, start)
                 
             for geo_nr in range(len(self.geos)):
@@ -637,10 +636,9 @@ class ShapeClass(QtGui.QGraphicsItem):
                 exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
      
         #Initial value of direction restored if necessary
-        #FIXME: removed by Xavier, I don't know the purpose of this code, but it causes the GCode to be wrong each two exports when cutter compensation is enabled (it switches automatically between G41 & G42 while it shouldn't)
-        #if (snr % 2) > 0:
-        #    self.reverse()
-        #    self.switch_cut_cor()
+        if (snr % 2) > 0:
+            self.reverse()
+            self.switch_cut_cor()
 
         #Do the tool retraction
         exstr+=PostPro.lin_pol_z(initial_mill_depth + abs(safe_margin))

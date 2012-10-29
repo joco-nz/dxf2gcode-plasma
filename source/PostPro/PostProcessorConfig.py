@@ -55,9 +55,7 @@ POSTPRO_SPEC = str('''
     cc_outside_the_piece = boolean(default=True)
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
-    write_layer_and_shape_names = boolean(default=True)
-    comment_layer_name = string(default=(*** LAYER: %s ***))
-    comment_shape_name = string(default=(* SHAPE: %s *))
+    
 
     code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
     code_end=string(default="M9 (Coolant off) M5 (Spindle off) M2 (Prgram end)")
@@ -86,7 +84,8 @@ POSTPRO_SPEC = str('''
     arc_int_ccw = string(default=G3 X%XE Y%YE I%I J%J%nl)
     cutter_comp_off = string(default=G40%nl)
     cutter_comp_left = string(default=G41%nl)
-    cutter_comp_right = string(default=G42%nl)                  
+    cutter_comp_right = string(default=G42%nl)
+    comment = string(default=%nl(%comment)%nl)              
 
 ''').splitlines()  
 """ format, type and default value specification of the global config file"""
@@ -238,7 +237,7 @@ class DictDotLookup(object):
     def __iter__(self):
         return iter(self.__dict__.keys())
 
-    def __repr__(self):
-        return pprint.pformat(self.__dict__)
+#    def __repr__(self):
+#        return pprint.pformat(self.__dict__)
 
 
