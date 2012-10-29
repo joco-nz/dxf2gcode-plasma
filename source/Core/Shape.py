@@ -77,7 +77,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
         self.disabled=False
-        self.send_to_TSP=True #True to optimize the toolpath for this shape
+        self.send_to_TSP=g.config.vars.Route_Optimisation['default_TSP']
         self.type = "Shape"
         self.nr = nr
         self.closed = closed

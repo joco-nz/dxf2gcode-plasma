@@ -89,6 +89,7 @@ CONFIG_SPEC = str('''
     
     
     [Route_Optimisation]
+    default_TSP = boolean(default=False)
     mutation_rate = float(default= 0.95)
     max_population = integer(default= 20)
     max_iterations = integer(default= 300)

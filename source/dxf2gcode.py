@@ -159,8 +159,7 @@ class Main(QtGui.QMainWindow):
             
             #Check all shapes of Layer which shall be exported and create List
             #for it.
-            for shape in LayerContent.shapes:
-                
+            for shape in LayerContent.shapes:   
                 if not(shape.isDisabled()):
                     self.shapes_to_write.append(shape)
                     shapes_st_en_points.append(shape.get_st_en_points())
