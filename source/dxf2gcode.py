@@ -350,6 +350,7 @@ class Main(QtGui.QMainWindow):
 
         #self.textbox.text.delete(7.0, END)
         logger.info(('Loading file: %s') % filename)
+        #logger.info("<a href=file:%s>%s</a>" %(filename,filename))
         
         values = ReadDXF(filename)
         

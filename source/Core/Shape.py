@@ -533,6 +533,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
         max_slice = LayerContent.axis3_slice_depth
 
+        #Save the initial Cutter correction in a variable
+        ini_cut_cor=self.cut_cor
 
         #If the Output Format is DXF do not perform more then one cut.
         if PostPro.vars.General["output_type"] == 'dxf':
@@ -552,7 +554,6 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         #Move the tool to the start.          
         exstr+=self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-
 
         #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done outside the piece
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
@@ -619,6 +620,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             if ((not(self.cut_cor == 40)) & (self.closed == 0))or(PostPro.vars.General["cancel_cc_for_depth"] == 1):
                 #Calculate the starting point without tool compensation
                 #and add the compensation
+                start, start_ang = self.get_st_en_points(0)
                 exstr+=PostPro.set_cut_cor(self.cut_cor, start)
                 
             for geo_nr in range(len(self.geos)):
@@ -635,11 +637,6 @@ class ShapeClass(QtGui.QGraphicsItem):
             if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):         
                 exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
      
-        #Initial value of direction restored if necessary
-        if (snr % 2) > 0:
-            self.reverse()
-            self.switch_cut_cor()
-
         #Do the tool retraction
         exstr+=PostPro.lin_pol_z(initial_mill_depth + abs(safe_margin))
         exstr+=PostPro.rap_pos_z(safe_retract_depth)
@@ -650,5 +647,9 @@ class ShapeClass(QtGui.QGraphicsItem):
             ende, en_angle = self.get_st_en_points(1)
             exstr+=PostPro.deactivate_cut_cor(ende)        
 
+        #Initial value of direction restored if necessary
+        if ini_cut_cor != self.cut_cor:
+            self.reverse()
+            self.switch_cut_cor()
 
         return exstr

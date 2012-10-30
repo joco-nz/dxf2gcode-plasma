@@ -10,6 +10,8 @@ Special purpose canvas including all required plotting function etc.
 @license: GPL
 """
 from PyQt4 import QtCore, QtGui
+import Core.Globals as g
+import Core.constants as c
 
 class myMessageBox(QtGui.QTextBrowser):
     """
@@ -25,30 +27,19 @@ class myMessageBox(QtGui.QTextBrowser):
         previously.
         """
         super(myMessageBox, self).__init__() 
-#        
-#                #add a link with data
-#        href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
-#        text.insert(END, _("You are using DXF2GCODE"))
-#        text.insert(END, ("\nVersion %s (%s)" %(VERSION,DATE)))
-#        text.insert(END, _("\nFor more information und updates about"))
-#        text.insert(END, _("\nplease visit my homepage at:"))
-#        text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:"+href))
-        #print((self.myMessageBox_org.verticalScrollBar().sliderPosition()))
+        self.setOpenExternalLinks(True)
         
+        self.append("You are using DXF2GCODE")
+        self.append("Version %s (%s)" %(c.VERSION,c.DATE))
+        self.append("For more information und updates visit:")
+        self.append("<a href=http://code.google.com/p/dxf2gcode>http://code.google.com/p/dxf2gcode</a>")
+
     def write(self,charstr):
         """
         The function is called by the window logger to write the log message to
         the Messagebox
         @param charstr: The log message which will be written.
         """
-#        self.prt(charstr)
 
-#    def prt(self, charstr):
-#        """
-#        If you want to write something to the window use this function
-#        @param charstr: The message which will be written.
-#        """
         self.append(charstr[0:-1])
         self.verticalScrollBar().setValue(1e9)
-        #print((self.myMessageBox_org.verticalScrollBar().sliderPosition()))
-        

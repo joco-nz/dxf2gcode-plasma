@@ -106,12 +106,12 @@ CONFIG_SPEC = str('''
         speed = float(default=6000)
         start_radius = float(default= 0.2)
         
-        [[Tool_d2]]
+        [[2]]
         diameter = float(default=2.0)
         speed = float(default=6000.0)
         start_radius = float(default=1.0)
 
-        [[Tool_d10]]
+        [[10]]
         diameter = float(default=10.0)
         speed = float(default=6000.0)
         start_radius = float(default=2.0)
