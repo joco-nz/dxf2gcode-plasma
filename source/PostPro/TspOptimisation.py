@@ -320,6 +320,10 @@ class FittnessClass:
             
     #2te Möglichkeit die Reihenfolge festzulegen (Korrekturfunktion=Aktiv)                
     def correct_constrain_order(self):
+        """FIXME: in order to change the correction to have all orderd shapes 
+        in begin this might be the best place to change it. Maybe we can also have
+        an additional option in the config file?"""
+        
         for pop_nr in range(len(self.population.pop)):
             #Suchen der momentanen Reihenfolge
             order_index = self.get_pop_index_list(self.population.pop[pop_nr])
