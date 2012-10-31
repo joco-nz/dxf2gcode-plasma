@@ -568,35 +568,46 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         self.delete_opt_path()
 
     
-    def addexproute(self,shapes_st_en_points,route,layer_nr):
+    def addexproute(self,exp_order,layer_nr):
         """
         This function initialisates the Arrows of the export route order and 
         its numbers. 
         @param shapes_st_en_points: The start and end points of the shapes.
         @param route: The order of the shapes to be ploted. 
         """
+        
+        x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
+        y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
+        start=Point(x=x_st,y=y_st)
+        ende=Point(x=x_st,y=y_st)
+                
+        #shapes_st_en_points.append([start,ende])
     
         #Ausdrucken der optimierten Route
-        for en_nr in range(len(route)):
-            if en_nr==0:
-                st_nr=-1
-                #col='gray'
-            elif en_nr==1:
-                st_nr=en_nr-1
-                #col='gray'
+        for shape_nr in range(len(exp_order)+1):
+            
+            if shape_nr==0:
+                st=start
+                [en,dummy]=self.shapes[exp_order[shape_nr]].get_st_en_points(0)
+                col=QtCore.Qt.darkRed
+            elif shape_nr==(len(exp_order)):
+                [st,dummy]=self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
+                en=ende
+                col=QtCore.Qt.darkRed
             else:
-                st_nr=en_nr-1
-                #col='peru'
+                [st,dummy]=self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
+                [en,dummy]=self.shapes[exp_order[shape_nr]].get_st_en_points(0)
+                col=QtCore.Qt.darkGray
                 
-            st=shapes_st_en_points[route[st_nr]][1]
-            en=shapes_st_en_points[route[en_nr]][0]
+#            st=shapes_st_en_points[route[st_nr]][1]
+#            en=shapes_st_en_points[route[en_nr]][0]
 
             self.routearrows.append(Arrow(startp=st,
                   endp=en,
-                  color=QtCore.Qt.red,
-                  pencolor=QtCore.Qt.red))
+                  color=col,
+                  pencolor=col))
             
-            self.routetext.append(RouteText(text=("%s,%s" %(layer_nr,en_nr)),
+            self.routetext.append(RouteText(text=("%s,%s" %(layer_nr,shape_nr)),
                                             startp=st)) 
             
             #self.routetext[-1].ItemIgnoresTransformations 
@@ -604,29 +615,33 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             self.addItem(self.routetext[-1])   
             self.addItem(self.routearrows[-1])
 
-    def updateexproute(self,shapes_st_en_points,route):
+    def updateexproute(self,exp_order):
         """
         This function updates the Arrows of the export route order and 
         its numbers. 
         @param shapes_st_en_points: The start and end points of the shapes.
         @param route: The order of the shapes to be plotted. 
         """
+        x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
+        y_st=g.config.vars.Plane_Coordinates['axis2_start_end']
+        start=Point(x=x_st,y=y_st)
+        ende=Point(x=x_st,y=y_st)
         
-        for en_nr in range(len(route)):
-            if en_nr==0:
-                st_nr=-1
-            elif en_nr==1:
-                st_nr=en_nr-1
+        
+        for shape_nr in range(len(exp_order)+1):
+            
+            if shape_nr==0:
+                st=start
+                [en,dummy]=self.shapes[exp_order[shape_nr]].get_st_en_points(0)
+            elif shape_nr==(len(exp_order)):
+                [st,dummy]=self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
+                en=ende
             else:
-                st_nr=en_nr-1
+                [st,dummy]=self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
+                [en,dummy]=self.shapes[exp_order[shape_nr]].get_st_en_points(0)
             
-            st=shapes_st_en_points[route[st_nr]][1]
-            en=shapes_st_en_points[route[en_nr]][0]
-            
-            arrownr=len(self.routearrows)-len(route)+en_nr
-            
-            self.routearrows[arrownr].updatepos(st,en)
-            self.routetext[arrownr].updatepos(st)
+            self.routearrows[shape_nr].updatepos(st,en)
+            self.routetext[shape_nr].updatepos(st)
         
     def delete_opt_path(self):
         """

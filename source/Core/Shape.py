@@ -277,7 +277,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         """
         pass
         #scene=self.scene()
-        #print 'habs erwischt shape'
      
 #        if event.button() == QtCore.Qt.LeftButton:
 #            super(ShapeClass, self).mousePressEvent(event)
@@ -328,7 +327,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param flag: The flag to enable or disable tool path optimisation for this shape
         """
         self.send_to_TSP=flag
-        #print("shape nr {0} optimisation is now {1}".format(self.nr, self.send_to_TSP))
 
     def isToolPathOptimized(self):
         """

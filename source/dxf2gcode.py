@@ -150,19 +150,31 @@ class Main(QtGui.QMainWindow):
         """
         logger.debug('Optimize order of enabled shapes per layer')
         self.MyGraphicsScene.resetexproutes()
+        
+        #Get the export order from the QTreeView
+        logger.debug('Updating order according to TreeView')
+        self.TreeHandler.updateExportOrder()
 
         for  LayerContent in self.LayerContents:
 
             #Initial values for the Lists to export.
             self.shapes_to_write=[]
+            self.shapes_fixed_order=[]
             shapes_st_en_points=[]
             
             #Check all shapes of Layer which shall be exported and create List
             #for it.
-            for shape in LayerContent.shapes:   
-                if not(shape.isDisabled()):
-                    self.shapes_to_write.append(shape)
-                    shapes_st_en_points.append(shape.get_st_en_points())
+            logger.debug("Nr. of Shapes %s; Nr. of Shapes in Route %s" 
+                         %(len(LayerContent.shapes),len(LayerContent.exp_order)))
+            logger.debug("Export Order for start: %s" %LayerContent.exp_order)
+            
+            
+            for shape_nr in range(len(LayerContent.exp_order)):    
+                if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
+                    self.shapes_fixed_order.append(shape_nr)
+                
+                self.shapes_to_write.append(shape_nr)
+                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_st_en_points())
             
             #Perform Export only if the Number of shapes to export is bigger 0     
             if len(self.shapes_to_write)>0:     
@@ -176,35 +188,36 @@ class Main(QtGui.QMainWindow):
                 start=Point(x=x_st,y=y_st)
                 ende=Point(x=x_st,y=y_st)
                 shapes_st_en_points.append([start,ende])
-        
-                #Optimieren der Reihenfolge
-                logger.info("")    
+
                     
                 TSPs=[]
-                TSPs.append(TSPoptimize(shapes_st_en_points))
+                TSPs.append(TSPoptimize(st_end_points=shapes_st_en_points,
+                                        order=self.shapes_fixed_order))
                 logger.info("TSP start values initialised for Layer %s" %LayerContent.LayerName)
-                
-                self.MyGraphicsScene.addexproute(TSPs[-1].st_end_points,
-                                                          TSPs[-1].opt_route,
-                                                          LayerContent.LayerNr)
+                logger.debug("Shapes to write: %s" %self.shapes_to_write)
+                logger.debug("Fixed order: %s" %self.shapes_fixed_order)
+
+                self.MyGraphicsScene.addexproute(LayerContent.exp_order,
+                                                 LayerContent.LayerNr)
                
                 for it_nr in range(iter):
                     #Only show each 50 step.
-                    if (it_nr%100)==0:
-                        logger.info("TSP Iteration nr: %i Start route length: %0.1f" 
-                                    %(it_nr,TSPs[-1].Fittness.best_fittness[-1]))
-                          
+                    if (it_nr%50)==0:
+
                         TSPs[-1].calc_next_iteration()
-                        self.MyGraphicsScene.updateexproute(TSPs[-1].st_end_points,
-                                                          TSPs[-1].opt_route)
+                        new_exp_order=[]
+                        for nr in TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]:
+                            new_exp_order.append(LayerContent.exp_order[nr])
+                        
+                        self.MyGraphicsScene.updateexproute(new_exp_order)
                         self.app.processEvents()                   
                     
                 logger.debug("TSP done with result: %s" %TSPs[-1])
                 
     
                 
-                LayerContent.exp_order=TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]
-                #logger.debug(TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)])
+                LayerContent.exp_order=new_exp_order
+                logger.debug("New Export Order after TSP: %s" %new_exp_order)
             else:
                 LayerContent.exp_order=[]
             
@@ -395,18 +408,6 @@ class Main(QtGui.QMainWindow):
                             sca=[1.0,1.0,1.0],
                             rot=0.0)
 
-        print("\033[31;1mEntitieRoot = %s\033[m" %self.EntitiesRoot) #TODO : remove
-        for i, forme in enumerate(self.EntitiesRoot.children): #TODO : remove
-            print("\033[32mEntitieRoot.children[%i] = %s\033[m" %(i, forme)) #TODO : remove
-
-#        print("\033[31;1mLayerContents = %s\033[m" %self.LayerContents) #TODO : remove
-        print("\n") #TODO : remove
-        for i, layer in enumerate(self.LayerContents): #TODO : remove
-            print("\033[31;1mLayerContents[%i] = %s\033[m" %(i, layer)) #TODO : remove
-
-            for j, forme in enumerate(self.LayerContents[i].shapes): #TODO : remove
-                print("\033[32mLayerContents[%i].shape[%i] = %s\033[m" %(i, j, forme)) #TODO : remove
-
 
         #Populate the treeViews
         self.TreeHandler.buildEntitiesTree(self.EntitiesRoot)
@@ -462,7 +463,6 @@ class Main(QtGui.QMainWindow):
         that 0 is the Root Entities and  1 is beginning with the first block. 
         This value gives the index of self.values to be used.
         """
-        print("\033[37;1mmakeEntitiesShapes() ; parent = %s\033[m" %parent.Name) #TODO : remove
 
         if parent.Name=="Entities":      
             entities=self.values.entities
@@ -477,7 +477,6 @@ class Main(QtGui.QMainWindow):
         #Schleife fuer die Anzahl der Konturen 
         #Loop for the number of contours
         for cont in entities.cont:
-            print("\033[37;1mcont in entities.cont\033[m") #TODO : remove
             #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
             #Query if it is in the contour of an insert of a block
             if ent_geos[cont.order[0][0]].Typ=="Insert":

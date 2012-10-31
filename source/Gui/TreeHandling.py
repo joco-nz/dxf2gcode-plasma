@@ -183,7 +183,6 @@ class TreeHandler(QtGui.QWidget):
         options
         @param entities_list: list of the layers and shapes (created in the main)
         """
-        print("\033[31;1mbuildEntitiesTree()\033[m")
 
         self.entities_list = entities_list
         if self.entity_item_model:
@@ -293,7 +292,6 @@ class TreeHandler(QtGui.QWidget):
         Export will be performed in the order of the structure self.LayerContents of the main. Each layer contains some shapes , and the export order of the shapes is set by populating the exp_order[] list with the shapes reference number for each layer (eg exp_order = [5, 3, 2, 4, 0, 1] for layer 0, exp_order = [5, 3, 7] for layer 1, ...)
         options
         """
-        print("\033[31;1mupdateExportOrder()\033[m")
 
         i = self.layer_item_model.rowCount(QtCore.QModelIndex())
         while i > 0:
@@ -330,7 +328,6 @@ class TreeHandler(QtGui.QWidget):
         @param shape: the Shape who's selection has changed
         @param selection: whether the Shape has been selected (True) or unselected (False)
         """
-        print("\033[31;1mupdateShapeSelection\033[m")
 
         #Layer treeView
         item_index = self.findLayerItemIndexFromShape(shape)
@@ -381,8 +378,6 @@ class TreeHandler(QtGui.QWidget):
         @param shape: the Shape who's enabling has changed
         @param enable: whether the Shape has been enabled (True) or disabled (False)
         """
-        print("\033[31;1mupdateShapeEnabling()\033[m")
-
         #Layer treeView
         item_index = self.findLayerItemIndexFromShape(shape)
 
@@ -432,7 +427,6 @@ class TreeHandler(QtGui.QWidget):
         options
         @param shape: the real shape (ShapeClass instance)
         @return: the found item index
-        print("\033[31;1mfindLayerItemIndexFromShape\033[m")
         """
         return self.traverseChildrenAndFindShape(self.layer_item_model, QtCore.QModelIndex(), shape); #Return the item found (can be None)
 
@@ -442,7 +436,6 @@ class TreeHandler(QtGui.QWidget):
         options
         @param shape: the real shape (ShapeClass instance)
         @return: the found item index
-        print("\033[31;1mfindEntitieItemIndexFromShape\033[m")
         """
         return self.traverseChildrenAndFindShape(self.entity_item_model, QtCore.QModelIndex(), shape); #Return the item found (can be None)
 
@@ -454,7 +447,6 @@ class TreeHandler(QtGui.QWidget):
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
         @param shape: the real shape (ShapeClass instance)
         @return: the found item index
-        print("\033[31;1mtraverseChildrenAndFindShape\033[m")
         """
         found_item_index = None
 
@@ -462,7 +454,6 @@ class TreeHandler(QtGui.QWidget):
         while i < item_model.rowCount(item_index):
             sub_item_index = item_model.index(i, 0, item_index)
 
-            #print("sub_item_index.data(SHAPE_OBJECT) = {0}".format(sub_item_index.data(SHAPE_OBJECT).toPyObject()))
             if sub_item_index.data(SHAPE_OBJECT).isValid():
                 real_item = sub_item_index.data(SHAPE_OBJECT).toPyObject()
                 if shape == real_item:
@@ -484,7 +475,6 @@ class TreeHandler(QtGui.QWidget):
         @param item_model: the treeView model (used to store the data, see QT docs)
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
         @param select: whether to select (True) or not (False)
-        print("\033[31;1mtraverseChildrenAndSelect()\033[m")
         """
 
         i = 0
@@ -512,7 +502,6 @@ class TreeHandler(QtGui.QWidget):
         @param item_model: the treeView model (used to store the data, see QT docs)
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
         @param checked_state: the state of the checkbox
-        print("\033[31;1mtraverseChildrenAndEnableDisable()\033[m")
         """
 
         i = 0
@@ -535,7 +524,6 @@ class TreeHandler(QtGui.QWidget):
         options
         @param item_model: the treeView model (used to store the data, see QT docs)
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
-        print("\033[31;1mtraverseParentsAndEnableDisable()\033[m")
         """
         has_unchecked = False
         has_partially_checked = False
@@ -579,7 +567,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the tools diameter, speed and start_radius when a new tool is selected
         @param text: the name of the newly selected tool
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
 
         if not text.isEmpty():
@@ -625,7 +612,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the above tools parameter when the corresponding LineEdit changes
         @param text: the value of the LineEdit
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
         self.ui.zRetractionArealLineEdit.setPalette(self.palette) #Restore color
 
@@ -653,7 +639,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the above tools parameter when the corresponding LineEdit changes
         @param text: the value of the LineEdit
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
         self.ui.zSafetyMarginLineEdit.setPalette(self.palette) #Restore color
 
@@ -681,7 +666,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the above tools parameter when the corresponding LineEdit changes
         @param text: the value of the LineEdit
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
         self.ui.zInfeedDepthLineEdit.setPalette(self.palette) #Restore color
 
@@ -709,7 +693,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the above tools parameter when the corresponding LineEdit changes
         @param text: the value of the LineEdit
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
         self.ui.g1FeedXYLineEdit.setPalette(self.palette) #Restore color
 
@@ -737,7 +720,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the above tools parameter when the corresponding LineEdit changes
         @param text: the value of the LineEdit
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
         self.ui.g1FeedZLineEdit.setPalette(self.palette) #Restore color
 
@@ -765,7 +747,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the above tools parameter when the corresponding LineEdit changes
         @param text: the value of the LineEdit
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
         self.ui.zInitialMillDepthLineEdit.setPalette(self.palette) #Restore color
 
@@ -793,7 +774,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Slot that updates the above tools parameter when the corresponding LineEdit changes
         @param text: the value of the LineEdit
-        print("\033[31;1mtoolUpdate({0}) {1}\033[m".format(text, type(text)))
         """
         self.ui.zFinalMillDepthLineEdit.setPalette(self.palette) #Restore color
 
@@ -918,7 +898,6 @@ class TreeHandler(QtGui.QWidget):
         Display the current tools settings (fill the QLineEdit, ...) for the Layer / Shape passed as parameter
         @param layer_item: layer instance as defined in LayerContent.py
         @param shape_item: shape instance as defined in Shape.py
-        print("\033[31;1mcolorizeWidget {0} {1}\033[m".format(self.tool_nr, layer_item.tool_nr))
         """
         #Selects the tool for the selected layer
         self.ui.toolDiameterComboBox.setCurrentIndex(self.ui.toolDiameterComboBox.findText(str(layer_item.tool_nr)))
@@ -965,7 +944,6 @@ class TreeHandler(QtGui.QWidget):
         @param widget: QT widget to update (can be a QLabel or a QLineEdit
         @param previous_value: the value of the previously selected item
         @param value: the value (parameter) of the selected item
-        print("\033[31;1mupdateAndColorizeWidget() {0} {1}\033[m".format(previous_value, value))
         """
         widget.setText(str(round(value, 4))) #Round the value with at most 4 digits
 
@@ -1013,7 +991,6 @@ class TreeHandler(QtGui.QWidget):
         This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, then we capture it to enable/disable shape
         @param key_code: the key code as defined by QT
         @param item_index: the item on which the keyPress event occured
-        print("\033[31;1mactionOnKeyPress key = {0}\033[m".format(key_code))
         """
         result = False
         if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
@@ -1034,7 +1011,6 @@ class TreeHandler(QtGui.QWidget):
         This slot is called when some data change in one of the TreeView. For us, since rows are read only, it is only triggered when a checkbox is checked/unchecked
         options
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
-        print("\033[34;1mItemChanged !\033[m New checkbox state = {0}".format(item.checkState()))
         """
         if item.column() == PATH_OPTIMISATION_COL:
             #User has clicked on the Path Optimisation (TSP) checkbox => update the corresponding data into the shape
@@ -1062,7 +1038,6 @@ class TreeHandler(QtGui.QWidget):
         This function is used to effectively update the state of a checkbox and enable / disable texts when item is a shape
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         @param check: the check state
-        print("\033[34;1mupdateCheckboxOfItem()\033[m New checkbox state = {0}".format(check))
         """
         item.model().blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
         item.setCheckState(check)
@@ -1103,7 +1078,6 @@ class TreeHandler(QtGui.QWidget):
         """
         Enable / disable all the columns from a row, except the first one (because the first column contains the checkbox that must stay enabled in order to be clickable)
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
-        print("\033[34;1mupdateCheckboxOfItem()\033[m New checkbox state = {0}".format(check))
         """
         current_tree_view = None
         if item.model() == self.layer_item_model:
