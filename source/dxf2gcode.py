@@ -218,6 +218,9 @@ class Main(QtGui.QMainWindow):
                 
                 LayerContent.exp_order=new_exp_order
                 logger.debug("New Export Order after TSP: %s" %new_exp_order)
+                
+                """FIXME: FOR XAVIER
+                Here is the new order to write into the Treeview."""
             else:
                 LayerContent.exp_order=[]
             
