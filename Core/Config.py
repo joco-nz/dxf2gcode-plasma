@@ -110,6 +110,14 @@ CONFIG_SPEC = str('''
         speed = float(default=6000)
         start_radius = float(default= 3.0)
     
+    [Custom_Actions]
+        [[custom_gcode]]
+        gcode = string(default='"""(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)"""')
+
+        [[__many__]]
+        gcode = string(default="(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
+
+    
     [Filters]
     pstoedit_cmd = string(default="/opt/local/bin/pstoedit")
     pstoedit_opt = list(default=list('-f', 'dxf', '-mm'))
