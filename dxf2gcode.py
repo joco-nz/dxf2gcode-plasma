@@ -170,6 +170,10 @@ class Main(QtGui.QMainWindow):
             
             
             for shape_nr in range(len(LayerContent.exp_order)):    
+                if not self.shapes[LayerContent.exp_order[shape_nr]]:
+                    #shape_nr is not a real Shape => don't send it to the optimizer
+                    continue
+
                 if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
                     self.shapes_fixed_order.append(shape_nr)
                 
@@ -218,13 +222,15 @@ class Main(QtGui.QMainWindow):
                 
                 LayerContent.exp_order=new_exp_order
                 logger.debug("New Export Order after TSP: %s" %new_exp_order)
-                
-                """FIXME: FOR XAVIER
-                Here is the new order to write into the Treeview."""
+
             else:
                 LayerContent.exp_order=[]
             
             self.ui.actionDelete_G0_paths.setEnabled(True)           
+
+        #Update order in the treeView, according to path calculation done by the TSP
+        self.TreeHandler.updateTreeViewOrder()
+
 
     def deleteG0paths(self):
         """

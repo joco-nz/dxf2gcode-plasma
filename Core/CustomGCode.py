@@ -41,8 +41,8 @@ class CustomGCodeClass:
         self.nr = nr
         self.gcode = gcode
         self.LayerContent = parent
-        self.disabled=False
-
+        self.disabled = False
+        self.send_to_TSP = False #Never optimize path for CustomGCode
 
 
     def __str__(self):

@@ -370,6 +370,41 @@ class TreeHandler(QtGui.QWidget):
 
 
 
+    def updateTreeViewOrder(self):
+        """
+        Update the Layer TreeView order according to the exp_order list of each layer. This function should be called after running the TSP path otimizer
+        """
+
+        i = self.layer_item_model.rowCount(QtCore.QModelIndex())
+        while i > 0:
+            i -= 1
+            layer_item_index = self.layer_item_model.index(i, 0)
+            layer_item = self.layer_item_model.itemFromIndex(layer_item_index)
+
+            if layer_item_index.data(LAYER_OBJECT).isValid():
+                real_layer = layer_item_index.data(LAYER_OBJECT).toPyObject()
+
+                #for shape_nr in real_layer.exp_order[::-1]: #reverse order and prepend if we want to insert optimized shape before fixed shapes
+                for shape_nr in real_layer.exp_order:
+                    j = 0
+                    while j < self.layer_item_model.rowCount(layer_item_index):
+                        shape_item_index = self.layer_item_model.index(j, 0, layer_item_index)
+
+                        real_shape = None
+                        if shape_item_index.data(SHAPE_OBJECT).isValid():
+                            real_shape = shape_item_index.data(SHAPE_OBJECT).toPyObject()
+
+                            if real_shape and real_shape.nr == shape_nr and (real_shape.send_to_TSP or g.config.vars.Route_Optimisation['TSP_shape_order'] == 'CONSTRAIN_ORDER_ONLY'):
+                                #Shape number "shape_nr" found in the treeView and Shape is movable => moving it to its new position
+                                item_to_be_moved = layer_item.takeRow(j)
+                                layer_item.appendRow(item_to_be_moved)
+
+                                break
+
+                        j += 1
+
+
+
     def updateShapeSelection(self, shape, select):
         """
         This method is a "slot" (callback) called from the main when the selection changes on the graphic view.
@@ -1039,11 +1074,12 @@ class TreeHandler(QtGui.QWidget):
 
     def actionOnKeyPress(self, key_code, item_index):
         """
-        This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, then we capture it to enable/disable shape
+        This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, O or T, then we capture it to enable/disable shape, ...
         @param key_code: the key code as defined by QT
         @param item_index: the item on which the keyPress event occured
         """
         result = False
+        #Enable/disable checkbox
         if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
             item_index = item_index.sibling(item_index.row(), 0) #Get the first column of the row (ie the one that contains the enable/disable checkbox)
             item = item_index.model().itemFromIndex(item_index)
@@ -1052,6 +1088,17 @@ class TreeHandler(QtGui.QWidget):
             self.ui.layersShapesTreeView.setCurrentIndex(item_index)
             self.ui.entitiesTreeView.setCurrentIndex(item_index)
             result = True #Key handled
+
+        #Optimize path checkbox
+        if (key_code == QtCore.Qt.Key_O or key_code == QtCore.Qt.Key_T) and item_index and item_index.isValid():
+            item_index = item_index.sibling(item_index.row(), PATH_OPTIMISATION_COL) #Get the column of the row that contains the "Optimize Path" checkbox
+            item = item_index.model().itemFromIndex(item_index)
+            if item.isCheckable():
+                item.setCheckState(QtCore.Qt.Unchecked if item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked) #Toggle checkbox
+                #Ensure that the first col is the current index, so that we can still traverse the tree with the keyboard
+                self.ui.layersShapesTreeView.setCurrentIndex(item_index)
+                self.ui.entitiesTreeView.setCurrentIndex(item_index)
+                result = True #Key handled
 
         return result
 

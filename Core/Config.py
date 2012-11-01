@@ -90,6 +90,11 @@ CONFIG_SPEC = str('''
     
     [Route_Optimisation]
     default_TSP = boolean(default=False)
+
+    # Path optimizer behaviour:
+    #  CONSTRAIN_ORDER_ONLY: fixed Shapes and optimized Shapes can be mixed. Only order of fixed shapes is kept
+    #  CONSTRAIN_PLACE_AFTER: optimized Shapes are always placed after any fixed Shape
+    TSP_shape_order = option('CONSTRAIN_ORDER_ONLY', 'CONSTRAIN_PLACE_AFTER', default='CONSTRAIN_ORDER_ONLY')
     mutation_rate = float(default= 0.95)
     max_population = integer(default= 20)
     max_iterations = integer(default= 300)
