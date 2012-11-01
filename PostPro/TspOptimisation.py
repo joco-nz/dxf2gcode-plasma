@@ -32,14 +32,14 @@ import logging
 logger = logging.getLogger("PostPro.TSP") 
 
 class TSPoptimize:
-    def __init__(self, st_end_points=[]):
+    def __init__(self, st_end_points=[],order=[]):
         self.shape_nrs = len(st_end_points)        
         self.iterations = int(self.shape_nrs) * 10
         self.pop_nr = min(int(ceil(self.shape_nrs / 8.0) * 8.0),
                         g.config.vars.Route_Optimisation['max_population'])
         self.mutate_rate = g.config.vars.Route_Optimisation['mutation_rate']
         self.opt_route = []
-        self.order = []
+        self.order = order
         self.st_end_points = st_end_points
         
         #Generating the Distance Matrix
@@ -64,7 +64,7 @@ class TSPoptimize:
         #Korrektur Funktion um die Reihenfolge der Elemente zu korrigieren
         self.Fittness.correct_constrain_order()
         
-        logger.debug('Calculation of start fitness TSP: %s' %self)
+        #logger.debug('Calculation of start fitness TSP: %s' %self)
         #logger.debug('Size Distance matrix: %s',len(self.DistanceMatrix.matrix))
         #Erstellen der ersten Ergebnisse
         self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
@@ -114,10 +114,10 @@ class PopulationClass:
         self.pop = pop
         self.rot = rot
         
-        logger.debug('The Population size is: %s' %self.size)
+        #logger.debug('The Population size is: %s' %self.size)
 
         for pop_nr in range(self.size[1]):
-            logger.debug("======= TSP initializing population nr %i =======" % pop_nr)
+            #logger.debug("======= TSP initializing population nr %i =======" % pop_nr)
             
             if g.config.vars.Route_Optimisation['begin_art'] == 'ordered':
                 self.pop.append(range(size[0]))
@@ -151,8 +151,8 @@ class PopulationClass:
             tour.append(self.heurestic_find_next(tour[-1], possibilities, dmatrix))
             possibilities.pop(possibilities.index(tour[-1]))
 
-            if (counter % 10) == 0:
-                logger.debug("TSP heurestic searching nr %i" % counter)
+            #if (counter % 10) == 0:
+                #logger.debug("TSP heurestic searching nr %i" % counter)
         return tour
           
     def heurestic_find_next(self, start=1, possibilities=[], dmatrix=[]):
@@ -320,6 +320,10 @@ class FittnessClass:
             
     #2te Möglichkeit die Reihenfolge festzulegen (Korrekturfunktion=Aktiv)                
     def correct_constrain_order(self):
+        """FIXME: in order to change the correction to have all orderd shapes 
+        in begin this might be the best place to change it. Maybe we can also have
+        an additional option in the config file?"""
+        
         for pop_nr in range(len(self.population.pop)):
             #Suchen der momentanen Reihenfolge
             order_index = self.get_pop_index_list(self.population.pop[pop_nr])

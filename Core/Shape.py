@@ -77,7 +77,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
         self.disabled=False
-        self.send_to_TSP=True #True to optimize the toolpath for this shape
+        self.send_to_TSP=g.config.vars.Route_Optimisation['default_TSP']
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -277,7 +277,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         """
         pass
         #scene=self.scene()
-        #print 'habs erwischt shape'
      
 #        if event.button() == QtCore.Qt.LeftButton:
 #            super(ShapeClass, self).mousePressEvent(event)
@@ -328,7 +327,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param flag: The flag to enable or disable tool path optimisation for this shape
         """
         self.send_to_TSP=flag
-        #print("shape nr {0} optimisation is now {1}".format(self.nr, self.send_to_TSP))
 
     def isToolPathOptimized(self):
         """
@@ -533,6 +531,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
         max_slice = LayerContent.axis3_slice_depth
 
+        #Save the initial Cutter correction in a variable
+        ini_cut_cor=self.cut_cor
 
         #If the Output Format is DXF do not perform more then one cut.
         if PostPro.vars.General["output_type"] == 'dxf':
@@ -552,7 +552,6 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         #Move the tool to the start.          
         exstr+=self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-
 
         #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done outside the piece
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
@@ -619,7 +618,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             if ((not(self.cut_cor == 40)) & (self.closed == 0))or(PostPro.vars.General["cancel_cc_for_depth"] == 1):
                 #Calculate the starting point without tool compensation
                 #and add the compensation
-                #FIXME: throw error because start is undefined ...
+                start, start_ang = self.get_st_en_points(0)
                 exstr+=PostPro.set_cut_cor(self.cut_cor, start)
                 
             for geo_nr in range(len(self.geos)):
@@ -636,12 +635,6 @@ class ShapeClass(QtGui.QGraphicsItem):
             if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):         
                 exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
      
-        #Initial value of direction restored if necessary
-        #FIXME: removed by Xavier, I don't know the purpose of this code, but it causes the GCode to be wrong each two exports when cutter compensation is enabled (it switches automatically between G41 & G42 while it shouldn't)
-        #if (snr % 2) > 0:
-        #    self.reverse()
-        #    self.switch_cut_cor()
-
         #Do the tool retraction
         exstr+=PostPro.lin_pol_z(initial_mill_depth + abs(safe_margin))
         exstr+=PostPro.rap_pos_z(safe_retract_depth)
@@ -652,5 +645,9 @@ class ShapeClass(QtGui.QGraphicsItem):
             ende, en_angle = self.get_st_en_points(1)
             exstr+=PostPro.deactivate_cut_cor(ende)        
 
+        #Initial value of direction restored if necessary
+        if ini_cut_cor != self.cut_cor:
+            self.reverse()
+            self.switch_cut_cor()
 
         return exstr

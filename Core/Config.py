@@ -89,6 +89,7 @@ CONFIG_SPEC = str('''
     
     
     [Route_Optimisation]
+    default_TSP = boolean(default=False)
     mutation_rate = float(default= 0.95)
     max_population = integer(default= 20)
     max_iterations = integer(default= 300)
@@ -104,6 +105,16 @@ CONFIG_SPEC = str('''
         diameter = float(default= 2.0)
         speed = float(default=6000)
         start_radius = float(default= 0.2)
+        
+        [[2]]
+        diameter = float(default=2.0)
+        speed = float(default=6000.0)
+        start_radius = float(default=1.0)
+
+        [[10]]
+        diameter = float(default=10.0)
+        speed = float(default=6000.0)
+        start_radius = float(default=2.0)
 
         [[__many__]]
         diameter = float(default= 3.0)
