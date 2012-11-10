@@ -196,10 +196,8 @@ class MyGraphicsView(QtGui.QGraphicsView):
                 self.rubberBand.show()
                 self.rubberBand.setGeometry(QtCore.QRect(self.mppos, event.pos()).normalized())
                 
-        scpoint=self.mapToScene(event.pos()) 
-        
-        self.setStatusTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),-scpoint.y()))
-        self.setToolTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),-scpoint.y()))
+        self.setStatusTip('X: %3.1f; Y: %3.1f' %(event.pos().x(),event.pos().y()))
+        self.setToolTip('X: %3.1f; Y: %3.1f' %(event.pos().x(),event.pos().y()))
             
         super(MyGraphicsView, self).mouseMoveEvent(event)        
          

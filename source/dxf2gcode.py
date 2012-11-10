@@ -76,7 +76,7 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView=self.ui.MyGraphicsView
         
         self.myMessageBox=self.ui.myMessageBox 
-        
+       
         self.MyPostProcessor=MyPostProcessor()
         
         self.TreeHandler=TreeHandler(self.ui)
@@ -261,21 +261,85 @@ class Main(QtGui.QMainWindow):
                 (beg, ende)=os.path.split(str(self.save_filename))
                 (fileBaseName, fileExtension)=os.path.splitext(ende) 
         
-                pp_file_nr=self.MyPostProcessor.output_format.index(fileExtension)
+        
+        #Config & postpro in einen kurzen Namen speichern
+        logger.debug(dir(g.config))
+
+        if not(g.config.vars.General['write_to_stdout']):
+           
+                #Abfrage des Namens um das File zu speichern
+                self.save_filename=self.showSaveDialog()
                 
-                self.MyPostProcessor.getPostProVars(pp_file_nr)
+                
+                 #Wenn Cancel gedrueckt wurde
+                if not self.save_filename:
+                    return
+                
+                (beg, ende)=os.path.split(self.save_filename)
+                (fileBaseName, fileExtension)=os.path.splitext(ende) 
+        
+                pp_file_nr=postpro.output_format.index(fileExtension)
+                
+                postpro.get_all_vars(pp_file_nr)
         else:
-                self.MyPostProcessor.getPostProVars(0)
+                postpro.get_all_vars(0)
         
-        """
-        Export will be performed according to LayerContents and their order
-        is given in this variable too.
-        """
-        
-        self.MyPostProcessor.exportShapes(self.load_filename,
-                                          self.save_filename,
-                                          self.LayerContents)
-      
+               
+        #Funktion zum optimieren des Wegs aufrufen
+        #self.opt_export_route()
+
+#        #Initial Status fuer den Export
+#        status=1
+#
+#        #Schreiben der Standardwert am Anfang        
+#        postpro.write_gcode_be(postpro,self.load_filename)
+#
+#        #Maschine auf die Anfangshoehe bringen
+#        postpro.rap_pos_z(config.axis3_retract.get())
+#
+#        #Bei 1 starten da 0 der Startpunkt ist
+#        for nr in range(1,len(self.TSP.opt_route)):
+#            shape=self.shapes_to_write[self.TSP.opt_route[nr]]
+#            self.textbox.prt((_("\nWriting Shape: %s") %shape),1)
+#                
+#
+#
+#            #Drucken falls die Shape nicht disabled ist
+#            if not(shape.nr in self.CanvasContent.Disabled):
+#                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
+#                stat =shape.Write_GCode(config,postpro)
+#                status=status*stat
+#
+#        #Maschine auf den Endwert positinieren
+#        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
+#                                              y=config.axis2_st_en.get()))
+#
+#        #Schreiben der Standardwert am Ende        
+#        string=postpro.write_gcode_en(postpro)
+#
+#        if status==1:
+#            self.textbox.prt(_("\nSuccessfully generated G-Code"))
+#            self.master.update_idletasks()
+#
+#        else:
+#            self.textbox.prt(_("\nError during G-Code Generation"))
+#            self.master.update_idletasks()
+#
+#                    
+#        #Drucken in den Stdout, speziell fuer EMC2 
+#        if config.write_to_stdout:
+#            print(string)
+#            self.ende()     
+#        else:
+#            #Exportieren der Daten
+#                try:
+#                    #Das File oeffnen und schreiben    
+#                    f = open(self.save_filename, "w")
+#                    f.write(string)
+#                    f.close()       
+#                except IOError:
+#                    showwarning(_("Save As"), _("Cannot save the file."))
+#            
 
     def showSaveDialog(self):
         """
@@ -283,25 +347,34 @@ class Main(QtGui.QMainWindow):
         it creates the selection dialog for the exporter
         @return: Returns the filename of the selected file.
         """
+        
         MyFormats=""
-        for i in range(len(self.MyPostProcessor.output_format)):
-            name="%s " %(self.MyPostProcessor.output_text[i])
-            format="(*%s);;" %(self.MyPostProcessor.output_format[i])
+        for i in range(len(g.postpro.output_format)):
+            name="%s " %(g.postpro.output_text[i])
+            format="(*%s);;" %(g.postpro.output_format[i])
             MyFormats=MyFormats+name+format
             
-        (beg, ende)=os.path.split(str(self.load_filename))
+        logger.debug(MyFormats)
+
+        (beg, ende)=os.path.split(self.load_filename)
         (fileBaseName, fileExtension)=os.path.splitext(ende)
         
+        logger.debug(fileBaseName)
+        logger.debug(g.config.vars.Paths['output_dir'])
+        
         default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
+        
+        logger.debug(default_name)
+        
 
-        selected_filter = self.MyPostProcessor.output_format[0]
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
                     default_name,
-                    MyFormats, selected_filter)
+                    MyFormats)
+
         
-        logger.info("File: %s selected" %filename+selected_filter)
+        logger.info("File: %s selected" %filename)
         
-        return filename+selected_filter
+        return filename
         
     def autoscale(self):
         """
@@ -350,7 +423,7 @@ class Main(QtGui.QMainWindow):
         @param filename: The string of the filename which should be loaded
         """
 
-        self.load_filename=str(filename)
+        self.load_filename=filename
         (name, ext) = os.path.splitext(str(filename))
 
         if (ext.lower() == ".ps")or(ext.lower() == ".pdf"):
@@ -427,147 +500,8 @@ class Main(QtGui.QMainWindow):
         
         #Autoscale des Canvas      
         self.MyGraphicsView.autoscale()
-
-
-    def makeShapes(self,values,p0,pb,sca,rot):
-        """
-        Instance is called by the Main Window after the defined file is loaded.
-        It generates all ploting functionallity. The parameters are generally 
-        used to scale or offset the base geometry (by Menu in GUI).
-        
-        @param values: The loaded dxf values fro mthe dxf_import.py file
-        @param p0: The Starting Point to plot (Default x=0 and y=0)
-        @param bp: The Base Point to insert the geometry and base for rotation 
-        (Default is also x=0 and y=0)
-        @param sca: The scale of the basis function (default =1)
-        @param rot: The rotation of the geometries around base (default =0)
-        """
-        self.values=values
-
-        #Zuruecksetzen der Konturen
-        del(self.shapes[:])
-        del(self.LayerContents[:])
-        del(self.EntitiesRoot)
-        self.EntitiesRoot=EntitieContentClass(Nr=0,Name='Entities',parent=None,children=[],
-                                            p0=p0,pb=pb,sca=sca,rot=rot)
-
-        #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        self.makeEntitiesShapes(parent=self.EntitiesRoot)
-        self.LayerContents.sort()
-        
-    def makeEntitiesShapes(self,parent=None,ent_nr=-1):
-        """
-        Instance is called prior to the plotting of the shapes. It creates
-        all shape classes which are later plotted into the graphics.
-        
-        @param parent: The parent of a shape is always a Entities. It may be root 
-        or if it is a Block this is the Block. 
-        @param ent_nr: The values given in self.values are sorted in that way 
-        that 0 is the Root Entities and  1 is beginning with the first block. 
-        This value gives the index of self.values to be used.
-        """
-
-        if parent.Name=="Entities":      
-            entities=self.values.entities
-        else:
-            ent_nr=self.values.Get_Block_Nr(parent.Name)
-            entities=self.values.blocks.Entities[ent_nr]
-            
-        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
-        #Assigning the geometries in the variables geos & contours in cont
-        ent_geos=entities.geo
-               
-        #Schleife fuer die Anzahl der Konturen 
-        #Loop for the number of contours
-        for cont in entities.cont:
-            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-            #Query if it is in the contour of an insert of a block
-            if ent_geos[cont.order[0][0]].Typ=="Insert":
-                ent_geo=ent_geos[cont.order[0][0]]
-                
-                #Zuweisen des Basispunkts f�r den Block
-                #Assign the base point for the block
-                new_ent_nr=self.values.Get_Block_Nr(ent_geo.BlockName)
-                new_entities=self.values.blocks.Entities[new_ent_nr]
-                pb=new_entities.basep
-                
-                #Skalierung usw. des Blocks zuweisen
-                #Scaling, etc. assign the block
-                p0=ent_geos[cont.order[0][0]].Point
-                sca=ent_geos[cont.order[0][0]].Scale
-                rot=ent_geos[cont.order[0][0]].rot
-                
-                logger.debug(new_entities)
-                
-                #Erstellen des neuen Entitie Contents f�r das Insert
-                #Creating the new Entitie Contents for the insert
-                NewEntitieContent=EntitieContentClass(Nr=0,Name=ent_geo.BlockName,
-                                        parent=parent,children=[],
-                                        p0=p0,
-                                        pb=pb,
-                                        sca=sca,
-                                        rot=rot)
-
-                parent.addchild(NewEntitieContent)
-            
-                self.makeEntitiesShapes(parent=NewEntitieContent,ent_nr=ent_nr)
-                
-            else:
-                #Schleife fuer die Anzahl der Geometrien
-                #Loop for the number of geometries
-                self.shapes.append(ShapeClass(len(self.shapes),\
-                                                cont.closed,\
-                                                40,\
-                                                0.0,\
-                                                parent,\
-                                                []))
-                for ent_geo_nr in range(len(cont.order)):
-                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
-                    if cont.order[ent_geo_nr][1]:
-                        ent_geo.geo.reverse()
-                        for geo in ent_geo.geo:
-                            geo=copy(geo)
-                            geo.reverse()
-                            self.shapes[-1].geos.append(geo)
-
-                        ent_geo.geo.reverse()
-                    else:
-                        for geo in ent_geo.geo:
-                            self.shapes[-1].geos.append(copy(geo))
-                
-                #All shapes have to be CCW direction.         
-                self.shapes[-1].AnalyseAndOptimize()
-                self.shapes[-1].FindNearestStPoint()
-                
-                #Connect the shapeSelectionChanged and enableDisableShape signals to our treeView, so that selections of the shapes are reflected on the treeView
-                self.shapes[-1].setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
-                self.shapes[-1].setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
-                
-                self.addtoLayerContents(self.shapes[-1],ent_geo.Layer_Nr)
-                parent.addchild(self.shapes[-1])
-                
-    def addtoLayerContents(self,shape,lay_nr):
-        """
-        Instance is called while the shapes are created. This gives the 
-        structure which shape is laying on which layer. It also writes into the
-        shape the reference to the LayerContent Class.
-        
-        @param shape: The shape to be appended of the shape 
-        @param lay_nr: The Nr. of the layer
-        """
-        #Check if the layer is already existing and add shape if it is.
-        for LayCon in self.LayerContents:
-            if LayCon.LayerNr==lay_nr:
-                LayCon.shapes.append(shape)
-                shape.LayerContent=LayCon
-                return
-
-        #If the Layer is not existing create a new one.
-        LayerName=self.values.layers[lay_nr].name
-        self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape]))
-        shape.LayerContent=self.LayerContents[-1]
-        
-if __name__ == "__main__":
+     
+def setup_logging(Log,myMessageBox):
     """
     The main function which is executed after program start. 
     """
@@ -587,6 +521,9 @@ if __name__ == "__main__":
     #shall be sent to. This Class needs a function "def write(self,charstr)
     Log.set_window_logstream(window.myMessageBox)
     
+    g.config=MyConfig()
+    g.postpro=MyPostProcessor()
+    
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")
@@ -604,6 +541,8 @@ if __name__ == "__main__":
      
     # It's exec_ because exec is a reserved word in Python
     sys.exit(app.exec_())
+
+
 
 
 
