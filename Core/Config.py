@@ -86,7 +86,8 @@ CONFIG_SPEC = str('''
     
     [General]
     write_to_stdout = boolean(default=False)
-    
+    live_update_export_route = boolean(default=False)
+
     
     [Route_Optimisation]
     default_TSP = boolean(default=False)

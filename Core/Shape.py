@@ -49,7 +49,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 cut_cor=40, length=0.0,
                 parent=None,
                 geos=[],
-                axis3_start_mill_depth=None, axis3_mill_depth=None):
+                axis3_start_mill_depth=None, axis3_mill_depth=None, axis3_slice_depth=None, f_g1_plane=None, f_g1_depth=None):
         """ 
         Standard method to initialize the class
         @param nr: The number of the shape. Starting from 0 for the first one 
@@ -90,6 +90,9 @@ class ShapeClass(QtGui.QGraphicsItem):
         #self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
         self.axis3_start_mill_depth = axis3_start_mill_depth
+        self.axis3_slice_depth = axis3_slice_depth
+        self.f_g1_plane = f_g1_plane
+        self.f_g1_depth = f_g1_depth
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
 
@@ -527,9 +530,12 @@ class ShapeClass(QtGui.QGraphicsItem):
         safe_retract_depth = LayerContent.axis3_retract
         safe_margin = LayerContent.axis3_safe_margin
         #If defined, choose the parameters from the Shape itself. Otherwise, choose the parameters from the parent Layer
-        initial_mill_depth = LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
+        max_slice = LayerContent.axis3_slice_depth if self.axis3_slice_depth is None else self.axis3_slice_depth
+        workpiece_top_Z = LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
+        initial_mill_depth = workpiece_top_Z - abs(max_slice) #We want to mill the piece, even for the first pass, so remove one "slice"
         depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
-        max_slice = LayerContent.axis3_slice_depth
+        f_g1_plane = LayerContent.f_g1_plane if self.f_g1_plane is None else self.f_g1_plane
+        f_g1_depth = LayerContent.f_g1_depth if self.f_g1_depth is None else self.f_g1_depth
 
         #Save the initial Cutter correction in a variable
         ini_cut_cor=self.cut_cor
@@ -542,7 +548,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             logger.error("ERROR: Z infeed depth is null!")
 
         if initial_mill_depth < depth:
-            logger.error("ERROR: start mill depth (%i) is lower than end mill depth (%i)" % (initial_mill_depth, depth))
+            logger.warning("WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth." % (initial_mill_depth, depth))
 
             #Do not cut below the depth.
             initial_mill_depth = depth
@@ -560,15 +566,15 @@ class ShapeClass(QtGui.QGraphicsItem):
             start, start_ang = self.get_st_en_points(0)
             exstr+=PostPro.set_cut_cor(self.cut_cor, start)
             
-            exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_plane) #Added by Xavier because of code move (see above)
+            exstr+=PostPro.chg_feed_rate(f_g1_plane) #Added by Xavier because of code move (see above)
             exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
             exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
 
 
-        exstr+=PostPro.rap_pos_z(initial_mill_depth + abs(safe_margin)) #Compute the safe margin from the initial mill depth
-        exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_depth)
+        exstr+=PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin)) #Compute the safe margin from the initial mill depth
+        exstr+=PostPro.chg_feed_rate(f_g1_depth)
         exstr+=PostPro.lin_pol_z(mom_depth)
-        exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_plane)
+        exstr+=PostPro.chg_feed_rate(f_g1_plane)
 
         #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done inside the piece
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
@@ -605,9 +611,9 @@ class ShapeClass(QtGui.QGraphicsItem):
                 mom_depth = depth                
 
             #Erneutes Eintauchen
-            exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_depth)
+            exstr+=PostPro.chg_feed_rate(f_g1_depth)
             exstr+=PostPro.lin_pol_z(mom_depth)
-            exstr+=PostPro.chg_feed_rate(LayerContent.f_g1_plane)
+            exstr+=PostPro.chg_feed_rate(f_g1_plane)
 
             #If it is not a closed contour
             if self.closed == 0:
@@ -636,7 +642,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
      
         #Do the tool retraction
-        exstr+=PostPro.lin_pol_z(initial_mill_depth + abs(safe_margin))
+        exstr+=PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
         exstr+=PostPro.rap_pos_z(safe_retract_depth)
 
         #If cutter radius compensation is not turned off.

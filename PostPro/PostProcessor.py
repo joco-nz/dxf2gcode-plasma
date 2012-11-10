@@ -149,26 +149,25 @@ class MyPostProcessor:
         #Move Machine to retraction Area before continuing anything. Note: none of the changes done in the GUI can affect this height, only the config file can do so (intended)
         exstr+=self.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
 
+        previous_tool = None
         #Do the export for each LayerContent in LayerContents List
         for LayerContent in LayerContents:
             logger.debug("Beginning export of Layer Nr. %s, Name%s" 
                          %(LayerContent.LayerNr,LayerContent.LayerName))
             logger.debug("Nr. of Shapes %s; Nr. of Shapes in Route %s" 
-                         %(len(LayerContent.shapes),len(LayerContent.exp_order)))
+                         %(len(LayerContent.shapes),len(LayerContent.exp_order_complete)))
             
             
             #Perform export only for Layers which have min. 1 Shape to export
-            if len(LayerContent.exp_order):
-#                #If comments are enabled, add the Layer name into the generated GCode
-#                if self.vars.General["write_layer_and_shape_names"] and self.vars.General["comment_layer_name"].find("%s") != -1:
-#                    exstr += "\n\n" + (self.vars.General["comment_layer_name"] % LayerContent.LayerName) + '\n'
-
+            if len(LayerContent.exp_order_complete):
                 exstr+=self.commentprint("*** LAYER: %s ***" %(LayerContent.LayerName))
                 
-                #Adding the Tool change for each LayerContent
-                exstr+=self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
+                #If tool has changed for this LayerContent, add it
+                if LayerContent.tool_nr != previous_tool:
+                    exstr+=self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
+                    previous_tool = LayerContent.tool_nr
             
-                for shape_nr in LayerContent.exp_order:
+                for shape_nr in LayerContent.exp_order_complete:
                     shape=LayerContent.shapes[shape_nr]
                     logger.debug("Beginning export of  Shape Nr: %s" % shape.nr)
                     
