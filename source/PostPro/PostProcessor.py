@@ -26,9 +26,16 @@
 #Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
 
 import os
+import time
+
+from math import degrees
+
+from PyQt4 import QtGui
 
 import Core.constants as c
 import Core.Globals as g
+
+from Core.Point import Point
 #from d2gexceptions import *
 
 import logging
@@ -38,13 +45,27 @@ from PostPro.PostProcessorConfig import MyPostProConfig
 
 
 class MyPostProcessor:
+    """
+    The PostProcessor Class includes the functions or getting the output
+    variables from the PostProcessorConfig Classes and general function related
+    to the export of the Code.
+    """
     def __init__(self):
+        """
+        The initialisation of the Postprocessor class. This function is called
+        during the initialisation of the Main Window. It checks during the
+        initialization if a PostProcessor Config file exists and if not creates
+        a new one.
+        For the Save function it creates a list of all possible Postprocessor
+        Config Files.
+        """
 
-        #Get the List of all PostProcessor Config Files in the Postprocessor
-        # Config Directory
-           
         try:
             lfiles = os.listdir(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR))
+            """
+            FIXME Folder needs to be empty or valid config file within.
+            """
+            #logger.debug(lfiles)
         except:
     
             #If no Postprocessor File was found on folder create one
@@ -55,6 +76,8 @@ class MyPostProcessor:
 
             
             lfiles = os.listdir(PostProConfig.folder)
+            
+        
             
         #Only files with the ending *.cfg will be accepted.
         self.postprocessor_files = []
@@ -123,13 +146,10 @@ class MyPostProcessor:
 
         exstr=self.write_gcode_be(load_filename)
         
-        #Move Machine to retraction Area before continuing anything.
+        #Move Machine to retraction Area before continuing anything. Note: none of the changes done in the GUI can affect this height, only the config file can do so (intended)
         exstr+=self.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
 
         #Do the export for each LayerContent in LayerContents List
-        """
-        FIXME Tool Change not included now.
-        """
         for LayerContent in LayerContents:
             logger.debug("Beginning export of Layer Nr. %s, Name%s" 
                          %(LayerContent.LayerNr,LayerContent.LayerName))

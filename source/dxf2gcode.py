@@ -76,7 +76,7 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView=self.ui.MyGraphicsView
         
         self.myMessageBox=self.ui.myMessageBox 
-       
+        
         self.MyPostProcessor=MyPostProcessor()
         
         self.TreeHandler=TreeHandler(self.ui)
@@ -267,85 +267,21 @@ class Main(QtGui.QMainWindow):
                 (beg, ende)=os.path.split(str(self.save_filename))
                 (fileBaseName, fileExtension)=os.path.splitext(ende) 
         
-        
-        #Config & postpro in einen kurzen Namen speichern
-        logger.debug(dir(g.config))
-
-        if not(g.config.vars.General['write_to_stdout']):
-           
-                #Abfrage des Namens um das File zu speichern
-                self.save_filename=self.showSaveDialog()
+                pp_file_nr=self.MyPostProcessor.output_format.index(fileExtension)
                 
-                
-                 #Wenn Cancel gedrueckt wurde
-                if not self.save_filename:
-                    return
-                
-                (beg, ende)=os.path.split(self.save_filename)
-                (fileBaseName, fileExtension)=os.path.splitext(ende) 
-        
-                pp_file_nr=postpro.output_format.index(fileExtension)
-                
-                postpro.get_all_vars(pp_file_nr)
+                self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
-                postpro.get_all_vars(0)
+                self.MyPostProcessor.getPostProVars(0)
         
-               
-        #Funktion zum optimieren des Wegs aufrufen
-        #self.opt_export_route()
-
-#        #Initial Status fuer den Export
-#        status=1
-#
-#        #Schreiben der Standardwert am Anfang        
-#        postpro.write_gcode_be(postpro,self.load_filename)
-#
-#        #Maschine auf die Anfangshoehe bringen
-#        postpro.rap_pos_z(config.axis3_retract.get())
-#
-#        #Bei 1 starten da 0 der Startpunkt ist
-#        for nr in range(1,len(self.TSP.opt_route)):
-#            shape=self.shapes_to_write[self.TSP.opt_route[nr]]
-#            self.textbox.prt((_("\nWriting Shape: %s") %shape),1)
-#                
-#
-#
-#            #Drucken falls die Shape nicht disabled ist
-#            if not(shape.nr in self.CanvasContent.Disabled):
-#                #Falls sich die Fräserkorrektur verändert hat diese in File schreiben
-#                stat =shape.Write_GCode(config,postpro)
-#                status=status*stat
-#
-#        #Maschine auf den Endwert positinieren
-#        postpro.rap_pos_xy(PointClass(x=config.axis1_st_en.get(),\
-#                                              y=config.axis2_st_en.get()))
-#
-#        #Schreiben der Standardwert am Ende        
-#        string=postpro.write_gcode_en(postpro)
-#
-#        if status==1:
-#            self.textbox.prt(_("\nSuccessfully generated G-Code"))
-#            self.master.update_idletasks()
-#
-#        else:
-#            self.textbox.prt(_("\nError during G-Code Generation"))
-#            self.master.update_idletasks()
-#
-#                    
-#        #Drucken in den Stdout, speziell fuer EMC2 
-#        if config.write_to_stdout:
-#            print(string)
-#            self.ende()     
-#        else:
-#            #Exportieren der Daten
-#                try:
-#                    #Das File oeffnen und schreiben    
-#                    f = open(self.save_filename, "w")
-#                    f.write(string)
-#                    f.close()       
-#                except IOError:
-#                    showwarning(_("Save As"), _("Cannot save the file."))
-#            
+        """
+        Export will be performed according to LayerContents and their order
+        is given in this variable too.
+        """
+        
+        self.MyPostProcessor.exportShapes(self.load_filename,
+                                          self.save_filename,
+                                          self.LayerContents)
+      
 
     def showSaveDialog(self):
         """
@@ -353,34 +289,25 @@ class Main(QtGui.QMainWindow):
         it creates the selection dialog for the exporter
         @return: Returns the filename of the selected file.
         """
-        
         MyFormats=""
-        for i in range(len(g.postpro.output_format)):
-            name="%s " %(g.postpro.output_text[i])
-            format="(*%s);;" %(g.postpro.output_format[i])
+        for i in range(len(self.MyPostProcessor.output_format)):
+            name="%s " %(self.MyPostProcessor.output_text[i])
+            format="(*%s);;" %(self.MyPostProcessor.output_format[i])
             MyFormats=MyFormats+name+format
             
-        logger.debug(MyFormats)
-
-        (beg, ende)=os.path.split(self.load_filename)
+        (beg, ende)=os.path.split(str(self.load_filename))
         (fileBaseName, fileExtension)=os.path.splitext(ende)
         
-        logger.debug(fileBaseName)
-        logger.debug(g.config.vars.Paths['output_dir'])
-        
         default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
-        
-        logger.debug(default_name)
-        
 
+        selected_filter = self.MyPostProcessor.output_format[0]
         filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
                     default_name,
-                    MyFormats)
-
+                    MyFormats, selected_filter)
         
-        logger.info("File: %s selected" %filename)
+        logger.info("File: %s selected" %filename+selected_filter)
         
-        return filename
+        return filename+selected_filter
         
     def autoscale(self):
         """
@@ -429,7 +356,7 @@ class Main(QtGui.QMainWindow):
         @param filename: The string of the filename which should be loaded
         """
 
-        self.load_filename=filename
+        self.load_filename=str(filename)
         (name, ext) = os.path.splitext(str(filename))
 
         if (ext.lower() == ".ps")or(ext.lower() == ".pdf"):
@@ -666,9 +593,6 @@ if __name__ == "__main__":
     #shall be sent to. This Class needs a function "def write(self,charstr)
     Log.set_window_logstream(window.myMessageBox)
     
-    g.config=MyConfig()
-    g.postpro=MyPostProcessor()
-    
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")
@@ -686,8 +610,6 @@ if __name__ == "__main__":
      
     # It's exec_ because exec is a reserved word in Python
     sys.exit(app.exec_())
-
-
 
 
 
