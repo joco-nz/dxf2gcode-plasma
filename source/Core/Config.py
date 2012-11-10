@@ -90,6 +90,11 @@ CONFIG_SPEC = str('''
     
     [Route_Optimisation]
     default_TSP = boolean(default=False)
+
+    # Path optimizer behaviour:
+    #  CONSTRAIN_ORDER_ONLY: fixed Shapes and optimized Shapes can be mixed. Only order of fixed shapes is kept
+    #  CONSTRAIN_PLACE_AFTER: optimized Shapes are always placed after any fixed Shape
+    TSP_shape_order = option('CONSTRAIN_ORDER_ONLY', 'CONSTRAIN_PLACE_AFTER', default='CONSTRAIN_ORDER_ONLY')
     mutation_rate = float(default= 0.95)
     max_population = integer(default= 20)
     max_iterations = integer(default= 300)
@@ -120,6 +125,14 @@ CONFIG_SPEC = str('''
         diameter = float(default= 3.0)
         speed = float(default=6000)
         start_radius = float(default= 3.0)
+    
+    [Custom_Actions]
+        [[custom_gcode]]
+        gcode = string(default='"""(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)"""')
+
+        [[__many__]]
+        gcode = string(default="(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
+
     
     [Filters]
     pstoedit_cmd = string(default="/opt/local/bin/pstoedit")

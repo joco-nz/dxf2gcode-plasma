@@ -21,10 +21,16 @@ from math import degrees
 
 import Core.Globals as g
 
+from Core.CustomGCode import CustomGCodeClass
+
+import logging
+logger=logging.getLogger("Gui.TreeHandling") 
+
 #defines some arbitrary types for the objects stored into the treeView. These types will eg help us to find which kind of data is stored in the element received from a click() event
 ENTITY_OBJECT = QtCore.Qt.UserRole + 1 #For storing refs to the entities elements (entities_list)
 LAYER_OBJECT = QtCore.Qt.UserRole + 2  #For storing refs to the layers elements (layers_list)
 SHAPE_OBJECT = QtCore.Qt.UserRole + 3  #For storing refs to the shape elements (entities_list & layers_list)
+CUSTOM_GCODE_OBJECT = QtCore.Qt.UserRole + 4  #For storing refs to the custom gcode elements (layers_list)
 
 SELECTION_COL = 1 #Column that is selectable in the treeViews
 PATH_OPTIMISATION_COL = 3 #Column that corresponds to TSP enable checkbox
@@ -86,6 +92,46 @@ class TreeHandler(QtGui.QWidget):
 
         QtCore.QObject.connect(self.ui.blocksCollapsePushButton, QtCore.SIGNAL("clicked()"), self.expandToDepth0)
         QtCore.QObject.connect(self.ui.blocksExpandPushButton, QtCore.SIGNAL("clicked()"), self.ui.entitiesTreeView.expandAll)
+
+        #Build the contextual menu (mouse right click)
+        self.context_menu = QtGui.QMenu(self)
+
+        menu_action = self.context_menu.addAction("Select all")
+        menu_action.triggered.connect(self.ui.layersShapesTreeView.selectAll)
+
+        menu_action = self.context_menu.addAction("Unselect all")
+        menu_action.triggered.connect(self.ui.layersShapesTreeView.clearSelection)
+
+        self.context_menu.addSeparator()
+
+        menu_action = self.context_menu.addAction("Remove custom GCode")
+        menu_action.triggered.connect(self.removeCustomGCode)
+
+        sub_menu = QtGui.QMenu("Add custom GCode ...", self)
+        for custom_action in g.config.vars.Custom_Actions:
+            menu_action = sub_menu.addAction(QtCore.QString(custom_action).replace('_', ' '))
+            menu_action.setData(custom_action) #save the exact name of the action, as it is defined in the config file. We will use it later to identify the action
+
+        self.context_menu.addMenu(sub_menu)
+
+        #Right click menu
+        self.ui.layersShapesTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        QtCore.QObject.connect(self.ui.layersShapesTreeView, QtCore.SIGNAL("customContextMenuRequested(const QPoint &)"), self.displayContextMenu)
+
+
+
+    def displayContextMenu(self, position):
+        """
+        Slot used to display a right click context menu
+        @param position: position of the cursor within the treeView widget
+        """
+        selected_action = self.context_menu.exec_(self.ui.layersShapesTreeView.mapToGlobal(position))
+
+        if selected_action and selected_action.data().isValid():
+            #contextual menu selection concerns a custom gcode
+            custom_gcode_name = selected_action.data().toString()
+
+            self.addCustomGCodeAfter(custom_gcode_name)
 
 
 
@@ -310,12 +356,52 @@ class TreeHandler(QtGui.QWidget):
                 while j < self.layer_item_model.rowCount(layer_item_index):
                     shape_item_index = self.layer_item_model.index(j, 0, layer_item_index)
 
+                    real_shape = None
                     if shape_item_index.data(SHAPE_OBJECT).isValid():
                         real_shape = shape_item_index.data(SHAPE_OBJECT).toPyObject()
-                        if real_shape.isDisabled() is False:
-                            real_layer.exp_order.append(real_layer.shapes.index(real_shape)) #Create the export order list with the shapes numbers (eg [5, 3, 2, 4, 0, 1])
+
+                    if shape_item_index.data(CUSTOM_GCODE_OBJECT).isValid():
+                        real_shape = shape_item_index.data(CUSTOM_GCODE_OBJECT).toPyObject()
+
+                    if real_shape and real_shape.isDisabled() is False:
+                        real_layer.exp_order.append(real_layer.shapes.index(real_shape)) #Create the export order list with the shapes numbers (eg [5, 3, 2, 4, 0, 1])
 
                     j += 1
+
+
+
+    def updateTreeViewOrder(self):
+        """
+        Update the Layer TreeView order according to the exp_order list of each layer. This function should be called after running the TSP path otimizer
+        """
+
+        i = self.layer_item_model.rowCount(QtCore.QModelIndex())
+        while i > 0:
+            i -= 1
+            layer_item_index = self.layer_item_model.index(i, 0)
+            layer_item = self.layer_item_model.itemFromIndex(layer_item_index)
+
+            if layer_item_index.data(LAYER_OBJECT).isValid():
+                real_layer = layer_item_index.data(LAYER_OBJECT).toPyObject()
+
+                #for shape_nr in real_layer.exp_order[::-1]: #reverse order and prepend if we want to insert optimized shape before fixed shapes
+                for shape_nr in real_layer.exp_order:
+                    j = 0
+                    while j < self.layer_item_model.rowCount(layer_item_index):
+                        shape_item_index = self.layer_item_model.index(j, 0, layer_item_index)
+
+                        real_shape = None
+                        if shape_item_index.data(SHAPE_OBJECT).isValid():
+                            real_shape = shape_item_index.data(SHAPE_OBJECT).toPyObject()
+
+                            if real_shape and real_shape.nr == shape_nr and (real_shape.send_to_TSP or g.config.vars.Route_Optimisation['TSP_shape_order'] == 'CONSTRAIN_ORDER_ONLY'):
+                                #Shape number "shape_nr" found in the treeView and Shape is movable => moving it to its new position
+                                item_to_be_moved = layer_item.takeRow(j)
+                                layer_item.appendRow(item_to_be_moved)
+
+                                break
+
+                        j += 1
 
 
 
@@ -486,8 +572,8 @@ class TreeHandler(QtGui.QWidget):
 
             element = sub_item_index.model().itemFromIndex(sub_item_index)
             if element:
-                if element.data(SHAPE_OBJECT).isValid():
-                    #only select Shapes
+                if element.data(SHAPE_OBJECT).isValid() or element.data(CUSTOM_GCODE_OBJECT).isValid():
+                    #only select Shapes or Custom GCode
                     col_item_index = sub_item_index.sibling(sub_item_index.row(), SELECTION_COL) #Get the only column that is selectable (eg item name)
                     selection_model.select(col_item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
 
@@ -940,7 +1026,7 @@ class TreeHandler(QtGui.QWidget):
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """
-        This function colorize the text in grey when too values are different. It is used to show differences in tools settings when several layers / shapes are selected.
+        This function colorize the text in grey when two values are different. It is used to show differences in tools settings when several layers / shapes are selected.
         @param widget: QT widget to update (can be a QLabel or a QLineEdit
         @param previous_value: the value of the previously selected item
         @param value: the value (parameter) of the selected item
@@ -988,11 +1074,12 @@ class TreeHandler(QtGui.QWidget):
 
     def actionOnKeyPress(self, key_code, item_index):
         """
-        This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, then we capture it to enable/disable shape
+        This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, O or T, then we capture it to enable/disable shape, ...
         @param key_code: the key code as defined by QT
         @param item_index: the item on which the keyPress event occured
         """
         result = False
+        #Enable/disable checkbox
         if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
             item_index = item_index.sibling(item_index.row(), 0) #Get the first column of the row (ie the one that contains the enable/disable checkbox)
             item = item_index.model().itemFromIndex(item_index)
@@ -1001,6 +1088,17 @@ class TreeHandler(QtGui.QWidget):
             self.ui.layersShapesTreeView.setCurrentIndex(item_index)
             self.ui.entitiesTreeView.setCurrentIndex(item_index)
             result = True #Key handled
+
+        #Optimize path checkbox
+        if (key_code == QtCore.Qt.Key_O or key_code == QtCore.Qt.Key_T) and item_index and item_index.isValid():
+            item_index = item_index.sibling(item_index.row(), PATH_OPTIMISATION_COL) #Get the column of the row that contains the "Optimize Path" checkbox
+            item = item_index.model().itemFromIndex(item_index)
+            if item.isCheckable():
+                item.setCheckState(QtCore.Qt.Unchecked if item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked) #Toggle checkbox
+                #Ensure that the first col is the current index, so that we can still traverse the tree with the keyboard
+                self.ui.layersShapesTreeView.setCurrentIndex(item_index)
+                self.ui.entitiesTreeView.setCurrentIndex(item_index)
+                result = True #Key handled
 
         return result
 
@@ -1020,7 +1118,7 @@ class TreeHandler(QtGui.QWidget):
                 #Set tool path optimisation for the matching shape
                 first_col_item.data(SHAPE_OBJECT).toPyObject().setToolPathOptimized(False if item.checkState() == QtCore.Qt.Unchecked else True)
 
-        elif item.data(SHAPE_OBJECT).isValid():
+        elif item.data(SHAPE_OBJECT).isValid() or item.data(CUSTOM_GCODE_OBJECT).isValid():
             self.updateCheckboxOfItem(item, item.checkState())
 
         elif item.data(LAYER_OBJECT).isValid():
@@ -1069,6 +1167,12 @@ class TreeHandler(QtGui.QWidget):
                     self.layer_item_model.blockSignals(False)
                 self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index) #Update parents checkboxes
 
+        if item.data(CUSTOM_GCODE_OBJECT).isValid():
+            #Checkbox concerns a custom gcode object
+            real_item = item.data(CUSTOM_GCODE_OBJECT).toPyObject()
+            real_item.setDisable(False if check == QtCore.Qt.Checked else True)
+            self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item.index()) #Update parents checkboxes
+
         self.enableDisableTreeRow(item, check)
 
 
@@ -1107,5 +1211,83 @@ class TreeHandler(QtGui.QWidget):
         current_tree_view.update(item.index())
 
 
+
+    def removeCustomGCode(self):
+        """
+        Remove a custom GCode object into the treeView, just after the current item. Custom GCode are defined into the config.cfg file
+        """
+        logger.debug(_('Removing custom GCode...'))
+        current_item_index = self.ui.layersShapesTreeView.currentIndex()
+
+        if current_item_index and current_item_index.isValid():
+            remove_row = current_item_index.row()
+
+            item_model_index = current_item_index.sibling(remove_row, 0) #get the first column of the selected row, since it's the only one that contains data
+            first_col_item = item_model_index.model().itemFromIndex(item_model_index)
+            if first_col_item and first_col_item.data(CUSTOM_GCODE_OBJECT).isValid():
+                #Item is a Custom GCode, so we can remove it
+                real_item = first_col_item.data(CUSTOM_GCODE_OBJECT).toPyObject()
+                real_item.LayerContent.shapes.remove(real_item)
+
+                first_col_item.parent().removeRow(remove_row)
+
+            else:
+                logger.warning(_('Only Custom GCode items are removable!'))
+
+
+
+    def addCustomGCodeAfter(self, action_name):
+        """
+        Add a custom GCode object into the treeView, just after the current item. Custom GCode are defined into the config.cfg file
+        @param action_name: the name of the custom GCode to be inserted. This name must match one of the subsection names of [Custom_Actions] from the config file.
+        """
+        logger.debug(_('Adding custom GCode "%s"') %(action_name))
+
+        g_code = "(No custom GCode defined)"
+        if action_name and len(action_name) > 0:
+            g_code = g.config.vars.Custom_Actions[str(action_name)].gcode
+
+        current_item_index = self.ui.layersShapesTreeView.currentIndex()
+        if current_item_index and current_item_index.isValid():
+            push_row = current_item_index.row() + 1 #insert after the current row
+            current_item = current_item_index.model().itemFromIndex(current_item_index)
+            current_item_parent = current_item.parent()
+
+            if not current_item_parent:
+                #parent is 0, so we are probably on a layer
+                #get the first column of the selected row, since it's the only one that contains data
+                current_item_parent_index = current_item_index.sibling(current_item_index.row(), 0) 
+                current_item_parent = current_item_parent_index.model().itemFromIndex(current_item_parent_index)
+                push_row = 0 #insert before any shape
+
+            if current_item_parent.data(LAYER_OBJECT).isValid():
+                real_item_parent = current_item_parent.data(LAYER_OBJECT).toPyObject()
+
+                #creates a new CustomGCode instance
+                custom_gcode = CustomGCodeClass(action_name, len(real_item_parent.shapes), g_code, real_item_parent)
+
+                #insert this new item at the end of the physicall list
+                real_item_parent.shapes.append(custom_gcode)
+
+                icon = QtGui.QIcon()
+                icon.addPixmap(QtGui.QPixmap(":/images/pause.png"))
+                item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
+                item_col_0.setData(QtCore.QVariant(custom_gcode), CUSTOM_GCODE_OBJECT) #store a ref to the custom gcode in our treeView element
+                item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
+
+                item_col_1 = QtGui.QStandardItem(custom_gcode.name)
+                item_col_1.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+
+                item_col_2 = QtGui.QStandardItem(str(custom_gcode.nr))
+                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
+
+                item_col_3 = QtGui.QStandardItem()
+                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
+
+                #Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
+                item_col_0.setCheckState(QtCore.Qt.Checked)
+
+                current_item_parent.insertRow(push_row, [item_col_0, item_col_1, item_col_2, item_col_3])
+                self.ui.layersShapesTreeView.setCurrentIndex(current_item.index())
 
 
