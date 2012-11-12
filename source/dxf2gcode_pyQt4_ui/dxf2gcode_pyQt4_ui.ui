@@ -389,7 +389,7 @@
                <number>0</number>
               </property>
               <item row="0" column="0">
-               <widget class="QLabel" name="label_3">
+               <widget class="QLabel" name="startAtXLabel">
                 <property name="text">
                  <string>Start at X [mm]</string>
                 </property>
@@ -406,7 +406,7 @@
                </widget>
               </item>
               <item row="1" column="0">
-               <widget class="QLabel" name="label_4">
+               <widget class="QLabel" name="startAtYLabel">
                 <property name="text">
                  <string>Start at Y [mm]</string>
                 </property>
@@ -476,7 +476,7 @@
               <item row="5" column="0">
                <widget class="QLabel" name="label_14">
                 <property name="text">
-                 <string>Z initial mill depth [mm]</string>
+                 <string>Workpiece top Z [mm]</string>
                 </property>
                </widget>
               </item>
@@ -487,6 +487,9 @@
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="toolTip">
+                 <string>Milling will start at Z = &quot;Worpiece top Z&quot; - &quot;Z infeed depth&quot;</string>
                 </property>
                </widget>
               </item>
@@ -607,6 +610,7 @@
      <string>File</string>
     </property>
     <addaction name="actionLoad_File"/>
+    <addaction name="actionReload_File"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
@@ -623,6 +627,7 @@
     <addaction name="separator"/>
     <addaction name="actionOptimize_Shape"/>
     <addaction name="actionExport_Shapes"/>
+    <addaction name="actionOptimize_and_Export_shapes"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -631,6 +636,7 @@
     <addaction name="actionShow_WP_Zero"/>
     <addaction name="actionShow_path_directions"/>
     <addaction name="actionShow_disabled_paths"/>
+    <addaction name="actionLive_update_export_route"/>
     <addaction name="separator"/>
     <addaction name="actionAutoscale"/>
     <addaction name="separator"/>
@@ -786,12 +792,45 @@
   </action>
   <action name="actionOptimize_Shape">
    <property name="text">
-    <string>Optimize Shape </string>
+    <string>Optimize Paths </string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+O</string>
    </property>
   </action>
   <action name="actionExport_Shapes">
    <property name="text">
     <string>Export Shapes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+E</string>
+   </property>
+  </action>
+  <action name="actionOptimize_and_Export_shapes">
+   <property name="text">
+    <string>Optimize and Export shapes</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+E</string>
+   </property>
+  </action>
+  <action name="actionLive_update_export_route">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Live update export route</string>
+   </property>
+  </action>
+  <action name="actionReload_File">
+   <property name="text">
+    <string>Reload File</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+R</string>
    </property>
   </action>
  </widget>

@@ -49,7 +49,8 @@ class LayerContentClass:
         self.LayerNr=LayerNr
         self.LayerName=LayerName
         self.shapes=shapes
-        self.exp_order=[]
+        self.exp_order=[] #used for shape order optimization, ... Only contains shapes
+        self.exp_order_complete=[] #used for outputing the GCODE ; can contain shapes, custom gcode, ...
         self.axis3_slice_depth=vars.Depth_Coordinates['axis3_slice_depth']
         self.axis3_start_mill_depth=vars.Depth_Coordinates['axis3_start_mill_depth']
         self.axis3_mill_depth=vars.Depth_Coordinates['axis3_mill_depth']
@@ -82,4 +83,5 @@ class LayerContentClass:
                ('\nLayerName:     %s' %self.LayerName)+\
                ('\nshapes:        %s' %self.shapes)+\
                ('\nexp_order:     %s' %self.exp_order)+\
+               ('\nexp_order_comp:%s' %self.exp_order_complete)+\
                ('\ntool_diameter: %i' %self.tool_nr)

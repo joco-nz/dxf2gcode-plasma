@@ -1,8 +1,8 @@
 #!/usr/bin/python
-# -*- coding: ISO-8859-1 -*-
+# -*- coding: utf-8 -*-
 #
 #dxf2gcode_b02_point
-#Programmers:   Christian Kohlöffel
+#Programmers:   Christian KohlÃ¶ffel
 #               Vinzenz Schulz
 #
 #Distributed under the terms of the GPL (GNU Public License)
@@ -133,7 +133,11 @@ class Arrow(QtGui.QGraphicsLineItem):
         self.setLine(QtCore.QLineF(endp,self.startp))
         line = self.line()
 
-        angle = acos(line.dx() / line.length())
+        try:
+            angle = acos(line.dx() / line.length())
+        except ZeroDivisionError: #FIXME : added by Xavier because the file "problem_with_arc_and_problem_with_G41-G42_auto_switch.dxf" throw a division by zero error
+            return
+
         if line.dy() >= 0:
             angle = (pi * 2.0) - angle
 

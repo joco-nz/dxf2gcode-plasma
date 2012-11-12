@@ -22,7 +22,7 @@ logger=logging.getLogger()
 from copy import copy
 
 from optparse import OptionParser
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 
 # Import the compiled UI module
 from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
@@ -85,7 +85,15 @@ class Main(QtGui.QMainWindow):
         self.LayerContents=[]
         self.EntitieContents=[]
         self.EntitiesRoot=[]
-       
+
+        self.filename = "" #loaded file name
+
+        QtCore.QObject.connect(self.TreeHandler, QtCore.SIGNAL("exportOrderUpdated"), self.updateExportRoute)
+
+        if g.config.vars.General['live_update_export_route']:
+            self.ui.actionLive_update_export_route.setChecked(True)
+
+
     def createActions(self):
         """
         Create the actions of the main toolbar.
@@ -93,16 +101,19 @@ class Main(QtGui.QMainWindow):
         """
         
         self.ui.actionLoad_File.triggered.connect(self.showDialog)
-        
+        self.ui.actionReload_File.triggered.connect(self.reloadFile)
+
         self.ui.actionExit.triggered.connect(self.close)
         
         self.ui.actionOptimize_Shape.triggered.connect(self.optimize_TSP)
         self.ui.actionExport_Shapes.triggered.connect(self.exportShapes)
+        self.ui.actionOptimize_and_Export_shapes.triggered.connect(self.optimizeAndExportShapes)
        
         self.ui.actionAutoscale.triggered.connect(self.autoscale)
         self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
         self.ui.actionShow_WP_Zero.triggered.connect(self.setShow_wp_zero)
         self.ui.actionShow_disabled_paths.triggered.connect(self.setShow_disabled_paths)
+        self.ui.actionLive_update_export_route.toggled.connect(self.setUpdate_export_route)
         self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
         
         self.ui.actionAbout.triggered.connect(self.about)
@@ -115,6 +126,7 @@ class Main(QtGui.QMainWindow):
         
         self.ui.actionShow_path_directions.setEnabled(status)
         self.ui.actionShow_disabled_paths.setEnabled(status)
+        self.ui.actionLive_update_export_route.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
         
         self.ui.actionScale_all.setEnabled(status)
@@ -129,7 +141,7 @@ class Main(QtGui.QMainWindow):
         load the selected file.
         """
 
-        filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
+        self.filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
                     g.config.vars.Paths['import_dir'],
                     "All supported files (*.dxf *.ps *.pdf);;" \
                     "DXF files (*.dxf);;"\
@@ -137,12 +149,25 @@ class Main(QtGui.QMainWindow):
                     "PDF files (*.pdf);;"\
                     "all files (*.*)")
         
-        logger.info("File: %s selected" %filename)
+        logger.info("File: %s selected" %self.filename)
         
         #If there is something to load then call the load function callback
-        if not(filename==""):
-            self.loadFile(filename)
-                
+        if not(self.filename==""):
+            self.loadFile(self.filename)
+
+    def reloadFile(self):
+        """
+        This function is called by the menu "File\Reload File" of the main toolbar
+        It reloads the previously loaded file (if any)
+        """
+
+        logger.info("Reloading file: %s" %self.filename)
+
+        #If there is something to load then call the load function callback
+        if not(self.filename==""):
+            self.loadFile(self.filename)
+
+
     def optimize_TSP(self):
         """
         Method is called to optimize the order of the shapes. This is performed
@@ -168,12 +193,7 @@ class Main(QtGui.QMainWindow):
                          %(len(LayerContent.shapes),len(LayerContent.exp_order)))
             logger.debug("Export Order for start: %s" %LayerContent.exp_order)
             
-            
             for shape_nr in range(len(LayerContent.exp_order)):    
-                if not self.shapes[LayerContent.exp_order[shape_nr]]:
-                    #shape_nr is not a real Shape => don't send it to the optimizer
-                    continue
-
                 if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
                     self.shapes_fixed_order.append(shape_nr)
                 
@@ -250,6 +270,8 @@ class Main(QtGui.QMainWindow):
 
         #Get the export order from the QTreeView
         self.TreeHandler.updateExportOrder()
+        self.updateExportRoute()
+
         logger.debug("Sorted layers:")
         for i, layer in enumerate(self.LayerContents):
             logger.debug("LayerContents[%i] = %s" %(i, layer))
@@ -281,7 +303,26 @@ class Main(QtGui.QMainWindow):
         self.MyPostProcessor.exportShapes(self.load_filename,
                                           self.save_filename,
                                           self.LayerContents)
-      
+
+
+    def optimizeAndExportShapes(self):
+        """
+        Optimize the tool path, then export the shapes
+        """
+        self.optimize_TSP()
+        self.exportShapes()
+
+
+    def updateExportRoute(self):
+        """
+        Update the drawing of the export route
+        """
+        self.MyGraphicsScene.resetexproutes()
+
+        for LayerContent in self.LayerContents:
+            if len(LayerContent.exp_order) > 0:
+                self.MyGraphicsScene.addexproute(LayerContent.exp_order, LayerContent.LayerNr)
+
 
     def showSaveDialog(self):
         """
@@ -348,7 +389,19 @@ class Main(QtGui.QMainWindow):
         """
         flag=self.ui.actionShow_disabled_paths.isChecked()
         self.MyGraphicsView.setShow_disabled_paths(flag)
-        
+
+    def setUpdate_export_route(self):
+        """
+        This function is called by the menu "Live update tool path" of the
+        main and forwards the call to TreeHandler.setUpdate_tool_path() 
+        """
+        flag=self.ui.actionLive_update_export_route.isChecked()
+        if not flag:
+            #Remove any existing export route, since it won't be updated anymore
+            self.MyGraphicsScene.resetexproutes()
+
+        self.TreeHandler.setUpdateExportRoute(flag)
+
     def loadFile(self,filename):
         """
         Loads the defined file of filename also calls the command to 
@@ -606,6 +659,7 @@ if __name__ == "__main__":
     logger.debug("Started with following options \n%s" %(options))
     
     if not(options.filename is None):
+        window.filename = options.filename
         window.loadFile(options.filename)
      
     # It's exec_ because exec is a reserved word in Python

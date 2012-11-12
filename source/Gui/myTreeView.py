@@ -65,8 +65,9 @@ class MyTreeView(QtGui.QTreeView):
         @param event: the dragEvent (contains position, ...)
         print("\033[32;1mdragEnterEvent {0} at pos({1}), index = {2}\033[m\n".format(event, event.pos(), self.indexAt(event.pos()).parent().internalId()))
         """
-        self.dragged_element = True;
-        QtGui.QTreeView.dragEnterEvent(self, event)
+        self.dragged_element = True
+        event.acceptProposedAction();
+
 
 
     def elementPressed(self, element_model_index):
@@ -146,6 +147,10 @@ class MyTreeView(QtGui.QTreeView):
                     drop_row -= 1 #we have one less item in the list, so if the item is dragged below it's original position, we must correct it's insert position
                 items_parent.insertRow(drop_row, item_to_be_moved)
 
+                if not self.signals_blocked:
+                    #Emit the signal that order of the TreeView has changed
+                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+
 
             self.dragged_element = False;
         else:
@@ -172,6 +177,10 @@ class MyTreeView(QtGui.QTreeView):
                 current_item_parent.insertRow(push_row, item_to_be_moved)
                 self.setCurrentIndex(current_item.index())
 
+                if not self.signals_blocked:
+                    #Emit the signal that order of the TreeView has changed
+                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+
 
 
     def moveDownCurrentItem(self):
@@ -192,6 +201,10 @@ class MyTreeView(QtGui.QTreeView):
                 item_to_be_moved = current_item_parent.takeRow(pop_row)
                 current_item_parent.insertRow(push_row, item_to_be_moved)
                 self.setCurrentIndex(current_item.index())
+
+                if not self.signals_blocked:
+                    #Emit the signal that order of the TreeView has changed
+                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
 
 
 
@@ -234,5 +247,30 @@ class MyTreeView(QtGui.QTreeView):
         else:
             QtGui.QTreeView.keyPressEvent(self, keyEvent)
 
+
+
+class MyStandardItemModel(QtGui.QStandardItemModel):
+    """
+    Subclass QStandardItemModel to avoid error while using Drag & Drop
+    """
+
+    def __init__(self, parent = None):
+        """
+        Initialization of the MyStandardItemModel class.
+        """
+        QtGui.QStandardItemModel.__init__(self, parent)
+
+
+
+    def mimeData(self, indexes):
+        """
+        This function is called by QT each time a drag operation is initiated, in order to serialize the data associated with the dragged item.
+        However, QT don't know how to serialize a Shape or a Layer, so it throws an error ... since we handle Drag & Drop internally, we don't need any serialization, so we subclass the function and return nothing (trick to avoid errors).
+        """
+        mimeData = QtCore.QMimeData()
+        #mimeData.setData("application/x-qabstractitemmodeldatalist", "")
+        mimeData.setData("application/x-qstandarditemmodeldatalist", "")
+
+        return mimeData
 
 

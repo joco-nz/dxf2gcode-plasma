@@ -16,7 +16,7 @@ This class is intented to deal with the drawing (.dxf) structure. It has the fol
 """
 
 from PyQt4 import QtCore, QtGui
-from Gui.myTreeView import MyTreeView
+from Gui.myTreeView import MyStandardItemModel
 from math import degrees
 
 import Core.Globals as g
@@ -57,6 +57,7 @@ class TreeHandler(QtGui.QWidget):
         #Layers & Shapes TreeView
         self.layer_item_model = None
         self.layers_list = None
+        self.auto_update_export_order = False
         self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
         self.ui.layersShapesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.layersShapesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
@@ -96,11 +97,27 @@ class TreeHandler(QtGui.QWidget):
         #Build the contextual menu (mouse right click)
         self.context_menu = QtGui.QMenu(self)
 
+        menu_action = self.context_menu.addAction("Unselect all")
+        menu_action.triggered.connect(self.ui.layersShapesTreeView.clearSelection)
+
         menu_action = self.context_menu.addAction("Select all")
         menu_action.triggered.connect(self.ui.layersShapesTreeView.selectAll)
 
-        menu_action = self.context_menu.addAction("Unselect all")
-        menu_action.triggered.connect(self.ui.layersShapesTreeView.clearSelection)
+        self.context_menu.addSeparator()
+
+        menu_action = self.context_menu.addAction("Disable selection")
+        menu_action.triggered.connect(self.disableSelectedItems)
+
+        menu_action = self.context_menu.addAction("Enable selection")
+        menu_action.triggered.connect(self.enableSelectedItems)
+
+        self.context_menu.addSeparator()
+
+        menu_action = self.context_menu.addAction("Don't opti. route for selection")
+        menu_action.triggered.connect(self.doNotOptimizeRouteForSelectedItems)
+
+        menu_action = self.context_menu.addAction("Optimize route for selection")
+        menu_action.triggered.connect(self.optimizeRouteForSelectedItems)
 
         self.context_menu.addSeparator()
 
@@ -117,6 +134,12 @@ class TreeHandler(QtGui.QWidget):
         #Right click menu
         self.ui.layersShapesTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
         QtCore.QObject.connect(self.ui.layersShapesTreeView, QtCore.SIGNAL("customContextMenuRequested(const QPoint &)"), self.displayContextMenu)
+
+        #Not used for now, so hide them
+        self.ui.startAtXLabel.hide()
+        self.ui.startAtYLabel.hide()
+        self.ui.startAtXLineEdit.hide()
+        self.ui.startAtYLineEdit.hide()
 
 
 
@@ -153,7 +176,8 @@ class TreeHandler(QtGui.QWidget):
         self.layers_list = layers_list
         if self.layer_item_model:
             self.layer_item_model.clear() #Remove any existing item_model
-        self.layer_item_model = QtGui.QStandardItemModel() #This is the model view from QT. its the container for the data
+        self.layer_item_model = MyStandardItemModel() #This is the model view (QStandardItemModel). it's the container for the data
+        self.layer_item_model.setSupportedDragActions(QtCore.Qt.MoveAction)
         self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"));
         self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"));
         self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nbr"));
@@ -350,6 +374,7 @@ class TreeHandler(QtGui.QWidget):
                 self.layers_list.insert(0, real_layer) #and insert it at the beginning of the layer's list
 
                 real_layer.exp_order = [] #Clear the current export order
+                real_layer.exp_order_complete = [] #Clear the current export order
 
                 #Assign the export order for the shapes of the layer "real_layer"
                 j = 0
@@ -359,12 +384,14 @@ class TreeHandler(QtGui.QWidget):
                     real_shape = None
                     if shape_item_index.data(SHAPE_OBJECT).isValid():
                         real_shape = shape_item_index.data(SHAPE_OBJECT).toPyObject()
+                        if real_shape.isDisabled() is False:
+                            real_layer.exp_order.append(real_shape.nr) #Create the export order list with the real and unique shapes numbers (eg [25, 22, 30, 4, 1, 5])
 
                     if shape_item_index.data(CUSTOM_GCODE_OBJECT).isValid():
                         real_shape = shape_item_index.data(CUSTOM_GCODE_OBJECT).toPyObject()
 
                     if real_shape and real_shape.isDisabled() is False:
-                        real_layer.exp_order.append(real_layer.shapes.index(real_shape)) #Create the export order list with the shapes numbers (eg [5, 3, 2, 4, 0, 1])
+                        real_layer.exp_order_complete.append(real_layer.shapes.index(real_shape)) #Create the export order list with the shapes & custom gcode numbers (eg [5, 3, 2, 4, 0, 1])
 
                     j += 1
 
@@ -483,6 +510,10 @@ class TreeHandler(QtGui.QWidget):
             self.layer_item_model.blockSignals(False)
             self.ui.layersShapesTreeView.update(item_index) #update the treeList drawing
             self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index) #update the parents checkboxes
+
+            if self.auto_update_export_order:
+                #update export order and thus export drawing
+                self.prepareExportOrderUpdate()
 
 
         #Entities treeView
@@ -766,7 +797,7 @@ class TreeHandler(QtGui.QWidget):
                     element = model_index.model().itemFromIndex(model_index)
                     real_item = None
                     if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
+                        real_item = element.data(SHAPE_OBJECT).toPyObject()
                     elif element and element.data(LAYER_OBJECT).isValid():
                         real_item = element.data(LAYER_OBJECT).toPyObject()
                     if not real_item is None:
@@ -793,7 +824,7 @@ class TreeHandler(QtGui.QWidget):
                     element = model_index.model().itemFromIndex(model_index)
                     real_item = None
                     if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
+                        real_item = element.data(SHAPE_OBJECT).toPyObject()
                     elif element and element.data(LAYER_OBJECT).isValid():
                         real_item = element.data(LAYER_OBJECT).toPyObject()
                     if not real_item is None:
@@ -820,7 +851,7 @@ class TreeHandler(QtGui.QWidget):
                     element = model_index.model().itemFromIndex(model_index)
                     real_item = None
                     if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
+                        real_item = element.data(SHAPE_OBJECT).toPyObject()
                     elif element and element.data(LAYER_OBJECT).isValid():
                         real_item = element.data(LAYER_OBJECT).toPyObject()
                     if not real_item is None:
@@ -903,12 +934,13 @@ class TreeHandler(QtGui.QWidget):
                     if element:
                         if element.data(SHAPE_OBJECT).isValid():
                             self.updateTreeViewSelection(model_index, element, False) #Effectively unselect the shape
-                        """ Disabled for now, because it's not really user friendly
+                            """ Disabled for now, because it's not really user friendly
                         elif element.data(LAYER_OBJECT).isValid():
                             self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, False)
+                        """
                         elif element.data(ENTITY_OBJECT).isValid():
                             self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, False)
-                        """
+
 
         #Selects all the shapes that are selected
         for selection in selected:
@@ -933,8 +965,8 @@ class TreeHandler(QtGui.QWidget):
                             self.displayToolParametersForItem(real_item)
 
                         #select all the child of a given entity when clicked. Code disabled for now, because it's not really user friendly
-                        #elif element.data(ENTITY_OBJECT).isValid():
-                        #    self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, True)
+                        elif element.data(ENTITY_OBJECT).isValid():
+                            self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, True)
 
 
 
@@ -1004,7 +1036,11 @@ class TreeHandler(QtGui.QWidget):
 
         self.axis3_safe_margin = self.updateAndColorizeWidget(self.ui.zSafetyMarginLineEdit, self.axis3_safe_margin, layer_item.axis3_safe_margin)
 
-        self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit, self.axis3_slice_depth, layer_item.axis3_slice_depth)
+        if shape_item and shape_item.axis3_slice_depth is not None:
+            #If Shape slice_depth is defined, then use it instead of the one of the layer
+            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit, self.axis3_slice_depth, shape_item.axis3_slice_depth)
+        else:
+            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit, self.axis3_slice_depth, layer_item.axis3_slice_depth)
 
         if shape_item and shape_item.axis3_start_mill_depth is not None:
             #If Shape initial mill_depth is defined, then use it instead of the one of the layer
@@ -1018,9 +1054,17 @@ class TreeHandler(QtGui.QWidget):
         else:
             self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit, self.axis3_mill_depth, layer_item.axis3_mill_depth)
 
-        self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit, self.f_g1_plane, layer_item.f_g1_plane)
+        if shape_item and shape_item.f_g1_plane is not None:
+            #If Shape XY speed is defined, then use it instead of the one of the layer
+            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit, self.f_g1_plane, shape_item.f_g1_plane)
+        else:
+            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit, self.f_g1_plane, layer_item.f_g1_plane)
 
-        self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit, self.f_g1_depth, layer_item.f_g1_depth)
+        if shape_item and shape_item.f_g1_depth is not None:
+            #If Shape Z speed is defined, then use it instead of the one of the layer
+            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit, self.f_g1_depth, shape_item.f_g1_depth)
+        else:
+            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit, self.f_g1_depth, layer_item.f_g1_depth)
 
 
 
@@ -1069,6 +1113,49 @@ class TreeHandler(QtGui.QWidget):
             selection_model = self.ui.layersShapesTreeView.selectionModel()
             selection_model.select(item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
             self.ui.layersShapesTreeView.blockSignals(False)
+
+
+    def disableSelectedItems(self):
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+        for model_index in selected_indexes_list:
+            if model_index.isValid():
+                model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                element = model_index.model().itemFromIndex(model_index)
+                element.setCheckState(QtCore.Qt.Unchecked)
+
+
+    def enableSelectedItems(self):
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+        for model_index in selected_indexes_list:
+            if model_index.isValid():
+                model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                element = model_index.model().itemFromIndex(model_index)
+                element.setCheckState(QtCore.Qt.Checked)
+
+
+
+    def doNotOptimizeRouteForSelectedItems(self):
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+        for model_index in selected_indexes_list:
+            if model_index.isValid():
+                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL) #get the first column of the selected row, since it's the only one that contains data
+                element = model_index.model().itemFromIndex(model_index)
+                if element.isCheckable():
+                    element.setCheckState(QtCore.Qt.Unchecked)
+
+
+    def optimizeRouteForSelectedItems(self):
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+
+        for model_index in selected_indexes_list:
+            if model_index.isValid():
+                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL) #get the first column of the selected row, since it's the only one that contains data
+                element = model_index.model().itemFromIndex(model_index)
+                if element.isCheckable():
+                    element.setCheckState(QtCore.Qt.Checked)
 
 
 
@@ -1120,14 +1207,21 @@ class TreeHandler(QtGui.QWidget):
 
         elif item.data(SHAPE_OBJECT).isValid() or item.data(CUSTOM_GCODE_OBJECT).isValid():
             self.updateCheckboxOfItem(item, item.checkState())
+            if self.auto_update_export_order:
+                #update export order and thus export drawing
+                self.prepareExportOrderUpdate()
 
         elif item.data(LAYER_OBJECT).isValid():
             #Checkbox concerns a Layer object => check/uncheck each sub-items (shapes)
             self.traverseChildrenAndEnableDisable(self.layer_item_model, item.index(), item.checkState())
+            if self.auto_update_export_order:
+                self.prepareExportOrderUpdate()
 
         elif item.data(ENTITY_OBJECT).isValid():
             #Checkbox concerns an Entity object => check/uncheck each sub-items (shapes and/or other entities)
             self.traverseChildrenAndEnableDisable(self.entity_item_model, item.index(), item.checkState())
+            if self.auto_update_export_order:
+                self.prepareExportOrderUpdate()
 
 
 
@@ -1289,5 +1383,34 @@ class TreeHandler(QtGui.QWidget):
 
                 current_item_parent.insertRow(push_row, [item_col_0, item_col_1, item_col_2, item_col_3])
                 self.ui.layersShapesTreeView.setCurrentIndex(current_item.index())
+
+
+    def prepareExportOrderUpdate(self):
+        """
+        If the live update of export route is enabled, this function is called each time the shape order changes. It aims to update the drawing.
+        """
+        if self.auto_update_export_order:
+            #Update the exported shapes
+            self.updateExportOrder()
+
+            #Emit the signal "exportOrderUpdated", so that the main can update tool path if he wants
+            QtCore.QObject.emit(self, QtCore.SIGNAL("exportOrderUpdated"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+
+
+
+    def setUpdateExportRoute(self, live_update):
+        """
+        Set or unset the live update of export route.
+        """
+        self.auto_update_export_order = live_update
+
+        if live_update:
+            #Live update the export route drawing
+            QtCore.QObject.connect(self.ui.layersShapesTreeView, QtCore.SIGNAL("itemMoved"), self.prepareExportOrderUpdate)
+            self.prepareExportOrderUpdate()
+
+        else:
+            #Don't automatically update the export route drawing
+            QtCore.QObject.disconnect(self.ui.layersShapesTreeView, QtCore.SIGNAL("itemMoved"), self.prepareExportOrderUpdate)
 
 
