@@ -45,7 +45,7 @@ from copy import deepcopy, copy
 from string import find, strip
 
 import logging
-logger=logging.getLogger("DxfImport.Core") 
+logger=logging.getLogger("DxfImport.Import") 
 
 
 class ReadDXF:
@@ -64,6 +64,7 @@ class ReadDXF:
         #logger.info(("\n\nFile has   %0.0f Lines" % len(str)), 1)
         #logger.info(("\nFile has   %0.0f Linepairs" % self.line_pairs.nrs), 1)
 
+        logger.info("Reading DXF Structure")
         sections_pos = self.Get_Sections_pos()
         self.layers = self.Read_Layers(sections_pos)
 
@@ -76,8 +77,10 @@ class ReadDXF:
         for i in range(len(self.blocks.Entities)):
             # '\n'
             #print self.blocks.Entities[i]
+            logger.info("Creating Contours of Block Nr: %i" %i)
             self.blocks.Entities[i].cont = self.Get_Contour(self.blocks.Entities[i])
 
+        logger.info("Creating Contours of Entities")
         self.entities.cont = self.Get_Contour(self.entities)
    
     #Laden des ausgew�hlten DXF-Files
@@ -202,7 +205,8 @@ class ReadDXF:
         blocks = BlocksClass([])
         warning = 0
         for block_nr in range(len(blocks_pos)):
-            #g.logger.logger.info(("Reading Block Nr: %0.0f" % block_nr), 1)
+            logger.info("Reading Block %s; Nr: %i" %(blocks_pos[block_nr].name,block_nr))
+
             blocks.Entities.append(EntitiesClass(block_nr, blocks_pos[block_nr].name, []))
             #Lesen der BasisWerte f�r den Block
             s = blocks_pos[block_nr].begin + 1
@@ -217,9 +221,6 @@ class ReadDXF:
             
             #Lesen der Geometrien
             (blocks.Entities[-1].geo, warning) = self.Get_Geo(s, e, warning)
-            
-            #Im Debug Modus 2 mehr Infos zum Block drucken
-            #g.logger.logger.info(("%s" % blocks.Entities[-1]), 2)
             
         if warning == 1:
             QtGui.QMessageBox.warning(g.window,"Import Warning", "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")

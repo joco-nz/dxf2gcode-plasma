@@ -24,7 +24,11 @@
 from math import  sin, cos,  radians
 from Core.Point import Point
 from DxfImport.Classes import PointsClass
-from Core.ArcGeo import  ArcGeo 
+from Core.ArcGeo import  ArcGeo
+
+import logging
+logger=logging.getLogger("DXFImport.GeoentArc") 
+
 
 class GeoentArc:
     def __init__(self, Nr=0, caller=None):
@@ -89,6 +93,8 @@ class GeoentArc:
 
         #Länge entspricht der Länge des Kreises
         self.length = self.geo[-1].length
+        
+#        logger.debug(self.geo[-1])
 
         #Neuen Startwerd für die nächste Geometrie zurückgeben        
         caller.start = s

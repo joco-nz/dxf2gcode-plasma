@@ -22,9 +22,12 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-from math import sqrt, degrees
+from math import sqrt
 from Point import Point
 from PyQt4 import QtGui
+
+import logging
+logger=logging.getLogger("Core.LineGeo") 
 
 #Length of the cross.
 dl = 0.2
@@ -73,13 +76,18 @@ class LineGeo:
         @param reverse: If 1 the geometry direction will be switched.
         @return: A new LineGeoClass will be returned.
         """ 
+        logger.debug('Pre Rot: %s' %self)
+        logger.debug('Parent: %s' %parent)
+        
         Pa = self.Pa.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
         abs_geo = LineGeo(Pa=Pa, Pe=Pe)
         if reverse:
             abs_geo.reverse()
+        
+        logger.debug('Post Rot: %s' %self)
+        
         return abs_geo
-    
     
         
     def add2path(self, papath=None, parent=None): 
@@ -144,11 +152,11 @@ class LineGeo:
         if not(direction):
             punkt=self.Pa.rot_sca_abs(parent=parent)
             punkt_e=self.Pe.rot_sca_abs(parent=parent)
-            angle=degrees(punkt.norm_angle(punkt_e))
+            angle=punkt.norm_angle(punkt_e)
         elif direction:
             punkt_a=self.Pa.rot_sca_abs(parent=parent)
             punkt=self.Pe.rot_sca_abs(parent=parent)
-            angle=degrees(punkt.norm_angle(punkt_a))
+            angle=punkt.norm_angle(punkt_a)
         return punkt, angle
     
     def Write_GCode(self,parent=None, PostPro=None):

@@ -25,6 +25,9 @@
 from math import sqrt, sin, cos, degrees, pi, floor, ceil, copysign
 from Core.Point import Point
 
+import logging
+logger=logging.getLogger("Core.ArcGeo") 
+
 #Length of the cross.
 dl = 0.2
 DEBUG = 1
@@ -116,13 +119,13 @@ class ArcGeo:
         """
         
         abs_geo=self.make_abs_geo(parent, 0)
-        #papath.arcTo(abs_geo.O.x-abs_geo.r, -abs_geo.O.y-self.r,
-        #                  2*abs_geo.r, 2*abs_geo.r, degrees(abs_geo.s_ang), degrees(abs_geo.ext))
-
-        #papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
-
-                        
-        x = []; y = []; hdl = []
+#        papath.arcTo(abs_geo.O.x-abs_geo.r, -abs_geo.O.y-self.r,
+#                          2*abs_geo.r, 2*abs_geo.r, degrees(abs_geo.s_ang), degrees(abs_geo.ext))
+###
+###        #papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
+##
+##                        
+#        x = []; y = []; hdl = []
         #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
         segments = int((abs(degrees(abs_geo.ext)) // 3) + 1)
         
@@ -134,7 +137,23 @@ class ArcGeo:
 
             if i >= 1:
                 papath.lineTo(p_cur.x, -p_cur.y)    
-#               
+#        segments=int((abs(degrees(self.ext))//10)+1)
+#        
+#        for i in range(segments+1):
+#            
+#            ang=self.s_ang+i*self.ext/segments
+#            p_cur=Point(x=(self.O.x+cos(ang)*abs(self.r)),\
+#                       y=(self.O.y+sin(ang)*abs(self.r)))
+#                    
+#            p_cur_rot=p_cur.rot_sca_abs(parent=parent)
+#
+#            
+#            if i>=1:
+#                papath.lineTo(p_cur_rot.x, -p_cur_rot.y) 
+#
+#            if i==1:
+#                logger.debug('Anderst Anfang: %s' %p_cur_rot)
+#        logger.debug('Anderst Ende: %s' %p_cur_rot)
 #
 #    def add2hitpath(self, hitpath=None, parent=None, tolerance=None):
 #        """
@@ -200,16 +219,31 @@ class ArcGeo:
         @param reverse: If 1 the geometry direction will be switched.
         @return: A new ArcGeoClass will be returned.
         """ 
+        
+        logger.debug('Pre Rot: %s' %self)
+        logger.debug('Parent: %s' %parent)
+        
         Pa = self.Pa.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
         O = self.O.rot_sca_abs(parent=parent)
         r = self.scaleR(self.r, parent)
-        direction = copysign(1, self.ext)
-        #s_ang=self.rot_angle(self.s_ang,parent)
-        #e_ang=self.rot_angle(self.e_ang,parent)
-        abs_geo = ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r, direction=direction)
+        s_ang=self.rot_angle(self.s_ang,parent)
+        e_ang=self.rot_angle(self.e_ang,parent)
+
+    
+        
+        if self.ext>0.0:
+            direction=1
+        else:
+            direction=0
+        
+        abs_geo = ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r, s_ang=s_ang,e_ang=e_ang, direction=direction)
+        
+        
         if reverse:
             abs_geo.reverse()
+            
+        logger.debug('Post Rot: %s' %abs_geo)
         return abs_geo
     
    
@@ -222,10 +256,10 @@ class ArcGeo:
         
         if not(direction):
             punkt=self.Pa.rot_sca_abs(parent=parent)
-            angle=self.rot_angle(degrees(self.s_ang)+90*self.ext/abs(self.ext),parent)
+            angle=self.rot_angle((self.s_ang)+pi/2*self.ext/abs(self.ext),parent)
         elif direction:
             punkt=self.Pe.rot_sca_abs(parent=parent)
-            angle=self.rot_angle(degrees(self.e_ang)-90*self.ext/abs(self.ext),parent)
+            angle=self.rot_angle((self.e_ang)-pi/2*self.ext/abs(self.ext),parent)
         return punkt,angle
         
           
@@ -256,11 +290,12 @@ class ArcGeo:
         @return: The rotated angle.
         """
 
-        #Rekursive Schleife falls mehrfach verschachtelt.
+#        #Rekursive Schleife falls mehrfach verschachtelt.
         if type(parent) != type(None):
-            angle = angle + degrees(parent.rot)
+            angle += parent.rot
             angle = self.rot_angle(angle, parent.parent)
-                
+        
+          
         return angle
     
     def scaleR(self, sR, parent):
