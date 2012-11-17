@@ -133,10 +133,11 @@ class Arrow(QtGui.QGraphicsLineItem):
         self.setLine(QtCore.QLineF(endp,self.startp))
         line = self.line()
 
-        try:
-            angle = acos(line.dx() / line.length())
-        except ZeroDivisionError: #FIXME : added by Xavier because the file "problem_with_arc_and_problem_with_G41-G42_auto_switch.dxf" throw a division by zero error
-            return
+        angle = acos(line.dx() / line.length())
+#        try:
+#            angle = acos(line.dx() / line.length())
+#        except ZeroDivisionError: #FIXME : added by Xavier because the file "problem_with_arc_and_problem_with_G41-G42_auto_switch.dxf" throw a division by zero error
+#            return
 
         if line.dy() >= 0:
             angle = (pi * 2.0) - angle

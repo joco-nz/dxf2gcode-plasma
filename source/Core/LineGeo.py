@@ -76,17 +76,13 @@ class LineGeo:
         @param reverse: If 1 the geometry direction will be switched.
         @return: A new LineGeoClass will be returned.
         """ 
-        logger.debug('Pre Rot: %s' %self)
-        logger.debug('Parent: %s' %parent)
         
         Pa = self.Pa.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
         abs_geo = LineGeo(Pa=Pa, Pe=Pe)
         if reverse:
             abs_geo.reverse()
-        
-        logger.debug('Post Rot: %s' %self)
-        
+          
         return abs_geo
     
         

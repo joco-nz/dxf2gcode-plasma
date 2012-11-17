@@ -379,9 +379,9 @@ class ShapeClass(QtGui.QGraphicsItem):
         
         if self.closed:
             logger.debug("Clicked Point: %s" %StPoint)
-            min_distance=self.geos[0].Pa.distance(StPoint)
-            
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
+            min_distance=min_distance=start.distance(StPoint)
+            
             logger.debug("Old Start Point: %s" %start)
             
             min_geo_nr=0

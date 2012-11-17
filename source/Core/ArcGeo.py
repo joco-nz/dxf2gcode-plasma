@@ -119,14 +119,7 @@ class ArcGeo:
         """
         
         abs_geo=self.make_abs_geo(parent, 0)
-#        papath.arcTo(abs_geo.O.x-abs_geo.r, -abs_geo.O.y-self.r,
-#                          2*abs_geo.r, 2*abs_geo.r, degrees(abs_geo.s_ang), degrees(abs_geo.ext))
-###
-###        #papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
-##
-##                        
-#        x = []; y = []; hdl = []
-        #Alle 10 Grad ein Segment => 120 Segmente für einen Kreis !!
+
         segments = int((abs(degrees(abs_geo.ext)) // 3) + 1)
         
         for i in range(segments + 1):
@@ -137,23 +130,7 @@ class ArcGeo:
 
             if i >= 1:
                 papath.lineTo(p_cur.x, -p_cur.y)    
-#        segments=int((abs(degrees(self.ext))//10)+1)
-#        
-#        for i in range(segments+1):
-#            
-#            ang=self.s_ang+i*self.ext/segments
-#            p_cur=Point(x=(self.O.x+cos(ang)*abs(self.r)),\
-#                       y=(self.O.y+sin(ang)*abs(self.r)))
-#                    
-#            p_cur_rot=p_cur.rot_sca_abs(parent=parent)
-#
-#            
-#            if i>=1:
-#                papath.lineTo(p_cur_rot.x, -p_cur_rot.y) 
-#
-#            if i==1:
-#                logger.debug('Anderst Anfang: %s' %p_cur_rot)
-#        logger.debug('Anderst Ende: %s' %p_cur_rot)
+
 #
 #    def add2hitpath(self, hitpath=None, parent=None, tolerance=None):
 #        """
@@ -220,30 +197,28 @@ class ArcGeo:
         @return: A new ArcGeoClass will be returned.
         """ 
         
-        logger.debug('Pre Rot: %s' %self)
-        logger.debug('Parent: %s' %parent)
-        
         Pa = self.Pa.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
         O = self.O.rot_sca_abs(parent=parent)
         r = self.scaleR(self.r, parent)
-        s_ang=self.rot_angle(self.s_ang,parent)
-        e_ang=self.rot_angle(self.e_ang,parent)
-
-    
+        #s_ang=self.rot_angle(self.s_ang,parent)
+        #e_ang=self.rot_angle(self.e_ang,parent)
         
         if self.ext>0.0:
             direction=1
         else:
-            direction=0
+            direction=-1
+
+        if type(parent) != type(None):    
+            if parent.sca[0]*parent.sca[1]<0.0:
+                direction=direction*-1
         
-        abs_geo = ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r, s_ang=s_ang,e_ang=e_ang, direction=direction)
-        
+        #abs_geo = ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r, s_ang=s_ang,e_ang=e_ang, direction=direction)
+        abs_geo = ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r, direction=direction)
         
         if reverse:
             abs_geo.reverse()
-            
-        logger.debug('Post Rot: %s' %abs_geo)
+         
         return abs_geo
     
    
@@ -253,17 +228,17 @@ class ArcGeo:
         @param direction: 0 to return start Point and 1 to return end Point
         @return: a list of Point and angle Returns the hdl or hdls of the ploted objects.
         """
-        
+
+        abs_geo=self.make_abs_geo(parent)
+
         if not(direction):
-            punkt=self.Pa.rot_sca_abs(parent=parent)
-            angle=self.rot_angle((self.s_ang)+pi/2*self.ext/abs(self.ext),parent)
+            punkt=abs_geo.Pa
+            angle=abs_geo.s_ang+pi/2*abs_geo.ext/abs(abs_geo.ext)
         elif direction:
-            punkt=self.Pe.rot_sca_abs(parent=parent)
-            angle=self.rot_angle((self.e_ang)-pi/2*self.ext/abs(self.ext),parent)
+            punkt=abs_geo.Pe
+            angle=abs_geo.e_ang-pi/2*abs_geo.ext/abs(abs_geo.ext)
         return punkt,angle
         
-          
-
     def angle_between(self, min_ang, max_ang, angle):
         """
         Returns if the angle is in the range between 2 other angles
@@ -282,21 +257,28 @@ class ArcGeo:
                     
         return (min_ang < angle) and (angle <= max_ang)
    
-    def rot_angle(self, angle, parent):
-        """
-        Rotates the given angle based on the rotations given in its parents.
-        @param angle: The angle which shall be rotated
-        @param parent: The parent Entitie (Instance: EntitieContentClass)
-        @return: The rotated angle.
-        """
-
-#        #Rekursive Schleife falls mehrfach verschachtelt.
-        if type(parent) != type(None):
-            angle += parent.rot
-            angle = self.rot_angle(angle, parent.parent)
-        
-          
-        return angle
+#    def rot_angle(self, angle, parent):
+#        """
+#        Rotates the given angle based on the rotations given in its parents.
+#        @param angle: The angle which shall be rotated
+#        @param parent: The parent Entitie (Instance: EntitieContentClass)
+#        @return: The rotated angle.
+#        """
+#
+##        #Rekursive Schleife falls mehrfach verschachtelt.
+#        if type(parent) != type(None):
+#            angle += parent.rot
+#            
+#            if parent.sca[0]<0.0:
+#                angle=pi-angle
+#                
+#            if parent.sca[1]<0.0:
+#                angle=pi-angle
+#                
+#            angle = self.rot_angle(angle, parent.parent)
+#        
+#        
+#        return angle
     
     def scaleR(self, sR, parent):
         """

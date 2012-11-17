@@ -100,8 +100,7 @@ class LoggerClass():
 
 class FilterModule(logging.Filter): 
     def filter(self, record): 
-        return ('Core.ArcGeo' in record.name) or ('Core.LineGeo' in record.name)
-        #return True
+        return True
 
 
 
