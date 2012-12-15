@@ -304,15 +304,17 @@ class ArcGeo:
         @return: Returns the string to be written to a file.
         """
 
-        anf, anf_ang=self.get_start_end_points(0,parent)
-        O=self.O.rot_sca_abs(parent=parent)
+        abs_geo=self.make_abs_geo(parent, 0)
+
+        anf, s_ang=abs_geo.get_start_end_points(0)
+        ende, e_ang=abs_geo.get_start_end_points(1)
+                
+        O=abs_geo.O
+        sR=abs_geo.r
         IJ=(O-anf)
-        ende, en_ang=self.get_start_end_points(1,parent)
         
-        s_ang=self.rot_angle(self.s_ang,parent)
-        e_ang=self.rot_angle(self.e_ang,parent)
-        
-        sR=self.scaleR(self.r,parent)
+
+
 
         #If the radius of the element is bigger then the max. radius export
         #the element as an line.
