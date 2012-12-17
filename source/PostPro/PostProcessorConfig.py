@@ -58,7 +58,7 @@ POSTPRO_SPEC = str('''
     
 
     code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
-    code_end=string(default="M9 (Coolant off) M5 (Spindle off) M2 (Prgram end)")
+    code_end=string(default="M2 (Prgram end)")
     
     [Number_Format]
     pre_decimals = integer(default=4)
@@ -74,7 +74,7 @@ POSTPRO_SPEC = str('''
     line_nrs_step = integer(default=10)
     
     [Program]
-    tool_change = string(default=T%tool_nr M6%nlS%speed M3 M8%nl)
+    tool_change = string(default=T%tool_nr M6%nlS%speed%nl)
     feed_change = string(default=F%feed%nl)
     rap_pos_plane = string(default=G0 X%XE Y%YE%nl)
     rap_pos_depth = string(default=G0 Z%ZE %nl)
@@ -85,6 +85,8 @@ POSTPRO_SPEC = str('''
     cutter_comp_off = string(default=G40%nl)
     cutter_comp_left = string(default=G41%nl)
     cutter_comp_right = string(default=G42%nl)
+    pre_shape_cut= string(default=M3 M8%nl)
+    post_shape_cut=string(default=M9 M5%nl)
     comment = string(default=%nl(%comment)%nl)              
 
 ''').splitlines()  

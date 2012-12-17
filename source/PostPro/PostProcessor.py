@@ -485,6 +485,20 @@ class MyPostProcessor:
         return self.make_print_str(self.vars.Program["lin_mov_plane"])   
     
     
+    def write_pre_shape_cut(self):
+        """
+        Return the text to be added pre a shape.
+        @return: The Function returns the string to be added.
+        """
+        return self.make_print_str(self.vars.Program["pre_shape_cut"])
+    
+    def write_post_shape_cut(self):
+        """
+        Return the text to be added post a shape.
+        @return: The Function returns the string to be added.
+        """
+        return self.make_print_str(self.vars.Program["post_shape_cut"])
+    
     def commentprint(self,comment):
         """
         This function is performed to print a comment.

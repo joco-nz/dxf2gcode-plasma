@@ -558,6 +558,9 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         #Move the tool to the start.          
         exstr+=self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+        
+        #Add string to be added before the shape will be cut.
+        exstr+=PostPro.write_pre_shape_cut()
 
         #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done outside the piece
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
@@ -655,5 +658,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         if ini_cut_cor != self.cut_cor:
             self.reverse()
             self.switch_cut_cor()
+            
+        #Add string to be added before the shape will be cut.
+        exstr+=PostPro.write_post_shape_cut()
 
         return exstr
