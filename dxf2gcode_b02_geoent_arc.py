@@ -53,8 +53,8 @@ class ArcClass:
                               be_cp=[],en_cp=[]))
         else:
 #            showwarning("Short Arc Elemente", ("Length of Arc Element too short!"\
-#                                               "\nLenght must be greater then tolerance."\
-#                                               "\nSkipping Arc Geometrie"))
+#                                               "\nLength must be greater than tolerance."\
+#                                               "\nSkipping Arc Geometry"))
             warning=1
         return warning
     

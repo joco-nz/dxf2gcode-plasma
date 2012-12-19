@@ -72,9 +72,9 @@ class PolylineClass:
 ##                                          be=self.geo[0].Pa,
 ##                                          en=self.geo[-1].Pe,be_cp=[],en_cp=[])) 
 ##            else:
-##                showwarning("Short Polyline Elemente", ("Length of Line geometrie too short!"\
-##                                                   "\nLenght must be greater then tolerance."\
-##                                                   "\nSkipping Line Geometrie"))
+##                showwarning("Short Polyline Elemente", ("Length of Line geometry too short!"\
+##                                                   "\nLength must be greater than tolerance."\
+##                                                   "\nSkipping Line Geometry"))
             
     def analyse_and_opt(self):
         summe=0

@@ -358,7 +358,7 @@ class Load_DXF:
     
         if warning:
             showwarning("Short Elements", ("Length of some Elements too short!"\
-                                               "\nLenght must be greater then tolerance."\
+                                               "\nLength must be greater than tolerance."\
                                                "\nSkipped Geometries"))
     
         return points
@@ -590,7 +590,7 @@ class Load_DXF:
     def Remove_Used_Points(self,cont=None,points=None):
         for p_nr in cont.order:
             
-            #This have to be 2 seperate loops, otherwise one element is missing
+            #This has to be 2 separate loops, otherwise one element is missing
             for point in points:
                 if p_nr[0]==point.point_nr:
                     del points[points.index(point)]

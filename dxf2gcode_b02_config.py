@@ -371,7 +371,7 @@ class PostprocessorClass:
                         +'\nG40 (Cancel diameter comp.) \nG49 (Cancel length comp.)'\
                         +'\nT1M6 (Tool change to T1)\nM8 (Coolant flood on)'\
                         +'\nS5000M03 (Spindle 5000rpm cw)')
-        self.parser.set('General', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Prgram end)')    
+        self.parser.set('General', 'code_end','M9 (Coolant off)\nM5 (Spindle off)\nM2 (Program end)')    
 
         self.parser.add_section('Number format')
         self.parser.set('Number format','pre_decimals',4)

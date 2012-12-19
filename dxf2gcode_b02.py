@@ -777,7 +777,7 @@ class CanvasClass:
         #Wird momentan nicht benoetigt, eventuell fuer Beschreibung von Aktionen im Textfeld #self.text=text
 
         #Erstellen des Labels am Unteren Rand fuer Status Leiste        
-        self.label=Label(self.master, text=_("Curser Coordinates: X=0.0, Y=0.0, Scale: 1.00"),bg="white",anchor="w")
+        self.label=Label(self.master, text=_("Cursor Coordinates: X=0.0, Y=0.0, Scale: 1.00"),bg="white",anchor="w")
         self.label.grid(row=1,column=0,sticky=E+W)
 
         #Canvas Erstellen und Fenster ausfuellen        
@@ -1013,7 +1013,7 @@ class CanvasClass:
 #        self.dx=self.dx*delta_scale
 #        self.dy=self.dy*delta_scale
 #
-#        #Schreiben der neuen WErte simulierne auf Curser Punkt 0, 0
+#        #Schreiben der neuen WErte simulierne auf Cursor Punkt 0, 0
 #        event=PointClass(x=0,y=0)
 #        self.moving(event)
 #

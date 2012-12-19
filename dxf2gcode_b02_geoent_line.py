@@ -52,9 +52,9 @@ class LineClass:
                                       be=self.geo[-1].Pa,
                                       en=self.geo[-1].Pe,be_cp=[],en_cp=[]))
         else:
-#            showwarning("Short Arc Elemente", ("Length of Line geometrie too short!"\
-#                                               "\nLenght must be greater then tolerance."\
-#                                               "\nSkipping Line Geometrie"))
+#            showwarning("Short Arc Elemente", ("Length of Line geometry too short!"\
+#                                               "\nLength must be greater than tolerance."\
+#                                               "\nSkipping Line Geometry"))
             warning=1
         return warning
         

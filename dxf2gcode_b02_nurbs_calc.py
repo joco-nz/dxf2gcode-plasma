@@ -406,7 +406,7 @@ class Spline2Arcs:
                     cur_step*=0.7
                     
             if step>10000:
-                raise ValueError, "Iteraitions above 10000 reduce tolerance"
+                raise ValueError, "Iterations above 10000 reduce tolerance"
             
         return BiarcCurve, PtsVec
     
@@ -466,7 +466,7 @@ class NURBSClass:
             for knt_spts in knt_vec:
                 if (len(knt_spts)>self.degree+1):
 
-                    raise ValueError, "Same Knots Nr. bigger then degree+1"
+                    raise ValueError, "Same Knots Nr. bigger than degree+1"
                 
                 #Überprüfen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
                 elif ((len(knt_spts)>self.degree)
@@ -498,8 +498,8 @@ class NURBSClass:
                     self.ignor.append([self.Knots[same_ctlpt[0]+self.degree/2],\
                                        self.Knots[same_ctlpt[-1]+self.degree/2]])
 
-        #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
-        #print("Same Controlpoints Nr. bigger then degree+2")
+        #raise ValueError, "Same Controlpoints Nr. bigger than degree+1"
+        #print("Same Controlpoints Nr. bigger than degree+2")
         #for ignor in self.ignor:
         #    print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))    
         
