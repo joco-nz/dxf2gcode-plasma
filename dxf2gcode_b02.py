@@ -514,7 +514,7 @@ class Erstelle_Fenster:
             self.master.update_idletasks()
 
                     
-        #Drucken in den Stdout, speziell fuer EMC2 
+        #Drucken in den Stdout, speziell fuer LinuxCNC
         if config.write_to_stdout:
             print(string)
             self.ende()     
@@ -1505,7 +1505,7 @@ class Show_About_Info(Toplevel):
         href = "http://christian-kohloeffel.homepage.t-online.de/index.html"
         text.insert(END, _("You are using DXF2GCODE"))
         text.insert(END, ("\nVersion %s (%s)" %(VERSION,DATE)))
-        text.insert(END, _("\nFor more information und updates about"))
+        text.insert(END, _("\nFor more information and updates"))
         text.insert(END, _("\nplease visit my homepage at:"))
         text.insert(END, _("\nwww.christian-kohloeffel.homepage.t-online.de"), ("a", "href:"+href))
 

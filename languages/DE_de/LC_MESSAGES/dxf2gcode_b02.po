@@ -147,7 +147,7 @@ msgid "Nothing to export!"
 msgstr "Nicht zu exportieren vorhanden!"
 
 #: dxf2gcode_b02.py:310
-msgid "G-Code for EMC2"
+msgid "G-Code for LinuxCNC"
 msgstr "G-Code Datei"
 
 #: dxf2gcode_b02.py:342
@@ -249,19 +249,19 @@ msgid "G-Code at the end of file"
 msgstr "Endzeilen der G-Code Datei"
 
 #: dxf2gcode_b02.py:634
-msgid "Curser Coordinates: X=0.0, Y=0.0, Scale: 1.00"
+msgid "Cursor Coordinates: X=0.0, Y=0.0, Scale: 1.00"
 msgstr "Curser Koordinaten: X=0.0, Y=0.0, Zoom: 1.00"
 
 #: dxf2gcode_b02.py:672
-msgid "Curser Coordinates: X= %5.0f Y= %5.0f , Scale: %5.3f"
+msgid "Cursor Coordinates: X= %5.0f Y= %5.0f , Scale: %5.3f"
 msgstr "Curser Koordinaten: X= %5.0f Y= %5.0f , Zoom: %5.3f"
 
 #: dxf2gcode_b02.py:676
-msgid "Curser Coordinates: X= %5.1f Y= %5.1f , Scale: %5.2f"
+msgid "Cursor Coordinates: X= %5.1f Y= %5.1f , Scale: %5.2f"
 msgstr "Curser Koordinaten: X= %5.1f Y= %5.1f , Zoom: %5.2f"
 
 #: dxf2gcode_b02.py:679
-msgid "Curser Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f"
+msgid "Cursor Coordinates: X= %5.2f Y= %5.2f , Scale: %5.1f"
 msgstr "Curser Koordinaten: X= %5.2f Y= %5.2f , Zoom: %5.1f"
 
 #: dxf2gcode_b02.py:777
@@ -411,7 +411,7 @@ msgstr "Sie verwenden DXF2GCODE"
 #: dxf2gcode_b02.py:1802
 msgid ""
 "\n"
-"For more information und updates about"
+"For more information and updates"
 msgstr ""
 "\n"
 "Für weitere Information oder Updates"

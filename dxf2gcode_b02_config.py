@@ -357,7 +357,7 @@ class PostprocessorClass:
     def make_new_postpro_file(self):
         self.parser.add_section('General')
         self.parser.set('General', 'output_format', '.ngc')   
-        self.parser.set('General', 'output_text', 'G-Code for EMC2')   
+        self.parser.set('General', 'output_text', 'G-Code for LinuxCNC')   
         self.parser.set('General', 'output_type', 'g-code')   
         
         self.parser.set('General', 'abs_export', 1)
