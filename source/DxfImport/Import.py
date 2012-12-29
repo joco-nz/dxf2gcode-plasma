@@ -355,7 +355,7 @@ class ReadDXF:
     #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
     def App_Cont_or_Calc_IntPts(self, geo=None, cont=None):
 
-        tol = g.config.vars.Import_Parameters['point_tolerance']
+        tol = g.config.point_tolerance
         points = []
         warning = 0
         for i in range(len(geo)) :
@@ -372,7 +372,7 @@ class ReadDXF:
     #Suchen von gemeinsamen Punkten
     def Find_Common_Points(self, points=None):
         #tol=self.config.points_tolerance.get()
-        tol = g.config.vars.Import_Parameters['point_tolerance']
+        tol = g.config.point_tolerance
 
         p_list = []
         

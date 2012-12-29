@@ -185,6 +185,10 @@ class MyConfig:
 
         #try:
         self.load_config()
+        
+        self.fitting_tolerance=self.vars.Import_Parameters['fitting_tolerance']
+        self.point_tolerance=self.vars.Import_Parameters['point_tolerance']
+        
         #except Exception,msg:
         #    logger.warning("Config loading failed: %s" % (msg))      
         #    return False

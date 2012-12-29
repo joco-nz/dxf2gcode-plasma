@@ -46,7 +46,7 @@ class GeoentSpline:
         self.Read(caller)
 
         #Zuweisen der Toleranz f�rs Fitting
-        tol = g.config.vars.Import_Parameters['fitting_tolerance']
+        tol = g.config.fitting_tolerance
         check = g.config.vars.Import_Parameters['spline_check']
 
         #Umwandeln zu einem ArcSpline

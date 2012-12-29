@@ -16,10 +16,15 @@ The main
 
 import os
 import sys
+
+from math import degrees, radians
+
 import logging
 logger=logging.getLogger() 
 
 from copy import copy
+
+import subprocess #webbrowser,gettext, tempfile,
 
 from optparse import OptionParser
 from PyQt4 import QtGui, QtCore
@@ -42,6 +47,7 @@ from DxfImport.Import import ReadDXF
 
 from Gui.myCanvasClass import MyGraphicsScene
 from Gui.TreeHandling import TreeHandler
+from Gui.Dialog import myDialog
 
 from PostPro.TspOptimisation import TSPoptimize
 
@@ -116,6 +122,11 @@ class Main(QtGui.QMainWindow):
         self.ui.actionLive_update_export_route.toggled.connect(self.setUpdate_export_route)
         self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
         
+        self.ui.actionTolerances.triggered.connect(self.setTolerances)
+        self.ui.actionRotate_all.triggered.connect(self.CallRotateAll)
+        self.ui.actionScale_all.triggered.connect(self.CallScaleAll)
+        self.ui.actionMove_WP_zero.triggered.connect(self.CallMoveWpZero)
+        
         self.ui.actionAbout.triggered.connect(self.about)
         
     def enableplotmenu(self,status=True):
@@ -140,6 +151,8 @@ class Main(QtGui.QMainWindow):
         it creates the file selection dialog and calls the loadFile function to
         load the selected file.
         """
+        
+
 
         self.filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
                     g.config.vars.Paths['import_dir'],
@@ -153,6 +166,11 @@ class Main(QtGui.QMainWindow):
         
         #If there is something to load then call the load function callback
         if not(self.filename==""):
+            #Initialize the scale, rotate and move coordinates
+            self.cont_scale = 1.0
+            self.cont_dx = 0.0
+            self.cont_dy = 0.0
+            self.rotate = 0.0
             self.loadFile(self.filename)
 
     def reloadFile(self):
@@ -401,6 +419,93 @@ class Main(QtGui.QMainWindow):
             self.MyGraphicsScene.resetexproutes()
 
         self.TreeHandler.setUpdateExportRoute(flag)
+        
+        
+    def setTolerances(self):
+        """
+        This function is called after the Option=>Tolerances Menu is clicked.
+        """
+        
+        title=_('Contour tolerances')
+        label=(_("Tolerance for common points [mm]:"),\
+               _("Tolerance for curve fitting [mm]:"))
+        value=(g.config.point_tolerance,
+               g.config.fitting_tolerance)
+        
+        logger.debug("set Tolerances")
+        SetTolDialog=myDialog(title,label,value)
+        
+        if SetTolDialog.result==None:
+            return     
+        
+        g.config.point_tolerance=float(SetTolDialog.result[0])
+        g.config.fitting_tolerance=float(SetTolDialog.result[1])
+
+        self.reloadFile()
+        #self.MyGraphicsView.update()
+
+    
+    def CallScaleAll(self):
+        """
+        This function is called after the Option=>Rotate All Menu is clicked.
+        """
+        """
+        This function is called after the Option=>Scale All Menu is clicked.
+        """
+        title=_('Scale Contour')
+        label=[_("Scale Contour by factor:")]
+        value=[self.cont_scale]
+        ScaEntDialog=myDialog(title,label,value)
+        
+        if ScaEntDialog.result==None:
+            return     
+        
+        self.cont_scale=float(ScaEntDialog.result[0])
+        self.EntitiesRoot.sca=self.cont_scale
+        
+        self.reloadFile()
+        #self.MyGraphicsView.update()
+        
+    def CallRotateAll(self):
+        """
+        This function is called after the Option=>Scale All Menu is clicked.
+        """
+        title=_('Rotate Contour')
+        label=[_("Rotate Contour by deg:")]
+        value=[degrees(self.rotate)]
+        RotEntDialog=myDialog(title,label,value)
+        
+        if RotEntDialog.result==None:
+            return     
+        
+        self.rotate=radians(float(RotEntDialog.result[0]))
+        self.EntitiesRoot.rot=self.rotate
+        
+        self.reloadFile()
+        #self.MyGraphicsView.update()
+    
+    def CallMoveWpZero(self):
+        """
+        This function is called after the Option=>Move WP Zero Menu is clicked.
+        """
+        title=_('Workpiece zero offset')
+        label=((_("Offset %s axis by mm:") %g.config.vars.Axis_letters['ax1_letter']),\
+               (_("Offset %s axis by mm:") %g.config.vars.Axis_letters['ax2_letter']))
+        value=(self.cont_dx,self.cont_dy)
+        MoveWpzDialog=myDialog(title,label,value)
+        
+        if MoveWpzDialog.result==None:
+            return     
+        
+        self.cont_dx=float(MoveWpzDialog.result[0])
+        self.cont_dy=float(MoveWpzDialog.result[1])
+        
+        self.EntitiesRoot.p0.x=self.cont_dx
+        self.EntitiesRoot.p0.y=self.cont_dy
+        
+        self.reloadFile()
+        #self.MyGraphicsView.update()
+        
 
     def loadFile(self,filename):
         """
@@ -453,22 +558,12 @@ class Main(QtGui.QMainWindow):
         @param values: Includes all values loaded from the dxf file
         """
     
-        #Skalierung der Kontur
-        self.cont_scale = 1.0
-        
-        #Verschiebung der Kontur
-        self.cont_dx = 0.0
-        self.cont_dy = 0.0
-        
-        #Rotieren um den WP zero
-        self.rotate = 0.0
-      
         #Generate the Shapes  
         self.makeShapes(values,
-                            p0=Point(x=0.0, y=0.0),
+                            p0=Point(x=self.cont_dx, y=self.cont_dy),
                             pb=Point(x=0.0, y=0.0),
-                            sca=[1.0,1.0,1.0],
-                            rot=0.0)
+                            sca=[self.cont_scale,self.cont_scale,self.cont_scale],
+                            rot=self.rotate)
 
 
         #Populate the treeViews
@@ -660,6 +755,12 @@ if __name__ == "__main__":
     
     if not(options.filename is None):
         window.filename = options.filename
+        #Initialize the scale, rotate and move coordinates
+        window.cont_scale = 1.0
+        window.cont_dx = 0.0
+        window.cont_dy = 0.0
+        window.rotate = 0.0
+        
         window.loadFile(options.filename)
      
     # It's exec_ because exec is a reserved word in Python

@@ -51,7 +51,7 @@ class GeoentEllipse:
         self.Read(caller)
 
         #Zuweisen der Toleranz f�rs Fitting
-        tol = g.config.vars.Import_Parameters['fitting_tolerance']
+        tol = g.config.fitting_tolerance
         
         #Errechnen der Ellipse
         self.Ellipse_Grundwerte()
