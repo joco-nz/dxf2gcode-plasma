@@ -154,13 +154,13 @@ class Main(QtGui.QMainWindow):
         
 
 
-        self.filename = QtGui.QFileDialog.getOpenFileName(self, 'Open file',
-                    g.config.vars.Paths['import_dir'],
+        self.filename = QtGui.QFileDialog.getOpenFileName(self, self.tr("Open file"),
+                    g.config.vars.Paths['import_dir'],self.tr(\
                     "All supported files (*.dxf *.ps *.pdf);;" \
                     "DXF files (*.dxf);;"\
                     "PS files (*.ps);;"\
                     "PDF files (*.pdf);;"\
-                    "all files (*.*)")
+                    "all files (*.*)"))
         
         logger.info("File: %s selected" %self.filename)
         
@@ -730,6 +730,14 @@ if __name__ == "__main__":
     g.config=MyConfig()
 
     app = QtGui.QApplication(sys.argv)
+    
+
+    #Get local language and install if available.
+    locale = QtCore.QLocale.system().name()
+    translator = QtCore.QTranslator()
+    if translator.load("dxf2gcode_" + locale, "./i18n"):
+        app.installTranslator(translator)
+    
     window = Main(app)
     g.window=window
     
