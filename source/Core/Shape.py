@@ -538,7 +538,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         f_g1_depth = LayerContent.f_g1_depth if self.f_g1_depth is None else self.f_g1_depth
 
         #Save the initial Cutter correction in a variable
-        ini_cut_cor=self.cut_cor
+        has_reversed = 0
 
         #If the Output Format is DXF do not perform more then one cut.
         if PostPro.vars.General["output_type"] == 'dxf':
@@ -622,6 +622,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             if self.closed == 0:
                 self.reverse()
                 self.switch_cut_cor()
+                has_reversed = 1 - has_reversed #switch the "reversed" state (in order to restore it at the end)
                 
             #If cutter correction is enabled
             if ((not(self.cut_cor == 40)) & (self.closed == 0))or(PostPro.vars.General["cancel_cc_for_depth"] == 1):
@@ -655,7 +656,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             exstr+=PostPro.deactivate_cut_cor(ende)        
 
         #Initial value of direction restored if necessary
-        if ini_cut_cor != self.cut_cor:
+        if has_reversed != 0:
             self.reverse()
             self.switch_cut_cor()
             
