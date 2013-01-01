@@ -21,6 +21,7 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from math import pi
 
 import Core.Globals as g
 from Core.LineGeo import LineGeo
@@ -80,68 +81,66 @@ class StMove(QtGui.QGraphicsLineItem):
         
         
     def make_start_moves(self):
+        """
+        This function will be called in order to create the start move. It will
+        be generated based on the given values for start and angle.
+        """
         del(self.geos[:])
 
-        #Einlaufradius und Versatz 
+        #Get the start radius and the length of the line segment at begin. 
         start_rad = self.shape.LayerContent.start_radius
         start_ver = start_rad
 
-        #Werkzeugdurchmesser in Radius umrechnen        
+        #Get tool radius based on tool diameter.   
         tool_rad = self.shape.LayerContent.tool_diameter/2
         
-        #Errechnen des Startpunkts mit und ohne Werkzeug Kompensation        
+        #Calculate the starting point with and without compensation.        
         start=self.startp
         angle=self.angle
-        
-#        print start_rad
-#        print tool_rad
-#        print start
       
         if self.shape.cut_cor == 40:              
             self.geos.append(start)
 
-        #Fr�sradiuskorrektur Links        
+        #Cutting Compensation Left        
         elif self.shape.cut_cor == 41:
-            #Mittelpunkts f�r Einlaufradius
-            Oein = start.get_arc_point(angle + 90, start_rad + tool_rad)
-            #Startpunkts f�r Einlaufradius
-            Pa_ein = Oein.get_arc_point(angle + 180, start_rad + tool_rad)
-            #Startwerts f�r Einlaufgerade
-            Pg_ein = Pa_ein.get_arc_point(angle + 90, start_ver)
+            #Center of the Starting Radius.
+            Oein = start.get_arc_point(angle + pi/2, start_rad + tool_rad)
+            #Start Point of the Radius
+            Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            #Start Point of the straight line segment at begin.
+            Pg_ein = Pa_ein.get_arc_point(angle + pi/2, start_ver)
             
-            #Eintauchpunkt errechnete Korrektur
+            #Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
             self.geos.append(start_ein)
 
-            #Einlaufgerade mit Korrektur
+            #generate the Start Line and append it including the compensation. 
             start_line = LineGeo(Pg_ein, Pa_ein)
             self.geos.append(start_line)
 
-            #Einlaufradius mit Korrektur
+            #generate the Start Radius and append it.
             start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, 
                                r=start_rad + tool_rad, direction=1)
             self.geos.append(start_rad)
             
-        #Fr�sradiuskorrektur Rechts        
+        #Cutting Compensation Right            
         elif self.shape.cut_cor == 42:
-
-            #Mittelpunkt f�r Einlaufradius
-            Oein = start.get_arc_point(angle - 90, start_rad + tool_rad)
-            #Startpunkt f�r Einlaufradius
-            Pa_ein = Oein.get_arc_point(angle + 180, start_rad + tool_rad)
-            #IJ=Oein-Pa_ein
-            #Startwerts f�r Einlaufgerade
-            Pg_ein = Pa_ein.get_arc_point(angle - 90, start_ver)
+            #Center of the Starting Radius.
+            Oein = start.get_arc_point(angle - pi/2, start_rad + tool_rad)
+            #Start Point of the Radius
+            Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            #Start Point of the straight line segment at begin.
+            Pg_ein = Pa_ein.get_arc_point(angle - pi/2, start_ver)
             
-            #Eintauchpunkts errechnete Korrektur
+            #Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
             self.geos.append(start_ein)
 
-            #Einlaufgerade mit Korrektur
+            #generate the Start Line and append it including the compensation.
             start_line = LineGeo(Pg_ein, Pa_ein)
             self.geos.append(start_line)
 
-            #Einlaufradius mit Korrektur
+            #generate the Start Radius and append it.
             start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, 
                                r=start_rad + tool_rad, direction=0)
             self.geos.append(start_rad)
@@ -150,7 +149,7 @@ class StMove(QtGui.QGraphicsLineItem):
     def updateCutCor(self, cutcor):
         """
         This function is called to update the Cutter Correction and therefore 
-        the  startmoves if smth. has changed or it shall be generated for 
+        the  start moves if something has changed or it shall be generated for 
         first time.
         """
         logger.debug("Updating CutterCorrection of Selected shape")
@@ -185,14 +184,14 @@ class StMove(QtGui.QGraphicsLineItem):
         elif self.shape.cut_cor==41:
             self.ccarrow=Arrow(startp=self.startp,
                         length=length,
-                        angle=self.angle+90,
+                        angle=self.angle+pi/2,
                         color=QtGui.QColor(200, 200, 255),
                         pencolor=QtGui.QColor(200, 100, 255))
             self.ccarrow.setParentItem(self)
         else:
             self.ccarrow=Arrow(startp=self.startp,
                         length=length,
-                        angle=self.angle-90,
+                        angle=self.angle-pi/2,
                         color=QtGui.QColor(200, 200, 255),
                         pencolor=QtGui.QColor(200, 100, 255))
             self.ccarrow.setParentItem(self)
@@ -210,9 +209,9 @@ class StMove(QtGui.QGraphicsLineItem):
         if self.shape.cut_cor==40:
             self.ccarrow=None
         elif self.shape.cut_cor==41:
-            self.ccarrow.updatepos(startp, angle=angle+90)
+            self.ccarrow.updatepos(startp, angle=angle+pi/2)
         else:
-            self.ccarrow.updatepos(startp, angle=angle-90)
+            self.ccarrow.updatepos(startp, angle=angle-pi/2)
             
         self.make_start_moves()
         self.make_papath()
@@ -254,7 +253,7 @@ class StMove(QtGui.QGraphicsLineItem):
         """
         self.startp=startp
         self.angle=angle
-        self.update(self.boundingRect())
+        self.update_plot(startp,angle)
         
     def setallwaysshow(self,flag=False):
         """

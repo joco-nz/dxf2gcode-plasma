@@ -23,7 +23,7 @@
 
 
 #from Canvas import Oval, Arc, Line
-from math import sqrt, sin, cos, atan2, radians, pi
+from math import sqrt, sin, cos, atan2, pi
 import Core.Globals as g
 
 import logging
@@ -82,8 +82,8 @@ class Point:
         @return: A Point on given given radius from Point self
         """ 
         
-        return Point(x=self.x + cos(radians(ang)) * r, \
-                          y=self.y + sin(radians(ang)) * r)
+        return Point(x=self.x + cos(ang) * r, \
+                          y=self.y + sin(ang) * r)
 
     def Write_GCode(self, parent=None, PostPro=None):
         """

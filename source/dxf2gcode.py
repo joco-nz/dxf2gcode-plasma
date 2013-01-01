@@ -24,7 +24,7 @@ logger=logging.getLogger()
 
 from copy import copy
 
-import subprocess #webbrowser,gettext, tempfile,
+import subprocess, tempfile #webbrowser,gettext, tempfile,
 
 from optparse import OptionParser
 from PyQt4 import QtGui, QtCore

@@ -1249,11 +1249,11 @@ class CCLineGeo(LineGeo):
         Pa, s_angle = self.get_start_end_points(0)
         Pe, e_angle = self.get_start_end_points(1)
         if direction == 41:
-            offPa = Pa.get_arc_point(s_angle + 90, radius)
-            offPe = Pe.get_arc_point(e_angle - 90, radius)
+            offPa = Pa.get_arc_point(s_angle + pi/2, radius)
+            offPe = Pe.get_arc_point(e_angle - pi/2, radius)
         elif direction == 42:
-            offPa = Pa.get_arc_point(s_angle - 90, radius)
-            offPe = Pe.get_arc_point(e_angle + 90, radius)
+            offPa = Pa.get_arc_point(s_angle - pi/2, radius)
+            offPe = Pe.get_arc_point(e_angle + pi/2, radius)
             
         offLine = CCLineGeo(Pa=offPa, Pe=offPe)
         offLine.calc_bounding_box()

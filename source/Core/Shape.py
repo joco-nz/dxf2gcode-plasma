@@ -33,7 +33,7 @@ import Core.Globals as g
 
 from Core.Point import Point
 from Core.BoundingBox import BoundingBox
-from math import cos, sin, degrees
+from math import cos, sin, degrees, pi
 from copy import deepcopy
 from EntitieContent import EntitieContentClass
 
@@ -380,7 +380,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         if self.closed:
             logger.debug("Clicked Point: %s" %StPoint)
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
-            min_distance=min_distance=start.distance(StPoint)
+            min_distance=start.distance(StPoint)
             
             logger.debug("Old Start Point: %s" %start)
             
@@ -598,9 +598,9 @@ class ShapeClass(QtGui.QGraphicsItem):
         if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):
             ende, en_angle = self.get_st_en_points(1)
             if self.cut_cor == 41:
-                pos_cut_out = ende.get_arc_point(en_angle - 90, tool_rad)
+                pos_cut_out = ende.get_arc_point(en_angle - pi/2, tool_rad)
             elif self.cut_cor == 42:
-                pos_cut_out = ende.get_arc_point(en_angle + 90, tool_rad)         
+                pos_cut_out = ende.get_arc_point(en_angle + pi/2, tool_rad)         
             exstr+=PostPro.deactivate_cut_cor(pos_cut_out)            
 
 
@@ -637,9 +637,9 @@ class ShapeClass(QtGui.QGraphicsItem):
             #Calculate the contour values ​​with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
             if self.cut_cor == 41:
-                pos_cut_out = ende.get_arc_point(en_angle - 90, tool_rad)
+                pos_cut_out = ende.get_arc_point(en_angle - pi/2, tool_rad)
             elif self.cut_cor == 42:
-                pos_cut_out = ende.get_arc_point(en_angle + 90, tool_rad)
+                pos_cut_out = ende.get_arc_point(en_angle + pi/2, tool_rad)
 
             #Turning off the cutter radius compensation if needed
             if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):         
