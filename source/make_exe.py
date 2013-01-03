@@ -15,6 +15,7 @@ options=("--onefile --noconsole --upx --tk --icon=%s" %icon)
 print options
 
 #Verzwichniss wechseln
+#Change Directory
 exemakepfad = unicode( exemakepfad, "utf-8" )
 os.chdir(exemakepfad.encode( "utf-8" ))
 
@@ -27,5 +28,5 @@ cmd=("%s %s\Build.py %s\%s.spec" %(pyt,pyinpfad,exemakepfad,file))
 print cmd
 retcode=subprocess.call(cmd)
 
-print "\n!!!!!!!Bitmaps und Languagues Ordner nicht vergessen!!!!!!"
-print "\nFertig"
+print "\n!!!!!!!Bitmaps and Languages folder not vergessen!!!!!!"
+print "\nReady"

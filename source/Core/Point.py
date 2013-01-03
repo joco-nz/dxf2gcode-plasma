@@ -51,9 +51,11 @@ class Point:
     def __mul__(self, other):
         if type(other) == list:
             #Skalieren des Punkts
+            #Scale the points
             return Point(x=self.x * other[0], y=self.y * other[1])
         else:
             #Skalarprodukt errechnen
+            #Calculate Scalar (dot) Product
             return self.x * other.x + self.y * other.y
 
     def unit_vector(self, Pto=None):
@@ -110,6 +112,7 @@ class Point:
     
     def triangle_height(self, other1, other2):
         #Die 3 Längen des Dreiecks ausrechnen
+        #The 3 lengths of the triangle to calculate
         a = self.distance(other1)
         b = other1.distance(other2)
         c = self.distance(other2)
@@ -128,6 +131,7 @@ class Point:
             p1 = Point(x=rotx, y=roty) + p0
             
             #Rekursive Schleife falls selbst eingefügt
+            #Recursive loop if gt introduced
             if type(parent.parent) != type(None):
                 p1 = p1.rot_sca_abs(parent=parent.parent)
             
@@ -198,7 +202,7 @@ class Point:
         elif direction<-pi:
             direction=direction+2*pi
             
-        #print ('Die Direction ist: %s' %direction)
+        #print ('The Direction is: %s' %direction)
         
         return direction
 

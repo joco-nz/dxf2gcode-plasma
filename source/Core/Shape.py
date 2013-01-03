@@ -348,6 +348,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         #Optimization for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
+            #Start value for the first sum
             start, dummy = self.geos[0].get_start_end_points(0)
             summe = 0.0
             for geo in self.geos:
@@ -392,7 +393,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                     min_distance=start.distance(StPoint)
                     min_geo_nr=geo_nr
     
-            #Overwrite the goemeties in changed order.
+            #Overwrite the geometries in changed order.
             self.geos=self.geos[min_geo_nr:len(self.geos)]+self.geos[0:min_geo_nr]
             
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
@@ -516,7 +517,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         tool_rad = LayerContent.tool_diameter / 2
 
         #BaseEntitie created to add the StartMoves etc. This Entitie must not
-        #be ofsetted or rotated etc.
+        #be offset or rotated etc.
         BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
                                         parent=None,
                                         children=[],
@@ -614,6 +615,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 mom_depth = depth                
 
             #Erneutes Eintauchen
+            #???
             exstr+=PostPro.chg_feed_rate(f_g1_depth)
             exstr+=PostPro.lin_pol_z(mom_depth)
             exstr+=PostPro.chg_feed_rate(f_g1_plane)

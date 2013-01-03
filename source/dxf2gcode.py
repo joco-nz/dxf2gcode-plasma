@@ -221,6 +221,7 @@ class Main(QtGui.QMainWindow):
             #Perform Export only if the Number of shapes to export is bigger 0     
             if len(self.shapes_to_write)>0:     
                         #Errechnen der Iterationen
+                        #Calculate the iterations
                 iter =min(g.config.vars.Route_Optimisation['max_iterations'],
                           len(self.shapes_to_write)*50)
                 
@@ -243,7 +244,7 @@ class Main(QtGui.QMainWindow):
                                                  LayerContent.LayerNr)
                
                 for it_nr in range(iter):
-                    #Only show each 50 step.
+                    #Only show each 50th step.
                     if (it_nr%50)==0:
 
                         TSPs[-1].calc_next_iteration()
@@ -535,6 +536,7 @@ class Main(QtGui.QMainWindow):
         values = ReadDXF(filename)
         
         #Ausgabe der Informationen im Text Fenster
+        #Output the information in the text window
         logger.info(_('Loaded layers: %s') % len(values.layers))
         logger.info(_('Loaded blocks: %s') % len(values.blocks.Entities))
         for i in range(len(values.blocks.Entities)):
@@ -570,7 +572,8 @@ class Main(QtGui.QMainWindow):
         self.TreeHandler.buildEntitiesTree(self.EntitiesRoot)
         self.TreeHandler.buildLayerTree(self.LayerContents)
 
-        #Ausdrucken der Werte     
+        #Ausdrucken der Werte
+        #Print the values
         self.MyGraphicsView.clearScene()
         self.MyGraphicsScene=MyGraphicsScene()   
         
@@ -579,7 +582,7 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsView.show()
         self.MyGraphicsView.setFocus()
         
-        #Autoscale des Canvas      
+        #Autoscale the Canvas
         self.MyGraphicsView.autoscale()
 
 
@@ -599,6 +602,7 @@ class Main(QtGui.QMainWindow):
         self.values=values
 
         #Zuruecksetzen der Konturen
+        #Put back the contours
         del(self.shapes[:])
         del(self.LayerContents[:])
         del(self.EntitiesRoot)
@@ -606,6 +610,7 @@ class Main(QtGui.QMainWindow):
                                             p0=p0,pb=pb,sca=sca,rot=rot)
 
         #Start mit () bedeutet zuweisen der Entities -1 = Standard
+        #Start with () means to assign the entities -1 = Default ???
         self.makeEntitiesShapes(parent=self.EntitiesRoot)
         self.LayerContents.sort()
         
@@ -709,14 +714,14 @@ class Main(QtGui.QMainWindow):
         @param shape: The shape to be appended of the shape 
         @param lay_nr: The Nr. of the layer
         """
-        #Check if the layer is already existing and add shape if it is.
+        #Check if the layer already exists and add shape if it is.
         for LayCon in self.LayerContents:
             if LayCon.LayerNr==lay_nr:
                 LayCon.shapes.append(shape)
                 shape.LayerContent=LayCon
                 return
 
-        #If the Layer is not existing create a new one.
+        #If the Layer does not exist create a new one.
         LayerName=self.values.layers[lay_nr].name
         self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape]))
         shape.LayerContent=self.LayerContents[-1]

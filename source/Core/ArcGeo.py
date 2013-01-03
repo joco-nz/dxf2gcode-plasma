@@ -75,14 +75,16 @@ class ArcGeo(QtCore.QObject):
                 self.O.x += lo * cos(arc) * d
                 
               
-        # Falls nicht übergeben Mittelpunkt ausrechnen  
+        # Falls nicht übergeben Mittelpunkt ausrechnen
+        # Compute centre...
             elif (type(self.s_ang) != type(None)) and (type(self.e_ang) != type(None)):
                 self.O.x = self.Pa.x - r * cos(self.s_ang)
                 self.O.y = self.Pa.y - r * sin(self.s_ang)
             else:
                 logger.error(self.tr("Missing value for Arc Geometry"))
 
-        #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen            
+        #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen
+        #Calculate start and end angles
         if type(self.s_ang) == type(None):
             self.s_ang = self.O.norm_angle(Pa)
             
@@ -92,7 +94,8 @@ class ArcGeo(QtCore.QObject):
         self.ext=self.dif_ang(self.Pa, self.Pe, direction)
         #self.get_arc_extend(direction)
 
-        #Falls es ein Kreis ist Umfang 2pi einsetzen        
+        #Falls es ein Kreis ist Umfang 2pi einsetzen
+        #If there is a circumference use 2*pi
         if self.ext == 0.0:
             self.ext = 2 * pi
                    
@@ -159,6 +162,7 @@ class ArcGeo(QtCore.QObject):
         """ 
         
         #FIXME Das könnte Probleme geben bei einem reelen Kreis
+        #FIXME This could indicate problems in a real arc
 #        if P1.isintol(P2,tol):
 #            return 0.0
 #        
@@ -269,6 +273,7 @@ class ArcGeo(QtCore.QObject):
 #        """
 #
 ##        #Rekursive Schleife falls mehrfach verschachtelt.
+##        #Recursive loop if nested
 #        if type(parent) != type(None):
 #            angle += parent.rot
 #            
@@ -293,6 +298,7 @@ class ArcGeo(QtCore.QObject):
         """
         
         #Rekursive Schleife falls mehrfach verschachtelt.
+        #Recursive loop if nested.
         if type(parent) != type(None):
             sR = sR * parent.sca[0]
             sR = self.scaleR(sR, parent.parent)

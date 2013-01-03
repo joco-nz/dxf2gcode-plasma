@@ -53,6 +53,7 @@ class EntitieContentClass:
                ('\nchildren:    %s' %self.children)
             
     #Hinzufuegen der Kontur zu den Entities
+    #Add the contour of the Entities
     def addchild(self,child):
         self.children.append(child)
   

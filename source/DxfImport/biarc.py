@@ -42,10 +42,10 @@ class BiarcClass:
         @param tan_b: Tangent of the End Point
         @param min_r: The minimu radius of a arc section.
         """
-        min_len = 1e-12       #Min Abstand für doppelten Punkt
-        min_alpha = 1e-4      #Winkel ab welchem Gerade angenommen wird inr rad
-        max_r = 5e3           #Max Radius ab welchem Gerade angenommen wird (5m)
-        min_r = min_r         #Min Radius ab welchem nichts gemacht wird
+        min_len = 1e-12       #Min Abstand für doppelten Punkt / Minimum clearance for double point
+        min_alpha = 1e-4      #Winkel ab welchem Gerade angenommen wird inr rad / Angle for which it is assumed straight inr rad
+        max_r = 5e3           #Max Radius ab welchem Gerade angenommen wird (5m) / Max radius is assumed from which line (5m)
+        min_r = min_r         #Min Radius ab welchem nichts gemacht wird / Min radius beyond which nothing is done
         
         self.Pa = Pa
         self.tan_a = tan_a
@@ -57,6 +57,7 @@ class BiarcClass:
         self.k = 0.0
 
         #Errechnen der Winkel, Länge und Shape
+        #Calculate the angle, length and shape
         norm_angle, self.l = self.calc_normal(self.Pa, self.Pb)
 
         alpha, beta, self.teta, self.shape = self.calc_diff_angles(norm_angle, \
@@ -70,14 +71,17 @@ class BiarcClass:
             
         elif(self.shape == "LineGeo"):
             #Erstellen der Geometrie
+            #Create the geometry
             self.shape = "LineGeo"
             self.geos.append(LineGeo(self.Pa, self.Pb))
         else:
-            #Berechnen der Radien, Mittelpunkte, Zwichenpunkt            
+            #Berechnen der Radien, Mittelpunkte, Zwichenpunkt
+            #Calculate the radii, midpoints Zwichenpunkt
             r1, r2 = self.calc_r1_r2(self.l, alpha, beta, self.teta)
             
             if (abs(r1) > max_r)or(abs(r2) > max_r):
                 #Erstellen der Geometrie
+                #Create the geometry
                 self.shape = "LineGeo"
                 self.geos.append(LineGeo(self.Pa, self.Pb))
                 return
@@ -89,10 +93,12 @@ class BiarcClass:
             O1, O2, k = self.calc_O1_O2_k(r1, r2, self.tan_a, self.teta)
             
             #Berechnen der Start und End- Angles für das drucken
+            #Calculate the start and end angles for the print
             s_ang1, e_ang1 = self.calc_s_e_ang(self.Pa, O1, k)
             s_ang2, e_ang2 = self.calc_s_e_ang(k, O2, self.Pb)
 
             #Berechnen der Richtung und der Extend
+            #Calculate the direction and extent
             dir_ang1 = (tan_a - s_ang1) % (-2 * pi)
             dir_ang1 -= ceil(dir_ang1 / (pi)) * (2 * pi)
 
@@ -100,7 +106,8 @@ class BiarcClass:
             dir_ang2 -= ceil(dir_ang2 / (pi)) * (2 * pi)
             
             
-            #Erstellen der Geometrien          
+            #Erstellen der Geometrien
+            #Create the geometries
             self.geos.append(ArcGeo(Pa=self.Pa, Pe=k, O=O1, r=r1, \
                                     s_ang=s_ang1, e_ang=e_ang1, direction=dir_ang1))
             self.geos.append(ArcGeo(Pa=k, Pe=self.Pb, O=O2, r=r2, \
@@ -174,6 +181,7 @@ class BiarcClass:
     
     def get_biarc_fitting_error(self, Pt):
         #Abfrage in welchem Kreissegment der Punkt liegt:
+        #Query in which segment of the circle the point is:
         w1 = self.geos[0].O.norm_angle(Pt)
         if (w1 >= min([self.geos[0].s_ang, self.geos[0].e_ang]))and\
            (w1 <= max([self.geos[0].s_ang, self.geos[0].e_ang])):

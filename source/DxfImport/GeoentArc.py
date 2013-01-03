@@ -39,6 +39,7 @@ class GeoentArc:
         self.geo = []
 
         #Lesen der Geometrie
+        #Read the geometry
         self.Read(caller)
 
     def __str__(self):
@@ -61,15 +62,19 @@ class GeoentArc:
     
     def Read(self, caller):
         #Kürzere Namen zuweisen
+        #Assign short name
         lp = caller.line_pairs
 
-        #Layer zuweisen        
+        #Layer zuweisen
+        #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
         #XWert
+        #X Value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
         #YWert
+        #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
         O = Point(x0, y0)
@@ -77,26 +82,32 @@ class GeoentArc:
         s = lp.index_code(40, s + 1)
         r = float(lp.line_pair[s].value)
         #Start Winkel
+        #Start angle
         s = lp.index_code(50, s + 1)
         s_ang = radians(float(lp.line_pair[s].value))
         #End Winkel
+        #End angle
         s = lp.index_code(51, s + 1)
         e_ang = radians(float(lp.line_pair[s].value))
 
         #Berechnen der Start und Endwerte des Arcs
+        #Calculate the start and end points of the arcs 
         Pa = Point(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
         Pe = Point(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
 
         #Anhängen der ArcGeo Klasse für die Geometrie
+        #Annexes to ArcGeo class for geometry
         self.geo.append(ArcGeo(Pa=Pa, Pe=Pe, O=O, r=r,
                                 s_ang=s_ang, e_ang=e_ang, direction=1))
 
         #Länge entspricht der Länge des Kreises
+        #Length is the length (circumference?) of the circle
         self.length = self.geo[-1].length
         
 #        logger.debug(self.geo[-1])
 
-        #Neuen Startwerd für die nächste Geometrie zurückgeben        
+        #Neuen Startwerd für die nächste Geometrie zurückgeben
+        #New starting value for the next geometry
         caller.start = s
 
     def get_start_end_points(self, direction):

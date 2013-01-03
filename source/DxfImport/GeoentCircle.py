@@ -35,6 +35,7 @@ class GeoentCircle:
         self.geo = []
 
         #Lesen der Geometrie
+        #Read the geometry
         self.Read(caller)
         
     def __str__(self):
@@ -51,15 +52,19 @@ class GeoentCircle:
     def Read(self, caller):
 
         #K�rzere Namen zuweisen
+        #Assign short name
         lp = caller.line_pairs
 
-        #Layer zuweisen        
+        #Layer zuweisen
+        #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
         #XWert
+        #X Value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
         #YWert
+        #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
         O = Point(x0, y0)
@@ -67,26 +72,31 @@ class GeoentCircle:
         s = lp.index_code(40, s + 1)
         r = float(lp.line_pair[s].value)
                                 
-        #Berechnen der Start und Endwerte des Kreises ohne �berschneidung              
+        #Berechnen der Start und Endwerte des Kreises ohne �berschneidung
+        #Calculate the start and end values of the circle without clipping
         s_ang = -3 * pi / 4
         m_ang = s_ang -pi
         e_ang = -3 * pi / 4
 
         #Berechnen der Start und Endwerte des Arcs
+        #Calculate the start and end values of the arcs
         Pa = Point(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
         Pm = Point(x=cos(m_ang) * r, y=sin(m_ang) * r) + O
         Pe = Point(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
 
         #Anh�ngen der ArcGeo Klasse f�r die Geometrie
+        #Annexes to ArcGeo class for geometry
         self.geo.append(ArcGeo(Pa=Pa, Pe=Pm, O=O, r=r,
                                s_ang=s_ang, e_ang=m_ang, direction=-1))
         self.geo.append(ArcGeo(Pa=Pm, Pe=Pe, O=O, r=r,
                                s_ang=m_ang, e_ang=e_ang, direction=-1))
 
         #L�nge entspricht der L�nge des Kreises
+        #Length corresponds to the length (circumference?) of the circle
         self.length = self.geo[-1].length+self.geo[-2].length
        
-        #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben        
+        #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben
+        #New starting value for the next geometry
         caller.start = s        
 
     def get_start_end_points(self, direction=0):
