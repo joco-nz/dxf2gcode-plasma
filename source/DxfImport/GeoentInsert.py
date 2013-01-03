@@ -30,7 +30,8 @@ class GeoentInsert:
         self.Typ = 'Insert'
         self.Nr = Nr
 
-        #Initialisieren der Werte        
+        #Initialisieren der Werte
+        #Initialise the values
         self.Layer_Nr = 0
         self.BlockName = ''
         self.Point = []
@@ -39,6 +40,7 @@ class GeoentInsert:
         self.length = 0.0
 
         #Lesen der Geometrie
+        #Red the geometry
         self.Read(caller)   
 
         
@@ -60,6 +62,7 @@ class GeoentInsert:
     
     def Read(self, caller):
         #K�rzere Namen zuweisen
+        #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
 
@@ -67,13 +70,16 @@ class GeoentInsert:
         ind = lp.index_code(2, caller.start + 1, e)
         #print lp.line_pair[ind].value ####################################################################
         self.BlockName = lp.line_pair[ind].value
-        #Layer zuweisen        
+        #Layer zuweisen
+        #Assign layer
         s = lp.index_code(8, caller.start + 1, e)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
         #XWert
+        #X Value
         s = lp.index_code(10, s + 1, e)
         x0 = float(lp.line_pair[s].value)
         #YWert
+        #Y Value
         s = lp.index_code(20, s + 1, e)
         y0 = float(lp.line_pair[s].value)
         self.Point = Point(x0, y0)
@@ -98,5 +104,6 @@ class GeoentInsert:
 
 
         #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben
+        #New starting value for the next geometry
         caller.start = e      
 

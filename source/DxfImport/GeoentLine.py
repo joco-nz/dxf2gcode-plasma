@@ -35,6 +35,7 @@ class GeoentLine:
         self.length = 0
 
         #Lesen der Geometrie
+        #Read the geometry
         self.Read(caller)
 
     def __str__(self):
@@ -51,29 +52,35 @@ class GeoentLine:
                                       be=self.geo[-1].Pa,
                                       en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
         else:
-#            showwarning("Short Arc Elemente", ("Length of Line geometrie too short!"\
-#                                               "\nLenght must be greater then tolerance."\
-#                                               "\nSkipping Line Geometrie"))
+#            showwarning("Short Arc Elemente", ("Length of Line geometry too short!"\
+#                                               "\nLength must be greater then tolerance."\
+#                                               "\nSkipping Line Geometry"))
             warning = 1
         return warning
         
     def Read(self, caller):
         #Kürzere Namen zuweisen
+        #Assign short name
         lp = caller.line_pairs
 
-        #Layer zuweisen        
+        #Layer zuweisen
+        #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
         #XWert
+        #X Value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
         #YWert
+        #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
         #XWert2
+        #X Value 2
         s = lp.index_code(11, s + 1)
         x1 = float(lp.line_pair[s].value)
         #YWert2
+        #Y Value 2
         s = lp.index_code(21, s + 1)
         y1 = float(lp.line_pair[s].value)
 
@@ -81,12 +88,15 @@ class GeoentLine:
         Pe = Point(x1, y1)               
 
         #Anhängen der LineGeo Klasse für die Geometrie
+        #Annexes to LineGeo class for geometry ???
         self.geo.append(LineGeo(Pa=Pa, Pe=Pe))
 
         #Länge entspricht der Länge des Kreises
+        #Length corresponding to the length (circumference?) of the circle
         self.length = self.geo[-1].length
         
-        #Neuen Startwert für die nächste Geometrie zurückgeben        
+        #Neuen Startwert für die nächste Geometrie zurückgeben
+        #New starting value for the next geometry
         caller.start = s
 
     def get_start_end_points(self, direction):
