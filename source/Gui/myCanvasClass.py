@@ -584,6 +584,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         #shapes_st_en_points.append([start,ende])
     
         #Ausdrucken der optimierten Route
+        #Print the optimised route
         for shape_nr in range(len(exp_order)+1):
             
             if shape_nr==0:

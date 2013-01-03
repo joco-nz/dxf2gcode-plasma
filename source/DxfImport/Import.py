@@ -50,12 +50,14 @@ logger=logging.getLogger("DxfImport.Import")
 
 class ReadDXF:
     #Initialisierung der Klasse
+    #Initialise the class
     def __init__(self, filename=None):
 
         #Setting up logger
         #logger=g.logger.logger
 
-        #Laden der Kontur und speichern der Werte in die Klassen  
+        #Laden der Kontur und speichern der Werte in die Klassen
+        #Load the contour and store the values in the classes
         str = self.Read_File(filename)
 
         self.line_pairs = self.Get_Line_Pairs(str)        
@@ -74,6 +76,8 @@ class ReadDXF:
 
         #Aufruf der Klasse um die Konturen zur suchen
         #Schleife fï¿½r die Anzahl der Blï¿½cke und den Layern
+        #Call the class to define the contours of search
+        #Loop for the number of blocks and the layer
         for i in range(len(self.blocks.Entities)):
             # '\n'
             #print self.blocks.Entities[i]
@@ -84,6 +88,7 @@ class ReadDXF:
         self.entities.cont = self.Get_Contour(self.entities)
    
     #Laden des ausgewï¿½hlten DXF-Files
+    #Load the selected DXF files
     def Read_File(self, filename):
         file = open(filename, 'r')
         str = file.readlines()
@@ -91,15 +96,18 @@ class ReadDXF:
         return str
     
     #Die Geladenene Daten in Linien Pare mit Code & Value umwandeln.
+    #Convert the uploaded file to line pairs (code & Value).
     def Get_Line_Pairs(self, str):
         line = 0
         line_pairs = dxflinepairsClass([])
         #Start bei der ersten SECTION
+        #Start at the first SECTION
         while (find(str[line], "SECTION") < 0):
             line += 1
         line -= 1
 
         #Durchlauf bis zum Ende falls kein Fehler auftritt. Ansonsten abbruch am Fehler
+        #Continue to the end if no error occurs. Otherwise abort with error
         try:
             while line < len(str):
                 line_pairs.line_pair.append(dxflinepairClass(int(strip(str[line])), strip(str[line + 1])))
@@ -118,20 +126,24 @@ class ReadDXF:
         return line_pairs
         
     #Suchen der Sectionen innerhalb des DXF-Files nï¿½tig um Blï¿½cke zu erkennen.
+    #Search the sections in the DXF file to recognize Blocke.
     def Get_Sections_pos(self):
         sections = []
         
         start = self.line_pairs.index_both(0, "SECTION", 0)
 
-        #Wenn eine Gefunden wurde diese anhï¿½ngen        
+        #Wenn eine Gefunden wurde diese anhï¿½ngen
+        #If a has been found for this attach ???
         while (start != None):
             #Wenn eine Gefunden wurde diese anhï¿½ngen
+            #If a has been found for this attach ???
             sections.append(SectionClass(len(sections)))
             sections[-1].begin = start
             name_pos = self.line_pairs.index_code(2, start + 1)
             sections[-1].name = self.line_pairs.line_pair[name_pos].value
             end = self.line_pairs.index_both(0, "ENDSEC", start + 1)
             #Falls Section nicht richtig beendet wurde
+            #If section was not properly terminated
             if end == None:
                 end = self.line_pairs.nrs - 1
                 
@@ -146,6 +158,7 @@ class ReadDXF:
         return sections
 
     #Suchen der TABLES Section innerhalb der Sectionen diese beinhaltet die LAYERS
+    #Search the TABLES section of the sections within this include LAYERS ???
     def Read_Layers(self, section):
         for sect_nr in range(len(section)):
             if(find(section[sect_nr].name, "TABLES") == 0):
@@ -153,6 +166,7 @@ class ReadDXF:
                 break
 
         #Falls das DXF Bloecke hat diese einlesen
+        #If the DXF block has this einlese???
         layers = []
         if vars().has_key('tables_section'):
             tables_section = section[sect_nr]
@@ -173,6 +187,7 @@ class ReadDXF:
                     
             
     #Suchen der BLOCKS Section innerhalb der Sectionen
+    #Search the BLOCKS section within sections
     def Get_Blocks_pos(self, section):
         for sect_nr in range(len(section)):
             if(find(section[sect_nr].name, "BLOCKS") == 0):
@@ -180,6 +195,7 @@ class ReadDXF:
                 break
 
         #Falls das DXF Bloecke hat diese einlesen
+        #If the DXF block has read this ???
         blocks = []
         if vars().has_key('blocks_section'):
             start = blocks_section.begin
@@ -201,6 +217,7 @@ class ReadDXF:
         return blocks
 
     #Lesen der Blocks Geometrien
+    #Read the block geometries
     def Read_Blocks(self, blocks_pos):
         blocks = BlocksClass([])
         warning = 0
@@ -209,17 +226,21 @@ class ReadDXF:
 
             blocks.Entities.append(EntitiesClass(block_nr, blocks_pos[block_nr].name, []))
             #Lesen der BasisWerte fï¿½r den Block
+            #Read the Baseline values for the block
             s = blocks_pos[block_nr].begin + 1
             e = blocks_pos[block_nr].end - 1
             lp = self.line_pairs
             #XWert
+            #X value
             s = lp.index_code(10, s + 1, e)
             blocks.Entities[-1].basep.x = float(lp.line_pair[s].value)
             #YWert
+            #Y value
             s = lp.index_code(20, s + 1, e)
             blocks.Entities[-1].basep.y = float(lp.line_pair[s].value)
             
             #Lesen der Geometrien
+            #Read the geometries
             (blocks.Entities[-1].geo, warning) = self.Get_Geo(s, e, warning)
             
         if warning == 1:
@@ -227,6 +248,7 @@ class ReadDXF:
             
         return blocks
     #Lesen der Entities Geometrien
+    #Read the entities geometries
     def Read_Entities(self, sections):
         warning = 0
         for section_nr in range(len(sections)):
@@ -245,7 +267,8 @@ class ReadDXF:
             
         return entities
 
-    #Lesen der Geometrien von Blï¿½cken und Entities         
+    #Lesen der Geometrien von Blï¿½cken und Entities
+    #Read the geometries of Blocks and Entities
     def Get_Geo(self, begin, end, warning):
         geos = []
         self.start = self.line_pairs.index_code(0, begin, end)
@@ -253,20 +276,25 @@ class ReadDXF:
         
         while self.start != None:
             #Laden der aktuell gefundenen Geometrie
+            #Load the currently found geometry
             name = self.line_pairs.line_pair[self.start].value         
             entitie_geo, warning = self.get_geo_entitie(len(geos), name, warning)
 
             #Hinzufï¿½gen der Werte Wenn es gerade gefunden wurde
+            #Shortlist of values if it was just found
             if warning == 2:
                 #Zurï¿½cksetzen zu Warnung allgemein
+                #Reset warning ???
                 warning = 1
             else:
                 geos.append(entitie_geo)
             
             #Die nï¿½chste Suche Starten nach dem gerade gefundenen
+            #Start the next search after one just found
             self.start = self.line_pairs.index_code(0, self.start, end)            
 
-            #Debug Informationen anzeigen falls erwï¿½nscht                        
+            #Debug Informationen anzeigen falls erwï¿½nscht
+            #Show debugging information if desired
             #if self.start == None:
                 #g.logger.logger.info(("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
                                         #% (name, old_start, old_start * 2 + 4, end * 2 + 4)), 1)
@@ -287,6 +315,9 @@ class ReadDXF:
     #Verteiler fï¿½r die Geo-Instanzen
     # wird in def Get_Geo aufgerufen
     # fï¿½r einen Release kann der ganze Code gerne wieder in einer Datei landen.
+    #Distributor for Geo instances ???
+    # is called in def Get_Geo
+    # For a release of the entire code can be happy again end up in a file. ???
     def get_geo_entitie(self, geo_nr, name, warning):
         #Entities:
         # 3DFACE, 3DSOLID, ACAD_PROXY_ENTITY, ARC, ATTDEF, ATTRIB, BODY
@@ -296,6 +327,7 @@ class ReadDXF:
         # VERTEX, VIEWPOINT, XLINE
 
         # Instanz des neuen Objekts anlegen und gleichzeitig laden
+        # Create a new instance of the object and at the same load ???
         if(name == "POLYLINE"):
             geo = GeoentPolyline(geo_nr, self)
         elif (name == "SPLINE"):
@@ -321,6 +353,7 @@ class ReadDXF:
         return geo, warning
 
     #Findet die Nr. des Geometrie Layers
+    #Find the number of geometry layers
     def Get_Layer_Nr(self, Layer_Name):
         for i in range(len(self.layers)):
             if (find(self.layers[i].name, Layer_Name) == 0):
@@ -332,6 +365,7 @@ class ReadDXF:
         return layer_nr
     
     #Findet die Nr. des Blocks
+    #Find the number of blocks
     def Get_Block_Nr(self, Block_Name):
         block_nr = -1
         for i in range(len(self.blocks.Entities)):
@@ -341,6 +375,7 @@ class ReadDXF:
         return block_nr
 
     #Findet die beste Kontur der zusammengesetzen Geometrien
+    #Find the best contour the composite geometries
     def Get_Contour(self, entities=None):
         cont = []
 
@@ -353,6 +388,7 @@ class ReadDXF:
         return cont    
     
     #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
+    #Calculate and assign the start and end points
     def App_Cont_or_Calc_IntPts(self, geo=None, cont=None):
 
         tol = g.config.point_tolerance
@@ -370,6 +406,7 @@ class ReadDXF:
         return points
 
     #Suchen von gemeinsamen Punkten
+    #Find common points
     def Find_Common_Points(self, points=None):
         #tol=self.config.points_tolerance.get()
         tol = g.config.point_tolerance
@@ -377,16 +414,20 @@ class ReadDXF:
         p_list = []
         
         #Einen List aus allen Punkten generieren
+        #Generate list of all points
         for p in points:
             p_list.append([p.Layer_Nr, p.be.x, p.be.y, p.point_nr, 0])
             p_list.append([p.Layer_Nr, p.en.x, p.en.y, p.point_nr, 1])
 
-        #Den List sortieren        
+        #Den List sortieren
+        #Sort the list
         p_list.sort()
         #print p_list
 
         #Eine Schleife fï¿½r die Anzahl der List Elemente durchlaufen
         #Start = wo die Suche der gleichen Elemente beginnen soll
+        #Loop for number of list items
+        #Start = where to begin the search of the same elements
         anf = []
         
         for l_nr in range(len(p_list)):
@@ -400,20 +441,23 @@ class ReadDXF:
                 
             anf = []
 
-            #Schleife bis nï¿½chster X Wert Grï¿½ï¿½er ist als selbst +tol  und Layer Grï¿½ï¿½er gleich
+            #Schleife bis nï¿½chster X Wert Grï¿½ï¿½er ist als selbst +tol und Layer Grï¿½ï¿½er gleich
+            #Loop until the next X value is greater than yourself and layer Gr + tol he same ???
             while (p_list[c_nr][0] < p_list[l_nr][0]) | \
                   (p_list[c_nr][1] <= (p_list[l_nr][1] + tol)):
                 #print ("Suche Punkt %i" %(c_nr))
                 
 
                 #Erstes das ï¿½bereinstimmt is der nï¿½chste Anfang
+                #First, the match is the next start
                 if (type(anf) is list) & \
                    (p_list[c_nr][0] == p_list[l_nr][0]) & \
                    (abs(p_list[c_nr][1] - p_list[l_nr][1]) <= tol):
                     anf = c_nr
                     #print ("Nï¿½chste Suche starten bei" +str(anf))
                     
-                #Falls gleich anhï¿½ngen                
+                #Falls gleich anhï¿½ngen
+                #Attach if equal ???
                 if  (p_list[c_nr][0] == p_list[l_nr][0]) & \
                     (abs(p_list[c_nr][1] - p_list[l_nr][1]) <= tol) & \
                     (abs(p_list[c_nr][2] - p_list[l_nr][2]) <= tol) & \
@@ -426,11 +470,14 @@ class ReadDXF:
                     break
 
             #Anhï¿½ngen der gefundenen Punkte an points
+            #Append the found points
             for int_p in inter:
                 #Common Anfangspunkt
+                #Common starting point
                 if p_list[l_nr][-1] == 0:
                     points[p_list[l_nr][-2]].be_cp.append(p_list[int_p][3:5])
                 #Common Endpunkt
+                #Common end point
                 else:
                     points[p_list[l_nr][-2]].en_cp.append(p_list[int_p][3:5])
 
@@ -448,6 +495,7 @@ class ReadDXF:
 #                            print ('Gleiche Punkte in Anfang: %s und Ende %s' %(be_p,en_p))
 #                    
 #        #Lï¿½schen der ï¿½berflï¿½ssigen Punkte
+#        #Delete the ? points ???
 #        for p_nr in del_points:
 #            for j in range(len(points)):
 #                if p_nr==points[j].point_nr:
@@ -456,6 +504,7 @@ class ReadDXF:
 #        return points        
 
     #Suchen nach den besten zusammenhï¿½ngenden Konturen
+    #Find the best continuous contours
     def Search_Contours(self, geo=None, all_points=None, cont=None):
         
         points = deepcopy(all_points)
@@ -463,6 +512,7 @@ class ReadDXF:
         while(len(points)) > 0:
             #print '\n Neue Suche'
             #Wenn nichts gefunden wird dann einfach die Kontur hochzï¿½hlen
+            #If nothing found then count up the contour
             if (len(points[0].be_cp) == 0) & (len(points[0].en_cp) == 0):
                 #print '\nGibt Nix'
                 cont.append(ContourClass(len(cont), 0, [[points[0].point_nr, 0]], 0))
@@ -480,13 +530,16 @@ class ReadDXF:
                 
             elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):                
                 #print '\nGibt was in beiden Richtungen'
-                #Suchen der möglichen Pfade                
+                #Suchen der möglichen Pfade
+                #Search the possible paths
                 new_cont_pos=self.Search_Paths(0,[],points[0].point_nr,1,points)
-                #Bestimmen des besten Pfades und übergabe in cont                
+                #Bestimmen des besten Pfades und übergabe in cont
+                #Determine the best path and Xbergabe in cont ???
                 cont.append(self.Get_Best_Contour(len(cont),new_cont_pos,geo,points))
                 #points=self.Remove_Used_Points(cont[-1],points)
 
                 #Falls der Pfad nicht durch den ersten Punkt geschlossen ist
+                #If the path is not closed by the first point
                 if cont[-1].closed==0:
                     #print '\nPfad nicht durch den ersten Punkt geschlossen'
                     cont[-1].reverse()
@@ -503,35 +556,44 @@ class ReadDXF:
         return cont
 
     #Suchen die Wege duch die Konturn !!! REKURSIVE SCHLEIFE WAR SAU SCHWIERIG
+    #Search the paths through the Contour !!! RECURSIVE LOOP WAS DIFFICULT
     def Search_Paths(self, c_nr=None, c=None, p_nr=None, dir=None, points=None):
 
         #Richtung der Suche definieren (1= pos, 0=neg bedeutet mit dem Ende Anfangen)
+        #Define the direction of the search (1 = positive, 0 = neg or reverse)
             
-        #Wenn es der erste Aufruf ist und eine neue Kontur angelegt werden muss         
+        #Wenn es der erste Aufruf ist und eine neue Kontur angelegt werden muss
+        #If it is the first call a new contour is to be created
         if len(c) == 0:
             c.append(ContourClass(cont_nr=0, order=[[p_nr, dir]]))   
 
             
         #Suchen des Punktes innerhalb der points List (nï¿½tig da verwendete Punkte gelï¿½scht werden)
+        #Search for the item within the list of points (ntig used as points gelscht) ???
         for new_p_nr in range(len(points)):
                 if points[new_p_nr].point_nr == p_nr:
                     break
         
         #Nï¿½chster Punkt abhï¿½ngig von der Richtung
+        #Next point depending on the direction
         if dir == 0:
             weiter = points[new_p_nr].en_cp
         elif dir == 1:
             weiter = points[new_p_nr].be_cp
             
-        #Schleife fï¿½r die Anzahl der Abzweig Mï¿½glichkeiten      
+        #Schleife fï¿½r die Anzahl der Abzweig Mï¿½glichkeiten
+        #Loop for the number of the branch can write ???
         for i in range(len(weiter)):
             #Wenn es die erste Mï¿½glichkeit ist Hinzufï¿½gen zur aktuellen Kontur
+            #If it is the first possibility to add to the current contour
             if i == 0:
                 if not(c[c_nr].is_contour_closed()):
                     c[c_nr].order.append(weiter[0])
                     
             #Es gibt einen Abzweig, es wird die aktuelle Kontur kopiert und dem
             #anderen Zweig gefolgt
+            #There is a branch.  It is copied to the current contour and the
+            #other branches follow
             elif i > 0:
                 if not(c[c_nr].is_contour_closed()):
                     #print 'Abzweig ist mï¿½glich'
@@ -552,9 +614,11 @@ class ReadDXF:
                 c = self.Search_Paths(copy(new_c_nr), c, copy(new_p_nr), copy(new_dir), points)        
         return c 
     #Sucht die beste Kontur unter den gefunden aus (Meiner Meinung nach die Beste)
+    #Seek the best (in my opinion) contour
     def Get_Best_Contour(self, c_nr, c=None, geo=None, points=None):
       
-        #Hinzufï¿½gen der neuen Kontur  
+        #Hinzufï¿½gen der neuen Kontur
+        #Shortlist of the new contour
         best = None
         best_open = None
         #print ("Es wurden %0.0f Konturen gefunden" %len(c))
@@ -564,11 +628,13 @@ class ReadDXF:
                 #print c[i]
                 
             #Korrigieren der Kontur falls sie nicht in sich selbst geschlossen ist
+            #The correct contour if it is not closed in on itself
             if c[i].closed == 2:
                 c[i].remove_other_closed_contour()
                 c[i].closed = 0
                 c[i].calc_length(geo)
             #Suchen der besten Geometrie
+            #Search for the best geometry
             if c[i].closed == 1:
                 c[i].calc_length(geo)
                 if best == None:
@@ -585,6 +651,7 @@ class ReadDXF:
                         best_open = i
 
             #Falls keine Geschschlossene dabei ist Beste = Offene
+            #If no Geschschlossene is best = Open ???
         if best == None:
             best = best_open
                 
@@ -595,11 +662,12 @@ class ReadDXF:
 
         return best_c
     
-    #Alle Punkte im Pfad aus Points lÃ¶schen um nÃ¤chte Suche zu beschleunigen               
+    #Alle Punkte im Pfad aus Points lÃ¶schen um nÃ¤chte Suche zu beschleunigen
+    #All the points in the path from Point Clear to accelerate nights Search ???
     def Remove_Used_Points(self,cont=None,points=None):
         for p_nr in cont.order:
             
-            #This have to be 2 seperate loops, otherwise one element is missing
+            #This has to be 2 seperate loops, otherwise one element is missing
             for Point in points:
                 if p_nr[0]==Point.point_nr:
                     del points[points.index(Point)]
@@ -615,9 +683,11 @@ class ReadDXF:
                         del Point.en_cp[Point.en_cp.index(en_cp)]
                         break
                                   
-        #Rückgabe der Kontur       
+        #Rückgabe der Kontur
+        #Return to the contour ???
         return points
-    #Alle Punkte im Pfad aus Points lï¿½schen um nï¿½chte Suche zu beschleunigen               
+    #Alle Punkte im Pfad aus Points lï¿½schen um nï¿½chte Suche zu beschleunigen
+    #All the points in the path from Point Clear to accelerate nights Search ???
     def Contours_Points2Geo(self, cont=None, points=None):
         #print cont.order
         for c_nr in range(len(cont.order)):
@@ -640,35 +710,45 @@ class dxflinepairsClass:
 
     #Sucht nach beiden Angaben in den Line Pairs code & value
     #optional mit start und endwert fï¿½r die Suche
+    #Search for information in the line pairs (both code & value)
+    #Optional start and end values for the search
     def index_both(self, code=0, value=0, start=0, stop= -1):
 
-        #Wenn bei stop -1 angegeben wird stop am ende der pairs        
+        #Wenn bei stop -1 angegeben wird stop am ende der pairs
+        #If stop==-1 then stop at the end of the pairs
         if stop == -1:
             stop = len(self.line_pair)
             
-        #Starten der Suche innerhalb mit den angegeben parametern        
+        #Starten der Suche innerhalb mit den angegeben parametern
+        #Start the search within the specified parameters
         for i in range(start, stop):
             if (self.line_pair[i].code == code) & (self.line_pair[i].value == value):
                 return i
                 
             
         #Wenn nicht gefunden wird None ausgeben
+        #If nothing found return "None"
         return None
     
     #Sucht nach Code Angaben in den Line Pairs code & value
     #optional mit start und endwert fï¿½r die Suche
+    #Search for information in the Line Pairs (both code & value)
+    #Optional start and end values for the search
     def index_code(self, code=0, start=0, stop= -1):
 
-        #Wenn bei stop -1 angegeben wird stop am ende der pairs        
+        #Wenn bei stop -1 angegeben wird stop am ende der pairs
+        #If stop==-1 then stop at the end of the pairs
         if stop == -1:
             stop = len(self.line_pair)
             
-        #Starten der Suche innerhalb mit den angegeben parametern        
+        #Starten der Suche innerhalb mit den angegeben parametern
+        #Start the search within the specified parameters
         for i in range(start, stop):
             if (self.line_pair[i].code == code):
                 return i
             
         #Wenn nicht gefunden wird None ausgeben
+        #If nothing found return "None"
         return None
             
 class LayerClass:
@@ -714,6 +794,7 @@ class EntitiesClass:
         return self.__len__
     
     #Gibt einen List mit den Benutzten Layers des Blocks oder Entities zurï¿½ck
+    #Is a List back to results with the use of block layer or Entities ???
     def get_used_layers(self):
         used_layers = []
         for i in range(len(self.geo)):
@@ -721,6 +802,7 @@ class EntitiesClass:
                 used_layers.append(self.geo[i].Layer_Nr)
         return used_layers
     #Gibt die Anzahl der Inserts in den Entities zurï¿½ck
+    #Returns the number of inserts back into the Entities ???
     def get_insert_nr(self):
         insert_nr = 0
         for i in range(len(self.geo)):

@@ -68,7 +68,7 @@ class MyPostProcessor:
             #logger.debug(lfiles)
         except:
     
-            #If no Postprocessor File was found on folder create one
+            #If no Postprocessor File was found in folder create one
             logger.debug("created default varspace")
             PostProConfig=MyPostProConfig()
             PostProConfig.create_default_config()
@@ -79,7 +79,7 @@ class MyPostProcessor:
             
         
             
-        #Only files with the ending *.cfg will be accepted.
+        #Only files ending with *.cfg will be accepted.
         self.postprocessor_files = []
         for lfile in lfiles:
             if os.path.splitext(lfile)[1] == '.cfg':
@@ -158,7 +158,7 @@ class MyPostProcessor:
                          %(len(LayerContent.shapes),len(LayerContent.exp_order_complete)))
             
             
-            #Perform export only for Layers which have min. 1 Shape to export
+            #Perform export only for Layers which have at least 1 Shape to export
             if len(LayerContent.exp_order_complete):
                 exstr+=self.commentprint("*** LAYER: %s ***" %(LayerContent.LayerName))
                 
@@ -176,14 +176,14 @@ class MyPostProcessor:
                     exstr+=shape.Write_GCode(LayerContent=LayerContent,
                                              PostPro=self)
 
-        #Move maschine to the Final Position
+        #Move machine to the Final Position
         EndPosition=Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
                            y=g.config.vars.Plane_Coordinates['axis2_start_end'])
         
         exstr += self.rap_pos_xy(EndPosition)  
         
 
-        #Write the  end G-Code at the end        
+        #Write the end G-Code at the end        
         exstr += self.write_gcode_en()
         
         """
@@ -200,7 +200,8 @@ class MyPostProcessor:
         else:
             #Export Data to file
                 try:
-                    #Das File oeffnen und schreiben    
+                    #Das File oeffnen und schreiben
+                    #File open and write
                     f = open(save_filename, "w")
                     f.write(exstr)
                     f.close()
@@ -524,6 +525,7 @@ class MyPostProcessor:
         return exstr
 
     #Funktion welche den Wert als formatierter integer zurueck gibt
+    #Function which returns the given value as a formatted integer
     def iprint(self, interger):
         """
         This method is called to return a integer formated as an string
@@ -566,7 +568,7 @@ class MyPostProcessor:
         
         exstr = ''
         
-        #+ or - sign if required. Also usef for Leading Zeros
+        #+ or - sign if required. Also used for Leading Zeros
         if (signed_val)and(pre_dec_z_pad):
             numstr = (('%+0' + str(pre_dec + post_dec + 1) + \
                      '.' + str(post_dec) + 'f') % number)
@@ -586,7 +588,7 @@ class MyPostProcessor:
         exstr_end = dec_sep
         exstr_end += numstr[-(post_dec):]
 
-        #Add's Zero's to the end if quiremd.
+        #Add's Zero's to the end if required
         if post_dec_z_pad == 0:
             while (len(exstr_end) > 0)and((exstr_end[-1] == '0')or(exstr_end[-1] == self.dec_sep)):
                 exstr_end = exstr_end[0:-1]                

@@ -212,6 +212,7 @@ class ShapeOffsetClass:
             geo2 = rawoffshape.geos[geo_nr]
             
             orgPe=self.pretshape.geos[geo_nr-1].Pe #DAS STIMMT NICHT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DA BRAUCH IHC DIE ORGINA KURVE
+            #THE WRONG !!!! INCE THE ORIGINAL HOT I CURVE !!! ???
            
             #Call the trim join algorithms for the elements.
             untroffshape.geos += geo1.trim_join(geo2, newPa,
@@ -633,6 +634,7 @@ class CCArcGeo(ArcGeo):
         
         #If self circle is surrounded by the other no intersection 
         #EVENTUELL MIT TOL WIEDER????????????????????????????????????????????????
+        #MAY CONTAIN TOL AGAIN ??? 
         if(O_dis < abs(self.r - other.r)-tol):
             return []
 
@@ -741,7 +743,7 @@ class CCArcGeo(ArcGeo):
         Compare Function for the sorting
         """  
         
-        #The angle between startpoint and where the intersection occures
+        #The angle between startpoint and where the intersection occurs
         d_ang1 = (self.O.norm_angle(P1)-self.s_ang )%(2*pi)
         d_ang2 = (self.O.norm_angle(P2)-self.s_ang)%(2*pi)
         
@@ -765,14 +767,14 @@ class CCArcGeo(ArcGeo):
         @return: A list of 2 CCArcGeo's will be returned.
         """
        
-        #The angle between endpoint and where the intersection occures
+        #The angle between endpoint and where the intersection occurs
         d_e_ang = self.e_ang - self.O.norm_angle(ipoint)
         
         #Correct by 2*pi if the direction is wrong
         if d_e_ang > self.ext:
             d_e_ang -= 2 * pi
             
-        #The Point where the geo shall be splitted
+        #The Point where the geo will be split
         spoint = self.O.get_arc_point(ang=degrees(self.e_ang - d_e_ang / 2),
                                       r=self.r)
         
@@ -816,7 +818,7 @@ class CCArcGeo(ArcGeo):
             offr = self.r + radius
             
         #If the radius of the new element is smaller then 0.0 return nothing 
-        #and therefore ignor this geom.
+        #and therefore ignore this geom.
         if offr <= 0.0:
             return []
                     
@@ -1069,11 +1071,11 @@ class CCLineGeo(LineGeo):
         if (dx1 == 0 and dy1 == 0) or (dx2 == 0 and dy2 == 0):
             return []
         
-        #Possibly check needed for parallel lines (Not sure on that)
+        #Possible check needed for parallel lines (Not sure on that)
         if atan2(dy1, dx1) == atan2(dy2, dx2):
             return []
         
-        #If to avoid division by zero.
+        #To avoid division by zero.
         try:
             if(abs(dx2) >= abs(dy2)):
                 v1 = (day - dax * dy2 / dx2) / (dx1 * dy2 / dx2 - dy1)
@@ -1103,6 +1105,7 @@ class CCLineGeo(LineGeo):
        
         #Mitternachtsformel zum berechnen der Nullpunkte der quadratischen 
         #Gleichung 
+        #Formula to compute the zeros of the quadratic equation
         a = pow(Ldx, 2) + pow(Ldy, 2)
         b = 2 * Ldx * (self.Pa.x - Arc.O.x) + 2 * Ldy * (self.Pa.y - Arc.O.y)
         c = pow(self.Pa.x - Arc.O.x, 2) + pow(self.Pa.y - Arc.O.y, 2) - pow(Arc.r, 2)
@@ -1123,7 +1126,7 @@ class CCLineGeo(LineGeo):
         
         Pi1.v2 = Arc.dif_ang(Arc.Pa, Pi1, Arc.ext)/Arc.ext
          
-        #If the root is zero only one solution and the line is a tangent.
+        #If the root is zero there is only one solution and the line is a tangent.
         if(root == 0):
             return [Pi1] 
             
@@ -1220,7 +1223,7 @@ class CCLineGeo(LineGeo):
         @param ipoint: The Point where the intersection occures
         @return: A list of 2 CCLineGeo's will be returned.
         """
-        #The Point where the geo shall be splitted
+        #The Point where the geo shall be split
         spoint = PointClass(x=(ipoint.x + self.Pe.x) / 2,
                           y=(ipoint.y + self.Pe.y) / 2)
         

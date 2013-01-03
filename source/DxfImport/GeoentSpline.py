@@ -32,7 +32,8 @@ class GeoentSpline:
         self.Typ = 'Spline'
         self.Nr = Nr
 
-        #Initialisieren der Werte        
+        #Initialisieren der Werte
+        #Initialise the values
         self.Layer_Nr = 0
         self.Spline_flag = []
         self.degree = 1
@@ -43,13 +44,16 @@ class GeoentSpline:
         self.length = 0.0
 
         #Lesen der Geometrie
+        #Read the geometry
         self.Read(caller)
 
         #Zuweisen der Toleranz f�rs Fitting
+        #Assign the fitting tolerance
         tol = g.config.fitting_tolerance
         check = g.config.vars.Import_Parameters['spline_check']
 
         #Umwandeln zu einem ArcSpline
+        #Convert to a ArcSpline
         Spline2ArcsClass = Spline2Arcs(degree=self.degree, Knots=self.Knots, \
                                 Weights=self.Weights, CPoints=self.CPoints, tol=tol, check=check)
                                 
@@ -85,6 +89,7 @@ class GeoentSpline:
           
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         #Hinzuf�gen falls es keine geschlossener Spline ist
+        #Add if it is not a closed spline
         if self.CPoints[0].isintol(self.CPoints[-1], tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length)) 
@@ -99,11 +104,15 @@ class GeoentSpline:
     def analyse_and_opt(self):
         summe = 0
 
-        #Richtung in welcher der Anfang liegen soll (unten links)        
+        #Richtung in welcher der Anfang liegen soll (unten links)
+        #Direction of the top (lower left) ???
         Popt = Point(x= -1e3, y= -1e6)
         
         #Berechnung der Fl�ch nach Gau�-Elling Positive Wert bedeutet CW
         #negativer Wert bedeutet CCW geschlossenes Polygon            
+        #Calculation of the alignment after Gaussian-Elling
+        #Positive value means CW, negative value indicates CCW
+        #closed polygon
         for Line in self.geo:
             summe += (Line.Pa.x * Line.Pe.y - Line.Pe.x * Line.Pa.y) / 2
         
@@ -111,6 +120,7 @@ class GeoentSpline:
             self.reverse()
         
         #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
+        #Find the smallest starting point from bottom left X (Must be new loop!)
         min_distance = self.geo[0].Pa.distance(Popt)
         min_geo_nr = 0
         for geo_nr in range(1, len(self.geo)):
@@ -119,23 +129,28 @@ class GeoentSpline:
                 min_geo_nr = geo_nr
 
         #Kontur so anordnen das neuer Startpunkt am Anfang liegt
+        #Order contour so the new starting point is at the beginning
         self.geo = self.geo[min_geo_nr:len(self.geo)] + self.geo[0:min_geo_nr]
 
     def Read(self, caller):
 
-        #K�rzere Namen zuweisen        
+        #K�rzere Namen zuweisen
+        #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
 
-        #Layer zuweisen        
+        #Layer zuweisen
+        #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
 
         #Spline Flap zuweisen
+        #Assign Spline Flap
         s = lp.index_code(70, s + 1)
         self.Spline_flag = int(lp.line_pair[s].value) 
 
         #Spline Ordnung zuweisen
+        #Spline order to assign
         s = lp.index_code(71, s + 1)
         self.degree = int(lp.line_pair[s].value)
 
@@ -146,8 +161,10 @@ class GeoentSpline:
 
         s = st
         #Lesen der Knoten
+        #Read the node
         while 1:
             #Knoten Wert
+            #Node value
             sk = lp.index_code(40, s + 1, e)
             if sk == None:
                 break
@@ -155,9 +172,11 @@ class GeoentSpline:
             s = sk
 
         #Lesen der Gewichtungen
+        #Read the weights
         s = st
         while 1:
             #Knoten Gewichtungen
+            #Node weights
             sg = lp.index_code(41, s + 1, e)
             if sg == None:
                 break
@@ -166,16 +185,20 @@ class GeoentSpline:
             
                 
         #Lesen der Kontrollpunkte
+        #Read the control points
         s = st
         while 1:  
             #XWert
+            #X value
             s = lp.index_code(10, s + 1, e)
             #Wenn kein neuer Punkt mehr gefunden wurde abbrechen ...
+            #Cancel if no new item was detected
             if s == None:
                 break
             
             x = float(lp.line_pair[s].value)
             #YWert
+            #Y value
             s = lp.index_code(20, s + 1, e)
             y = float(lp.line_pair[s].value)
 
@@ -193,7 +216,7 @@ class GeoentSpline:
 #        print len(self.CPoints)
 #        print self
 
-        
+
     def get_start_end_points(self, direction=0):
         if not(direction):
             punkt, angle = self.geo[0].get_start_end_points(direction)
