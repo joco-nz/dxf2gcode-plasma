@@ -61,7 +61,7 @@ if (lc):
 
 language = os.environ.get('LANGUAGE', None)
 if (language):
-    """langage comes back something like en_CA:en_US:en_GB:en
+    """language comes back something like en_CA:en_US:en_GB:en
     on linuxy systems, on Win32 it's nothing, so we need to
     split it up into a list"""
     langs += language.split(":")

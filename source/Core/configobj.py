@@ -859,7 +859,7 @@ class Section(dict):
         
         Return a dictionary of the return values
         
-        If the function raises an exception, raise the errror
+        If the function raises an exception, raise the error
         unless ``raise_errors=False``, in which case set the return value to
         ``False``.
         

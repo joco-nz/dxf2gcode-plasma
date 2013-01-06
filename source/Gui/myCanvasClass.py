@@ -459,7 +459,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     def plotAll(self,shapes,EntitiesRoot):
         """
         Instance is called by the Main Window after the defined file is loaded.
-        It generates all ploting functionallity. The parameters are generally 
+        It generates all ploting functionality. The parameters are generally 
         used to scale or offset the base geometry (by Menu in GUI).
         
         @param values: The loaded dxf values fro mthe dxf_import.py file
@@ -570,10 +570,10 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     
     def addexproute(self,exp_order,layer_nr):
         """
-        This function initialisates the Arrows of the export route order and 
+        This function initialises the Arrows of the export route order and 
         its numbers. 
         @param shapes_st_en_points: The start and end points of the shapes.
-        @param route: The order of the shapes to be ploted. 
+        @param route: The order of the shapes to be plotted. 
         """
         
         x_st=g.config.vars.Plane_Coordinates['axis1_start_end']
@@ -663,7 +663,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     def setShow_disabled_paths(self,flag):
         """
         This function is called by the Main Menu and is passed from Main to 
-        MyGraphicsView to the Scene. It shall perform the showing or hidding 
+        MyGraphicsView to the Scene. It shall perform the showing or hiding 
         of enabled/disabled shapes.
         
         @param flag: This flag is true if hidden paths shall be shown

@@ -102,7 +102,7 @@ class Point:
     
     def add2path(self, papath=None, parent=None):
         """
-        Plots the geometry of self into the defined canvas. Arcs will be ploted
+        Plots the geometry of self into the defined canvas. Arcs will be plotted
         as line segments.
         @param papath: The painterpath where the geometries shall be added
         @param parent: FIXME

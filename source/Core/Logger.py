@@ -51,7 +51,7 @@ class LoggerClass():
         else:
             return level
 
-    # logging to file + window - explicitely enabled
+    # logging to file + window - explicitly enabled
     def add_file_logger(self, logfile, log_level):
         
         self.file_handler = logging.FileHandler(logfile, 'w')  # recreate 

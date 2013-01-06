@@ -187,14 +187,14 @@ class MyPostProcessor:
         exstr += self.write_gcode_en()
         
         """
-        FIXME, Need to check this, dont know if it's correct here or not.
+        FIXME, Need to check this, don't know if it's correct here or not.
         """
         exstr=self.make_line_numbers(exstr)   
    
         #If the String shall be given to STDOUT
         if g.config.vars.General['write_to_stdout']:
             print(exstr)
-            logger.debug("Export to STDOUT performed sucessfull")
+            logger.debug("Export to STDOUT performed successful")
             self.close
     
         else:
@@ -205,7 +205,7 @@ class MyPostProcessor:
                     f = open(save_filename, "w")
                     f.write(exstr)
                     f.close()
-                    logger.debug("Export to FILE performed sucessfull")    
+                    logger.debug("Export to FILE performed successful")    
                 except IOError:
                     QtGui.QMessageBox.warning(g.window,"Warning during Export",
                                               "Cannot Save the File")
@@ -528,17 +528,17 @@ class MyPostProcessor:
     #Function which returns the given value as a formatted integer
     def iprint(self, interger):
         """
-        This method is called to return a integer formated as an string
+        This method is called to return a integer formatted as an string
         @param integer: The integer values which shall be returned as a string
-        @return: The formated integer as a string.
+        @return: The formatted integer as a string.
         """
         return ('%i' % interger)
     
     def sprint(self, string):
         """
-        This method is called to return a string formated as an string
+        This method is called to return a string formatted as an string
         @param integer: The integer values which shall be returned as a string
-        @return: The formated integer as a string.
+        @return: The formatted integer as a string.
         """
         return ('%s' % string)
 
@@ -555,8 +555,8 @@ class MyPostProcessor:
         """
         This function returns the given real values in the defined format. The
         format which shall be returned is defined in the postprocessor file.
-        @param number: The number which shall be returned in a formated string
-        @return: The formated string of the number.
+        @param number: The number which shall be returned in a formatted string
+        @return: The formatted string of the number.
         """
         
         pre_dec     = self.vars.Number_Format["pre_decimals"]

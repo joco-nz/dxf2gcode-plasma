@@ -56,7 +56,7 @@ class ShapeOffsetClass:
         The pretreatment searches for local self  intersection points (LSIP) 
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
         
-        If Local self intersections exist the Elements will be splitted into new
+        If Local self intersections exist the Elements will be split into new
         elements at their intersection Point.
         """ 
 
@@ -71,7 +71,7 @@ class ShapeOffsetClass:
         joinedshape.BB = shape.BB
         
         for geo in shape.geos:
-            #Generate new Geometry copied from pevious one
+            #Generate new Geometry copied from previous one
             if geo==shape.geos[0]:
                 Pa=geo.Pa
                 Pe=geo.Pe
@@ -96,7 +96,7 @@ class ShapeOffsetClass:
         The pretreatment searches for local self  intersection points (LSIP) 
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
         
-        If Local self intersections exist the Elements will be splitted into new
+        If Local self intersections exist the Elements will be split into new
         elements at their intersection Point.
         """ 
 
@@ -128,7 +128,7 @@ class ShapeOffsetClass:
                     geo1=pretshape.geos[-1]
                     geo2=pretshape.geos[0]
                 
-                #A intersection may only ocurre if the Bounding Boxes have an
+                #An intersection may only occur if the Bounding Boxes have an
                 #intersection too
                 intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
                     
@@ -136,7 +136,7 @@ class ShapeOffsetClass:
                     points = geo1.find_inter_points(geo2, tol=self.tol)
                     #Check if the Point is in tolerance with the last Point of geo1
                     #If not it is a Local Self Intersecting Point per Definition 2 
-                    #and the element has to be seperated into 2 elements. this will
+                    #and the element has to be separated into 2 elements. this will
                     #result in a not self intersecting element. 
                                
                     for Point in points:
@@ -360,7 +360,7 @@ class ShapeOffsetClass:
 ##                            geo2.inters.append(Point)
 
                            
-        #Sort the intersection Points in asscending order and then splits the 
+        #Sort the intersection Points in ascending order and then splits the 
         #shape at the intersection points into new shapes.
         clippedshapes=[]
         clippedshapes.append(self.return_new_clippedshape())       
@@ -557,7 +557,7 @@ class CCArcGeo(ArcGeo):
         Pa = PointClass(x=self.O.x - self.r, y=self.O.y - self.r)
         Pe = PointClass(x=self.O.x + self.r, y=self.O.y + self.r)
         
-        #Do the calculation only for arcs have positiv extend => switch angles
+        #Do the calculation only for arcs have positive extend => switch angles
         if self.ext >= 0:
             s_ang = self.s_ang
             e_ang = self.e_ang
@@ -586,8 +586,8 @@ class CCArcGeo(ArcGeo):
         
     def wrap(self, angle, isend=0):
         """
-        Wrapes the given angle into a range between 0 and 2pi
-        @param angle: The angle to be wraped
+        Wraps the given angle into a range between 0 and 2pi
+        @param angle: The angle to be wrapped
         @param isend: If the angle is the end angle or start angle, this makes a
         difference at 0 or 2pi.
         @return: Returns the angle between 0 and 2 *pi
@@ -734,7 +734,7 @@ class CCArcGeo(ArcGeo):
         
     def sort_inters_asscending(self):
         """
-        Sorts the intersection points in self.inters in asscending order
+        Sorts the intersection points in self.inters in ascending order
         """       
         self.inters.sort(self.cmp_asscending)
           
@@ -762,8 +762,8 @@ class CCArcGeo(ArcGeo):
     def split_into_2geos(self, ipoint=PointClass()):
         """
         Splits the given geometry into 2 not self intersection geometries. The
-        geometry will be splitted between ipoint and Pe.
-        @param ipoint: The Point where the intersection occures
+        geometry will be split between ipoint and Pe.
+        @param ipoint: The Point where the intersection occurs
         @return: A list of 2 CCArcGeo's will be returned.
         """
        
@@ -783,8 +783,8 @@ class CCArcGeo(ArcGeo):
     def split_geo_at_point(self,spoint):
         """
         Splits the given geometry into 2 geometries. The
-        geometry will be splitted at Point spoint.
-        @param ipoint: The Point where the intersection occures
+        geometry will be split at Point spoint.
+        @param ipoint: The Point where the intersection occurs
         @return: A list of 2 CCArcGeo's will be returned.
         """
         
@@ -803,7 +803,7 @@ class CCArcGeo(ArcGeo):
         geometry self.
         @param radius: The offset of the curve
         @param direction: The direction of offset 41==Left 42==Right
-        @return: The offseted geometry
+        @return: The offset geometry
         """  
         
         
@@ -1140,7 +1140,7 @@ class CCLineGeo(LineGeo):
     
     def sort_inters_asscending(self):
         """
-        Sorts the intersection points in self.inters in asscending order
+        Sorts the intersection points in self.inters in ascending order
         """       
         self.inters.sort(self.cmp_asscending)
           
@@ -1219,8 +1219,8 @@ class CCLineGeo(LineGeo):
     def split_into_2geos(self, ipoint=PointClass()):
         """
         Splits the given geometry into 2 not self intersection geometries. The
-        geometry will be splitted between ipoint and Pe.
-        @param ipoint: The Point where the intersection occures
+        geometry will be split between ipoint and Pe.
+        @param ipoint: The Point where the intersection occurs
         @return: A list of 2 CCLineGeo's will be returned.
         """
         #The Point where the geo shall be split
@@ -1232,8 +1232,8 @@ class CCLineGeo(LineGeo):
     def split_geo_at_point(self,spoint):
         """
         Splits the given geometry into 2 geometries. The
-        geometry will be splitted at Point spoint.
-        @param ipoint: The Point where the intersection occures
+        geometry will be split at Point spoint.
+        @param ipoint: The Point where the intersection occurs
         @return: A list of 2 CCArcGeo's will be returned.
         """
         Li1 = CCLineGeo(Pa=self.Pa, Pe=spoint)
@@ -1431,7 +1431,7 @@ class IPointClass(PointClass):
         """
         Checks if the Point is on the CCLineGeo, therefore a true intersection
         Point.
-        @param other: The Point which shall be ckecke
+        @param other: The Point which shall be checked
         @return: Returns true or false
         """
         if geo==self.geo1:
@@ -1460,10 +1460,10 @@ class IPointClass(PointClass):
     
     def isPFIP(self, geo):
         """
-        Checks if the Intersectionpoint is on the Positiv ray of the line.
-        Therefore is a positiv false intersection Point. Therefore it's just 
+        Checks if the Intersectionpoint is on the Positive ray of the line.
+        Therefore is a positive false intersection Point. Therefore it's just 
         needed to check if the Point is nearer to Pe then to Pa
-        @param ipoint: The Point which shall be ckecke
+        @param ipoint: The Point which shall be checked
         @return: Returns true or false
         """
         if geo==self.geo1:

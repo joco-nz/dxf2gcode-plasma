@@ -16,7 +16,7 @@ import Core.constants as c
 class myMessageBox(QtGui.QTextBrowser):
     """
     The myMessageBox Class performs the write functions in the Message Window.
-    The pervious defined MyMessageBox_org class is used as output (Within ui). 
+    The previous defined MyMessageBox_org class is used as output (Within ui). 
     @sideeffect: None                            
     """
         

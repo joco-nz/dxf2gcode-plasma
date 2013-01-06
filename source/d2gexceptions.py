@@ -32,13 +32,13 @@ class BadConfigFileError(SyntaxError):
     
 class VersionMismatchError(Exception):
     """
-    syntax error in .cfg file
+    version mismatch in .cfg file
     """
     def __init__(self,  fileversion, CONFIG_VERSION):
         self.fileversion = fileversion
         self.CONFIG_VERSION = CONFIG_VERSION
     def __str__(self):
-        return repr('config file vesions do not match - internal: %s,'
+        return repr('config file versions do not match - internal: %s,'
                     ' config file %s, delete existing file to resolve issue'
                      %(self.CONFIG_VERSION, self.fileversion))
 

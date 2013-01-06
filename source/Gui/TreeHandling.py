@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-This class is intented to deal with the drawing (.dxf) structure. It has the following functions:
+This class is intended to deal with the drawing (.dxf) structure. It has the following functions:
 - populate the entities treeView and the layers treeView
 - allow to select shapes from any treeView and show the selection on the graphic view
 - allow to enable/disable shapes from any treeView
@@ -285,7 +285,7 @@ class TreeHandler(QtGui.QWidget):
 
     def buildEntitiesSubTree(self, elements_model, elements_list):
         """
-        This method is called (possibly recursively) in order to populate the Entities treeView. It is not intented to be called directly, use buildEntitiesTree() function instead.
+        This method is called (possibly recursively) in order to populate the Entities treeView. It is not intended to be called directly, use buildEntitiesTree() function instead.
         options
         @param elements_model: the treeView model (used to store the data, see QT docs)
         @param elements_list: either a list of entities, or a shape
@@ -304,7 +304,7 @@ class TreeHandler(QtGui.QWidget):
 
     def addEntitySubTree(self, elements_model, element):
         """
-        This method populates a row of the Entities treeView. It is not intented to be called directly, use buildEntitiesTree() function instead.
+        This method populates a row of the Entities treeView. It is not intended to be called directly, use buildEntitiesTree() function instead.
         options
         @param elements_model: the treeView model (used to store the data, see QT docs)
         @param element: the Entity or Shape element
@@ -476,7 +476,7 @@ class TreeHandler(QtGui.QWidget):
                 selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
             self.ui.entitiesTreeView.blockSignals(False)
 
-        #Uptate the tool parameters fields
+        #Update the tool parameters fields
         self.clearToolsParameters()
         self.displayToolParametersForItem(shape.LayerContent, shape)
 
@@ -662,7 +662,7 @@ class TreeHandler(QtGui.QWidget):
 
             i += 1
 
-        #Update the parent item according to its childs
+        #Update the parent item according to its children
         if item and item.parent():
             parent_state = item.parent().checkState()
             if has_checked and has_unchecked or has_partially_checked:
@@ -1020,7 +1020,7 @@ class TreeHandler(QtGui.QWidget):
         #Selects the tool for the selected layer
         self.ui.toolDiameterComboBox.setCurrentIndex(self.ui.toolDiameterComboBox.findText(str(layer_item.tool_nr)))
         if not self.tool_nr is None and layer_item.tool_nr != self.tool_nr:
-            #Several diffent tools are currently selected => grey background for the combobox
+            #Several different tools are currently selected => grey background for the combobox
             palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Button, QtCore.Qt.gray)
             self.ui.toolDiameterComboBox.setPalette(palette)
@@ -1078,7 +1078,7 @@ class TreeHandler(QtGui.QWidget):
         widget.setText(str(round(value, 4))) #Round the value with at most 4 digits
 
         if previous_value != None and value != previous_value:
-            #Several diffent tools parameter are currently selected (eg: mill deph = -3 for the first selected item and -2 for the second) => grey color for the text
+            #Several different tools parameter are currently selected (eg: mill deph = -3 for the first selected item and -2 for the second) => grey color for the text
             palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.gray)
             widget.setPalette(palette)
@@ -1163,7 +1163,7 @@ class TreeHandler(QtGui.QWidget):
         """
         This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, O or T, then we capture it to enable/disable shape, ...
         @param key_code: the key code as defined by QT
-        @param item_index: the item on which the keyPress event occured
+        @param item_index: the item on which the keyPress event occurred
         """
         result = False
         #Enable/disable checkbox
@@ -1231,7 +1231,7 @@ class TreeHandler(QtGui.QWidget):
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         @param check: the check state
         """
-        item.model().blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
+        item.model().blockSignals(True) #Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
         item.setCheckState(check)
         item.model().blockSignals(False)
 
@@ -1244,7 +1244,7 @@ class TreeHandler(QtGui.QWidget):
             item_index = self.findEntityItemIndexFromShape(real_item)
             if item_index:
                 if item.model() == self.layer_item_model:
-                    self.entity_item_model.blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
+                    self.entity_item_model.blockSignals(True) #Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
                     item_other_tree = self.entity_item_model.itemFromIndex(item_index)
                     item_other_tree.setCheckState(check)
                     self.enableDisableTreeRow(item_other_tree, check)
@@ -1254,7 +1254,7 @@ class TreeHandler(QtGui.QWidget):
             item_index = self.findLayerItemIndexFromShape(real_item)
             if item_index:
                 if item.model() == self.entity_item_model:
-                    self.layer_item_model.blockSignals(True) #Avoid unecessary signal loops (we dont want the treeView to emit itemChanged signal)
+                    self.layer_item_model.blockSignals(True) #Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
                     item_other_tree = self.layer_item_model.itemFromIndex(item_index)
                     item_other_tree.setCheckState(check)
                     self.enableDisableTreeRow(item_other_tree, check)
@@ -1360,7 +1360,7 @@ class TreeHandler(QtGui.QWidget):
                 #creates a new CustomGCode instance
                 custom_gcode = CustomGCodeClass(action_name, len(real_item_parent.shapes), g_code, real_item_parent)
 
-                #insert this new item at the end of the physicall list
+                #insert this new item at the end of the physical list
                 real_item_parent.shapes.append(custom_gcode)
 
                 icon = QtGui.QIcon()

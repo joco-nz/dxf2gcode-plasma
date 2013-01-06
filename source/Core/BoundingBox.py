@@ -81,7 +81,7 @@ class BoundingBox:
     def pointisinBB(self, Point=Point(), tol=0.01):
         """
         Checks if the Point is within the bounding box
-        @param Point: The Point which shall be ckecke
+        @param Point: The Point which shall be checked
         @return: Returns true or false
         """
         x_inter_pos = (self.Pe.x + tol > Point.x) and \

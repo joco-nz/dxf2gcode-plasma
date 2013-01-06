@@ -667,7 +667,7 @@ class ReadDXF:
     def Remove_Used_Points(self,cont=None,points=None):
         for p_nr in cont.order:
             
-            #This has to be 2 seperate loops, otherwise one element is missing
+            #This has to be 2 separate loops, otherwise one element is missing
             for Point in points:
                 if p_nr[0]==Point.point_nr:
                     del points[points.index(Point)]

@@ -233,7 +233,7 @@ class ArcGeo(QtCore.QObject):
         """
         Returns the start/end Point and its direction
         @param direction: 0 to return start Point and 1 to return end Point
-        @return: a list of Point and angle Returns the hdl or hdls of the ploted objects.
+        @return: a list of Point and angle Returns the hdl or hdls of the plotted objects.
         """
 
         abs_geo=self.make_abs_geo(parent)

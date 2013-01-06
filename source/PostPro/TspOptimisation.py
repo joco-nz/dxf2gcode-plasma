@@ -351,7 +351,7 @@ class FittnessClass:
         
         for pop_nr in range(len(self.population.pop)):
             #Suchen der momentanen Reihenfolge
-            #Search the curent order
+            #Search the current order
             order_index = self.get_pop_index_list(self.population.pop[pop_nr])
             #Momentane Reihenfolge der indexe sortieren
             #Current sort order of the index ???

@@ -157,7 +157,7 @@ class LineGeo:
     
     def Write_GCode(self,parent=None, PostPro=None):
         """
-        To be called if a LineGeo shall be wirtten to the PostProcessor.
+        To be called if a LineGeo shall be written to the PostProcessor.
         @param pospro: The used Posprocessor instance
         @return: a string to be written into the file
         """

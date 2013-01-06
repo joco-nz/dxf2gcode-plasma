@@ -147,7 +147,7 @@ class Main(QtGui.QMainWindow):
         
     def showDialog(self):
         """
-        This function is called by the menu "File\Load File" of the main toolbar
+        This function is called by the menu "File/Load File" of the main toolbar
         it creates the file selection dialog and calls the loadFile function to
         load the selected file.
         """
@@ -175,7 +175,7 @@ class Main(QtGui.QMainWindow):
 
     def reloadFile(self):
         """
-        This function is called by the menu "File\Reload File" of the main toolbar
+        This function is called by the menu "File/Reload File" of the main toolbar
         It reloads the previously loaded file (if any)
         """
 
@@ -273,15 +273,15 @@ class Main(QtGui.QMainWindow):
 
     def deleteG0paths(self):
         """
-        Delets the optimisation paths from the scene.
+        Deletes the optimisation paths from the scene.
         """
         self.MyGraphicsScene.delete_opt_path()
         self.ui.actionDelete_G0_paths.setEnabled(False)
     
     def exportShapes(self):
         """
-        This function is called by the menu "Export\Export Shapes". It may open
-        up a Save Dialog it it is used without EMC2 integration. Otherwise it's
+        This function is called by the menu "Export/Export Shapes". It may open
+        up a Save Dialog it it is used without LinuxCNC integration. Otherwise it's
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
@@ -345,7 +345,7 @@ class Main(QtGui.QMainWindow):
 
     def showSaveDialog(self):
         """
-        This function is called by the menu "Export\Export Shapes" of the main toolbar
+        This function is called by the menu "Export/Export Shapes" of the main toolbar
         it creates the selection dialog for the exporter
         @return: Returns the filename of the selected file.
         """
@@ -378,12 +378,11 @@ class Main(QtGui.QMainWindow):
             
     def about(self):
         """
-        This function is called by the menu "Help\About" of the main toolbar and 
+        This function is called by the menu "Help/About" of the main toolbar and 
         creates the About Window
         """
-        QtGui.QMessageBox.about(self, "About Diagram Scene",
-                "The <b>Diagram Scene</b> example shows use" +\
-                " of the graphics framework.")
+        QtGui.QMessageBox.about(self, "About DXF2GCODE",
+                "http://code.google.com/p/dxf2gcode/")
      
     def setShow_path_directions(self):
         """
@@ -448,9 +447,6 @@ class Main(QtGui.QMainWindow):
     
     def CallScaleAll(self):
         """
-        This function is called after the Option=>Rotate All Menu is clicked.
-        """
-        """
         This function is called after the Option=>Scale All Menu is clicked.
         """
         title=_('Scale Contour')
@@ -469,7 +465,7 @@ class Main(QtGui.QMainWindow):
         
     def CallRotateAll(self):
         """
-        This function is called after the Option=>Scale All Menu is clicked.
+        This function is called after the Option=>Rotate All Menu is clicked.
         """
         title=_('Rotate Contour')
         label=[_("Rotate Contour by deg:")]
@@ -510,9 +506,9 @@ class Main(QtGui.QMainWindow):
 
     def loadFile(self,filename):
         """
-        Loads the defined file of filename also calls the command to 
+        Loads the file given by filename.  Also calls the command to 
         make the plot.
-        @param filename: The string of the filename which should be loaded
+        @param filename: String containing filename which should be loaded
         """
 
         self.load_filename=str(filename)
@@ -556,7 +552,7 @@ class Main(QtGui.QMainWindow):
 
     def makeShapesAndPlot(self,values):
         """
-        Plots all data stored in the values paramter to the Canvas
+        Plots all data stored in the values parameter to the Canvas
         @param values: Includes all values loaded from the dxf file
         """
     
@@ -589,10 +585,10 @@ class Main(QtGui.QMainWindow):
     def makeShapes(self,values,p0,pb,sca,rot):
         """
         Instance is called by the Main Window after the defined file is loaded.
-        It generates all ploting functionallity. The parameters are generally 
+        It generates all ploting functionality. The parameters are generally 
         used to scale or offset the base geometry (by Menu in GUI).
         
-        @param values: The loaded dxf values fro mthe dxf_import.py file
+        @param values: The loaded dxf values from the dxf_import.py file
         @param p0: The Starting Point to plot (Default x=0 and y=0)
         @param bp: The Base Point to insert the geometry and base for rotation 
         (Default is also x=0 and y=0)
@@ -622,7 +618,7 @@ class Main(QtGui.QMainWindow):
         @param parent: The parent of a shape is always a Entities. It may be root 
         or if it is a Block this is the Block. 
         @param ent_nr: The values given in self.values are sorted in that way 
-        that 0 is the Root Entities and  1 is beginning with the first block. 
+        that 0 is the Root Entities and 1 is beginning with the first block. 
         This value gives the index of self.values to be used.
         """
 

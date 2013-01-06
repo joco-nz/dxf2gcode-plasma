@@ -84,7 +84,7 @@ class MyTreeView(QtGui.QTreeView):
     def dropEvent(self, event):
         """
         This function is called when the user has released the mouse button in order to drop an element at the mouse pointer place.
-        Note: we have totally reimplemented this function because QT default implementation wants to Copy & Delete each dragged item, even when we only use internals move inside the treeView. This is totally unecessary and over-complicated for us because it would imply to implement a QMimeData import and export functions to export our Shapes / Layers / Entities. The code below tries to move the items at the right place when they are dropped ; it uses simple lists permutations (ie no duplicates & deletes).
+        Note: we have totally reimplemented this function because QT default implementation wants to Copy & Delete each dragged item, even when we only use internals move inside the treeView. This is totally unnecessary and over-complicated for us because it would imply to implement a QMimeData import and export functions to export our Shapes / Layers / Entities. The code below tries to move the items at the right place when they are dropped ; it uses simple lists permutations (ie no duplicates & deletes).
         options
         @param event: the dropEvent (contains position, ...)
         print("\033[32mdropEvent {0} at pos({1}).{3}, index = {2}\033[m\n".format(event, event.pos(), self.indexAt(event.pos()).parent().internalId(), self.dropIndicatorPosition()))
