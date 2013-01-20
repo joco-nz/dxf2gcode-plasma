@@ -138,7 +138,7 @@ class Point:
         elif type(parent) == type(None) and type(sca) == type(None):
             p0 = Point(0, 0)
             pb = Point(0, 0)
-            sca = [0, 0, 0]
+            sca = [1, 1, 1]
             rot = 0
             
             pc = self - pb
