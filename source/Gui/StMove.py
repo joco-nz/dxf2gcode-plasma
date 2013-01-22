@@ -39,7 +39,7 @@ DEBUG = 1
 
 class StMove(QtGui.QGraphicsLineItem):
     """
-    This is the Function which generated the StartMove for each shape. This 
+    This is the Function which generates the StartMove for each shape. This 
     function also performs the Plotting and Export of this moves. It is linked
     to the shape as its parent
     """
@@ -48,12 +48,12 @@ class StMove(QtGui.QGraphicsLineItem):
                  shape=None,parent=None):
         """
         Initialisation of the class.
-        @param startp: This is the Startpoint of the shape where to add the move.
+        @param startp: Startpoint of the shape where to add the move.
         The coordinates are given in scaled coordinates.
-        @param angle: The Angle of the Startmove to end with.
-        @param pencolor: This is only used for plotting purposes
-        @param shape: This is the shape for which the start move is created
-        @param parent: This is the parent EntitieContent Class on which the 
+        @param angle: Angle of the Startmove to end with.
+        @param pencolor: Used only for plotting purposes
+        @param shape: Shape for which the start move is created
+        @param parent: parent EntitieContent Class on which the 
         geometries are added.
         """
         self.sc=1

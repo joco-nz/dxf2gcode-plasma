@@ -2,7 +2,7 @@
 """
 This class is intended to deal with the drawing (.dxf) structure. It has the following functions:
 - populate the entities treeView and the layers treeView
-- allow to select shapes from any treeView and show the selection on the graphic view
+- allow selection of shapes from any treeView and show the selection on the graphic view
 - allow to enable/disable shapes from any treeView
 - reflects into the treeView the changes that occurs on the graphic view
 - set export order using drag & drop
@@ -248,7 +248,7 @@ class TreeHandler(QtGui.QWidget):
 
     def buildEntitiesTree(self, entities_list):
         """
-        This method populates the Entities (blocks) QTreeView with all the elements contained into the entities_list
+        This method populates the Entities (blocks) QTreeView with all the elements contained in the entities_list
         Method must be called each time a new .dxf file is loaded. 
         options
         @param entities_list: list of the layers and shapes (created in the main)
@@ -285,7 +285,9 @@ class TreeHandler(QtGui.QWidget):
 
     def buildEntitiesSubTree(self, elements_model, elements_list):
         """
-        This method is called (possibly recursively) in order to populate the Entities treeView. It is not intended to be called directly, use buildEntitiesTree() function instead.
+        This method is called (possibly recursively) to populate the
+        Entities treeView. It is not intended to be called directly,
+        use buildEntitiesTree() function instead.
         options
         @param elements_model: the treeView model (used to store the data, see QT docs)
         @param elements_list: either a list of entities, or a shape
@@ -304,7 +306,9 @@ class TreeHandler(QtGui.QWidget):
 
     def addEntitySubTree(self, elements_model, element):
         """
-        This method populates a row of the Entities treeView. It is not intended to be called directly, use buildEntitiesTree() function instead.
+        This method populates a row of the Entities treeView. It is
+        not intended to be called directly, use buildEntitiesTree()
+        function instead.
         options
         @param elements_model: the treeView model (used to store the data, see QT docs)
         @param element: the Entity or Shape element
@@ -358,8 +362,14 @@ class TreeHandler(QtGui.QWidget):
 
     def updateExportOrder(self):
         """
-        Update the layers_list order to reflect the TreeView order. This function must be called before generating the GCode (export function).
-        Export will be performed in the order of the structure self.LayerContents of the main. Each layer contains some shapes , and the export order of the shapes is set by populating the exp_order[] list with the shapes reference number for each layer (eg exp_order = [5, 3, 2, 4, 0, 1] for layer 0, exp_order = [5, 3, 7] for layer 1, ...)
+        Update the layers_list order to reflect the TreeView order.
+        This function must be called before generating the GCode
+        (export function). Export will be performed in the order of the
+        structure self.LayerContents of the main. Each layer contains
+        some shapes, and the export order of the shapes is set by
+        populating the exp_order[] list with the shapes reference number
+        for each layer (eg exp_order = [5, 3, 2, 4, 0, 1] for layer 0,
+        exp_order = [5, 3, 7] for layer 1, ...)
         options
         """
 
@@ -399,7 +409,9 @@ class TreeHandler(QtGui.QWidget):
 
     def updateTreeViewOrder(self):
         """
-        Update the Layer TreeView order according to the exp_order list of each layer. This function should be called after running the TSP path otimizer
+        Update the Layer TreeView order according to the exp_order list
+        of each layer. This function should be called after running the
+        TSP path otimizer
         """
 
         i = self.layer_item_model.rowCount(QtCore.QModelIndex())
@@ -434,11 +446,13 @@ class TreeHandler(QtGui.QWidget):
 
     def updateShapeSelection(self, shape, select):
         """
-        This method is a "slot" (callback) called from the main when the selection changes on the graphic view.
-        It aims to update the treeView selection according to the graphic view.
-        Note: in order to avois signals loops, all selection signals are blocked when updating the selections in the treeViews
+        This method is a "slot" (callback) called from the main when the
+        selection changes on the graphic view. It aims to update the
+        treeView selection according to the graphic view.
+        Note: in order to avoid signal loops, all selection signals are
+        blocked when updating the selections in the treeViews
         options
-        @param shape: the Shape who's selection has changed
+        @param shape: the Shape whose selection has changed
         @param selection: whether the Shape has been selected (True) or unselected (False)
         """
 
@@ -484,11 +498,14 @@ class TreeHandler(QtGui.QWidget):
 
     def updateShapeEnabling(self, shape, enable):
         """
-        This method is a "slot" (callback) called from the main when the shapes are enabled or disabled on the graphic view.
-        It aims to update the treeView checkboxes according to the graphic view.
-        Note: in order to avois signals loops, all selection signals are blocked when updating the checkboxes in the treeViews
+        This method is a "slot" (callback) called from the main when the
+        shapes are enabled or disabled on the graphic view.
+        It aims to update the treeView checkboxes according to the
+        graphic view.
+        Note: in order to avoid signal loops, all selection signals are
+        blocked when updating the checkboxes in the treeViews
         options
-        @param shape: the Shape who's enabling has changed
+        @param shape: the Shape whose enabling has changed
         @param enable: whether the Shape has been enabled (True) or disabled (False)
         """
         #Layer treeView
@@ -540,7 +557,8 @@ class TreeHandler(QtGui.QWidget):
 
     def findLayerItemIndexFromShape(self, shape):
         """
-        Find internal layers treeView reference (item index) matching a "real" shape (ie a ShapeClass instance)
+        Find internal layers treeView reference (item index) matching a
+        "real" shape (ie a ShapeClass instance)
         options
         @param shape: the real shape (ShapeClass instance)
         @return: the found item index
@@ -549,7 +567,8 @@ class TreeHandler(QtGui.QWidget):
 
     def findEntityItemIndexFromShape(self, shape):
         """
-        Find internal entities treeView reference (item index) matching a "real" shape (ie a ShapeClass instance)
+        Find internal entities treeView reference (item index) matching
+        a "real" shape (ie a ShapeClass instance)
         options
         @param shape: the real shape (ShapeClass instance)
         @return: the found item index
@@ -558,7 +577,11 @@ class TreeHandler(QtGui.QWidget):
 
     def traverseChildrenAndFindShape(self, item_model, item_index, shape):
         """
-        This method is used by the findLayerItemIndexFromShape() and findEntityItemIndexFromShape() function in order to find a reference from a layer. It traverses the QT model and compares each item data with the shape passed as parameter. When found, the reference is returned
+        This method is used by the findLayerItemIndexFromShape() and
+        findEntityItemIndexFromShape() function in order to find a
+        reference from a layer. It traverses the QT model and compares
+        each item data with the shape passed as parameter. When found,
+        the reference is returned
         options
         @param item_model: the treeView model (used to store the data, see QT docs)
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
@@ -587,7 +610,9 @@ class TreeHandler(QtGui.QWidget):
 
     def traverseChildrenAndSelect(self, selection_model, item_model, item_index, select):
         """
-        This method is used internally to select/unselect all children of a given entity (eg to select all the shapes of a given layer when the user has selected a layer)
+        This method is used internally to select/unselect all children
+        of a given entity (eg to select all the shapes of a given layer
+        when the user has selected a layer)
         options
         @param item_model: the treeView model (used to store the data, see QT docs)
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
@@ -614,7 +639,9 @@ class TreeHandler(QtGui.QWidget):
 
     def traverseChildrenAndEnableDisable(self, item_model, item_index, checked_state):
         """
-        This method is used internally to check/uncheck all children of a given entity (eg to enable all shapes of a given layer when the user has enabled a layer)
+        This method is used internally to check/uncheck all children of
+        a given entity (eg to enable all shapes of a given layer when
+        the user has enabled a layer)
         options
         @param item_model: the treeView model (used to store the data, see QT docs)
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
@@ -637,7 +664,10 @@ class TreeHandler(QtGui.QWidget):
 
     def traverseParentsAndUpdateEnableDisable(self, item_model, item_index):
         """
-        This code updates the parents checkboxes for a given entity. Parents checkboxes are tristate, eg if some of the shapes that belongs to a layer are checked and others not, then the checkbox of this layer will be "half" checked
+        This code updates the parents checkboxes for a given entity.
+        Parents checkboxes are tristate, eg if some of the shapes that
+        belong to a layer are checked and others not, then the checkbox
+        of this layer will be "half" checked
         options
         @param item_model: the treeView model (used to store the data, see QT docs)
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
@@ -682,7 +712,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolUpdate(self, text):
         """
-        Slot that updates the tools diameter, speed and start_radius when a new tool is selected
+        Slot that updates the tool's diameter, speed and start_radius
+        when a new tool is selected
         @param text: the name of the newly selected tool
         """
 
@@ -727,7 +758,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolParameterzRetractionArealUpdate(self, text):
         """
-        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
         self.ui.zRetractionArealLineEdit.setPalette(self.palette) #Restore color
@@ -754,7 +786,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolParameterzSafetyMarginUpdate(self, text):
         """
-        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
         self.ui.zSafetyMarginLineEdit.setPalette(self.palette) #Restore color
@@ -781,7 +814,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolParameterzInfeedDepthUpdate(self, text):
         """
-        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
         self.ui.zInfeedDepthLineEdit.setPalette(self.palette) #Restore color
@@ -808,7 +842,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolParameterg1FeedXYUpdate(self, text):
         """
-        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
         self.ui.g1FeedXYLineEdit.setPalette(self.palette) #Restore color
@@ -835,7 +870,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolParameterg1FeedZUpdate(self, text):
         """
-        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
         self.ui.g1FeedZLineEdit.setPalette(self.palette) #Restore color
@@ -862,7 +898,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolParameterzInitialMillDepthUpdate(self, text):
         """
-        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
         self.ui.zInitialMillDepthLineEdit.setPalette(self.palette) #Restore color
@@ -889,7 +926,8 @@ class TreeHandler(QtGui.QWidget):
 
     def toolParameterzFinalMillDepthUpdate(self, text):
         """
-        Slot that updates the above tools parameter when the corresponding LineEdit changes
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
         self.ui.zFinalMillDepthLineEdit.setPalette(self.palette) #Restore color
@@ -916,8 +954,12 @@ class TreeHandler(QtGui.QWidget):
 
     def actionOnSelectionChange(self, parent, selected, deselected):
         """
-        This function is a callback called from QTreeView class when something changed in the selection. It aims to update the graphic view according to the tree selection. It also deals with children selection when a parent is selected
-        Note that there is no predefined signal for selectionChange event, that's why we use a callback function
+        This function is a callback called from QTreeView class when
+        something changed in the selection. It aims to update the
+        graphic view according to the tree selection. It also deals
+        with children selection when a parent is selected
+        Note that there is no predefined signal for
+        selectionChange event, that's why we use a callback function
         options
         @param parent: QT parent item (unused)
         @param select: list of selected items in the treeView
@@ -972,7 +1014,8 @@ class TreeHandler(QtGui.QWidget):
 
     def clearToolsParameters(self):
         """
-        This function restore defaults for tools parameters widgets (disabled, default color, ...)
+        This function restore defaults for tools parameters widgets
+        (disabled, default color, ...)
         """
         number_of_selected_items = len(self.ui.layersShapesTreeView.selectedIndexes())
 
@@ -1013,7 +1056,8 @@ class TreeHandler(QtGui.QWidget):
 
     def displayToolParametersForItem(self, layer_item, shape_item = None):
         """
-        Display the current tools settings (fill the QLineEdit, ...) for the Layer / Shape passed as parameter
+        Display the current tools settings (fill the QLineEdit, ...)
+        for the Layer / Shape passed as parameter
         @param layer_item: layer instance as defined in LayerContent.py
         @param shape_item: shape instance as defined in Shape.py
         """
@@ -1070,8 +1114,10 @@ class TreeHandler(QtGui.QWidget):
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """
-        This function colorize the text in grey when two values are different. It is used to show differences in tools settings when several layers / shapes are selected.
-        @param widget: QT widget to update (can be a QLabel or a QLineEdit
+        This function colours the text in grey when two values are
+        different. It is used to show differences in tools settings
+        when several layers / shapes are selected.
+        @param widget: QT widget to update (can be a QLabel or a QLineEdit)
         @param previous_value: the value of the previously selected item
         @param value: the value (parameter) of the selected item
         """
@@ -1089,7 +1135,9 @@ class TreeHandler(QtGui.QWidget):
 
     def updateTreeViewSelection(self, model_index, element, select):
         """
-        Really update the shape selection on the graphic view. Also selects the matching shapes in the treeView counterpart (layers treeView -> entities treeView and vice versa)
+        Really update the shape selection on the graphic view. Also
+        selects the matching shapes in the treeView counterpart
+        (layers treeView -> entities treeView and vice versa)
         @param model_index: the treeView model (used to store the data, see QT docs)
         @param element: the real shape (ShapeClass instance)
         @param select: whether to select (True) or not (False)
@@ -1161,7 +1209,9 @@ class TreeHandler(QtGui.QWidget):
 
     def actionOnKeyPress(self, key_code, item_index):
         """
-        This function is a callback called from QTreeView class when a key is pressed on the treeView. If the key is the spacebar, O or T, then we capture it to enable/disable shape, ...
+        This function is a callback called from QTreeView class when a
+        key is pressed on the treeView. If the key is the spacebar, O
+        or T, then capture it to enable/disable shape, ...
         @param key_code: the key code as defined by QT
         @param item_index: the item on which the keyPress event occurred
         """
@@ -1193,7 +1243,9 @@ class TreeHandler(QtGui.QWidget):
 
     def on_itemChanged(self, item):
         """
-        This slot is called when some data change in one of the TreeView. For us, since rows are read only, it is only triggered when a checkbox is checked/unchecked
+        This slot is called when some data changes in one of the
+        TreeView. For us, since rows are read only, it is only
+        triggered when a checkbox is checked/unchecked
         options
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         """
@@ -1227,7 +1279,8 @@ class TreeHandler(QtGui.QWidget):
 
     def updateCheckboxOfItem(self, item, check):
         """
-        This function is used to effectively update the state of a checkbox and enable / disable texts when item is a shape
+        This function is used to effectively update the state of a
+        checkbox and enable / disable texts when item is a shape
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         @param check: the check state
         """
@@ -1274,7 +1327,9 @@ class TreeHandler(QtGui.QWidget):
 
     def enableDisableTreeRow(self, item, check):
         """
-        Enable / disable all the columns from a row, except the first one (because the first column contains the checkbox that must stay enabled in order to be clickable)
+        Enable / disable all the columns from a row, except the first
+        one (because the first column contains the checkbox that must
+        stay enabled in order to be clickable)
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         """
         current_tree_view = None
@@ -1308,7 +1363,8 @@ class TreeHandler(QtGui.QWidget):
 
     def removeCustomGCode(self):
         """
-        Remove a custom GCode object into the treeView, just after the current item. Custom GCode are defined into the config.cfg file
+        Remove a custom GCode object from the treeView, just after the
+        current item. Custom GCode are defined into the config.cfg file
         """
         logger.debug(_('Removing custom GCode...'))
         current_item_index = self.ui.layersShapesTreeView.currentIndex()
@@ -1332,7 +1388,8 @@ class TreeHandler(QtGui.QWidget):
 
     def addCustomGCodeAfter(self, action_name):
         """
-        Add a custom GCode object into the treeView, just after the current item. Custom GCode are defined into the config.cfg file
+        Add a custom GCode object into the treeView, just after the
+        current item. Custom GCode are defined into the config.cfg file
         @param action_name: the name of the custom GCode to be inserted. This name must match one of the subsection names of [Custom_Actions] from the config file.
         """
         logger.debug(_('Adding custom GCode "%s"') %(action_name))
@@ -1387,7 +1444,8 @@ class TreeHandler(QtGui.QWidget):
 
     def prepareExportOrderUpdate(self):
         """
-        If the live update of export route is enabled, this function is called each time the shape order changes. It aims to update the drawing.
+        If the live update of export route is enabled, this function is
+        called each time the shape order changes. It aims to update the drawing.
         """
         if self.auto_update_export_order:
             #Update the exported shapes

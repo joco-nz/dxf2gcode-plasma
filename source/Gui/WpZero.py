@@ -53,8 +53,8 @@ class WpZero(QtGui.QGraphicsItem):
         
     def setallwaysshow(self,flag=False):
         """
-        If the directions shall be allwaysshown the paramerter will be set and 
-        all paths will be shown.
+        If the directions shall be allwaysshown the paramerter will
+        be set and all paths will be shown.
         @param flag: The flag to enable or disable Selection
         """
         self.allwaysshow=flag

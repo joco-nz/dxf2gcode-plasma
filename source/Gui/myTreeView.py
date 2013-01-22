@@ -60,7 +60,12 @@ class MyTreeView(QtGui.QTreeView):
     def dragEnterEvent(self, event):
         """
         Set flag dragged_element to True (we have started a drag).
-        Note: we can't get the dragged index from this function because it is called really late in the drag chain. If the user is too fast in drag & drop, then the event.pos() will return a position that is sensibly different from the original position when the user has started to drag the item. So we only store a flag. We already got the item dragged through the elementPressed() function.
+        Note: we can't get the dragged index from this function because
+        it is called really late in the drag chain. If the user is too
+        fast in drag & drop, then the event.pos() will return a position
+        that is sensibly different from the original position when the user
+        started to drag the item. So we only store a flag. We already
+        got the item dragged through the elementPressed() function.
         options
         @param event: the dragEvent (contains position, ...)
         print("\033[32;1mdragEnterEvent {0} at pos({1}), index = {2}\033[m\n".format(event, event.pos(), self.indexAt(event.pos()).parent().internalId()))
@@ -72,7 +77,9 @@ class MyTreeView(QtGui.QTreeView):
 
     def elementPressed(self, element_model_index):
         """
-        This slot is called when an element (Shape, ...) is pressed with the mouse. It aims to store the index (QModelIndex) of the element pressed.
+        This slot is called when an element (Shape, ...) is pressed
+        with the mouse. It aims to store the index (QModelIndex) of
+        the element pressed.
         options
         @param element_model_index: QModelIndex of the element pressed
         print("\033[32melementPressed row = {0}\033[m".format(element_model_index.model().itemFromIndex(element_model_index).row()))
@@ -83,8 +90,17 @@ class MyTreeView(QtGui.QTreeView):
 
     def dropEvent(self, event):
         """
-        This function is called when the user has released the mouse button in order to drop an element at the mouse pointer place.
-        Note: we have totally reimplemented this function because QT default implementation wants to Copy & Delete each dragged item, even when we only use internals move inside the treeView. This is totally unnecessary and over-complicated for us because it would imply to implement a QMimeData import and export functions to export our Shapes / Layers / Entities. The code below tries to move the items at the right place when they are dropped ; it uses simple lists permutations (ie no duplicates & deletes).
+        This function is called when the user has released the mouse
+        button to drop an element at the mouse pointer place.
+        Note: we have totally reimplemented this function because the
+        default QT implementation wants to Copy & Delete each dragged
+        item, even when we only use internals move inside the treeView.
+        This is totally unnecessary and over-complicated for us because
+        it would imply to implement a QMimeData import and export
+        functions to export our Shapes / Layers / Entities. The code
+        below tries to move the items at the right place when they are
+        dropped ; it uses simple lists permutations (ie no duplicates
+        & deletes).
         options
         @param event: the dropEvent (contains position, ...)
         print("\033[32mdropEvent {0} at pos({1}).{3}, index = {2}\033[m\n".format(event, event.pos(), self.indexAt(event.pos()).parent().internalId(), self.dropIndicatorPosition()))
@@ -264,8 +280,12 @@ class MyStandardItemModel(QtGui.QStandardItemModel):
 
     def mimeData(self, indexes):
         """
-        This function is called by QT each time a drag operation is initiated, in order to serialize the data associated with the dragged item.
-        However, QT don't know how to serialize a Shape or a Layer, so it throws an error ... since we handle Drag & Drop internally, we don't need any serialization, so we subclass the function and return nothing (trick to avoid errors).
+        This function is called by QT each time a drag operation is
+        initiated, to serialize the data associated with the
+        dragged item. However, QT don't know how to serialize a Shape
+        or a Layer, so it throws an error ... since we handle Drag & Drop
+        internally, we don't need any serialization, so we subclass
+        the function and return nothing (trick to avoid errors).
         """
         mimeData = QtCore.QMimeData()
         #mimeData.setData("application/x-qabstractitemmodeldatalist", "")

@@ -37,7 +37,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
 
     def __init__(self, parent = None): 
         """
-        Initialisation of the View Object. This is called by the ui created
+        Initialisation of the View Object. This is called by the gui created
         with the QTDesigner.
         @param parent: Main is passed as a pointer for reference.
         """
@@ -96,7 +96,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
 
     def wheelEvent(self,event):
         """
-        With Mouse Wheel the Thing is scaled
+        With Mouse Wheel the object is scaled
         @purpose: Scale by mouse wheel
         @param event: Event Parameters passed to function
         """
@@ -305,8 +305,8 @@ class MyDropDownMenu(QtGui.QMenu):
     def calcMenuDir(self):
         """
         This method returns the direction of the selected items. If there are 
-        different cutter direction in the selection 0 is returned. 1 for Left
-        and 2 for right.
+        different cutter directions in the selection 0 is returned, else 
+        1 for Left and 2 for right.
         """
         
         items=self.MyGraphicsScene.selectedItems()
@@ -324,7 +324,7 @@ class MyDropDownMenu(QtGui.QMenu):
         """
         This method checks the buttons in the Contextmenu for the direction of 
         the selected items.
-        @param dir: The direction of the items -1= different 0=None, 1=left, 2 =right 
+        @param dir: The direction of the items -1= different, 0=None, 1=left, 2 =right 
         """
         self.noCompAction.setChecked(False)
         self.leCompAction.setChecked(False)
@@ -340,7 +340,7 @@ class MyDropDownMenu(QtGui.QMenu):
     def invertSelection(self):
         """
         This function is called by the Contextmenu of the Graphicsview.
-        @purpose: It is used to invert the selection of all shapes. 
+        @purpose: Inverts the selection of all shapes. 
         """
         #scene=self.scene()
         for shape in self.MyGraphicsScene.shapes: 
@@ -351,7 +351,7 @@ class MyDropDownMenu(QtGui.QMenu):
                       
     def disableSelection(self):
         """
-        Disables all shapes which are currently selected. Based on the view
+        Disable all shapes which are currently selected. Based on the view
         options they are not shown or shown in a different color and pointed
         """
         #scene=self.scene()
@@ -362,7 +362,7 @@ class MyDropDownMenu(QtGui.QMenu):
 
     def enableSelection(self):
         """
-        Enables all shapes which are currently selected. Based on the view
+        Enable all shapes which are currently selected. Based on the view
         options they are not shown or shown in a different color and pointed
         """
         #scene=self.scene()
@@ -373,7 +373,7 @@ class MyDropDownMenu(QtGui.QMenu):
 
     def switchDirection(self):
         """
-        Switched the Direction of all items. Example from CW direction to CCW
+        Switch the Direction of all items. For example from CW direction to CCW
         """
         for shape in self.MyGraphicsScene.shapes:
             if shape.isSelected():
@@ -388,7 +388,7 @@ class MyDropDownMenu(QtGui.QMenu):
 
     def setNearestStP(self):
         """
-        Seach the nearest StartPoint to the clicked position of all selected 
+        Search the nearest StartPoint to the clicked position of all selected 
         shapes.
         """
         shapes=self.MyGraphicsScene.selectedItems()
@@ -437,7 +437,7 @@ class MyDropDownMenu(QtGui.QMenu):
  
 class MyGraphicsScene(QtGui.QGraphicsScene): 
     """
-    This is the used Canvas to print the graphical interface of dxf2gcode.
+    This is the Canvas used to print the graphical interface of dxf2gcode.
     The Scene is rendered into the previously defined mygraphicsView class. 
     All performed plotting functions should be defined here.
     @sideeffect: None                            
@@ -481,8 +481,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
     def plot_wp_zero(self):
         """
-        This function is called while the drawing of all items is done. I plots 
-        the WPZero to the Point x=0 and y=0. This Item will be enabled or 
+        This function is called while the drawing of all items is done. It plots 
+        the WPZero to the Point x=0 and y=0. This item will be enabled or 
         disabled to be shown or not.
         """  
         self.wpzero=WpZero(QtCore.QPointF(0,0))
@@ -490,8 +490,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
     def plot_shapes(self):
         """
-        This function is performing all plotting for the shapes. This may also 
-        get a Instance of the shape later on.
+        This function performs all plotting for the shapes. This may also 
+        get an instance of the shape later on.
         FIXME
         """
         for shape in self.shapes:
@@ -515,7 +515,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
     def createstarrow(self,shape):
         """
-        This function created the Arrows at the end point of a shape when the 
+        This function creates the Arrows at the end point of a shape when the 
         shape is selected.
         @param shape: The shape for which the Arrow shall be created.
         """
@@ -532,7 +532,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         
     def createenarrow(self,shape):
         """
-        This function created the Arrows at the start point of a shape when the 
+        This function creates the Arrows at the start point of a shape when the 
         shape is selected.
         @param shape: The shape for which the Arrow shall be created.
         """
@@ -549,7 +549,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
     def createstmove(self,shape):
         """
-        This function created the Additional Start and End Moves in the plot
+        This function creates the Additional Start and End Moves in the plot
         window when the shape is selected
         @param shape: The shape for which the Move shall be created.
         """
@@ -663,7 +663,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     def setShow_disabled_paths(self,flag):
         """
         This function is called by the Main Menu and is passed from Main to 
-        MyGraphicsView to the Scene. It shall perform the showing or hiding 
+        MyGraphicsView to the Scene. It performs the showing or hiding 
         of enabled/disabled shapes.
         
         @param flag: This flag is true if hidden paths shall be shown
