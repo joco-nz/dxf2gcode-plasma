@@ -436,7 +436,7 @@ def BuildDrawFrame(): # this gets called when needed, rather than on import
             Canvas = self.Canvas
             Canvas.InitAll()
 
-            ##		Random tests of everything:
+            ##  Random tests of everything:
             colors = self.colors
             # Rectangles
             for i in range(3):

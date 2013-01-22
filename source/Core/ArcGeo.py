@@ -82,7 +82,7 @@ class ArcGeo(QtCore.QObject):
                 self.O.y = self.Pa.y - r * sin(self.s_ang)
             else:
                 logger.error(self.tr("Missing value for Arc Geometry"))
-
+        
         #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen
         #Calculate start and end angles
         if type(self.s_ang) == type(None):
@@ -93,7 +93,7 @@ class ArcGeo(QtCore.QObject):
         
         self.ext=self.dif_ang(self.Pa, self.Pe, direction)
         #self.get_arc_extend(direction)
-
+        
         #Falls es ein Kreis ist Umfang 2pi einsetzen
         #If there is a circumference use 2*pi
         if self.ext == 0.0:
@@ -125,7 +125,7 @@ class ArcGeo(QtCore.QObject):
         """
         
         abs_geo=self.make_abs_geo(parent, 0)
-
+        
         segments = int((abs(degrees(abs_geo.ext)) // 3) + 1)
         
         for i in range(segments + 1):
@@ -133,7 +133,7 @@ class ArcGeo(QtCore.QObject):
             ang = abs_geo.s_ang + i * abs_geo.ext / segments
             p_cur = Point(x=(abs_geo.O.x + cos(ang) * abs(abs_geo.r)), \
                        y=(abs_geo.O.y + sin(ang) * abs(abs_geo.r)))
-
+            
             if i >= 1:
                 papath.lineTo(p_cur.x, -p_cur.y)    
 
@@ -168,7 +168,7 @@ class ArcGeo(QtCore.QObject):
 #        
         sa = self.O.norm_angle(P1)
         ea = self.O.norm_angle(P2)
-
+        
         if(direction > 0.0):     # GU
             dif_ang = (ea-sa)%(-2*pi)
             dif_ang -= floor(dif_ang / (2 * pi)) * (2 * pi)     
@@ -215,7 +215,7 @@ class ArcGeo(QtCore.QObject):
             direction=1
         else:
             direction=-1
-
+        
         if type(parent) != type(None):    
             if parent.sca[0]*parent.sca[1]<0.0:
                 direction=direction*-1
@@ -235,9 +235,9 @@ class ArcGeo(QtCore.QObject):
         @param direction: 0 to return start Point and 1 to return end Point
         @return: a list of Point and angle Returns the hdl or hdls of the plotted objects.
         """
-
+        
         abs_geo=self.make_abs_geo(parent)
-
+        
         if not(direction):
             punkt=abs_geo.Pa
             angle=abs_geo.s_ang+pi/2*abs_geo.ext/abs(abs_geo.ext)
@@ -312,9 +312,9 @@ class ArcGeo(QtCore.QObject):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-
+        
         abs_geo=self.make_abs_geo(parent, 0)
-
+        
         anf, s_ang=abs_geo.get_start_end_points(0)
         ende, e_ang=abs_geo.get_start_end_points(1)
                 
