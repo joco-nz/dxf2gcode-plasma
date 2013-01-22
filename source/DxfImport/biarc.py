@@ -30,7 +30,7 @@ from Core.Point import Point
 class BiarcClass:
     """ 
     BiarcClass Class for the generation of Biarc Section. It is used for the
-    Ellipse fitting and the Nurbs convertion to Line and Arc segements.
+    Ellipse fitting and the Nurbs conversion to Line and Arc segments.
     """
     def __init__(self, Pa=Point(), tan_a=0.0,
                   Pb=Point, tan_b=0.0, min_r=1e-6):
@@ -40,7 +40,7 @@ class BiarcClass:
         @param tan_a: Tangent of the Start Point
         @param Pb: End Point of the Biarc
         @param tan_b: Tangent of the End Point
-        @param min_r: The minimu radius of a arc section.
+        @param min_r: The minimum radius of a arc section.
         """
         min_len = 1e-12       #Min Abstand für doppelten Punkt / Minimum clearance for double point
         min_alpha = 1e-4      #Winkel ab welchem Gerade angenommen wird inr rad / Angle for which it is assumed straight inr rad
@@ -55,11 +55,11 @@ class BiarcClass:
         self.shape = None
         self.geos = []
         self.k = 0.0
-
+        
         #Errechnen der Winkel, Länge und Shape
         #Calculate the angle, length and shape
         norm_angle, self.l = self.calc_normal(self.Pa, self.Pb)
-
+        
         alpha, beta, self.teta, self.shape = self.calc_diff_angles(norm_angle, \
                                                               self.tan_a, \
                                                               self.tan_b, \
@@ -67,7 +67,6 @@ class BiarcClass:
         
         if(self.l < min_len):
             self.shape = "Zero"
-        
             
         elif(self.shape == "LineGeo"):
             #Erstellen der Geometrie

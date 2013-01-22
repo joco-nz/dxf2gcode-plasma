@@ -78,10 +78,10 @@ class Point:
         return Point(x=xt, y=yt)
     def get_arc_point(self, ang=0, r=1):
         """ 
-        Returns the Point on the arc defined by r and the given angel
+        Returns the Point on the arc defined by r and the given angle
         @param ang: The angle of the Point
-        @param radius: The radius around the given Point
-        @return: A Point on given given radius from Point self
+        @param radius: The radius from the given Point
+        @return: A Point at given radius and angle from Point self
         """ 
         
         return Point(x=self.x + cos(ang) * r, \
@@ -91,7 +91,7 @@ class Point:
         """
         This function is used for the export of a point.
         @param parent: The parent of the point is a EntitieContent Class, this
-        is used for rotating an scaling purpose
+        is used for rotating and scaling purposes
         @param PostPro: This is the PostProcessor Class which includes all the 
         export functionality
         @return: The function returns the string which will be added to the 
@@ -170,7 +170,6 @@ class Point:
         If there are more then 1 intersection points then use the nearest one to
         be the intersection Point.
         @param points: A list of points to be checked for nearest
-        @param epoint: The 2nd Point which shall be nearest 
         @return: Returns the nearest Point
         """ 
         if len(points) == 1:
