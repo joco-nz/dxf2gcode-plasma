@@ -177,7 +177,7 @@ class MyPostProConfig:
 
     def make_settings_folder(self): 
         """
-        This method creates the  postprocessor settings folder if necessary
+        This method creates the postprocessor settings folder if necessary
         """ 
         try: 
             os.mkdir(self.folder) 
@@ -186,7 +186,7 @@ class MyPostProConfig:
 
     def create_default_config(self):
         """
-        If no postprocessor config file exist this function is called in order
+        If no postprocessor config file exists this function is called 
         to generate the config file based on its specification.
         """
         #check for existing setting folder or create one

@@ -65,7 +65,7 @@ class Main(QtGui.QMainWindow):
         """
         Initialization of the Main window. This is directly called after the 
         Logger has been initialized. The Function loads the GUI, creates the
-        used Classes  and connects the actions to the GUI.
+        used Classes and connects the actions to the GUI.
         """
 
         QtGui.QMainWindow.__init__(self)
@@ -132,7 +132,7 @@ class Main(QtGui.QMainWindow):
     def enableplotmenu(self,status=True):
         """
         Enable the Toolbar buttons.
-        @param status: Set True to enable False to disable
+        @param status: Set True to enable, False to disable
         """
         
         self.ui.actionShow_path_directions.setEnabled(status)
@@ -147,8 +147,8 @@ class Main(QtGui.QMainWindow):
         
     def showDialog(self):
         """
-        This function is called by the menu "File/Load File" of the main toolbar
-        it creates the file selection dialog and calls the loadFile function to
+        This function is called by the menu "File/Load File" of the main toolbar.
+        It creates the file selection dialog and calls the loadFile function to
         load the selected file.
         """
         
@@ -175,7 +175,7 @@ class Main(QtGui.QMainWindow):
 
     def reloadFile(self):
         """
-        This function is called by the menu "File/Reload File" of the main toolbar
+        This function is called by the menu "File/Reload File" of the main toolbar.
         It reloads the previously loaded file (if any)
         """
 
@@ -281,7 +281,7 @@ class Main(QtGui.QMainWindow):
     def exportShapes(self):
         """
         This function is called by the menu "Export/Export Shapes". It may open
-        up a Save Dialog it it is used without LinuxCNC integration. Otherwise it's
+        up a Save Dialog if it is used without LinuxCNC integration. Otherwise it's
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
@@ -345,8 +345,8 @@ class Main(QtGui.QMainWindow):
 
     def showSaveDialog(self):
         """
-        This function is called by the menu "Export/Export Shapes" of the main toolbar
-        it creates the selection dialog for the exporter
+        This function is called by the menu "Export/Export Shapes" of the main toolbar.
+        It creates the selection dialog for the exporter
         @return: Returns the filename of the selected file.
         """
         MyFormats=""
@@ -371,7 +371,7 @@ class Main(QtGui.QMainWindow):
         
     def autoscale(self):
         """
-        This function is called by the menu "Autoscale" of the main forwards the
+        This function is called by the menu "Autoscale" of the main. Forwards the
         call to MyGraphicsview.autoscale() 
         """
         self.MyGraphicsView.autoscale()
@@ -387,7 +387,7 @@ class Main(QtGui.QMainWindow):
     def setShow_path_directions(self):
         """
         This function is called by the menu "Show all path directions" of the
-        main and forwards the call to MyGraphicsview.show_path_directions() 
+        main and forwards the call to MyGraphicsView.setShow_path_direction() 
         """
         flag=self.ui.actionShow_path_directions.isChecked()
         self.MyGraphicsView.setShow_path_direction(flag)
@@ -395,7 +395,7 @@ class Main(QtGui.QMainWindow):
     def setShow_wp_zero(self):
         """
         This function is called by the menu "Show WP Zero" of the
-        main and forwards the call to MyGraphicsview.set_Show_wp_zero() 
+        main and forwards the call to MyGraphicsView.setShow_wp_zero() 
         """
         flag=self.ui.actionShow_WP_Zero.isChecked()
         self.MyGraphicsView.setShow_wp_zero(flag)
@@ -403,7 +403,7 @@ class Main(QtGui.QMainWindow):
     def setShow_disabled_paths(self):
         """
         This function is called by the menu "Show disabled paths" of the
-        main and forwards the call to MyGraphicsview.setShow_disabled_paths() 
+        main and forwards the call to MyGraphicsView.setShow_disabled_paths() 
         """
         flag=self.ui.actionShow_disabled_paths.isChecked()
         self.MyGraphicsView.setShow_disabled_paths(flag)
@@ -411,7 +411,7 @@ class Main(QtGui.QMainWindow):
     def setUpdate_export_route(self):
         """
         This function is called by the menu "Live update tool path" of the
-        main and forwards the call to TreeHandler.setUpdate_tool_path() 
+        main and forwards the call to TreeHandler.setUpdateExportRoute() 
         """
         flag=self.ui.actionLive_update_export_route.isChecked()
         if not flag:
@@ -423,7 +423,7 @@ class Main(QtGui.QMainWindow):
         
     def setTolerances(self):
         """
-        This function is called after the Option=>Tolerances Menu is clicked.
+        This function is called when the Option=>Tolerances Menu is clicked.
         """
         
         title=_('Contour tolerances')
@@ -447,7 +447,7 @@ class Main(QtGui.QMainWindow):
     
     def CallScaleAll(self):
         """
-        This function is called after the Option=>Scale All Menu is clicked.
+        This function is called when the Option=>Scale All Menu is clicked.
         """
         title=_('Scale Contour')
         label=[_("Scale Contour by factor:")]
@@ -465,7 +465,7 @@ class Main(QtGui.QMainWindow):
         
     def CallRotateAll(self):
         """
-        This function is called after the Option=>Rotate All Menu is clicked.
+        This function is called when the Option=>Rotate All Menu is clicked.
         """
         title=_('Rotate Contour')
         label=[_("Rotate Contour by deg:")]
@@ -483,7 +483,7 @@ class Main(QtGui.QMainWindow):
     
     def CallMoveWpZero(self):
         """
-        This function is called after the Option=>Move WP Zero Menu is clicked.
+        This function is called when the Option=>Move WP Zero Menu is clicked.
         """
         title=_('Workpiece zero offset')
         label=((_("Offset %s axis by mm:") %g.config.vars.Axis_letters['ax1_letter']),\
@@ -617,7 +617,7 @@ class Main(QtGui.QMainWindow):
         
         @param parent: The parent of a shape is always a Entities. It may be root 
         or if it is a Block this is the Block. 
-        @param ent_nr: The values given in self.values are sorted in that way 
+        @param ent_nr: The values given in self.values are sorted so
         that 0 is the Root Entities and 1 is beginning with the first block. 
         This value gives the index of self.values to be used.
         """
@@ -732,7 +732,6 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     
-
     #Get local language and install if available.
     locale = QtCore.QLocale.system().name()
     translator = QtCore.QTranslator()

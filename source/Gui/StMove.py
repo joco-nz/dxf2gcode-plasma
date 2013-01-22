@@ -39,9 +39,9 @@ DEBUG = 1
 
 class StMove(QtGui.QGraphicsLineItem):
     """
-    This is the Functio nwhich generated the StartMove for each shape. This 
+    This is the Function which generated the StartMove for each shape. This 
     function also performs the Plotting and Export of this moves. It is linked
-    to the shape as it's parent
+    to the shape as its parent
     """
     def __init__(self, startp, angle, 
                  pencolor=QtCore.Qt.green,
@@ -51,7 +51,7 @@ class StMove(QtGui.QGraphicsLineItem):
         @param startp: This is the Startpoint of the shape where to add the move.
         The coordinates are given in scaled coordinates.
         @param angle: The Angle of the Startmove to end with.
-        @param pencolor: This is only used for plotting purpose
+        @param pencolor: This is only used for plotting purposes
         @param shape: This is the shape for which the start move is created
         @param parent: This is the parent EntitieContent Class on which the 
         geometries are added.
@@ -82,7 +82,7 @@ class StMove(QtGui.QGraphicsLineItem):
         
     def make_start_moves(self):
         """
-        This function will be called in order to create the start move. It will
+        This function is called to create the start move. It will
         be generated based on the given values for start and angle.
         """
         del(self.geos[:])
@@ -148,8 +148,8 @@ class StMove(QtGui.QGraphicsLineItem):
             
     def updateCutCor(self, cutcor):
         """
-        This function is called to update the Cutter Correction and therefore 
-        the  start moves if something has changed or it shall be generated for 
+        This function is called to update the Cutter Correction, and therefore 
+        the start moves, if something has changed or it shall be generated for 
         first time.
         """
         logger.debug("Updating CutterCorrection of Selected shape")
@@ -159,8 +159,8 @@ class StMove(QtGui.QGraphicsLineItem):
    
     def updateCCplot(self):
         """
-        This function is called to update the Cutter Correction and therefore 
-        the  startmoves if smth. has changed or it shall be generated for 
+        This function is called to update the Cutter Correction, and therefore 
+        the start moves, if something has changed or it shall be generated for 
         first time.
         """
         logger.debug("Updating CutterCorrection of Selected shape plotting")
@@ -246,7 +246,7 @@ class StMove(QtGui.QGraphicsLineItem):
         
     def reverseshape(self,startp,angle):
         """
-        Method is called when the shape direction is changed and therefor the
+        Method is called when the shape direction is changed and therefore the
         arrow gets new Point and direction
         @param startp: The new startpoint
         @param angle: The new angle of the arrow
@@ -257,7 +257,7 @@ class StMove(QtGui.QGraphicsLineItem):
         
     def setallwaysshow(self,flag=False):
         """
-        If the directions shall be allwaysshown the paramerter will be set and 
+        If the directions shall be allwaysshown the parameter will be set and 
         all paths will be shown.
         @param flag: The flag to enable or disable Selection
         """

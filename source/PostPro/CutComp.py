@@ -53,7 +53,7 @@ class ShapeOffsetClass:
         
     def joinshapepoints(self,shape):
         """ 
-        The pretreatment searches for local self  intersection points (LSIP) 
+        The pretreatment searches for local self intersection points (LSIP) 
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
         
         If Local self intersections exist the Elements will be split into new
@@ -93,7 +93,7 @@ class ShapeOffsetClass:
 
     def pretreatment(self, joinedshape):
         """ 
-        The pretreatment searches for local self  intersection points (LSIP) 
+        The pretreatment searches for local self intersection points (LSIP) 
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
         
         If Local self intersections exist the Elements will be split into new
@@ -551,7 +551,7 @@ class CCArcGeo(ArcGeo):
 
     def calc_bounding_box(self):
         """
-        Calculated the BoundingBox of the geometry and saves it into self.BB
+        Calculate the BoundingBox of the geometry and save it into self.BB
         """
         
         Pa = PointClass(x=self.O.x - self.r, y=self.O.y - self.r)
@@ -1023,7 +1023,7 @@ class CCLineGeo(LineGeo):
                ("\nlength: %0.5f" % self.length)   
     def calc_bounding_box(self):
         """
-        Calculated the BoundingBox of the geometry and saves it into self.BB
+        Calculate the BoundingBox of the geometry and save it into self.BB
         """
         Pa = PointClass(x=min(self.Pa.x, self.Pe.x), y=min(self.Pa.y, self.Pe.y))
         Pe = PointClass(x=max(self.Pa.x, self.Pe.x), y=max(self.Pa.y, self.Pe.y))
@@ -1140,7 +1140,7 @@ class CCLineGeo(LineGeo):
     
     def sort_inters_asscending(self):
         """
-        Sorts the intersection points in self.inters in ascending order
+        Sort the intersection points in self.inters in ascending order
         """       
         self.inters.sort(self.cmp_asscending)
           

@@ -46,7 +46,7 @@ from PostPro.PostProcessorConfig import MyPostProConfig
 
 class MyPostProcessor:
     """
-    The PostProcessor Class includes the functions or getting the output
+    The PostProcessor Class includes the functions for getting the output
     variables from the PostProcessorConfig Classes and general function related
     to the export of the Code.
     """
@@ -103,7 +103,7 @@ class MyPostProcessor:
       
     def get_output_vars(self):
         """
-        reads all Postprocessor Config Files located in the PostProcessor Config
+        Reads all Postprocessor Config Files located in the PostProcessor Config
         Directory and creates a list of the possible output formats.
         """
         self.output_format = []
@@ -131,7 +131,7 @@ class MyPostProcessor:
         """
         This is the function which performs the export to a file or to the
         stdout. It calls the following dedicated export functions and runs 
-        thought the list of layers to export after it check if there are shapes
+        though the list of layers to export after checking if there are shapes
         to export on these layers.
         @param load_filename: The name of the loaded dxf file. This name is
         written at the begin of the export
@@ -216,7 +216,7 @@ class MyPostProcessor:
     def initialize_export_vars(self):
         """
         This function is called to initialize all export variables. This will
-        we done directly before the export starts.
+        be done directly before the export starts.
         """
         
         #Initialization of the General Postprocessor parameters
@@ -340,7 +340,7 @@ class MyPostProcessor:
             
     def chg_tool(self,tool_nr,speed):
         """
-        This Method is called to change the tool it can change the tool or
+        This Method is called to change the tool.  It can change the tool or
         change the tool speed
         @param tool_nr: The tool_nr of the new tool
         @param speed: The speed for the tool
@@ -392,8 +392,8 @@ class MyPostProcessor:
             
     def lin_pol_arc(self, dir, Pa, Pe, a_ang, e_ang, R, O, IJ):
         """
-        This function is called if an arc shall be cuttet.
-        @param dir: The direction of the arc to be cutted, can be cw or ccw
+        This function is called if an arc shall be cut.
+        @param dir: The direction of the arc to be cut, can be cw or ccw
         @param Pa: The Start Point at which the Arc begins
         @param PE: The End Point at which the Arc is ended.
         @param a_ang: The angle at which the Startpoint Starts
@@ -488,7 +488,7 @@ class MyPostProcessor:
     
     def write_pre_shape_cut(self):
         """
-        Return the text to be added pre a shape.
+        Return the text to be added before a shape.
         @return: The Function returns the string to be added.
         """
         return self.make_print_str(self.vars.Program["pre_shape_cut"])
@@ -502,7 +502,7 @@ class MyPostProcessor:
     
     def commentprint(self,comment):
         """
-        This function is performed to print a comment.
+        This function is called to print a comment.
         @return: Returns the comment 
         """
         self.comment=comment
