@@ -498,7 +498,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.stmove.updateCCplot()  
         
             
-    def Write_GCode(self,LayerContent=None, PostPro=None):
+    def Write_GCode(self, LayerContent=None, PostPro=None):
         """
         This method returns the string to be exported for this shape, including
         the defined start and end move of teh shape.
@@ -636,7 +636,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             for geo_nr in range(len(self.geos)):
                 exstr+=self.geos[geo_nr].Write_GCode(self.parent, PostPro)
 
-            #Calculate the contour values ​​with cutter radius compensation and without
+            #Calculate the contour values with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
             if self.cut_cor == 41:
                 pos_cut_out = ende.get_arc_point(en_angle - pi/2, tool_rad)

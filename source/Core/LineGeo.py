@@ -86,7 +86,7 @@ class LineGeo:
         return abs_geo
     
         
-    def add2path(self, papath=None, parent=None): 
+    def add2path(self, papath=None, parent=None):
         """
         Plots the geometry of self into defined path for hit testing..
         @param hitpath: The hitpath to add the geometrie
@@ -155,7 +155,7 @@ class LineGeo:
             angle=punkt.norm_angle(punkt_a)
         return punkt, angle
     
-    def Write_GCode(self,parent=None, PostPro=None):
+    def Write_GCode(self, parent=None, PostPro=None):
         """
         To be called if a LineGeo shall be written to the PostProcessor.
         @param pospro: The used Posprocessor instance
