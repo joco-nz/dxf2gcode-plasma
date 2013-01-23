@@ -26,7 +26,8 @@ from Core.CustomGCode import CustomGCodeClass
 import logging
 logger=logging.getLogger("Gui.TreeHandling") 
 
-#defines some arbitrary types for the objects stored into the treeView. These types will eg help us to find which kind of data is stored in the element received from a click() event
+#defines some arbitrary types for the objects stored into the treeView.
+#These types will eg help us to find which kind of data is stored in the element received from a click() event
 ENTITY_OBJECT = QtCore.Qt.UserRole + 1 #For storing refs to the entities elements (entities_list)
 LAYER_OBJECT = QtCore.Qt.UserRole + 2  #For storing refs to the layers elements (layers_list)
 SHAPE_OBJECT = QtCore.Qt.UserRole + 3  #For storing refs to the shape elements (entities_list & layers_list)

@@ -160,13 +160,12 @@ class MyTreeView(QtGui.QTreeView):
 
                 item_to_be_moved = items_parent.takeRow(drag_row)
                 if drop_row > drag_row:
-                    drop_row -= 1 #we have one less item in the list, so if the item is dragged below it's original position, we must correct it's insert position
+                    drop_row -= 1 #we have one less item in the list, so if the item is dragged below its original position, we must correct its insert position
                 items_parent.insertRow(drop_row, item_to_be_moved)
 
                 if not self.signals_blocked:
                     #Emit the signal that order of the TreeView has changed
                     QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
-
 
             self.dragged_element = False;
         else:
