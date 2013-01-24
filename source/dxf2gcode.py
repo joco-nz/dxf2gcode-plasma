@@ -162,7 +162,7 @@ class Main(QtGui.QMainWindow):
                     "PDF files (*.pdf);;"\
                     "all files (*.*)"))
         
-        logger.info("File: %s selected" %self.filename)
+        logger.info(self.tr("File: %s selected" %self.filename))
         
         #If there is something to load then call the load function callback
         if not(self.filename==""):
@@ -179,7 +179,7 @@ class Main(QtGui.QMainWindow):
         It reloads the previously loaded file (if any)
         """
 
-        logger.info("Reloading file: %s" %self.filename)
+        logger.info(self.tr("Reloading file: %s" %self.filename))
 
         #If there is something to load then call the load function callback
         if not(self.filename==""):
@@ -191,11 +191,11 @@ class Main(QtGui.QMainWindow):
         Method is called to optimize the order of the shapes. This is performed
         by solving the TSP Problem.
         """
-        logger.debug('Optimize order of enabled shapes per layer')
+        logger.debug(self.tr('Optimize order of enabled shapes per layer'))
         self.MyGraphicsScene.resetexproutes()
         
         #Get the export order from the QTreeView
-        logger.debug('Updating order according to TreeView')
+        logger.debug(self.tr('Updating order according to TreeView'))
         self.TreeHandler.updateExportOrder()
 
         for  LayerContent in self.LayerContents:
@@ -207,9 +207,9 @@ class Main(QtGui.QMainWindow):
             
             #Check all shapes of Layer which shall be exported and create List
             #for it.
-            logger.debug("Nr. of Shapes %s; Nr. of Shapes in Route %s" 
-                         %(len(LayerContent.shapes),len(LayerContent.exp_order)))
-            logger.debug("Export Order for start: %s" %LayerContent.exp_order)
+            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s" 
+                                 %(len(LayerContent.shapes),len(LayerContent.exp_order))))
+            logger.debug(self.tr("Export Order for start: %s" %LayerContent.exp_order))
             
             for shape_nr in range(len(LayerContent.exp_order)):    
                 if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
@@ -236,9 +236,9 @@ class Main(QtGui.QMainWindow):
                 TSPs=[]
                 TSPs.append(TSPoptimize(st_end_points=shapes_st_en_points,
                                         order=self.shapes_fixed_order))
-                logger.info("TSP start values initialised for Layer %s" %LayerContent.LayerName)
-                logger.debug("Shapes to write: %s" %self.shapes_to_write)
-                logger.debug("Fixed order: %s" %self.shapes_fixed_order)
+                logger.info(self.tr("TSP start values initialised for Layer %s" %LayerContent.LayerName))
+                logger.debug(self.tr("Shapes to write: %s" %self.shapes_to_write))
+                logger.debug(self.tr("Fixed order: %s" %self.shapes_fixed_order))
 
                 self.MyGraphicsScene.addexproute(LayerContent.exp_order,
                                                  LayerContent.LayerNr)
@@ -255,12 +255,12 @@ class Main(QtGui.QMainWindow):
                         self.MyGraphicsScene.updateexproute(new_exp_order)
                         self.app.processEvents()                   
                     
-                logger.debug("TSP done with result: %s" %TSPs[-1])
+                logger.debug(self.tr("TSP done with result: %s" %TSPs[-1]))
                 
     
                 
                 LayerContent.exp_order=new_exp_order
-                logger.debug("New Export Order after TSP: %s" %new_exp_order)
+                logger.debug(self.tr("New Export Order after TSP: %s" %new_exp_order))
 
             else:
                 LayerContent.exp_order=[]
@@ -285,15 +285,15 @@ class Main(QtGui.QMainWindow):
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
-        logger.debug('Export the enabled shapes')
+        logger.debug(self.tr('Export the enabled shapes'))
 
         #Get the export order from the QTreeView
         self.TreeHandler.updateExportOrder()
         self.updateExportRoute()
 
-        logger.debug("Sorted layers:")
+        logger.debug(self.tr("Sorted layers:"))
         for i, layer in enumerate(self.LayerContents):
-            logger.debug("LayerContents[%i] = %s" %(i, layer))
+            logger.debug(self.tr("LayerContents[%i] = %s" %(i, layer)))
 
 
         if not(g.config.vars.General['write_to_stdout']):
@@ -361,11 +361,11 @@ class Main(QtGui.QMainWindow):
         default_name=os.path.join(g.config.vars.Paths['output_dir'],fileBaseName)
 
         selected_filter = self.MyPostProcessor.output_format[0]
-        filename = QtGui.QFileDialog.getSaveFileName(self, 'Export to file',
+        filename = QtGui.QFileDialog.getSaveFileName(self, self.tr('Export to file'),
                     default_name,
                     MyFormats, selected_filter)
         
-        logger.info("File: %s selected" %filename+selected_filter)
+        logger.info(self.tr("File: %s selected" %filename+selected_filter))
         
         return filename+selected_filter
         
@@ -381,8 +381,8 @@ class Main(QtGui.QMainWindow):
         This function is called by the menu "Help/About" of the main toolbar and 
         creates the About Window
         """
-        QtGui.QMessageBox.about(self, "About DXF2GCODE",
-                "http://code.google.com/p/dxf2gcode/")
+        QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),
+            self.tr("http://code.google.com/p/dxf2gcode/"))
      
     def setShow_path_directions(self):
         """
@@ -432,7 +432,7 @@ class Main(QtGui.QMainWindow):
         value=(g.config.point_tolerance,
                g.config.fitting_tolerance)
         
-        logger.debug("set Tolerances")
+        logger.debug(self.tr("set Tolerances"))
         SetTolDialog=myDialog(title,label,value)
         
         if SetTolDialog.result==None:
@@ -515,7 +515,7 @@ class Main(QtGui.QMainWindow):
         (name, ext) = os.path.splitext(str(filename))
 
         if (ext.lower() == ".ps")or(ext.lower() == ".pdf"):
-            logger.info(_("Sending Postscript/PDF to pstoedit"))
+            logger.info(_(self.tr("Sending Postscript/PDF to pstoedit")))
             
             #Create temporary file which will be read by the program
             filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf').encode("cp1252")
@@ -526,23 +526,23 @@ class Main(QtGui.QMainWindow):
             retcode = subprocess.call(cmd)
 
         #self.textbox.text.delete(7.0, END)
-        logger.info(('Loading file: %s') % filename)
+        logger.info(self.tr(('Loading file: %s') % filename))
         #logger.info("<a href=file:%s>%s</a>" %(filename,filename))
         
         values = ReadDXF(filename)
         
         #Ausgabe der Informationen im Text Fenster
         #Output the information in the text window
-        logger.info(_('Loaded layers: %s') % len(values.layers))
-        logger.info(_('Loaded blocks: %s') % len(values.blocks.Entities))
+        logger.info(_(self.tr('Loaded layers: %s') % len(values.layers)))
+        logger.info(_(self.tr('Loaded blocks: %s') % len(values.blocks.Entities)))
         for i in range(len(values.blocks.Entities)):
             layers = values.blocks.Entities[i].get_used_layers()
-            logger.info(_('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s ')\
-                               % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))
+            logger.info(_(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s ')\
+                                     % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers)))
         layers = values.entities.get_used_layers()
         insert_nr = values.entities.get_insert_nr()
-        logger.info(_('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
-                             % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
+        logger.info(_(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
+                                 % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr)))
         
         self.makeShapesAndPlot(values)
         
@@ -749,7 +749,7 @@ if __name__ == "__main__":
     #shall be sent to. This Class needs a function "def write(self,charstr)
     Log.set_window_logstream(window.myMessageBox)
     
-    parser = OptionParser("usage: %prog [options]")
+    parser = OptionParser(self.tr("usage: %prog [options]"))
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")
     
@@ -759,7 +759,7 @@ if __name__ == "__main__":
 #                      action="store_false", dest="verbose")
 
     (options, args) = parser.parse_args()
-    logger.debug("Started with following options \n%s" %(options))
+    logger.debug(self.tr("Started with following options \n%s" %(options)))
     
     if not(options.filename is None):
         window.filename = options.filename
