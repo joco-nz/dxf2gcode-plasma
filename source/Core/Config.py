@@ -190,7 +190,7 @@ class MyConfig:
         self.point_tolerance=self.vars.Import_Parameters['point_tolerance']
         
         #except Exception,msg:
-        #    logger.warning("Config loading failed: %s" % (msg))      
+        #    logger.warning(self.tr("Config loading failed: %s" % (msg)))
         #    return False
 
 
@@ -213,7 +213,7 @@ class MyConfig:
                 validate_errors = flatten_errors(self.var_dict, result)
 
                 if validate_errors:
-                    g.logger.logger.error("errors reading %s:" % (self.filename))
+                    g.logger.logger.error(self.tr("errors reading %s:" % (self.filename)))
                 for entry in validate_errors:
                     section_list, key, error = entry
                     if key is not None:
@@ -222,7 +222,7 @@ class MyConfig:
                         section_list.append('[missing section]')
                     section_string = ', '.join(section_list)
                     if error == False:
-                        error = 'Missing value or section.'
+                        error = self.tr('Missing value or section.')
                     g.logger.logger.error( section_string + ' = ' + error)       
     
                 if validate_errors:
@@ -243,24 +243,24 @@ class MyConfig:
                 logger.error(inst)               
                 (base,ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
-                logger.debug("trying to rename bad cfg %s to %s" % (self.filename,badfilename))
+                logger.debug(self.tr("trying to rename bad cfg %s to %s" % (self.filename,badfilename)))
                 try:
                     os.rename(self.filename,badfilename)
                 except OSError,e:
-                    logger.error("rename(%s,%s) failed: %s" % (self.filename,badfilename,e.strerror))
+                    logger.error(self.tr("rename(%s,%s) failed: %s" % (self.filename,badfilename,e.strerror)))
                     raise
                 else:
-                    logger.debug("renamed bad varspace %s to '%s'" %(self.filename,badfilename))
+                    logger.debug(self.tr("renamed bad varspace %s to '%s'" %(self.filename,badfilename)))
                     self.create_default_config()
                     self.default_config = True
-                    logger.debug("created default varspace '%s'" %(self.filename))
+                    logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
             else:
                 self.default_config = False
-                logger.debug("read existing varspace '%s'" %(self.filename))
+                logger.debug(self.tr("read existing varspace '%s'" %(self.filename)))
         else:
             self.create_default_config()
             self.default_config = True
-            logger.debug("created default varspace '%s'" %(self.filename))
+            logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever

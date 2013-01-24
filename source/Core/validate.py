@@ -639,7 +639,7 @@ class Validator(object):
             arg_match = self._matchfinder.match(arg_string)
             if arg_match is None:
                 # Bad syntax
-                raise VdtParamError('Bad syntax in check "%s".' % check)
+                raise VdtParamError(self.tr('Bad syntax in check "%s".' % check))
             fun_args = []
             fun_kwargs = {}
             # pull out args of group 2
@@ -720,7 +720,7 @@ class Validator(object):
         """
         fun_name, fun_args, fun_kwargs, default = self._parse_with_caching(check)
         if default is None:
-            raise KeyError('Check "%s" has no default value.' % check)
+            raise KeyError(self.tr('Check "%s" has no default value.' % check))
         value = self._handle_none(default)
         if value is None:
             return value

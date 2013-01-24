@@ -107,7 +107,7 @@ class Point:
         @param papath: The painterpath where the geometries shall be added
         @param parent: FIXME
         """
-        logger.debug('Punkt: x: %0.2f, y: %0.2f' %(self.x,self.y))
+        logger.debug(self.tr('Point: x: %0.2f, y: %0.2f' %(self.x,self.y)))
         papath.moveTo(self.x,-self.y)
     
     def triangle_height(self, other1, other2):

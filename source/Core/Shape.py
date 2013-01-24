@@ -197,7 +197,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 #
 #        self.path.moveTo(start.x,-start.y)
 #        
-#        logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
+#        logger.debug(self.tr("Adding shape to Scene Nr: %i" % (self.nr)))
 #        
 #        for geo in self.geos:
 #            geo.add2path(papath=self.path,parent=self.parent)
@@ -344,7 +344,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         FIXME
         """ 
         
-        logger.debug("Analysing the shape for CW direction %s:" % (self))
+        logger.debug(self.tr("Analysing the shape for CW direction %s:" % (self)))
         #Optimization for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
@@ -366,7 +366,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
             if summe > 0.0:
                 self.reverse()
-                logger.debug("Had to reverse the shape to be ccw")
+                logger.debug(self.tr("Had to reverse the shape to be ccw"))
                
 
     def FindNearestStPoint(self,StPoint=Point(x=0.0, y=0.0)):                      
@@ -379,11 +379,11 @@ class ShapeClass(QtGui.QGraphicsItem):
         
         
         if self.closed:
-            logger.debug("Clicked Point: %s" %StPoint)
+            logger.debug(self.tr("Clicked Point: %s" %StPoint))
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
             min_distance=start.distance(StPoint)
             
-            logger.debug("Old Start Point: %s" %start)
+            logger.debug(self.tr("Old Start Point: %s" %start))
             
             min_geo_nr=0
             for geo_nr in range(1,len(self.geos)):
@@ -397,7 +397,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.geos=self.geos[min_geo_nr:len(self.geos)]+self.geos[0:min_geo_nr]
             
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
-            logger.debug("New Start Point: %s" %start)
+            logger.debug(self.tr("New Start Point: %s" %start))
                      
     def reverse(self):
         """ 
@@ -459,7 +459,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         self.path.moveTo(start.x,-start.y)
         
-        logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
+        logger.debug(self.tr("Adding shape to Scene Nr: %i" % (self.nr)))
         
         for geo in self.geos:
             geo.add2path(papath=self.path,parent=self.parent)
@@ -546,10 +546,10 @@ class ShapeClass(QtGui.QGraphicsItem):
             depth = max_slice
 
         if max_slice == 0:
-            logger.error("ERROR: Z infeed depth is null!")
+            logger.error(self.tr("ERROR: Z infeed depth is null!"))
 
         if initial_mill_depth < depth:
-            logger.warning("WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth." % (initial_mill_depth, depth))
+            logger.warning(self.tr("WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth." % (initial_mill_depth, depth)))
 
             #Do not cut below the depth.
             initial_mill_depth = depth
@@ -653,7 +653,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         #If cutter radius compensation is not turned off.
         if (not(self.cut_cor == 40)) & (not(PostPro.vars.General["cancel_cc_for_depth"])):
-            #Calculate the contour values ​​with cutter radius compensation and without
+            #Calculate the contour values - with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
             exstr+=PostPro.deactivate_cut_cor(ende)        
 

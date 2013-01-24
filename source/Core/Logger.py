@@ -64,9 +64,9 @@ class LoggerClass():
             if not hasattr(self.logger, 'file_handler'):
                 self.add_file_logger(g.config.logfile, g.config.file_loglevel)
             self.rootlogger.addHandler(self.file_handler)
-            self.rootlogger.info("file logging started at %s", time.asctime())
+            self.rootlogger.info(self.tr("file logging started at %s", time.asctime()))
         else:
-            self.rootlogger.info("file logging stopped at %s", time.asctime())
+            self.rootlogger.info(self.tr("file logging stopped at %s", time.asctime()))
             self.rootlogger.removeHandler(self.file_handler)
     
     def add_window_logger(self, log_level):
@@ -101,7 +101,4 @@ class LoggerClass():
 class FilterModule(logging.Filter): 
     def filter(self, record): 
         return True
-
-
-
-
+    
