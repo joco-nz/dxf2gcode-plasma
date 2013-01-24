@@ -29,7 +29,7 @@ from PyQt4 import QtCore
 from Core.Point import Point
 
 import logging
-logger=logging.getLogger("Core.ArcGeo") 
+logger=logging.getLogger("Core.ArcGeo")
 
 #Length of the cross.
 dl = 0.2
@@ -54,14 +54,14 @@ class ArcGeo(QtCore.QObject):
         self.e_ang = e_ang
         self.col = 'Black'
         
-       
+        
         # Get the Circle Milllw with known Start and End Points
         if type(self.O) == type(None):
-           
+            
             if (type(Pa) != type(None)) and \
             (type(Pe) != type(None)) and \
             (type(direction) != type(None)):
-               
+                
                 arc = self.Pe.norm_angle(Pa) - pi / 2
                 Ve = Pe - Pa
                 m = (sqrt(pow(Ve.x, 2) + pow(Ve.y, 2))) / 2
@@ -74,7 +74,7 @@ class ArcGeo(QtCore.QObject):
                 self.O.y += lo * sin(arc) * d
                 self.O.x += lo * cos(arc) * d
                 
-              
+                
         # Falls nicht übergeben Mittelpunkt ausrechnen
         # Compute centre...
             elif (type(self.s_ang) != type(None)) and (type(self.e_ang) != type(None)):
@@ -87,7 +87,7 @@ class ArcGeo(QtCore.QObject):
         #Calculate start and end angles
         if type(self.s_ang) == type(None):
             self.s_ang = self.O.norm_angle(Pa)
-            
+        
         if type(self.e_ang) == type(None):
             self.e_ang = self.O.norm_angle(Pe)
         
@@ -98,11 +98,10 @@ class ArcGeo(QtCore.QObject):
         #If there is a circumference use 2*pi
         if self.ext == 0.0:
             self.ext = 2 * pi
-                   
         
         self.length = self.r * abs(self.ext)
-
-
+    
+    
     def __str__(self):
         """ 
         Standard method to print the object
@@ -113,7 +112,7 @@ class ArcGeo(QtCore.QObject):
                ("\nPe : %s; e_ang: %0.5f" % (self.Pe, self.e_ang)) + \
                ("\nO  : %s; r: %0.3f" % (self.O, self.r)) + \
                ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
-
+    
     
     def add2path(self, papath=None, parent=None):
         """
@@ -136,7 +135,7 @@ class ArcGeo(QtCore.QObject):
             
             if i >= 1:
                 papath.lineTo(p_cur.x, -p_cur.y)    
-
+    
 #
 #    def add2hitpath(self, hitpath=None, parent=None, tolerance=None):
 #        """
@@ -175,7 +174,7 @@ class ArcGeo(QtCore.QObject):
         else:
             dif_ang = (ea-sa)%(-2*pi)
             dif_ang += ceil(dif_ang / (2 * pi)) * (2 * pi)    
-            
+        
         return dif_ang
     
     def reverse(self):
@@ -188,13 +187,12 @@ class ArcGeo(QtCore.QObject):
         s_ang = self.e_ang
         e_ang = self.s_ang
         
-        
         self.Pa = Pe
         self.Pe = Pa
         self.ext = ext * -1
         self.s_ang = s_ang
         self.e_ang = e_ang
-        
+    
     def make_abs_geo(self, parent=None, reverse=0):
         """
         Generates the absolut geometry based on the geometry self and the
@@ -225,10 +223,10 @@ class ArcGeo(QtCore.QObject):
         
         if reverse:
             abs_geo.reverse()
-         
+        
         return abs_geo
     
-   
+    
     def get_start_end_points(self, direction,parent=None):
         """
         Returns the start/end Point and its direction
@@ -245,12 +243,12 @@ class ArcGeo(QtCore.QObject):
             punkt=abs_geo.Pe
             angle=abs_geo.e_ang-pi/2*abs_geo.ext/abs(abs_geo.ext)
         return punkt,angle
-        
+    
     def angle_between(self, min_ang, max_ang, angle):
         """
         Returns if the angle is in the range between 2 other angles
         @param min_ang: The starting angle
-        @param parent: The end angel. Always in ccw direction from min_ang
+        @param parent: The end angle. Always in ccw direction from min_ang
         @return: True or False
         """
         if min_ang < 0.0:
@@ -258,10 +256,10 @@ class ArcGeo(QtCore.QObject):
         
         while max_ang < min_ang:
             max_ang += 2 * pi
-            
+        
         while angle < min_ang:
             angle += 2 * pi
-                    
+        
         return (min_ang < angle) and (angle <= max_ang)
    
 #    def rot_angle(self, angle, parent):
@@ -302,7 +300,7 @@ class ArcGeo(QtCore.QObject):
         if type(parent) != type(None):
             sR = sR * parent.sca[0]
             sR = self.scaleR(sR, parent.parent)
-                
+        
         return sR
 
     def Write_GCode(self, parent=None, PostPro=None):
@@ -317,17 +315,14 @@ class ArcGeo(QtCore.QObject):
         
         anf, s_ang=abs_geo.get_start_end_points(0)
         ende, e_ang=abs_geo.get_start_end_points(1)
-                
+        
         O=abs_geo.O
         sR=abs_geo.r
         IJ=(O-anf)
         
-
-
-
         #If the radius of the element is bigger then the max. radius export
         #the element as an line.
-
+        
         if sR>PostPro.vars.General["max_arc_radius"]:
             string=PostPro.lin_pol_xy(anf,ende)
         else:
@@ -339,4 +334,4 @@ class ArcGeo(QtCore.QObject):
             else:
                 #string=("G2 %s%0.3f %s%0.3f I%0.3f J%0.3f\n" %(axis1,ende.x,axis2,ende.y,IJ.x,IJ.y))
                 string=PostPro.lin_pol_arc("cw",anf,ende,s_ang,e_ang,sR,O,IJ)
-        return string  
+        return string

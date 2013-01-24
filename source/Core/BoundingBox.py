@@ -26,7 +26,7 @@
 from Core.Point import Point
 from copy import copy
 
-            
+
 class BoundingBox:
     """ 
     Bounding Box Class. This is the standard class which provides all std. 
@@ -38,7 +38,7 @@ class BoundingBox:
         """ 
         self.Pa = Pa
         self.Pe = Pe
-        
+    
     def __str__(self):
         """ 
         Standard method to print the object
@@ -75,7 +75,7 @@ class BoundingBox:
         (self.Pa.x - tol < other.Pe.x)
         y_inter_pos = (self.Pe.y + tol > other.Pa.y) and \
         (self.Pa.y - tol < other.Pe.y)
-     
+        
         return x_inter_pos and y_inter_pos
     
     def pointisinBB(self, Point=Point(), tol=0.01):
@@ -89,5 +89,4 @@ class BoundingBox:
         y_inter_pos = (self.Pe.y + tol > Point.y) and \
         (self.Pa.y - tol < Point.y)
         return x_inter_pos and y_inter_pos
-     
 
