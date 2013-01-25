@@ -533,16 +533,16 @@ class Main(QtGui.QMainWindow):
         
         #Ausgabe der Informationen im Text Fenster
         #Output the information in the text window
-        logger.info(_(self.tr('Loaded layers: %s') % len(values.layers)))
-        logger.info(_(self.tr('Loaded blocks: %s') % len(values.blocks.Entities)))
+        logger.info(_(self.tr('Loaded layers: %s' % len(values.layers))))
+        logger.info(_(self.tr('Loaded blocks: %s' % len(values.blocks.Entities))))
         for i in range(len(values.blocks.Entities)):
             layers = values.blocks.Entities[i].get_used_layers()
-            logger.info(_(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s ')\
-                                     % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers)))
+            logger.info(_(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s '\
+                                     % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))))
         layers = values.entities.get_used_layers()
         insert_nr = values.entities.get_insert_nr()
-        logger.info(_(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
-                                 % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr)))
+        logger.info(_(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i' \
+                                 % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))))
         
         self.makeShapesAndPlot(values)
         
@@ -721,7 +721,7 @@ class Main(QtGui.QMainWindow):
         LayerName=self.values.layers[lay_nr].name
         self.LayerContents.append(LayerContentClass(lay_nr,LayerName,[shape]))
         shape.LayerContent=self.LayerContents[-1]
-        
+
 if __name__ == "__main__":
     """
     The main function which is executed after program start. 
@@ -749,7 +749,7 @@ if __name__ == "__main__":
     #shall be sent to. This Class needs a function "def write(self,charstr)
     Log.set_window_logstream(window.myMessageBox)
     
-    parser = OptionParser(self.tr("usage: %prog [options]"))
+    parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest="filename",
                       help="read data from FILENAME")
     
@@ -759,7 +759,7 @@ if __name__ == "__main__":
 #                      action="store_false", dest="verbose")
 
     (options, args) = parser.parse_args()
-    logger.debug(self.tr("Started with following options \n%s" %(options)))
+    logger.debug("Started with following options \n%s" %(options))
     
     if not(options.filename is None):
         window.filename = options.filename

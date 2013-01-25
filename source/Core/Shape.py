@@ -344,7 +344,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         FIXME
         """ 
         
-        logger.debug(self.tr("Analysing the shape for CW direction %s:" % (self)))
+        logger.debug("Analysing the shape for CW direction %s:" % (self))
         #Optimization for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
@@ -366,7 +366,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
             if summe > 0.0:
                 self.reverse()
-                logger.debug(self.tr("Had to reverse the shape to be ccw"))
+                logger.debug("Had to reverse the shape to be ccw")
                
 
     def FindNearestStPoint(self,StPoint=Point(x=0.0, y=0.0)):                      
@@ -379,11 +379,11 @@ class ShapeClass(QtGui.QGraphicsItem):
         
         
         if self.closed:
-            logger.debug(self.tr("Clicked Point: %s" %StPoint))
+            logger.debug("Clicked Point: %s" %StPoint)
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
             min_distance=start.distance(StPoint)
             
-            logger.debug(self.tr("Old Start Point: %s" %start))
+            logger.debug("Old Start Point: %s" %start)
             
             min_geo_nr=0
             for geo_nr in range(1,len(self.geos)):
@@ -397,7 +397,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.geos=self.geos[min_geo_nr:len(self.geos)]+self.geos[0:min_geo_nr]
             
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
-            logger.debug(self.tr("New Start Point: %s" %start))
+            logger.debug("New Start Point: %s" %start)
                      
     def reverse(self):
         """ 
@@ -459,7 +459,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         self.path.moveTo(start.x,-start.y)
         
-        logger.debug(self.tr("Adding shape to Scene Nr: %i" % (self.nr)))
+        logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
         
         for geo in self.geos:
             geo.add2path(papath=self.path,parent=self.parent)

@@ -203,7 +203,6 @@ class MyConfig:
 
     def load_config(self):
 
- 
         if os.path.isfile(self.filename):
             try:
                 # file exists, read & validate it
@@ -256,7 +255,7 @@ class MyConfig:
                     logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
             else:
                 self.default_config = False
-                logger.debug(self.tr("read existing varspace '%s'" %(self.filename)))
+                logger.debug("read existing varspace '%s'" %(self.filename))
         else:
             self.create_default_config()
             self.default_config = True
@@ -287,7 +286,10 @@ class MyConfig:
         print "Variables:"
         for k,v in self.var_dict['Variables'].items():
             print k," = ",v
-            
+
+    def tr(self):
+        return self            
+
 
 class DictDotLookup(object):
     """
