@@ -21,13 +21,13 @@ from copy import deepcopy
 from EntitieContent import EntitieContentClass
 """
 import logging
-logger=logging.getLogger("Core.CustomGCodeClass") 
+logger=logging.getLogger("Core.CustomGCodeClass")
 
 
 class CustomGCodeClass:
     """
     The Shape Class includes all plotting, GUI functionality and export functions
-    related to the Shapes.  
+    related to the Shapes.
     """
     def __init__(self, name, nr, gcode=None, parent=None):
         """
@@ -43,8 +43,8 @@ class CustomGCodeClass:
         self.LayerContent = parent
         self.disabled = False
         self.send_to_TSP = False #Never optimize path for CustomGCode
-
-
+    
+    
     def __str__(self):
         """
         Standard method to print the object
@@ -54,34 +54,34 @@ class CustomGCodeClass:
                ('\nname:        %s' % self.name) + \
                ('\nnr:          %i' % self.nr) + \
                ('\ngcode:       %s' % self.gcode)
-
-
-
+    
+    
+    
     def setDisable(self, flag=False):
         """
-        Function do modify the disable property
+        Function to modify the disable property
         @param flag: The flag to enable or disable Selection
         """
         self.disabled=flag
-
-
-
+    
+    
+    
     def isDisabled(self):
         """
         Returns the state of self.disabled
         """
         return self.disabled
-
-
-
+    
+    
+    
     def Write_GCode(self, LayerContent=None, PostPro=None):
         """
         This method returns the string to be exported for this custom gcode, including
         @param LayerContent: This parameter includes the parent LayerContent
         @param PostPro: this is the Postprocessor class including the methods to export
         """
-
+        
         #initialisation of the string
         exstr = self.gcode
-
+        
         return exstr

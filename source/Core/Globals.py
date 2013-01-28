@@ -27,7 +27,6 @@ import constants
 
 
 
-
 # logger instance, see http://docs.python.org/library/logging.html
 # once set, use as logger.error("foo")
 logger = None
@@ -44,13 +43,13 @@ window = None
 #-------------------------------------
 
 # determine Platform
-platform = ""  
+platform = ""
 if os.name == "posix" and sys.platform == "darwin":
     platform = "mac"
 
 
 # Language support
-# 
+#
 langs = []  # list of supported languages
 
 # figure default language
@@ -79,4 +78,3 @@ gettext.textdomain(constants.APPNAME)
 # Get the language to use
 trans = gettext.translation(constants.APPNAME, localedir='languages', languages=langs, fallback=True)
 trans.install()
-

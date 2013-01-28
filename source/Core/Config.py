@@ -38,7 +38,7 @@ import Core.Globals as g
 from d2gexceptions import *
 
 import logging
-logger = logging.getLogger("Core.Config") 
+logger = logging.getLogger("Core.Config")
 
 CONFIG_VERSION = "5"
 """
@@ -47,10 +47,10 @@ version tag - increment this each time you edit CONFIG_SPEC
 compared to version number in config file so
 old versions are recognized and skipped"
 """
-    
+
 CONFIG_SPEC = str('''
 #  Section and variable names must be valid Python identifiers
-#      do not use whitespace in names 
+#      do not use whitespace in names
 
 # do not edit the following section name:
     [Version]
@@ -66,7 +66,7 @@ CONFIG_SPEC = str('''
     
     # store gcode output here 
     output_dir = string(default="D:")
-
+    
     
     [Depth_Coordinates]
     axis3_retract = float(default= 15.0)
@@ -87,11 +87,11 @@ CONFIG_SPEC = str('''
     [General]
     write_to_stdout = boolean(default=False)
     live_update_export_route = boolean(default=False)
-
+    
     
     [Route_Optimisation]
     default_TSP = boolean(default=False)
-
+    
     # Path optimizer behaviour:
     #  CONSTRAIN_ORDER_ONLY: fixed Shapes and optimized Shapes can be mixed. Only order of fixed shapes is kept
     #  CONSTRAIN_PLACE_AFTER: optimized Shapes are always placed after any fixed Shape
@@ -116,12 +116,12 @@ CONFIG_SPEC = str('''
         diameter = float(default=2.0)
         speed = float(default=6000.0)
         start_radius = float(default=1.0)
-
+        
         [[10]]
         diameter = float(default=10.0)
         speed = float(default=6000.0)
         start_radius = float(default=2.0)
-
+        
         [[__many__]]
         diameter = float(default= 3.0)
         speed = float(default=6000)
@@ -130,15 +130,15 @@ CONFIG_SPEC = str('''
     [Custom_Actions]
         [[custom_gcode]]
         gcode = string(default='"""(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)"""')
-
+        
         [[__many__]]
         gcode = string(default="(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
-
+    
     
     [Filters]
     pstoedit_cmd = string(default="/opt/local/bin/pstoedit")
     pstoedit_opt = list(default=list('-f', 'dxf', '-mm'))
-
+    
     [Logging]
     
     # set this to 'logfile = <filename>' to turn on file logging
@@ -152,7 +152,7 @@ CONFIG_SPEC = str('''
     
     # this really goes to stderr
     console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')
-  
+    
     file_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')
     
     # logging level for the message window
@@ -182,7 +182,7 @@ class MyConfig:
         self.default_config = False # whether a new name was generated
         self.var_dict = dict()
         self.spec = ConfigObj(CONFIG_SPEC, interpolation=False, list_values=False, _inspec=True)
-
+        
         #try:
         self.load_config()
         
@@ -192,17 +192,17 @@ class MyConfig:
         #except Exception,msg:
         #    logger.warning(self.tr("Config loading failed: %s" % (msg)))
         #    return False
-
-
-    def make_settings_folder(self): 
-        # create settings folder if necessary 
-        try: 
-            os.mkdir(self.folder) 
-        except OSError: 
-            pass 
+    
+    
+    def make_settings_folder(self):
+        # create settings folder if necessary
+        try:
+            os.mkdir(self.folder)
+        except OSError:
+            pass
+    
 
     def load_config(self):
-
         if os.path.isfile(self.filename):
             try:
                 # file exists, read & validate it
@@ -210,7 +210,7 @@ class MyConfig:
                 _vdt = Validator()
                 result = self.var_dict.validate(_vdt, preserve_errors=True)
                 validate_errors = flatten_errors(self.var_dict, result)
-
+                
                 if validate_errors:
                     g.logger.logger.error(self.tr("errors reading %s:" % (self.filename)))
                 for entry in validate_errors:
@@ -222,24 +222,23 @@ class MyConfig:
                     section_string = ', '.join(section_list)
                     if error == False:
                         error = self.tr('Missing value or section.')
-                    g.logger.logger.error( section_string + ' = ' + error)       
-    
+                    g.logger.logger.error( section_string + ' = ' + error)
+                
                 if validate_errors:
                     raise BadConfigFileError,"syntax errors in config file"
-                    
+                
                 # check config file version against internal version
-
                 if CONFIG_VERSION:
                     fileversion = self.var_dict['Version']['config_version'] # this could raise KeyError
-
+                    
                     if fileversion != CONFIG_VERSION:
                         raise VersionMismatchError, (fileversion, CONFIG_VERSION)
-              
+                
             except VersionMismatchError, values:
                 raise VersionMismatchError, (fileversion, CONFIG_VERSION)
-                       
+            
             except Exception,inst:
-                logger.error(inst)               
+                logger.error(inst)
                 (base,ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
                 logger.debug(self.tr("trying to rename bad cfg %s to %s" % (self.filename,badfilename)))
@@ -260,12 +259,12 @@ class MyConfig:
             self.create_default_config()
             self.default_config = True
             logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
-
+        
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
-        self.vars = DictDotLookup(self.var_dict) 
-            
-
+        self.vars = DictDotLookup(self.var_dict)
+    
+    
     def create_default_config(self):
         #check for existing setting folder or create one
         self.make_settings_folder()
@@ -280,17 +279,17 @@ class MyConfig:
         
     def _save_varspace(self):
         self.var_dict.filename = self.filename
-        self.var_dict.write()   
+        self.var_dict.write()
     
     def print_vars(self):
         print "Variables:"
         for k,v in self.var_dict['Variables'].items():
             print k," = ",v
-
+    
     def tr(self):
-        return self            
-
-
+        return self
+    
+    
 class DictDotLookup(object):
     """
     Creates objects that behave much like a dictionaries, but allow nested
@@ -310,17 +309,17 @@ class DictDotLookup(object):
                 self.__dict__[k] = l
             else:
                 self.__dict__[k] = d[k]
-
+    
     def __getitem__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
-
+    
     def __iter__(self):
         return iter(self.__dict__.keys())
-
+    
     def __repr__(self):
         return pprint.pformat(self.__dict__)
-
+    
 #if __name__ == '__main__':
 #    cfg_data = eval("""{
 #        'foo' : {

@@ -134,7 +134,7 @@ class ArcGeo(QtCore.QObject):
                        y=(abs_geo.O.y + sin(ang) * abs(abs_geo.r)))
             
             if i >= 1:
-                papath.lineTo(p_cur.x, -p_cur.y)    
+                papath.lineTo(p_cur.x, -p_cur.y)
     
 #
 #    def add2hitpath(self, hitpath=None, parent=None, tolerance=None):
@@ -154,11 +154,11 @@ class ArcGeo(QtCore.QObject):
         """
         Calculated the angle of extend based on the 3 given points. Center Point,
         P1 and P2.
-        @param P1: the start Point of the arc 
+        @param P1: the start Point of the arc
         @param P2: the end Point of the arc
         @param direction: the direction of the arc
         @return: Returns the angle between -2* pi and 2 *pi for the arc extend
-        """ 
+        """
         
         #FIXME Das könnte Probleme geben bei einem reelen Kreis
         #FIXME This could indicate problems in a real arc
@@ -170,17 +170,17 @@ class ArcGeo(QtCore.QObject):
         
         if(direction > 0.0):     # GU
             dif_ang = (ea-sa)%(-2*pi)
-            dif_ang -= floor(dif_ang / (2 * pi)) * (2 * pi)     
+            dif_ang -= floor(dif_ang / (2 * pi)) * (2 * pi)
         else:
             dif_ang = (ea-sa)%(-2*pi)
-            dif_ang += ceil(dif_ang / (2 * pi)) * (2 * pi)    
+            dif_ang += ceil(dif_ang / (2 * pi)) * (2 * pi)
         
         return dif_ang
     
     def reverse(self):
-        """ 
+        """
         Reverses the direction of the arc (switch direction).
-        """ 
+        """
         Pa = self.Pa
         Pe = self.Pe
         ext = self.ext
@@ -195,8 +195,8 @@ class ArcGeo(QtCore.QObject):
     
     def make_abs_geo(self, parent=None, reverse=0):
         """
-        Generates the absolut geometry based on the geometry self and the
-        parent. If reverse 1 is given the geometry may be reversed.
+        Generates the absolute geometry based on the geometry self and the
+        parent. If reverse=1 is given the geometry may be reversed.
         @param parent: The parent of the geometry (EntitieContentClass)
         @param reverse: If 1 the geometry direction will be switched.
         @return: A new ArcGeoClass will be returned.
@@ -214,7 +214,7 @@ class ArcGeo(QtCore.QObject):
         else:
             direction=-1
         
-        if type(parent) != type(None):    
+        if type(parent) != type(None):
             if parent.sca[0]*parent.sca[1]<0.0:
                 direction=direction*-1
         
@@ -261,7 +261,7 @@ class ArcGeo(QtCore.QObject):
             angle += 2 * pi
         
         return (min_ang < angle) and (angle <= max_ang)
-   
+    
 #    def rot_angle(self, angle, parent):
 #        """
 #        Rotates the given angle based on the rotations given in its parents.
@@ -302,7 +302,7 @@ class ArcGeo(QtCore.QObject):
             sR = self.scaleR(sR, parent.parent)
         
         return sR
-
+    
     def Write_GCode(self, parent=None, PostPro=None):
         """
         Writes the GCODE for a ARC.

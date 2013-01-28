@@ -29,7 +29,7 @@ from copy import copy
 
 class BoundingBox:
     """ 
-    Bounding Box Class. This is the standard class which provides all std. 
+    Bounding Box Class. This is the standard class which provides all std.
     Bounding Box methods.
     """ 
     def __init__(self, Pa=Point(0, 0), Pe=Point(0, 0), hdl=[]):
@@ -70,11 +70,11 @@ class BoundingBox:
         Checks if the two bounding boxes have an intersection
         @param other: The 2nd Bounding Box
         @return: Returns true or false
-        """        
+        """
         x_inter_pos = (self.Pe.x + tol > other.Pa.x) and \
-        (self.Pa.x - tol < other.Pe.x)
+                      (self.Pa.x - tol < other.Pe.x)
         y_inter_pos = (self.Pe.y + tol > other.Pa.y) and \
-        (self.Pa.y - tol < other.Pe.y)
+                      (self.Pa.y - tol < other.Pe.y)
         
         return x_inter_pos and y_inter_pos
     
@@ -85,8 +85,8 @@ class BoundingBox:
         @return: Returns true or false
         """
         x_inter_pos = (self.Pe.x + tol > Point.x) and \
-        (self.Pa.x - tol < Point.x)
+                      (self.Pa.x - tol < Point.x)
         y_inter_pos = (self.Pe.y + tol > Point.y) and \
-        (self.Pa.y - tol < Point.y)
+                      (self.Pa.y - tol < Point.y)
         return x_inter_pos and y_inter_pos
 

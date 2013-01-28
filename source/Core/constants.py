@@ -24,7 +24,7 @@ see http://code.activestate.com/recipes/65207/ for module const
 @newfield sideeffect: Side effect, Side effects
 
 @purpose:  initialization of the global constants used within the other modules.
-@author: Christian Kohlöffel 
+@author: Christian Kohlöffel
 @since:  21.12.2010
 @license: GPL
 '''
@@ -41,15 +41,12 @@ PY_EXTENSION = '.py'
 
 #rename unreadable config/varspace files to .bad
 BAD_CONFIG_EXTENSION = '.bad'
-DEFAULT_CONFIG_DIR = 'config' 
+DEFAULT_CONFIG_DIR = 'config'
 
 DEFAULT_POSTPRO_DIR = 'postpro_config'
 
 # log related
 DEFAULT_LOGFILE = 'dxf2gcode.log'
 STARTUP_LOGLEVEL = logging.DEBUG
-#PRT = logging.INFO  
-
-
-
+#PRT = logging.INFO
 
