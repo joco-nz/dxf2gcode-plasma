@@ -181,7 +181,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         
         painterStrock=QtGui.QPainterPathStroker()
         painterStrock.setCurveThreshold(0.01)
-        painterStrock.setWidth(0)  
+        painterStrock.setWidth(0)
 
         stroke = painterStrock.createStroke(self.path)
         return stroke
@@ -233,28 +233,28 @@ class ShapeClass(QtGui.QGraphicsItem):
 # 
 #        //if (p1, p2) goes downwards, then left lies to the left and 
 #        //right to the right of the source path segment 
-#        QPointF left1 = p1 + leftOffset;  
-#        QPointF left2 = p2 + leftOffset; 
-#        QPointF right1 = p1 + rightOffset; 
-#        QPointF right2 = p2 + rightOffset; 
+#        QPointF left1 = p1 + leftOffset;
+#        QPointF left2 = p2 + leftOffset;
+#        QPointF right1 = p1 + rightOffset;
+#        QPointF right2 = p2 + rightOffset;
 # 
-#        //rectangular connection from p1 to p2 
+#        //rectangular connection from p1 to p2
 #        { 
-#            QPainterPath p; 
-#            p.moveTo(left1); 
-#            p.lineTo(left2); 
-#            p.lineTo(right2); 
-#            p.lineTo(right1); 
-#            p.lineTo(left1); 
-#            path += p; //add this to the result path 
-#        } 
+#            QPainterPath p;
+#            p.moveTo(left1);
+#            p.lineTo(left2);
+#            p.lineTo(right2);
+#            p.lineTo(right1);
+#            p.lineTo(left1);
+#            path += p; //add this to the result path
+#        }
 # 
-#        //circle around p2 
-#        { 
-#            QPainterPath p; 
-#            p.addEllipse(p2, tolerance, tolerance); 
-#            path += p; //add this to the result path 
-#        } 
+#        //circle around p2
+#        {
+#            QPainterPath p;
+#            p.addEllipse(p2, tolerance, tolerance);
+#            path += p; //add this to the result path
+#        }
 # 
 #        p1 = p2; 
 #    } 
@@ -369,7 +369,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 logger.debug("Had to reverse the shape to be ccw")
                
 
-    def FindNearestStPoint(self,StPoint=Point(x=0.0, y=0.0)):                      
+    def FindNearestStPoint(self,StPoint=Point(x=0.0, y=0.0)):
         """
         Find Nearest Point to given StartPoint. This is used to change the
         start of closed contours
@@ -601,10 +601,9 @@ class ShapeClass(QtGui.QGraphicsItem):
             if self.cut_cor == 41:
                 pos_cut_out = ende.get_arc_point(en_angle - pi/2, tool_rad)
             elif self.cut_cor == 42:
-                pos_cut_out = ende.get_arc_point(en_angle + pi/2, tool_rad)         
-            exstr+=PostPro.deactivate_cut_cor(pos_cut_out)            
-
-
+                pos_cut_out = ende.get_arc_point(en_angle + pi/2, tool_rad)
+            exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
+        
         #Numbers of loops
         snr = 0
         #Loops for the number of cuts
@@ -612,14 +611,14 @@ class ShapeClass(QtGui.QGraphicsItem):
             snr += 1
             mom_depth = mom_depth - abs(max_slice)
             if mom_depth < depth:
-                mom_depth = depth                
-
+                mom_depth = depth
+            
             #Erneutes Eintauchen
             #???
             exstr+=PostPro.chg_feed_rate(f_g1_depth)
             exstr+=PostPro.lin_pol_z(mom_depth)
             exstr+=PostPro.chg_feed_rate(f_g1_plane)
-
+            
             #If it is not a closed contour
             if self.closed == 0:
                 self.reverse()
@@ -644,9 +643,9 @@ class ShapeClass(QtGui.QGraphicsItem):
                 pos_cut_out = ende.get_arc_point(en_angle + pi/2, tool_rad)
 
             #Turning off the cutter radius compensation if needed
-            if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):         
+            if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):
                 exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
-     
+        
         #Do the tool retraction
         exstr+=PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
         exstr+=PostPro.rap_pos_z(safe_retract_depth)
