@@ -3,7 +3,7 @@
 <context>
     <name>ArcGeo</name>
     <message>
-        <location filename="ArcGeo.py" line="83"/>
+        <location filename="ArcGeo.py" line="84"/>
         <source>Missing value for Arc Geometry</source>
         <translation type="unfinished"></translation>
     </message>
@@ -11,13 +11,128 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="dxf2gcode.py" line="157"/>
+        <location filename="dxf2gcode.py" line="156"/>
         <source>Open file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="157"/>
+        <location filename="dxf2gcode.py" line="156"/>
         <source>All supported files (*.dxf *.ps *.pdf);;DXF files (*.dxf);;PS files (*.ps);;PDF files (*.pdf);;all files (*.*)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="360"/>
+        <source>File: %s selected</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="181"/>
+        <source>Reloading file: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="193"/>
+        <source>Optimize order of enabled shapes per layer</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="197"/>
+        <source>Updating order according to TreeView</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="209"/>
+        <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="211"/>
+        <source>Export Order for start: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="237"/>
+        <source>TSP start values initialised for Layer %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="238"/>
+        <source>Shapes to write: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="239"/>
+        <source>Fixed order: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="256"/>
+        <source>TSP done with result: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="259"/>
+        <source>New Export Order after TSP: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="283"/>
+        <source>Export the enabled shapes</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="289"/>
+        <source>Sorted layers:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="291"/>
+        <source>LayerContents[%i] = %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="356"/>
+        <source>Export to file</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="376"/>
+        <source>About DXF2GCODE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="376"/>
+        <source>http://code.google.com/p/dxf2gcode/</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="427"/>
+        <source>set Tolerances</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="510"/>
+        <source>Sending Postscript/PDF to pstoedit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="527"/>
+        <source>Loaded layers: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="528"/>
+        <source>Loaded blocks: %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="531"/>
+        <source>Block %i includes %i Geometries, reduced to %i Contours, used layers: %s </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="535"/>
+        <source>Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

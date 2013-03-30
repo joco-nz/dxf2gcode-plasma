@@ -373,8 +373,18 @@ class Main(QtGui.QMainWindow):
         This function is called by the menu "Help/About" of the main toolbar and 
         creates the About Window
         """
-        QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),
-            self.tr("http://code.google.com/p/dxf2gcode/"))
+        message=self.tr("You are using DXF2GCODE\n"\
+                "%s Revision: %s\n"\
+                "Last change %s by %s\n"\
+                "For more information and updates about\n"\
+                "please visit the Google Code Project\n"\
+                "homepage at: http://code.google.com/p/dxf2gcode/\n"\
+                "<a href='http://www.trolltech.com'>Trolltech</a>"\
+                % (c.VERSION, c.REVISION,c.DATE,c.AUTHOR))
+                
+        
+        
+        QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),message)
     
     def setShow_path_directions(self):
         """

@@ -37,6 +37,8 @@ import Core.constants as c
 import Core.Globals as g
 from d2gexceptions import *
 
+from PyQt4 import QtCore
+
 import logging
 logger = logging.getLogger("Core.Config")
 
@@ -166,7 +168,7 @@ CONFIG_SPEC = str('''
 """ format, type and default value specification of the global config file"""
 
 
-class MyConfig:
+class MyConfig(QtCore.QObject):
     """
     This class hosts all functions related to the Config File.
     """
@@ -213,6 +215,7 @@ class MyConfig:
                 
                 if validate_errors:
                     g.logger.logger.error(self.tr("errors reading %s:" % (self.filename)))
+
                 for entry in validate_errors:
                     section_list, key, error = entry
                     if key is not None:
@@ -241,7 +244,7 @@ class MyConfig:
                 logger.error(inst)
                 (base,ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
-                logger.debug(self.tr("trying to rename bad cfg %s to %s" % (self.filename,badfilename)))
+                g.logger.logger.debug(self.tr("trying to rename bad cfg %s to %s" % (self.filename,badfilename)))
                 try:
                     os.rename(self.filename,badfilename)
                 except OSError,e:
@@ -254,7 +257,9 @@ class MyConfig:
                     logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
             else:
                 self.default_config = False
-                logger.debug("read existing varspace '%s'" %(self.filename))
+                #logger.debug(self.dir())
+                #logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
+                #logger.debug(self.tr("read existing varspace '%s'") %(self.filename)))
         else:
             self.create_default_config()
             self.default_config = True
@@ -286,9 +291,7 @@ class MyConfig:
         for k,v in self.var_dict['Variables'].items():
             print k," = ",v
     
-    def tr(self):
-        return self
-    
+
     
 class DictDotLookup(object):
     """
