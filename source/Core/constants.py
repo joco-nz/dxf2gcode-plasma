@@ -41,7 +41,7 @@ AUTHOR="$Author$"
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
 
-#rename unreadable config/varspace files to .bad
+#Rename unreadable config/varspace files to .bad
 BAD_CONFIG_EXTENSION = '.bad'
 DEFAULT_CONFIG_DIR = 'config'
 
