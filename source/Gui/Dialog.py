@@ -68,7 +68,7 @@ class myDialog(QtGui.QDialog):
         self.setLayout(vbox)
 
         self.setGeometry(300, 300, 50, 50)
-        self.setWindowTitle('Input dialog')
+        self.setWindowTitle(self.title)
         
         self.exec_()
         

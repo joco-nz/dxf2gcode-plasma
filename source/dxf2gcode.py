@@ -49,6 +49,7 @@ from DxfImport.Import import ReadDXF
 from Gui.myCanvasClass import MyGraphicsScene
 from Gui.TreeHandling import TreeHandler
 from Gui.Dialog import myDialog
+from Gui.AboutDialog import myAboutDialog
 
 from PostPro.TspOptimisation import TSPoptimize
 
@@ -379,8 +380,9 @@ class Main(QtGui.QMainWindow):
                 "<body bgcolor="\
                 "<center><img src='images/dxf2gcode_logo.png' border='1' color='white'></center></body>"\
                 "<h2>Version:</h2>"\
-                "<body>%s Revision: %s<br>"\
-                "Last change %s by %s\n<br></body>"\
+                "<body>%s: %s<br>"\
+                "Last change %s<br>"\
+                "Changed by %s<br></body>"\
                 "<h2>Where to get help:</h2>"\
                 "For more information and updates, "\
                 "please visit the Google Code Project: "\
@@ -395,9 +397,9 @@ class Main(QtGui.QMainWindow):
                 "</body></html>" % (c.VERSION, c.REVISION,c.DATE,c.AUTHOR)\
 
         
+        myAboutDialog(title="About DXF2GCODE",message=message)
         
-        
-        MB=QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),message)
+        #MB=QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),message)
         #MB.setTextFormat(QtCore.Qt.RichText)
         #MB.setText("<a href='mailto:someone@somewhere.com?Subject=My%20Subject>Email me</a>")
         #3.msgBox.setTextFormat(Qt::RichText);   //this is what makes the links clickable4.msgBox.setText("<a href='mailto:someone@somewhere.com?Subject=My%20Subject>Email me</a>");
