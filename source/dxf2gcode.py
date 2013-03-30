@@ -373,18 +373,34 @@ class Main(QtGui.QMainWindow):
         This function is called by the menu "Help/About" of the main toolbar and 
         creates the About Window
         """
-        message=self.tr("You are using DXF2GCODE\n"\
-                "%s Revision: %s\n"\
-                "Last change %s by %s\n"\
-                "For more information and updates about\n"\
-                "please visit the Google Code Project\n"\
-                "homepage at: http://code.google.com/p/dxf2gcode/\n"\
-                "<a href='http://www.trolltech.com'>Trolltech</a>"\
-                % (c.VERSION, c.REVISION,c.DATE,c.AUTHOR))
                 
+        message="<html>"\
+                "<h2><center>You are using</center></h2>"\
+                "<body bgcolor="\
+                "<center><img src='images/dxf2gcode_logo.png' border='1' color='white'></center></body>"\
+                "<h2>Version:</h2>"\
+                "<body>%s Revision: %s<br>"\
+                "Last change %s by %s\n<br></body>"\
+                "<h2>Where to get help:</h2>"\
+                "For more information and updates, "\
+                "please visit the Google Code Project: "\
+                "<a href='http://code.google.com/p/dxf2gcode/'>http://code.google.com/p/dxf2gcode/</a><br>"\
+                "For any questions on how to use dxf2gcode please use the<br>"\
+                "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br><br>"\
+                "For any found bugs or feature requests please use the <br>"\
+                "<a href='http://code.google.com/p/dxf2gcode/issues/list'>issue tracking system</a><br>"\
+                "<h2>License and copyright:</h2>"\
+                "<body>This program is written in Python and is published under the "\
+                "<a href='http://www.gnu.org/licenses/gpl.html'>GNU GPL 3 license.</a><br>"\
+                "</body></html>" % (c.VERSION, c.REVISION,c.DATE,c.AUTHOR)\
+
         
         
-        QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),message)
+        
+        MB=QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),message)
+        #MB.setTextFormat(QtCore.Qt.RichText)
+        #MB.setText("<a href='mailto:someone@somewhere.com?Subject=My%20Subject>Email me</a>")
+        #3.msgBox.setTextFormat(Qt::RichText);   //this is what makes the links clickable4.msgBox.setText("<a href='mailto:someone@somewhere.com?Subject=My%20Subject>Email me</a>");
     
     def setShow_path_directions(self):
         """
