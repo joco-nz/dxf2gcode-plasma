@@ -100,6 +100,15 @@ class Main(QtGui.QMainWindow):
         
         if g.config.vars.General['live_update_export_route']:
             self.ui.actionLive_update_export_route.setChecked(True)
+            
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("Main",string_to_translate, None, QtGui.QApplication.UnicodeUTF8))
+
         
     
     def createActions(self):
@@ -162,7 +171,9 @@ class Main(QtGui.QMainWindow):
                     "PDF files (*.pdf);;"\
                     "all files (*.*)"))
         
-        logger.info(self.tr("File: %s selected" %self.filename))
+        
+        logger.info(self.tr("File: %s selected") %self.filename)
+        
         
         #If there is something to load then call the load function callback
         if not(self.filename==""):
@@ -179,7 +190,7 @@ class Main(QtGui.QMainWindow):
         It reloads the previously loaded file (if any)
         """
         
-        logger.info(self.tr("Reloading file: %s" %self.filename))
+        logger.info(self.tr("Reloading file: %s") %self.filename)
         
         #If there is something to load then call the load function callback
         if not(self.filename==""):
@@ -207,9 +218,9 @@ class Main(QtGui.QMainWindow):
             
             #Check all shapes of Layer which shall be exported and create List
             #for it.
-            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s" 
-                                 %(len(LayerContent.shapes),len(LayerContent.exp_order))))
-            logger.debug(self.tr("Export Order for start: %s" %LayerContent.exp_order))
+            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s") 
+                                 %(len(LayerContent.shapes),len(LayerContent.exp_order)))
+            logger.debug(self.tr("Export Order for start: %s") %LayerContent.exp_order)
             
             for shape_nr in range(len(LayerContent.exp_order)):
                 if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
@@ -235,9 +246,9 @@ class Main(QtGui.QMainWindow):
                 TSPs=[]
                 TSPs.append(TSPoptimize(st_end_points=shapes_st_en_points,
                                         order=self.shapes_fixed_order))
-                logger.info(self.tr("TSP start values initialised for Layer %s" %LayerContent.LayerName))
-                logger.debug(self.tr("Shapes to write: %s" %self.shapes_to_write))
-                logger.debug(self.tr("Fixed order: %s" %self.shapes_fixed_order))
+                logger.info(self.tr("TSP start values initialised for Layer %s") %LayerContent.LayerName)
+                logger.debug(self.tr("Shapes to write: %s") %self.shapes_to_write)
+                logger.debug(self.tr("Fixed order: %s") %self.shapes_fixed_order)
                 
                 self.MyGraphicsScene.addexproute(LayerContent.exp_order,
                                                  LayerContent.LayerNr)
@@ -254,10 +265,10 @@ class Main(QtGui.QMainWindow):
                         self.MyGraphicsScene.updateexproute(new_exp_order)
                         self.app.processEvents()                   
                     
-                logger.debug(self.tr("TSP done with result: %s" %TSPs[-1]))
+                logger.debug(self.tr("TSP done with result: %s") %TSPs[-1])
                 
                 LayerContent.exp_order=new_exp_order
-                logger.debug(self.tr("New Export Order after TSP: %s" %new_exp_order))
+                logger.debug(self.tr("New Export Order after TSP: %s") %new_exp_order)
             else:
                 LayerContent.exp_order=[]
                 
@@ -289,7 +300,7 @@ class Main(QtGui.QMainWindow):
         
         logger.debug(self.tr("Sorted layers:"))
         for i, layer in enumerate(self.LayerContents):
-            logger.debug(self.tr("LayerContents[%i] = %s" %(i, layer)))
+            logger.debug("LayerContents[%i] = %s" %(i, layer))
         
         if not(g.config.vars.General['write_to_stdout']):
             
@@ -358,7 +369,7 @@ class Main(QtGui.QMainWindow):
                     default_name,
                     MyFormats, selected_filter)
         
-        logger.info(self.tr("File: %s selected" %filename+selected_filter))
+        logger.info(self.tr("File: %s selected") %filename+selected_filter)
         
         return filename+selected_filter
         
@@ -375,7 +386,7 @@ class Main(QtGui.QMainWindow):
         creates the About Window
         """
                 
-        message="<html>"\
+        message=self.tr("<html>"\
                 "<h2><center>You are using</center></h2>"\
                 "<body bgcolor="\
                 "<center><img src='images/dxf2gcode_logo.png' border='1' color='white'></center></body>"\
@@ -394,16 +405,11 @@ class Main(QtGui.QMainWindow):
                 "<h2>License and copyright:</h2>"\
                 "<body>This program is written in Python and is published under the "\
                 "<a href='http://www.gnu.org/licenses/gpl.html'>GNU GPL 3 license.</a><br>"\
-                "</body></html>" % (c.VERSION, c.REVISION,c.DATE,c.AUTHOR)\
+                "</body></html>") % (c.VERSION, c.REVISION,c.DATE,c.AUTHOR)
 
         
         myAboutDialog(title="About DXF2GCODE",message=message)
         
-        #MB=QtGui.QMessageBox.about(self, self.tr("About DXF2GCODE"),message)
-        #MB.setTextFormat(QtCore.Qt.RichText)
-        #MB.setText("<a href='mailto:someone@somewhere.com?Subject=My%20Subject>Email me</a>")
-        #3.msgBox.setTextFormat(Qt::RichText);   //this is what makes the links clickable4.msgBox.setText("<a href='mailto:someone@somewhere.com?Subject=My%20Subject>Email me</a>");
-    
     def setShow_path_directions(self):
         """
         This function is called by the menu "Show all path directions" of the
@@ -446,9 +452,9 @@ class Main(QtGui.QMainWindow):
         This function is called when the Option=>Tolerances Menu is clicked.
         """
         
-        title=_('Contour tolerances')
-        label=(_("Tolerance for common points [mm]:"),\
-               _("Tolerance for curve fitting [mm]:"))
+        title=self.tr('Contour tolerances')
+        label=(self.tr("Tolerance for common points [mm]:"),\
+               self.tr("Tolerance for curve fitting [mm]:"))
         value=(g.config.point_tolerance,
                g.config.fitting_tolerance)
         
@@ -469,8 +475,8 @@ class Main(QtGui.QMainWindow):
         """
         This function is called when the Option=>Scale All Menu is clicked.
         """
-        title=_('Scale Contour')
-        label=[_("Scale Contour by factor:")]
+        title=self.tr('Scale Contour')
+        label=[self.tr("Scale Contour by factor:")]
         value=[self.cont_scale]
         ScaEntDialog=myDialog(title,label,value)
         
@@ -487,8 +493,8 @@ class Main(QtGui.QMainWindow):
         """
         This function is called when the Option=>Rotate All Menu is clicked.
         """
-        title=_('Rotate Contour')
-        label=[_("Rotate Contour by deg:")]
+        title=self.tr('Rotate Contour')
+        label=[self.tr("Rotate Contour by deg:")]
         value=[degrees(self.rotate)]
         RotEntDialog=myDialog(title,label,value)
         
@@ -505,9 +511,9 @@ class Main(QtGui.QMainWindow):
         """
         This function is called when the Option=>Move WP Zero Menu is clicked.
         """
-        title=_('Workpiece zero offset')
-        label=((_("Offset %s axis by mm:") %g.config.vars.Axis_letters['ax1_letter']),\
-               (_("Offset %s axis by mm:") %g.config.vars.Axis_letters['ax2_letter']))
+        title=self.tr('Workpiece zero offset')
+        label=((self.tr("Offset %s axis by mm:") %g.config.vars.Axis_letters['ax1_letter']),\
+               (self.tr("Offset %s axis by mm:") %g.config.vars.Axis_letters['ax2_letter']))
         value=(self.cont_dx,self.cont_dy)
         MoveWpzDialog=myDialog(title,label,value)
         
@@ -535,7 +541,7 @@ class Main(QtGui.QMainWindow):
         (name, ext) = os.path.splitext(str(filename))
         
         if (ext.lower() == ".ps")or(ext.lower() == ".pdf"):
-            logger.info(_(self.tr("Sending Postscript/PDF to pstoedit")))
+            logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
             
             #Create temporary file which will be read by the program
             filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf').encode("cp1252")
@@ -546,22 +552,22 @@ class Main(QtGui.QMainWindow):
             retcode = subprocess.call(cmd)
         
         #self.textbox.text.delete(7.0, END)
-        logger.info(self.tr(('Loading file: %s') % filename))
+        logger.info(self.tr('Loading file: %s') % filename)
         #logger.info("<a href=file:%s>%s</a>" %(filename,filename))
         
         values = ReadDXF(filename)
         
         #Output the information in the text window
-        logger.info(_(self.tr('Loaded layers: %s' % len(values.layers))))
-        logger.info(_(self.tr('Loaded blocks: %s' % len(values.blocks.Entities))))
+        logger.info(self.tr('Loaded layers: %s') % len(values.layers))
+        logger.info(self.tr('Loaded blocks: %s') % len(values.blocks.Entities))
         for i in range(len(values.blocks.Entities)):
             layers = values.blocks.Entities[i].get_used_layers()
-            logger.info(_(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s '\
-                                     % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))))
+            logger.info(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s')\
+                                     % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))
         layers = values.entities.get_used_layers()
         insert_nr = values.entities.get_insert_nr()
-        logger.info(_(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i' \
-                                 % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))))
+        logger.info(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i') \
+                                 % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
         
         self.makeShapesAndPlot(values)
         
@@ -750,8 +756,10 @@ if __name__ == "__main__":
     #Get local language and install if available.
     locale = QtCore.QLocale.system().name()
     translator = QtCore.QTranslator()
+    print("dxf2gcode_" + locale, "./i18n")
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
+        print(dir(translator))
     
     window = Main(app)
     g.window=window

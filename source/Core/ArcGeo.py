@@ -45,6 +45,8 @@ class ArcGeo(QtCore.QObject):
         """
         Standard Method to initialize the LineGeo
         """
+        QtCore.QObject.__init__(self)
+        
         self.type = "ArcGeo"
         self.Pa = Pa
         self.Pe = Pe

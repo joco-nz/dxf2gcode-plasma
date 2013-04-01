@@ -192,9 +192,20 @@ class MyConfig(QtCore.QObject):
         self.point_tolerance=self.vars.Import_Parameters['point_tolerance']
         
         #except Exception,msg:
-        #    logger.warning(self.tr("Config loading failed: %s" % (msg)))
+        #    logger.warning(self.tr("Config loading failed: %s") % (msg))
         #    return False
     
+    
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("MyConfig",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8))  
     
     def make_settings_folder(self):
         # create settings folder if necessary
@@ -214,7 +225,7 @@ class MyConfig(QtCore.QObject):
                 validate_errors = flatten_errors(self.var_dict, result)
                 
                 if validate_errors:
-                    g.logger.logger.error(self.tr("errors reading %s:" % (self.filename)))
+                    g.logger.logger.error(self.tr("errors reading %s:") % (self.filename))
 
                 for entry in validate_errors:
                     section_list, key, error = entry
@@ -244,26 +255,26 @@ class MyConfig(QtCore.QObject):
                 logger.error(inst)
                 (base,ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
-                g.logger.logger.debug(self.tr("trying to rename bad cfg %s to %s" % (self.filename,badfilename)))
+                g.logger.logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename,badfilename))
                 try:
                     os.rename(self.filename,badfilename)
                 except OSError,e:
-                    logger.error(self.tr("rename(%s,%s) failed: %s" % (self.filename,badfilename,e.strerror)))
+                    logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename,badfilename,e.strerror))
                     raise
                 else:
-                    logger.debug(self.tr("renamed bad varspace %s to '%s'" %(self.filename,badfilename)))
+                    logger.debug(self.tr("renamed bad varspace %s to '%s'") %(self.filename,badfilename))
                     self.create_default_config()
                     self.default_config = True
-                    logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
+                    logger.debug(self.tr("created default varspace '%s'") %(self.filename))
             else:
                 self.default_config = False
                 #logger.debug(self.dir())
-                #logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
-                #logger.debug(self.tr("read existing varspace '%s'") %(self.filename)))
+                #logger.debug(self.tr("created default varspace '%s'") %(self.filename))
+                #logger.debug(self.tr("read existing varspace '%s'") %(self.filename))
         else:
             self.create_default_config()
             self.default_config = True
-            logger.debug(self.tr("created default varspace '%s'" %(self.filename)))
+            logger.debug(self.tr("created default varspace '%s'") %(self.filename))
         
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever

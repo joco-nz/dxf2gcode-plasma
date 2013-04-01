@@ -44,7 +44,6 @@ PY_EXTENSION = '.py'
 #Rename unreadable config/varspace files to .bad
 BAD_CONFIG_EXTENSION = '.bad'
 DEFAULT_CONFIG_DIR = 'config'
-
 DEFAULT_POSTPRO_DIR = 'postpro_config'
 
 # log related

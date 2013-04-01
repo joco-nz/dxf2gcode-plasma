@@ -23,6 +23,8 @@ import Core.constants as c
 import Core.Globals as g
 from d2gexceptions import *
 
+from PyQt4 import QtCore, QtGui
+
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig") 
 
@@ -93,7 +95,7 @@ POSTPRO_SPEC = str('''
 """ format, type and default value specification of the global config file"""
 
 
-class MyPostProConfig:
+class MyPostProConfig(QtCore.QObject):
     """
     This class hosts all functions related to the PostProConfig File.
     """
@@ -104,6 +106,7 @@ class MyPostProConfig:
         @param filename: The filename for the creation of a new config
         file and the filename of the file to read config from.
         """
+        QtCore.QObject.__init__(self)
         
         self.folder = os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)
         self.filename =os.path.join(self.folder, filename)
@@ -111,6 +114,17 @@ class MyPostProConfig:
         self.default_config = False # whether a new name was generated
         self.var_dict = dict()
         self.spec = ConfigObj(POSTPRO_SPEC, interpolation=False, list_values=False, _inspec=True)
+
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("MyPostProConfig",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8)) 
 
     def load_config(self):
         """
@@ -126,7 +140,7 @@ class MyPostProConfig:
             validate_errors = flatten_errors(self.var_dict, result)
 
             if validate_errors:
-                g.logger.logger.error("errors reading %s:" % (self.filename))
+                g.logger.logger.error(self.tr("errors reading %s:") % (self.filename))
             for entry in validate_errors:
                 section_list, key, error = entry
                 if key is not None:
@@ -135,11 +149,11 @@ class MyPostProConfig:
                     section_list.append('[missing section]')
                 section_string = ', '.join(section_list)
                 if error == False:
-                    error = 'Missing value or section.'
+                    error = self.tr('Missing value or section.')
                 g.logger.logger.error( section_string + ' = ' + error)       
 
             if validate_errors:
-                raise BadConfigFileError,"syntax errors in postpro_config file"
+                raise BadConfigFileError,self.tr("syntax errors in postpro_config file")
                 
             # check config file version against internal version
 
@@ -156,20 +170,20 @@ class MyPostProConfig:
             logger.error(inst)               
             (base,ext) = os.path.splitext(self.filename)
             badfilename = base + c.BAD_CONFIG_EXTENSION
-            logger.debug("trying to rename bad cfg %s to %s" % (self.filename,badfilename))
+            logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename,badfilename))
             try:
                 os.rename(self.filename,badfilename)
             except OSError,e:
-                logger.error("rename(%s,%s) failed: %s" % (self.filename,badfilename,e.strerror))
+                logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename,badfilename,e.strerror))
                 raise
             else:
-                logger.debug("renamed bad varspace %s to '%s'" %(self.filename,badfilename))
+                logger.debug(self.tr("renamed bad varspace %s to '%s'") %(self.filename,badfilename))
                 self.create_default_config()
                 self.default_config = True
-                logger.debug("created default varspace '%s'" %(self.filename))
+                logger.debug(self.tr("created default varspace '%s'") %(self.filename))
         else:
             self.default_config = False
-            logger.debug("read existing varspace '%s'" %(self.filename))
+            logger.debug(self.tr("read existing varspace '%s'") %(self.filename))
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever

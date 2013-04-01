@@ -64,6 +64,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         If this parameter is None the mill_depth of the parent layer will be used.
         """
         QtGui.QGraphicsItem.__init__(self) 
+        
+        
         self.pen=QtGui.QPen(QtCore.Qt.black,2)
         self.pen.setCosmetic(True)
         self.sel_pen=QtGui.QPen(QtCore.Qt.red,2) #,QtCore.Qt.DashLine
@@ -108,6 +110,17 @@ class ShapeClass(QtGui.QGraphicsItem):
                ('\nlen(geos):   %i' % len(self.geos)) + \
                ('\ngeos:        %s' % self.geos) + \
                ('\nsend_to_TSP: %i' % self.send_to_TSP)
+
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("ShapeClass",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8))
 
     def setSelectionChangedCallback(self, callback):
         """
@@ -197,7 +210,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 #
 #        self.path.moveTo(start.x,-start.y)
 #        
-#        logger.debug(self.tr("Adding shape to Scene Nr: %i" % (self.nr)))
+#        logger.debug(self.tr("Adding shape to Scene Nr: %i") % (self.nr))
 #        
 #        for geo in self.geos:
 #            geo.add2path(papath=self.path,parent=self.parent)
@@ -344,7 +357,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         FIXME
         """ 
         
-        logger.debug("Analysing the shape for CW direction %s:" % (self))
+        logger.debug(self.tr("Analysing the shape for CW direction Nr: %s") % (self.nr))
         #Optimization for closed shapes
         if self.closed:
             #Startwert setzen f�r die erste Summe
@@ -366,7 +379,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
             if summe > 0.0:
                 self.reverse()
-                logger.debug("Had to reverse the shape to be ccw")
+                logger.debug(self.tr("Had to reverse the shape to be ccw"))
                
 
     def FindNearestStPoint(self,StPoint=Point(x=0.0, y=0.0)):
@@ -379,11 +392,11 @@ class ShapeClass(QtGui.QGraphicsItem):
         
         
         if self.closed:
-            logger.debug("Clicked Point: %s" %StPoint)
+            logger.debug(self.tr("Clicked Point: %s") %StPoint)
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
             min_distance=start.distance(StPoint)
             
-            logger.debug("Old Start Point: %s" %start)
+            logger.debug(self.tr("Old Start Point: %s") %start)
             
             min_geo_nr=0
             for geo_nr in range(1,len(self.geos)):
@@ -397,7 +410,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.geos=self.geos[min_geo_nr:len(self.geos)]+self.geos[0:min_geo_nr]
             
             start, dummy=self.geos[0].get_start_end_points(0,self.parent)
-            logger.debug("New Start Point: %s" %start)
+            logger.debug(self.tr("New Start Point: %s") %start)
                      
     def reverse(self):
         """ 
@@ -459,7 +472,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 
         self.path.moveTo(start.x,-start.y)
         
-        logger.debug("Adding shape to Scene Nr: %i" % (self.nr))
+        logger.debug(self.tr("Adding shape to Scene Nr: %i") % (self.nr))
         
         for geo in self.geos:
             geo.add2path(papath=self.path,parent=self.parent)
@@ -549,7 +562,7 @@ class ShapeClass(QtGui.QGraphicsItem):
             logger.error(self.tr("ERROR: Z infeed depth is null!"))
 
         if initial_mill_depth < depth:
-            logger.warning(self.tr("WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth." % (initial_mill_depth, depth)))
+            logger.warning(self.tr("WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth.") % (initial_mill_depth, depth))
 
             #Do not cut below the depth.
             initial_mill_depth = depth

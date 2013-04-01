@@ -55,6 +55,17 @@ class MyGraphicsView(QtGui.QGraphicsView):
         self.selmode=0
         
         self.rubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, self)
+        
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("MyGraphicsView",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8))
     
     def contextMenuEvent(self, event):
         """
@@ -210,7 +221,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
         scene=self.scene()
         scext=scene.itemsBoundingRect()
         self.fitInView(scext,QtCore.Qt.KeepAspectRatio)
-        logger.debug("Autoscaling to extend: %s" % (scext))
+        logger.debug(self.tr("Autoscaling to extend: %s") % (scext))
         
     def setShow_path_direction(self,flag):
         """
@@ -264,25 +275,25 @@ class MyDropDownMenu(QtGui.QMenu):
         if len(self.MyGraphicsScene.selectedItems())==0:
             return
        
-        invertAction = self.addAction("Invert Selection")
-        disableAction = self.addAction("Disable Selection")
-        enableAction = self.addAction("Enable Selection")
+        invertAction = self.addAction(self.tr("Invert Selection"))
+        disableAction = self.addAction(self.tr("Disable Selection"))
+        enableAction = self.addAction(self.tr("Enable Selection"))
         
         self.addSeparator()
         
-        swdirectionAction = self.addAction("Switch Direction")
-        SetNxtStPAction = self.addAction("Set Nearest StartPoint")
+        swdirectionAction = self.addAction(self.tr("Switch Direction"))
+        SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
         
         self.addSeparator()
-        submenu1= QtGui.QMenu('Cutter Compensation',self)
-        self.noCompAction = submenu1.addAction("G40 No Compensation")
+        submenu1= QtGui.QMenu(self.tr('Cutter Compensation'),self)
+        self.noCompAction = submenu1.addAction(self.tr("G40 No Compensation"))
         self.noCompAction.setCheckable(True)
-        self.leCompAction = submenu1.addAction("G41 Left Compensation")
+        self.leCompAction = submenu1.addAction(self.tr("G41 Left Compensation"))
         self.leCompAction.setCheckable(True)
-        self.reCompAction = submenu1.addAction("G42 Right Compensation")
+        self.reCompAction = submenu1.addAction(self.tr("G42 Right Compensation"))
         self.reCompAction.setCheckable(True)
         
-        logger.debug("The selected shapes have the following direction: %i" % (self.calcMenuDir()))
+        logger.debug(self.tr("The selected shapes have the following direction: %i") % (self.calcMenuDir()))
         self.checkMenuDir(self.calcMenuDir())
         
         self.addMenu(submenu1)
@@ -301,6 +312,16 @@ class MyDropDownMenu(QtGui.QMenu):
 
         self.exec_(self.position)
         
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("MyDropDownMenu",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8))
             
     def calcMenuDir(self):
         """
@@ -380,7 +401,7 @@ class MyDropDownMenu(QtGui.QMenu):
                 shape.reverse()
                 shape.reverseGUI()
 
-                logger.debug(_('Switched Direction at Shape Nr: %i')\
+                logger.debug(self.tr('Switched Direction at Shape Nr: %i')\
                                 %(shape.nr))
 
                 shape.updateCutCor()
@@ -405,7 +426,7 @@ class MyDropDownMenu(QtGui.QMenu):
         shapes=self.MyGraphicsScene.selectedItems()
         for shape in shapes:
             shape.cut_cor=40
-            logger.debug(_('Changed Cutter Correction to None Shape Nr: %i')\
+            logger.debug(self.tr('Changed Cutter Correction to None Shape Nr: %i')\
                              %(shape.nr))
             
             shape.updateCutCor()
@@ -418,7 +439,7 @@ class MyDropDownMenu(QtGui.QMenu):
         shapes=self.MyGraphicsScene.selectedItems()
         for shape in shapes:
             shape.cut_cor=41
-            logger.debug(_('Changed Cutter Correction to left Shape Nr: %i')\
+            logger.debug(self.tr('Changed Cutter Correction to left Shape Nr: %i')\
                              %(shape.nr))
             shape.updateCutCor()
             shape.updateCCplot()
@@ -430,7 +451,7 @@ class MyDropDownMenu(QtGui.QMenu):
         shapes=self.MyGraphicsScene.selectedItems()
         for shape in shapes:
             shape.cut_cor=42
-            logger.debug(_('Changed Cutter Correction to right Shape Nr: %i')\
+            logger.debug(self.tr('Changed Cutter Correction to right Shape Nr: %i')\
                              %(shape.nr))
             shape.updateCutCor()
             shape.updateCCplot()
@@ -455,7 +476,18 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 #                                              p0=Point(0,0),pb=Point(0,0),
 #                                              sca=1,rot=0)
 #        self.BaseEntities=EntitieContentClass()
-               
+
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("MyGraphicsScene",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8))
+    
     def plotAll(self,shapes,EntitiesRoot):
         """
         Instance is called by the Main Window after the defined file is loaded.
@@ -497,7 +529,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         for shape in self.shapes:
             self.addItem(shape)
             self.plot_shape(shape)
-        logger.debug("Update GrapicsScene") 
+        logger.debug(self.tr("Update GrapicsScene")) 
 
     def plot_shape(self,shape):
         """

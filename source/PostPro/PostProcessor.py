@@ -30,7 +30,7 @@ import time
 
 from math import degrees
 
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 
 import Core.constants as c
 import Core.Globals as g
@@ -44,7 +44,7 @@ logger = logging.getLogger("PostPro.PostProcessor")
 from PostPro.PostProcessorConfig import MyPostProConfig
 
 
-class MyPostProcessor:
+class MyPostProcessor(QtCore.QObject):
     """
     The PostProcessor Class includes the functions for getting the output
     variables from the PostProcessorConfig Classes and general function related
@@ -69,7 +69,7 @@ class MyPostProcessor:
         except:
     
             #If no Postprocessor File was found in folder create one
-            logger.debug("created default varspace")
+            logger.debug(self.tr("created default varspace"))
             PostProConfig=MyPostProConfig()
             PostProConfig.create_default_config()
             PostProConfig.default_config = True
@@ -99,7 +99,16 @@ class MyPostProcessor:
         #Load all files to get the possible postprocessor configs to export
         self.get_output_vars()
         
-        
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("MyPostProcessor",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8)) 
       
     def get_output_vars(self):
         """
@@ -152,9 +161,9 @@ class MyPostProcessor:
         previous_tool = None
         #Do the export for each LayerContent in LayerContents List
         for LayerContent in LayerContents:
-            logger.debug("Beginning export of Layer Nr. %s, Name%s" 
+            logger.debug(self.tr("Beginning export of Layer Nr. %s, Name%s") 
                          %(LayerContent.LayerNr,LayerContent.LayerName))
-            logger.debug("Nr. of Shapes %s; Nr. of Shapes in Route %s" 
+            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s") 
                          %(len(LayerContent.shapes),len(LayerContent.exp_order_complete)))
             
             
@@ -169,7 +178,7 @@ class MyPostProcessor:
             
                 for shape_nr in LayerContent.exp_order_complete:
                     shape=LayerContent.shapes[shape_nr]
-                    logger.debug("Beginning export of  Shape Nr: %s" % shape.nr)
+                    logger.debug(self.tr("Beginning export of  Shape Nr: %s") % shape.nr)
                     
                     exstr+=self.commentprint("* SHAPE Nr: %i *" %(shape.nr))
                     
@@ -194,7 +203,7 @@ class MyPostProcessor:
         #If the String shall be given to STDOUT
         if g.config.vars.General['write_to_stdout']:
             print(exstr)
-            logger.debug("Export to STDOUT was successful")
+            logger.debug(self.tr("Export to STDOUT was successful"))
             self.close
     
         else:
@@ -205,10 +214,10 @@ class MyPostProcessor:
                     f = open(save_filename, "w")
                     f.write(exstr)
                     f.close()
-                    logger.debug("Export to FILE was successful")    
+                    logger.debug(self.tr("Export to FILE was successful"))    
                 except IOError:
-                    QtGui.QMessageBox.warning(g.window,"Warning during Export",
-                                              "Cannot Save the File")
+                    QtGui.QMessageBox.warning(g.window,self.tr("Warning during Export"),
+                                              self.tr("Cannot Save the File"))
                    
             
     
@@ -286,9 +295,9 @@ class MyPostProcessor:
         exported.
         """
         if self.vars.General["output_type"] == 'g-code':
-            exstr = "(Generated with: %s, Version: %s, Date: %s)\n" % (c.APPNAME, c.VERSION, c.DATE)
-            exstr += "(Time: %s)\n" % time.asctime()
-            exstr += "(Created from file: %s)\n" % load_filename
+            exstr = self.tr("(Generated with: %s, Version: %s, Date: %s)\n") % (c.APPNAME, c.VERSION, c.DATE)
+            exstr += self.tr("(Time: %s)\n") % time.asctime()
+            exstr += self.tr("(Created from file: %s)\n") % load_filename
         elif self.vars.General["output_type"] == 'dxf':
             exstr = ''
             

@@ -39,7 +39,7 @@ from DxfImport.GeoentEllipse import GeoentEllipse
 from DxfImport.GeoentLwpolyline import GeoentLwPolyline
 
 #from tkMessageBox import showwarning
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 
 from copy import deepcopy, copy
 from string import find, strip
@@ -48,10 +48,12 @@ import logging
 logger=logging.getLogger("DxfImport.Import") 
 
 
-class ReadDXF:
+class ReadDXF(QtCore.QObject):
     #Initialisierung der Klasse
     #Initialise the class
     def __init__(self, filename=None):
+        QtCore.QObject.__init__(self)
+
 
         #Setting up logger
         #logger=g.logger.logger
@@ -66,7 +68,7 @@ class ReadDXF:
         #logger.info(("\n\nFile has   %0.0f Lines" % len(str)), 1)
         #logger.info(("\nFile has   %0.0f Linepairs" % self.line_pairs.nrs), 1)
 
-        logger.info("Reading DXF Structure")
+        logger.info(self.tr("Reading DXF Structure"))
         sections_pos = self.Get_Sections_pos()
         self.layers = self.Read_Layers(sections_pos)
 
@@ -81,11 +83,24 @@ class ReadDXF:
         for i in range(len(self.blocks.Entities)):
             # '\n'
             #print self.blocks.Entities[i]
-            logger.info("Creating Contours of Block Nr: %i" %i)
+            logger.info(self.tr("Creating Contours of Block Nr: %i") %i)
             self.blocks.Entities[i].cont = self.Get_Contour(self.blocks.Entities[i])
 
-        logger.info("Creating Contours of Entities")
+        logger.info(self.tr("Creating Contours of Entities"))
         self.entities.cont = self.Get_Contour(self.entities)
+   
+   
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("ReadDXF",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8)) 
+   
    
     #Laden des ausgew�hlten DXF-Files
     #Load the selected DXF files
@@ -114,8 +129,8 @@ class ReadDXF:
                 line += 2
 
         except:
-            QtGui.QMessageBox.warning(g.window,"Warning reading linepairs",
-                "Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line))
+            QtGui.QMessageBox.warning(g.window,self.tr("Warning reading linepairs"),
+                self.tr("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file") % (line))
             
             #showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
             #g.logger.logger.info(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
@@ -240,8 +255,8 @@ class ReadDXF:
             (blocks.Entities[-1].geo, warning) = self.Get_Geo(s, e, warning)
             
         if warning == 1:
-            QtGui.QMessageBox.warning(g.window,"Import Warning",
-                "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+            QtGui.QMessageBox.warning(g.window,self.tr("Import Warning"),
+                self.tr("Found unsupported or only\npartly supported geometry.\nFor details see status messages!"))
             
         return blocks
     #Lesen der Entities Geometrien
@@ -257,8 +272,8 @@ class ReadDXF:
                                                     warning)
         
         if warning == 1:
-            QtGui.QMessageBox.warning(g.window,"Import Warning",
-                "Found unsupported or only\npartly supported geometry.\nFor details see status messages!")
+            QtGui.QMessageBox.warning(g.window,self.tr("Import Warning"),
+                ("Found unsupported or only\npartly supported geometry.\nFor details see status messages!"))
             
         return entities
     
@@ -391,7 +406,7 @@ class ReadDXF:
             warning = geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
         
         if warning:
-            QtGui.QMessageBox.warning(g.window,"Short Elements", ("Length of some Elements too short!"\
+            QtGui.QMessageBox.warning(g.window,self.tr("Short Elements"), self.tr("Length of some Elements too short!"\
                                                "\nLength must be greater then tolerance."\
                                                "\nSkipped Geometries"))
         

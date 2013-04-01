@@ -28,11 +28,15 @@ from math import floor, ceil
 
 import Core.Globals as g
 
+from PyQt4 import QtCore, QtGui
+
 import logging
 logger = logging.getLogger("PostPro.TSP") 
 
-class TSPoptimize:
+class TSPoptimize(QtCore.QObject):
     def __init__(self, st_end_points=[],order=[]):
+        QtCore.QObject.__init__(self)
+        
         self.shape_nrs = len(st_end_points)        
         self.iterations = int(self.shape_nrs) * 10
         self.pop_nr = min(int(ceil(self.shape_nrs / 8.0) * 8.0),
@@ -138,10 +142,22 @@ class PopulationClass:
             elif g.config.vars.Route_Optimisation['begin_art'] == 'heurestic':
                 self.pop.append(self.heurestic_begin(dmatrix[:]))
             else:
-                logger.error('Wrong begin art of TSP choosen')
+                logger.error(self.tr('Wrong begin art of TSP choosen'))
           
         for rot_nr in range(size[0]):
             self.rot.append(0)  
+
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("PopulationClass",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8)) 
+
 
     def random_begin(self, size):
         tour = range(size)

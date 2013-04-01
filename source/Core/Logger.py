@@ -23,7 +23,9 @@ import logging
 
 import Core.Globals as g
 
-class LoggerClass():
+from PyQt4 import QtCore
+
+class LoggerClass(QtCore.QObject):
     '''
     handle 3 log streams:
         console
@@ -31,6 +33,8 @@ class LoggerClass():
         message window
     '''
     def __init__(self, rootlogger, console_loglevel):
+        QtCore.QObject.__init__(self)
+        
         self.file_handler = None
         self.window_handler = None
         self.rootlogger = rootlogger
