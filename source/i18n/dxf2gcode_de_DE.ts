@@ -58,7 +58,7 @@
     <message>
         <location filename="dxf2gcode.py" line="221"/>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
-        <translation>Gesamtanzahl der Shapes: %s; Anzahl der Shapes in der Export Reihenfolge</translation>
+        <translation type="unfinished">Gesamtanzahl der Shapes: %s; Anzahl der Shapes in der Export Reihenfolge %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="223"/>
@@ -660,7 +660,7 @@
     <message>
         <location filename="PostProcessor.py" line="166"/>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
-        <translation>Gesamtanzahl der Shapes: %s; Anzahl der Shapes in der Export Reihenfolge</translation>
+        <translation type="unfinished">Gesamtanzahl der Shapes: %s; Anzahl der Shapes in der Export Reihenfolge %s</translation>
     </message>
     <message>
         <location filename="PostProcessor.py" line="181"/>

@@ -22,11 +22,16 @@
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 from math import  sin, cos, pi
+from PyQt4 import QtCore, QtGui
+
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
 from Core.ArcGeo import  ArcGeo 
 
-class GeoentCircle:
+import logging
+logger=logging.getLogger("DXFImport.GeoentCircle") 
+
+class GeoentCircle(QtCore.QObject):
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Circle'
         self.Nr = Nr
@@ -44,6 +49,18 @@ class GeoentCircle:
               ("\nNr: %i" % self.Nr) + \
               ("\nLayer Nr:%i" % self.Layer_Nr) + \
               str(self.geo[-1])
+              
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("ReadDXF",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8)) 
+   
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length))
@@ -54,6 +71,8 @@ class GeoentCircle:
         #K�rzere Namen zuweisen
         #Assign short name
         lp = caller.line_pairs
+        e = lp.index_code(0, caller.start + 1)
+
 
         #Layer zuweisen
         #Assign layer
@@ -67,11 +86,22 @@ class GeoentCircle:
         #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
-        O = Point(x0, y0)
+
         #Radius
         s = lp.index_code(40, s + 1)
         r = float(lp.line_pair[s].value)
-                                
+        
+        #Searching for an extrusion direction
+        s_nxt_xt = lp.index_code(230, s + 1, e)
+        #If there is a extrusion direction given flip around x-Axis
+        if s_nxt_xt != None:
+            extrusion_dir = float(lp.line_pair[s_nxt_xt].value)
+            logger.debug(self.tr('Found extrusion direction: %s') %extrusion_dir)
+            if extrusion_dir == -1:
+                x0=-x0
+                
+        O = Point(x0, y0)
+
         #Berechnen der Start und Endwerte des Kreises ohne �berschneidung
         #Calculate the start and end values of the circle without clipping
         s_ang = -3 * pi / 4

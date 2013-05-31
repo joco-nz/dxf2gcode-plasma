@@ -24,7 +24,7 @@
 
 from math import sqrt
 from Point import Point
-from PyQt4 import QtGui
+from PyQt4 import QtCore, QtGui
 
 import logging
 logger=logging.getLogger("Core.LineGeo") 
@@ -33,7 +33,7 @@ logger=logging.getLogger("Core.LineGeo")
 dl = 0.2
 DEBUG = 1
 
-class LineGeo:
+class LineGeo(QtCore.QObject):
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
@@ -67,6 +67,17 @@ class LineGeo:
         
         self.Pa = Pe
         self.Pe = Pa
+
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("ReadDXF",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8)) 
    
     def make_abs_geo(self, parent=None, reverse=0):
         """

@@ -203,7 +203,7 @@ class MyPostProcessor(QtCore.QObject):
         #If the String shall be given to STDOUT
         if g.config.vars.General['write_to_stdout']:
             print(exstr)
-            logger.debug(self.tr("Export to STDOUT was successful"))
+            logger.info(self.tr("Export to STDOUT was successful"))
             self.close
     
         else:
@@ -214,7 +214,7 @@ class MyPostProcessor(QtCore.QObject):
                     f = open(save_filename, "w")
                     f.write(exstr)
                     f.close()
-                    logger.debug(self.tr("Export to FILE was successful"))    
+                    logger.info(self.tr("Export to FILE was successful"))    
                 except IOError:
                     QtGui.QMessageBox.warning(g.window,self.tr("Warning during Export"),
                                               self.tr("Cannot Save the File"))

@@ -21,10 +21,14 @@
 #along with this program; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+from PyQt4 import QtCore, QtGui
+
 from Core.Point import Point
 from DxfImport.Classes import PointsClass
 from Core.LineGeo import  LineGeo 
 
+import logging
+logger=logging.getLogger("DXFImport.GeoentCircle") 
 
 class GeoentLine:
     def __init__(self, Nr=0, caller=None):
@@ -45,6 +49,19 @@ class GeoentLine:
               ("\nLayer Nr: %i" % self.Layer_Nr) + \
               str(self.geo[-1])
 
+              
+    def tr(self,string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string    
+        @return: the translated unicode string if it was possible to translate
+        """
+        return unicode(QtGui.QApplication.translate("ReadDXF",
+                                                    string_to_translate,
+                                                    None,
+                                                    QtGui.QApplication.UnicodeUTF8)) 
+   
+
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         if abs(self.length) > tol:
             points.append(PointsClass(point_nr=len(points), geo_nr=i, \
@@ -62,6 +79,7 @@ class GeoentLine:
         #Kürzere Namen zuweisen
         #Assign short name
         lp = caller.line_pairs
+        e = lp.index_code(0, caller.start + 1)
 
         #Layer zuweisen
         #Assign layer
@@ -83,7 +101,17 @@ class GeoentLine:
         #Y Value 2
         s = lp.index_code(21, s + 1)
         y1 = float(lp.line_pair[s].value)
-
+        
+        #Searching for an extrusion direction
+        s_nxt_xt = lp.index_code(230, s + 1, e)
+        #If there is a extrusion direction given flip around x-Axis
+        if s_nxt_xt != None:
+            extrusion_dir = float(lp.line_pair[s_nxt_xt].value)
+            logger.debug(self.tr('Found extrusion direction: %s') %extrusion_dir)
+            if extrusion_dir == -1:
+                x0=-x0
+                x1=-x1
+        
         Pa = Point(x0, y0)
         Pe = Point(x1, y1)               
 
