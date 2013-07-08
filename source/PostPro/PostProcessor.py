@@ -252,8 +252,9 @@ class MyPostProcessor(QtCore.QObject):
         self.a_ang=0.0      
         self.e_ang=0.0  
         
-        self.ze=g.config.vars.Plane_Coordinates['axis3_retract']
+        self.ze=g.config.vars.Depth_Coordinates['axis3_retract']
         self.lz=self.ze
+        
         self.keyvars={"%feed":'self.iprint(self.feed)',\
                    "%speed":'self.iprint(self.speed)',\
                    "%tool_nr":'self.iprint(self.tool_nr)',\
