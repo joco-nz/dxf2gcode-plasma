@@ -34,9 +34,11 @@ import logging
 # Global Variables
 APPNAME = "dxf2gcode"
 VERSION = "pyQT Beta"
-DATE = "$Date$"
-REVISION = "$Revision$"
-AUTHOR="$Author$"
+
+
+DATE =       "Date:: 13            $:"
+REVISION =   "$Rev::               $:"
+AUTHOR=      "$Author::                                  $:"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
