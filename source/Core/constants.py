@@ -36,8 +36,8 @@ APPNAME = "dxf2gcode"
 VERSION = "pyQT Beta"
 
 
-DATE =       "$Date::                   $:"
-REVISION =   "$Rev::                    $:"
+DATE =       "$Date::                     $:"
+REVISION =   "$Rev::                      $:"
 AUTHOR=      "$Author::                                  $:"
 
 CONFIG_EXTENSION = '.cfg'
