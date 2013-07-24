@@ -36,7 +36,7 @@ APPNAME = "dxf2gcode"
 VERSION = "pyQT Beta"
 
 
-DATE =       "Date:: 13            $:"
+DATE =       "$Date::               $:"
 REVISION =   "$Rev::               $:"
 AUTHOR=      "$Author::                                  $:"
 
