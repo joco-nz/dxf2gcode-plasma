@@ -60,7 +60,7 @@ POSTPRO_SPEC = str('''
     
 
     code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
-    code_end=string(default="M2 (Prgram end)")
+    code_end=string(default="M2 (Program end)")
     
     [Number_Format]
     pre_decimals = integer(default=4)
