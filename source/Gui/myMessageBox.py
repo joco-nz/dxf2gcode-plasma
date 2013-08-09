@@ -31,7 +31,7 @@ class myMessageBox(QtGui.QTextBrowser):
         
         self.append("You are using DXF2GCODE")
         self.append("Version %s (%s)" %(c.VERSION,c.DATE))
-        self.append("For more information und updates visit:")
+        self.append("For more information and updates visit:")
         self.append("<a href=http://code.google.com/p/dxf2gcode>http://code.google.com/p/dxf2gcode</a>")
 
     def write(self,charstr):
