@@ -36,9 +36,9 @@ APPNAME = "dxf2gcode"
 VERSION = "pyQT Beta"
 
 
-DATE =       "$Date$"
-REVISION =   "$Rev$"
-AUTHOR=      u"$Author$"
+DATE =       "$Date::                     $:"
+REVISION =   "$Rev::                      $:"
+AUTHOR=      u"$Author::                                  $:"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
@@ -52,4 +52,3 @@ DEFAULT_POSTPRO_DIR = 'postpro_config'
 DEFAULT_LOGFILE = 'dxf2gcode.log'
 STARTUP_LOGLEVEL = logging.DEBUG
 #PRT = logging.INFO
-
