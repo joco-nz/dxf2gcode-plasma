@@ -369,9 +369,9 @@ class Main(QtGui.QMainWindow):
                     default_name,
                     MyFormats, selected_filter)
         
-        logger.info(self.tr("File: %s selected") %filename+selected_filter)
+        logger.info(self.tr("File: %s selected") %filename)
         
-        return filename+selected_filter
+        return filename
         
     def autoscale(self):
         """
