@@ -181,8 +181,8 @@ class TreeHandler(QtGui.QWidget):
         self.layer_item_model.setSupportedDragActions(QtCore.Qt.MoveAction)
         self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"));
         self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"));
-        self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nbr"));
-        self.layer_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Opti.\npath"));
+        self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nr"));
+        self.layer_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Optimal path"));
         modele_root_element = self.layer_item_model.invisibleRootItem() #Root element of our tree
 
         for layer in layers_list:
@@ -1153,6 +1153,7 @@ class TreeHandler(QtGui.QWidget):
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             selection_model = self.ui.entitiesTreeView.selectionModel()
             selection_model.select(item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
+            selection_model.select(item_index.sibling(item_index.row(), 0),  QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
             self.ui.entitiesTreeView.blockSignals(False)
 
         item_index = self.findLayerItemIndexFromShape(real_item)
@@ -1161,6 +1162,7 @@ class TreeHandler(QtGui.QWidget):
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             selection_model = self.ui.layersShapesTreeView.selectionModel()
             selection_model.select(item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
+            selection_model.select(item_index.sibling(item_index.row(), 0),  QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
             self.ui.layersShapesTreeView.blockSignals(False)
 
 
