@@ -633,6 +633,7 @@ class TreeHandler(QtGui.QWidget):
                     #only select Shapes or Custom GCode
                     col_item_index = sub_item_index.sibling(sub_item_index.row(), SELECTION_COL) #Get the only column that is selectable (eg item name)
                     selection_model.select(col_item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
+                    selection_model.select(col_item_index.sibling(col_item_index.row(), 0),  QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
 
             i += 1
 
@@ -977,10 +978,8 @@ class TreeHandler(QtGui.QWidget):
                     if element:
                         if element.data(SHAPE_OBJECT).isValid():
                             self.updateTreeViewSelection(model_index, element, False) #Effectively unselect the shape
-                            """ Disabled for now, because it's not really user friendly
                         elif element.data(LAYER_OBJECT).isValid():
                             self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, False)
-                        """
                         elif element.data(ENTITY_OBJECT).isValid():
                             self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, False)
 
@@ -999,15 +998,15 @@ class TreeHandler(QtGui.QWidget):
 
                             self.updateTreeViewSelection(model_index, element, True) #Effectively select the shape
 
+                        #select all the children of a given layer when clicked
                         elif element.data(LAYER_OBJECT).isValid():
                             real_item = element.data(LAYER_OBJECT).toPyObject()
-                            #select all the child of a given layer when clicked. Code disabled for now, because it's not really user friendly
-                            #self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, True)
+                            self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, True)
 
                             #update the tools parameters according to the selection
                             self.displayToolParametersForItem(real_item)
 
-                        #select all the child of a given entity when clicked. Code disabled for now, because it's not really user friendly
+                        #select all the children of a given entity when clicked
                         elif element.data(ENTITY_OBJECT).isValid():
                             self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, True)
 
