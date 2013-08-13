@@ -171,10 +171,6 @@ class Main(QtGui.QMainWindow):
                     "PDF files (*.pdf);;"\
                     "all files (*.*)"))
         
-        
-        logger.info(self.tr("File: %s selected") %self.filename)
-        
-        
         #If there is something to load then call the load function callback
         if not(self.filename==""):
             #Initialize the scale, rotate and move coordinates
@@ -183,6 +179,7 @@ class Main(QtGui.QMainWindow):
             self.cont_dy = 0.0
             self.rotate = 0.0
             self.loadFile(self.filename)
+            logger.info(self.tr("File: %s selected") %self.filename)
     
     def reloadFile(self):
         """

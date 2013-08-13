@@ -1000,15 +1000,25 @@ class TreeHandler(QtGui.QWidget):
 
                         #select all the children of a given layer when clicked
                         elif element.data(LAYER_OBJECT).isValid():
+                            selection_model = self.ui.layersShapesTreeView.selectionModel() #Get the selection model of the QTreeView
+                            #Deselect the Layer in the list. We select column 0 and SELECTION_COL column (ie item type)
+                            selection_model.select(model_index.sibling(model_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
+                            selection_model.select(model_index, QtGui.QItemSelectionModel.Deselect)
+                            
                             real_item = element.data(LAYER_OBJECT).toPyObject()
-                            self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, True)
+                            self.traverseChildrenAndSelect(selection_model, self.layer_item_model, model_index, True)
 
                             #update the tools parameters according to the selection
                             self.displayToolParametersForItem(real_item)
 
                         #select all the children of a given entity when clicked
                         elif element.data(ENTITY_OBJECT).isValid():
-                            self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, True)
+                            selection_model = self.ui.entitiesTreeView.selectionModel() #Get the selection model of the QTreeView
+                            #Deselect the Entities in the list. We select column 0 and SELECTION_COL column (ie item type)
+                            selection_model.select(model_index.sibling(model_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
+                            selection_model.select(model_index, QtGui.QItemSelectionModel.Deselect)
+                            
+                            self.traverseChildrenAndSelect(selection_model, self.entity_item_model, model_index, True)
 
 
 
