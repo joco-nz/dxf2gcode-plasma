@@ -67,8 +67,11 @@ class myDialog(QtGui.QDialog):
         
         self.setLayout(vbox)
 
-        self.setGeometry(300, 300, 50, 50)
+        self.resize(50, 50)
         self.setWindowTitle(self.title)
+        iconWT = QtGui.QIcon()
+        iconWT.addPixmap(QtGui.QPixmap("DXF2GCODE-001.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        self.setWindowIcon(QtGui.QIcon(iconWT))
         
         self.exec_()
         
