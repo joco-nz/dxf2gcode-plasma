@@ -209,7 +209,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
                 
         scpoint=self.mapToScene(event.pos()) 
         
-        self.setStatusTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),-scpoint.y()))
+        #self.setStatusTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),-scpoint.y())) #works not as supposed to
         self.setToolTip('X: %3.1f; Y: %3.1f' %(scpoint.x(),-scpoint.y()))
             
         super(MyGraphicsView, self).mouseMoveEvent(event)        

@@ -360,7 +360,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>start radius (comp) </string>
+                     <string>start rad. (comp) </string>
                     </property>
                    </widget>
                   </item>

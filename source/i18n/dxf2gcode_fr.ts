@@ -248,7 +248,7 @@
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="363"/>
-        <source>start radius (comp) </source>
+        <source>start rad. (comp) </source>
         <translation type="unfinished"></translation>
     </message>
     <message>

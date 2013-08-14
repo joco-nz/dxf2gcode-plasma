@@ -173,13 +173,14 @@ class Main(QtGui.QMainWindow):
         
         #If there is something to load then call the load function callback
         if not(self.filename==""):
+            logger.info(self.tr("File: %s selected") %self.filename)
+            self.setWindowTitle(self.tr("DXF2GCODE - [%s]") %self.filename)
             #Initialize the scale, rotate and move coordinates
             self.cont_scale = 1.0
             self.cont_dx = 0.0
             self.cont_dy = 0.0
             self.rotate = 0.0
             self.loadFile(self.filename)
-            logger.info(self.tr("File: %s selected") %self.filename)
     
     def reloadFile(self):
         """

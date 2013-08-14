@@ -87,7 +87,7 @@ class StMove(QtGui.QGraphicsLineItem):
         """
         del(self.geos[:])
 
-        #Get the start radius and the length of the line segment at begin. 
+        #Get the start rad. and the length of the line segment at begin. 
         start_rad = self.shape.LayerContent.start_radius
         start_ver = start_rad
 
@@ -118,7 +118,7 @@ class StMove(QtGui.QGraphicsLineItem):
             start_line = LineGeo(Pg_ein, Pa_ein)
             self.geos.append(start_line)
 
-            #generate the Start Radius and append it.
+            #generate the start rad. and append it.
             start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, 
                                r=start_rad + tool_rad, direction=1)
             self.geos.append(start_rad)
@@ -140,7 +140,7 @@ class StMove(QtGui.QGraphicsLineItem):
             start_line = LineGeo(Pg_ein, Pa_ein)
             self.geos.append(start_line)
 
-            #generate the Start Radius and append it.
+            #generate the start rad. and append it.
             start_rad = ArcGeo(Pa=Pa_ein, Pe=start, O=Oein, 
                                r=start_rad + tool_rad, direction=0)
             self.geos.append(start_rad)

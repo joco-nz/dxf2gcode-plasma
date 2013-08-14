@@ -1239,7 +1239,7 @@ class TreeHandler(QtGui.QWidget):
             result = True #Key handled
 
         #Optimize path checkbox
-        if (key_code == QtCore.Qt.Key_O or key_code == QtCore.Qt.Key_T) and item_index and item_index.isValid():
+        if (key_code == QtCore.Qt.Key_O) and item_index and item_index.isValid():
             item_index = item_index.sibling(item_index.row(), PATH_OPTIMISATION_COL) #Get the column of the row that contains the "Optimize Path" checkbox
             item = item_index.model().itemFromIndex(item_index)
             if item.isCheckable():
