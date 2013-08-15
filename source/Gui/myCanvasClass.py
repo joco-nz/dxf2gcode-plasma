@@ -145,12 +145,33 @@ class MyGraphicsView(QtGui.QGraphicsView):
         
         #Selection only enabled for left Button
         elif event.button() == QtCore.Qt.LeftButton:
+            self.currentItems = []
+            scene=self.scene()
+            if self.selmode==0:
+                for item in scene.selectedItems():
+#                    item.starrow.setSelected(False)
+#                    item.stmove.setSelected(False)
+#                    item.enarrow.setSelected(False)
+                    item.setSelected(False)
             #If the mouse button is pressed without movement of rubberband
             if self.rubberBand.isHidden():
                 rect=QtCore.QRect(event.pos().x()-delta,event.pos().y()-delta,
                           2*delta,2*delta)
                 #logger.debug(rect)
-                self.currentItems=self.items(rect)
+
+                point = self.mapToScene(event.pos())
+                min_distance = float(0x7fffffff)
+                for item in self.items(rect):
+                    itemDistance = item.contains_point(point.x(), point.y())
+                    if itemDistance < min_distance:
+                        min_distance = itemDistance
+                        self.currentItems = item
+                if self.currentItems:
+                    if self.currentItems.isSelected():
+                        self.currentItems.setSelected(False)
+                    else:
+                        #print (self.currentItems.flags())
+                        self.currentItems.setSelected(True)
 #                it=self.itemAt(event.pos())
 #                if it==None:
 #                    self.currentItems=[]
@@ -166,26 +187,18 @@ class MyGraphicsView(QtGui.QGraphicsView):
                 self.rubberBand.hide()
                 #logger.debug("Rubberband Selection")
 
-            #All items in the selection
-            #self.currentItems=self.items(rect)
-            #print self.currentItems
-            scene=self.scene()
-            #logger.debug(rect)
+                #All items in the selection
+                #self.currentItems=self.items(rect)
+                #print self.currentItems
+                #logger.debug(rect)
             
-            if self.selmode==0:
-                for item in scene.selectedItems():
-#                    item.starrow.setSelected(False)
-#                    item.stmove.setSelected(False)
-#                    item.enarrow.setSelected(False)
-                    item.setSelected(False)
-                
             
-            for item in self.currentItems:
-                if item.isSelected():
-                    item.setSelected(False)
-                else:
-                    #print (item.flags())
-                    item.setSelected(True)
+                for item in self.currentItems:
+                    if item.isSelected():
+                        item.setSelected(False)
+                    else:
+                        #print (item.flags())
+                        item.setSelected(True)
                     
         else:
             pass

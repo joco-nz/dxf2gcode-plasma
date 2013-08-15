@@ -43,6 +43,10 @@ class WpZero(QtGui.QGraphicsItem):
         self.pen.setCosmetic(True)
         
         self.diameter = 20.0
+
+    def contains_point(self, x, y):
+        min_distance = float(0x7fffffff)
+        return min_distance
  
     def setSelected(self,flag=True):
         """

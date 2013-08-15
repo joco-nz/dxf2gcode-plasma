@@ -33,7 +33,7 @@ import logging
 
 # Global Variables
 APPNAME = "dxf2gcode"
-VERSION = "pyQT Beta"
+VERSION = "pyQT4 Beta"
 
 
 DATE =       "$Date::                     $:"

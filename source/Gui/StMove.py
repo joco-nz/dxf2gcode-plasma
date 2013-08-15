@@ -78,8 +78,12 @@ class StMove(QtGui.QGraphicsLineItem):
         self.make_start_moves()
         self.createccarrow()
         self.make_papath()
-        
-        
+
+
+    def contains_point(self, x, y):
+        min_distance = float(0x7fffffff)
+        return min_distance
+
     def make_start_moves(self):
         """
         This function is called to create the start move. It will

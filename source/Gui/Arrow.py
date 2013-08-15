@@ -59,7 +59,11 @@ class Arrow(QtGui.QGraphicsLineItem):
         self.arrowSize = 8.0
         
         self.pen.setCosmetic(True)
-        
+
+    def contains_point(self, x, y):
+        min_distance = float(0x7fffffff)
+        return min_distance
+
     def setSelected(self,flag=True):
         """
         Override inherited function to turn off selection of Arrows.

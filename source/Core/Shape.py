@@ -28,6 +28,7 @@
 #import sys, os, string, ConfigParser 
 
 from PyQt4 import QtCore, QtGui
+from math import sqrt
 
 import Core.Globals as g
 
@@ -97,6 +98,24 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.f_g1_depth = f_g1_depth
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
+
+    def contains_point(self, x, y):
+        min_distance = float(0x7fffffff)
+        p = (x, y)
+        t = 0.0
+        while t < 1.0:
+            point = self.path.pointAtPercent(t)
+            spline_point = (point.x(), point.y())
+            distance = self.distance(p, spline_point)
+            if distance < min_distance:
+                min_distance = distance
+            t += 0.01
+        return min_distance
+
+    def distance(self, p0, p1):
+        a = p1[0] - p0[0]
+        b = p1[1] - p0[1]
+        return sqrt(a * a + b * b)
 
     def __str__(self):
         """ 
