@@ -23,6 +23,8 @@
     <file>images/pause.png</file>
     <file>images/go-down.png</file>
     <file>images/go-up.png</file>
+    <file>images/dxf2gcode_logo.png</file>
+    <file>images/DXF2GCODE-001.ico</file>
 </qresource>
 </RCC>
 

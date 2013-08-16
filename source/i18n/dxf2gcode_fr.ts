@@ -34,442 +34,447 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="372"/>
+        <location filename="dxf2gcode.py" line="370"/>
         <source>File: %s selected</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="193"/>
+        <location filename="dxf2gcode.py" line="191"/>
         <source>Reloading file: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="205"/>
+        <location filename="dxf2gcode.py" line="203"/>
         <source>Optimize order of enabled shapes per layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="209"/>
+        <location filename="dxf2gcode.py" line="207"/>
         <source>Updating order according to TreeView</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="221"/>
+        <location filename="dxf2gcode.py" line="219"/>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="223"/>
+        <location filename="dxf2gcode.py" line="221"/>
         <source>Export Order for start: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="249"/>
+        <location filename="dxf2gcode.py" line="247"/>
         <source>TSP start values initialised for Layer %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="250"/>
+        <location filename="dxf2gcode.py" line="248"/>
         <source>Shapes to write: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="251"/>
+        <location filename="dxf2gcode.py" line="249"/>
         <source>Fixed order: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="268"/>
+        <location filename="dxf2gcode.py" line="266"/>
         <source>TSP done with result: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="271"/>
+        <location filename="dxf2gcode.py" line="269"/>
         <source>New Export Order after TSP: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="295"/>
+        <location filename="dxf2gcode.py" line="293"/>
         <source>Export the enabled shapes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="301"/>
+        <location filename="dxf2gcode.py" line="299"/>
         <source>Sorted layers:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="368"/>
+        <location filename="dxf2gcode.py" line="366"/>
         <source>Export to file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="408"/>
+        <location filename="dxf2gcode.py" line="406"/>
         <source>&lt;html&gt;&lt;h2&gt;&lt;center&gt;You are using&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Last change %s&lt;br&gt;Changed by %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Where to get help:&lt;/h2&gt;For more information and updates, please visit the Google Code Project: &lt;a href=&apos;http://code.google.com/p/dxf2gcode/&apos;&gt;http://code.google.com/p/dxf2gcode/&lt;/a&gt;&lt;br&gt;For any questions on how to use dxf2gcode please use the&lt;br&gt;&lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;mailing list&lt;/a&gt;&lt;br&gt;&lt;br&gt;For any found bugs or feature requests please use the &lt;br&gt;&lt;a href=&apos;http://code.google.com/p/dxf2gcode/issues/list&apos;&gt;issue tracking system&lt;/a&gt;&lt;br&gt;&lt;h2&gt;License and copyright:&lt;/h2&gt;&lt;body&gt;This program is written in Python and is published under the &lt;a href=&apos;http://www.gnu.org/licenses/gpl.html&apos;&gt;GNU GPL 3 license.&lt;/a&gt;&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="455"/>
+        <location filename="dxf2gcode.py" line="453"/>
         <source>Contour tolerances</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="456"/>
+        <location filename="dxf2gcode.py" line="454"/>
         <source>Tolerance for common points [mm]:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="456"/>
+        <location filename="dxf2gcode.py" line="454"/>
         <source>Tolerance for curve fitting [mm]:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="461"/>
+        <location filename="dxf2gcode.py" line="459"/>
         <source>set Tolerances</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="478"/>
+        <location filename="dxf2gcode.py" line="476"/>
         <source>Scale Contour</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="479"/>
+        <location filename="dxf2gcode.py" line="477"/>
         <source>Scale Contour by factor:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="496"/>
+        <location filename="dxf2gcode.py" line="494"/>
         <source>Rotate Contour</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="497"/>
+        <location filename="dxf2gcode.py" line="495"/>
         <source>Rotate Contour by deg:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="514"/>
+        <location filename="dxf2gcode.py" line="512"/>
         <source>Workpiece zero offset</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="515"/>
+        <location filename="dxf2gcode.py" line="513"/>
         <source>Offset %s axis by mm:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="544"/>
+        <location filename="dxf2gcode.py" line="542"/>
         <source>Sending Postscript/PDF to pstoedit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="555"/>
+        <location filename="dxf2gcode.py" line="553"/>
         <source>Loading file: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="561"/>
+        <location filename="dxf2gcode.py" line="559"/>
         <source>Loaded layers: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="562"/>
+        <location filename="dxf2gcode.py" line="560"/>
         <source>Loaded blocks: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="565"/>
+        <location filename="dxf2gcode.py" line="563"/>
         <source>Block %i includes %i Geometries, reduced to %i Contours, used layers: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="569"/>
+        <location filename="dxf2gcode.py" line="567"/>
         <source>Loaded %i Entities geometries, reduced to %i Contours, used layers: %s ,Number of inserts: %i</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="177"/>
+        <source>DXF2GCODE - [%s]</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="14"/>
-        <source>MainWindow</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="44"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="51"/>
         <source>Entities</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="150"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="157"/>
         <source>Collapse all items</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="173"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="180"/>
         <source>Expand all items</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="127"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="134"/>
         <source>Layers</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="209"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="216"/>
         <source>Move-up the selected shape/layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="232"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="239"/>
         <source>Move-down the selected shape/layer</source>
         <translation type="unfinished"></translation>
     </message>
     <message encoding="UTF-8">
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="307"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="314"/>
         <source>⌀</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="376"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="383"/>
         <source>[mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="333"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="340"/>
         <source>/ speed </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="346"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="353"/>
         <source>[rpm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="363"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="370"/>
         <source>start rad. (comp) </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="394"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="401"/>
         <source>Start at X [mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="411"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="418"/>
         <source>Start at Y [mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="428"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="435"/>
         <source>Z retraction area [mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="445"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="452"/>
         <source>Z safety margin [mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="462"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="469"/>
         <source>Z infeed depth [mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="479"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="486"/>
         <source>Workpiece top Z [mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="492"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="499"/>
         <source>Milling will start at Z = &quot;Worpiece top Z&quot; - &quot;Z infeed depth&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="499"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="506"/>
         <source>Z final mill depth [mm]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="516"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="523"/>
         <source>G1 feed XY-directions [mm/min]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="536"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="543"/>
         <source>G1 feed Z-direction [mm/min]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="572"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="579"/>
         <source>Graphic Area for drawing
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="610"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="617"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="622"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="629"/>
         <source>Export the current project to G-Code</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="625"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="632"/>
         <source>Export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="634"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="641"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="647"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="654"/>
         <source>Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="658"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="665"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="671"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="678"/>
         <source>Load File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="674"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="681"/>
         <source>Load DXF or other supportet document</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="677"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="684"/>
         <source>Ctrl+L</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="686"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="693"/>
         <source>Exit</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="689"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="696"/>
         <source>Exit DXF2GCODE and close window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="692"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="699"/>
         <source>Ctrl+Q</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="706"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="713"/>
         <source>Show WP zero</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="709"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="716"/>
         <source>Show the Workpiece Zero symbol in the plot.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="723"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="730"/>
         <source>Show path directions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="726"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="733"/>
         <source>Always shows the path direction in the plot (not only while selected)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="740"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="747"/>
         <source>Show disabled paths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="748"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="755"/>
         <source>Autoscale</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="756"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="763"/>
         <source>Delete G0 paths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="761"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="768"/>
         <source>Tolerances</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="769"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="776"/>
         <source>Scale all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="777"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="784"/>
         <source>Rotate all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="785"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="792"/>
         <source>Move WP zero</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="790"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="797"/>
         <source>About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="795"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="802"/>
         <source>Optimize Paths </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="798"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="805"/>
         <source>Ctrl+Shift+O</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="803"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="810"/>
         <source>Export Shapes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="806"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="813"/>
         <source>Ctrl+Shift+E</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="811"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="818"/>
         <source>Optimize and Export shapes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="814"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="821"/>
         <source>Ctrl+E</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="825"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="832"/>
         <source>Live update export route</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="830"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="837"/>
         <source>Reload File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="833"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="840"/>
         <source>Ctrl+R</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="17"/>
+        <source>DXF2GCODE</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -509,72 +514,72 @@
 <context>
     <name>MyDropDownMenu</name>
     <message>
-        <location filename="myCanvasClass.py" line="278"/>
+        <location filename="myCanvasClass.py" line="291"/>
         <source>Invert Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="279"/>
+        <location filename="myCanvasClass.py" line="292"/>
         <source>Disable Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="280"/>
+        <location filename="myCanvasClass.py" line="293"/>
         <source>Enable Selection</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="284"/>
+        <location filename="myCanvasClass.py" line="297"/>
         <source>Switch Direction</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="285"/>
+        <location filename="myCanvasClass.py" line="298"/>
         <source>Set Nearest StartPoint</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="288"/>
+        <location filename="myCanvasClass.py" line="301"/>
         <source>Cutter Compensation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="289"/>
+        <location filename="myCanvasClass.py" line="302"/>
         <source>G40 No Compensation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="291"/>
+        <location filename="myCanvasClass.py" line="304"/>
         <source>G41 Left Compensation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="293"/>
+        <location filename="myCanvasClass.py" line="306"/>
         <source>G42 Right Compensation</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="296"/>
+        <location filename="myCanvasClass.py" line="309"/>
         <source>The selected shapes have the following direction: %i</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="404"/>
+        <location filename="myCanvasClass.py" line="417"/>
         <source>Switched Direction at Shape Nr: %i</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="429"/>
+        <location filename="myCanvasClass.py" line="442"/>
         <source>Changed Cutter Correction to None Shape Nr: %i</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="442"/>
+        <location filename="myCanvasClass.py" line="455"/>
         <source>Changed Cutter Correction to left Shape Nr: %i</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="454"/>
+        <location filename="myCanvasClass.py" line="467"/>
         <source>Changed Cutter Correction to right Shape Nr: %i</source>
         <translation type="unfinished"></translation>
     </message>
@@ -582,7 +587,7 @@
 <context>
     <name>MyGraphicsScene</name>
     <message>
-        <location filename="myCanvasClass.py" line="532"/>
+        <location filename="myCanvasClass.py" line="545"/>
         <source>Update GrapicsScene</source>
         <translation type="unfinished"></translation>
     </message>
@@ -590,7 +595,7 @@
 <context>
     <name>MyGraphicsView</name>
     <message>
-        <location filename="myCanvasClass.py" line="224"/>
+        <location filename="myCanvasClass.py" line="237"/>
         <source>Autoscaling to extend: %s</source>
         <translation type="unfinished"></translation>
     </message>
@@ -681,19 +686,19 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PostProcessor.py" line="298"/>
+        <location filename="PostProcessor.py" line="299"/>
         <source>(Generated with: %s, Version: %s, Date: %s)
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PostProcessor.py" line="299"/>
+        <location filename="PostProcessor.py" line="300"/>
         <source>(Time: %s)
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="PostProcessor.py" line="300"/>
+        <location filename="PostProcessor.py" line="301"/>
         <source>(Created from file: %s)
 </source>
         <translation type="unfinished"></translation>
@@ -763,42 +768,42 @@ Skipped Geometries</source>
 <context>
     <name>ShapeClass</name>
     <message>
-        <location filename="Shape.py" line="360"/>
+        <location filename="Shape.py" line="379"/>
         <source>Analysing the shape for CW direction Nr: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Shape.py" line="382"/>
+        <location filename="Shape.py" line="401"/>
         <source>Had to reverse the shape to be ccw</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Shape.py" line="395"/>
+        <location filename="Shape.py" line="414"/>
         <source>Clicked Point: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Shape.py" line="399"/>
+        <location filename="Shape.py" line="418"/>
         <source>Old Start Point: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Shape.py" line="413"/>
+        <location filename="Shape.py" line="432"/>
         <source>New Start Point: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Shape.py" line="475"/>
+        <location filename="Shape.py" line="494"/>
         <source>Adding shape to Scene Nr: %i</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Shape.py" line="562"/>
+        <location filename="Shape.py" line="581"/>
         <source>ERROR: Z infeed depth is null!</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Shape.py" line="565"/>
+        <location filename="Shape.py" line="584"/>
         <source>WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth.</source>
         <translation type="unfinished"></translation>
     </message>

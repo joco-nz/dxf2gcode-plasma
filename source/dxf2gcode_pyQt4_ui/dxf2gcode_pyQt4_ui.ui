@@ -2,19 +2,32 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="windowModality">
+   <enum>Qt::NonModal</enum>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1146</width>
-    <height>895</height>
+    <width>800</width>
+    <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>DXF2GCODE</string>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="dxf2gcode_images.qrc">
+    <normaloff>:/images/DXF2GCODE-001.ico</normaloff>:/images/DXF2GCODE-001.ico</iconset>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>6</number>
+    </property>
+    <property name="bottomMargin">
+     <number>2</number>
+    </property>
     <item>
      <widget class="QSplitter" name="splitter">
       <property name="orientation">
@@ -37,7 +50,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -275,6 +288,9 @@
             </property>
             <item>
              <layout class="QHBoxLayout" name="horizontalLayout_3">
+              <property name="spacing">
+               <number>2</number>
+              </property>
               <item>
                <widget class="QComboBox" name="toolDiameterComboBox">
                 <property name="sizePolicy">
@@ -601,8 +617,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1146</width>
-     <height>25</height>
+     <width>800</width>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

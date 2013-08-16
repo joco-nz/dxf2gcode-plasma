@@ -187,7 +187,7 @@ class TreeHandler(QtGui.QWidget):
 
         for layer in layers_list:
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(":/images/layer.png"))
+            icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/layer.png"))
             checkbox_element = QtGui.QStandardItem(icon, "")
             checkbox_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
             checkbox_element.setData(QtCore.QVariant(layer), LAYER_OBJECT) #store a ref to the layer in our treeView element - this is a method to map tree elements with real data
@@ -205,7 +205,7 @@ class TreeHandler(QtGui.QWidget):
 
             for shape in layer.shapes:
                 icon = QtGui.QIcon()
-                icon.addPixmap(QtGui.QPixmap(":/images/shape.png"))
+                icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/shape.png"))
                 item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
                 item_col_0.setData(QtCore.QVariant(shape), SHAPE_OBJECT) #store a ref to the shape in our treeView element
                 item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
@@ -317,7 +317,7 @@ class TreeHandler(QtGui.QWidget):
         item_col_0 = None
         if element.type == "Entitie":
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(":/images/blocks.png"))
+            icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/blocks.png"))
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
             item_col_0.setData(QtCore.QVariant(element), ENTITY_OBJECT) #store a ref to the entity in our treeView element
 
@@ -341,7 +341,7 @@ class TreeHandler(QtGui.QWidget):
 
         elif element.type == "Shape":
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
             item_col_0.setData(QtCore.QVariant(element), SHAPE_OBJECT) #store a ref to the entity in our treeView element
 
@@ -1433,7 +1433,7 @@ class TreeHandler(QtGui.QWidget):
                 real_item_parent.shapes.append(custom_gcode)
 
                 icon = QtGui.QIcon()
-                icon.addPixmap(QtGui.QPixmap(":/images/pause.png"))
+                icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/pause.png"))
                 item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
                 item_col_0.setData(QtCore.QVariant(custom_gcode), CUSTOM_GCODE_OBJECT) #store a ref to the custom gcode in our treeView element
                 item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
