@@ -42,7 +42,7 @@ from PyQt4 import QtCore
 import logging
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "5"
+CONFIG_VERSION = "6"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -89,7 +89,7 @@ CONFIG_SPEC = str('''
     [General]
     write_to_stdout = boolean(default=False)
     live_update_export_route = boolean(default=False)
-    
+    default_SplitEdges = boolean(default=False)
     
     [Route_Optimisation]
     default_TSP = boolean(default=False)
@@ -104,9 +104,9 @@ CONFIG_SPEC = str('''
     begin_art = string(default="heurestic")
     
     [Import_Parameters]
-    point_tolerance = float(default= 0.01)
+    point_tolerance = float(default= 0.001)
     spline_check = boolean(default=True)
-    fitting_tolerance = float(default= 0.01)
+    fitting_tolerance = float(default= 0.001)
     
     [Tool_Parameters]
         [[1]]

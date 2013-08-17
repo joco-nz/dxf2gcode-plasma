@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Fri Aug 16 02:39:04 2013
+# Created: Sat Aug 17 16:52:41 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -434,6 +434,9 @@ class Ui_MainWindow(object):
         self.actionLive_update_export_route.setObjectName(_fromUtf8("actionLive_update_export_route"))
         self.actionReload_File = QtGui.QAction(MainWindow)
         self.actionReload_File.setObjectName(_fromUtf8("actionReload_File"))
+        self.actionSplit_edges = QtGui.QAction(MainWindow)
+        self.actionSplit_edges.setCheckable(True)
+        self.actionSplit_edges.setObjectName(_fromUtf8("actionSplit_edges"))
         self.menuFile.addAction(self.actionLoad_File)
         self.menuFile.addAction(self.actionReload_File)
         self.menuFile.addSeparator()
@@ -451,6 +454,8 @@ class Ui_MainWindow(object):
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionDelete_G0_paths)
         self.menuTolerances.addAction(self.actionTolerances)
+        self.menuTolerances.addSeparator()
+        self.menuTolerances.addAction(self.actionSplit_edges)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionScale_all)
         self.menuTolerances.addAction(self.actionRotate_all)
@@ -530,6 +535,8 @@ class Ui_MainWindow(object):
         self.actionLive_update_export_route.setText(_translate("MainWindow", "Live update export route", None))
         self.actionReload_File.setText(_translate("MainWindow", "Reload File", None))
         self.actionReload_File.setShortcut(_translate("MainWindow", "Ctrl+R", None))
+        self.actionSplit_edges.setText(_translate("MainWindow", "Split edges", None))
+        self.actionSplit_edges.setStatusTip(_translate("MainWindow", "Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC", None))
 
 from Gui.myCanvasClass import MyGraphicsView
 from Gui.myTreeView import MyTreeView

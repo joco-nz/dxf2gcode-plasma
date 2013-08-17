@@ -29,6 +29,8 @@ from PyQt4 import QtCore, QtGui
 import logging
 logger=logging.getLogger("Core.LineGeo") 
 
+import copy
+
 #Length of the cross.
 dl = 0.2
 DEBUG = 1
@@ -47,7 +49,10 @@ class LineGeo(QtCore.QObject):
         self.Pe = Pe
         self.col = 'Black'
         self.length = self.Pa.distance(self.Pe)
-        
+
+    def __deepcopy__(self, memo):
+        return LineGeo(copy.deepcopy(self.Pa, memo), copy.deepcopy(self.Pe, memo))
+
     def __str__(self):
         """ 
         Standard method to print the object

@@ -664,6 +664,8 @@
     </property>
     <addaction name="actionTolerances"/>
     <addaction name="separator"/>
+    <addaction name="actionSplit_edges"/>
+    <addaction name="separator"/>
     <addaction name="actionScale_all"/>
     <addaction name="actionRotate_all"/>
     <addaction name="separator"/>
@@ -847,6 +849,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
+   </property>
+  </action>
+  <action name="actionSplit_edges">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Split edges</string>
+   </property>
+   <property name="statusTip">
+    <string>Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC</string>
    </property>
   </action>
  </widget>

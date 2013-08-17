@@ -23,7 +23,7 @@ from math import degrees, radians
 import logging
 logger=logging.getLogger()
 
-from copy import copy
+from copy import copy, deepcopy
 
 import subprocess, tempfile #webbrowser,gettext, tempfile,
 
@@ -81,18 +81,18 @@ class Main(QtGui.QMainWindow):
         
         self.createActions()
         
-        self.MyGraphicsView=self.ui.MyGraphicsView
+        self.MyGraphicsView = self.ui.MyGraphicsView
         
-        self.myMessageBox=self.ui.myMessageBox
+        self.myMessageBox = self.ui.myMessageBox
         
-        self.MyPostProcessor=MyPostProcessor()
+        self.MyPostProcessor = MyPostProcessor()
         
-        self.TreeHandler=TreeHandler(self.ui)
+        self.TreeHandler = TreeHandler(self.ui)
         
-        self.shapes=[]
-        self.LayerContents=[]
-        self.EntitieContents=[]
-        self.EntitiesRoot=[]
+        self.shapes = []
+        self.LayerContents = []
+        self.EntitieContents = []
+        self.EntitiesRoot = []
         
         self.filename = "" #loaded file name
         
@@ -100,6 +100,9 @@ class Main(QtGui.QMainWindow):
         
         if g.config.vars.General['live_update_export_route']:
             self.ui.actionLive_update_export_route.setChecked(True)
+
+        if g.config.vars.General['default_SplitEdges']:
+            self.ui.actionSplit_edges.setChecked(True)
             
     def tr(self,string_to_translate):
         """
@@ -134,6 +137,7 @@ class Main(QtGui.QMainWindow):
         self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
         
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
+        self.ui.actionSplit_edges.triggered.connect(self.setSplit_edges)
         self.ui.actionRotate_all.triggered.connect(self.CallRotateAll)
         self.ui.actionScale_all.triggered.connect(self.CallScaleAll)
         self.ui.actionMove_WP_zero.triggered.connect(self.CallMoveWpZero)
@@ -444,7 +448,6 @@ class Main(QtGui.QMainWindow):
         
         self.TreeHandler.setUpdateExportRoute(flag)
         
-        
     def setTolerances(self):
         """
         This function is called when the Option=>Tolerances Menu is clicked.
@@ -468,7 +471,13 @@ class Main(QtGui.QMainWindow):
         self.reloadFile()
         #self.MyGraphicsView.update()
         
-    
+    def setSplit_edges(self):
+        """
+        This function is called by the menu "Split edges" of the main 
+        """
+        self.reloadFile()
+        #self.MyGraphicsView.update()
+        
     def CallScaleAll(self):
         """
         This function is called when the Option=>Scale All Menu is clicked.
@@ -702,7 +711,23 @@ class Main(QtGui.QMainWindow):
                         for geo in ent_geo.geo:
                             geo=copy(geo)
                             geo.reverse()
-                            self.shapes[-1].geos.append(geo)
+                            #split lines
+                            if self.ui.actionSplit_edges.isChecked() == True:
+                                if geo.type == 'LineGeo':
+                                    geo_b=deepcopy(geo)
+                                    geo_b.Pe.x = geo_b.Pa.x + (geo_b.Pe.x - geo_b.Pa.x) / 2.0
+                                    geo_b.Pe.y = geo_b.Pa.y + (geo_b.Pe.y - geo_b.Pa.y) / 2.0
+
+                                    geo_a=deepcopy(geo)
+                                    geo_a.Pa.x += (geo_a.Pe.x - geo_a.Pa.x) / 2.0
+                                    geo_a.Pa.y += (geo_a.Pe.y - geo_a.Pa.y) / 2.0
+
+                                    self.shapes[-1].geos.append(geo_b)
+                                    self.shapes[-1].geos.append(geo_a)
+                                else:
+                                    self.shapes[-1].geos.append(geo)
+                            else: #stay with the end of the lines
+                                self.shapes[-1].geos.append(geo)
                         
                         ent_geo.geo.reverse()
                     else:
@@ -747,8 +772,8 @@ if __name__ == "__main__":
     """
     Log=LoggerClass(rootlogger=logger, console_loglevel=logging.DEBUG)
     
-    g.config=MyConfig()
-    
+    g.config = MyConfig()
+
     app = QtGui.QApplication(sys.argv)
     
     #Get local language and install if available.

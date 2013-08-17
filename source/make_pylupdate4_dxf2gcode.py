@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!\usr\bin\python
 """ 
 Generates the tr file based on the defined pyQt Project File
 """ 
@@ -38,13 +38,13 @@ for TSFILE in TSFILES:
 
 OPTIONS = ("-ts")
 
-CMD1 = ("%s %s %s %s" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
+CMD1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
 print CMD1
-
 RETCODE = subprocess.call(CMD1,shell=True)
 
-CMD2 =("%s %s" %(LREPATH,TSFILESTR))
+CMD2 =("%s %s\n" %(LREPATH,TSFILESTR))
 print CMD2
-
 RETCODE = subprocess.call(CMD2,shell=True)
+
+print "\nREADY"
 
