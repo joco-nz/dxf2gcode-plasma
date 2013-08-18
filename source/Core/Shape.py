@@ -39,7 +39,7 @@ from copy import deepcopy
 from EntitieContent import EntitieContentClass
 
 import logging
-logger=logging.getLogger("Core.Shape") 
+logger = logging.getLogger("Core.Shape") 
 
 class ShapeClass(QtGui.QGraphicsItem):
     """
@@ -50,7 +50,8 @@ class ShapeClass(QtGui.QGraphicsItem):
                 cut_cor=40, length=0.0,
                 parent=None,
                 geos=[],
-                axis3_start_mill_depth=None, axis3_mill_depth=None, axis3_slice_depth=None, f_g1_plane=None, f_g1_depth=None):
+                axis3_start_mill_depth=None, axis3_mill_depth=None,
+                axis3_slice_depth=None, f_g1_plane=None, f_g1_depth=None):
         """ 
         Standard method to initialize the class
         @param nr: The number of the shape. Starting from 0 for the first one 
@@ -67,20 +68,20 @@ class ShapeClass(QtGui.QGraphicsItem):
         QtGui.QGraphicsItem.__init__(self) 
         
         
-        self.pen=QtGui.QPen(QtCore.Qt.black,2)
+        self.pen = QtGui.QPen(QtCore.Qt.black, 2)
         self.pen.setCosmetic(True)
-        self.sel_pen=QtGui.QPen(QtCore.Qt.red,2) #,QtCore.Qt.DashLine
+        self.sel_pen = QtGui.QPen(QtCore.Qt.red, 2) #,QtCore.Qt.DashLine
         self.sel_pen.setCosmetic(True)
-        self.dis_pen=QtGui.QPen(QtCore.Qt.gray) #2,QtCore.Qt.DotLine
+        self.dis_pen = QtGui.QPen(QtCore.Qt.gray) #2,QtCore.Qt.DotLine
         self.dis_pen.setCosmetic(True)
-        self.sel_dis_pen=QtGui.QPen(QtCore.Qt.blue) #2,QtCore.Qt.DotLine
+        self.sel_dis_pen = QtGui.QPen(QtCore.Qt.blue) #2,QtCore.Qt.DotLine
         self.sel_dis_pen.setCosmetic(True)
         
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
-        self.disabled=False
-        self.send_to_TSP=g.config.vars.Route_Optimisation['default_TSP']
+        self.disabled = False
+        self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -88,7 +89,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.length = length
         self.parent = parent
         self.stmove = []
-        self.LayerContent=None
+        self.LayerContent = None
         self.geos = geos
         #self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
@@ -130,7 +131,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                ('\ngeos:        %s' % self.geos) + \
                ('\nsend_to_TSP: %i' % self.send_to_TSP)
 
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -157,12 +158,12 @@ class ShapeClass(QtGui.QGraphicsItem):
         """
         self.enableDisableCallback = callback
 
-    def setPen(self,pen):
+    def setPen(self, pen):
         """ 
         Method to change the Pen of the outline of the object and update the
         drawing
         """ 
-        self.pen=pen
+        self.pen = pen
         self.update(self.boundingRect())
 
     def paint(self, painter, option, _widget):
@@ -197,10 +198,10 @@ class ShapeClass(QtGui.QGraphicsItem):
         Reimplemented function to select outline only.
         @return: Returns the Outline only
         """ 
-#        tolerance=5
+#        tolerance = 5
 #        
-#        start, start_ang=self.get_st_en_points()
-#        hitpath=QtGui.QPainterPath()
+#        start, start_ang = self.get_st_en_points()
+#        hitpath = QtGui.QPainterPath()
 #        
 #        # begin with a circle around the start point 
 #        hitpath.addEllipse(start.x,start.y, tolerance, tolerance);  
@@ -211,7 +212,7 @@ class ShapeClass(QtGui.QGraphicsItem):
 #                            parent=self.parent,
 #                            tolerance=tolerance)
         
-        painterStrock=QtGui.QPainterPathStroker()
+        painterStrock = QtGui.QPainterPathStroker()
         painterStrock.setCurveThreshold(0.01)
         painterStrock.setWidth(0)
 
@@ -223,16 +224,16 @@ class ShapeClass(QtGui.QGraphicsItem):
 #        """
 #        To be called if a Shape shall be printed to the canvas
 #        """
-#        start, start_ang=self.get_st_en_points()
+#        start, start_ang = self.get_st_en_points()
 #        
-#        self.path=QtGui.QPainterPath()
+#        self.path = QtGui.QPainterPath()
 #
 #        self.path.moveTo(start.x,-start.y)
 #        
 #        logger.debug(self.tr("Adding shape to Scene Nr: %i") % (self.nr))
 #        
 #        for geo in self.geos:
-#            geo.add2path(papath=self.path,parent=self.parent)
+#            geo.add2path(papath=self.path, parent=self.parent)
 #            
 #    
 #    QPainterPath intersectionTestPath(QList<QPointF> input, qreal tolerance) 
@@ -311,12 +312,12 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param event: Event Parameters passed to function
         """
         pass
-        #scene=self.scene()
+        #scene = self.scene()
      
 #        if event.button() == QtCore.Qt.LeftButton:
 #            super(ShapeClass, self).mousePressEvent(event)
 
-    def setSelected(self,flag=True,blockSignals=False):
+    def setSelected(self, flag=True, blockSignals=False):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection
@@ -330,13 +331,13 @@ class ShapeClass(QtGui.QGraphicsItem):
         if self.selectionChangedCallback and not blockSignals:
             self.selectionChangedCallback(self, flag)
 
-    def setDisable(self,flag=False,blockSignals=False):
+    def setDisable(self, flag=False, blockSignals=False):
         """
         New implemented function which is in parallel to show and hide. 
         @param flag: The flag to enable or disable Selection
         """
-        self.disabled=flag
-        scene=self.scene()
+        self.disabled = flag
+        scene = self.scene()
 
         if not(scene.showDisabled) and flag:
             self.hide()
@@ -346,7 +347,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         else:
             self.show()
 
-        self.update(self.boundingRect()) #Needed to refresh view when setDisabled() function is called from a TreeView event
+        self.update(self.boundingRect())
+        # Needed to refresh view when setDisabled() function is called from a TreeView event
 
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)
@@ -357,11 +359,11 @@ class ShapeClass(QtGui.QGraphicsItem):
         """
         return self.disabled
 
-    def setToolPathOptimized(self,flag=False):
+    def setToolPathOptimized(self, flag=False):
         """
         @param flag: The flag to enable or disable tool path optimisation for this shape
         """
-        self.send_to_TSP=flag
+        self.send_to_TSP = flag
 
     def isToolPathOptimized(self):
         """
@@ -377,10 +379,10 @@ class ShapeClass(QtGui.QGraphicsItem):
         """ 
         
         logger.debug(self.tr("Analysing the shape for CW direction Nr: %s") % (self.nr))
-        #Optimization for closed shapes
+        # Optimization for closed shapes
         if self.closed:
-            #Startwert setzen f�r die erste Summe
-            #Start value for the first sum
+            # Startwert setzen f�r die erste Summe
+            # Start value for the first sum
             start, dummy = self.geos[0].get_start_end_points(0)
             summe = 0.0
             for geo in self.geos:
@@ -401,7 +403,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 logger.debug(self.tr("Had to reverse the shape to be ccw"))
                
 
-    def FindNearestStPoint(self,StPoint=Point(x=0.0, y=0.0)):
+    def FindNearestStPoint(self, StPoint=Point(x=0.0, y=0.0)):
         """
         Find Nearest Point to given StartPoint. This is used to change the
         start of closed contours
@@ -412,24 +414,24 @@ class ShapeClass(QtGui.QGraphicsItem):
         
         if self.closed:
             logger.debug(self.tr("Clicked Point: %s") %StPoint)
-            start, dummy=self.geos[0].get_start_end_points(0,self.parent)
-            min_distance=start.distance(StPoint)
+            start, dummy = self.geos[0].get_start_end_points(0, self.parent)
+            min_distance = start.distance(StPoint)
             
             logger.debug(self.tr("Old Start Point: %s") %start)
             
-            min_geo_nr=0
-            for geo_nr in range(1,len(self.geos)):
-                start, dummy=self.geos[geo_nr].get_start_end_points(0,self.parent)
+            min_geo_nr = 0
+            for geo_nr in range(1, len(self.geos)):
+                start, dummy = self.geos[geo_nr].get_start_end_points(0, self.parent)
                 
-                if (start.distance(StPoint)<min_distance):
-                    min_distance=start.distance(StPoint)
-                    min_geo_nr=geo_nr
+                if (start.distance(StPoint) < min_distance):
+                    min_distance = start.distance(StPoint)
+                    min_geo_nr = geo_nr
     
             #Overwrite the geometries in changed order.
-            self.geos=self.geos[min_geo_nr:len(self.geos)]+self.geos[0:min_geo_nr]
+            self.geos = self.geos[min_geo_nr:len(self.geos)] + self.geos[0:min_geo_nr]
             
-            start, dummy=self.geos[0].get_start_end_points(0,self.parent)
-            logger.debug(self.tr("New Start Point: %s") %start)
+            start, dummy = self.geos[0].get_start_end_points(0, self.parent)
+            logger.debug(self.tr("New Start Point: %s") % start)
                      
     def reverse(self):
         """ 
@@ -450,9 +452,9 @@ class ShapeClass(QtGui.QGraphicsItem):
         end, end_ang = self.get_st_en_points(1)
         
         self.update(self.boundingRect())
-        self.enarrow.reverseshape(end,end_ang)
-        self.starrow.reverseshape(start,start_ang)
-        self.stmove.reverseshape(start,start_ang)
+        self.enarrow.reverseshape(end, end_ang)
+        self.starrow.reverseshape(start, start_ang)
+        self.stmove.reverseshape(start, start_ang)
         
     def switch_cut_cor(self):
         """ 
@@ -471,30 +473,30 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param direction: 0 to return start Point and 1 to return end Point
         @return: a list of Point and angle 
         """
-        start, start_ang=self.geos[0].get_start_end_points(0,self.parent)
-        ende, end_ang=self.geos[-1].get_start_end_points(1,self.parent)
+        start, start_ang = self.geos[0].get_start_end_points(0, self.parent)
+        ende, end_ang = self.geos[-1].get_start_end_points(1, self.parent)
         
-        if dir==None:
-            return start,ende
-        elif dir==0:
-            return start,start_ang
-        elif dir==1:
+        if dir == None:
+            return start, ende
+        elif dir == 0:
+            return start, start_ang
+        elif dir == 1:
             return ende, end_ang
         
     def make_papath(self):
         """
         To be called if a Shape shall be printed to the canvas
         """
-        start, start_ang=self.get_st_en_points()
+        start, start_ang = self.get_st_en_points()
         
-        self.path=QtGui.QPainterPath()
+        self.path = QtGui.QPainterPath()
 
-        self.path.moveTo(start.x,-start.y)
+        self.path.moveTo(start.x, -start.y)
         
         logger.debug(self.tr("Adding shape to Scene Nr: %i") % (self.nr))
         
         for geo in self.geos:
-            geo.add2path(papath=self.path,parent=self.parent)
+            geo.add2path(papath=self.path, parent=self.parent)
             
     
     def update_plot(self):
@@ -540,7 +542,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         to export        
         """
         #initialisation of the string
-        exstr=""
+        exstr = ""
         
         #Create the Start_moves once again if something was changed.
         self.stmove.make_start_moves()
@@ -590,42 +592,42 @@ class ShapeClass(QtGui.QGraphicsItem):
 
 
         #Move the tool to the start.          
-        exstr+=self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+        exstr += self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
         
         #Add string to be added before the shape will be cut.
-        exstr+=PostPro.write_pre_shape_cut()
+        exstr += PostPro.write_pre_shape_cut()
 
         #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done outside the piece
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
             #Calculate the starting point without tool compensation
             #and add the compensation
             start, start_ang = self.get_st_en_points(0)
-            exstr+=PostPro.set_cut_cor(self.cut_cor, start)
+            exstr += PostPro.set_cut_cor(self.cut_cor, start)
             
-            exstr+=PostPro.chg_feed_rate(f_g1_plane) #Added by Xavier because of code move (see above)
-            exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-            exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr += PostPro.chg_feed_rate(f_g1_plane) #Added by Xavier because of code move (see above)
+            exstr += self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr += self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
 
 
-        exstr+=PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin)) #Compute the safe margin from the initial mill depth
-        exstr+=PostPro.chg_feed_rate(f_g1_depth)
-        exstr+=PostPro.lin_pol_z(mom_depth)
-        exstr+=PostPro.chg_feed_rate(f_g1_plane)
+        exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin)) #Compute the safe margin from the initial mill depth
+        exstr += PostPro.chg_feed_rate(f_g1_depth)
+        exstr += PostPro.lin_pol_z(mom_depth)
+        exstr += PostPro.chg_feed_rate(f_g1_plane)
 
         #Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done inside the piece
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
             #Calculate the starting point without tool compensation
             #and add the compensation
             start, start_ang = self.get_st_en_points(0)
-            exstr+=PostPro.set_cut_cor(self.cut_cor, start)
+            exstr += PostPro.set_cut_cor(self.cut_cor, start)
             
-            exstr+=self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-            exstr+=self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr += self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr += self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
 
 
         #Write the geometries for the first cut
         for geo in self.geos:
-            exstr+=geo.Write_GCode(self.parent, PostPro)
+            exstr += geo.Write_GCode(self.parent, PostPro)
 
         #Turning the cutter radius compensation
         if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):
@@ -634,7 +636,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 pos_cut_out = ende.get_arc_point(en_angle - pi/2, tool_rad)
             elif self.cut_cor == 42:
                 pos_cut_out = ende.get_arc_point(en_angle + pi/2, tool_rad)
-            exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
+            exstr += PostPro.deactivate_cut_cor(pos_cut_out)
         
         #Numbers of loops
         snr = 0
@@ -647,9 +649,9 @@ class ShapeClass(QtGui.QGraphicsItem):
             
             #Erneutes Eintauchen
             #???
-            exstr+=PostPro.chg_feed_rate(f_g1_depth)
-            exstr+=PostPro.lin_pol_z(mom_depth)
-            exstr+=PostPro.chg_feed_rate(f_g1_plane)
+            exstr += PostPro.chg_feed_rate(f_g1_depth)
+            exstr += PostPro.lin_pol_z(mom_depth)
+            exstr += PostPro.chg_feed_rate(f_g1_plane)
             
             #If it is not a closed contour
             if self.closed == 0:
@@ -662,10 +664,10 @@ class ShapeClass(QtGui.QGraphicsItem):
                 #Calculate the starting point without tool compensation
                 #and add the compensation
                 start, start_ang = self.get_st_en_points(0)
-                exstr+=PostPro.set_cut_cor(self.cut_cor, start)
+                exstr += PostPro.set_cut_cor(self.cut_cor, start)
                 
             for geo_nr in range(len(self.geos)):
-                exstr+=self.geos[geo_nr].Write_GCode(self.parent, PostPro)
+                exstr += self.geos[geo_nr].Write_GCode(self.parent, PostPro)
 
             #Calculate the contour values with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
@@ -676,17 +678,17 @@ class ShapeClass(QtGui.QGraphicsItem):
 
             #Turning off the cutter radius compensation if needed
             if (not(self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):
-                exstr+=PostPro.deactivate_cut_cor(pos_cut_out)
+                exstr += PostPro.deactivate_cut_cor(pos_cut_out)
         
         #Do the tool retraction
-        exstr+=PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
-        exstr+=PostPro.rap_pos_z(safe_retract_depth)
+        exstr += PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
+        exstr += PostPro.rap_pos_z(safe_retract_depth)
 
         #If cutter radius compensation is not turned off.
         if (not(self.cut_cor == 40)) & (not(PostPro.vars.General["cancel_cc_for_depth"])):
             #Calculate the contour values - with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
-            exstr+=PostPro.deactivate_cut_cor(ende)        
+            exstr += PostPro.deactivate_cut_cor(ende)        
 
         #Initial value of direction restored if necessary
         if has_reversed != 0:
@@ -694,6 +696,6 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.switch_cut_cor()
             
         #Add string to be added before the shape will be cut.
-        exstr+=PostPro.write_post_shape_cut()
+        exstr += PostPro.write_post_shape_cut()
 
         return exstr
