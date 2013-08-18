@@ -27,7 +27,7 @@ from Point import Point
 from PyQt4 import QtCore, QtGui
 
 import logging
-logger=logging.getLogger("Core.LineGeo") 
+logger = logging.getLogger("Core.LineGeo") 
 
 import copy
 
@@ -73,7 +73,7 @@ class LineGeo(QtCore.QObject):
         self.Pa = Pe
         self.Pe = Pa
 
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -111,7 +111,7 @@ class LineGeo(QtCore.QObject):
         testing.
         """
 
-        abs_geo=self.make_abs_geo(parent, 0)
+        abs_geo = self.make_abs_geo(parent, 0)
         papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
         #self.add2hitpath(hitpath=papath,parent=parent, tolerance=5)
 
@@ -145,15 +145,15 @@ class LineGeo(QtCore.QObject):
 #        right2 = abs_geo.Pe + rightOffset
 #        
 #        hitpath2=QtGui.QPainterPath()
-#        hitpath2.moveTo(left1.x,left1.y)
-#        hitpath2.lineTo(left2.x,left2.y)
-#        hitpath2.lineTo(right2.x,right2.y)
+#        hitpath2.moveTo(left1.x, left1.y)
+#        hitpath2.lineTo(left2.x, left2.y)
+#        hitpath2.lineTo(right2.x, right2.y)
 #        hitpath2.lineTo(right1.x, right1.y)
 #        hitpath2.lineTo(left1.x, left1.y)
 #        hitpath +=hitpath2
 #        
 #        hitpath3=QtGui.QPainterPath()
-#        hitpath +=hitpath3.addEllipse(abs_geo.Pe.x,abs_geo.Pe.y,tolerance, tolerance)
+#        hitpath +=hitpath3.addEllipse(abs_geo.Pe.x, abs_geo.Pe.y, tolerance, tolerance)
 #        
     def get_start_end_points(self, direction, parent=None):
         """
@@ -162,13 +162,13 @@ class LineGeo(QtCore.QObject):
         @return: a list of Point and angle 
         """
         if not(direction):
-            punkt=self.Pa.rot_sca_abs(parent=parent)
-            punkt_e=self.Pe.rot_sca_abs(parent=parent)
-            angle=punkt.norm_angle(punkt_e)
+            punkt = self.Pa.rot_sca_abs(parent=parent)
+            punkt_e = self.Pe.rot_sca_abs(parent=parent)
+            angle = punkt.norm_angle(punkt_e)
         elif direction:
-            punkt_a=self.Pa.rot_sca_abs(parent=parent)
-            punkt=self.Pe.rot_sca_abs(parent=parent)
-            angle=punkt.norm_angle(punkt_a)
+            punkt_a = self.Pa.rot_sca_abs(parent=parent)
+            punkt = self.Pe.rot_sca_abs(parent=parent)
+            angle = punkt.norm_angle(punkt_a)
         return punkt, angle
     
     def Write_GCode(self, parent=None, PostPro=None):
@@ -177,10 +177,10 @@ class LineGeo(QtCore.QObject):
         @param pospro: The used Posprocessor instance
         @return: a string to be written into the file
         """
-        anf, anf_ang=self.get_start_end_points(0,parent)
-        ende, end_ang=self.get_start_end_points(1,parent)
+        anf, anf_ang = self.get_start_end_points(0, parent)
+        ende, end_ang = self.get_start_end_points(1, parent)
 
-        return PostPro.lin_pol_xy(anf,ende)
+        return PostPro.lin_pol_xy(anf, ende)
 
     def distance2point(self, Point):
         """

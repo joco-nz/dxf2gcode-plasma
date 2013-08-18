@@ -27,10 +27,10 @@ from math import sqrt, sin, cos, atan2, pi
 import Core.Globals as g
 
 import logging
-logger=logging.getLogger("Core.Point") 
+logger = logging.getLogger("Core.Point") 
 
 class Point:
-    __slots__=["x","y"]  
+    __slots__ = ["x", "y"]  
     def __init__(self, x=0, y=0):
         
         self.x = x
@@ -59,23 +59,32 @@ class Point:
             return self.x * other.x + self.y * other.y
 
     def unit_vector(self, Pto=None):
+        """Return vector of length 1"""
         diffVec = Pto - self
         l = diffVec.distance()
         return Point(diffVec.x / l, diffVec.y / l)
+
     def distance(self, other=None):
+        """ Return distance between two given points"""
         if type(other) == type(None):
             other = Point(x=0.0, y=0.0)
         return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+
     def norm_angle(self, other=None):
+        """Returns angle between two given points"""
         if type(other) == type(None):
             other = Point(x=0.0, y=0.0)
         return atan2(other.y - self.y, other.x - self.x)
+
     def isintol(self, other, tol):
+        """Are the two points within 'tol' tolerance?"""
         return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) < tol)
+
     def transform_to_Norm_Coord(self, other, alpha):
         xt = other.x + self.x * cos(alpha) + self.y * sin(alpha)
         yt = other.y + self.x * sin(alpha) + self.y * cos(alpha)
         return Point(x=xt, y=yt)
+
     def get_arc_point(self, ang=0, r=1):
         """ 
         Returns the Point on the arc defined by r and the given angle
@@ -85,7 +94,7 @@ class Point:
         """ 
         
         return Point(x=self.x + cos(ang) * r, \
-                          y=self.y + sin(ang) * r)
+                     y=self.y + sin(ang) * r)
 
     def Write_GCode(self, parent=None, PostPro=None):
         """
@@ -107,10 +116,11 @@ class Point:
         @param papath: The painterpath where the geometries shall be added
         @param parent: FIXME
         """
-        logger.debug('Point: x: %0.2f, y: %0.2f' %(self.x,self.y))
-        papath.moveTo(self.x,-self.y)
+        logger.debug('Point: x: %0.2f, y: %0.2f' % (self.x, self.y))
+        papath.moveTo(self.x, -self.y)
     
     def triangle_height(self, other1, other2):
+        """Calculate height of triangle given lengths of the sides"""
         #Die 3 Längen des Dreiecks ausrechnen
         #The 3 lengths of the triangle to calculate
         a = self.distance(other1)
@@ -119,6 +129,7 @@ class Point:
         return sqrt(pow(b, 2) - pow((pow(c, 2) + pow(b, 2) - pow(a, 2)) / (2 * c), 2))  
       
     def rot_sca_abs(self, sca=None, p0=None, pb=None, rot=None, parent=None):
+        """NEEDS DOCUMENTED"""
         if type(sca) == type(None) and type(parent) != type(None):
             p0 = parent.p0
             pb = parent.pb
@@ -185,21 +196,21 @@ class Point:
                     
         return Point
 
-    def get_arc_direction(self,Pe,O):
+    def get_arc_direction(self, Pe, O):
         """ 
         Calculate the arc direction given from the 3 Point. Pa (self), Pe, O
         @param Pe: End Point
         @param O: The center of the arc
         @return: Returns the direction (+ or - pi/2)
         """ 
-        a1=self.norm_angle(Pe)
-        a2=Pe.norm_angle(O)
-        direction=a2-a1
+        a1 = self.norm_angle(Pe)
+        a2 = Pe.norm_angle(O)
+        direction = a2 - a1
         
-        if direction>pi:
-            direction=direction-2*pi
-        elif direction<-pi:
-            direction=direction+2*pi
+        if direction > pi:
+            direction = direction - 2 * pi
+        elif direction < -pi:
+            direction = direction + 2 * pi
             
         #print ('The Direction is: %s' %direction)
         

@@ -12,7 +12,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301, USA.
 '''
 
 Michael Haberler  20.12.2009
@@ -50,6 +51,7 @@ class LoggerClass(QtCore.QObject):
 
     # allow  'INFO' or logging.INFO  args
     def _cvtlevel(self, level):
+        """NEEDS DOCUMENTED"""
         if isinstance(level, basestring):
             return logging._levelNames[level]
         else:
@@ -57,6 +59,7 @@ class LoggerClass(QtCore.QObject):
 
     # logging to file + window - explicitly enabled
     def add_file_logger(self, logfile, log_level):
+        """Add file logger"""
         
         self.file_handler = logging.FileHandler(logfile, 'w')  # recreate 
         self.file_handler.setFormatter(logging.Formatter("%(levelname)-10s %(module)-15s %(name)-15s %(funcName)-10s %(lineno)-4d:  - %(message)s"))
@@ -64,6 +67,7 @@ class LoggerClass(QtCore.QObject):
         #self.logger.addHandler(self.file_handler)
     
     def change_file_logging(self, onoff):
+        """Switch logging to file on or off"""
         if onoff:
             if not hasattr(self.logger, 'file_handler'):
                 self.add_file_logger(g.config.logfile, g.config.file_loglevel)
@@ -74,9 +78,10 @@ class LoggerClass(QtCore.QObject):
             self.rootlogger.removeHandler(self.file_handler)
     
     def add_window_logger(self, log_level):
+        """Add window logger"""
         
         self.window_handler = logging.StreamHandler()
-        if log_level==logging.INFO:
+        if log_level == logging.INFO:
             self.window_handler.setFormatter(logging.Formatter("%(message)s"))
         else:
             self.window_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
@@ -85,18 +90,22 @@ class LoggerClass(QtCore.QObject):
         self.rootlogger.addHandler(self.window_handler)
         
     def set_window_logstream(self, stream=sys.stderr):
+        """Set window logstream"""
         if self.window_handler:
             self.window_handler.stream = stream
         
     def set_window_loglevel(self, log_level):
+        """Set window log level"""
         if self.window_handler:
             self.window_handler.setLevel(self._cvtlevel(log_level))
     
     def set_file_loglevel(self, log_level):
+        """Set file log level"""
         if self.file_handler:
             self.file_handler.setLevel(self._cvtlevel(log_level))
                       
     def set_console_loglevel(self, log_level):
+        """Set console log level"""
         if self.console_handler:
             self.console_handler.setLevel(self._cvtlevel(log_level))
             
@@ -104,5 +113,6 @@ class LoggerClass(QtCore.QObject):
 
 class FilterModule(logging.Filter): 
     def filter(self, record): 
+        """NEEDS DOCUMENTED"""
         return True
     
