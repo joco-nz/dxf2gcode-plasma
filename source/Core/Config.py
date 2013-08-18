@@ -26,7 +26,7 @@
 
 import os
 
-from Core.configobj import ConfigObj,flatten_errors
+from Core.configobj import ConfigObj, flatten_errors
 from Core.validate import Validator
 
 #from dotdictlookup import DictDotLookup
@@ -179,7 +179,7 @@ class MyConfig(QtCore.QObject):
         """
         
         self.folder = os.path.join(g.folder, c.DEFAULT_CONFIG_DIR)
-        self.filename =os.path.join(self.folder, 'config.cfg')
+        self.filename = os.path.join(self.folder, 'config.cfg')
         
         self.default_config = False # whether a new name was generated
         self.var_dict = dict()
@@ -188,15 +188,15 @@ class MyConfig(QtCore.QObject):
         #try:
         self.load_config()
         
-        self.fitting_tolerance=self.vars.Import_Parameters['fitting_tolerance']
-        self.point_tolerance=self.vars.Import_Parameters['point_tolerance']
+        self.fitting_tolerance = self.vars.Import_Parameters['fitting_tolerance']
+        self.point_tolerance = self.vars.Import_Parameters['point_tolerance']
         
-        #except Exception,msg:
+        #except Exception, msg:
         #    logger.warning(self.tr("Config loading failed: %s") % (msg))
         #    return False
     
     
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -208,7 +208,7 @@ class MyConfig(QtCore.QObject):
                                                     QtGui.QApplication.UnicodeUTF8))  
     
     def make_settings_folder(self):
-        # create settings folder if necessary
+        """Create settings folder if necessary"""
         try:
             os.mkdir(self.folder)
         except OSError:
@@ -216,6 +216,7 @@ class MyConfig(QtCore.QObject):
     
 
     def load_config(self):
+        """Load Config File"""
         if os.path.isfile(self.filename):
             try:
                 # file exists, read & validate it
@@ -251,21 +252,21 @@ class MyConfig(QtCore.QObject):
             except VersionMismatchError, values:
                 raise VersionMismatchError, (fileversion, CONFIG_VERSION)
             
-            except Exception,inst:
+            except Exception, inst:
                 logger.error(inst)
-                (base,ext) = os.path.splitext(self.filename)
+                (base, ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
-                g.logger.logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename,badfilename))
+                g.logger.logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
                 try:
-                    os.rename(self.filename,badfilename)
-                except OSError,e:
-                    logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename,badfilename,e.strerror))
+                    os.rename(self.filename, badfilename)
+                except OSError, e:
+                    logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename, badfilename, e.strerror))
                     raise
                 else:
-                    logger.debug(self.tr("renamed bad varspace %s to '%s'") %(self.filename,badfilename))
+                    logger.debug(self.tr("renamed bad varspace %s to '%s'") % (self.filename, badfilename))
                     self.create_default_config()
                     self.default_config = True
-                    logger.debug(self.tr("created default varspace '%s'") %(self.filename))
+                    logger.debug(self.tr("created default varspace '%s'") % (self.filename))
             else:
                 self.default_config = False
                 #logger.debug(self.dir())
@@ -274,7 +275,7 @@ class MyConfig(QtCore.QObject):
         else:
             self.create_default_config()
             self.default_config = True
-            logger.debug(self.tr("created default varspace '%s'") %(self.filename))
+            logger.debug(self.tr("created default varspace '%s'") % (self.filename))
         
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
@@ -294,13 +295,15 @@ class MyConfig(QtCore.QObject):
         
         
     def _save_varspace(self):
+        """Saves Variables space"""
         self.var_dict.filename = self.filename
         self.var_dict.write()
     
     def print_vars(self):
+        """Prints Variables"""
         print "Variables:"
-        for k,v in self.var_dict['Variables'].items():
-            print k," = ",v
+        for k, v in self.var_dict['Variables'].items():
+            print k, " = ", v
     
 
     
@@ -351,10 +354,10 @@ class DictDotLookup(object):
 #    cfg = DictDotLookup(cfg_data)
 #
 #    # iterate
-#    for k,v in cfg.__iter__(): #foo.bar.iteritems():
-#        print k," = ",v
+#    for k, v in cfg.__iter__(): #foo.bar.iteritems():
+#        print k, " = ", v
 #        
-#    print "cfg=",cfg
+#    print "cfg=", cfg
 #    
 #    #   Standard nested dictionary lookup.
 #    print 'normal lookup :', cfg['foo']['bar']['tdata'][0]['baz']
@@ -362,9 +365,9 @@ class DictDotLookup(object):
 #    #   Dot-style nested lookup.
 #    print 'dot lookup    :', cfg.foo.bar.tdata[0].baz
 #    
-#    print "qux=",cfg.quux
+#    print "qux=", cfg.quux
 #    cfg.quux = '123'
-#    print "qux=",cfg.quux
+#    print "qux=", cfg.quux
 #    
 #    del cfg.foo.bar
 #    cfg.foo.bar = 4711
