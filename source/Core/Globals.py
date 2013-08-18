@@ -12,7 +12,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301, USA.
 '''
 
 Container for global variables accessible to all classes
@@ -73,8 +74,10 @@ langs += []
 to try to use.  First we check the default, then what the system
 told us, and finally the 'known' list"""
 
-gettext.bindtextdomain(constants.APPNAME, os.path.realpath(os.path.dirname(sys.argv[0])))
+gettext.bindtextdomain(constants.APPNAME,
+                       os.path.realpath(os.path.dirname(sys.argv[0])))
 gettext.textdomain(constants.APPNAME)
 # Get the language to use
-trans = gettext.translation(constants.APPNAME, localedir='languages', languages=langs, fallback=True)
+trans = gettext.translation(constants.APPNAME, localedir='languages',
+                            languages=langs, fallback=True)
 trans.install()

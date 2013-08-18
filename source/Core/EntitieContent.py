@@ -23,21 +23,22 @@
 from Core.Point import Point
 
 import logging
-logger=logging.getLogger("Core.EntitieContent")
+logger = logging.getLogger("Core.EntitieContent")
 
 class EntitieContentClass:
-    def __init__(self,type="Entitie",Nr=None,Name='',parent=None,children=[],
-                p0=Point(x=0.0,y=0.0),pb=Point(x=0.0,y=0.0),sca=[1,1,1],rot=0.0):
+    def __init__(self, type="Entitie", Nr=None, Name='', parent=None,
+                children=[], p0=Point(x=0.0, y=0.0), pb=Point(x=0.0, y=0.0),
+                sca=[1, 1, 1], rot=0.0):
         
-        self.type=type
-        self.Nr=Nr
-        self.Name=Name
-        self.children=children
-        self.p0=p0
-        self.pb=pb
-        self.sca=sca
-        self.rot=rot
-        self.parent=parent
+        self.type = type
+        self.Nr = Nr
+        self.Name = Name
+        self.children = children
+        self.p0 = p0
+        self.pb = pb
+        self.sca = sca
+        self.rot = rot
+        self.parent = parent
     
     def __cmp__(self, other):
         return cmp(self.EntNr, other.EntNr)
@@ -54,6 +55,6 @@ class EntitieContentClass:
     
     #Hinzufuegen der Kontur zu den Entities
     #Add the contour of the Entities
-    def addchild(self,child):
+    def addchild(self, child):
         self.children.append(child)
 

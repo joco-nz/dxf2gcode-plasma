@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-This class contains a "custom gcode" object. Custom GCode objects are part of a layer (LayerContent.py) and are used to insert custom GCode into the generated file.
-Customs GCodes are defined in config.cfg file
+This class contains a "custom gcode" object. Custom GCode objects are part
+of a layer (LayerContent.py) and are used to insert custom GCode into the
+generated file.
+Custom GCodes are defined in config.cfg file
 
 @purpose: store user defined GCode
 @author: Xavier Izard
@@ -21,7 +23,7 @@ from copy import deepcopy
 from EntitieContent import EntitieContentClass
 """
 import logging
-logger=logging.getLogger("Core.CustomGCodeClass")
+logger = logging.getLogger("Core.CustomGCodeClass")
 
 
 class CustomGCodeClass:
@@ -62,7 +64,7 @@ class CustomGCodeClass:
         Function to modify the disable property
         @param flag: The flag to enable or disable Selection
         """
-        self.disabled=flag
+        self.disabled = flag
     
     
     
