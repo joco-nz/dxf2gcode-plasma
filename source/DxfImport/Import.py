@@ -233,7 +233,6 @@ class ReadDXF(QtCore.QObject):
     #Read the block geometries
     def Read_Blocks(self, blocks_pos):
         blocks = BlocksClass([])
-        warning = 0
         for block_nr in range(len(blocks_pos)):
             logger.info("Reading Block %s; Nr: %i" %(blocks_pos[block_nr].name,block_nr))
             
@@ -252,34 +251,24 @@ class ReadDXF(QtCore.QObject):
             
             #Lesen der Geometrien
             #Read the geometries
-            (blocks.Entities[-1].geo, warning) = self.Get_Geo(s, e, warning)
-            
-        if warning == 1:
-            QtGui.QMessageBox.warning(g.window,self.tr("Import Warning"),
-                self.tr("Found unsupported or only\npartly supported geometry.\nFor details see status messages!"))
+            blocks.Entities[-1].geo = self.Get_Geo(s, e)
             
         return blocks
     #Lesen der Entities Geometrien
     #Read the entities geometries
     def Read_Entities(self, sections):
-        warning = 0
         for section_nr in range(len(sections)):
             if (find(sections[section_nr - 1].name, "ENTITIES") == 0):
                 #g.logger.logger.info("Reading Entities", 1)
                 entities = EntitiesClass(0, 'Entities', [])
-                (entities.geo, warning) = self.Get_Geo(sections[section_nr - 1].begin + 1,
-                                                    sections[section_nr - 1].end - 1,
-                                                    warning)
-        
-        if warning == 1:
-            QtGui.QMessageBox.warning(g.window,self.tr("Import Warning"),
-                ("Found unsupported or only\npartly supported geometry.\nFor details see status messages!"))
-            
+                entities.geo = self.Get_Geo(sections[section_nr - 1].begin + 1,
+                                                    sections[section_nr - 1].end - 1)
+         
         return entities
     
     #Lesen der Geometrien von Bl�cken und Entities
     #Read the geometries of Blocks and Entities
-    def Get_Geo(self, begin, end, warning):
+    def Get_Geo(self, begin, end):
         geos = []
         self.start = self.line_pairs.index_code(0, begin, end)
         old_start = self.start
@@ -288,15 +277,10 @@ class ReadDXF(QtCore.QObject):
             #Laden der aktuell gefundenen Geometrie
             #Load the currently found geometry
             name = self.line_pairs.line_pair[self.start].value         
-            entitie_geo, warning = self.get_geo_entitie(len(geos), name, warning)
+            entitie_geo = self.get_geo_entitie(len(geos), name)
             
-            #Hinzuf�gen der Werte Wenn es gerade gefunden wurde
-            #Shortlist of values if it was just found
-            if warning == 2:
-                #Zur�cksetzen zu Warnung allgemein
-                #Reset warning ???
-                warning = 1
-            else:
+            #Append only if something was found
+            if entitie_geo!=None:
                 geos.append(entitie_geo)
             
             #Die n�chste Suche Starten nach dem gerade gefundenen
@@ -318,7 +302,7 @@ class ReadDXF(QtCore.QObject):
             old_start = self.start
             
         del(self.start)
-        return geos, warning
+        return geos
 
     #Verteiler f�r die Geo-Instanzen
     # wird in def Get_Geo aufgerufen
@@ -326,7 +310,7 @@ class ReadDXF(QtCore.QObject):
     #Distributor for Geo instances ???
     # is called in def Get_Geo
     # For a release of the entire code can be happy again end up in a file. ???
-    def get_geo_entitie(self, geo_nr, name, warning):
+    def get_geo_entitie(self, geo_nr, name):
         #Entities:
         # 3DFACE, 3DSOLID, ACAD_PROXY_ENTITY, ARC, ATTDEF, ATTRIB, BODY
         # CIRCLE, DIMENSTION, ELLIPSE, HATCH, IMAGE, INSERT, LEADER, LINE,
@@ -352,13 +336,12 @@ class ReadDXF(QtCore.QObject):
             geo = GeoentEllipse(geo_nr, self)
         elif (name == "LWPOLYLINE"):
             geo = GeoentLwPolyline(geo_nr, self)
-        else:  
-            #g.logger.logger.info(("!!!!WARNING Found unsupported geometry: %s !!!!" % name))
+        else: 
+            logger.info(("Found unsupported geometry type: %s !" % name))
             self.start += 1 #Eins hochz�hlen sonst gibts ne dauer Schleife
-            warning = 2
-            return [], warning
+            return None
             
-        return geo, warning
+        return geo
 
     #Findet die Nr. des Geometrie Layers
     #Find the number of geometry layers
@@ -403,6 +386,7 @@ class ReadDXF(QtCore.QObject):
         points = []
         warning = 0
         for i in range(len(geo)) :
+            #logger.debug("geo: %s" %geo[i])
             warning = geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
         
         if warning:

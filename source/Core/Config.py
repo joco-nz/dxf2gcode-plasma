@@ -37,7 +37,7 @@ import Core.constants as c
 import Core.Globals as g
 from d2gexceptions import *
 
-from PyQt4 import QtCore
+from PyQt4 import QtGui, QtCore
 
 import logging
 logger = logging.getLogger("Core.Config")
