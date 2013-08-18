@@ -12,7 +12,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+# MA  02110-1301, USA.
 '''
 
 user defined exceptions
@@ -34,13 +35,13 @@ class VersionMismatchError(Exception):
     """
     version mismatch in .cfg file
     """
-    def __init__(self,  fileversion, CONFIG_VERSION):
+    def __init__(self, fileversion, CONFIG_VERSION):
         self.fileversion = fileversion
         self.CONFIG_VERSION = CONFIG_VERSION
     def __str__(self):
         return repr(self.tr('config file versions do not match - internal: %s,'
                             ' config file %s, delete existing file to resolve issue'
-                            %(self.CONFIG_VERSION, self.fileversion)))
+                            % (self.CONFIG_VERSION, self.fileversion)))
 
 class OptionError(SyntaxError):
     """

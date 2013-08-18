@@ -24,27 +24,27 @@ FILES = ("..\dxf2gcode_pyQt4_ui\dxf2gcode_pyQt4_ui.ui",
          "..\dxf2gcode.py")
 
 
-TSFILES=("dxf2gcode_de_DE.ts",
+TSFILES = ("dxf2gcode_de_DE.ts",
         "dxf2gcode_fr.ts")
 
 
-FILESSTR=""
+FILESSTR = ""
 for FILE in FILES:
-    FILESSTR+=("%s\i18n\%s " %(FILEPATH, FILE))
+    FILESSTR += ("%s\i18n\%s " % (FILEPATH, FILE))
     
-TSFILESTR=""
+TSFILESTR = ""
 for TSFILE in TSFILES:
-    TSFILESTR+=("%s\i18n\%s " %(FILEPATH, TSFILE))
+    TSFILESTR += ("%s\i18n\%s " % (FILEPATH, TSFILE))
 
 OPTIONS = ("-ts")
 
 CMD1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
 print CMD1
-RETCODE = subprocess.call(CMD1,shell=True)
+RETCODE = subprocess.call(CMD1, shell = True)
 
-CMD2 =("%s %s\n" %(LREPATH,TSFILESTR))
+CMD2 = ("%s %s\n" % (LREPATH, TSFILESTR))
 print CMD2
-RETCODE = subprocess.call(CMD2,shell=True)
+RETCODE = subprocess.call(CMD2, shell = True)
 
 print "\nREADY"
 
