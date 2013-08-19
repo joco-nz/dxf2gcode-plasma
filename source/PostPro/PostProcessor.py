@@ -70,7 +70,7 @@ class MyPostProcessor(QtCore.QObject):
     
             #If no Postprocessor File was found in folder create one
             logger.debug(self.tr("created default varspace"))
-            PostProConfig=MyPostProConfig()
+            PostProConfig = MyPostProConfig()
             PostProConfig.create_default_config()
             PostProConfig.default_config = True
 
@@ -85,8 +85,8 @@ class MyPostProcessor(QtCore.QObject):
             if os.path.splitext(lfile)[1] == '.cfg':
                 self.postprocessor_files.append(lfile)
                 
-        if len(self.postprocessor_files)==0:
-            PostProConfig=MyPostProConfig()
+        if len(self.postprocessor_files) == 0:
+            PostProConfig = MyPostProConfig()
             PostProConfig.create_default_config()
             PostProConfig.default_config = True
             lfiles = os.listdir(PostProConfig.folder)
@@ -99,7 +99,7 @@ class MyPostProcessor(QtCore.QObject):
         #Load all files to get the possible postprocessor configs to export
         self.get_output_vars()
         
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -119,24 +119,24 @@ class MyPostProcessor(QtCore.QObject):
         self.output_text = []
         for postprocessor_file in self.postprocessor_files:
             
-            PostProConfig=MyPostProConfig(filename=postprocessor_file)
+            PostProConfig = MyPostProConfig(filename=postprocessor_file)
             PostProConfig.load_config()
             
             self.output_format.append(PostProConfig.vars.General['output_format'])
             self.output_text.append(PostProConfig.vars.General['output_text'])
 
-    def getPostProVars(self,file_index):
+    def getPostProVars(self, file_index):
         """
         Get the parameters of the Postprocessor Config File
         @param file_index: The index of the file to read and write variables in
         self.vars. 
         """
         
-        PostProConfig=MyPostProConfig(filename=self.postprocessor_files[file_index])
+        PostProConfig = MyPostProConfig(filename=self.postprocessor_files[file_index])
         PostProConfig.load_config()
-        self.vars=PostProConfig.vars
+        self.vars = PostProConfig.vars
         
-    def exportShapes(self,load_filename,save_filename,LayerContents):
+    def exportShapes(self, load_filename, save_filename, LayerContents):
         """
         This is the function which performs the export to a file or to the
         stdout. It calls the following dedicated export functions and runs 
@@ -153,41 +153,41 @@ class MyPostProcessor(QtCore.QObject):
 
         self.initialize_export_vars()
 
-        exstr=self.write_gcode_be(load_filename)
+        exstr = self.write_gcode_be(load_filename)
         
         #Move Machine to retraction Area before continuing anything. Note: none of the changes done in the GUI can affect this height, only the config file can do so (intended)
-        exstr+=self.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
+        exstr += self.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
 
         previous_tool = None
         #Do the export for each LayerContent in LayerContents List
         for LayerContent in LayerContents:
             logger.debug(self.tr("Beginning export of Layer Nr. %s, Name%s") 
-                         %(LayerContent.LayerNr,LayerContent.LayerName))
+                         % (LayerContent.LayerNr, LayerContent.LayerName))
             logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s") 
-                         %(len(LayerContent.shapes),len(LayerContent.exp_order_complete)))
+                         % (len(LayerContent.shapes), len(LayerContent.exp_order_complete)))
             
             
             #Perform export only for Layers which have at least 1 Shape to export
             if len(LayerContent.exp_order_complete):
-                exstr+=self.commentprint("*** LAYER: %s ***" %(LayerContent.LayerName))
+                exstr += self.commentprint("*** LAYER: %s ***" %(LayerContent.LayerName))
                 
                 #If tool has changed for this LayerContent, add it
                 if LayerContent.tool_nr != previous_tool:
-                    exstr+=self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
+                    exstr += self.chg_tool(LayerContent.tool_nr, LayerContent.speed)
                     previous_tool = LayerContent.tool_nr
             
                 for shape_nr in LayerContent.exp_order_complete:
-                    shape=LayerContent.shapes[shape_nr]
+                    shape = LayerContent.shapes[shape_nr]
                     logger.debug(self.tr("Beginning export of  Shape Nr: %s") % shape.nr)
                     
-                    exstr+=self.commentprint("* SHAPE Nr: %i *" %(shape.nr))
+                    exstr += self.commentprint("* SHAPE Nr: %i *" %(shape.nr))
                     
-                    exstr+=shape.Write_GCode(LayerContent=LayerContent,
-                                             PostPro=self)
+                    exstr += shape.Write_GCode(LayerContent=LayerContent,
+                                               PostPro=self)
 
         #Move machine to the Final Position
-        EndPosition=Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
-                           y=g.config.vars.Plane_Coordinates['axis2_start_end'])
+        EndPosition = Point(x=g.config.vars.Plane_Coordinates['axis1_start_end'],
+                            y=g.config.vars.Plane_Coordinates['axis2_start_end'])
         
         exstr += self.rap_pos_xy(EndPosition)  
         
@@ -198,7 +198,7 @@ class MyPostProcessor(QtCore.QObject):
         """
         FIXME, Need to check this, don't know if it's correct here or not.
         """
-        exstr=self.make_line_numbers(exstr)   
+        exstr = self.make_line_numbers(exstr)   
    
         #If the String shall be given to STDOUT
         if g.config.vars.General['write_to_stdout']:
@@ -208,16 +208,16 @@ class MyPostProcessor(QtCore.QObject):
     
         else:
             #Export Data to file
-                try:
-                    #Das File oeffnen und schreiben
-                    #File open and write
-                    f = open(save_filename, "w")
-                    f.write(exstr)
-                    f.close()
-                    logger.info(self.tr("Export to FILE was successful"))    
-                except IOError:
-                    QtGui.QMessageBox.warning(g.window,self.tr("Warning during Export"),
-                                              self.tr("Cannot Save the File"))
+            try:
+                #Das File oeffnen und schreiben
+                #File open and write
+                f = open(save_filename, "w")
+                f.write(exstr)
+                f.close()
+                logger.info(self.tr("Export to FILE was successful"))    
+            except IOError:
+                QtGui.QMessageBox.warning(g.window, self.tr("Warning during Export"),
+                                          self.tr("Cannot Save the File"))
                    
             
     
@@ -229,60 +229,60 @@ class MyPostProcessor(QtCore.QObject):
         """
         
         #Initialization of the General Postprocessor parameters
-        self.feed=0
-        self.speed=0
-        self.tool_nr=1
-        self.comment=""
+        self.feed = 0
+        self.speed = 0
+        self.tool_nr = 1
+        self.comment = ""
         
-        self.abs_export=self.vars.General["abs_export"]
+        self.abs_export = self.vars.General["abs_export"]
         
-        self.Pe=Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
-                       y=g.config.vars.Plane_Coordinates['axis2_start_end'])
+        self.Pe = Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
+                         y=g.config.vars.Plane_Coordinates['axis2_start_end'])
 
-        self.Pa=Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
-                       y=g.config.vars.Plane_Coordinates['axis2_start_end'])
+        self.Pa = Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
+                         y=g.config.vars.Plane_Coordinates['axis2_start_end'])
 
-        self.lPe=Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
-                       y=g.config.vars.Plane_Coordinates['axis2_start_end'])
+        self.lPe = Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
+                          y=g.config.vars.Plane_Coordinates['axis2_start_end'])
         
            
-        self.IJ=Point( x=0.0,y=0.0)    
-        self.O=Point( x=0.0,y=0.0)    
-        self.r=0.0           
-        self.a_ang=0.0      
-        self.e_ang=0.0  
+        self.IJ = Point(x=0.0, y=0.0)    
+        self.O = Point(x=0.0, y=0.0)    
+        self.r = 0.0           
+        self.a_ang = 0.0      
+        self.e_ang = 0.0  
         
-        self.ze=g.config.vars.Depth_Coordinates['axis3_retract']
-        self.lz=self.ze
+        self.ze = g.config.vars.Depth_Coordinates['axis3_retract']
+        self.lz = self.ze
         
-        self.keyvars={"%feed":'self.iprint(self.feed)',\
-                   "%speed":'self.iprint(self.speed)',\
-                   "%tool_nr":'self.iprint(self.tool_nr)',\
-                   "%nl":'self.nlprint()',\
-                   "%XE":'self.fnprint(self.Pe.x)',\
-                   "%-XE":'self.fnprint(-self.Pe.x)',\
-                   "%XA":'self.fnprint(self.Pa.x)',\
-                   "%-XA":'self.fnprint(-self.Pa.x)',\
-                   "%YE":'self.fnprint(self.Pe.y)',\
-                   "%-YE":'self.fnprint(-self.Pe.y)',\
-                   "%YA":'self.fnprint(self.Pa.y)',\
-                   "%-YA":'self.fnprint(-self.Pa.y)',\
-                   "%ZE":'self.fnprint(self.ze)',\
-                   "%-ZE":'self.fnprint(-self.ze)',\
-                   "%I":'self.fnprint(self.IJ.x)',\
-                   "%-I":'self.fnprint(-self.IJ.x)',\
-                   "%J":'self.fnprint(self.IJ.y)',\
-                   "%-J":'self.fnprint(-self.IJ.y)',\
-                   "%XO":'self.fnprint(self.O.x)',\
-                   "%-XO":'self.fnprint(-self.O.x)',\
-                   "%YO":'self.fnprint(self.O.y)',\
-                   "%-YO":'self.fnprint(-self.O.y)',\
-                   "%R":'self.fnprint(self.r)',\
-                   "%AngA":'self.fnprint(degrees(self.a_ang))',\
-                   "%-AngA":'self.fnprint(degrees(-self.a_ang))',\
-                   "%AngE":'self.fnprint(degrees(self.e_ang))',\
-                   "%-AngE":'self.fnprint(degrees(-self.e_ang))',\
-                   "%comment":'self.sprint(self.comment)'}
+        self.keyvars = {"%feed":'self.iprint(self.feed)', \
+                        "%speed":'self.iprint(self.speed)', \
+                        "%tool_nr":'self.iprint(self.tool_nr)', \
+                        "%nl":'self.nlprint()', \
+                        "%XE":'self.fnprint(self.Pe.x)', \
+                        "%-XE":'self.fnprint(-self.Pe.x)', \
+                        "%XA":'self.fnprint(self.Pa.x)', \
+                        "%-XA":'self.fnprint(-self.Pa.x)', \
+                        "%YE":'self.fnprint(self.Pe.y)', \
+                        "%-YE":'self.fnprint(-self.Pe.y)', \
+                        "%YA":'self.fnprint(self.Pa.y)', \
+                        "%-YA":'self.fnprint(-self.Pa.y)', \
+                        "%ZE":'self.fnprint(self.ze)', \
+                        "%-ZE":'self.fnprint(-self.ze)', \
+                        "%I":'self.fnprint(self.IJ.x)', \
+                        "%-I":'self.fnprint(-self.IJ.x)', \
+                        "%J":'self.fnprint(self.IJ.y)', \
+                        "%-J":'self.fnprint(-self.IJ.y)', \
+                        "%XO":'self.fnprint(self.O.x)', \
+                        "%-XO":'self.fnprint(-self.O.x)', \
+                        "%YO":'self.fnprint(self.O.y)', \
+                        "%-YO":'self.fnprint(-self.O.y)', \
+                        "%R":'self.fnprint(self.r)', \
+                        "%AngA":'self.fnprint(degrees(self.a_ang))', \
+                        "%-AngA":'self.fnprint(degrees(-self.a_ang))', \
+                        "%AngE":'self.fnprint(degrees(self.e_ang))', \
+                        "%-AngE":'self.fnprint(degrees(-self.e_ang))', \
+                        "%comment":'self.sprint(self.comment)'}
         
     def write_gcode_be(self, load_filename):
         """
@@ -320,7 +320,7 @@ class MyPostProcessor(QtCore.QObject):
         """
         return self.vars.General["code_end"]
 
-    def make_line_numbers(self,exstr):
+    def make_line_numbers(self, exstr):
         """
         This Method checks if Line Numbers are required for the export and if 
         they are it adds them to the existing exstr.
@@ -348,15 +348,15 @@ class MyPostProcessor(QtCore.QObject):
                           
         return exstr
             
-    def chg_tool(self,tool_nr,speed):
+    def chg_tool(self, tool_nr, speed):
         """
         This Method is called to change the tool.  It can change the tool or
         change the tool speed
         @param tool_nr: The tool_nr of the new tool
         @param speed: The speed for the tool
         """
-        self.tool_nr=tool_nr
-        self.speed=speed
+        self.tool_nr = tool_nr
+        self.speed = speed
         return self.make_print_str(self.vars.Program["tool_change"]) 
         
             
@@ -510,12 +510,12 @@ class MyPostProcessor(QtCore.QObject):
         """
         return self.make_print_str(self.vars.Program["post_shape_cut"])
     
-    def commentprint(self,comment):
+    def commentprint(self, comment):
         """
         This function is called to print a comment.
         @return: Returns the comment 
         """
-        self.comment=comment
+        self.comment = comment
         return self.make_print_str(self.vars.Program["comment"])   
 
     def make_print_str(self, keystr):
@@ -572,23 +572,23 @@ class MyPostProcessor(QtCore.QObject):
         pre_dec     = self.vars.Number_Format["pre_decimals"]
         post_dec    = self.vars.Number_Format["post_decimals"]
         dec_sep     = self.vars.Number_Format["decimal_seperator"]
-        pre_dec_z_pad=self.vars.Number_Format["pre_decimal_zero_padding"]
-        post_dec_z_pad=self.vars.Number_Format["post_decimal_zero_padding"]
-        signed_val=self.vars.Number_Format["signed_values"]
+        pre_dec_z_pad = self.vars.Number_Format["pre_decimal_zero_padding"]
+        post_dec_z_pad = self.vars.Number_Format["post_decimal_zero_padding"]
+        signed_val = self.vars.Number_Format["signed_values"]
         
         exstr = ''
         
         #+ or - sign if required. Also used for Leading Zeros
-        if (signed_val)and(pre_dec_z_pad):
+        if (signed_val) and (pre_dec_z_pad):
             numstr = (('%+0' + str(pre_dec + post_dec + 1) + \
                      '.' + str(post_dec) + 'f') % number)
-        elif (signed_val == 0)and(pre_dec_z_pad):
+        elif (signed_val == 0) and (pre_dec_z_pad):
             numstr = (('%0' + str(pre_dec + post_dec + 1) + \
                     '.' + str(post_dec) + 'f') % number)
-        elif (signed_val)and(pre_dec_z_pad == 0):
+        elif (signed_val) and (pre_dec_z_pad == 0):
             numstr = (('%+' + str(pre_dec + post_dec + 1) + \
                     '.' + str(post_dec) + 'f') % number)
-        elif (signed_val == 0)and(pre_dec_z_pad == 0):
+        elif (signed_val == 0) and (pre_dec_z_pad == 0):
             numstr = (('%' + str(pre_dec + post_dec + 1) + \
                     '.' + str(post_dec) + 'f') % number)
             
@@ -600,7 +600,7 @@ class MyPostProcessor(QtCore.QObject):
 
         #Add's Zero's to the end if required
         if post_dec_z_pad == 0:
-            while (len(exstr_end) > 0)and((exstr_end[-1] == '0')or(exstr_end[-1] == self.dec_sep)):
+            while (len(exstr_end) > 0) and ((exstr_end[-1] == '0') or (exstr_end[-1] == self.dec_sep)):
                 exstr_end = exstr_end[0:-1]                
         return exstr + exstr_end
     

@@ -34,7 +34,7 @@ import logging
 logger = logging.getLogger("PostPro.TSP") 
 
 class TSPoptimize(QtCore.QObject):
-    def __init__(self, st_end_points=[],order=[]):
+    def __init__(self, st_end_points=[], order=[]):
         QtCore.QObject.__init__(self)
         
         self.shape_nrs = len(st_end_points)        
@@ -72,7 +72,7 @@ class TSPoptimize(QtCore.QObject):
         self.Fittness.correct_constrain_order()
         
         #logger.debug('Calculation of start fitness TSP: %s' %self)
-        #logger.debug('Size Distance matrix: %s',len(self.DistanceMatrix.matrix))
+        #logger.debug('Size Distance matrix: %s', len(self.DistanceMatrix.matrix))
         #Erstellen der ersten Ergebnisse
         #Create the first result
         self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
@@ -81,7 +81,7 @@ class TSPoptimize(QtCore.QObject):
 
         #ERstellen der 2 opt Optimierungs Klasse
         #Create the 2 opt optimization class ???
-        #self.optmove=ClassOptMove(dmatrix=self.DistanceMatrix.matrix,nei_nr=int(round(self.shape_nrs/10)))
+        #self.optmove=ClassOptMove(dmatrix=self.DistanceMatrix.matrix, nei_nr=int(round(self.shape_nrs/10)))
              
     def calc_next_iteration(self):
         #Algorithmus ausfürhen
@@ -111,7 +111,7 @@ class TSPoptimize(QtCore.QObject):
         #logger.debug('Calculation next iteration of TSP: %s' %self)
 
     def __str__(self):
-        #res=self.Population.pop
+        #res = self.Population.pop
         return ("Iteration nrs:    %i" % (self.iterations * 10)) + \
                ("\nShape nrs:      %i" % self.shape_nrs) + \
                ("\nPopulation:     %i" % self.pop_nr) + \
@@ -147,7 +147,7 @@ class PopulationClass:
         for rot_nr in range(size[0]):
             self.rot.append(0)  
 
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -192,8 +192,8 @@ class PopulationClass:
         
         for pnr in possibilities:
             if (darray[pnr] < min_dist):
-                    min_point = pnr
-                    min_dist = darray[pnr]
+                min_point = pnr
+                min_dist = darray[pnr]
         return min_point
 
     def genetic_algorithm(self, Result=[], mutate_rate=0.95):
@@ -241,7 +241,7 @@ class PopulationClass:
         shuffle(crossover)
         for nr in range(self.size[1] / 4):
             #Parents sind die Gewinner der ersten Runde (Gentische Selektion!?)
-            #child=parent2
+            #child = parent2
             #Parents are the winners of the first round (Genetic Selection?)
             parent1 = winners_r1[crossover[nr * 2]][:]
             child = winners_r1[crossover[(nr * 2) + 1]][:]
@@ -313,9 +313,9 @@ class PopulationClass:
 class DistanceMatrixClass:
     def __init__(self, matrix=[]):
         self.matrix = matrix      
-        self.size=[0,0]  
+        self.size = [0, 0]
     def generate_matrix(self, st_end_points):
-        x_vals = range(len(st_end_points));
+        x_vals = range(len(st_end_points))
         self.matrix = []
         for nr_y in range(len(st_end_points)):
             for nr_x in range(len(st_end_points)):

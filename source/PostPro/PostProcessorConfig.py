@@ -13,7 +13,7 @@
 
 import os
 
-from Core.configobj import ConfigObj,flatten_errors
+from Core.configobj import ConfigObj, flatten_errors
 from Core.validate import Validator
 
 #from dotdictlookup import DictDotLookup
@@ -59,8 +59,8 @@ POSTPRO_SPEC = str('''
     max_arc_radius = float(default=10000)
     
 
-    code_begin=string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
-    code_end=string(default="M2 (Program end)")
+    code_begin = string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
+    code_end = string(default="M2 (Program end)")
     
     [Number_Format]
     pre_decimals = integer(default=4)
@@ -87,8 +87,8 @@ POSTPRO_SPEC = str('''
     cutter_comp_off = string(default=G40%nl)
     cutter_comp_left = string(default=G41%nl)
     cutter_comp_right = string(default=G42%nl)
-    pre_shape_cut= string(default=M3 M8%nl)
-    post_shape_cut=string(default=M9 M5%nl)
+    pre_shape_cut = string(default=M3 M8%nl)
+    post_shape_cut = string(default=M9 M5%nl)
     comment = string(default=%nl(%comment)%nl)              
 
 ''').splitlines()  
@@ -99,7 +99,7 @@ class MyPostProConfig(QtCore.QObject):
     """
     This class hosts all functions related to the PostProConfig File.
     """
-    def __init__(self,filename='postpro_config.cfg'):
+    def __init__(self, filename='postpro_config.cfg'):
         """
         initialize the varspace of an existing plugin instance
         init_varspace() is a superclass method of plugin
@@ -109,13 +109,13 @@ class MyPostProConfig(QtCore.QObject):
         QtCore.QObject.__init__(self)
         
         self.folder = os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)
-        self.filename =os.path.join(self.folder, filename)
+        self.filename = os.path.join(self.folder, filename)
         
         self.default_config = False # whether a new name was generated
         self.var_dict = dict()
         self.spec = ConfigObj(POSTPRO_SPEC, interpolation=False, list_values=False, _inspec=True)
 
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -153,7 +153,7 @@ class MyPostProConfig(QtCore.QObject):
                 g.logger.logger.error( section_string + ' = ' + error)       
 
             if validate_errors:
-                raise BadConfigFileError,self.tr("syntax errors in postpro_config file")
+                raise BadConfigFileError, self.tr("syntax errors in postpro_config file")
                 
             # check config file version against internal version
 
@@ -166,24 +166,24 @@ class MyPostProConfig(QtCore.QObject):
         except VersionMismatchError, values:
             raise VersionMismatchError, (fileversion, POSTPRO_VERSION)
                    
-        except Exception,inst:
+        except Exception, inst:
             logger.error(inst)               
-            (base,ext) = os.path.splitext(self.filename)
+            (base, ext) = os.path.splitext(self.filename)
             badfilename = base + c.BAD_CONFIG_EXTENSION
-            logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename,badfilename))
+            logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
             try:
-                os.rename(self.filename,badfilename)
-            except OSError,e:
-                logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename,badfilename,e.strerror))
+                os.rename(self.filename, badfilename)
+            except OSError, e:
+                logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename, badfilename, e.strerror))
                 raise
             else:
-                logger.debug(self.tr("renamed bad varspace %s to '%s'") %(self.filename,badfilename))
+                logger.debug(self.tr("renamed bad varspace %s to '%s'") % (self.filename, badfilename))
                 self.create_default_config()
                 self.default_config = True
-                logger.debug(self.tr("created default varspace '%s'") %(self.filename))
+                logger.debug(self.tr("created default varspace '%s'") % (self.filename))
         else:
             self.default_config = False
-            logger.debug(self.tr("read existing varspace '%s'") %(self.filename))
+            logger.debug(self.tr("read existing varspace '%s'") % (self.filename))
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
@@ -222,8 +222,8 @@ class MyPostProConfig(QtCore.QObject):
 #    
     def print_vars(self):
         print "Variables:"
-        for k,v in self.var_dict['Variables'].items():
-            print k," = ",v
+        for k, v in self.var_dict['Variables'].items():
+            print k, " = ", v
             
 
 class DictDotLookup(object):
