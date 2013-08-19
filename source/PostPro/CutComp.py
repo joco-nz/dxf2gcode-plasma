@@ -23,7 +23,7 @@ class ShapeOffsetClass:
         Standard method to initialize the class
         """ 
         self.tol = 0.01
-        self.shape=ShapeClass()
+        self.shape = ShapeClass()
         self.pretshape = ShapeClass()
         self.radius = 10
         self.dir = 42
@@ -38,9 +38,9 @@ class ShapeOffsetClass:
         self.shape = shape
         self.radius = radius
         self.dir = direction
-        self.shape_nr=shape_nr
+        self.shape_nr = shape_nr
         
-        joinedshape=self.joinshapepoints(self.shape)
+        joinedshape = self.joinshapepoints(self.shape)
         
         #Pretreatment of the shapes to have no LSIP
         self.pretshape = self.pretreatment(joinedshape)      
@@ -51,7 +51,7 @@ class ShapeOffsetClass:
         return clippedshapes
         #return [untroffshape]
         
-    def joinshapepoints(self,shape):
+    def joinshapepoints(self, shape):
         """ 
         The pretreatment searches for local self intersection points (LSIP) 
         According to X.-Z LIu et al./Computers in Industry 58 (2007) 240-254
@@ -72,21 +72,21 @@ class ShapeOffsetClass:
         
         for geo in shape.geos:
             #Generate new Geometry copied from previous one
-            if geo==shape.geos[0]:
-                Pa=geo.Pa
-                Pe=geo.Pe
-            elif geo==shape.geos[-1] and shape.closed:
-                Pa=joinedshape.geos[-1].Pe
-                Pe=joinedshape.geos[0].Pa 
+            if geo == shape.geos[0]:
+                Pa = geo.Pa
+                Pe = geo.Pe
+            elif geo == shape.geos[-1] and shape.closed:
+                Pa = joinedshape.geos[-1].Pe
+                Pe = joinedshape.geos[0].Pa 
             else:
-                Pa=joinedshape.geos[-1].Pe
-                Pe=geo.Pe
+                Pa = joinedshape.geos[-1].Pe
+                Pe = geo.Pe
                 
             if geo.type == "LineGeo" or geo.type == "CCLineGeo":
-                ccgeo=CCLineGeo(Pa=Pa,Pe=Pe)
+                ccgeo = CCLineGeo(Pa=Pa, Pe=Pe)
             else:
-                ccgeo=CCArcGeo(Pa=Pa, Pe=Pe, r=geo.r, O=geo.O,
-                               direction=geo.ext)
+                ccgeo = CCArcGeo(Pa=Pa, Pe=Pe, r=geo.r, O=geo.O,
+                                 direction=geo.ext)
             joinedshape.geos.append(ccgeo)
         
         return joinedshape
@@ -116,17 +116,17 @@ class ShapeOffsetClass:
 
             #If there are more then one geometries find self intersection 
             #geometries 
-            if geo_nr<len(joinedshape.geos):
+            if geo_nr < len(joinedshape.geos):
                 pretshape.geos += [joinedshape.geos[geo_nr]] 
-            if geo_nr>=1:
+            if geo_nr >= 1:
                 
                 #Difference for normal shape and if it is the last shape
-                if not(geo_nr==len(joinedshape.geos)):
-                    geo1=pretshape.geos[-2]
-                    geo2=pretshape.geos[-1]
+                if not(geo_nr == len(joinedshape.geos)):
+                    geo1 = pretshape.geos[-2]
+                    geo2 = pretshape.geos[-1]
                 else:
-                    geo1=pretshape.geos[-1]
-                    geo2=pretshape.geos[0]
+                    geo1 = pretshape.geos[-1]
+                    geo2 = pretshape.geos[0]
                 
                 #An intersection may only occur if the Bounding Boxes have an
                 #intersection too
@@ -146,11 +146,11 @@ class ShapeOffsetClass:
                         #There can be only one Local Self Intersection Point.
                         if Point.isTIP(geo1, self.tol, 'inside'):
                             
-                            if not(geo_nr==len(self.shape.geos)):
+                            if not(geo_nr == len(self.shape.geos)):
                                 pretshape.geos.pop()
                             pretshape.geos.pop()
                             pretshape.geos += geo1.split_into_2geos(Point)
-                            if not(geo_nr==len(self.shape.geos)):
+                            if not(geo_nr == len(self.shape.geos)):
                                 pretshape.geos += [geo2]
                                             
         return pretshape 
@@ -175,8 +175,8 @@ class ShapeOffsetClass:
         rawoffshape.BB = self.shape.BB
         
         for geo in pretshape.geos:
-            rawoffshape.geos+=geo.rawoffset(radius=self.radius,
-                                            direction=self.dir)  
+            rawoffshape.geos += geo.rawoffset(radius=self.radius,
+                                              direction=self.dir)  
         return rawoffshape
    
     def make_untrimmed_offset(self, rawoffshape):
@@ -198,7 +198,7 @@ class ShapeOffsetClass:
                            geos_hdls=[])
          
         #Return nothing if there is no geo in shape
-        if len(rawoffshape.geos)==0:
+        if len(rawoffshape.geos) == 0:
             return untroffshape
         
         newPa = deepcopy(rawoffshape.geos[0].Pa)
@@ -211,7 +211,8 @@ class ShapeOffsetClass:
                 break
             geo2 = rawoffshape.geos[geo_nr]
             
-            orgPe=self.pretshape.geos[geo_nr-1].Pe #DAS STIMMT NICHT!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! DA BRAUCH IHC DIE ORGINA KURVE
+            orgPe = self.pretshape.geos[geo_nr-1].Pe
+            #DAS STIMMT NICHT!!!!!!!!!!!!!!!!!!! DA BRAUCH IHC DIE ORGINA KURVE
             #THE WRONG !!!! INCE THE ORIGINAL HOT I CURVE !!! ???
            
             #Call the trim join algorithms for the elements.
@@ -222,38 +223,38 @@ class ShapeOffsetClass:
                 newPa = untroffshape.geos[-1].Pe
         
         #Add the last geometry Case 3 according to para 3.2
-        if len(rawoffshape.geos)==1:
+        if len(rawoffshape.geos) == 1:
             untroffshape.geos.append(rawoffshape.geos[0])
             return untroffshape
-        if len(untroffshape.geos)==0:
+        if len(untroffshape.geos) == 0:
             return untroffshape
         else:
             if not(untroffshape.closed):
-                if geo2.type=='CCLineGeo':
-                    untroffshape.geos.append(CCLineGeo(newPa,deepcopy(geo2.Pe)))
+                if geo2.type == 'CCLineGeo':
+                    untroffshape.geos.append(CCLineGeo(newPa, deepcopy(geo2.Pe)))
                 else:
                     untroffshape.geos.append(CCArcGeo(Pa=newPa,
                                                       Pe=deepcopy(geo2.Pe),
-                                                    O=geo2.O, 
-                                                    r=geo2.r,
-                                                    direction=geo2.ext))
+                                                      O=geo2.O, 
+                                                      r=geo2.r,
+                                                      direction=geo2.ext))
             else:
                 geo1 = rawoffshape.geos[-1]
                 geo2 = rawoffshape.geos[0]
                 
-                orgPe=geo1.Pe
+                orgPe = geo1.Pe
                 #Call the trim join algorithms for the elements.
                 untroffshape.geos += geo1.trim_join(geo2, newPa, 
                                                     orgPe, self.tol)
-                if geo2.type=='CCLineGeo':
-                    untroffshape.geos[0].Pa=untroffshape.geos[-1].Pe
+                if geo2.type == 'CCLineGeo':
+                    untroffshape.geos[0].Pa = untroffshape.geos[-1].Pe
                     untroffshape.geos[0].calc_bounding_box()
                     
                 else:
-                    modgeo=untroffshape.geos[0]
-                    modgeo.Pa=untroffshape.geos[-1].Pe
+                    modgeo = untroffshape.geos[0]
+                    modgeo.Pa = untroffshape.geos[-1].Pe
                     modgeo.s_ang = modgeo.O.norm_angle(modgeo.Pa)
-                    modgeo.ext=modgeo.dif_ang(modgeo.Pa, modgeo.Pe, modgeo.ext)
+                    modgeo.ext = modgeo.dif_ang(modgeo.Pa, modgeo.Pe, modgeo.ext)
                     untroffshape.geos[0].calc_bounding_box()
         
         return untroffshape
@@ -268,44 +269,43 @@ class ShapeOffsetClass:
         
         #First add a nr to the geomety in a list and sort them
 
-
-        BBListPa=[]
-        BBListPe=[]
+        BBListPa = []
+        BBListPe = []
         
-        geo_nrs=len(untroffshape.geos)
+        geo_nrs = len(untroffshape.geos)
         
         for geo_nr in range(len(untroffshape.geos)):
-            geo=untroffshape.geos[geo_nr]
-            geo.Nr=geo_nr
+            geo = untroffshape.geos[geo_nr]
+            geo.Nr = geo_nr
             
-        BBListPa=untroffshape.geos[:]
-        BBListPe=untroffshape.geos[:]
+        BBListPa = untroffshape.geos[:]
+        BBListPe = untroffshape.geos[:]
         
         BBListPa.sort(self.cmp_Pa)
         BBListPe.sort(self.cmp_Pe)
         
         
         while len(BBListPe):
-            geo1=BBListPe[0]
-            geo2_index=0
+            geo1 = BBListPe[0]
+            geo2_index = 0
             while 1:
-                geo2=BBListPa[geo2_index]
+                geo2 = BBListPa[geo2_index]
                
                 #If intersection
-                if (geo1.BB.Pe.x<geo2.BB.Pa.x):
+                if (geo1.BB.Pe.x < geo2.BB.Pa.x):
                     BBListPe.pop(0)
                     BBListPa.pop(BBListPa.index(geo1))
                     break
                 #intersection with itself or the next element have to be not counted.
                 elif geo2.Nr in range(geo1.Nr-1, geo1.Nr+2):
                     pass
-                elif geo1.Nr==geo_nrs\
-                        and geo2.Nr==0\
-                        and untroffshape.closed==1:
+                elif geo1.Nr == geo_nrs\
+                        and geo2.Nr == 0\
+                        and untroffshape.closed == 1:
                     pass
-                elif geo1.Nr==0\
-                        and geo2.Nr==geo_nrs\
-                        and untroffshape.closed==1:
+                elif geo1.Nr == 0\
+                        and geo2.Nr == geo_nrs\
+                        and untroffshape.closed == 1:
                     pass
                 else:
                     
@@ -324,8 +324,8 @@ class ShapeOffsetClass:
                                 geo1.inters.append(Point)
                                 geo2.inters.append(Point)
                 
-                geo2_index+=1
-                if geo2_index==len(BBListPa):
+                geo2_index += 1
+                if geo2_index == len(BBListPa):
                     BBListPe.pop(0)
                     break
 ##    
@@ -336,7 +336,7 @@ class ShapeOffsetClass:
 ##        #offset shape and append them to geo.inters.
 ##        #Do for all Geometries -1 (if closed for all)
 ##        for geo_nr1 in range(len(untroffshape.geos)):
-##            for geo_nr2 in range(geo_nr1+2,len(untroffshape.geos)):
+##            for geo_nr2 in range(geo_nr1+2, len(untroffshape.geos)):
 ##                
 ##                geo1=untroffshape.geos[geo_nr1]
 ##                geo2=untroffshape.geos[geo_nr2]
@@ -362,20 +362,20 @@ class ShapeOffsetClass:
                            
         #Sort the intersection Points in ascending order and then splits the 
         #shape at the intersection points into new shapes.
-        clippedshapes=[]
+        clippedshapes = []
         clippedshapes.append(self.return_new_clippedshape())       
         for geo in untroffshape.geos:
-            if len(geo.inters)==0:
+            if len(geo.inters) == 0:
                 clippedshapes[-1].geos.append(geo)
             else:
                 geo.sort_inters_asscending()
-                geo2=geo
+                geo2 = geo
                 for inter in geo.inters:
-                    [geo1,geo2]=geo2.split_geo_at_point(inter)
-                    if not(inter.isintol(geo1.Pa,self.tol)):
+                    [geo1, geo2] = geo2.split_geo_at_point(inter)
+                    if not(inter.isintol(geo1.Pa, self.tol)):
                         clippedshapes[-1].geos.append(geo1)
                     clippedshapes.append(self.return_new_clippedshape())
-                if not(inter.isintol(geo2.Pe,self.tol)):
+                if not(inter.isintol(geo2.Pe, self.tol)):
                     clippedshapes[-1].geos.append(geo2)
           
         #First:
@@ -389,26 +389,26 @@ class ShapeOffsetClass:
         #shape list.
         
         
-        del_shapes=[]
+        del_shapes = []
         for s_nr in range(len(clippedshapes)):
             
-            BBListPe1=clippedshapes[s_nr].geos[:]
-            BBListPa2=self.pretshape.geos[:]
+            BBListPe1 = clippedshapes[s_nr].geos[:]
+            BBListPa2 = self.pretshape.geos[:]
             
             BBListPe1.sort(self.cmp_Pe)
             BBListPa2.sort(self.cmp_Pa)
                   
-            break_l=1
+            break_l = 1
         
             while break_l and len(BBListPe1):
-                geo1=BBListPe1[0]
-                geo2_index=0
+                geo1 = BBListPe1[0]
+                geo2_index = 0
                 
                 while break_l:
-                    geo2=BBListPa2[geo2_index]
+                    geo2 = BBListPa2[geo2_index]
                     
 #                    #Break if no further distance lower the radius is possible
-                    if (geo1.BB.Pe.x+self.radius+self.tol)<(geo2.BB.Pa.x):
+                    if (geo1.BB.Pe.x+self.radius+self.tol) < (geo2.BB.Pa.x):
                         #print "Abbruch 1"
                         BBListPe1.pop(0)
                         break
@@ -418,33 +418,33 @@ class ShapeOffsetClass:
                         #There is a true intersection
                         #print geo1.distance_to_geo(geo2)
                
-                        if geo1.distance_to_geo(geo2)<(self.radius-self.tol):
+                        if geo1.distance_to_geo(geo2) < (self.radius-self.tol):
 #                            print geo1
 #                            print geo2
 #                            print geo1.distance_to_geo(geo2)
                             del_shapes.append(clippedshapes[s_nr])
-                            break_l=0
+                            break_l = 0
                             break
                         
-                    geo2_index+=1
-                    if geo2_index==len(BBListPa2):
+                    geo2_index += 1
+                    if geo2_index == len(BBListPa2):
                         BBListPe1.pop(0)
                         break
 ##                    
 ##        
 ##        print del_shapes
 ##        
-##        del_shapes=[]
+##        del_shapes = []
 ##        for s_nr in range(len(clippedshapes)):
-##            break_l=0
+##            break_l = 0
 ##            for geo_nr1 in range(len(clippedshapes[s_nr].geos)):
-##                if break_l==1:
+##                if break_l == 1:
 ##                    break
 ##                for geo_nr2 in range(len(self.pretshape.geos)):
-##                    if break_l==1:
+##                    if break_l == 1:
 ##                        break
-##                    geo1=clippedshapes[s_nr].geos[geo_nr1]
-##                    geo2=self.pretshape.geos[geo_nr2]
+##                    geo1 = clippedshapes[s_nr].geos[geo_nr1]
+##                    geo2 = self.pretshape.geos[geo_nr2]
 ##                                             
 ##                    intersect = geo1.BB.hasintersection(geo2.BB, self.tol)
 ##                
@@ -458,11 +458,11 @@ class ShapeOffsetClass:
 ##                                #print geo2
 ##                                #print Point
 ##                                del_shapes.append(clippedshapes[s_nr])
-##                                break_l=1
+##                                break_l = 1
 ##                                break
 ##                    
 ##                    if not(len(del_shapes)) or \
-##                    not(clippedshapes[s_nr]==del_shapes[-1]):
+##                    not(clippedshapes[s_nr] == del_shapes[-1]):
 ##                        intersect = geo1.BB.hasintersection(geo2.BB, 
 ##                                                            self.radius+self.tol)
 ##                        if intersect:
@@ -473,14 +473,14 @@ class ShapeOffsetClass:
 ##                                #print geo2
 ##                                #print geo1.distance_to_geo(geo2)
 ##                                del_shapes.append(clippedshapes[s_nr])
-##                                break_l=1
+##                                break_l = 1
                                     
         for del_shape in del_shapes:
             clippedshapes.pop(clippedshapes.index(del_shape))
               
         for clippedshape in clippedshapes:
-            clippedshape.nr=self.shape_nr
-            self.shape_nr+=1
+            clippedshape.nr = self.shape_nr
+            self.shape_nr += 1
              
         return clippedshapes
                     
@@ -494,29 +494,29 @@ class ShapeOffsetClass:
                            geos_hdls=[])
         return clippedshape
        
-    def cmp_Pa(self,geo1,geo2):
+    def cmp_Pa(self, geo1, geo2):
         """
         Compare Function for the sorting
         """  
-        if geo1.BB.Pa.x<geo2.BB.Pa.x:
+        if geo1.BB.Pa.x < geo2.BB.Pa.x:
             return -1
-        elif geo1.BB.Pa.x>geo2.BB.Pa.x:
+        elif geo1.BB.Pa.x > geo2.BB.Pa.x:
             return 1
         else:
             return 0
-        #return geo1.BB.Pa.x<=geo2.BB.Pa.x
+        #return geo1.BB.Pa.x <= geo2.BB.Pa.x
 
-    def cmp_Pe(self,geo1,geo2):
+    def cmp_Pe(self, geo1, geo2):
         """
         Compare Function for the sorting
         """
-        if geo1.BB.Pe.x<geo2.BB.Pe.x:
+        if geo1.BB.Pe.x < geo2.BB.Pe.x:
             return -1
-        elif geo1.BB.Pe.x>geo2.BB.Pe.x:
+        elif geo1.BB.Pe.x > geo2.BB.Pe.x:
             return 1
         else:
             return 0
-        #return geo1.BB.Pe.x<=geo2.BB.Pe.x    
+        #return geo1.BB.Pe.x <= geo2.BB.Pe.x    
           
 class CCArcGeo(ArcGeo):
     def __init__(self, Pa=None, Pe=None, O=None, r=1,
@@ -530,8 +530,8 @@ class CCArcGeo(ArcGeo):
         
         self.type = 'CCArcGeo'
         self.col = 'Blue'
-        self.inters=[]
-        self.Nr=Nr
+        self.inters = []
+        self.Nr = Nr
         self.calc_bounding_box()
         
 
@@ -608,17 +608,17 @@ class CCArcGeo(ArcGeo):
         @return: a list of intersection points. 
         """
         if other.type == "CCLineGeo":
-            IPoints=other.find_inter_point_l_a(self)
+            IPoints = other.find_inter_point_l_a(self)
             for IPoint in IPoints:
-                v1_temp=IPoint.v1
-                geo1_temp=IPoint.geo1
-                IPoint.v1=IPoint.v2
-                IPoint.geo1=IPoint.geo2
-                IPoint.v2=v1_temp
-                IPoint.geo2=geo1_temp
+                v1_temp = IPoint.v1
+                geo1_temp = IPoint.geo1
+                IPoint.v1 = IPoint.v2
+                IPoint.geo1 = IPoint.geo2
+                IPoint.v2 = v1_temp
+                IPoint.geo2 = geo1_temp
             return IPoints
         elif other.type == "CCArcGeo":
-            return self.find_inter_point_a_a(other,tol=tol)
+            return self.find_inter_point_a_a(other, tol=tol)
         else:
             print 'Hab ich noch nicht'
             
@@ -644,13 +644,13 @@ class CCArcGeo(ArcGeo):
         
         #If both circles have the same center and radius
         if abs(O_dis) < tol/2 and abs(self.r-other.r) < tol/2:
-            Pi1=IPointClass(x=self.Pa.x,y=self.Pa.y,
-                         v1=0.0, v2=-1.0,
-                        geo1=self, geo2=other)
+            Pi1 = IPointClass(x=self.Pa.x, y=self.Pa.y,
+                             v1=0.0, v2=-1.0,
+                             geo1=self, geo2=other)
             
-            Pi2=IPointClass(x=self.Pe.x,y=self.Pe.y,
-                         v1=1.0, v2=0.0,
-                        geo1=self, geo2=other)
+            Pi2 = IPointClass(x=self.Pe.x, y=self.Pe.y,
+                             v1=1.0, v2=0.0,
+                             geo1=self, geo2=other)
             
             
             #return [self.Pa, self.Pe]
@@ -663,10 +663,10 @@ class CCArcGeo(ArcGeo):
                   (pow(O_dis, 2) - pow(other.r - self.r, 2)))
         
         #If the Line is a tangent the root is 0.0.
-        if root<=0.0:
-            root=0.0
+        if root <= 0.0:
+            root = 0.0
         else:  
-            root=sqrt(root)
+            root = sqrt(root)
         
         xbase = (other.O.x + self.O.x) / 2 + \
         (other.O.x - self.O.x) * \
@@ -678,22 +678,22 @@ class CCArcGeo(ArcGeo):
         
         Pi1 = IPointClass(x=xbase + (other.O.y - self.O.y) / \
                           (2 * pow(O_dis, 2)) * root,
-                    y=ybase - (other.O.x - self.O.x) / \
-                    (2 * pow(O_dis, 2)) * root,
-                    geo1=self, geo2=other,
-                    v1=0.0,v2=0.0)
+                          y=ybase - (other.O.x - self.O.x) / \
+                          (2 * pow(O_dis, 2)) * root,
+                          geo1=self, geo2=other,
+                          v1=0.0, v2=0.0)
         
-        Pi1.v1 = self.dif_ang(self.Pa, Pi1, self.ext)/self.ext
-        Pi1.v2 = other.dif_ang(other.Pa, Pi1, other.ext)/other.ext
+        Pi1.v1 = self.dif_ang(self.Pa, Pi1, self.ext) / self.ext
+        Pi1.v2 = other.dif_ang(other.Pa, Pi1, other.ext) / other.ext
 
         Pi2 = IPointClass(x=xbase - (other.O.y - self.O.y) / \
-                         (2 * pow(O_dis, 2)) * root,
-                    y=ybase + (other.O.x - self.O.x) / \
-                    (2 * pow(O_dis, 2)) * root,
-                    geo1=self, geo2=other,
-                    v1=0.0,v2=0.0)
-        Pi2.v1 = self.dif_ang(self.Pa, Pi2, self.ext)/self.ext
-        Pi2.v2 = other.dif_ang(other.Pa, Pi2, other.ext)/other.ext
+                          (2 * pow(O_dis, 2)) * root,
+                          y=ybase + (other.O.x - self.O.x) / \
+                          (2 * pow(O_dis, 2)) * root,
+                          geo1=self, geo2=other,
+                          v1=0.0, v2=0.0)
+        Pi2.v1 = self.dif_ang(self.Pa, Pi2, self.ext) / self.ext
+        Pi2.v2 = other.dif_ang(other.Pa, Pi2, other.ext) / other.ext
         
         
         if Pi1.distance(Pi2) == 0.0:
@@ -720,7 +720,7 @@ class CCArcGeo(ArcGeo):
 #        """
 #        
 #        if type=='inside':
-#            if (self.Pa.isintol(Point,tol) or self.Pe.isintol(Point,tol)):
+#            if (self.Pa.isintol(Point, tol) or self.Pe.isintol(Point, tol)):
 #                return False
 #        else:
 #            #The linear tolerance in angle
@@ -738,23 +738,23 @@ class CCArcGeo(ArcGeo):
         """       
         self.inters.sort(self.cmp_asscending)
           
-    def cmp_asscending(self,P1,P2):
+    def cmp_asscending(self, P1, P2):
         """
         Compare Function for the sorting
         """  
         
         #The angle between startpoint and where the intersection occurs
-        d_ang1 = (self.O.norm_angle(P1)-self.s_ang )%(2*pi)
-        d_ang2 = (self.O.norm_angle(P2)-self.s_ang)%(2*pi)
+        d_ang1 = (self.O.norm_angle(P1) - self.s_ang) % (2*pi)
+        d_ang2 = (self.O.norm_angle(P2) - self.s_ang) % (2*pi)
         
         #Correct by 2*pi if the direction is wrong
-        if self.ext<0.0:
-            d_ang1-=2*pi
-            d_ang2-=2*pi
+        if self.ext < 0.0:
+            d_ang1 -= 2*pi
+            d_ang2 -= 2*pi
                 
-        if d_ang1>d_ang2:
+        if d_ang1 > d_ang2:
             return 1
-        elif d_ang1==d_ang2:
+        elif d_ang1 == d_ang2:
             return 0
         else:
             return -1
@@ -780,7 +780,7 @@ class CCArcGeo(ArcGeo):
         
         return self.split_geo_at_point(spoint)
         
-    def split_geo_at_point(self,spoint):
+    def split_geo_at_point(self, spoint):
         """
         Splits the given geometry into 2 geometries. The
         geometry will be split at Point spoint.
@@ -859,9 +859,9 @@ class CCArcGeo(ArcGeo):
         geos = []
         
         #Fast Case 1a
-        if self.Pe.isintol(other.Pa,tol):
+        if self.Pe.isintol(other.Pa, tol):
             geos.append(CCArcGeo(Pa=newPa, Pe=other.Pa, O=self.O,
-                                   r=self.r, direction= self.ext))
+                                 r=self.r, direction= self.ext))
             return geos
         
         points = self.find_inter_points(other)
@@ -869,7 +869,6 @@ class CCArcGeo(ArcGeo):
         #Case 1 according to Algorithm 2
         if len(points):
             ipoint = self.Pe.get_nearest_point(points)
-            
             
             isTIP1 = ipoint.isTIP(self, tol, 'all')
             isTIP2 = ipoint.isTIP(other, tol, 'all')
@@ -881,35 +880,35 @@ class CCArcGeo(ArcGeo):
             #Case 1 a
             if isTIP1 and isTIP2:
                 geos.append(CCArcGeo(Pa=newPa, Pe=ipoint, O=self.O,
-                                   r=self.r, direction= self.ext))
+                                     r=self.r, direction=self.ext))
                 
             #Case 1 b
             elif not(isTIP1) and not(isTIP2):
-                direction=-other.Pe.get_arc_direction(other.Pa,orgPe)
-                r=self.Pe.distance(orgPe)
+                direction = -other.Pe.get_arc_direction(other.Pa, orgPe)
+                r = self.Pe.distance(orgPe)
                 
                 geos.append(CCArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
-                                   r=self.r, direction= self.ext))
-                geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
-                                   O=orgPe,
-                                   r=r, direction=direction))
+                                     r=self.r, direction=self.ext))
+                geos.append(CCArcGeo(Pa=self.Pe, Pe=other.Pa,
+                                     O=orgPe,
+                                     r=r, direction=direction))
                 
             #Case 1 c & d
             else:
                 geos.append(CCArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
-                                   r=self.r, direction= self.ext))
+                                     r=self.r, direction= self.ext))
                 geos.append(CCLineGeo(self.Pe, other.Pa))
                 
         #Case 2
         else: 
-            direction=-other.Pe.get_arc_direction(other.Pa,orgPe)
+            direction = -other.Pe.get_arc_direction(other.Pa, orgPe)
             
-            r=self.Pe.distance(orgPe)
+            r = self.Pe.distance(orgPe)
             geos.append(CCArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
-                                   r=self.r, direction= self.ext))
-            geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
-                               O=orgPe, direction=direction, 
-                               r=r))
+                                 r=self.r, direction=self.ext))
+            geos.append(CCArcGeo(Pa=self.Pe, Pe=other.Pa,
+                                 O=orgPe, direction=direction, 
+                                 r=r))
             
         return geos
     
@@ -926,7 +925,7 @@ class CCArcGeo(ArcGeo):
         geos = [] 
         
         #Fast Case 1a
-        #if self.Pe.isintol(other.Pa,tol):
+        #if self.Pe.isintol(other.Pa, tol):
         #    geos.append(CCArcGeo(Pa=newPa, Pe=other.Pa, O=self.O,
         #                           r=self.r, direction= self.ext))
         #    return geos
@@ -952,42 +951,42 @@ class CCArcGeo(ArcGeo):
                                  
             #Case 1 b########################################################################################FALSCH############
             else:
-                direction=self.get_arc_direction(orgPe)
-                r=self.Pe.distance(orgPe)
+                direction = self.get_arc_direction(orgPe)
+                r = self.Pe.distance(orgPe)
                 geos.append(CCArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
-                                   r=self.r, direction= self.ext))
-                geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
-                               O=orgPe, direction=-direction,
-                               r=r))
+                                     r=self.r, direction= self.ext))
+                geos.append(CCArcGeo(Pa=self.Pe, Pe=other.Pa,
+                                     O=orgPe, direction=-direction,
+                                     r=r))
                 
         #Case 2
         else: 
-            direction=self.get_arc_direction(orgPe)
-            r=self.Pe.distance(orgPe)
+            direction = self.get_arc_direction(orgPe)
+            r = self.Pe.distance(orgPe)
           
             geos.append(CCArcGeo(Pa=newPa, Pe=self.Pe, O=self.O,
-                                   r=self.r, direction= self.ext))
-            geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
-                               O=orgPe, direction=-direction,
-                               r=r))
+                                 r=self.r, direction= self.ext))
+            geos.append(CCArcGeo(Pa=self.Pe, Pe=other.Pa,
+                                 O=orgPe, direction=-direction,
+                                 r=r))
             
         return geos
     
-    def get_arc_direction(self,newO):
+    def get_arc_direction(self, newO):
         """ 
         Calculate the arc direction given from the Arc and O of the new Arc.
         @param O: The center of the arc
         @return: Returns the direction (+ or - pi/2)
         """ 
         
-        a1= self.e_ang - pi/2 * self.ext / abs(self.ext)
-        a2=self.Pe.norm_angle(newO)
-        direction=a2-a1
+        a1 = self.e_ang - pi/2 * self.ext / abs(self.ext)
+        a2 = self.Pe.norm_angle(newO)
+        direction = a2-a1
         
-        if direction>pi:
-            direction=direction-2*pi
-        elif direction<-pi:
-            direction=direction+2*pi
+        if direction > pi:
+            direction = direction - 2 * pi
+        elif direction < -pi:
+            direction = direction + 2 * pi
             
         #print ('Die Direction ist: %s' %direction)
         
@@ -1003,11 +1002,11 @@ class CCLineGeo(LineGeo):
         Standard Method to initialise the CCLineGeo
         """
         
-        LineGeo.__init__(self, Pa=Pa,Pe=Pe)
+        LineGeo.__init__(self, Pa=Pa, Pe=Pe)
         
         self.type = "CCLineGeo"
         self.col = 'Black'
-        self.inters=[]
+        self.inters = []
         self.calc_bounding_box()
         
     def __str__(self):
@@ -1038,11 +1037,11 @@ class CCLineGeo(LineGeo):
         @return: a list of intersection points. 
         """
         if other.type == "CCLineGeo":
-            inters=self.find_inter_point_l_l(other)
+            inters = self.find_inter_point_l_l(other)
             #print inters
             return inters
         elif other.type == "CCArcGeo":
-            inters=self.find_inter_point_l_a(other)
+            inters = self.find_inter_point_l_a(other)
             #for inter in inters:
                 #print inter
             return inters
@@ -1087,11 +1086,11 @@ class CCLineGeo(LineGeo):
             return []
             
         return [IPointClass(x=self.Pa.x + v1 * dx1,
-                          y=self.Pa.y + v1 * dy1,
-                          v1=v1,
-                          v2=v2,
-                          geo1=self,
-                          geo2=L2)]
+                            y=self.Pa.y + v1 * dy1,
+                            v1=v1,
+                            v2=v2,
+                            geo1=self,
+                            geo2=L2)]
     
     def find_inter_point_l_a(self, Arc):
         """
@@ -1112,7 +1111,7 @@ class CCLineGeo(LineGeo):
         root = pow(b, 2) - 4 * a * c
        
         #If the value under the sqrt is negative there is no intersection.
-        if root < 0 or a==0.0:
+        if root < 0 or a == 0.0:
             return []
         
 
@@ -1131,9 +1130,9 @@ class CCLineGeo(LineGeo):
             return [Pi1] 
             
         Pi2 = IPointClass(x=self.Pa.x + v2 * Ldx,
-                       y=self.Pa.y + v2 * Ldy,
-                       geo1=self, geo2=Arc,
-                       v1=v2, v2=0.0)
+                         y=self.Pa.y + v2 * Ldy,
+                         geo1=self, geo2=Arc,
+                         v1=v2, v2=0.0)
         Pi2.v2 = Arc.dif_ang(Arc.Pa, Pi2, Arc.ext)/Arc.ext
         
         return [Pi1, Pi2]
@@ -1144,16 +1143,16 @@ class CCLineGeo(LineGeo):
         """       
         self.inters.sort(self.cmp_asscending)
           
-    def cmp_asscending(self,P1,P2):
+    def cmp_asscending(self, P1, P2):
         """
         Compare Function for the sorting
         """  
-        d1= P1.distance(self.Pa)
-        d2= P2.distance(self.Pa)
+        d1 = P1.distance(self.Pa)
+        d2 = P2.distance(self.Pa)
               
-        if d1>d2:
+        if d1 > d2:
             return 1
-        elif d1==d2:
+        elif d1 == d2:
             return 0
         else:
             return -1
@@ -1172,7 +1171,7 @@ class CCLineGeo(LineGeo):
         else:
             print 'Hab ich noch nicht' 
             
-    def distance_line_line(self,other):
+    def distance_line_line(self, other):
         """
         Find the distance between 2 ccLineGeo elements. 
         @param other: the instance of the 2nd geometry element.
@@ -1185,7 +1184,7 @@ class CCLineGeo(LineGeo):
                    other.distance_point_line(self.Pe))
             
         
-    def distance_point_line(self,Point):
+    def distance_point_line(self, Point):
         """
         Find the shortest distance between CCLineGeo and Point elements.  
         Algorithm acc. to 
@@ -1195,17 +1194,17 @@ class CCLineGeo(LineGeo):
         @return: The shortest distance between the Point and Line
         """
         
-        d=self.Pe-self.Pa
-        v=Point-self.Pa
+        d = self.Pe-self.Pa
+        v = Point-self.Pa
     
-        t=dotProd(d,v)
+        t = dotProd(d, v)
         
-        if t<=0:
+        if t <= 0:
             #our Point is lying "behind" the segment
             #so end Point 1 is closest to Point and distance is length of
             #vector from end Point 1 to Point.
             return self.Pa.distance(Point)
-        elif t>=dotProd(d,d):
+        elif t >= dotProd(d, d):
             #our Point is lying "ahead" of the segment
             #so end Point 2 is closest to Point and distance is length of
             #vector from end Point 2 to Point.
@@ -1214,7 +1213,7 @@ class CCLineGeo(LineGeo):
             #our Point is lying "inside" the segment
             #i.e.:a perpendicular from it to the line that contains the line
             #segment has an end Point inside the segment
-            return sqrt(dotProd(v,v) - (t*t)/dotProd(d,d));
+            return sqrt(dotProd(v, v) - (t*t) / dotProd(d, d))
                      
     def split_into_2geos(self, ipoint=PointClass()):
         """
@@ -1225,11 +1224,11 @@ class CCLineGeo(LineGeo):
         """
         #The Point where the geo shall be split
         spoint = PointClass(x=(ipoint.x + self.Pe.x) / 2,
-                          y=(ipoint.y + self.Pe.y) / 2)
+                            y=(ipoint.y + self.Pe.y) / 2)
         
         return self.split_geo_at_point(spoint)
         
-    def split_geo_at_point(self,spoint):
+    def split_geo_at_point(self, spoint):
         """
         Splits the given geometry into 2 geometries. The
         geometry will be split at Point spoint.
@@ -1300,7 +1299,7 @@ class CCLineGeo(LineGeo):
         #Case 1 according to para 3.2
         if self.Pe.isintol(other.Pa, tol):
             geos.append(CCLineGeo(newPa, self.Pe))
-        elif len(points)==0:
+        elif len(points) == 0:
             return []
         #Case 2 according to para 3.2
         else:
@@ -1340,7 +1339,7 @@ class CCLineGeo(LineGeo):
        
         
         #Fast Case 1a
-        if self.Pe.isintol(other.Pa,tol):
+        if self.Pe.isintol(other.Pa, tol):
             geos.append(CCLineGeo(newPa, other.Pa))
             return geos
         
@@ -1360,21 +1359,21 @@ class CCLineGeo(LineGeo):
             if isTIP1 and isTIP2:
                 #print 'case 1a'
                 geos.append(CCLineGeo(newPa, ipoint))
-                #if geos[-1].length<tol:
+                #if geos[-1].length < tol:
                     #print ('Case1a')
                 
             #Case 1 b
             elif not(isTIP1) and not(isTIP2):
                 #print 'case 1b'
-                direction=newPa.get_arc_direction(self.Pe,orgPe)
-                r=self.Pe.distance(orgPe)
+                direction = newPa.get_arc_direction(self.Pe, orgPe)
+                r = self.Pe.distance(orgPe)
                 
                 geos.append(CCLineGeo(newPa, self.Pe))
-                #if geos[-1].length<tol:
+                #if geos[-1].length < tol:
                 #    print ('Case1b')
-                geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
-                                   O=orgPe, direction=direction,
-                                   r=r))
+                geos.append(CCArcGeo(Pa=self.Pe, Pe=other.Pa,
+                                     O=orgPe, direction=direction,
+                                     r=r))
                 
                 
             #Case 1 c & d
@@ -1384,7 +1383,7 @@ class CCLineGeo(LineGeo):
                 #if geos[-1].length<tol:
                     #print ('Case1c 1')
                 geos.append(CCLineGeo(self.Pe, other.Pa))
-                if geos[-1].length<tol:
+                if geos[-1].length < tol:
                     geos.pop()
                     print ('Case1c 2')
                     #print self
@@ -1396,15 +1395,15 @@ class CCLineGeo(LineGeo):
         #Case 2
         else: 
             #print 'case 2'
-            direction=newPa.get_arc_direction(self.Pe,orgPe)
+            direction = newPa.get_arc_direction(self.Pe, orgPe)
             
-            r=self.Pe.distance(orgPe)
+            r = self.Pe.distance(orgPe)
             geos.append(CCLineGeo(newPa, self.Pe))
-            #if geos[-1].length<tol:
+            #if geos[-1].length < tol:
                 #print ('Case2')
-            geos.append(CCArcGeo(Pa=self.Pe,Pe=other.Pa,
-                               O=orgPe, direction=direction, 
-                               r=r))
+            geos.append(CCArcGeo(Pa=self.Pe, Pe=other.Pa,
+                                 O=orgPe, direction=direction, 
+                                 r=r))
             
         return geos
     
@@ -1412,16 +1411,16 @@ class IPointClass(PointClass):
     """
     Standard Point Class Inherited for Intersection Point Class.
     """ 
-    def __init__(self, x=0, y=0,v1=0, v2=0, geo1=None, geo2=None):
+    def __init__(self, x=0, y=0, v1=0, v2=0, geo1=None, geo2=None):
         """
         Standard Method to initialise the IPointClass
         """
         
-        PointClass.__init__(self, x=x,y=y)
-        self.v1=v1
-        self.v2=v2
-        self.geo1=geo1
-        self.geo2=geo2
+        PointClass.__init__(self, x=x, y=y)
+        self.v1 = v1
+        self.v2 = v2
+        self.geo1 = geo1
+        self.geo2 = geo2
         
     def __str__(self):
         return ('X ->%6.3f  Y ->%6.3f \n' % (self.x, self.y)) \
@@ -1434,24 +1433,24 @@ class IPointClass(PointClass):
         @param other: The Point which shall be checked
         @return: Returns true or false
         """
-        if geo==self.geo1:
-            v=self.v1
+        if geo == self.geo1:
+            v = self.v1
         else:
-            v=self.v2
+            v = self.v2
             
         
-        if type=='inside':
-            if (not(geo.Pa.isintol(self,tol)) and \
-                not(geo.Pe.isintol(self,tol)) and \
+        if type == 'inside':
+            if (not(geo.Pa.isintol(self, tol)) and \
+                not(geo.Pe.isintol(self, tol)) and \
                 (v>0.0 and v<1.0)):
                 return True
-        elif type=='exact':
-            if v>=0.0 and v<=1.0:
+        elif type == 'exact':
+            if v >= 0.0 and v <= 1.0:
                 return True
         else:
-            if (geo.Pa.isintol(self,tol) or \
-                geo.Pe.isintol(self,tol) or \
-                (v>0.0 and v<1.0)):
+            if (geo.Pa.isintol(self, tol) or \
+                geo.Pe.isintol(self, tol) or \
+                (v > 0.0 and v < 1.0)):
                 return True
         
         return False    
@@ -1466,17 +1465,17 @@ class IPointClass(PointClass):
         @param ipoint: The Point which shall be checked
         @return: Returns true or false
         """
-        if geo==self.geo1:
-            v=self.v1
+        if geo == self.geo1:
+            v = self.v1
         else:
-            v=self.v2
+            v = self.v2
             
-        return v>1.0
+        return v > 1.0
     
 
        
     
-def dotProd(P1,P2):
+def dotProd(P1, P2):
     """
     Returns the dotProduct of two points
     @param P1: The first Point
@@ -1484,6 +1483,5 @@ def dotProd(P1,P2):
     @return: dot Product of the points.
     """ 
     
-    return (P1.x*P2.x) + (P1.y*P2.y)
+    return (P1.x * P2.x) + (P1.y * P2.y)
 
-    
