@@ -24,7 +24,7 @@ import Core.Globals as g
 from Core.CustomGCode import CustomGCodeClass
 
 import logging
-logger=logging.getLogger("Gui.TreeHandling") 
+logger = logging.getLogger("Gui.TreeHandling") 
 
 #defines some arbitrary types for the objects stored into the treeView.
 #These types will eg help us to find which kind of data is stored in the element received from a click() event
@@ -179,10 +179,10 @@ class TreeHandler(QtGui.QWidget):
             self.layer_item_model.clear() #Remove any existing item_model
         self.layer_item_model = MyStandardItemModel() #This is the model view (QStandardItemModel). it's the container for the data
         self.layer_item_model.setSupportedDragActions(QtCore.Qt.MoveAction)
-        self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"));
-        self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"));
-        self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nr"));
-        self.layer_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Optimal path"));
+        self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"))
+        self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"))
+        self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nr"))
+        self.layer_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Optimal path"))
         modele_root_element = self.layer_item_model.invisibleRootItem() #Root element of our tree
 
         for layer in layers_list:
@@ -259,13 +259,13 @@ class TreeHandler(QtGui.QWidget):
         if self.entity_item_model:
             self.entity_item_model.clear() #Remove any existing item_model
         self.entity_item_model = QtGui.QStandardItemModel()
-        self.entity_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"));
-        self.entity_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"));
-        self.entity_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nr"));
-        self.entity_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Type"));
-        self.entity_item_model.setHorizontalHeaderItem(4, QtGui.QStandardItem("Base point"));
-        self.entity_item_model.setHorizontalHeaderItem(5, QtGui.QStandardItem("Scale"));
-        self.entity_item_model.setHorizontalHeaderItem(6, QtGui.QStandardItem("Rotation"));
+        self.entity_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"))
+        self.entity_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"))
+        self.entity_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nr"))
+        self.entity_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Type"))
+        self.entity_item_model.setHorizontalHeaderItem(4, QtGui.QStandardItem("Base point"))
+        self.entity_item_model.setHorizontalHeaderItem(5, QtGui.QStandardItem("Scale"))
+        self.entity_item_model.setHorizontalHeaderItem(6, QtGui.QStandardItem("Rotation"))
         modele_root_element = self.entity_item_model.invisibleRootItem()
 
         self.buildEntitiesSubTree(modele_root_element, entities_list)
@@ -562,9 +562,9 @@ class TreeHandler(QtGui.QWidget):
         "real" shape (ie a ShapeClass instance)
         options
         @param shape: the real shape (ShapeClass instance)
-        @return: the found item index
+        @return: the found item index (can be None)
         """
-        return self.traverseChildrenAndFindShape(self.layer_item_model, QtCore.QModelIndex(), shape); #Return the item found (can be None)
+        return self.traverseChildrenAndFindShape(self.layer_item_model, QtCore.QModelIndex(), shape)
 
     def findEntityItemIndexFromShape(self, shape):
         """
@@ -572,9 +572,9 @@ class TreeHandler(QtGui.QWidget):
         a "real" shape (ie a ShapeClass instance)
         options
         @param shape: the real shape (ShapeClass instance)
-        @return: the found item index
+        @return: the found item index (can be None)
         """
-        return self.traverseChildrenAndFindShape(self.entity_item_model, QtCore.QModelIndex(), shape); #Return the item found (can be None)
+        return self.traverseChildrenAndFindShape(self.entity_item_model, QtCore.QModelIndex(), shape)
 
     def traverseChildrenAndFindShape(self, item_model, item_index, shape):
         """
@@ -601,7 +601,7 @@ class TreeHandler(QtGui.QWidget):
                     return sub_item_index
 
             if item_model.hasChildren(sub_item_index):
-                found_item_index = self.traverseChildrenAndFindShape(item_model, sub_item_index, shape);
+                found_item_index = self.traverseChildrenAndFindShape(item_model, sub_item_index, shape)
                 if found_item_index:
                     return found_item_index
 
@@ -625,7 +625,7 @@ class TreeHandler(QtGui.QWidget):
             sub_item_index = item_model.index(i, 0, item_index)
 
             if item_model.hasChildren(sub_item_index):
-                self.traverseChildrenAndSelect(selection_model, item_model, sub_item_index, select);
+                self.traverseChildrenAndSelect(selection_model, item_model, sub_item_index, select)
 
             element = sub_item_index.model().itemFromIndex(sub_item_index)
             if element:
@@ -655,7 +655,7 @@ class TreeHandler(QtGui.QWidget):
             sub_item_index = item_model.index(i, 0, item_index)
 
             if item_model.hasChildren(sub_item_index):
-                self.traverseChildrenAndEnableDisable(item_model, sub_item_index, checked_state);
+                self.traverseChildrenAndEnableDisable(item_model, sub_item_index, checked_state)
 
             item = item_model.itemFromIndex(sub_item_index)
             if item:
@@ -708,7 +708,7 @@ class TreeHandler(QtGui.QWidget):
 
         #Handle the parent of the parent (recursive call)
         if parent_item_index and parent_item_index.parent().isValid():
-            self.traverseParentsAndUpdateEnableDisable(item_model, parent_item_index.parent());
+            self.traverseParentsAndUpdateEnableDisable(item_model, parent_item_index.parent())
 
 
 
@@ -735,7 +735,7 @@ class TreeHandler(QtGui.QWidget):
             #Get the new value and convert it to int
             val = text.toInt()
             if val[1]:
-                selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+                selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
     
                 for model_index in selected_indexes_list:
                     if model_index.isValid():
@@ -769,7 +769,7 @@ class TreeHandler(QtGui.QWidget):
         #Get the new value and convert it to float
         val = text.toFloat()
         if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
                 if model_index.isValid():
@@ -797,7 +797,7 @@ class TreeHandler(QtGui.QWidget):
         #Get the new value and convert it to float
         val = text.toFloat()
         if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
                 if model_index.isValid():
@@ -825,7 +825,7 @@ class TreeHandler(QtGui.QWidget):
         #Get the new value and convert it to float
         val = text.toFloat()
         if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
                 if model_index.isValid():
@@ -853,7 +853,7 @@ class TreeHandler(QtGui.QWidget):
         #Get the new value and convert it to float
         val = text.toFloat()
         if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
                 if model_index.isValid():
@@ -881,7 +881,7 @@ class TreeHandler(QtGui.QWidget):
         #Get the new value and convert it to float
         val = text.toFloat()
         if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
                 if model_index.isValid():
@@ -909,7 +909,7 @@ class TreeHandler(QtGui.QWidget):
         #Get the new value and convert it to float
         val = text.toFloat()
         if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
                 if model_index.isValid():
@@ -937,7 +937,7 @@ class TreeHandler(QtGui.QWidget):
         #Get the new value and convert it to float
         val = text.toFloat()
         if val[1]:
-            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
                 if model_index.isValid():
@@ -1176,7 +1176,7 @@ class TreeHandler(QtGui.QWidget):
 
 
     def disableSelectedItems(self):
-        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
@@ -1186,7 +1186,7 @@ class TreeHandler(QtGui.QWidget):
 
 
     def enableSelectedItems(self):
-        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
@@ -1197,7 +1197,7 @@ class TreeHandler(QtGui.QWidget):
 
 
     def doNotOptimizeRouteForSelectedItems(self):
-        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
@@ -1208,7 +1208,7 @@ class TreeHandler(QtGui.QWidget):
 
 
     def optimizeRouteForSelectedItems(self):
-        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes();
+        selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
