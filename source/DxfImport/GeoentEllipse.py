@@ -37,16 +37,17 @@ class GeoentEllipse:
         #Initialisieren der Werte
         #Initialise the values
         self.Layer_Nr = 0
-        self.center = Point(0, 0) #Mittelpunkt der Geometrie / Centre of the geometry
+        self.center = Point(0, 0) #Centre of the geometry
         self.vector = Point(1, 0) #Vektor A = gro�e Halbachse a, = Drehung der Ellipse
-                                  # Vector A = semi-major axis. a = rotation of the ellipse
+                                  # Vector A = semi-major axis.
+                                  # a = rotation of the ellipse
                                   # http://de.wikipedia.org/wiki/Gro%C3%9Fe_Halbachse
         self.ratio = 1            #Verh�ltnis der kleinen zur gro�en Halbachse (b/a)
                                   #Ratio of the minor to major axis (b/a)
-        #self.AngS = 0                 #Startwinkel beim zeichnen eines Ellipsensegments
-                                       #Starting angle when drawing an ellipse segment
-        #self.AngE = radians(360)      #Endwinkel (Winkel im DXF als Radians!)
-                                       #End angle (angle in radians as DXF!)
+        #self.AngS = 0              #Startwinkel beim zeichnen eines Ellipsensegments
+                                    #Starting angle when drawing an ellipse segment
+        #self.AngE = radians(360)   #Endwinkel (Winkel im DXF als Radians!)
+                                    #End angle (angle in radians as DXF!)
         #Die folgenden Grundwerte werden sp�ter ein mal berechnet
         #The following limits are calculated later
 
@@ -65,7 +66,7 @@ class GeoentEllipse:
         
 
     def __str__(self):
-        # how to print the object #Geht auch so ellegant wie sprintf in C oder Matlab usw. siehe erste zeile  !!!!!!!!!!!!!!!!!!!!!!
+        # how to print the object
         # As elegant as printf in C or Matlab etc. see the first line!
         s = ('Typ: Ellipse\n') + \
         ('Nr:     %i \n' % (self.Nr)) + \
@@ -255,8 +256,8 @@ class GeoentEllipse:
     def Ellipse_Point(self, alpha=0):#Point(0,0)
         #gro�e Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         #Semi-major axis, minor axis, rotation of the ellipse (rad), the point in the ellipse angle (rad) ???
-        Ex = self.a * cos(alpha) * cos(self.rotation) - self.b * sin(alpha) * sin(self.rotation);
-        Ey = self.a * cos(alpha) * sin(self.rotation) + self.b * sin(alpha) * cos(self.rotation);
+        Ex = self.a * cos(alpha) * cos(self.rotation) - self.b * sin(alpha) * sin(self.rotation)
+        Ey = self.a * cos(alpha) * sin(self.rotation) + self.b * sin(alpha) * cos(self.rotation)
         return Point(self.center.x + Ex, self.center.y + Ey)
     
     def Ellipse_Tangent(self, alpha=0):#Point(0,0)

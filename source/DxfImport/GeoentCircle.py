@@ -26,10 +26,10 @@ from PyQt4 import QtCore, QtGui
 
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
-from Core.ArcGeo import  ArcGeo 
+from Core.ArcGeo import ArcGeo 
 
 import logging
-logger=logging.getLogger("DXFImport.GeoentCircle") 
+logger = logging.getLogger("DXFImport.GeoentCircle") 
 
 class GeoentCircle(QtCore.QObject):
     def __init__(self, Nr=0, caller=None):
@@ -50,7 +50,7 @@ class GeoentCircle(QtCore.QObject):
               ("\nLayer Nr:%i" % self.Layer_Nr) + \
               str(self.geo[-1])
               
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -96,9 +96,10 @@ class GeoentCircle(QtCore.QObject):
         #If there is a extrusion direction given flip around x-Axis
         if s_nxt_xt != None:
             extrusion_dir = float(lp.line_pair[s_nxt_xt].value)
-            logger.debug(self.tr('Found extrusion direction: %s') %extrusion_dir)
+            logger.debug(self.tr('Found extrusion direction: %s')
+                                 % extrusion_dir)
             if extrusion_dir == -1:
-                x0=-x0
+                x0 = -x0
                 
         O = Point(x0, y0)
 

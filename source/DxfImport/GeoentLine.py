@@ -28,7 +28,7 @@ from DxfImport.Classes import PointsClass
 from Core.LineGeo import  LineGeo 
 
 import logging
-logger=logging.getLogger("DXFImport.GeoentCircle") 
+logger = logging.getLogger("DXFImport.GeoentCircle") 
 
 class GeoentLine:
     def __init__(self, Nr=0, caller=None):
@@ -50,7 +50,7 @@ class GeoentLine:
               str(self.geo[-1])
 
               
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -109,8 +109,8 @@ class GeoentLine:
             extrusion_dir = float(lp.line_pair[s_nxt_xt].value)
             logger.debug(self.tr('Found extrusion direction: %s') %extrusion_dir)
             if extrusion_dir == -1:
-                x0=-x0
-                x1=-x1
+                x0 = -x0
+                x1 = -x1
         
         Pa = Point(x0, y0)
         Pe = Point(x1, y1)               

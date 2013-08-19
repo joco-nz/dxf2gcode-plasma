@@ -29,7 +29,7 @@ from DxfImport.Classes import PointsClass
 from Core.ArcGeo import  ArcGeo
 
 import logging
-logger=logging.getLogger("DXFImport.GeoentArc") 
+logger = logging.getLogger("DXFImport.GeoentArc") 
 
 
 class GeoentArc(QtCore.QObject):
@@ -51,7 +51,7 @@ class GeoentArc(QtCore.QObject):
               ("\nLayer Nr:%i" % self.Layer_Nr) + \
               str(self.geo[-1])
               
-    def tr(self,string_to_translate):
+    def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string    
@@ -109,11 +109,12 @@ class GeoentArc(QtCore.QObject):
         #If there is a extrusion direction given flip around x-Axis
         if s_nxt_xt != None:
             extrusion_dir = float(lp.line_pair[s_nxt_xt].value)
-            logger.debug(self.tr('Found extrusion direction: %s') %extrusion_dir)
+            logger.debug(self.tr('Found extrusion direction: %s')
+                                 % extrusion_dir)
             if extrusion_dir == -1:
-                x0=-x0
-                s_ang=s_ang+pi
-                e_ang=e_ang+pi
+                x0 = -x0
+                s_ang = s_ang + pi
+                e_ang = e_ang + pi
            
 
 
