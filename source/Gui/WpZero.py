@@ -30,16 +30,16 @@ dl = 0.2
 DEBUG = 1
 
 class WpZero(QtGui.QGraphicsItem):
-    def __init__(self, center,color=QtCore.Qt.gray):
-        self.sc=1
+    def __init__(self, center, color=QtCore.Qt.gray):
+        self.sc = 1
         super(WpZero, self).__init__()
 
-        self.center=center
-        self.allwaysshow=False
+        self.center = center
+        self.allwaysshow = False
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
-        self.color=color
-        self.pen=QtGui.QPen(self.color, 1, QtCore.Qt.SolidLine,
-                QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.color = color
+        self.pen = QtGui.QPen(self.color, 1, QtCore.Qt.SolidLine,
+                  QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.pen.setCosmetic(True)
         
         self.diameter = 20.0
@@ -48,20 +48,20 @@ class WpZero(QtGui.QGraphicsItem):
         min_distance = float(0x7fffffff)
         return min_distance
  
-    def setSelected(self,flag=True):
+    def setSelected(self, flag=True):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection
         """
         pass
         
-    def setallwaysshow(self,flag=False):
+    def setallwaysshow(self, flag=False):
         """
         If the directions shall be allwaysshown the paramerter will
         be set and all paths will be shown.
         @param flag: The flag to enable or disable Selection
         """
-        self.allwaysshow=flag
+        self.allwaysshow = flag
         if flag is True:
             self.show()
         else:
@@ -69,14 +69,14 @@ class WpZero(QtGui.QGraphicsItem):
         self.update(self.boundingRect())
                
     def paint(self, painter, option, widget=None):
-        demat=painter.deviceTransform()
-        self.sc=demat.m11()
+        demat = painter.deviceTransform()
+        self.sc = demat.m11()
         
-        diameter1=self.diameter/self.sc
-        diameter2=(self.diameter-4)/self.sc
+        diameter1 = self.diameter / self.sc
+        diameter2 = (self.diameter-4) / self.sc
        
-        rectangle1=QtCore.QRectF(-diameter1/2, -diameter1/2, diameter1, diameter1)
-        rectangle2=QtCore.QRectF(-diameter2/2, -diameter2/2, diameter2, diameter2)
+        rectangle1 = QtCore.QRectF(-diameter1/2, -diameter1/2, diameter1, diameter1)
+        rectangle2 = QtCore.QRectF(-diameter2/2, -diameter2/2, diameter2, diameter2)
         startAngle1 = 90 * 16
         spanAngle = 90 * 16
         startAngle2 = 270 * 16
@@ -93,7 +93,7 @@ class WpZero(QtGui.QGraphicsItem):
         Override inherited function to enlarge selection of Arrow to include all
         @param flag: The flag to enable or disable Selection
         """
-        diameter=self.diameter/self.sc
+        diameter = self.diameter / self.sc
         return QtCore.QRectF(-20, -20.0, 40.0, 40.0)
 
  

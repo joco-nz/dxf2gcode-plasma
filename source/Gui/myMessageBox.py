@@ -30,11 +30,11 @@ class myMessageBox(QtGui.QTextBrowser):
         self.setOpenExternalLinks(True)
         
         self.append("You are using DXF2GCODE")
-        self.append("Version %s (%s)" %(c.VERSION,c.DATE))
+        self.append("Version %s (%s)" % (c.VERSION, c.DATE))
         self.append("For more information and updates visit:")
         self.append("<a href=http://code.google.com/p/dxf2gcode>http://code.google.com/p/dxf2gcode</a>")
 
-    def write(self,charstr):
+    def write(self, charstr):
         """
         The function is called by the window logger to write the log message to
         the Messagebox

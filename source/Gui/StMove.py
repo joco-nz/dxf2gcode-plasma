@@ -29,7 +29,7 @@ from Core.ArcGeo import ArcGeo
 from Gui.Arrow import Arrow
 
 import logging
-logger=logging.getLogger('Gui.StMove')
+logger = logging.getLogger('Gui.StMove')
 
 from PyQt4 import QtCore, QtGui
 
@@ -45,7 +45,7 @@ class StMove(QtGui.QGraphicsLineItem):
     """
     def __init__(self, startp, angle, 
                  pencolor=QtCore.Qt.green,
-                 shape=None,parent=None):
+                 shape=None, parent=None):
         """
         Initialisation of the class.
         @param startp: Startpoint of the shape where to add the move.
@@ -56,23 +56,23 @@ class StMove(QtGui.QGraphicsLineItem):
         @param parent: parent EntitieContent Class on which the 
         geometries are added.
         """
-        self.sc=1
+        self.sc = 1
         super(StMove, self).__init__()
 
         self.startp = startp
-        self.endp=startp
-        self.angle=angle
-        self.shape=shape
-        self.parent=parent
-        self.allwaysshow=False
-        self.geos=[]
-        self.path=QtGui.QPainterPath()
+        self.endp = startp
+        self.angle = angle
+        self.shape = shape
+        self.parent = parent
+        self.allwaysshow = False
+        self.geos = []
+        self.path = QtGui.QPainterPath()
         
         
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
         
-        self.pen=QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
-                QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen = QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
+                      QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.pen.setCosmetic(True)
         
         self.make_start_moves()
@@ -99,8 +99,8 @@ class StMove(QtGui.QGraphicsLineItem):
         tool_rad = self.shape.LayerContent.tool_diameter/2
         
         #Calculate the starting point with and without compensation.        
-        start=self.startp
-        angle=self.angle
+        start = self.startp
+        angle = self.angle
       
         if self.shape.cut_cor == 40:              
             self.geos.append(start)
@@ -158,7 +158,7 @@ class StMove(QtGui.QGraphicsLineItem):
         """
         logger.debug("Updating CutterCorrection of Selected shape")
 
-        self.cutcor=cutcor
+        self.cutcor = cutcor
         self.make_start_moves()
    
     def updateCCplot(self):
@@ -174,7 +174,7 @@ class StMove(QtGui.QGraphicsLineItem):
             self.ccarrow.hide()
             logger.debug("Parent Item: %s" %self.ccarrow.parentItem())
             del(self.ccarrow)
-            self.ccarrow=None
+            self.ccarrow = None
         
         self.createccarrow()
         self.make_papath()
@@ -182,37 +182,37 @@ class StMove(QtGui.QGraphicsLineItem):
         
     def createccarrow(self):
          
-        length=20
-        if self.shape.cut_cor==40:
-            self.ccarrow=None
-        elif self.shape.cut_cor==41:
-            self.ccarrow=Arrow(startp=self.startp,
-                        length=length,
-                        angle=self.angle+pi/2,
-                        color=QtGui.QColor(200, 200, 255),
-                        pencolor=QtGui.QColor(200, 100, 255))
+        length = 20
+        if self.shape.cut_cor == 40:
+            self.ccarrow = None
+        elif self.shape.cut_cor == 41:
+            self.ccarrow = Arrow(startp=self.startp,
+                          length=length,
+                          angle=self.angle+pi/2,
+                          color=QtGui.QColor(200, 200, 255),
+                          pencolor=QtGui.QColor(200, 100, 255))
             self.ccarrow.setParentItem(self)
         else:
-            self.ccarrow=Arrow(startp=self.startp,
-                        length=length,
-                        angle=self.angle-pi/2,
-                        color=QtGui.QColor(200, 200, 255),
-                        pencolor=QtGui.QColor(200, 100, 255))
+            self.ccarrow = Arrow(startp=self.startp,
+                          length=length,
+                          angle=self.angle-pi/2,
+                          color=QtGui.QColor(200, 200, 255),
+                          pencolor=QtGui.QColor(200, 100, 255))
             self.ccarrow.setParentItem(self)
     
-    def update_plot(self,startp,angle):
+    def update_plot(self, startp, angle):
         """
         Method is called after update of the Shapes Startpoint
         @param startp: The new startpoint
         @param angle: the new Angle of the Startpoint
         """  
         self.startp = startp
-        self.endp=startp
-        self.angle=angle
+        self.endp = startp
+        self.angle = angle
         
-        if self.shape.cut_cor==40:
-            self.ccarrow=None
-        elif self.shape.cut_cor==41:
+        if self.shape.cut_cor == 40:
+            self.ccarrow = None
+        elif self.shape.cut_cor == 41:
             self.ccarrow.updatepos(startp, angle=angle+pi/2)
         else:
             self.ccarrow.updatepos(startp, angle=angle-pi/2)
@@ -228,13 +228,13 @@ class StMove(QtGui.QGraphicsLineItem):
         """
         self.hide()
         del(self.path)
-        self.path=QtGui.QPainterPath()
+        self.path = QtGui.QPainterPath()
         
         for geo in self.geos:
-            geo.add2path(papath=self.path,parent=self.parent)
+            geo.add2path(papath=self.path, parent=self.parent)
         self.show()
 
-    def setSelected(self,flag=True):
+    def setSelected(self, flag=True):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection
@@ -248,24 +248,24 @@ class StMove(QtGui.QGraphicsLineItem):
         
         self.update(self.boundingRect())
         
-    def reverseshape(self,startp,angle):
+    def reverseshape(self, startp, angle):
         """
         Method is called when the shape direction is changed and therefore the
         arrow gets new Point and direction
         @param startp: The new startpoint
         @param angle: The new angle of the arrow
         """
-        self.startp=startp
-        self.angle=angle
-        self.update_plot(startp,angle)
+        self.startp = startp
+        self.angle = angle
+        self.update_plot(startp, angle)
         
-    def setallwaysshow(self,flag=False):
+    def setallwaysshow(self, flag=False):
         """
         If the directions shall be allwaysshown the parameter will be set and 
         all paths will be shown.
         @param flag: The flag to enable or disable Selection
         """
-        self.allwaysshow=flag
+        self.allwaysshow = flag
         if flag is True:
             self.show()
         elif flag is True and self.isSelected():
