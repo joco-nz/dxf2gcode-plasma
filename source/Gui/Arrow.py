@@ -28,34 +28,34 @@ from Core.Point import Point
 from PyQt4 import QtCore, QtGui
 
 import logging
-logger=logging.getLogger("Gui.Arrow") 
+logger = logging.getLogger("Gui.Arrow") 
 
                                                 
 class Arrow(QtGui.QGraphicsLineItem):
-    def __init__(self, startp=Point(x=0.0,y=0.0), endp=None,
+    def __init__(self, startp=Point(x=0.0, y=0.0), endp=None,
                  length=60.0, angle=50.0, 
-                 color=QtCore.Qt.red,pencolor=QtCore.Qt.green,
+                 color=QtCore.Qt.red, pencolor=QtCore.Qt.green,
                  dir=0):
         """
         Initialisation of the class.
         """
-        self.sc=1
+        self.sc = 1
         super(Arrow, self).__init__()
 
-        self.startp = QtCore.QPointF(startp.x,-startp.y)
+        self.startp = QtCore.QPointF(startp.x, -startp.y)
         self.endp = endp
 
-        self.length=length
-        self.angle=angle
-        self.dir=dir
-        self.allwaysshow=False
+        self.length = length
+        self.angle = angle
+        self.dir = dir
+        self.allwaysshow = False
         
         
         self.arrowHead = QtGui.QPolygonF()
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
-        self.myColor=color
-        self.pen=QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
-                QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.myColor = color
+        self.pen = QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
+                              QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.arrowSize = 8.0
         
         self.pen.setCosmetic(True)
@@ -64,7 +64,7 @@ class Arrow(QtGui.QGraphicsLineItem):
         min_distance = float(0x7fffffff)
         return min_distance
 
-    def setSelected(self,flag=True):
+    def setSelected(self, flag=True):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection
@@ -78,24 +78,24 @@ class Arrow(QtGui.QGraphicsLineItem):
         
         self.update(self.boundingRect())
         
-    def reverseshape(self,startp,angle):
+    def reverseshape(self, startp, angle):
         """
         Method is called when the shape direction is changed and therefore the
         arrow gets new Point and direction
         @param startp: The new startpoint
         @param angle: The new angle of the arrow
         """
-        self.startp=QtCore.QPointF(startp.x,-startp.y)
-        self.angle=angle
+        self.startp = QtCore.QPointF(startp.x, -startp.y)
+        self.angle = angle
         self.update(self.boundingRect())
         
-    def setallwaysshow(self,flag=False):
+    def setallwaysshow(self, flag=False):
         """
         If the directions shall be allwaysshown the parameter will be set and 
         all paths will be shown.
         @param flag: The flag to enable or disable Selection
         """
-        self.allwaysshow=flag
+        self.allwaysshow = flag
         if flag is True:
             self.show()
         elif flag is True and self.isSelected():
@@ -104,12 +104,12 @@ class Arrow(QtGui.QGraphicsLineItem):
             self.hide()
         self.update(self.boundingRect())
             
-    def updatepos(self,startp,endp=None, angle=None):
+    def updatepos(self, startp, endp=None, angle=None):
         """
         Method to update the position after optimisation of the shape.
         """
         self.prepareGeometryChange()
-        self.startp = QtCore.QPointF(startp.x,-startp.y)
+        self.startp = QtCore.QPointF(startp.x, -startp.y)
         self.endp = endp
         self.angle = angle
             
@@ -118,23 +118,23 @@ class Arrow(QtGui.QGraphicsLineItem):
         Method for painting the arrow.
         """
 
-        demat=painter.deviceTransform()
-        self.sc=demat.m11()
+        demat = painter.deviceTransform()
+        self.sc = demat.m11()
         
         if self.endp is None:
             dx = cos(self.angle) * self.length/self.sc
             dy = sin(self.angle) * self.length/self.sc
             
-            endp=QtCore.QPointF(self.startp.x()+dx,self.startp.y()-dy)
+            endp = QtCore.QPointF(self.startp.x()+dx, self.startp.y()-dy)
         else:
-            endp=QtCore.QPointF(self.endp.x, -self.endp.y)
+            endp = QtCore.QPointF(self.endp.x, -self.endp.y)
         
-        arrowSize=self.arrowSize/self.sc
+        arrowSize = self.arrowSize/self.sc
     
         painter.setPen(self.pen)
         painter.setBrush(self.myColor)
         
-        self.setLine(QtCore.QLineF(endp,self.startp))
+        self.setLine(QtCore.QLineF(endp, self.startp))
         line = self.line()
 
         angle = acos(line.dx() / line.length())
@@ -146,7 +146,7 @@ class Arrow(QtGui.QGraphicsLineItem):
         if line.dy() >= 0:
             angle = (pi * 2.0) - angle
 
-        if self.dir==0:
+        if self.dir == 0:
             arrowP1 = line.p1() + QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
                                             cos(angle + pi / 3) * arrowSize)
             arrowP2 = line.p1() + QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
@@ -163,7 +163,6 @@ class Arrow(QtGui.QGraphicsLineItem):
             self.arrowHead.clear()
             for Point in [line.p2(), arrowP1, arrowP2]:
                 self.arrowHead.append(Point)
-
         
 
         painter.drawLine(line)
@@ -176,19 +175,19 @@ class Arrow(QtGui.QGraphicsLineItem):
         @param flag: The flag to enable or disable Selection
         """
         
-        #print("super: %s" %super(Arrow, self).boundingRect())
-        arrowSize=self.arrowSize*self.sc
+        #print("super: %s" % super(Arrow, self).boundingRect())
+        arrowSize = self.arrowSize * self.sc
         extra = (arrowSize) / 2.0 #self.pen.width() +
         
         if self.endp is None:
             dx = cos(self.angle) * self.length/self.sc
             dy = sin(self.angle) * self.length/self.sc
             
-            endp=QtCore.QPointF(self.startp.x()+dx,self.startp.y()-dy)
+            endp = QtCore.QPointF(self.startp.x()+dx, self.startp.y()-dy)
         else:
-            endp=QtCore.QPointF(self.endp.x, -self.endp.y)
+            endp = QtCore.QPointF(self.endp.x, -self.endp.y)
       
-        brect= QtCore.QRectF(self.startp,
+        brect = QtCore.QRectF(self.startp,
                               QtCore.QSizeF(endp.x()-self.startp.x(),
                                              endp.y()-self.startp.y())).normalized().adjusted(-extra, -extra, extra, extra)
         return brect

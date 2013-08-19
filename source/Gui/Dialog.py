@@ -1,10 +1,10 @@
 from PyQt4 import QtGui, QtCore
 import logging
-logger=logging.getLogger("Gui.Dialog") 
+logger = logging.getLogger("Gui.Dialog") 
 
 class myDialog(QtGui.QDialog):
     
-    def __init__(self,title="Test",label=('Value1'),value=(1.0)):
+    def __init__(self, title="Test", label=('Value1'), value=(1.0)):
         super(myDialog, self).__init__()
 
         
@@ -12,13 +12,13 @@ class myDialog(QtGui.QDialog):
         logger.debug(label)
         logger.debug(value)
         
-        self.title=title
-        self.label=label
-        self.value=value
+        self.title = title
+        self.label = label
+        self.value = value
         
-        self.result=None
+        self.result = None
         
-        if not(len(label)==len(value)):
+        if not(len(label) == len(value)):
             raise Exception, "Number of labels different to number of values"
         
         self.initUI()
@@ -36,8 +36,8 @@ class myDialog(QtGui.QDialog):
 
         grid1 = QtGui.QGridLayout()
         grid1.setSpacing(10)
-        self.lineLabel=[]
-        self.lineEdit=[]
+        self.lineLabel = []
+        self.lineEdit = []
 
         for i in range(len(self.label)):
             self.lineLabel.append(QtGui.QLabel(self.label[i]))
@@ -77,7 +77,7 @@ class myDialog(QtGui.QDialog):
         
     def cbOK(self):
 
-        self.result=[]
+        self.result = []
         for lineEdit in self.lineEdit:
             self.result.append(lineEdit.text())
         self.close()
