@@ -719,33 +719,26 @@ class Main(QtGui.QMainWindow):
                                                 []))
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
-                    if cont.order[ent_geo_nr][1]:
-                        ent_geo.geo.reverse()
-                        for geo in ent_geo.geo:
-                            geo = copy(geo)
+                    for geo in ent_geo.geo:
+                        if cont.order[ent_geo_nr][1]:
                             geo.reverse()
-                            #split lines
-                            if self.ui.actionSplit_edges.isChecked() == True:
-                                if geo.type == 'LineGeo':
-                                    geo_b = deepcopy(geo)
-                                    geo_b.Pe.x = geo_b.Pa.x + (geo_b.Pe.x - geo_b.Pa.x) / 2.0
-                                    geo_b.Pe.y = geo_b.Pa.y + (geo_b.Pe.y - geo_b.Pa.y) / 2.0
-
-                                    geo_a = deepcopy(geo)
-                                    geo_a.Pa.x += (geo_a.Pe.x - geo_a.Pa.x) / 2.0
-                                    geo_a.Pa.y += (geo_a.Pe.y - geo_a.Pa.y) / 2.0
-
-                                    self.shapes[-1].geos.append(geo_b)
-                                    self.shapes[-1].geos.append(geo_a)
-                                else:
-                                    self.shapes[-1].geos.append(geo)
-                            else: #stay with the end of the lines
+                        #Split lines
+                        if self.ui.actionSplit_edges.isChecked() == True:
+                            if geo.type == 'LineGeo':
+                                xdiff = (geo.Pe.x - geo.Pa.x) / 2.0
+                                ydiff = (geo.Pe.y - geo.Pa.y) / 2.0
+                                geo_b = deepcopy(geo)
+                                geo_a = deepcopy(geo)
+                                geo_b.Pe.x -= xdiff
+                                geo_b.Pe.y -= ydiff
+                                geo_a.Pa.x += xdiff
+                                geo_a.Pa.y += ydiff
+                                self.shapes[-1].geos.append(geo_b)
+                                self.shapes[-1].geos.append(geo_a)
+                            else:
                                 self.shapes[-1].geos.append(geo)
-                        
-                        ent_geo.geo.reverse()
-                    else:
-                        for geo in ent_geo.geo:
-                            self.shapes[-1].geos.append(copy(geo))
+                        else: #stay with the end of the lines
+                            self.shapes[-1].geos.append(geo)
                 
                 #All shapes have to be CCW direction.
                 self.shapes[-1].AnalyseAndOptimize()

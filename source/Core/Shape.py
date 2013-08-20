@@ -33,7 +33,6 @@ from math import sqrt
 import Core.Globals as g
 
 from Core.Point import Point
-from Core.BoundingBox import BoundingBox
 from math import cos, sin, degrees, pi
 from copy import deepcopy
 from EntitieContent import EntitieContentClass
@@ -91,7 +90,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.stmove = []
         self.LayerContent = None
         self.geos = geos
-        #self.BB = BoundingBox(Pa=None, Pe=None)
         self.axis3_mill_depth = axis3_mill_depth
         self.axis3_start_mill_depth = axis3_start_mill_depth
         self.axis3_slice_depth = axis3_slice_depth

@@ -17,7 +17,6 @@ from PyQt4 import QtCore, QtGui
 import Core.Globals as g
 
 from Core.Point import Point
-from Core.BoundingBox import BoundingBox
 from math import cos, sin, degrees
 from copy import deepcopy
 from EntitieContent import EntitieContentClass
