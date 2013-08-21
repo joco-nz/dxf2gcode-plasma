@@ -122,7 +122,7 @@ class MyGraphicsView(QtGui.QGraphicsView):
         @param event: Event Parameters passed to function
         """
         
-        if(self.dragMode()) == 1:
+        if self.dragMode() == 1:
             super(MyGraphicsView, self).mousePressEvent(event)
         elif event.button() == QtCore.Qt.LeftButton:
             self.mppos = event.pos() 

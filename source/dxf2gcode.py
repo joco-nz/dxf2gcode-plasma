@@ -134,11 +134,11 @@ class Main(QtGui.QMainWindow):
         self.ui.actionExport_Shapes.triggered.connect(self.exportShapes)
         self.ui.actionOptimize_and_Export_shapes.triggered.connect(self.optimizeAndExportShapes)
         
-        self.ui.actionAutoscale.triggered.connect(self.autoscale)
-        self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
         self.ui.actionShow_WP_Zero.triggered.connect(self.setShow_wp_zero)
+        self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
         self.ui.actionShow_disabled_paths.triggered.connect(self.setShow_disabled_paths)
         self.ui.actionLive_update_export_route.toggled.connect(self.setUpdate_export_route)
+        self.ui.actionAutoscale.triggered.connect(self.autoscale)
         self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
         
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
@@ -155,6 +155,7 @@ class Main(QtGui.QMainWindow):
         @param status: Set True to enable, False to disable
         """
         
+        self.ui.actionShow_WP_Zero.setEnabled(status)
         self.ui.actionShow_path_directions.setEnabled(status)
         self.ui.actionShow_disabled_paths.setEnabled(status)
         self.ui.actionLive_update_export_route.setEnabled(status)
@@ -163,7 +164,6 @@ class Main(QtGui.QMainWindow):
         self.ui.actionScale_all.setEnabled(status)
         self.ui.actionRotate_all.setEnabled(status)
         self.ui.actionMove_WP_zero.setEnabled(status)
-        self.ui.actionShow_WP_Zero.setEnabled(status)
         
     def showDialog(self):
         """
@@ -428,14 +428,6 @@ class Main(QtGui.QMainWindow):
         
         myAboutDialog(title = "About DXF2GCODE", message = message)
         
-    def setShow_path_directions(self):
-        """
-        This function is called by the menu "Show all path directions" of the
-        main and forwards the call to MyGraphicsView.setShow_path_direction() 
-        """
-        flag = self.ui.actionShow_path_directions.isChecked()
-        self.MyGraphicsView.setShow_path_direction(flag)
-        
     def setShow_wp_zero(self):
         """
         This function is called by the menu "Show WP Zero" of the
@@ -443,6 +435,14 @@ class Main(QtGui.QMainWindow):
         """
         flag = self.ui.actionShow_WP_Zero.isChecked()
         self.MyGraphicsView.setShow_wp_zero(flag)
+        
+    def setShow_path_directions(self):
+        """
+        This function is called by the menu "Show all path directions" of the
+        main and forwards the call to MyGraphicsView.setShow_path_direction() 
+        """
+        flag = self.ui.actionShow_path_directions.isChecked()
+        self.MyGraphicsView.setShow_path_direction(flag)
         
     def setShow_disabled_paths(self):
         """
@@ -621,6 +621,10 @@ class Main(QtGui.QMainWindow):
         
         self.MyGraphicsScene.plotAll(self.shapes, self.EntitiesRoot)
         self.MyGraphicsView.setScene(self.MyGraphicsScene)
+        self.setShow_wp_zero()
+        self.setShow_path_directions()
+        self.setShow_disabled_paths()
+        self.setUpdate_export_route()
         self.MyGraphicsView.show()
         self.MyGraphicsView.setFocus()
         
