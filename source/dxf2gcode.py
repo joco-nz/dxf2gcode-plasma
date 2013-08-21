@@ -356,9 +356,13 @@ class Main(QtGui.QMainWindow):
         """
         self.MyGraphicsScene.resetexproutes()
         
+        self.MyGraphicsScene.addexproutest()
         for LayerContent in self.LayerContents:
             if len(LayerContent.exp_order) > 0:
                 self.MyGraphicsScene.addexproute(LayerContent.exp_order, LayerContent.LayerNr)
+        if LayerContent:
+            self.ui.actionDelete_G0_paths.setEnabled(True)
+            self.MyGraphicsScene.addexprouteen()
         
     
     def showSaveDialog(self):

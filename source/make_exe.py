@@ -13,8 +13,8 @@ icon = "%s/dxf2gcode_pyQt4_ui/images/DXF2GCODE-001.ico" % filepfad
 upxdir = "C:/Python27/pyinstaller-2.0/upx309w"
 
 #options = ("--noconsole --upx-dir=%s --icon=%s" % (upxdir, icon))
-#uncomment line above to use uxp
-options = ("--noconsole --icon=%s" % (icon)) #comment to use uxp
+#uncomment line above to use upx
+options = ("--noconsole --icon=%s" % (icon)) #comment to use upx
 print options
 
 #Verzwichniss wechseln
