@@ -487,6 +487,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         self.routearrows = []
         self.routetext = []
         self.showDisabled = False
+        self.expprv = []
+        self.expcol = []
 #        self.EntitiesRoot = EntitieContentClass(Nr=-1, Name='Base',
 #                                              parent=None, children=[],
 #                                              p0=Point(0,0), pb=Point(0,0),
@@ -614,8 +616,20 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         This function resets all of the export route
         """
         self.delete_opt_path()
-
-    
+        
+    def addexproutest(self):
+        """
+        This function initialises the Arrows of the export route order and 
+        its numbers. 
+        @param shapes_st_en_points: The start and end points of the shapes.
+        @param route: The order of the shapes to be plotted. 
+        """
+        
+        x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
+        y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
+        self.expprv = Point(x=x_st, y=y_st)
+        self.expcol = QtCore.Qt.darkRed
+        
     def addexproute(self, exp_order, layer_nr):
         """
         This function initialises the Arrows of the export route order and 
@@ -633,65 +647,49 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     
         #Ausdrucken der optimierten Route
         #Print the optimised route
-        for shape_nr in range(len(exp_order)+1):
-            
-            if shape_nr == 0:
-                st = start
-                [en, dummy] = self.shapes[exp_order[shape_nr]].get_st_en_points(0)
-                col = QtCore.Qt.darkRed
-            elif shape_nr == (len(exp_order)):
-                [st, dummy] = self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
-                en = ende
-                col = QtCore.Qt.darkRed
-            else:
-                [st, dummy] = self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
-                [en, dummy] = self.shapes[exp_order[shape_nr]].get_st_en_points(0)
-                col = QtCore.Qt.darkGray
-                
+        for shape_nr in range(len(exp_order)):
+            st = self.expprv
+            [en, dummy] = self.shapes[exp_order[shape_nr]].get_st_en_points(0)
+            [self.expprv, dummy] = self.shapes[exp_order[shape_nr]].get_st_en_points(1)    
 #            st=shapes_st_en_points[route[st_nr]][1]
 #            en=shapes_st_en_points[route[en_nr]][0]
 
             self.routearrows.append(Arrow(startp=st,
                   endp=en,
-                  color=col,
-                  pencolor=col))
+                  color=self.expcol,
+                  pencolor=self.expcol))
+                  
+            self.expcol = QtCore.Qt.darkGray
             
-            self.routetext.append(RouteText(text=("%s,%s" % (layer_nr, shape_nr)),
-                                            startp=st)) 
+            self.routetext.append(RouteText(text=("%s,%s" % (layer_nr, shape_nr+1)),
+                                            startp=en)) 
             
             #self.routetext[-1].ItemIgnoresTransformations 
             
-            self.addItem(self.routetext[-1])   
+            self.addItem(self.routetext[-1])
             self.addItem(self.routearrows[-1])
-
-    def updateexproute(self, exp_order):
+        
+    def addexprouteen(self):
         """
-        This function updates the Arrows of the export route order and 
+        This function initialises the Arrows of the export route order and 
         its numbers. 
         @param shapes_st_en_points: The start and end points of the shapes.
         @param route: The order of the shapes to be plotted. 
         """
+        
         x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
         y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
-        start = Point(x=x_st, y=y_st)
-        ende = Point(x=x_st, y=y_st)
+        st = self.expprv
+        en = Point(x=x_st, y=y_st)
+        self.expcol = QtCore.Qt.darkRed
+
+        self.routearrows.append(Arrow(startp=st,
+              endp=en,
+              color=self.expcol,
+              pencolor=self.expcol))
         
-        
-        for shape_nr in range(len(exp_order)+1):
-            
-            if shape_nr == 0:
-                st = start
-                [en, dummy] = self.shapes[exp_order[shape_nr]].get_st_en_points(0)
-            elif shape_nr == (len(exp_order)):
-                [st, dummy] = self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
-                en = ende
-            else:
-                [st, dummy] = self.shapes[exp_order[shape_nr-1]].get_st_en_points(1)
-                [en, dummy] = self.shapes[exp_order[shape_nr]].get_st_en_points(0)
-            
-            self.routearrows[shape_nr].updatepos(st, en)
-            self.routetext[shape_nr].updatepos(st)
-        
+        self.addItem(self.routearrows[-1])
+
     def delete_opt_path(self):
         """
         This function deletes all the plotted export routes. 

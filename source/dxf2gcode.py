@@ -216,6 +216,7 @@ class Main(QtGui.QMainWindow):
         #Get the export order from the QTreeView
         logger.debug(self.tr('Updating order according to TreeView'))
         self.TreeHandler.updateExportOrder()
+        self.MyGraphicsScene.addexproutest()
         
         for  LayerContent in self.LayerContents:
             
@@ -262,9 +263,6 @@ class Main(QtGui.QMainWindow):
                 logger.debug(self.tr("Fixed order: %s")
                                      % self.shapes_fixed_order)
                 
-                self.MyGraphicsScene.addexproute(LayerContent.exp_order,
-                                                 LayerContent.LayerNr)
-                
                 for it_nr in range(iter_):
                     #Only show each 50th step.
                     if (it_nr % 50) == 0:
@@ -273,19 +271,22 @@ class Main(QtGui.QMainWindow):
                         new_exp_order = []
                         for nr in TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]:
                             new_exp_order.append(LayerContent.exp_order[nr])
-                        
-                        self.MyGraphicsScene.updateexproute(new_exp_order)
-                        self.app.processEvents()                   
-                    
+                                          
                 logger.debug(self.tr("TSP done with result: %s") % TSPs[-1])
                 
                 LayerContent.exp_order = new_exp_order
+                
+                self.MyGraphicsScene.addexproute(LayerContent.exp_order,
+                                                 LayerContent.LayerNr)
                 logger.debug(self.tr("New Export Order after TSP: %s")
                                      % new_exp_order)
+                self.app.processEvents() 
             else:
                 LayerContent.exp_order = []
-                
+            
+        if LayerContent:
             self.ui.actionDelete_G0_paths.setEnabled(True)
+            self.MyGraphicsScene.addexprouteen()
             
         #Update order in the treeView, according to path calculation done by the TSP
         self.TreeHandler.updateTreeViewOrder()
