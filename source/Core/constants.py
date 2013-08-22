@@ -33,13 +33,13 @@ see http://code.activestate.com/recipes/65207/ for module const
 import logging
 
 # Global Variables
-APPNAME = "dxf2gcode"
+APPNAME = "DXF2GCODE"
 VERSION = "pyQT4 Beta"
 
 
-DATE =       "$Date::                     $:"
-REVISION =   "$Rev::                      $:"
-AUTHOR =     u"$Author::                                  $:"
+DATE =       "$Date::                     $"
+REVISION =   "$Rev::                      $"
+AUTHOR =     u"$Author::                                  $"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'

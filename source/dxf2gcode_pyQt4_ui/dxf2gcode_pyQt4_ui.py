@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Sat Aug 17 16:52:41 2013
+# Created: Thu Aug 22 12:40:03 2013
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -469,7 +469,7 @@ class Ui_MainWindow(object):
         self.menubar.addAction(self.menuHelp.menuAction())
 
         self.retranslateUi(MainWindow)
-        self.mytabWidget.setCurrentIndex(1)
+        self.mytabWidget.setCurrentIndex(0)
         QtCore.QObject.connect(self.layersCollapsePushButton, QtCore.SIGNAL(_fromUtf8("clicked()")), self.layersShapesTreeView.collapseAll)
         QtCore.QObject.connect(self.layersExpandPushButton, QtCore.SIGNAL(_fromUtf8("clicked()")), self.layersShapesTreeView.expandAll)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)

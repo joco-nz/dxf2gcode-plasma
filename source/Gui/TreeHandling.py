@@ -33,7 +33,6 @@ LAYER_OBJECT = QtCore.Qt.UserRole + 2  #For storing refs to the layers elements 
 SHAPE_OBJECT = QtCore.Qt.UserRole + 3  #For storing refs to the shape elements (entities_list & layers_list)
 CUSTOM_GCODE_OBJECT = QtCore.Qt.UserRole + 4  #For storing refs to the custom gcode elements (layers_list)
 
-SELECTION_COL = 1 #Column that is selectable in the treeViews
 PATH_OPTIMISATION_COL = 3 #Column that corresponds to TSP enable checkbox
 
 
@@ -214,7 +213,7 @@ class TreeHandler(QtGui.QWidget):
                 item_col_1.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 item_col_2 = QtGui.QStandardItem(str(shape.nr))
-                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
+                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 item_col_3 = QtGui.QStandardItem()
                 item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable)
@@ -353,7 +352,7 @@ class TreeHandler(QtGui.QWidget):
 
         item_col_0.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
         item_col_1.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        item_col_2.setFlags(QtCore.Qt.ItemIsEnabled)
+        item_col_2.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         item_col_3.setFlags(QtCore.Qt.ItemIsEnabled)
 
         #Deal with the checkbox (everything is enabled at start)
@@ -444,6 +443,18 @@ class TreeHandler(QtGui.QWidget):
                         j += 1
 
 
+    def columnsSelectDeselect(self, selection_model, item_index, select):
+        if select:
+            #Select the matching shape in the list.
+            selection_model.select(item_index.sibling(item_index.row(), 2), QtGui.QItemSelectionModel.Select)
+            selection_model.select(item_index.sibling(item_index.row(), 1), QtGui.QItemSelectionModel.Select)
+            selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
+        else:
+            #Unselect the matching shape in the list.
+            selection_model.select(item_index.sibling(item_index.row(), 2), QtGui.QItemSelectionModel.Deselect)
+            selection_model.select(item_index.sibling(item_index.row(), 1), QtGui.QItemSelectionModel.Deselect)
+            selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
+
 
     def updateShapeSelection(self, shape, select):
         """
@@ -464,14 +475,7 @@ class TreeHandler(QtGui.QWidget):
         if item_index:
             #we found the matching index for the shape in our layers treeView model
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            if select:
-                #Select the matching shape in the list. We select column 0 and SELECTION_COL column (ie item name)
-                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Select)
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
-            else:
-                #Unselect the matching shape in the list. We deselect column 0 and SELECTION_COL column (ie item name)
-                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
+            self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.layersShapesTreeView.blockSignals(False)
 
         #Entities treeView
@@ -481,14 +485,7 @@ class TreeHandler(QtGui.QWidget):
         if item_index:
             #we found the matching index for the shape in our entities treeView model
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            if select:
-                #Select the matching shape in the list. We select column 0 and SELECTION_COL column (ie item type)
-                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Select)
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
-            else:
-                #Unselect the matching shape in the list. We deselect column 0 and SELECTION_COL column (ie item type)
-                selection_model.select(item_index.sibling(item_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
-                selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
+            self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.entitiesTreeView.blockSignals(False)
 
         #Update the tool parameters fields
@@ -595,7 +592,7 @@ class TreeHandler(QtGui.QWidget):
         while i < item_model.rowCount(item_index):
             sub_item_index = item_model.index(i, 0, item_index)
 
-            if sub_item_index.data(SHAPE_OBJECT)#.isValid():
+            if sub_item_index.data(SHAPE_OBJECT).isValid():
                 real_item = sub_item_index.data(SHAPE_OBJECT).toPyObject()
                 if shape == real_item:
                     return sub_item_index
@@ -631,10 +628,8 @@ class TreeHandler(QtGui.QWidget):
             if element:
                 if element.data(SHAPE_OBJECT).isValid() or element.data(CUSTOM_GCODE_OBJECT).isValid():
                     #only select Shapes or Custom GCode
-                    col_item_index = sub_item_index.sibling(sub_item_index.row(), SELECTION_COL) #Get the only column that is selectable (eg item name)
-                    selection_model.select(col_item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
-                    selection_model.select(col_item_index.sibling(col_item_index.row(), 0),  QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
-
+                    col_item_index = sub_item_index.sibling(sub_item_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    self.columnsSelectDeselect(selection_model, col_item_index, select)
             i += 1
 
 
@@ -1001,9 +996,8 @@ class TreeHandler(QtGui.QWidget):
                         #select all the children of a given layer when clicked
                         elif element.data(LAYER_OBJECT).isValid():
                             selection_model = self.ui.layersShapesTreeView.selectionModel() #Get the selection model of the QTreeView
-                            #Deselect the Layer in the list. We select column 0 and SELECTION_COL column (ie item type)
-                            selection_model.select(model_index.sibling(model_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
-                            selection_model.select(model_index, QtGui.QItemSelectionModel.Deselect)
+                            #Deselect the Layer in the list.
+                            self.columnsSelectDeselect(selection_model, model_index, False)
                             
                             real_item = element.data(LAYER_OBJECT).toPyObject()
                             self.traverseChildrenAndSelect(selection_model, self.layer_item_model, model_index, True)
@@ -1014,9 +1008,8 @@ class TreeHandler(QtGui.QWidget):
                         #select all the children of a given entity when clicked
                         elif element.data(ENTITY_OBJECT).isValid():
                             selection_model = self.ui.entitiesTreeView.selectionModel() #Get the selection model of the QTreeView
-                            #Deselect the Entities in the list. We select column 0 and SELECTION_COL column (ie item type)
-                            selection_model.select(model_index.sibling(model_index.row(), SELECTION_COL), QtGui.QItemSelectionModel.Deselect)
-                            selection_model.select(model_index, QtGui.QItemSelectionModel.Deselect)
+                            #Deselect the Entities in the list.
+                            self.columnsSelectDeselect(selection_model, model_index, False)
                             
                             self.traverseChildrenAndSelect(selection_model, self.entity_item_model, model_index, True)
 
@@ -1158,20 +1151,18 @@ class TreeHandler(QtGui.QWidget):
         #Update the other TreeViews
         item_index = self.findEntityItemIndexFromShape(real_item)
         if model_index.model() == self.layer_item_model and item_index:
-            item_index = item_index.sibling(item_index.row(), SELECTION_COL) #Get the only column that is selectable (ie item type)
+            item_index = item_index.sibling(item_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             selection_model = self.ui.entitiesTreeView.selectionModel()
-            selection_model.select(item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
-            selection_model.select(item_index.sibling(item_index.row(), 0),  QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
+            self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.entitiesTreeView.blockSignals(False)
 
         item_index = self.findLayerItemIndexFromShape(real_item)
         if model_index.model() == self.entity_item_model and item_index:
-            item_index = item_index.sibling(item_index.row(), SELECTION_COL) #Get the only column that is selectable (ie item name)
+            item_index = item_index.sibling(item_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             selection_model = self.ui.layersShapesTreeView.selectionModel()
-            selection_model.select(item_index, QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
-            selection_model.select(item_index.sibling(item_index.row(), 0),  QtGui.QItemSelectionModel.Select if select else QtGui.QItemSelectionModel.Deselect)
+            self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.layersShapesTreeView.blockSignals(False)
 
 
@@ -1437,7 +1428,7 @@ class TreeHandler(QtGui.QWidget):
                 item_col_1.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 item_col_2 = QtGui.QStandardItem(str(custom_gcode.nr))
-                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
+                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 item_col_3 = QtGui.QStandardItem()
                 item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
