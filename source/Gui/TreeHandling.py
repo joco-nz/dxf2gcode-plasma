@@ -186,7 +186,7 @@ class TreeHandler(QtGui.QWidget):
 
         for layer in layers_list:
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/layer.png"))
+            icon.addPixmap(QtGui.QPixmap(":/images/layer.png"))
             checkbox_element = QtGui.QStandardItem(icon, "")
             checkbox_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
             checkbox_element.setData(QtCore.QVariant(layer), LAYER_OBJECT) #store a ref to the layer in our treeView element - this is a method to map tree elements with real data
@@ -204,7 +204,7 @@ class TreeHandler(QtGui.QWidget):
 
             for shape in layer.shapes:
                 icon = QtGui.QIcon()
-                icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/shape.png"))
+                icon.addPixmap(QtGui.QPixmap(":/images/shape.png"))
                 item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
                 item_col_0.setData(QtCore.QVariant(shape), SHAPE_OBJECT) #store a ref to the shape in our treeView element
                 item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
@@ -216,7 +216,7 @@ class TreeHandler(QtGui.QWidget):
                 item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 item_col_3 = QtGui.QStandardItem()
-                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable)
+                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
 
                 parent_item = modele_root_element.child(modele_root_element.rowCount() - 1, 0)
                 parent_item.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
@@ -316,22 +316,16 @@ class TreeHandler(QtGui.QWidget):
         item_col_0 = None
         if element.type == "Entitie":
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/blocks.png"))
+            icon.addPixmap(QtGui.QPixmap(":/images/blocks.png"))
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
             item_col_0.setData(QtCore.QVariant(element), ENTITY_OBJECT) #store a ref to the entity in our treeView element
 
             item_col_1 = QtGui.QStandardItem(element.Name)
             item_col_2 = QtGui.QStandardItem(str(element.Nr))
             item_col_3 = QtGui.QStandardItem(element.type)
-
             item_col_4 = QtGui.QStandardItem(str(element.p0))
-            item_col_4.setFlags(QtCore.Qt.ItemIsEnabled)
-
             item_col_5 = QtGui.QStandardItem(str(element.sca))
-            item_col_5.setFlags(QtCore.Qt.ItemIsEnabled)
-
             item_col_6 = QtGui.QStandardItem(str(round(degrees(element.rot), 3))) #convert the angle into degrees with 3 digit after the decimal point
-            item_col_6.setFlags(QtCore.Qt.ItemIsEnabled)
 
             elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
 
@@ -340,20 +334,26 @@ class TreeHandler(QtGui.QWidget):
 
         elif element.type == "Shape":
             icon = QtGui.QIcon()
-            icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
             item_col_0.setData(QtCore.QVariant(element), SHAPE_OBJECT) #store a ref to the entity in our treeView element
 
             item_col_1 = QtGui.QStandardItem(element.type)
             item_col_2 = QtGui.QStandardItem(str(element.nr))
             item_col_3 = QtGui.QStandardItem(element.type)
+            item_col_4 = QtGui.QStandardItem()
+            item_col_5 = QtGui.QStandardItem()
+            item_col_6 = QtGui.QStandardItem()
 
-            elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
+            elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
 
         item_col_0.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
         item_col_1.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         item_col_2.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        item_col_3.setFlags(QtCore.Qt.ItemIsEnabled)
+        item_col_3.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        item_col_4.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        item_col_5.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+        item_col_6.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
         #Deal with the checkbox (everything is enabled at start)
         item_col_0.setCheckState(QtCore.Qt.Checked)
@@ -446,14 +446,10 @@ class TreeHandler(QtGui.QWidget):
     def columnsSelectDeselect(self, selection_model, item_index, select):
         if select:
             #Select the matching shape in the list.
-            selection_model.select(item_index.sibling(item_index.row(), 2), QtGui.QItemSelectionModel.Select)
-            selection_model.select(item_index.sibling(item_index.row(), 1), QtGui.QItemSelectionModel.Select)
-            selection_model.select(item_index, QtGui.QItemSelectionModel.Select)
+            selection_model.select(item_index, QtGui.QItemSelectionModel.Select | QtGui.QItemSelectionModel.Rows)
         else:
             #Unselect the matching shape in the list.
-            selection_model.select(item_index.sibling(item_index.row(), 2), QtGui.QItemSelectionModel.Deselect)
-            selection_model.select(item_index.sibling(item_index.row(), 1), QtGui.QItemSelectionModel.Deselect)
-            selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect)
+            selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect | QtGui.QItemSelectionModel.Rows)
 
 
     def updateShapeSelection(self, shape, select):
@@ -475,7 +471,7 @@ class TreeHandler(QtGui.QWidget):
         if item_index:
             #we found the matching index for the shape in our layers treeView model
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            self.columnsSelectDeselect(selection_model, item_index, select)
+            self.columnsSelectDeselect(self, selection_model, item_index, select)
             self.ui.layersShapesTreeView.blockSignals(False)
 
         #Entities treeView
@@ -485,7 +481,7 @@ class TreeHandler(QtGui.QWidget):
         if item_index:
             #we found the matching index for the shape in our entities treeView model
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            self.columnsSelectDeselect(selection_model, item_index, select)
+            self.columnsSelectDeselect(self, selection_model, item_index, select)
             self.ui.entitiesTreeView.blockSignals(False)
 
         #Update the tool parameters fields
@@ -606,7 +602,7 @@ class TreeHandler(QtGui.QWidget):
 
 
 
-    def traverseChildrenAndSelect(self, selection_model, item_model, item_index, select):
+    def traverseChildrenAndSelect(self, item_model, item_index, itemSelection):
         """
         This method is used internally to select/unselect all children
         of a given entity (eg to select all the shapes of a given layer
@@ -622,14 +618,13 @@ class TreeHandler(QtGui.QWidget):
             sub_item_index = item_model.index(i, 0, item_index)
 
             if item_model.hasChildren(sub_item_index):
-                self.traverseChildrenAndSelect(selection_model, item_model, sub_item_index, select)
+                self.traverseChildrenAndSelect(item_model, sub_item_index, itemSelection)
 
             element = sub_item_index.model().itemFromIndex(sub_item_index)
             if element:
                 if element.data(SHAPE_OBJECT).isValid() or element.data(CUSTOM_GCODE_OBJECT).isValid():
                     #only select Shapes or Custom GCode
-                    col_item_index = sub_item_index.sibling(sub_item_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
-                    self.columnsSelectDeselect(selection_model, col_item_index, select)
+                    itemSelection.select(sub_item_index, sub_item_index)
             i += 1
 
 
@@ -965,21 +960,36 @@ class TreeHandler(QtGui.QWidget):
         self.clearToolsParameters() #disable tools parameters widgets, ...
 
         #Deselects all the shapes that are selected
+        itemLayerSelection = QtGui.QItemSelection()
+        itemEntitySelection = QtGui.QItemSelection()
         for selection in deselected:
             for model_index in selection.indexes():
                 if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
                         if element.data(SHAPE_OBJECT).isValid():
-                            self.updateTreeViewSelection(model_index, element, False) #Effectively unselect the shape
+                            real_item = element.data(SHAPE_OBJECT).toPyObject()
+                            real_item.setSelected(False, True) #Deselect the shape on the canvas
+                            #Update the other TreeViews
+                            item_index = self.findEntityItemIndexFromShape(real_item)
+                            if model_index.model() == self.layer_item_model and item_index:
+                                itemLayerSelection.select(model_index, model_index)
+                            item_index = self.findLayerItemIndexFromShape(real_item)
+                            if model_index.model() == self.entity_item_model and item_index:
+                                itemEntitySelection.select(model_index, model_index)
                         elif element.data(LAYER_OBJECT).isValid():
-                            self.traverseChildrenAndSelect(self.ui.layersShapesTreeView.selectionModel(), self.layer_item_model, model_index, False)
+                            itemLayerSelection.select(model_index, model_index)
                         elif element.data(ENTITY_OBJECT).isValid():
-                            self.traverseChildrenAndSelect(self.ui.entitiesTreeView.selectionModel(), self.entity_item_model, model_index, False)
+                            itemEntitySelection.select(model_index, model_index)
+        selectionLayer = self.ui.layersShapesTreeView.selectionModel()
+        selectionLayer.select(itemLayerSelection, QtGui.QItemSelectionModel.Deselect | QtGui.QItemSelectionModel.Rows)
+        selectionEntity = self.ui.entitiesTreeView.selectionModel()
+        selectionEntity.select(itemEntitySelection, QtGui.QItemSelectionModel.Deselect | QtGui.QItemSelectionModel.Rows)
 
 
         #Selects all the shapes that are selected
+        itemLayerSelection = QtGui.QItemSelection()
+        itemEntitySelection = QtGui.QItemSelection()
         for selection in selected:
             for model_index in selection.indexes():
                 if model_index.isValid():
@@ -991,17 +1001,23 @@ class TreeHandler(QtGui.QWidget):
                             #update the tools parameters according to the selection
                             self.displayToolParametersForItem(real_item.LayerContent, real_item)
 
-                            self.updateTreeViewSelection(model_index, element, True) #Effectively select the shape
+                            real_item.setSelected(True, True) #Select the shape on the canvas
+                            #Update the other TreeViews
+                            item_index = self.findEntityItemIndexFromShape(real_item)
+                            if model_index.model() == self.layer_item_model and item_index:
+                                itemLayerSelection.select(model_index, model_index)
+                            item_index = self.findLayerItemIndexFromShape(real_item)
+                            if model_index.model() == self.entity_item_model and item_index:
+                                itemEntitySelection.select(model_index, model_index)
 
                         #select all the children of a given layer when clicked
                         elif element.data(LAYER_OBJECT).isValid():
                             selection_model = self.ui.layersShapesTreeView.selectionModel() #Get the selection model of the QTreeView
                             #Deselect the Layer in the list.
                             self.columnsSelectDeselect(selection_model, model_index, False)
-                            
-                            real_item = element.data(LAYER_OBJECT).toPyObject()
-                            self.traverseChildrenAndSelect(selection_model, self.layer_item_model, model_index, True)
+                            self.traverseChildrenAndSelect(self.layer_item_model, model_index, itemLayerSelection)
 
+                            real_item = element.data(LAYER_OBJECT).toPyObject()
                             #update the tools parameters according to the selection
                             self.displayToolParametersForItem(real_item)
 
@@ -1010,8 +1026,12 @@ class TreeHandler(QtGui.QWidget):
                             selection_model = self.ui.entitiesTreeView.selectionModel() #Get the selection model of the QTreeView
                             #Deselect the Entities in the list.
                             self.columnsSelectDeselect(selection_model, model_index, False)
+                            self.traverseChildrenAndSelect(self.entity_item_model, model_index, itemEntitySelection)
                             
-                            self.traverseChildrenAndSelect(selection_model, self.entity_item_model, model_index, True)
+        selectionLayer = self.ui.layersShapesTreeView.selectionModel()
+        selectionLayer.select(itemLayerSelection, QtGui.QItemSelectionModel.Select | QtGui.QItemSelectionModel.Rows)
+        selectionEntity = self.ui.entitiesTreeView.selectionModel()
+        selectionEntity.select(itemEntitySelection, QtGui.QItemSelectionModel.Select | QtGui.QItemSelectionModel.Rows)
 
 
 
@@ -1133,37 +1153,6 @@ class TreeHandler(QtGui.QWidget):
             widget.setPalette(palette)
 
         return value
-
-
-
-    def updateTreeViewSelection(self, model_index, element, select):
-        """
-        Really update the shape selection on the graphic view. Also
-        selects the matching shapes in the treeView counterpart
-        (layers treeView -> entities treeView and vice versa)
-        @param model_index: the treeView model (used to store the data, see QT docs)
-        @param element: the real shape (ShapeClass instance)
-        @param select: whether to select (True) or not (False)
-        """
-        real_item = element.data(SHAPE_OBJECT).toPyObject()
-        real_item.setSelected(select, True) #Select the shape on the canvas and ask to don't propagate events in order to avoid events loops
-
-        #Update the other TreeViews
-        item_index = self.findEntityItemIndexFromShape(real_item)
-        if model_index.model() == self.layer_item_model and item_index:
-            item_index = item_index.sibling(item_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
-            self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            selection_model = self.ui.entitiesTreeView.selectionModel()
-            self.columnsSelectDeselect(selection_model, item_index, select)
-            self.ui.entitiesTreeView.blockSignals(False)
-
-        item_index = self.findLayerItemIndexFromShape(real_item)
-        if model_index.model() == self.entity_item_model and item_index:
-            item_index = item_index.sibling(item_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
-            self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            selection_model = self.ui.layersShapesTreeView.selectionModel()
-            self.columnsSelectDeselect(selection_model, item_index, select)
-            self.ui.layersShapesTreeView.blockSignals(False)
 
 
     def disableSelectedItems(self):
@@ -1419,7 +1408,7 @@ class TreeHandler(QtGui.QWidget):
                 real_item_parent.shapes.append(custom_gcode)
 
                 icon = QtGui.QIcon()
-                icon.addPixmap(QtGui.QPixmap(":dxf2gcode_pyQt4_ui/images/pause.png"))
+                icon.addPixmap(QtGui.QPixmap(":/images/pause.png"))
                 item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
                 item_col_0.setData(QtCore.QVariant(custom_gcode), CUSTOM_GCODE_OBJECT) #store a ref to the custom gcode in our treeView element
                 item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
@@ -1431,7 +1420,7 @@ class TreeHandler(QtGui.QWidget):
                 item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 item_col_3 = QtGui.QStandardItem()
-                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled)
+                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
                 #Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
                 item_col_0.setCheckState(QtCore.Qt.Checked)

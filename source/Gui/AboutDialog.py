@@ -32,7 +32,7 @@ class myAboutDialog(QtGui.QDialog):
         self.resize(550, 600)
         self.setWindowTitle(self.title)
         iconWT = QtGui.QIcon()
-        iconWT.addPixmap(QtGui.QPixmap("dxf2gcode_pyQt4_ui/images/DXF2GCODE-001.ico"),
+        iconWT.addPixmap(QtGui.QPixmap(":images/DXF2GCODE-001.ico"),
                          QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.setWindowIcon(QtGui.QIcon(iconWT))
         

@@ -54,8 +54,6 @@ from Gui.AboutDialog import myAboutDialog
 from PostPro.TspOptimisation import TSPoptimize
 
 
-#from Gui.myCanvasClass import *
-
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 if os.path.islink(sys.argv[0]):
@@ -410,8 +408,8 @@ class Main(QtGui.QMainWindow):
                 "<center><img src='images/dxf2gcode_logo.png' border='1' color='white'></center></body>"\
                 "<h2>Version:</h2>"\
                 "<body>%s: %s<br>"\
-                "Last change %s<br>"\
-                "Changed by %s<br></body>"\
+                "Last change: %s<br>"\
+                "Changed by: %s<br></body>"\
                 "<h2>Where to get help:</h2>"\
                 "For more information and updates, "\
                 "please visit the Google Code Project: "\

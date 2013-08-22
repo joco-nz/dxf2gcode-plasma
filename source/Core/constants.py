@@ -44,7 +44,7 @@ AUTHOR =     u"$Author::                                  $"
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
 
-#Rename unreadable config/varspace files to .bad
+# Rename unreadable config/varspace files to .bad
 BAD_CONFIG_EXTENSION = '.bad'
 DEFAULT_CONFIG_DIR = 'config'
 DEFAULT_POSTPRO_DIR = 'postpro_config'
@@ -52,4 +52,4 @@ DEFAULT_POSTPRO_DIR = 'postpro_config'
 # log related
 DEFAULT_LOGFILE = 'dxf2gcode.log'
 STARTUP_LOGLEVEL = logging.DEBUG
-#PRT = logging.INFO
+# PRT = logging.INFO
