@@ -471,7 +471,7 @@ class TreeHandler(QtGui.QWidget):
         if item_index:
             #we found the matching index for the shape in our layers treeView model
             self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            self.columnsSelectDeselect(self, selection_model, item_index, select)
+            self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.layersShapesTreeView.blockSignals(False)
 
         #Entities treeView
@@ -481,7 +481,7 @@ class TreeHandler(QtGui.QWidget):
         if item_index:
             #we found the matching index for the shape in our entities treeView model
             self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
-            self.columnsSelectDeselect(self, selection_model, item_index, select)
+            self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.entitiesTreeView.blockSignals(False)
 
         #Update the tool parameters fields
@@ -973,10 +973,10 @@ class TreeHandler(QtGui.QWidget):
                             #Update the other TreeViews
                             item_index = self.findEntityItemIndexFromShape(real_item)
                             if model_index.model() == self.layer_item_model and item_index:
-                                itemLayerSelection.select(model_index, model_index)
+                                itemEntitySelection.select(item_index, item_index)
                             item_index = self.findLayerItemIndexFromShape(real_item)
                             if model_index.model() == self.entity_item_model and item_index:
-                                itemEntitySelection.select(model_index, model_index)
+                                itemLayerSelection.select(item_index, item_index)
                         elif element.data(LAYER_OBJECT).isValid():
                             itemLayerSelection.select(model_index, model_index)
                         elif element.data(ENTITY_OBJECT).isValid():
@@ -1005,10 +1005,10 @@ class TreeHandler(QtGui.QWidget):
                             #Update the other TreeViews
                             item_index = self.findEntityItemIndexFromShape(real_item)
                             if model_index.model() == self.layer_item_model and item_index:
-                                itemLayerSelection.select(model_index, model_index)
+                                itemEntitySelection.select(item_index, item_index)
                             item_index = self.findLayerItemIndexFromShape(real_item)
                             if model_index.model() == self.entity_item_model and item_index:
-                                itemEntitySelection.select(model_index, model_index)
+                                itemLayerSelection.select(item_index, item_index)
 
                         #select all the children of a given layer when clicked
                         elif element.data(LAYER_OBJECT).isValid():
