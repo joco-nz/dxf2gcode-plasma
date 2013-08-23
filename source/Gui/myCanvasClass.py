@@ -74,37 +74,6 @@ class MyGraphicsView(QtGui.QGraphicsView):
         """
         menu = MyDropDownMenu(self, self.scene(), event.pos())
 
-    def keyPressEvent(self, event):
-        """
-        Rewritten KeyPressEvent to get other behavior while Shift is pressed.
-        @purpose: Changes to ScrollHandDrag while Control pressed
-        @param event:    Event Parameters passed to function
-        """
-        if (event.key() == QtCore.Qt.Key_Shift):   
-            self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
-        elif (event.key() == QtCore.Qt.Key_Control):
-            self.selmode = 1
-        else:
-            pass
-        
-        super(MyGraphicsView, self).keyPressEvent(event)  
-           
-    def keyReleaseEvent (self, event):
-        """
-        Rewritten KeyReleaseEvent to get other behavior while Shift is pressed.
-        @purpose: Changes to RubberBandDrag while Control released
-        @param event:    Event Parameters passed to function
-        """
-        if (event.key() == QtCore.Qt.Key_Shift):   
-            self.setDragMode(QtGui.QGraphicsView.NoDrag)
-            #self.setDragMode(QtGui.QGraphicsView.RubberBandDrag )
-        elif (event.key() == QtCore.Qt.Key_Control):
-            self.selmode = 0
-        else:
-            pass
-        
-        super(MyGraphicsView, self).keyPressEvent(event)  
-
     def wheelEvent(self, event):
         """
         With Mouse Wheel the object is scaled

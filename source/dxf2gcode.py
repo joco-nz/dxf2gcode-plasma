@@ -105,7 +105,7 @@ class Main(QtGui.QMainWindow):
 
         if g.config.vars.General['default_SplitEdges']:
             self.ui.actionSplit_edges.setChecked(True)
-            
+        
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
@@ -146,6 +146,31 @@ class Main(QtGui.QMainWindow):
         self.ui.actionMove_WP_zero.triggered.connect(self.CallMoveWpZero)
         
         self.ui.actionAbout.triggered.connect(self.about)
+
+    def keyPressEvent(self, event):
+        """
+        Rewritten KeyPressEvent to get other behavior while Shift is pressed.
+        @purpose: Changes to ScrollHandDrag while Control pressed
+        @param event:    Event Parameters passed to function
+        """
+        if event.isAutoRepeat():
+            return
+        if (event.key() == QtCore.Qt.Key_Shift):   
+            self.MyGraphicsView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+        elif (event.key() == QtCore.Qt.Key_Control):
+            self.MyGraphicsView.selmode = 1
+           
+    def keyReleaseEvent (self, event):
+        """
+        Rewritten KeyReleaseEvent to get other behavior while Shift is pressed.
+        @purpose: Changes to RubberBandDrag while Control released
+        @param event:    Event Parameters passed to function
+        """
+        if (event.key() == QtCore.Qt.Key_Shift):   
+            self.MyGraphicsView.setDragMode(QtGui.QGraphicsView.NoDrag)
+            #self.setDragMode(QtGui.QGraphicsView.RubberBandDrag )
+        elif (event.key() == QtCore.Qt.Key_Control):
+            self.MyGraphicsView.selmode = 0
         
     def enableplotmenu(self, status = True):
         """
