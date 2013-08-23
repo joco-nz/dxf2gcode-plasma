@@ -320,7 +320,7 @@ class DistanceMatrixClass:
         for nr_y in range(len(st_end_points)):
             for nr_x in range(len(st_end_points)):
                 x_vals[nr_x] = st_end_points[nr_y][1].distance(st_end_points[nr_x][0])
-            self.matrix.append(x_vals[:])
+            self.matrix.append(copy(x_vals[:]))
         self.size = [len(st_end_points), len(st_end_points)]
         
     def __str__(self):

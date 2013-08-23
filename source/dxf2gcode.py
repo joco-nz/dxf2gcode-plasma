@@ -727,6 +727,7 @@ class Main(QtGui.QMainWindow):
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
                     for geo in ent_geo.geo:
+                        geo=copy(geo)
                         if cont.order[ent_geo_nr][1]:
                             geo.reverse()
                         #Split lines

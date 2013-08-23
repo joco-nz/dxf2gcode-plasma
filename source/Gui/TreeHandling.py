@@ -1192,7 +1192,7 @@ class TreeHandler(QtGui.QWidget):
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
-                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL) #get the first column of the selected row, since it's the only one that contains data
+                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL) #Get the column of the row that contains the "Optimize Path" checkbox
                 element = model_index.model().itemFromIndex(model_index)
                 if element.isCheckable():
                     element.setCheckState(QtCore.Qt.Checked)
@@ -1208,20 +1208,23 @@ class TreeHandler(QtGui.QWidget):
         @param item_index: the item on which the keyPress event occurred
         """
 
-        for layer in self.layers_list:
-            for shape in layer.shapes:
-                if shape.isSelected():
+        #Enable/disable checkbox
+        if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
+            selection_model = self.ui.layersShapesTreeView.selectionModel() #Use selection models such that we can still reverse the tree with the keyboard
+            for layer in self.layers_list:
+                for shape in layer.shapes:
                     item_index = self.findLayerItemIndexFromShape(shape)
-                    #Enable/disable checkbox
-                    if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
-                        item_index = item_index.sibling(item_index.row(), 0) #Get the first column of the row (ie the one that contains the enable/disable checkbox)
+                    if selection_model.isSelected(item_index):
+                        #item_index = item_index.sibling(item_index.row(), 0) #Get the first column of the row (ie the one that contains the enable/disable checkbox)
                         item = item_index.model().itemFromIndex(item_index)
                         item.setCheckState(QtCore.Qt.Unchecked if item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked) #Toggle enable/disable checkbox
-                        #Ensure that the first col is the current index, so that we can still traverse the tree with the keyboard
-                        #self.ui.layersShapesTreeView.setCurrentIndex(item_index)
-                        #self.ui.entitiesTreeView.setCurrentIndex(item_index)
-                    #Optimize path checkbox
-                    if (key_code == QtCore.Qt.Key_O):
+                        
+        #Optimize path checkbox
+        if (key_code == QtCore.Qt.Key_O):
+            for layer in self.layers_list:
+                for shape in layer.shapes:
+                    if shape.isSelected():
+                        item_index = self.findLayerItemIndexFromShape(shape)
                         item_index = item_index.sibling(item_index.row(), PATH_OPTIMISATION_COL) #Get the column of the row that contains the "Optimize Path" checkbox
                         item = item_index.model().itemFromIndex(item_index)
                         if item.isCheckable():

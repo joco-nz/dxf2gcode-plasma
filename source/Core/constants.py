@@ -39,7 +39,7 @@ VERSION = "pyQT4 Beta"
 
 DATE =       "$Date::                     $"
 REVISION =   "$Rev::                      $"
-AUTHOR =     u"$Author::                                  $"
+AUTHOR =    u"$Author::                                  $"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
