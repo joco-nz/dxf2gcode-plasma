@@ -360,7 +360,8 @@ class Main(QtGui.QMainWindow):
                 if filename[1] == MyFormats:
                     pp_file_nr = i
             if fileExtension != self.MyPostProcessor.output_format[pp_file_nr]:
-                self.save_filename = self.save_filename + self.MyPostProcessor.output_format[pp_file_nr]
+                if not QtCore.QFile.exists(self.save_filename):
+                    self.save_filename = self.save_filename + self.MyPostProcessor.output_format[pp_file_nr]
             
             self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
