@@ -34,12 +34,12 @@ import logging
 
 # Global Variables
 APPNAME = "DXF2GCODE"
-VERSION = "pyQT4 Beta"
+VERSION = "PyQt4 Beta"
 
 
-DATE =       "$Date::                     $"
+DATE     =   "$Date::                     $"
 REVISION =   "$Rev::                      $"
-AUTHOR =    u"$Author::                                  $"
+AUTHOR   =  u"$Author::                                  $"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'

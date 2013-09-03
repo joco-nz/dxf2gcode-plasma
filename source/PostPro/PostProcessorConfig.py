@@ -48,8 +48,8 @@ POSTPRO_SPEC = str('''
     str(POSTPRO_VERSION) + '")\n' + \
 '''
     [General]
-    output_format = string(default=".ngx")
-    output_text = string(default="G-CODE for EMC2")
+    output_format = string(default=".ngc")
+    output_text = string(default="G-CODE for LinuxCNC")
     output_type = string(default="g-code")
     
     abs_export = boolean(default=True)

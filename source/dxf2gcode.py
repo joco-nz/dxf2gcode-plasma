@@ -342,7 +342,8 @@ class Main(QtGui.QMainWindow):
         if not(g.config.vars.General['write_to_stdout']):
             
             #Get the name of the File to export
-            self.save_filename = self.showSaveDialog()
+            filename = self.showSaveDialog()
+            self.save_filename = filename[0]
             
             #If Cancel was pressed
             if not self.save_filename:
@@ -351,7 +352,15 @@ class Main(QtGui.QMainWindow):
             (beg, ende) = os.path.split(str(self.save_filename))
             (fileBaseName, fileExtension) = os.path.splitext(ende) 
             
-            pp_file_nr = self.MyPostProcessor.output_format.index(fileExtension)
+            pp_file_nr = 0
+            for i in range(len(self.MyPostProcessor.output_format)):
+                name = "%s " % (self.MyPostProcessor.output_text[i])
+                format_ = "(*%s)" % (self.MyPostProcessor.output_format[i])
+                MyFormats = name + format_
+                if filename[1] == MyFormats:
+                    pp_file_nr = i
+            if fileExtension != self.MyPostProcessor.output_format[pp_file_nr]:
+                self.save_filename = self.save_filename + self.MyPostProcessor.output_format[pp_file_nr]
             
             self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
@@ -406,11 +415,11 @@ class Main(QtGui.QMainWindow):
         default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
         
         selected_filter = self.MyPostProcessor.output_format[0]
-        filename = QtGui.QFileDialog.getSaveFileName(self, self.tr('Export to file'),
+        filename = QtGui.QFileDialog.getSaveFileNameAndFilter(self, self.tr('Export to file'),
                     default_name,
                     MyFormats, selected_filter)
         
-        logger.info(self.tr("File: %s selected") %filename)
+        logger.info(self.tr("File: %s selected") %filename[0])
         
         return filename
         
