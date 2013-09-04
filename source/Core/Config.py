@@ -42,7 +42,7 @@ from PyQt4 import QtGui, QtCore
 import logging
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "6"
+CONFIG_VERSION = "7"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -56,96 +56,107 @@ CONFIG_SPEC = str('''
 
 # do not edit the following section name:
     [Version]
-
     # do not edit the following value:
-    config_version = string(default="'''  + \
+    config_version = string(default = "'''  + \
     str(CONFIG_VERSION) + '")\n' + \
 '''
     [Paths]
-    # 
-    # look here for DXF files
-    import_dir = string(default="D:/Eclipse_Workspace/DXF2GCODE/trunk/dxf")
+    # by default look for DXF files in
+    import_dir = string(default = "D:/Eclipse_Workspace/DXF2GCODE/trunk/dxf")
     
-    # store gcode output here 
-    output_dir = string(default="D:")
-    
+    # export generated gcode by default to 
+    output_dir = string(default = "D:")
     
     [Depth_Coordinates]
-    axis3_retract = float(default= 15.0)
-    axis3_slice_depth = float(default= -1.5)
-    axis3_safe_margin = float(default= 3.0)
-    axis3_start_mill_depth = float(default= 0.0)
-    axis3_mill_depth = float(default= -3.0)
+    axis3_retract = float(default = 15.0)
+    axis3_slice_depth = float(default = -1.5)
+    axis3_safe_margin = float(default = 3.0)
+    axis3_start_mill_depth = float(default = 0.0)
+    axis3_mill_depth = float(default = -3.0)
     
     [Axis_letters]
-    ax1_letter = string(default="X")
-    ax2_letter = string(default="Y")
-    ax3_letter = string(default="Z")
+    ax1_letter = string(default = "X")
+    ax2_letter = string(default = "Y")
+    ax3_letter = string(default = "Z")
     
     [Plane_Coordinates]
-    axis1_start_end = float(default= 0)
-    axis2_start_end = float(default= 0)
+    axis1_start_end = float(default = 0)
+    axis2_start_end = float(default = 0)
     
     [General]
-    write_to_stdout = boolean(default=False)
-    live_update_export_route = boolean(default=False)
-    default_SplitEdges = boolean(default=False)
+    write_to_stdout = boolean(default = False)
+    live_update_export_route = boolean(default = False)
+    default_SplitEdges = boolean(default = False)
     
     [Route_Optimisation]
-    default_TSP = boolean(default=False)
+    default_TSP = boolean(default = False)
     
     # Path optimizer behaviour:
     #  CONSTRAIN_ORDER_ONLY: fixed Shapes and optimized Shapes can be mixed. Only order of fixed shapes is kept
     #  CONSTRAIN_PLACE_AFTER: optimized Shapes are always placed after any fixed Shape
-    TSP_shape_order = option('CONSTRAIN_ORDER_ONLY', 'CONSTRAIN_PLACE_AFTER', default='CONSTRAIN_ORDER_ONLY')
-    mutation_rate = float(default= 0.95)
-    max_population = integer(default= 20)
-    max_iterations = integer(default= 300)
-    begin_art = string(default="heurestic")
+    TSP_shape_order = option('CONSTRAIN_ORDER_ONLY', 'CONSTRAIN_PLACE_AFTER', default = 'CONSTRAIN_ORDER_ONLY')
+    mutation_rate = float(default = 0.95)
+    max_population = integer(default = 20)
+    max_iterations = integer(default = 300)
+    begin_art = string(default = "heurestic")
     
     [Import_Parameters]
-    point_tolerance = float(default= 0.001)
-    spline_check = boolean(default=True)
-    fitting_tolerance = float(default= 0.001)
+    point_tolerance = float(default = 0.001)
+    spline_check = boolean(default = True)
+    fitting_tolerance = float(default = 0.001)
+    
+    [Layer_Options]
+    # mill options
+    mill_depth_identifiers = list(default = list('MillDepth', 'Md', 'TiefeGesamt', 'Tg'))
+    slice_depth_identifiers = list(default = list('SliceDepth', 'Sd', 'TiefeZustellung', 'Tz'))
+    start_mill_depth_identifiers = list(default = list('StartMillDepth', 'SMd', 'StartTiefe', 'St'))
+    retract_identifiers = list(default = list('RetractHeight', 'Rh', 'FreifahrHohe', 'FFh'))
+    safe_margin_identifiers = list(default = list('SafeMargin', 'Sm', 'SicherheitsHoehe', 'Sh'))
+    f_g1_plane_identifiers = list(default = list('FeedXY', 'Fxy', 'VorschubXY', 'Vxy', 'F'))
+    f_g1_depth_identifiers = list(default = list('FeedZ', 'Fz', 'VorschubZ', 'Vz'))
+    
+    #tool options
+    tool_nr_identifiers = list(default = list('ToolNr', 'Tn', 'T', 'WerkzeugNummer', 'Wn'))
+    tool_diameter_identifiers = list(default = list('ToolDiameter', 'Td', 'WerkzeugDurchmesser', 'Wd'))
+    spindle_speed_identifiers = list(default = list('SpindleSpeed', 'Drehzahl', 'RPM', 'UPM', 'S'))
+    start_radius_identifiers = list(default = list('StartRadius', 'Sr'))
     
     [Tool_Parameters]
-        [[1]]
-        diameter = float(default= 2.0)
-        speed = float(default=6000)
-        start_radius = float(default= 0.2)
-        
-        [[2]]
-        diameter = float(default=2.0)
-        speed = float(default=6000.0)
-        start_radius = float(default=1.0)
-        
-        [[10]]
-        diameter = float(default=10.0)
-        speed = float(default=6000.0)
-        start_radius = float(default=2.0)
-        
-        [[__many__]]
-        diameter = float(default= 3.0)
-        speed = float(default=6000)
-        start_radius = float(default= 3.0)
+    [[1]]
+    diameter = float(default = 2.0)
+    speed = float(default = 6000)
+    start_radius = float(default = 0.2)
+    
+    [[2]]
+    diameter = float(default = 2.0)
+    speed = float(default = 6000.0)
+    start_radius = float(default = 1.0)
+    
+    [[10]]
+    diameter = float(default = 10.0)
+    speed = float(default = 6000.0)
+    start_radius = float(default = 2.0)
+    
+    [[__many__]]
+    diameter = float(default = 3.0)
+    speed = float(default = 6000)
+    start_radius = float(default = 3.0)
     
     [Custom_Actions]
-        [[custom_gcode]]
-        gcode = string(default='"""(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)"""')
-        
-        [[__many__]]
-        gcode = string(default="(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
+    [[custom_gcode]]
+    gcode = string(default = '"""(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)"""')
     
+    [[__many__]]
+    gcode = string(default = "(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
     
     [Filters]
-    pstoedit_cmd = string(default="/opt/local/bin/pstoedit")
-    pstoedit_opt = list(default=list('-f', 'dxf', '-mm'))
+    pstoedit_cmd = string(default = "/opt/local/bin/pstoedit")
+    pstoedit_opt = list(default = list('-f', 'dxf', '-mm'))
     
     [Logging]
-    
     # set this to 'logfile = <filename>' to turn on file logging
     # or give the '-L logfile' program option
-    logfile = string(default="")
+    logfile = string(default = "")
     
     # log levels are one in increasing importance:
     #      DEBUG INFO WARNING  ERROR CRITICAL
@@ -153,16 +164,16 @@ CONFIG_SPEC = str('''
     # corresponding output
     
     # this really goes to stderr
-    console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')
+    console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'DEBUG')
     
-    file_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='DEBUG')
+    file_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'DEBUG')
     
     # logging level for the message window
-    window_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default='INFO')
+    window_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'INFO')
     
     [Feed_Rates]
-    f_g1_plane = float(default=400)
-    f_g1_depth = float(default=150)
+    f_g1_plane = float(default = 400)
+    f_g1_depth = float(default = 150)
 
 ''').splitlines()  
 """ format, type and default value specification of the global config file"""

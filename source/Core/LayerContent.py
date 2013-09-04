@@ -23,6 +23,8 @@
 
 import Core.Globals as g
 
+import re
+
 import logging
 logger = logging.getLogger("Core.LayerContent") 
 
@@ -51,19 +53,69 @@ class LayerContentClass:
         self.shapes = shapes
         self.exp_order = [] #used for shape order optimization, ... Only contains shapes
         self.exp_order_complete = [] #used for outputing the GCODE ; can contain shapes, custom gcode, ...
+
+        #preset defaults
         self.axis3_slice_depth = vars.Depth_Coordinates['axis3_slice_depth']
         self.axis3_start_mill_depth = vars.Depth_Coordinates['axis3_start_mill_depth']
         self.axis3_mill_depth = vars.Depth_Coordinates['axis3_mill_depth']
         self.axis3_retract = vars.Depth_Coordinates['axis3_retract']
         self.axis3_safe_margin = vars.Depth_Coordinates['axis3_safe_margin']
+        self.f_g1_plane = vars.Feed_Rates['f_g1_plane']
+        self.f_g1_depth = vars.Feed_Rates['f_g1_depth']
 
         #Use default tool 1 (always exists in config)
         self.tool_nr = 1
         self.tool_diameter = vars.Tool_Parameters['1']['diameter']
         self.speed = vars.Tool_Parameters['1']['speed']
         self.start_radius = vars.Tool_Parameters['1']['start_radius']
-        self.f_g1_plane = vars.Feed_Rates['f_g1_plane']
-        self.f_g1_depth = vars.Feed_Rates['f_g1_depth']
+
+
+        #search for layer commands to override defaults
+        if self.LayerName.startswith("MILL:"):
+            lopts_re = re.compile("([a-zA-Z]{1,10}:\s{0,}[\-\.0-9]{1,30}\s{0,})")
+            #result = rcmp.search(self.LayerName)
+            layer_commands = self.LayerName.replace(",", ".")
+            
+            for lc in lopts_re.findall(layer_commands):
+                try:
+                    name, value = lc.split(":")
+                except ValueError:
+                    continue
+
+                if name in vars.Layer_Options['mill_depth_identifiers']:
+                    self.axis3_mill_depth = float(value)
+
+                if name in vars.Layer_Options['slice_depth_identifiers']:
+                    self.axis3_slice_depth = float(value)
+                
+                if name in vars.Layer_Options['start_mill_depth_identifiers']:
+                    self.axis3_start_mill_depth = float(value)
+                
+                if name in vars.Layer_Options['retract_identifiers']:
+                    self.axis3_retract = float(value)
+                
+                if name in vars.Layer_Options['safe_margin_identifiers']:
+                    self.axis3_safe_margin = float(value)
+
+                if name in vars.Layer_Options['f_g1_plane_identifiers']:
+                    self.f_g1_plane = float(value)
+                
+                if name in vars.Layer_Options['f_g1_depth_identifiers']:
+                    self.f_g1_depth = float(value)
+
+                if name in vars.Layer_Options['tool_nr_identifiers']:
+                    self.tool_nr = float(value)
+                
+                if name in vars.Layer_Options['tool_diameter_identifiers']:
+                    self.tool_diameter = float(value)
+
+                if name in vars.Layer_Options['spindle_speed_identifiers']:
+                    self.speed = float(value)
+                
+                if name in vars.Layer_Options['start_radius_identifiers']:
+                    self.start_radius = float(value)
+                
+
         
         
     def __cmp__(self, other):
