@@ -759,29 +759,19 @@ class Main(QtGui.QMainWindow):
                                                 0.0,
                                                 parent,
                                                 []))
+                
                 for ent_geo_nr in range(len(cont.order)):
-                    ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
-                    for geo in ent_geo.geo:
-                        geo=copy(geo)
-                        if cont.order[ent_geo_nr][1]:
+                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
+                    if cont.order[ent_geo_nr][1]:
+                        ent_geo.geo.reverse()
+                        for geo in ent_geo.geo:
+                            geo=copy(geo)
                             geo.reverse()
-                        #Split lines
-                        if self.ui.actionSplit_edges.isChecked() == True:
-                            if geo.type == 'LineGeo':
-                                xdiff = (geo.Pe.x - geo.Pa.x) / 2.0
-                                ydiff = (geo.Pe.y - geo.Pa.y) / 2.0
-                                geo_b = deepcopy(geo)
-                                geo_a = deepcopy(geo)
-                                geo_b.Pe.x -= xdiff
-                                geo_b.Pe.y -= ydiff
-                                geo_a.Pa.x += xdiff
-                                geo_a.Pa.y += ydiff
-                                self.shapes[-1].geos.append(geo_b)
-                                self.shapes[-1].geos.append(geo_a)
-                            else:
-                                self.shapes[-1].geos.append(geo)
-                        else: #stay with the end of the lines
-                            self.shapes[-1].geos.append(geo)
+                            self.appendshapes(geo)                       
+                        ent_geo.geo.reverse()
+                    else:
+                        for geo in ent_geo.geo:
+                            self.appendshapes(copy(geo))
                 
                 #All shapes have to be CCW direction.
                 self.shapes[-1].AnalyseAndOptimize()
@@ -793,7 +783,25 @@ class Main(QtGui.QMainWindow):
                 
                 self.addtoLayerContents(self.shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])
-                
+
+    def appendshapes(self, geo):
+        if self.ui.actionSplit_edges.isChecked() == True:
+            if geo.type == 'LineGeo':
+                xdiff = (geo.Pe.x - geo.Pa.x) / 2.0
+                ydiff = (geo.Pe.y - geo.Pa.y) / 2.0
+                geo_b = deepcopy(geo)
+                geo_a = deepcopy(geo)
+                geo_b.Pe.x -= xdiff
+                geo_b.Pe.y -= ydiff
+                geo_a.Pa.x += xdiff
+                geo_a.Pa.y += ydiff
+                self.shapes[-1].geos.append(geo_b)
+                self.shapes[-1].geos.append(geo_a)
+            else:
+                self.shapes[-1].geos.append(geo)
+        else:
+            self.shapes[-1].geos.append(geo)
+            
     def addtoLayerContents(self, shape, lay_nr):
         """
         Instance is called while the shapes are created. This gives the 
