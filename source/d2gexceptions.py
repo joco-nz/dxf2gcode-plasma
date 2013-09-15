@@ -23,7 +23,7 @@ Michael Haberler  20.12.2009
 
 class BadConfigFileError(SyntaxError):
     """
-    syntax error in .cfg file
+    syntax error in config file
     """
     def __init__(self, value):
         print "bin hier"
@@ -33,7 +33,7 @@ class BadConfigFileError(SyntaxError):
     
 class VersionMismatchError(Exception):
     """
-    version mismatch in .cfg file
+    version mismatch in config file
     """
     def __init__(self, fileversion, CONFIG_VERSION):
         self.fileversion = fileversion

@@ -3,7 +3,7 @@
 This class contains a "custom gcode" object. Custom GCode objects are part
 of a layer (LayerContent.py) and are used to insert custom GCode into the
 generated file.
-Custom GCodes are defined in config.cfg file
+Custom GCodes are defined in the config file
 
 @purpose: store user defined GCode
 @author: Xavier Izard

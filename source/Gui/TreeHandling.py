@@ -1354,7 +1354,7 @@ class TreeHandler(QtGui.QWidget):
     def removeCustomGCode(self):
         """
         Remove a custom GCode object from the treeView, just after the
-        current item. Custom GCode are defined into the config.cfg file
+        current item. Custom GCode are defined into the config file
         """
         logger.debug(_('Removing custom GCode...'))
         current_item_index = self.ui.layersShapesTreeView.currentIndex()
@@ -1379,7 +1379,7 @@ class TreeHandler(QtGui.QWidget):
     def addCustomGCodeAfter(self, action_name):
         """
         Add a custom GCode object into the treeView, just after the
-        current item. Custom GCode are defined into the config.cfg file
+        current item. Custom GCode are defined into the config file
         @param action_name: the name of the custom GCode to be inserted. This name must match one of the subsection names of [Custom_Actions] from the config file.
         """
         logger.debug(_('Adding custom GCode "%s"') %(action_name))

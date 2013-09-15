@@ -99,7 +99,7 @@ class MyPostProConfig(QtCore.QObject):
     """
     This class hosts all functions related to the PostProConfig File.
     """
-    def __init__(self, filename='postpro_config.cfg'):
+    def __init__(self, filename = 'postpro_config' + c.CONFIG_EXTENSION):
         """
         initialize the varspace of an existing plugin instance
         init_varspace() is a superclass method of plugin

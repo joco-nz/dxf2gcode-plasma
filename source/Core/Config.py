@@ -190,7 +190,7 @@ class MyConfig(QtCore.QObject):
         """
         
         self.folder = os.path.join(g.folder, c.DEFAULT_CONFIG_DIR)
-        self.filename = os.path.join(self.folder, 'config.cfg')
+        self.filename = os.path.join(self.folder, 'config' + c.CONFIG_EXTENSION)
         
         self.default_config = False # whether a new name was generated
         self.var_dict = dict()

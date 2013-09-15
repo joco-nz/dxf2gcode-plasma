@@ -79,10 +79,10 @@ class MyPostProcessor(QtCore.QObject):
             
         
             
-        #Only files ending with *.cfg will be accepted.
+        #Only files with the predefined extension, stated in c.CONFIG_EXTENSION (default .cfg), are accepted .
         self.postprocessor_files = []
         for lfile in lfiles:
-            if os.path.splitext(lfile)[1] == '.cfg':
+            if os.path.splitext(lfile)[1] == c.CONFIG_EXTENSION:
                 self.postprocessor_files.append(lfile)
                 
         if len(self.postprocessor_files) == 0:
@@ -93,7 +93,7 @@ class MyPostProcessor(QtCore.QObject):
             
             self.postprocessor_files = []
             for lfile in lfiles:
-                if os.path.splitext(lfile)[1] == '.cfg':
+                if os.path.splitext(lfile)[1] == c.CONFIG_EXTENSION:
                     self.postprocessor_files.append(lfile)
                 
         #Load all files to get the possible postprocessor configs to export
