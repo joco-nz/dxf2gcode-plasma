@@ -68,6 +68,7 @@ class myDialog(QtGui.QDialog):
         self.setLayout(vbox)
 
         self.resize(50, 50)
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle(self.title)
         iconWT = QtGui.QIcon()
         iconWT.addPixmap(QtGui.QPixmap(":images/DXF2GCODE-001.ico"), QtGui.QIcon.Normal, QtGui.QIcon.Off)

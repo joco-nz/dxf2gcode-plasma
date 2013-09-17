@@ -30,6 +30,7 @@ class myAboutDialog(QtGui.QDialog):
         self.setLayout(vbox)
         self.setMinimumSize(550, 450)
         self.resize(550, 600)
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle(self.title)
         iconWT = QtGui.QIcon()
         iconWT.addPixmap(QtGui.QPixmap(":images/DXF2GCODE-001.ico"),
