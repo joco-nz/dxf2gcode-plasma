@@ -195,6 +195,8 @@ class Main(QtGui.QMainWindow):
         load the selected file.
         """
         
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        
         self.filename = QtGui.QFileDialog.getOpenFileName(self,
                     self.tr("Open file"),
                     g.config.vars.Paths['import_dir'], self.tr(\
@@ -214,6 +216,8 @@ class Main(QtGui.QMainWindow):
             self.cont_dy = 0.0
             self.rotate = 0.0
             self.loadFile(self.filename)
+            
+        QtGui.QApplication.restoreOverrideCursor()
     
     def reloadFile(self):
         """
@@ -232,6 +236,8 @@ class Main(QtGui.QMainWindow):
         Method is called to optimize the order of the shapes. This is performed
         by solving the TSP Problem.
         """
+        
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         
         logger.debug(self.tr('Optimize order of enabled shapes per layer'))
         self.MyGraphicsScene.resetexproutes()
@@ -313,14 +319,20 @@ class Main(QtGui.QMainWindow):
             
         #Update order in the treeView, according to path calculation done by the TSP
         self.TreeHandler.updateTreeViewOrder()
+        
+        QtGui.QApplication.restoreOverrideCursor()
     
     
     def deleteG0paths(self):
         """
         Deletes the optimisation paths from the scene.
         """
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        
         self.MyGraphicsScene.delete_opt_path()
         self.ui.actionDelete_G0_paths.setEnabled(False)
+        
+        QtGui.QApplication.restoreOverrideCursor()
     
     def exportShapes(self):
         """
@@ -329,6 +341,9 @@ class Main(QtGui.QMainWindow):
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
+        
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        
         logger.debug(self.tr('Export the enabled shapes'))
         
         #Get the export order from the QTreeView
@@ -347,6 +362,9 @@ class Main(QtGui.QMainWindow):
             
             #If Cancel was pressed
             if not self.save_filename:
+            
+                QtGui.QApplication.restoreOverrideCursor()
+                
                 return
             
             (beg, ende) = os.path.split(str(self.save_filename))
@@ -375,6 +393,8 @@ class Main(QtGui.QMainWindow):
         self.MyPostProcessor.exportShapes(self.load_filename,
                                           self.save_filename,
                                           self.LayerContents)
+        
+        QtGui.QApplication.restoreOverrideCursor()
     
     def optimizeAndExportShapes(self):
         """
@@ -593,6 +613,8 @@ class Main(QtGui.QMainWindow):
         @param filename: String containing filename which should be loaded
         """
         
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        
         self.load_filename = str(filename)
         (name, ext) = os.path.splitext(str(filename))
         
@@ -630,6 +652,8 @@ class Main(QtGui.QMainWindow):
         #After all is plotted enable the Menu entities
         self.enableplotmenu()
         self.ui.actionDelete_G0_paths.setEnabled(False)
+        
+        QtGui.QApplication.restoreOverrideCursor()
     
     def makeShapesAndPlot(self, values):
         """
