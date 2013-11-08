@@ -244,10 +244,21 @@ class ReadDXF(QtCore.QObject):
             lp = self.line_pairs
             #X value
             s = lp.index_code(10, s + 1, e)
-            blocks.Entities[-1].basep.x = float(lp.line_pair[s].value)
+            logger.debug("Found block pos Value 10 at: %s" %s)
+            
+            if s==None:
+                blocks.Entities[-1].basep.x=0.0
+                s=blocks_pos[block_nr].begin + 1
+            else:
+                blocks.Entities[-1].basep.x = float(lp.line_pair[s].value)
+                
             #Y value
             s = lp.index_code(20, s + 1, e)
-            blocks.Entities[-1].basep.y = float(lp.line_pair[s].value)
+            if s==None:
+                blocks.Entities[-1].basep.y=0.0
+                s=blocks_pos[block_nr].begin + 1
+            else:
+                blocks.Entities[-1].basep.y = float(lp.line_pair[s].value)
             
             #Lesen der Geometrien
             #Read the geometries
