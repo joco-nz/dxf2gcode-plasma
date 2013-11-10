@@ -58,10 +58,11 @@ class ReadDXF(QtCore.QObject):
         #Setting up logger
         #logger = g.logger.logger
 
+        str_ = self.Read_File(filename)
+        self.Get_Unit(str_)
+        
         #Laden der Kontur und speichern der Werte in die Klassen
         #Load the contour and store the values in the classes
-        str_ = self.Read_File(filename)
-
         self.line_pairs = self.Get_Line_Pairs(str_)        
 
         #Debug Informationen 
@@ -109,6 +110,47 @@ class ReadDXF(QtCore.QObject):
         str_ = file_.readlines()
         file_.close()
         return str_
+
+    #Search the DXF file to recognize the used unit.
+    def Get_Unit(self, str):
+        #Sets drawing units: 0 = English; 1 = Metric
+        # Metric will be treated as being in millimeters
+        # English as inches
+        
+        metric = 1 # default metric
+        try:
+            line = 0
+            while (find(str[line], "$MEASUREMENT") < 0):
+                line += 1
+            metric = int(strip(str[line + 2]))
+        except: # $MEASUREMENT not found or is incorrect
+            pass
+        
+        #Default drawing units for AutoCAD DesignCenter blocks:
+        # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
+        # 5 = Centimeters; 6 = Meters; 7 = Kilometers; 8 = Microinches;
+        # 9 = Mils; 10 = Yards; 11 = Angstroms; 12 = Nanometers;
+        # 13 = Microns; 14 = Decimeters; 15 = Decameters;
+        # 16 = Hectometers; 17 = Gigameters; 18 = Astronomical units;
+        # 19 = Light years; 20 = Parsecs
+        try:
+            line = 0
+            while (find(str[line], "$INSUNITS") < 0):
+                line += 1
+            line += 2
+            if int(strip(str[line])) == 1:
+                metric = 0
+            elif int(strip(str[line])) == 4:
+                metric = 1
+        except: # $INSUNITS not found or is incorrect
+            pass
+        
+        g.config.metric = metric
+        if metric == 0:
+            logger.info("Drawing unit: inches")
+        else:
+            logger.info("Drawing unit: millimeters")
+        return metric
     
     #Die Geladenene Daten in Linien Pare mit Code & Value umwandeln.
     #Convert the uploaded file to line pairs (code & Value).

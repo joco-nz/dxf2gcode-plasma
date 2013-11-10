@@ -28,7 +28,7 @@ from PyQt4 import QtCore, QtGui
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig") 
 
-POSTPRO_VERSION = "2"
+POSTPRO_VERSION = "3"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -58,8 +58,9 @@ POSTPRO_SPEC = str('''
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
     
-
-    code_begin = string(default="G21 (Unit in mm) G90 (Absolute distance mode) G64 P0.01 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
+    code_begin_unit_mm = string(default="G21 (Unit in mm)")
+    code_begin_unit_inches = string(default="G20 (Unit in inches)")
+    code_begin = string(default="G90 (Absolute distance mode) G64 P0.001 (Exact Path 0.001 tol.) G17 G40 (Cancel diameter comp.) G49 (Cancel length comp.)")                    
     code_end = string(default="M2 (Program end)")
     
     [Number_Format]

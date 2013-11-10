@@ -309,7 +309,11 @@ class MyPostProcessor(QtCore.QObject):
          
         # In addition the text defined in the PostProcessor Config file is 
         # added.
-        exstr += ("%s\n" % self.vars.General["code_begin"])
+        if g.config.metric == 0:
+            exstr += ("%s" % self.vars.General["code_begin_unit_inches"])
+        else:
+            exstr += ("%s" % self.vars.General["code_begin_unit_mm"])
+        exstr += (" %s\n" % self.vars.General["code_begin"])
         
         return exstr
 
