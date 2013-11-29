@@ -334,7 +334,7 @@ class Main(QtGui.QMainWindow):
         
         QtGui.QApplication.restoreOverrideCursor()
     
-    def exportShapes(self):
+    def exportShapes(self, stattus, saveas = None):
         """
         This function is called by the menu "Export/Export Shapes". It may open
         a Save Dialog if used without LinuxCNC integration. Otherwise it's
@@ -357,8 +357,12 @@ class Main(QtGui.QMainWindow):
         if not(g.config.vars.General['write_to_stdout']):
             
             #Get the name of the File to export
-            filename = self.showSaveDialog()
-            self.save_filename = filename[0]
+            if saveas == None:
+                filename = self.showSaveDialog()
+                self.save_filename = filename[0]
+            else:
+                filename = [None, None]
+                self.save_filename = saveas
             
             #If Cancel was pressed
             if not self.save_filename:
@@ -868,8 +872,6 @@ if __name__ == "__main__":
     window = Main(app)
     g.window = window
     
-    window.show()
-    
     # LogText window exists, setup logging
     Log.add_window_logger(log_level = logging.INFO)
     #This is the handle to the GUI where the log message 
@@ -879,14 +881,19 @@ if __name__ == "__main__":
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest = "filename",
                       help = "read data from FILENAME")
+    parser.add_option("-e", "--export", dest = "output",
+                      help = "export data to FILENAME")
+    parser.add_option("-q", "--quiet", action = "store_true",
+                      dest = "quiet", help = "no GUI")
     
 #    parser.add_option("-v", "--verbose",
 #                      action = "store_true", dest = "verbose")
-#    parser.add_option("-q", "--quiet",
-#                      action = "store_false", dest = "verbose")
 
     (options, args) = parser.parse_args()
     logger.debug("Started with following options \n%s" %(options))
+    
+    if not options.quiet:
+        window.show()
     
     if not(options.filename is None):
         window.filename = options.filename
@@ -897,6 +904,10 @@ if __name__ == "__main__":
         window.rotate = 0.0
         
         window.loadFile(options.filename)
-     
-    # It's exec_ because exec is a reserved word in Python
-    sys.exit(app.exec_())
+        
+    if not(options.output is None):
+        window.exportShapes(None, options.output)
+        
+    if not options.quiet:
+        # It's exec_ because exec is a reserved word in Python
+        sys.exit(app.exec_())
