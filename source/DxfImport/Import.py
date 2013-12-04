@@ -59,7 +59,7 @@ class ReadDXF(QtCore.QObject):
         #logger = g.logger.logger
 
         str_ = self.Read_File(filename)
-        self.Get_Unit(str_)
+        g.config.metric = self.Get_Unit(str_)
         
         #Laden der Kontur und speichern der Werte in die Klassen
         #Load the contour and store the values in the classes
@@ -117,7 +117,7 @@ class ReadDXF(QtCore.QObject):
         # Metric will be treated as being in millimeters
         # English as inches
         
-        metric = 1 # default metric
+        metric = 1 # default: metric
         try:
             line = 0
             while (find(str[line], "$MEASUREMENT") < 0):
@@ -145,11 +145,6 @@ class ReadDXF(QtCore.QObject):
         except: # $INSUNITS not found or is incorrect
             pass
         
-        g.config.metric = metric
-        if metric == 0:
-            logger.info("Drawing unit: inches")
-        else:
-            logger.info("Drawing unit: millimeters")
         return metric
     
     #Die Geladenene Daten in Linien Pare mit Code & Value umwandeln.

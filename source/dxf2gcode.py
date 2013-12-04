@@ -102,9 +102,11 @@ class Main(QtGui.QMainWindow):
         
         if g.config.vars.General['live_update_export_route']:
             self.ui.actionLive_update_export_route.setChecked(True)
-
+        
         if g.config.vars.General['default_SplitEdges']:
             self.ui.actionSplit_edges.setChecked(True)
+        
+        g.config.metric = 1 # default drawing units: millimeters
         
     def tr(self, string_to_translate):
         """
@@ -334,7 +336,7 @@ class Main(QtGui.QMainWindow):
         
         QtGui.QApplication.restoreOverrideCursor()
     
-    def exportShapes(self, stattus, saveas = None):
+    def exportShapes(self, status=False, saveas=None):
         """
         This function is called by the menu "Export/Export Shapes". It may open
         a Save Dialog if used without LinuxCNC integration. Otherwise it's
@@ -527,8 +529,12 @@ class Main(QtGui.QMainWindow):
         """
         
         title = self.tr('Contour tolerances')
-        label = (self.tr("Tolerance for common points [mm]:"), \
-              self.tr("Tolerance for curve fitting [mm]:"))
+        if g.config.metric == 0:
+            label = (self.tr("Tolerance for common points [in]:"), \
+                   self.tr("Tolerance for curve fitting [in]:"))
+        else:
+            label = (self.tr("Tolerance for common points [mm]:"), \
+                   self.tr("Tolerance for curve fitting [mm]:"))
         value = (g.config.point_tolerance,
                g.config.fitting_tolerance)
         
@@ -650,6 +656,27 @@ class Main(QtGui.QMainWindow):
         insert_nr = values.entities.get_insert_nr()
         logger.info(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s, Number of inserts: %i') \
                                  % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
+                                 
+        
+        if g.config.metric == 0:
+            logger.info("Drawing units: inches")
+            self.ui.unitLabel_3.setText("[in]")
+            self.ui.unitLabel_4.setText("[in]")
+            self.ui.unitLabel_5.setText("[in]")
+            self.ui.unitLabel_6.setText("[in]")
+            self.ui.unitLabel_7.setText("[in]")
+            self.ui.unitLabel_8.setText("[IPM]")
+            self.ui.unitLabel_9.setText("[IPM]")
+        else:
+            logger.info("Drawing units: millimeters")
+            self.ui.unitLabel_3.setText("[mm]")
+            self.ui.unitLabel_4.setText("[mm]")
+            self.ui.unitLabel_5.setText("[mm]")
+            self.ui.unitLabel_6.setText("[mm]")
+            self.ui.unitLabel_7.setText("[mm]")
+            self.ui.unitLabel_8.setText("[mm/min]")
+            self.ui.unitLabel_9.setText("[mm/min]")
+        
         
         self.makeShapesAndPlot(values)
         
@@ -881,7 +908,7 @@ if __name__ == "__main__":
     parser = OptionParser("usage: %prog [options]")
     parser.add_option("-f", "--file", dest = "filename",
                       help = "read data from FILENAME")
-    parser.add_option("-e", "--export", dest = "output",
+    parser.add_option("-e", "--export", dest = "export_filename",
                       help = "export data to FILENAME")
     parser.add_option("-q", "--quiet", action = "store_true",
                       dest = "quiet", help = "no GUI")
@@ -905,8 +932,8 @@ if __name__ == "__main__":
         
         window.loadFile(options.filename)
         
-    if not(options.output is None):
-        window.exportShapes(None, options.output)
+    if not(options.export_filename is None):
+        window.exportShapes(None, options.export_filename)
         
     if not options.quiet:
         # It's exec_ because exec is a reserved word in Python

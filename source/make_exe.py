@@ -23,11 +23,11 @@ exemakepfad = unicode( exemakepfad, "utf-8" )
 os.chdir(exemakepfad.encode( "utf-8" ))
 
 
-cmd = ("%s %s %s %s/%s.py" % (pyt, pyinpfad, options, filepfad, file_))
+cmd = ("%s %s %s %s/%s.py\n" % (pyt, pyinpfad, options, filepfad, file_))
 print cmd
 retcode = subprocess.call(cmd)
 
-#cmd = ("%s %s/Build.py %s/%s.spec" % (pyt, pyinpfad, exemakepfad, file_))
+#cmd = ("%s %s/Build.py %s/%s.spec\n" % (pyt, pyinpfad, exemakepfad, file_))
 #print cmd
 #retcode = subprocess.call(cmd)
 

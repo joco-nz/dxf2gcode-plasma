@@ -297,11 +297,10 @@ class MyPostProcessor(QtCore.QObject):
         """
         if self.vars.General["output_type"] == 'g-code':
             exstr = self.tr("(Generated with: %s, Version: %s, Date: %s)\n") % (c.APPNAME, c.VERSION, c.DATE)
-            exstr += self.tr("(Time: %s)\n") % time.asctime()
             exstr += self.tr("(Created from file: %s)\n") % load_filename
+            exstr += self.tr("(Time: %s)\n") % time.asctime()
         elif self.vars.General["output_type"] == 'dxf':
             exstr = ''
-            
         else:
             exstr = ''
                         
@@ -310,9 +309,9 @@ class MyPostProcessor(QtCore.QObject):
         # In addition the text defined in the PostProcessor Config file is 
         # added.
         if g.config.metric == 0:
-            exstr += ("%s" % self.vars.General["code_begin_unit_inches"])
+            exstr += ("%s" % self.vars.General["code_begin_units_in"])
         else:
-            exstr += ("%s" % self.vars.General["code_begin_unit_mm"])
+            exstr += ("%s" % self.vars.General["code_begin_units_mm"])
         exstr += (" %s\n" % self.vars.General["code_begin"])
         
         return exstr

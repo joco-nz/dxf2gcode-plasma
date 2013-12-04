@@ -138,6 +138,8 @@ class TreeHandler(QtGui.QWidget):
         #Not used for now, so hide them
         self.ui.startAtXLabel.hide()
         self.ui.startAtYLabel.hide()
+        self.ui.unitLabel_1.hide()
+        self.ui.unitLabel_2.hide()
         self.ui.startAtXLineEdit.hide()
         self.ui.startAtYLineEdit.hide()
 

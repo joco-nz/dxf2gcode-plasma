@@ -679,6 +679,7 @@ class ShapeClass(QtGui.QGraphicsItem):
                 exstr += PostPro.deactivate_cut_cor(pos_cut_out)
         
         #Do the tool retraction
+        exstr += PostPro.chg_feed_rate(f_g1_depth)
         exstr += PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
         exstr += PostPro.rap_pos_z(safe_retract_depth)
 

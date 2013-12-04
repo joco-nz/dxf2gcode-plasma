@@ -25,103 +25,103 @@
 <context>
     <name>Main</name>
     <message>
-        <location filename="dxf2gcode.py" line="175"/>
+        <location filename="dxf2gcode.py" line="202"/>
         <source>Open file</source>
         <translation>Datei öffnen
 </translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="175"/>
+        <location filename="dxf2gcode.py" line="202"/>
         <source>All supported files (*.dxf *.ps *.pdf);;DXF files (*.dxf);;PS files (*.ps);;PDF files (*.pdf);;all files (*.*)</source>
         <translation>Alle unterstützte Dateien (*.dxf *.ps *.pdf);;DXF Dateien (*.dxf);;PS Dateien (*.ps);;PDF Dateien (*.pdf);;Alle Dateien (*.*)</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="390"/>
+        <location filename="dxf2gcode.py" line="449"/>
         <source>File: %s selected</source>
         <translation>Datei: %s wurde ausgewählt</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="201"/>
+        <location filename="dxf2gcode.py" line="230"/>
         <source>Reloading file: %s</source>
         <translation>Die Datei wird neu geladen: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="213"/>
+        <location filename="dxf2gcode.py" line="244"/>
         <source>Optimize order of enabled shapes per layer</source>
         <translation>Optimierung der Shape Reihenfolge für jedes Layer getrennt</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="217"/>
+        <location filename="dxf2gcode.py" line="248"/>
         <source>Updating order according to TreeView</source>
         <translation>Die Reihenfolge wird auf Stand gebracht wie im TreeView dargestellt</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="230"/>
+        <location filename="dxf2gcode.py" line="261"/>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
         <translation type="unfinished">Gesamtanzahl der Shapes: %s; Anzahl der Shapes in der Export Reihenfolge %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="233"/>
+        <location filename="dxf2gcode.py" line="264"/>
         <source>Export Order for start: %s</source>
         <translation>Export Reihenfolge für den Start: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="259"/>
+        <location filename="dxf2gcode.py" line="290"/>
         <source>TSP start values initialised for Layer %s</source>
         <translation>TSP Startwerte initialisiert für den Layer: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="261"/>
+        <location filename="dxf2gcode.py" line="292"/>
         <source>Shapes to write: %s</source>
         <translation>Shapes die exportiert werden: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="263"/>
+        <location filename="dxf2gcode.py" line="294"/>
         <source>Fixed order: %s</source>
         <translation>Feste Reihenfolge: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="275"/>
+        <location filename="dxf2gcode.py" line="306"/>
         <source>TSP done with result: %s</source>
         <translation>TSP wurde durchgeführt mit dem Ergebniss: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="281"/>
+        <location filename="dxf2gcode.py" line="312"/>
         <source>New Export Order after TSP: %s</source>
         <translation>Neue Export Reihenfolge nach durchgeführter TSP: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="309"/>
+        <location filename="dxf2gcode.py" line="349"/>
         <source>Export the enabled shapes</source>
         <translation>Exportiere die Enabled Shapes</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="315"/>
+        <location filename="dxf2gcode.py" line="355"/>
         <source>Sorted layers:</source>
         <translation>Sortierte Layer:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="386"/>
+        <location filename="dxf2gcode.py" line="445"/>
         <source>Export to file</source>
         <translation>Exportiere in Datei</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="478"/>
+        <location filename="dxf2gcode.py" line="541"/>
         <source>set Tolerances</source>
         <translation>Toleranzen einstellen</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="567"/>
+        <location filename="dxf2gcode.py" line="632"/>
         <source>Sending Postscript/PDF to pstoedit</source>
         <translation>Sende Postscipt/PDF Datei an pstoedit</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="584"/>
+        <location filename="dxf2gcode.py" line="649"/>
         <source>Loaded layers: %s</source>
         <translation>Geladene Layers: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="585"/>
+        <location filename="dxf2gcode.py" line="650"/>
         <source>Loaded blocks: %s</source>
         <translation>Geladene Blöcke: %s</translation>
     </message>
@@ -141,73 +141,83 @@
         <translation type="obsolete">&lt;html&gt;&lt;h2&gt;&lt;center&gt;Sie benutzen&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Zuletzt geändert am %s&lt;br&gt;Geändert von %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Wo man Hilfe findet:&lt;/h2&gt;Für mehr Information zum Programm und Möglichen Updates besuchen sie bitte das Google Code Project: &lt;a href=&apos;http://code.google.com/p/dxf2gcode/&apos;&gt;http://code.google.com/p/dxf2gcode/&lt;/a&gt;&lt;br&gt;Für alle Fragen zur Bedienung von DXF2GCODE  benutzen Sie bitte die &lt;br&gt;&lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;Mailing List&lt;/a&gt;&lt;br&gt;&lt;br&gt;Für gefundene Bugs oder Feature Anfragen benutzen Sie bitte das &lt;br&gt;&lt;a href=&apos;http://code.google.com/p/dxf2gcode/issues/list&apos;&gt;Issue Tracking System&lt;/a&gt;&lt;br&gt;&lt;h2&gt;Lizens und Copyright:&lt;/h2&gt;&lt;body&gt;Das Programm wurde mit der Freeware Programmiersprache Python geschrieben und ist unter der &lt;a href=&apos;http://www.gnu.org/licenses/gpl.html&apos;&gt;GNU GPL 3 Lizenz &lt;/a&gt;veröffentlicht&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="472"/>
+        <location filename="dxf2gcode.py" line="531"/>
         <source>Contour tolerances</source>
         <translation>Kontur Toleranzen</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="473"/>
+        <location filename="dxf2gcode.py" line="536"/>
         <source>Tolerance for common points [mm]:</source>
         <translation>Toleranz für gemeinsame Punkte [mm]:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="473"/>
+        <location filename="dxf2gcode.py" line="536"/>
         <source>Tolerance for curve fitting [mm]:</source>
         <translation>Toleranz für Kurven Anpassung [mm]:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="501"/>
+        <location filename="dxf2gcode.py" line="564"/>
         <source>Scale Contour</source>
         <translation>Skaliere Konturen</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="502"/>
+        <location filename="dxf2gcode.py" line="565"/>
         <source>Scale Contour by factor:</source>
         <translation>Skaliere Konturen mit dem Faktor:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="519"/>
+        <location filename="dxf2gcode.py" line="582"/>
         <source>Rotate Contour</source>
         <translation>Rotiere Konturen</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="520"/>
+        <location filename="dxf2gcode.py" line="583"/>
         <source>Rotate Contour by deg:</source>
         <translation>Rotiere Konturen um Winkelgrad:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="537"/>
+        <location filename="dxf2gcode.py" line="600"/>
         <source>Workpiece zero offset</source>
         <translation>Werkstück Nullpunkt verschieben</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="538"/>
+        <location filename="dxf2gcode.py" line="601"/>
         <source>Offset %s axis by mm:</source>
         <translation>Verschiebe %s Achse um mm:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="578"/>
+        <location filename="dxf2gcode.py" line="643"/>
         <source>Loading file: %s</source>
         <translation>Lade Datei: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="588"/>
+        <location filename="dxf2gcode.py" line="653"/>
         <source>Block %i includes %i Geometries, reduced to %i Contours, used layers: %s</source>
         <translation>Block %i beinhaltet %i Geometrien, reduziert zu %i Konturen, Benutzte Layer: %s </translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="187"/>
+        <location filename="dxf2gcode.py" line="214"/>
         <source>DXF2GCODE - [%s]</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="426"/>
+        <location filename="dxf2gcode.py" line="485"/>
         <source>&lt;html&gt;&lt;h2&gt;&lt;center&gt;You are using&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Last change: %s&lt;br&gt;Changed by: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Where to get help:&lt;/h2&gt;For more information and updates, please visit the Google Code Project: &lt;a href=&apos;http://code.google.com/p/dxf2gcode/&apos;&gt;http://code.google.com/p/dxf2gcode/&lt;/a&gt;&lt;br&gt;For any questions on how to use dxf2gcode please use the&lt;br&gt;&lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;mailing list&lt;/a&gt;&lt;br&gt;&lt;br&gt;For any found bugs or feature requests please use the &lt;br&gt;&lt;a href=&apos;http://code.google.com/p/dxf2gcode/issues/list&apos;&gt;issue tracking system&lt;/a&gt;&lt;br&gt;&lt;h2&gt;License and copyright:&lt;/h2&gt;&lt;body&gt;This program is written in Python and is published under the &lt;a href=&apos;http://www.gnu.org/licenses/gpl.html&apos;&gt;GNU GPL 3 license.&lt;/a&gt;&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="592"/>
+        <location filename="dxf2gcode.py" line="657"/>
         <source>Loaded %i Entities geometries, reduced to %i Contours, used layers: %s, Number of inserts: %i</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="533"/>
+        <source>Tolerance for common points [in]:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="533"/>
+        <source>Tolerance for curve fitting [in]:</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -254,7 +264,7 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="392"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="760"/>
         <source>[mm]</source>
         <translation type="unfinished"></translation>
     </message>
@@ -274,223 +284,178 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="410"/>
-        <source>Start at X [mm]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="427"/>
-        <source>Start at Y [mm]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="444"/>
-        <source>Z retraction area [mm]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="461"/>
-        <source>Z safety margin [mm]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="478"/>
-        <source>Z infeed depth [mm]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="495"/>
-        <source>Workpiece top Z [mm]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="508"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="419"/>
         <source>Milling will start at Z = &quot;Worpiece top Z&quot; - &quot;Z infeed depth&quot;</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="515"/>
-        <source>Z final mill depth [mm]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="532"/>
-        <source>G1 feed XY-directions [mm/min]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="552"/>
-        <source>G1 feed Z-direction [mm/min]</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="588"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="798"/>
         <source>Graphic Area for drawing
 </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="626"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="836"/>
         <source>File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="638"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="848"/>
         <source>Export the current project to G-Code</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="641"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="851"/>
         <source>Export</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="650"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="860"/>
         <source>View</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="663"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="873"/>
         <source>Options</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="676"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="886"/>
         <source>Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="689"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="899"/>
         <source>Load File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="692"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="902"/>
         <source>Load DXF or other supportet document</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="695"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="905"/>
         <source>Ctrl+L</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="704"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="914"/>
         <source>Exit</source>
         <translation>Beenden</translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="707"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="917"/>
         <source>Exit DXF2GCODE and close window</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="710"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="920"/>
         <source>Ctrl+Q</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="724"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="934"/>
         <source>Show WP zero</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="727"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="937"/>
         <source>Show the Workpiece Zero symbol in the plot.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="741"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="951"/>
         <source>Show path directions</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="744"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="954"/>
         <source>Always shows the path direction in the plot (not only while selected)</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="758"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="968"/>
         <source>Show disabled paths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="766"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="976"/>
         <source>Autoscale</source>
         <translation>Auto Skalierung</translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="774"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="984"/>
         <source>Delete G0 paths</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="779"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="989"/>
         <source>Tolerances</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="787"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="997"/>
         <source>Scale all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="795"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1005"/>
         <source>Rotate all</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="803"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1013"/>
         <source>Move WP zero</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="808"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1018"/>
         <source>About</source>
         <translation>Über DXF2GCODE</translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="813"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1023"/>
         <source>Optimize Paths </source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="816"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1026"/>
         <source>Ctrl+Shift+O</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="821"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1031"/>
         <source>Export Shapes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="824"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1034"/>
         <source>Ctrl+Shift+E</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="829"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1039"/>
         <source>Optimize and Export shapes</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="832"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1042"/>
         <source>Ctrl+E</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="843"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1053"/>
         <source>Live update export route</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="848"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1058"/>
         <source>Reload File</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="851"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1061"/>
         <source>Ctrl+R</source>
         <translation type="unfinished"></translation>
     </message>
@@ -500,45 +465,95 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="859"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1069"/>
         <source>Split edges</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode_pyQt4_ui.ui" line="862"/>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="1072"/>
         <source>Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="730"/>
+        <source>[mm/min]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="437"/>
+        <source>Feed rate XY</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="470"/>
+        <source>Z Final mill depth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="510"/>
+        <source>Z Infeed depth</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="560"/>
+        <source>Z Safety margin</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="600"/>
+        <source>Z Retraction area</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="630"/>
+        <source>Z Workpiece top</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="670"/>
+        <source>Start X</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="720"/>
+        <source>Feed rate Z</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode_pyQt4_ui.ui" line="753"/>
+        <source>Start Y</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
     <name>MyConfig</name>
     <message>
-        <location filename="Config.py" line="229"/>
+        <location filename="Config.py" line="240"/>
         <source>errors reading %s:</source>
         <translation>Fehler während dem laden von: %s</translation>
     </message>
     <message>
-        <location filename="Config.py" line="239"/>
+        <location filename="Config.py" line="250"/>
         <source>Missing value or section.</source>
         <translation>Fehlender Wert in der Section.</translation>
     </message>
     <message>
-        <location filename="Config.py" line="259"/>
+        <location filename="Config.py" line="270"/>
         <source>trying to rename bad cfg %s to %s</source>
         <translation>Versuche falsche Konfigurationsdatei umzubennen von %s zu  %s</translation>
     </message>
     <message>
-        <location filename="Config.py" line="263"/>
+        <location filename="Config.py" line="274"/>
         <source>rename(%s,%s) failed: %s</source>
         <translation>Das Umbenennen (%s, %s) ist fehlgeschlagen: %s</translation>
     </message>
     <message>
-        <location filename="Config.py" line="266"/>
+        <location filename="Config.py" line="277"/>
         <source>renamed bad varspace %s to &apos;%s&apos;</source>
         <translation>Falsche Konfigurationsdatei wurde umzubennen von %s zu %s</translation>
     </message>
     <message>
-        <location filename="Config.py" line="278"/>
+        <location filename="Config.py" line="289"/>
         <source>created default varspace &apos;%s&apos;</source>
         <translation>Es wurden die Standard Variablen erstellt: &apos;%s&apos;</translation>
     </message>
@@ -546,72 +561,72 @@
 <context>
     <name>MyDropDownMenu</name>
     <message>
-        <location filename="myCanvasClass.py" line="293"/>
+        <location filename="myCanvasClass.py" line="262"/>
         <source>Invert Selection</source>
         <translation>Auswahl umkehren</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="294"/>
+        <location filename="myCanvasClass.py" line="263"/>
         <source>Disable Selection</source>
         <translation>Auwahl disabeln</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="295"/>
+        <location filename="myCanvasClass.py" line="264"/>
         <source>Enable Selection</source>
         <translation>Auswahl enablen</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="299"/>
+        <location filename="myCanvasClass.py" line="268"/>
         <source>Switch Direction</source>
         <translation>Richtung umkehren</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="300"/>
+        <location filename="myCanvasClass.py" line="269"/>
         <source>Set Nearest StartPoint</source>
         <translation>Startpunkt hier setzen</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="303"/>
+        <location filename="myCanvasClass.py" line="272"/>
         <source>Cutter Compensation</source>
         <translation>Fräser Kompenstation</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="304"/>
+        <location filename="myCanvasClass.py" line="273"/>
         <source>G40 No Compensation</source>
         <translation>G40 Keine Kompensation</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="306"/>
+        <location filename="myCanvasClass.py" line="275"/>
         <source>G41 Left Compensation</source>
         <translation>G41 Kompensation links</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="308"/>
+        <location filename="myCanvasClass.py" line="277"/>
         <source>G42 Right Compensation</source>
         <translation>G42 Kompensation rechts</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="311"/>
+        <location filename="myCanvasClass.py" line="280"/>
         <source>The selected shapes have the following direction: %i</source>
         <translation>Die ausgewählt Shapes haben die Richtung: %i</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="419"/>
+        <location filename="myCanvasClass.py" line="388"/>
         <source>Switched Direction at Shape Nr: %i</source>
         <translation>Richtung der Shape umgekehrt bei Nr: %i</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="444"/>
+        <location filename="myCanvasClass.py" line="413"/>
         <source>Changed Cutter Correction to None Shape Nr: %i</source>
         <translation>Fräser Korrektur zu G40 geändet bei Shape Nr: %i</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="457"/>
+        <location filename="myCanvasClass.py" line="426"/>
         <source>Changed Cutter Correction to left Shape Nr: %i</source>
         <translation>Fräser Korrektur zu Links geändet bei Shape Nr: %i</translation>
     </message>
     <message>
-        <location filename="myCanvasClass.py" line="469"/>
+        <location filename="myCanvasClass.py" line="438"/>
         <source>Changed Cutter Correction to right Shape Nr: %i</source>
         <translation>Fräser Korrektur zu Rechts geändet bei Shape Nr: %i</translation>
     </message>
@@ -619,7 +634,7 @@
 <context>
     <name>MyGraphicsScene</name>
     <message>
-        <location filename="myCanvasClass.py" line="550"/>
+        <location filename="myCanvasClass.py" line="519"/>
         <source>Update GrapicsScene</source>
         <translation>Update GrapicsScene</translation>
     </message>
@@ -627,7 +642,7 @@
 <context>
     <name>MyGraphicsView</name>
     <message>
-        <location filename="myCanvasClass.py" line="239"/>
+        <location filename="myCanvasClass.py" line="208"/>
         <source>Autoscaling to extend: %s</source>
         <translation>Automatische Skalierung auf: %s</translation>
     </message>
@@ -635,42 +650,42 @@
 <context>
     <name>MyPostProConfig</name>
     <message>
-        <location filename="PostProcessorConfig.py" line="143"/>
+        <location filename="PostProcessorConfig.py" line="144"/>
         <source>errors reading %s:</source>
         <translation>Fehler während dem lesen von: %s</translation>
     </message>
     <message>
-        <location filename="PostProcessorConfig.py" line="152"/>
+        <location filename="PostProcessorConfig.py" line="153"/>
         <source>Missing value or section.</source>
         <translation>Fehlender Wert oder Sektion.</translation>
     </message>
     <message>
-        <location filename="PostProcessorConfig.py" line="156"/>
+        <location filename="PostProcessorConfig.py" line="157"/>
         <source>syntax errors in postpro_config file</source>
         <translation>Syntax Fehler in der Postprozessor Konfigurationsdatei.</translation>
     </message>
     <message>
-        <location filename="PostProcessorConfig.py" line="173"/>
+        <location filename="PostProcessorConfig.py" line="174"/>
         <source>trying to rename bad cfg %s to %s</source>
         <translation>Versuche falsche Konfigurationsdatei umzubennen von %s zu  %s</translation>
     </message>
     <message>
-        <location filename="PostProcessorConfig.py" line="177"/>
+        <location filename="PostProcessorConfig.py" line="178"/>
         <source>rename(%s,%s) failed: %s</source>
         <translation>Das Umbenennen (%s, %s) ist fehlgeschlagen: %s</translation>
     </message>
     <message>
-        <location filename="PostProcessorConfig.py" line="180"/>
+        <location filename="PostProcessorConfig.py" line="181"/>
         <source>renamed bad varspace %s to &apos;%s&apos;</source>
         <translation>Falsche Konfigurationsdatei wurde umzubennen von %s zu %s</translation>
     </message>
     <message>
-        <location filename="PostProcessorConfig.py" line="183"/>
+        <location filename="PostProcessorConfig.py" line="184"/>
         <source>created default varspace &apos;%s&apos;</source>
         <translation>Es wurden die Standard Variablen erstellt: &apos;%s&apos;</translation>
     </message>
     <message>
-        <location filename="PostProcessorConfig.py" line="186"/>
+        <location filename="PostProcessorConfig.py" line="187"/>
         <source>read existing varspace &apos;%s&apos;</source>
         <translation>Es wird die vorhanden Konfigurationsdatei gelesen &apos;%s&apos;</translation>
     </message>
@@ -724,13 +739,13 @@
         <translation>(Generiert mit: %s, Version: %s, Datum: %s)</translation>
     </message>
     <message>
-        <location filename="PostProcessor.py" line="300"/>
+        <location filename="PostProcessor.py" line="301"/>
         <source>(Time: %s)
 </source>
         <translation>(Zeit: %s)</translation>
     </message>
     <message>
-        <location filename="PostProcessor.py" line="301"/>
+        <location filename="PostProcessor.py" line="300"/>
         <source>(Created from file: %s)
 </source>
         <translation>(Erstellt aus der Datei: %s)</translation>
@@ -747,27 +762,27 @@
 <context>
     <name>ReadDXF</name>
     <message>
-        <location filename="Import.py" line="71"/>
+        <location filename="Import.py" line="72"/>
         <source>Reading DXF Structure</source>
         <translation>Lese DXF Strucktur</translation>
     </message>
     <message>
-        <location filename="Import.py" line="86"/>
+        <location filename="Import.py" line="87"/>
         <source>Creating Contours of Block Nr: %i</source>
         <translation>Erstelle die Konturen für den Block Nr: %i</translation>
     </message>
     <message>
-        <location filename="Import.py" line="89"/>
+        <location filename="Import.py" line="90"/>
         <source>Creating Contours of Entities</source>
         <translation>Erstelle die Konturen für die Entities</translation>
     </message>
     <message>
-        <location filename="Import.py" line="132"/>
+        <location filename="Import.py" line="169"/>
         <source>Warning reading linepairs</source>
         <translation>Warnung während dem lesen der Linienpaare</translation>
     </message>
     <message>
-        <location filename="Import.py" line="132"/>
+        <location filename="Import.py" line="169"/>
         <source>Failure reading line stopped at line %0.0f.
  Please check/correct line in dxf file</source>
         <translation>Fehler während dem einlesen Gestoppt bei Linie %0.0f.
@@ -788,12 +803,12 @@ teilweise unterstütze Geometrien gefunden.
 Für mehr Detail siehe Status Meldungen!</translation>
     </message>
     <message>
-        <location filename="Import.py" line="393"/>
+        <location filename="Import.py" line="441"/>
         <source>Short Elements</source>
         <translation>Kurze Elemente</translation>
     </message>
     <message>
-        <location filename="Import.py" line="393"/>
+        <location filename="Import.py" line="441"/>
         <source>Length of some Elements too short!
 Length must be greater then tolerance.
 Skipped Geometries</source>

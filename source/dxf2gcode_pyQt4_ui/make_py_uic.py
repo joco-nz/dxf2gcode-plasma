@@ -20,11 +20,13 @@ RCPYFILE = "dxf2gcode_images_rc.py"
 
 OPTIONS = ("-o")
 
-CMD1 = ("%s/pyuic4.bat %s %s %s" % (UICPATH, UIFILE, OPTIONS, PYFILE))
-CMD2 = ("%s/pyrcc4.exe %s %s %s" % (UICPATH, OPTIONS, RCPYFILE, RCFILE))
+CMD1 = ("%s/pyuic4.bat %s %s %s\n" % (UICPATH, UIFILE, OPTIONS, PYFILE))
+CMD2 = ("%s/pyrcc4.exe %s %s %s\n" % (UICPATH, OPTIONS, RCPYFILE, RCFILE))
 
 print CMD1
 RETCODE = subprocess.call(CMD1)
 
 print CMD2
 RETCODE = subprocess.call(CMD2)
+
+print "\nREADY"
