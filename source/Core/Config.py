@@ -42,7 +42,7 @@ from PyQt4 import QtGui, QtCore
 import logging
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "7"
+CONFIG_VERSION = "8"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -102,7 +102,7 @@ CONFIG_SPEC = str('''
     
     [Import_Parameters]
     point_tolerance = float(default = 0.001)
-    spline_check = boolean(default = True)
+    spline_check = integer(default = 1)
     fitting_tolerance = float(default = 0.001)
     
     [Layer_Options]
@@ -267,7 +267,7 @@ class MyConfig(QtCore.QObject):
                 logger.error(inst)
                 (base, ext) = os.path.splitext(self.filename)
                 badfilename = base + c.BAD_CONFIG_EXTENSION
-                g.logger.logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
+                logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
                 try:
                     os.rename(self.filename, badfilename)
                 except OSError, e:

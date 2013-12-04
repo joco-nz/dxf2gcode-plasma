@@ -524,12 +524,12 @@ class NURBSClass:
                                        self.Knots[same_ctlpt[-1] + self.degree / 2]])
         
         #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
-        #print("Same Controlpoints Nr. bigger then degree+2")
-        #for ignor in self.ignor:
-        #    print("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))
+        logger.debug("Same Controlpoints Nr. bigger then degree+2")
+        for ignor in self.ignor:
+            logger.debug("Ignoring u's between u: %s and u: %s" %(ignor[0],ignor[1]))
         
-#        if len(self.knt_m_change):
-#            print("Non steady Angles between Knots: %s" %self.knt_m_change)
+        if len(self.knt_m_change):
+            logger.debug("Non steady Angles between Knots: %s" %self.knt_m_change)
     
     
     #Berechnen von eine Anzahl gleichm�ssig verteilter Punkte und bis zur ersten Ableitung
