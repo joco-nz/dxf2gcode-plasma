@@ -29,6 +29,9 @@ from DxfImport.biarc import BiarcClass
 
 from math import atan2, pow
 
+import logging
+logger = logging.getLogger("DxfImport.SplineConvert") 
+
 class Spline2Arcs:
     def __init__(self, degree=0, Knots=[], Weights=[], CPoints=[], tol=0.01, check=1):
         #Max Abweichung f�r die Biarc Kurve
@@ -42,6 +45,8 @@ class Spline2Arcs:
         #�berpr�fen der NURBS Parameter �berpr�fung der NURBS Kontrollpunkte ob welche doppelt
         #Innerhalb der gegebenen Tolerans sind (=> Ignorieren)
         self.NURBS.check_NURBSParameters(tol, check)
+        
+        logger.debug(self.NURBS)
         
         #High Accuracy Biarc fitting of NURBS
         BiarcCurves, self.PtsVec = self.calc_high_accurancy_BiarcCurve()
@@ -456,6 +461,18 @@ class NURBSClass:
                                   Knots=self.Knots, \
                                   CPts=self.HCPts)
     
+    
+
+    def __str__(self):
+        """ 
+        Standard method to print the object
+        @return: A string
+        """ 
+        return ('\ndegree:      %s' % self.degree) + \
+               ('\nKnots:       %s' % self.Knots) + \
+               ('\nCPoints:     %s' % self.CPoints) + \
+               ('\nWeights:     %s' % self.Weights) + \
+               ('\nHCPts:       %s' % self.HCPts)
     
     def check_NURBSParameters(self, tol=1e-6, check=1):
         #�berpr�fen des Knotenvektors
