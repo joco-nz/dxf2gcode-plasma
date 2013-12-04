@@ -32,6 +32,8 @@ from math import atan2, pow
 import logging
 logger = logging.getLogger("DxfImport.SplineConvert") 
 
+debug_on=True
+
 class Spline2Arcs:
     def __init__(self, degree=0, Knots=[], Weights=[], CPoints=[], tol=0.01, check=1):
         #Max Abweichung f�r die Biarc Kurve
@@ -46,7 +48,8 @@ class Spline2Arcs:
         #Innerhalb der gegebenen Tolerans sind (=> Ignorieren)
         self.NURBS.check_NURBSParameters(tol, check)
         
-        logger.debug(self.NURBS)
+        if debug_on:
+            logger.debug(self.NURBS)
         
         #High Accuracy Biarc fitting of NURBS
         BiarcCurves, self.PtsVec = self.calc_high_accurancy_BiarcCurve()
@@ -432,11 +435,15 @@ class Spline2Arcs:
             check_u.append(u0 + check_step * i)
             check_Pts.append(self.NURBS.NURBS_evaluate(n=0, u=check_u[-1]))
             fit_error.append(Biarc.get_biarc_fitting_error(check_Pts[-1]))
-#        print(u0)
-#        print(u1)
-#        print(Biarc)
-#        print(check_Pts)
-#        print(fit_error)
+            
+        if debug_on:
+            logger.debug('u0: %s' %u0)
+            logger.debug('u1: %s' %u1)
+            logger.debug('Biarc: %s' %Biarc)
+            logger.debug(check_Pts)
+            logger.debug('check_Pts: %s %s %s %s' %(check_Pts[0],check_Pts[1],check_Pts[2],check_Pts[3]))
+            logger.debug('fit_error: %s' %fit_error)
+
         if max(fit_error) >= epsilon:
             return 0
         else:
