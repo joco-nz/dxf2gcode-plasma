@@ -34,6 +34,9 @@ import logging
 logger = logging.getLogger("PostPro.TSP") 
 
 class TSPoptimize(QtCore.QObject):
+    """
+    Optimize using the Travelling Salesman Problem (TSP) algorithim
+    """
     def __init__(self, st_end_points=[], order=[]):
         QtCore.QObject.__init__(self)
         
@@ -55,19 +58,17 @@ class TSPoptimize(QtCore.QObject):
                                          dmatrix=self.DistanceMatrix.matrix,
                                          pop=[])
 
-        #Initialisieren der Result Class
         #Initialise the Result Class
         self.Fittness = FittnessClass(population=self.Population,
-                                     cur_fittness=range(self.Population.size[1]))
-        self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,
-                                     range(self.shape_nrs))
+                                      cur_fittness=range(self.Population.size[1]))
+       self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,
+                                      range(self.shape_nrs))
         self.Fittness.order = self.order
 
         #Anfang der Reihenfolge immer auf den letzen Punkt legen
         #Beginning of the sequence always put the last point ???
         self.Fittness.set_startpoint()
 
-        #Korrektur Funktion um die Reihenfolge der Elemente zu korrigieren
         #Function to correct the order of the elements
         self.Fittness.correct_constrain_order()
         
@@ -103,7 +104,6 @@ class TSPoptimize(QtCore.QObject):
         #Calculate fitness of each route
         self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
         #Straffunktion falls die Route nicht der gewünschten Reihenfolge entspricht
-        #Beste Route auswählen
         #Function if the route is not the desired sequence ???
         #Best route to choose
         self.Fittness.select_best_fittness()

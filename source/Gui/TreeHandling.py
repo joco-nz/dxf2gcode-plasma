@@ -1364,7 +1364,8 @@ class TreeHandler(QtGui.QWidget):
         if current_item_index and current_item_index.isValid():
             remove_row = current_item_index.row()
 
-            item_model_index = current_item_index.sibling(remove_row, 0) #get the first column of the selected row, since it's the only one that contains data
+            #get the first column of the selected row, since it's the only one that contains data
+            item_model_index = current_item_index.sibling(remove_row, 0)
             first_col_item = item_model_index.model().itemFromIndex(item_model_index)
             if first_col_item and first_col_item.data(CUSTOM_GCODE_OBJECT).isValid():
                 #Item is a Custom GCode, so we can remove it

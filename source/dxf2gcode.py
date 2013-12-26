@@ -442,11 +442,11 @@ class Main(QtGui.QMainWindow):
         default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
         
         selected_filter = self.MyPostProcessor.output_format[0]
-        filename = QtGui.QFileDialog.getSaveFileNameAndFilter(self, self.tr('Export to file'),
-                    default_name,
+        filename = QtGui.QFileDialog.getSaveFileNameAndFilter(self,
+                    self.tr('Export to file'), default_name,
                     MyFormats, selected_filter)
         
-        logger.info(self.tr("File: %s selected") %filename[0])
+        logger.info(self.tr("File: %s selected") % filename[0])
         
         return filename
         
@@ -477,13 +477,12 @@ class Main(QtGui.QMainWindow):
                 "<a href='http://code.google.com/p/dxf2gcode/'>http://code.google.com/p/dxf2gcode/</a><br>"\
                 "For any questions on how to use dxf2gcode please use the<br>"\
                 "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br><br>"\
-                "For any found bugs or feature requests please use the <br>"\
+                "To log bugs or feature requests please use the <br>"\
                 "<a href='http://code.google.com/p/dxf2gcode/issues/list'>issue tracking system</a><br>"\
                 "<h2>License and copyright:</h2>"\
-                "<body>This program is written in Python and is published under the "\
+                "This program is written in Python and is published under the "\
                 "<a href='http://www.gnu.org/licenses/gpl.html'>GNU GPL 3 license.</a><br>"\
                 "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
-
         
         myAboutDialog(title = "About DXF2GCODE", message = message)
         
@@ -816,11 +815,10 @@ class Main(QtGui.QMainWindow):
                                                 []))
                 
                 for ent_geo_nr in range(len(cont.order)):
-                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
-                    if cont.order[ent_geo_nr][1]:
-                        ent_geo.geo.reverse()
-                        for geo in ent_geo.geo:
-                            geo=copy(geo)
+                    ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
+                    for geo in ent_geo.geo:
+                        geo = copy(geo)
+                        if cont.order[ent_geo_nr][1]:
                             geo.reverse()
                             self.appendshapes(geo)                       
                         ent_geo.geo.reverse()
@@ -917,7 +915,7 @@ if __name__ == "__main__":
 #                      action = "store_true", dest = "verbose")
 
     (options, args) = parser.parse_args()
-    logger.debug("Started with following options \n%s" %(options))
+    logger.debug("Started with following options \n%s" % (options))
     
     if not options.quiet:
         window.show()

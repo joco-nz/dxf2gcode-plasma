@@ -68,18 +68,17 @@ class MyPostProcessor(QtCore.QObject):
             #logger.debug(lfiles)
         except:
     
-            #If no Postprocessor File was found in folder create one
+            # Create a Postprocessor File if none found in folder
             logger.debug(self.tr("created default varspace"))
             PostProConfig = MyPostProConfig()
             PostProConfig.create_default_config()
             PostProConfig.default_config = True
-
             
             lfiles = os.listdir(PostProConfig.folder)
             
-        
             
-        #Only files with the predefined extension, stated in c.CONFIG_EXTENSION (default .cfg), are accepted .
+        #Only files with the predefined extension, stated in c.CONFIG_EXTENSION
+        #(default .cfg), are accepted
         self.postprocessor_files = []
         for lfile in lfiles:
             if os.path.splitext(lfile)[1] == c.CONFIG_EXTENSION:
@@ -138,14 +137,14 @@ class MyPostProcessor(QtCore.QObject):
         
     def exportShapes(self, load_filename, save_filename, LayerContents):
         """
-        This is the function which performs the export to a file or to the
-        stdout. It calls the following dedicated export functions and runs 
+        This function performs the export to a file or stdout.
+        It calls the following dedicated export functions and runs 
         though the list of layers to export after checking if there are shapes
         to export on these layers.
         @param load_filename: The name of the loaded dxf file. This name is
-        written at the begin of the export
+        written at the start of the export
         @param save_filename: The name of the file which shall be created. 
-        @param LayerContents: This is a list which includes the order of the 
+        @param LayerContents: List which includes the order of the 
         LayerContent to be exported and the LayerContent itself includes the 
         export parameters (e.g. mill depth) and the shapes to be exported. The
         shape order is also given in a list defined in LayerContent.
@@ -155,7 +154,9 @@ class MyPostProcessor(QtCore.QObject):
 
         exstr = self.write_gcode_be(load_filename)
         
-        #Move Machine to retraction Area before continuing anything. Note: none of the changes done in the GUI can affect this height, only the config file can do so (intended)
+        #Move Machine to retraction Area before continuing anything.
+        # Note: none of the changes done in the GUI can affect this height,
+        #       only the config file can do so (intended)
         exstr += self.rap_pos_z(g.config.vars.Depth_Coordinates['axis3_retract'])
 
         previous_tool = None
@@ -189,17 +190,17 @@ class MyPostProcessor(QtCore.QObject):
         EndPosition = Point(x=g.config.vars.Plane_Coordinates['axis1_start_end'],
                             y=g.config.vars.Plane_Coordinates['axis2_start_end'])
         
-        exstr += self.rap_pos_xy(EndPosition)  
+        exstr += self.rap_pos_xy(EndPosition)
         
-
+        
         #Write the end G-Code at the end        
         exstr += self.write_gcode_en()
         
         """
         FIXME, Need to check this, don't know if it's correct here or not.
         """
-        exstr = self.make_line_numbers(exstr)   
-   
+        exstr = self.make_line_numbers(exstr)
+        
         #If the String shall be given to STDOUT
         if g.config.vars.General['write_to_stdout']:
             print(exstr)
@@ -209,19 +210,18 @@ class MyPostProcessor(QtCore.QObject):
         else:
             #Export Data to file
             try:
-                #Das File oeffnen und schreiben
                 #File open and write
                 f = open(save_filename, "w")
                 f.write(exstr)
                 f.close()
                 logger.info(self.tr("Export to FILE was successful"))    
             except IOError:
-                QtGui.QMessageBox.warning(g.window, self.tr("Warning during Export"),
+                QtGui.QMessageBox.warning(g.window,
+                                          self.tr("Warning during Export"),
                                           self.tr("Cannot Save the File"))
                    
             
     
-
     def initialize_export_vars(self):
         """
         This function is called to initialize all export variables. This will
@@ -303,10 +303,10 @@ class MyPostProcessor(QtCore.QObject):
             exstr = ''
         else:
             exstr = ''
-                        
+        
         exstr = (exstr.encode("utf-8"))
-         
-        # In addition the text defined in the PostProcessor Config file is 
+        
+        # In addition the text defined in the PostProcessor Config file is
         # added.
         if g.config.metric == 0:
             exstr += ("%s" % self.vars.General["code_begin_units_in"])
@@ -325,15 +325,14 @@ class MyPostProcessor(QtCore.QObject):
 
     def make_line_numbers(self, exstr):
         """
-        This Method checks if Line Numbers are required for the export and if 
-        they are it adds them to the existing exstr.
+        This Method adds Line Numbers to the existing exstr when required for export.
         @param exstr: This is the string which shall be exported where the line 
         numbers are added.
         @return: It returns the string with line numbers added to it. 
         """
-        use_line_nrs     = self.vars.Line_Numbers["use_line_nrs"]
-        line_nrs_begin     = self.vars.Line_Numbers["line_nrs_begin"]
-        line_nrs_step      = self.vars.Line_Numbers["line_nrs_step"]
+        use_line_nrs   = self.vars.Line_Numbers["use_line_nrs"]
+        line_nrs_begin = self.vars.Line_Numbers["line_nrs_begin"]
+        line_nrs_step  = self.vars.Line_Numbers["line_nrs_step"]
         
         line_format = 'N%i ' 
         if use_line_nrs:
@@ -348,7 +347,7 @@ class MyPostProcessor(QtCore.QObject):
                                                         exstr[nr + 1:len(self.string)]))
                 
                 nr = exstr.find('\n', nr + len(((line_format) % line_nr)) + 2)
-                          
+            
         return exstr
             
     def chg_tool(self, tool_nr, speed):
@@ -366,7 +365,7 @@ class MyPostProcessor(QtCore.QObject):
     def chg_feed_rate(self, feed):
         """
         This Method is called to change the feedrate
-        @param feed: The new feedrate which shall be set
+        @param feed: New feedrate
         @return: Returns the string which shall be added.
         """
         self.feed = feed
@@ -374,9 +373,9 @@ class MyPostProcessor(QtCore.QObject):
         
     def set_cut_cor(self, cut_cor, Pe):
         """
-        This function is called if the Cutter Correction is enabled.
-        @param cut_cor=The new value of the cutter correction (41/42)
-        @param Pe= This is a PointClass which gives the Endpoint
+        This function is called if Cutter Correction is enabled.
+        @param cut_cor = The new value of the cutter correction (41/42)
+        @param Pe = A PointClass which gives the Endpoint
         """
         self.cut_cor = cut_cor
 
@@ -393,8 +392,8 @@ class MyPostProcessor(QtCore.QObject):
 
     def deactivate_cut_cor(self, Pe):
         """
-        This function is called if the Cutter Correction is disabled.
-        @param Pe= This is a PointClass which gives the Endpoint
+        This function is called if Cutter Correction is disabled.
+        @param Pe = A PointClass which gives the Endpoint
         """
         if not(self.abs_export):
             self.Pe = Pe - self.lPe
@@ -406,14 +405,14 @@ class MyPostProcessor(QtCore.QObject):
     def lin_pol_arc(self, dir, Pa, Pe, a_ang, e_ang, R, O, IJ):
         """
         This function is called if an arc shall be cut.
-        @param dir: The direction of the arc to be cut, can be cw or ccw
-        @param Pa: The Start Point at which the Arc begins
-        @param PE: The End Point at which the Arc is ended.
+        @param dir: The direction of the arc to cut, can be cw or ccw
+        @param Pa: The Start Point of the the Arc
+        @param PE: The End Point of the Arc
         @param a_ang: The angle at which the Startpoint Starts
         @param e_ang: The angle at which the Endpoint Ends
-        @param R: The Radius or the Arc
-        @param O: The Center of the Arc
-        @param IJ: The distance to from Center to Start Point.
+        @param R: The Radius of the Arc
+        @param O: The Center (Origin) of the Arc
+        @param IJ: The distance from Center to Start Point.
         """
         self.O = O
         self.IJ = IJ
@@ -438,7 +437,7 @@ class MyPostProcessor(QtCore.QObject):
           
     def rap_pos_z(self, z_pos):
         """
-        Code to be added if the machine shall be rapidly commanded to a new 
+        Code to add if the machine is rapidly commanded to a new 
         3rd Axis Position.
         @param z_pos: the value at which shall be positioned
         @return: Returns the string which shall be added.
@@ -453,9 +452,9 @@ class MyPostProcessor(QtCore.QObject):
          
     def rap_pos_xy(self, Pe):
         """
-        Code to be added if the machine shall be rapidly commanded to a new 
+        Code to add if the machine is rapidly commanded to a new
         XY Plane Position.
-        @param Pe: the value at which shall be positioned
+        @param Pe: the value at which machine shall be positioned
         @return: Returns the string which shall be added.
         """
         
@@ -469,7 +468,7 @@ class MyPostProcessor(QtCore.QObject):
     
     def lin_pol_z(self, z_pos):
         """
-        Code to be added if the machine shall be commanded to a new 
+        Code to add if the machine is commanded to a new 
         3rd Axis Position.
         @param z_pos: the value at which shall be positioned
         @return: Returns the string which shall be added.
@@ -484,7 +483,7 @@ class MyPostProcessor(QtCore.QObject):
         
     def lin_pol_xy(self, Pa, Pe):
         """
-        Code to be added if the machine shall be rapidly commanded to a new 
+        Code to add if the machine is rapidly commanded to a new 
         XY Plane Position.
         @param Pe: the value at which shall be positioned
         @return: Returns the string which shall be added.
@@ -501,15 +500,15 @@ class MyPostProcessor(QtCore.QObject):
     
     def write_pre_shape_cut(self):
         """
-        Return the text to be added before a shape.
-        @return: The Function returns the string to be added.
+        Return the text to add before a shape.
+        @return: Returns the string to be added.
         """
         return self.make_print_str(self.vars.Program["pre_shape_cut"])
     
     def write_post_shape_cut(self):
         """
-        Return the text to be added post a shape.
-        @return: The Function returns the string to be added.
+        Return the text to add after (post) a shape.
+        @return: Returns the string to be added.
         """
         return self.make_print_str(self.vars.Program["post_shape_cut"])
     
@@ -525,7 +524,7 @@ class MyPostProcessor(QtCore.QObject):
         """
         This is the main function which converts the Keyvalues given in the
         Postprocessor Configuration into the values.
-        @param keystr: This is the string in which all keywords shall be 
+        @param keystr: String in which all keywords are to be
         replaced by the variables etc.
         @return: Returns the string with replaced keyvars (e.g. %Z is replaced
         by the real Z value in the defined Number Format.
@@ -537,21 +536,20 @@ class MyPostProcessor(QtCore.QObject):
                                   eval(self.keyvars.values()[key_nr]))
         return exstr
 
-    #Funktion welche den Wert als formatierter integer zurueck gibt
     #Function which returns the given value as a formatted integer
-    def iprint(self, interger):
+    def iprint(self, integer):
         """
-        This method is called to return a integer formatted as an string
-        @param integer: The integer values which shall be returned as a string
-        @return: The formatted integer as a string.
+        This method returns an integer formatted as a string
+        @param integer: The integer value to convert to a string
+        @return: The integer formatted as a string.
         """
-        return ('%i' % interger)
+        return ('%i' % integer)
     
     def sprint(self, string):
         """
-        This method is called to return a string formatted as an string
-        @param integer: The integer values which shall be returned as a string
-        @return: The formatted integer as a string.
+        This method is called to return a string formatted as a string
+        @param string: The string values which shall be returned as a string
+        @return: The string formatted as a string.
         """
         return ('%s' % string)
 
@@ -572,9 +570,9 @@ class MyPostProcessor(QtCore.QObject):
         @return: The formatted string of the number.
         """
         
-        pre_dec     = self.vars.Number_Format["pre_decimals"]
-        post_dec    = self.vars.Number_Format["post_decimals"]
-        dec_sep     = self.vars.Number_Format["decimal_seperator"]
+        pre_dec  = self.vars.Number_Format["pre_decimals"]
+        post_dec = self.vars.Number_Format["post_decimals"]
+        dec_sep  = self.vars.Number_Format["decimal_seperator"]
         pre_dec_z_pad = self.vars.Number_Format["pre_decimal_zero_padding"]
         post_dec_z_pad = self.vars.Number_Format["post_decimal_zero_padding"]
         signed_val = self.vars.Number_Format["signed_values"]
@@ -603,7 +601,8 @@ class MyPostProcessor(QtCore.QObject):
 
         #Add's Zero's to the end if required
         if post_dec_z_pad == 0:
-            while (len(exstr_end) > 0) and ((exstr_end[-1] == '0') or (exstr_end[-1] == self.dec_sep)):
+            while (len(exstr_end) > 0) and ((exstr_end[-1] == '0') \
+                   or (exstr_end[-1] == self.dec_sep)):
                 exstr_end = exstr_end[0:-1]                
         return exstr + exstr_end
     

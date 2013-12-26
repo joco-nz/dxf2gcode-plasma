@@ -41,7 +41,7 @@ class Point:
     def __cmp__(self, other) : 
         return (self.x == other.x) and (self.y == other.y)
     def __neg__(self):
-        return - 1.0 * self
+        return -1.0 * self
     def __add__(self, other): # add to another Point
         return Point(self.x + other.x, self.y + other.y)
     def __sub__(self, other):
@@ -50,22 +50,20 @@ class Point:
         return Point(other * self.x, other * self.y)
     def __mul__(self, other):
         if type(other) == list:
-            #Skalieren des Punkts
             #Scale the points
             return Point(x=self.x * other[0], y=self.y * other[1])
         else:
-            #Skalarprodukt errechnen
             #Calculate Scalar (dot) Product
             return self.x * other.x + self.y * other.y
 
     def unit_vector(self, Pto=None):
-        """Return vector of length 1"""
+        """Returns vector of length 1"""
         diffVec = Pto - self
         l = diffVec.distance()
         return Point(diffVec.x / l, diffVec.y / l)
 
     def distance(self, other=None):
-        """ Return distance between two given points"""
+        """Returns distance between two given points"""
         if type(other) == type(None):
             other = Point(x=0.0, y=0.0)
         return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
@@ -92,7 +90,6 @@ class Point:
         @param radius: The radius from the given Point
         @return: A Point at given radius and angle from Point self
         """ 
-        
         return Point(x=self.x + cos(ang) * r, \
                      y=self.y + sin(ang) * r)
 
@@ -121,12 +118,11 @@ class Point:
     
     def triangle_height(self, other1, other2):
         """Calculate height of triangle given lengths of the sides"""
-        #Die 3 Längen des Dreiecks ausrechnen
         #The 3 lengths of the triangle to calculate
         a = self.distance(other1)
         b = other1.distance(other2)
         c = self.distance(other2)
-        return sqrt(pow(b, 2) - pow((pow(c, 2) + pow(b, 2) - pow(a, 2)) / (2 * c), 2))  
+        return sqrt(pow(b, 2) - pow((pow(c, 2) + pow(b, 2) - pow(a, 2)) / (2 * c), 2))
       
     def rot_sca_abs(self, sca=None, p0=None, pb=None, rot=None, parent=None):
         """NEEDS DOCUMENTED"""
@@ -165,13 +161,13 @@ class Point:
             p1 = Point(x=rotx, y=roty) + p0
         
         
-#        print(("Self:    %s\n" %self)+\
-#                ("P0:      %s\n" %p0)+\
-#                ("Pb:      %s\n" %pb)+\
-#                ("Pc:      %s\n" %pc)+\
-#                ("rot:     %0.1f\n" %degrees(rot))+\
-#                ("sca:     %s\n" %sca)+\
-#                ("P1:      %s\n\n" %p1))
+#        print(("Self:    %s\n" % self)+\
+#                ("P0:      %s\n" % p0)+\
+#                ("Pb:      %s\n" % pb)+\
+#                ("Pc:      %s\n" % pc)+\
+#                ("rot:     %0.1f\n" % degrees(rot))+\
+#                ("sca:     %s\n" % sca)+\
+#                ("P1:      %s\n\n" % p1))
         
         return p1
 

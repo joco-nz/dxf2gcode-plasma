@@ -28,9 +28,8 @@ from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF16_BE, BOM_UTF16_LE
 # imported lazily to avoid startup performance hit if it isn't used
 compiler = None
 
-# A dictionary mapping BOM to
-# the encoding to decode with, and what to set the
-# encoding attribute to.
+# A dictionary mapping BOM to the encoding to decode with,
+# and what to set the encoding attribute to.
 BOMS = {
     BOM_UTF8: ('utf_8', None),
     BOM_UTF16_BE: ('utf16_be', 'utf_16'),

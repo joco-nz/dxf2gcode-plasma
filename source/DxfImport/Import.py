@@ -149,20 +149,20 @@ class ReadDXF(QtCore.QObject):
     
     #Die Geladenene Daten in Linien Pare mit Code & Value umwandeln.
     #Convert the uploaded file to line pairs (code & Value).
-    def Get_Line_Pairs(self, str):
+    def Get_Line_Pairs(self, string):
         line = 0
         line_pairs = dxflinepairsClass([])
         #Start bei der ersten SECTION
         #Start at the first SECTION
-        while (find(str[line], "SECTION") < 0):
+        while (find(string[line], "SECTION") < 0):
             line += 1
         line -= 1
 
         #Durchlauf bis zum Ende falls kein Fehler auftritt. Ansonsten abbruch am Fehler
         #Continue to the end if no error occurs. Otherwise abort with error
         try:
-            while line < len(str):
-                line_pairs.line_pair.append(dxflinepairClass(int(strip(str[line])), strip(str[line + 1])))
+            while line < len(string):
+                line_pairs.line_pair.append(dxflinepairClass(int(strip(string[line])), strip(string[line + 1])))
                 line += 2
 
         except:
@@ -283,26 +283,24 @@ class ReadDXF(QtCore.QObject):
             s = lp.index_code(10, s + 1, e)
             logger.debug("Found block pos Value 10 at: %s" %s)
             
-            if s==None:
-                blocks.Entities[-1].basep.x=0.0
-                s=blocks_pos[block_nr].begin + 1
+            if s == None:
+                blocks.Entities[-1].basep.x = 0.0
+                s = blocks_pos[block_nr].begin + 1
             else:
                 blocks.Entities[-1].basep.x = float(lp.line_pair[s].value)
                 
             #Y value
             s = lp.index_code(20, s + 1, e)
-            if s==None:
-                blocks.Entities[-1].basep.y=0.0
-                s=blocks_pos[block_nr].begin + 1
+            if s == None:
+                blocks.Entities[-1].basep.y = 0.0
+                s = blocks_pos[block_nr].begin + 1
             else:
                 blocks.Entities[-1].basep.y = float(lp.line_pair[s].value)
             
-            #Lesen der Geometrien
             #Read the geometries
             blocks.Entities[-1].geo = self.Get_Geo(s, e)
             
         return blocks
-    #Lesen der Entities Geometrien
     #Read the entities geometries
     def Read_Entities(self, sections):
         for section_nr in range(len(sections)):
@@ -314,7 +312,6 @@ class ReadDXF(QtCore.QObject):
          
         return entities
     
-    #Lesen der Geometrien von Bl�cken und Entities
     #Read the geometries of Blocks and Entities
     def Get_Geo(self, begin, end):
         geos = []
@@ -322,7 +319,6 @@ class ReadDXF(QtCore.QObject):
         old_start = self.start
         
         while self.start != None:
-            #Laden der aktuell gefundenen Geometrie
             #Load the currently found geometry
             name = self.line_pairs.line_pair[self.start].value         
             entitie_geo = self.get_geo_entitie(len(geos), name)
@@ -331,11 +327,9 @@ class ReadDXF(QtCore.QObject):
             if entitie_geo != None:
                 geos.append(entitie_geo)
             
-            #Die n�chste Suche Starten nach dem gerade gefundenen
             #Start the next search after one just found
             self.start = self.line_pairs.index_code(0, self.start, end)            
 
-            #Debug Informationen anzeigen falls erw�nscht
             #Show debugging information if desired
             #if self.start == None:
                 #g.logger.logger.info(("Found %s at Linepair %0.0f (Line %0.0f till %0.0f)" \
@@ -818,7 +812,7 @@ class EntitiesClass:
         return '\nNr:      %s' % (self.Nr) + \
                 '\nName:    %s' % (self.Name) + \
                 '\nBasep:   %s' % (self.basep) + \
-                '\nNumber or Geometries: %i' % (len(self.geo)) + \
+                '\nNumber of Geometries: %i' % (len(self.geo)) + \
                 '\nNumber of Contours:   %i' % (len(self.cont))
                 
                

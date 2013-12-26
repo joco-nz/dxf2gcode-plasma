@@ -33,7 +33,7 @@ POSTPRO_VERSION = "4"
 version tag - increment this each time you edit CONFIG_SPEC
 
 compared to version number in config file so
-old versions are recognized and skipped"
+old versions are recognized and skipped
 """
     
 POSTPRO_SPEC = str('''

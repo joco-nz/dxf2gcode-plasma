@@ -148,18 +148,18 @@ class Arrow(QtGui.QGraphicsLineItem):
 
         if self.dir == 0:
             arrowP1 = line.p1() + QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
-                                            cos(angle + pi / 3) * arrowSize)
+                                                 cos(angle + pi / 3.0) * arrowSize)
             arrowP2 = line.p1() + QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
-                                            cos(angle + pi - pi / 3.0) * arrowSize)
+                                                 cos(angle + pi - pi / 3.0) * arrowSize)
             self.arrowHead.clear()
             for Point in [line.p1(), arrowP1, arrowP2]:
                 self.arrowHead.append(Point)
                 
         else:
             arrowP1 = line.p2() - QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
-                                            cos(angle + pi / 3) * arrowSize)
+                                                 cos(angle + pi / 3.0) * arrowSize)
             arrowP2 = line.p2() - QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
-                                            cos(angle + pi - pi / 3.0) * arrowSize)
+                                                 cos(angle + pi - pi / 3.0) * arrowSize)
             self.arrowHead.clear()
             for Point in [line.p2(), arrowP1, arrowP2]:
                 self.arrowHead.append(Point)

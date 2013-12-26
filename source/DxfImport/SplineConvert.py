@@ -27,12 +27,12 @@ from Core.ArcGeo import ArcGeo
 from Core.LineGeo import  LineGeo
 from DxfImport.biarc import BiarcClass
 
-from math import atan2, pow
+from math import atan2
 
 import logging
 logger = logging.getLogger("DxfImport.SplineConvert") 
 
-debug_on=True
+debug_on = True
 
 class Spline2Arcs:
     def __init__(self, degree=0, Knots=[], Weights=[], CPoints=[], tol=0.01, check=1):
@@ -42,7 +42,8 @@ class Spline2Arcs:
         self.segments = 50
         
         #NURBS Klasse initialisieren
-        self.NURBS = NURBSClass(degree=degree, Knots=Knots, CPoints=CPoints, Weights=Weights)
+        self.NURBS = NURBSClass(degree=degree, Knots=Knots,
+                                CPoints=CPoints, Weights=Weights)
         
         #�berpr�fen der NURBS Parameter �berpr�fung der NURBS Kontrollpunkte ob welche doppelt
         #Innerhalb der gegebenen Tolerans sind (=> Ignorieren)
@@ -84,14 +85,14 @@ class Spline2Arcs:
             #Wenn die L�nge mindestens 3 sind
             if len(NewCurve) >= 3:
                 #Steigende Spirale
-                if ((NewCurve[-3].type == "ArcGeo")\
-                   and(NewCurve[-2].type == "ArcGeo")\
-                   and(NewCurve[-1].type == "ArcGeo")):
+                if ((NewCurve[-3].type == "ArcGeo")
+                   and (NewCurve[-2].type == "ArcGeo")
+                   and (NewCurve[-1].type == "ArcGeo")):
                     Pts.append(geo.Pe)
-                    if(NewCurve[-3].r <= NewCurve[-2].r)\
-                        and(NewCurve[-2].r <= NewCurve[-1].r)\
-                        and((NewCurve[-3].ext * NewCurve[-2].ext) >= 0.0)\
-                        and((NewCurve[-2].ext * NewCurve[-1].ext) >= 0.0):
+                    if (NewCurve[-3].r <= NewCurve[-2].r) \
+                        and (NewCurve[-2].r <= NewCurve[-1].r) \
+                        and ((NewCurve[-3].ext * NewCurve[-2].ext) >= 0.0) \
+                        and ((NewCurve[-2].ext * NewCurve[-1].ext) >= 0.0):
                         #print "Increasing"
                         anz = len(NewCurve)
                         triarc = NewCurve[anz - 3:anz]
@@ -108,10 +109,10 @@ class Spline2Arcs:
                         except:
                             pass
                         
-                    elif (NewCurve[-3].r > NewCurve[-2].r)\
-                         and(NewCurve[-2].r > NewCurve[-1].r)\
-                         and((NewCurve[-3].ext * NewCurve[-2].ext) >= 0.0)\
-                         and((NewCurve[-2].ext * NewCurve[-1].ext) >= 0.0):
+                    elif (NewCurve[-3].r > NewCurve[-2].r) \
+                       and (NewCurve[-2].r > NewCurve[-1].r) \
+                       and ((NewCurve[-3].ext * NewCurve[-2].ext) >= 0.0) \
+                       and ((NewCurve[-2].ext * NewCurve[-1].ext) >= 0.0):
                         #print "Decreasing"
                         anz = len(NewCurve)
                         triarc = NewCurve[anz - 3:anz]
@@ -135,7 +136,7 @@ class Spline2Arcs:
         Vb = Arc1.Pa.unit_vector(Arc1.O)
         
         t_ = (2 * arc[0].r * tau + pow(tau, 2)) / \
-            (2 * (arc[0].r + (arc[0].r + tau) * V0 * Vb))
+             (2 * (arc[0].r + (arc[0].r + tau) * V0 * Vb))
         
         te = arc[0].r + t_ - (Arc0.Pe - (arc[0].O + (t_ * V0))).distance()
         
@@ -144,6 +145,7 @@ class Spline2Arcs:
             tf = tau
         else:
             tf = tau - tm
+
         #print("tm: %0.3f; te: %0.3f; tau: %0.3f" %(tm,te,tau))
         epsilon = min([te, tf, tau])
         
@@ -157,7 +159,7 @@ class Spline2Arcs:
         Vb = Arc1.Pa.unit_vector(Arc1.O)
         
         t_ = (2 * arc[2].r * tau + pow(tau, 2)) / \
-            (2 * (arc[2].r + (arc[2].r + tau) * V0 * Vb))
+             (2 * (arc[2].r + (arc[2].r + tau) * V0 * Vb))
         
         te = arc[2].r + t_ - (Arc0.Pe - (arc[2].O + (t_ * V0))).distance()
         te = tau
@@ -239,7 +241,7 @@ class Spline2Arcs:
         
         #Errechnen von tb
         tb = (pow((arc[1].r - arc[2].r + eps), 2) - ((arc[1].O - arc[2].O) * (arc[1].O - arc[2].O))) / \
-            (2 * (arc[1].r - arc[2].r + eps + (arc[1].O - arc[2].O) * V0))
+             (2 * (arc[1].r - arc[2].r + eps + (arc[1].O - arc[2].O) * V0))
         
         #Errechnen von tc
         tc = (pow(t0, 2) - (D * D)) / (2 * (t0 - D * V0))

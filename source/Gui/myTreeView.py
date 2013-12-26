@@ -19,7 +19,8 @@ from PyQt4 import QtCore, QtGui
 
 class MyTreeView(QtGui.QTreeView):
     """
-    Subclassed QTreeView in order to match our needs: implement a simple (ie not complex) drag & drop, get selection events
+    Subclassed QTreeView in order to match our needs.
+    Implement a simple (ie not complex) drag & drop, get selection events
     """
 
     def __init__(self, parent = None):
@@ -34,14 +35,16 @@ class MyTreeView(QtGui.QTreeView):
         self.keyPressEventcallback = None
         self.signals_blocked = False #Transmit events between classes
 
-        QtCore.QObject.connect(self, QtCore.SIGNAL("pressed( const QModelIndex )"), self.elementPressed)
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL("pressed( const QModelIndex )"),
+                               self.elementPressed)
 
 
 
     def setSelectionCallback(self, callback):
         """
-        Register a callback function called when the selection changes on the TreeView
-        options
+        Register a callback function called when the selection changes
+        on the TreeView options
         @param callback: function with prototype functionName(parent, selected, deselected):
         """
         self.selectionChangedcallback = callback
@@ -71,7 +74,7 @@ class MyTreeView(QtGui.QTreeView):
         print("\033[32;1mdragEnterEvent {0} at pos({1}), index = {2}\033[m\n".format(event, event.pos(), self.indexAt(event.pos()).parent().internalId()))
         """
         self.dragged_element = True
-        event.acceptProposedAction();
+        event.acceptProposedAction()
 
 
 
@@ -84,7 +87,8 @@ class MyTreeView(QtGui.QTreeView):
         @param element_model_index: QModelIndex of the element pressed
         print("\033[32melementPressed row = {0}\033[m".format(element_model_index.model().itemFromIndex(element_model_index).row()))
         """
-        self.dragged_element_model_index = element_model_index #save the index of the clicked element
+        #save the index of the clicked element...
+        self.dragged_element_model_index = element_model_index
 
 
 
@@ -114,36 +118,50 @@ class MyTreeView(QtGui.QTreeView):
             drag_item = self.dragged_element_model_index.model().itemFromIndex(self.dragged_element_model_index)
             items_parent = drag_item.parent()
             if not items_parent:
-                items_parent = drag_item.model().invisibleRootItem() #parent is 0, so we need to get the root item of the tree as parent
+                #parent is 0, so we need to get the root item of the tree as parent...
+                items_parent = drag_item.model().invisibleRootItem()
             drop_model_index = self.indexAt(event.pos())
-            relative_position = self.dropIndicatorPosition() #get the insert position related to the drop item : OnItem, AboveItem, BelowItem, OnViewport
+            # Get the insert position related to the drop item:
+            # OnItem, AboveItem, BelowItem, OnViewport...
+            relative_position = self.dropIndicatorPosition()
 
             #compute the new position of the layer or the shape
-            if drop_model_index.isValid() and relative_position != QtGui.QTreeView.OnViewport: #drop position is computable from a real element
+            if drop_model_index.isValid() and relative_position != QtGui.QTreeView.OnViewport:
+                #drop position is computable from a real element
                 drop_item = drop_model_index.model().itemFromIndex(drop_model_index)
 
                 if drag_item.parent() == drop_item.parent():
-                    #dropped element is on the same tree branch as dragged element
+                    #dropped element is on the same tree branch as
+                    #dragged element...
                     drag_row = self.dragged_element_model_index.row() #original row
-                    drop_row = drop_model_index.row() + (1 if relative_position == QtGui.QTreeView.BelowItem else 0) #destination row (+1 if relative pos is below the drop element)
+                    #destination row (+1 if relative pos is below the drop element)...
+                    drop_row = drop_model_index.row() + (1 if relative_position == QtGui.QTreeView.BelowItem else 0)
                     #print("\033[32;1mACCEPTED!\033[m\n")
 
-                elif (drag_item.parent() == drop_item or not drop_item.parent() and drag_item.parent() == drop_item.model().invisibleRootItem().child(drop_item.row(), 0))\
-                 and (relative_position == QtGui.QTreeView.BelowItem or relative_position == QtGui.QTreeView.OnItem):
-                    #we are on parent item (second test takes the first column of the drop_item's row. First column is where child are inserted, so we must compare with this col)
-                    drag_row = self.dragged_element_model_index.row() #original row
-                    drop_row = 0 #destination row is 0 because item is dropped on the parent
-                    #print("\033[32;1mACCEPTED ON PARENT!\033[m\n")
+                elif (drag_item.parent() == drop_item or not drop_item.parent()\
+                  and drag_item.parent() == drop_item.model().invisibleRootItem().child(drop_item.row(), 0))\
+                  and (relative_position == QtGui.QTreeView.BelowItem or relative_position == QtGui.QTreeView.OnItem):
+                    #we are on parent item (second test takes the first column
+                    # of the drop_item's row. First column is where child are
+                    # inserted, so we must compare with this col)
 
+                    # original row...
+                    drag_row = self.dragged_element_model_index.row()
+                    # destination row is 0 because item is dropped on the parent...
+                    drop_row = 0
+                    #print("\033[32;1mACCEPTED ON PARENT!\033[m\n")
                 elif (not drop_item.parent() and self.dragged_element_model_index.parent().sibling(self.dragged_element_model_index.parent().row()+1, 0) == drop_item.model().invisibleRootItem().child(drop_item.row(), 0).index())\
                  and (relative_position == QtGui.QTreeView.AboveItem or relative_position == QtGui.QTreeView.OnItem):
                     #we are on next parent item => insert at end of the dragged item's layer
-                    drag_row = self.dragged_element_model_index.row() #original row
-                    drop_row = items_parent.rowCount() #insert at end
+                    # original row...
+                    drag_row = self.dragged_element_model_index.row()
+                    # insert at end...
+                    drop_row = items_parent.rowCount()
                     #print("\033[32;1mACCEPTED ON NEXT PARENT!\033[m\n")
 
                 else:
-                    #we are in the wrong branch of the tree ; item can't be pasted here
+                    #we are in the wrong branch of the tree,
+                    # item can't be pasted here
                     drop_row = -1
                     #print("\033[31;1mREFUSED!\033[m\n")
 
@@ -160,14 +178,18 @@ class MyTreeView(QtGui.QTreeView):
 
                 item_to_be_moved = items_parent.takeRow(drag_row)
                 if drop_row > drag_row:
-                    drop_row -= 1 #we have one less item in the list, so if the item is dragged below its original position, we must correct its insert position
+                    #we have one less item in the list, so if the item is
+                    # dragged below its original position, we must
+                    # correct its insert position
+                    drop_row -= 1
                 items_parent.insertRow(drop_row, item_to_be_moved)
 
                 if not self.signals_blocked:
-                    #Emit the signal that order of the TreeView has changed
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+                    # Signal that the order of the TreeView has changed...
+                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
+                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
 
-            self.dragged_element = False;
+            self.dragged_element = False
         else:
             event.ignore()
 
@@ -183,7 +205,8 @@ class MyTreeView(QtGui.QTreeView):
             current_item = current_item_index.model().itemFromIndex(current_item_index)
             current_item_parent = current_item.parent()
             if not current_item_parent:
-                current_item_parent = current_item.model().invisibleRootItem() #parent is 0, so we need to get the root item of the tree as parent
+                #parent is 0, so we need to get the root item of the tree as parent...
+                current_item_parent = current_item.model().invisibleRootItem()
 
             pop_row = current_item_index.row() #original row
             push_row = pop_row - 1
@@ -193,8 +216,9 @@ class MyTreeView(QtGui.QTreeView):
                 self.setCurrentIndex(current_item.index())
 
                 if not self.signals_blocked:
-                    #Emit the signal that order of the TreeView has changed
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+                    # Signal that the order of the TreeView has changed
+                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
+                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
 
 
 
@@ -208,7 +232,8 @@ class MyTreeView(QtGui.QTreeView):
             current_item = current_item_index.model().itemFromIndex(current_item_index)
             current_item_parent = current_item.parent()
             if not current_item_parent:
-                current_item_parent = current_item.model().invisibleRootItem() #parent is 0, so we need to get the root item of the tree as parent
+                #parent is 0, so we need to get the root item of the tree as parent...
+                current_item_parent = current_item.model().invisibleRootItem()
 
             pop_row = current_item_index.row() #original row
             push_row = pop_row + 1
@@ -218,15 +243,16 @@ class MyTreeView(QtGui.QTreeView):
                 self.setCurrentIndex(current_item.index())
 
                 if not self.signals_blocked:
-                    #Emit the signal that order of the TreeView has changed
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+                    #Signal that order of the TreeView has changed...
+                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
+                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
 
 
 
     def blockSignals(self, block):
         """
-        Blocks the signals from this class. Subclassed in order to also block selectionChanged "signal" (callback)
-        options
+        Blocks the signals from this class. Subclassed in order to also block
+        selectionChanged "signal" (callback) options
         @param block: whether to block signal (True) or not (False)
         """
         self.signals_blocked = block
@@ -236,8 +262,8 @@ class MyTreeView(QtGui.QTreeView):
 
     def selectionChanged(self, selected, deselected):
         """
-        Function called by QT when the selection has changed for this treeView. Subclassed in order to call a callback function
-        options
+        Function called by QT when the selection has changed for this treeView.
+        Subclassed in order to call a callback function options
         @param selected: list of selected items
         @param deselected: list of deselected items
         print("\033[32;1mselectionChanged selected count = {0} ; deselected count = {1}\033[m".format(selected.count(), deselected.count()))
@@ -251,7 +277,8 @@ class MyTreeView(QtGui.QTreeView):
 
     def keyPressEvent(self, keyEvent):
         """
-        Function called by QT when a key has been pressed inside the treeView. Subclassed in order to call a callback function
+        Function called by QT when a key has been pressed inside the treeView.
+        Subclassed in order to call a callback function
         @param keyEvent: keyboard event
         print("\033[31;1mkeyPressEvent() key = {0}\033[m".format(keyEvent.key()))
         """
