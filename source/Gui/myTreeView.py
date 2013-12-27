@@ -19,7 +19,7 @@ from PyQt4 import QtCore, QtGui
 
 class MyTreeView(QtGui.QTreeView):
     """
-    Subclassed QTreeView in order to match our needs.
+    Subclassed QTreeView to match our needs.
     Implement a simple (ie not complex) drag & drop, get selection events
     """
 
@@ -285,7 +285,8 @@ class MyTreeView(QtGui.QTreeView):
 
         if self.keyPressEventcallback and not self.signals_blocked:
             if self.keyPressEventcallback(keyEvent.key(), self.currentIndex()) == False:
-                QtGui.QTreeView.keyPressEvent(self, keyEvent) #key not accepted => send it back to the parent
+                #key not accepted => send it back to the parent
+                QtGui.QTreeView.keyPressEvent(self, keyEvent)
         else:
             QtGui.QTreeView.keyPressEvent(self, keyEvent)
 
@@ -308,7 +309,7 @@ class MyStandardItemModel(QtGui.QStandardItemModel):
         """
         This function is called by QT each time a drag operation is
         initiated, to serialize the data associated with the
-        dragged item. However, QT don't know how to serialize a Shape
+        dragged item. However, QT doesn't know how to serialize a Shape
         or a Layer, so it throws an error ... since we handle Drag & Drop
         internally, we don't need any serialization, so we subclass
         the function and return nothing (trick to avoid errors).

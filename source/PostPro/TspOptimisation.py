@@ -61,8 +61,8 @@ class TSPoptimize(QtCore.QObject):
         #Initialise the Result Class
         self.Fittness = FittnessClass(population=self.Population,
                                       cur_fittness=range(self.Population.size[1]))
-       self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,
-                                      range(self.shape_nrs))
+        self.Fittness.calc_st_fittness(self.DistanceMatrix.matrix,
+                                       range(self.shape_nrs))
         self.Fittness.order = self.order
 
         #Anfang der Reihenfolge immer auf den letzen Punkt legen

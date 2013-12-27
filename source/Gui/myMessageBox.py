@@ -9,8 +9,8 @@ Special purpose canvas including all required plotting function etc.
 @since:  22.04.2011
 @license: GPL
 """
-from PyQt4 import QtCore, QtGui
-import Core.Globals as g
+from PyQt4 import QtGui
+#import Core.Globals as g
 import Core.constants as c
 
 class myMessageBox(QtGui.QTextBrowser):

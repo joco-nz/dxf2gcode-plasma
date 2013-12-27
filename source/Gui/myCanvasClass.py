@@ -10,11 +10,11 @@ Special purpose canvas including all required plotting function etc.
 @since:  22.04.2011
 @license: GPL
 """
-from copy import copy
+#from copy import copy
 
 from PyQt4 import QtCore, QtGui
 from Core.Point import Point
-from Core.Shape import ShapeClass
+#from Core.Shape import ShapeClass
 
 from Gui.WpZero import WpZero
 from Gui.Arrow import Arrow
@@ -22,7 +22,7 @@ from Gui.StMove import StMove
 from Gui.RouteText import RouteText
 #import math
 import Core.Globals as g
-import Core.constants as c
+#import Core.constants as c
 
 import logging
 logger = logging.getLogger("DxfImport.myCanvasClass") 
