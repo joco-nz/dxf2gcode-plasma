@@ -339,17 +339,17 @@ class MyPostProcessor(QtCore.QObject):
             nr = 0
             line_nr = line_nrs_begin
             exstr = ((line_format + '%s') % (line_nr, exstr))
-            nr = self.string.find('\n', nr)
+            nr = exstr.find('\n', nr)
             while not(nr == -1):
                 line_nr += line_nrs_step  
-                exstr = (('%s' + line_format + '%s') % (self.string[0:nr + 1], \
+                exstr = (('%s' + line_format + '%s') % (exstr[0:nr + 1], \
                                                         line_nr, \
-                                                        exstr[nr + 1:len(self.string)]))
+                                                        exstr[nr + 1:len(exstr)]))
                 
                 nr = exstr.find('\n', nr + len(((line_format) % line_nr)) + 2)
             
         return exstr
-            
+           
     def chg_tool(self, tool_nr, speed):
         """
         This Method is called to change the tool.  It can change the tool or
