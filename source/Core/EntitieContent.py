@@ -55,5 +55,8 @@ class EntitieContentClass:
     
     #Add the contour of the Entities
     def addchild(self, child):
+        """
+        addchild()
+        """
         self.children.append(child)
 

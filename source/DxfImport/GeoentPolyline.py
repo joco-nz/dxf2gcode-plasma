@@ -49,11 +49,17 @@ class GeoentPolyline:
         return string
 
     def reverse(self):
+        """
+        reverse()
+        """
         self.geo.reverse()
         for geo in self.geo:
             geo.reverse()
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+        """
+        App_Cont_or_Calc_IntPts()
+        """
         if abs(self.length) < tol:
             pass
             
@@ -81,14 +87,15 @@ class GeoentPolyline:
 ##                                                   "\nSkipping Line Geometrie"))
             
     def analyse_and_opt(self):
+        """
+        analyse_and_opt()
+        """
         summe = 0
-
+        
         #Richtung in welcher der Anfang liegen soll (unten links)
         #Direction of the top (lower left) ???
         Popt = Point(x= -1e3, y= -1e6)
         
-        #Berechnung der Fläch nach Gauß-Elling Positive Wert bedeutet CW
-        #negativer Wert bedeutet CCW geschlossenes Polygon
         #Calculation of the alignment after Gaussian-Elling
         #Positive value means CW, negative value indicates CCW
         #closed polygon
@@ -97,8 +104,7 @@ class GeoentPolyline:
         
         if summe > 0.0:
             self.reverse()
-
-                
+        
         #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
         #Find the smallest starting point from bottom left X (Must be new loop!)
         min_distance = self.geo[0].Pa.distance(Popt)
@@ -113,19 +119,20 @@ class GeoentPolyline:
         self.geo = self.geo[min_geo_nr:len(self.geo)] + self.geo[0:min_geo_nr]
            
     def Read(self, caller):
-        #Kürzere Namen zuweisen
+        """
+        Read()
+        """
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_both(0, "SEQEND", caller.start + 1) + 1
-        #Layer zuweisen        
+        
         #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
-
-        #Pa=None für den ersten Punkt
+        
         #Pa=None for the first point
         Pa = None
-          
+        
         #Polyline flag 
         s_temp = lp.index_code(70, s + 1, e)
         if s_temp == None:
@@ -133,7 +140,7 @@ class GeoentPolyline:
         else:
             PolyLineFlag = int(lp.line_pair[s_temp].value)
             s = s_temp
-            
+        
         #print("PolylineFlag: %i" %PolyLineFlag)
              
         while 1: #and not(s==None):
@@ -141,29 +148,28 @@ class GeoentPolyline:
             if s == None:
                 break
             
-            #XWert
             #X Value
             s = lp.index_code(10, s + 1, e)
             x = float(lp.line_pair[s].value)
-            #YWert
+            
             #Y Value
             s = lp.index_code(20, s + 1, e)
             y = float(lp.line_pair[s].value)
             Pe = Point(x=x, y=y)
-
+            
             #Bulge
             bulge = 0
             
             e_vertex = lp.index_both(0, "VERTEX", s + 1, e)
             if e_vertex == None:
                 e_vertex = e
-                
+            
             s_temp = lp.index_code(42, s + 1, e_vertex)
             #print('stemp: %s, e: %s, next 10: %s' %(s_temp,e,lp.index_both(0,"VERTEX",s+1,e)))
             if s_temp != None:
                 bulge = float(lp.line_pair[s_temp].value)
                 s = s_temp
-                
+            
             #Vertex flag (bit-coded); default is 0; 1 = Closed; 128 = Plinegen
             s_temp = lp.index_code(70, s + 1, e_vertex)
             if s_temp == None:
@@ -171,10 +177,9 @@ class GeoentPolyline:
             else:
                 VertexFlag = int(lp.line_pair[s_temp].value)
                 s = s_temp
-                
+            
             #print("Vertex Flag: %i" %PolyLineFlag)
             
-            #Zuweisen der Geometrien für die Polyline
             #Assign the geometries for the Polyline
             if (VertexFlag != 16):
                 if type(Pa) != type(None):
@@ -193,8 +198,7 @@ class GeoentPolyline:
                 #The bulge is always given for the next point
                 next_bulge = bulge
                 Pa = Pe
-                    
-        #Es ist eine geschlossene Polyline
+            
         #It is a closed polyline
         if PolyLineFlag == 1:
             #print("sollten Übereinstimmen: %s, %s" %(Pa,Pe))
@@ -211,6 +215,9 @@ class GeoentPolyline:
         caller.start = e
     
     def get_start_end_points(self, direction=0):
+        """
+        get_start_end_points()
+        """
         if not(direction):
             punkt, angle = self.geo[0].get_start_end_points(direction)
         elif direction:
@@ -218,14 +225,16 @@ class GeoentPolyline:
         return punkt, angle
     
     def bulge2arc(self, Pa, Pe, bulge):
+        """
+        bulge2arc()
+        """
         c = (1 / bulge - bulge) / 2
         
         #Berechnung des Mittelpunkts (Formel von Mickes!)
         #Calculation of the center (Micke's formula)
         O = Point(x=(Pa.x + Pe.x - (Pe.y - Pa.y) * c) / 2, \
-                     y=(Pa.y + Pe.y + (Pe.x - Pa.x) * c) / 2)
+                  y=(Pa.y + Pe.y + (Pe.x - Pa.x) * c) / 2)
                     
-        #Abstand zwischen dem Mittelpunkt und PA ist der Radius
         #Radius = Distance between the centre and Pa
         r = O.distance(Pa)
         #Kontrolle ob beide gleich sind (passt ...)

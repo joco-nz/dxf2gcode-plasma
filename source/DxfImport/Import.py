@@ -103,16 +103,21 @@ class ReadDXF(QtCore.QObject):
                                                     QtGui.QApplication.UnicodeUTF8)) 
    
    
-    #Laden des ausgew�hlten DXF-Files
-    #Load the selected DXF files
     def Read_File(self, filename):
+        """
+        Read_File() - Load the selected DXF files
+        @param: filename: name of the file to load
+        @return: file contents as a list of strings
+        """
         file_ = open(filename, 'r')
         str_ = file_.readlines()
         file_.close()
         return str_
 
-    #Search the DXF file to recognize the used unit.
     def Get_Unit(self, str):
+        """
+        Get_Unit() - Get unit of measure English (Imperial) or Metric from DXF file
+        """
         #Sets drawing units: 0 = English; 1 = Metric
         # Metric will be treated as being in millimeters
         # English as inches
@@ -129,7 +134,7 @@ class ReadDXF(QtCore.QObject):
         #Default drawing units for AutoCAD DesignCenter blocks:
         # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
         # 5 = Centimeters; 6 = Meters; 7 = Kilometers; 8 = Microinches;
-        # 9 = Mils; 10 = Yards; 11 = Angstroms; 12 = Nanometers;
+        # 9 = Mils (thous); 10 = Yards; 11 = Angstroms; 12 = Nanometers;
         # 13 = Microns; 14 = Decimeters; 15 = Decameters;
         # 16 = Hectometers; 17 = Gigameters; 18 = Astronomical units;
         # 19 = Light years; 20 = Parsecs
@@ -147,24 +152,22 @@ class ReadDXF(QtCore.QObject):
         
         return metric
     
-    #Die Geladenene Daten in Linien Pare mit Code & Value umwandeln.
     #Convert the uploaded file to line pairs (code & Value).
     def Get_Line_Pairs(self, string):
         line = 0
         line_pairs = dxflinepairsClass([])
-        #Start bei der ersten SECTION
+        
         #Start at the first SECTION
         while (find(string[line], "SECTION") < 0):
             line += 1
         line -= 1
-
-        #Durchlauf bis zum Ende falls kein Fehler auftritt. Ansonsten abbruch am Fehler
+        
         #Continue to the end if no error occurs. Otherwise abort with error
         try:
             while line < len(string):
                 line_pairs.line_pair.append(dxflinepairClass(int(strip(string[line])), strip(string[line + 1])))
                 line += 2
-
+        
         except:
             QtGui.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"),
                 self.tr("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file") % (line))
@@ -175,9 +178,11 @@ class ReadDXF(QtCore.QObject):
         line_pairs.nrs = len(line_pairs.line_pair)
         return line_pairs
     
-    #Suchen der Sectionen innerhalb des DXF-Files n�tig um Bl�cke zu erkennen.
     #Search the sections in the DXF file to recognize Blocke.
     def Get_Sections_pos(self):
+        """
+        Get_Sections_pos()
+        """
         sections = []
         
         start = self.line_pairs.index_both(0, "SECTION", 0)
@@ -210,6 +215,9 @@ class ReadDXF(QtCore.QObject):
     #Suchen der TABLES Section innerhalb der Sectionen diese beinhaltet die LAYERS
     #Search the TABLES section of the sections within this include LAYERS ???
     def Read_Layers(self, section):
+        """
+        Read_Layers()
+        """
         for sect_nr in range(len(section)):
             if(find(section[sect_nr].name, "TABLES") == 0):
                 tables_section = section[sect_nr]
@@ -239,6 +247,9 @@ class ReadDXF(QtCore.QObject):
     #Suchen der BLOCKS Section innerhalb der Sectionen
     #Search the BLOCKS section within sections
     def Get_Blocks_pos(self, section):
+        """
+        Get_Blocks_pos()
+        """
         for sect_nr in range(len(section)):
             if(find(section[sect_nr].name, "BLOCKS") == 0):
                 blocks_section = section[sect_nr]
@@ -266,9 +277,10 @@ class ReadDXF(QtCore.QObject):
         
         return blocks
     
-    #Lesen der Blocks Geometrien
-    #Read the block geometries
     def Read_Blocks(self, blocks_pos):
+        """
+        Read_Blocks() - Read the block geometries
+        """
         blocks = BlocksClass([])
         for block_nr in range(len(blocks_pos)):
             logger.info("Reading Block %s; Nr: %i" % (blocks_pos[block_nr].name, block_nr))
@@ -301,8 +313,11 @@ class ReadDXF(QtCore.QObject):
             blocks.Entities[-1].geo = self.Get_Geo(s, e)
             
         return blocks
-    #Read the entities geometries
+
     def Read_Entities(self, sections):
+        """
+        Read_Entities() - Read the entities geometries
+        """
         for section_nr in range(len(sections)):
             if (find(sections[section_nr - 1].name, "ENTITIES") == 0):
                 #g.logger.logger.info("Reading Entities", 1)
@@ -312,8 +327,10 @@ class ReadDXF(QtCore.QObject):
          
         return entities
     
-    #Read the geometries of Blocks and Entities
     def Get_Geo(self, begin, end):
+        """
+        Get_Geo() - Read the geometries of Blocks and Entities
+        """
         geos = []
         self.start = self.line_pairs.index_code(0, begin, end)
         old_start = self.start
@@ -353,6 +370,9 @@ class ReadDXF(QtCore.QObject):
     # is called in def Get_Geo
     # For a release of the entire code can be happy again end up in a file. ???
     def get_geo_entitie(self, geo_nr, name):
+        """
+        get_geo_entitie()
+        """
         #Entities:
         # 3DFACE, 3DSOLID, ACAD_PROXY_ENTITY, ARC, ATTDEF, ATTRIB, BODY
         # CIRCLE, DIMENSTION, ELLIPSE, HATCH, IMAGE, INSERT, LEADER, LINE,
@@ -385,9 +405,10 @@ class ReadDXF(QtCore.QObject):
             
         return geo
 
-    #Findet die Nr. des Geometrie Layers
-    #Find the number of geometry layers
     def Get_Layer_Nr(self, Layer_Name):
+        """
+        Get_Layer_Nr() - Find the number of geometry layers
+        """
         for i in range(len(self.layers)):
             if (find(self.layers[i].name, Layer_Name) == 0):
                 layer_nr = i
@@ -397,9 +418,10 @@ class ReadDXF(QtCore.QObject):
         self.layers[-1].name = Layer_Name
         return layer_nr
     
-    #Findet die Nr. des Blocks
-    #Find the number of blocks
     def Get_Block_Nr(self, Block_Name):
+        """
+        Get_Block_Nr() - Find the number of blocks
+        """
         block_nr = -1
         for i in range(len(self.blocks.Entities)):
             if (find(self.blocks.Entities[i].Name, Block_Name) == 0):
@@ -407,9 +429,10 @@ class ReadDXF(QtCore.QObject):
                 break  
         return block_nr
     
-    #Findet die beste Kontur der zusammengesetzen Geometrien
-    #Find the best contour the composite geometries
     def Get_Contour(self, entities=None):
+        """
+        Get_Contour() - Find the best contour the composite geometries
+        """
         cont = []
         
         points = self.App_Cont_or_Calc_IntPts(entities.geo, cont)
@@ -420,9 +443,11 @@ class ReadDXF(QtCore.QObject):
         
         return cont
     
-    #Berechnen bzw. Zuweisen der Anfangs und Endpunkte
-    #Calculate and assign the start and end points
     def App_Cont_or_Calc_IntPts(self, geo=None, cont=None):
+        """
+        App_Cont_or_Calc_IntPts()
+        Calculate and assign the start and end points
+        """
         
         tol = g.config.point_tolerance
         points = []
@@ -432,15 +457,17 @@ class ReadDXF(QtCore.QObject):
             warning = geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
         
         if warning:
-            QtGui.QMessageBox.warning(g.window, self.tr("Short Elements"), self.tr("Length of some Elements too short!"\
-                                               "\nLength must be greater then tolerance."\
-                                               "\nSkipped Geometries"))
+            QtGui.QMessageBox.warning(g.window, self.tr("Short Elements"),
+                                      self.tr("Length of some Elements too short!"\
+                                      "\nLength must be greater then tolerance."\
+                                      "\nSkipped Geometries"))
         
         return points
     
-    #Suchen von gemeinsamen Punkten
-    #Find common points
     def Find_Common_Points(self, points=None):
+        """
+        Find_Common_Points() - Find common points
+        """
         #tol = self.config.points_tolerance.get()
         tol = g.config.point_tolerance
         
@@ -456,8 +483,6 @@ class ReadDXF(QtCore.QObject):
         p_list.sort()
         #print p_list
         
-        #Eine Schleife f�r die Anzahl der List Elemente durchlaufen
-        #Start = wo die Suche der gleichen Elemente beginnen soll
         #Loop for number of list items
         #Start = where to begin the search of the same elements
         anf = []
@@ -515,6 +540,9 @@ class ReadDXF(QtCore.QObject):
         return points
     
     def Remove_Redundant_Geos(self, geo=None, points=None):
+        """
+        Remove_Redundant_Geos() - Does nothing!
+        """
         pass
 #        del_points=[]
 #        for p_nr in range(len(points)):
@@ -534,9 +562,10 @@ class ReadDXF(QtCore.QObject):
 #                    break
 #        return points        
     
-    #Suchen nach den besten zusammenh�ngenden Konturen
-    #Find the best continuous contours
     def Search_Contours(self, geo=None, all_points=None, cont=None):
+        """
+        Search_Contours() - Find the best continuous contours
+        """
         
         points = deepcopy(all_points)
         
@@ -582,14 +611,15 @@ class ReadDXF(QtCore.QObject):
             cont[-1] = self.Contours_Points2Geo(cont[-1], all_points)
         return cont
     
-    #Suchen die Wege duch die Konturn !!! REKURSIVE SCHLEIFE WAR SAU SCHWIERIG
-    #Search the paths through the Contour !!! RECURSIVE LOOP WAS DIFFICULT
     def Search_Paths(self, c_nr=None, c=None, p_nr=None, dir=None, points=None):
+        """
+        Search_Paths() - Search the paths through the Contour
+        """
         
-        #Richtung der Suche definieren (1= pos, 0=neg bedeutet mit dem Ende Anfangen)
+        # RECURSIVE LOOP WAS DIFFICULT
+
         #Define the direction of the search (1 = positive, 0 = neg or reverse)
         
-        #Wenn es der erste Aufruf ist und eine neue Kontur angelegt werden muss
         #If it is the first call a new contour is to be created
         if len(c) == 0:
             c.append(ContourClass(cont_nr=0, order=[[p_nr, dir]]))   
@@ -600,7 +630,6 @@ class ReadDXF(QtCore.QObject):
             if points[new_p_nr].point_nr == p_nr:
                 break
         
-        #N�chster Punkt abh�ngig von der Richtung
         #Next point depending on the direction
         if dir == 0:
             weiter = points[new_p_nr].en_cp
@@ -616,8 +645,6 @@ class ReadDXF(QtCore.QObject):
                 if not(c[c_nr].is_contour_closed()):
                     c[c_nr].order.append(weiter[0])
                     
-            #Es gibt einen Abzweig, es wird die aktuelle Kontur kopiert und dem
-            #anderen Zweig gefolgt
             #There is a branch.  It is copied to the current contour and the
             #other branches follow
             elif i > 0:
@@ -639,11 +666,12 @@ class ReadDXF(QtCore.QObject):
             if not(c[new_c_nr].is_contour_closed()):
                 c = self.Search_Paths(copy(new_c_nr), c, copy(new_p_nr), copy(new_dir), points)        
         return c 
-    #Sucht die beste Kontur unter den gefunden aus (Meiner Meinung nach die Beste)
-    #Seek the best (in my opinion) contour
+
     def Get_Best_Contour(self, c_nr, c=None, geo=None, points=None):
+        """
+        Get_Best_Contour() - Seek for the best (in my opinion) countour
+        """
         
-        #Hinzuf�gen der neuen Kontur
         #Shortlist of the new contour
         best = None
         best_open = None
@@ -659,7 +687,7 @@ class ReadDXF(QtCore.QObject):
                 c[i].remove_other_closed_contour()
                 c[i].closed = 0
                 c[i].calc_length(geo)
-            #Suchen der besten Geometrie
+            
             #Search for the best geometry
             if c[i].closed == 1:
                 c[i].calc_length(geo)
@@ -691,6 +719,9 @@ class ReadDXF(QtCore.QObject):
     #Alle Punkte im Pfad aus Points löschen um nächte Suche zu beschleunigen
     #All the points in the path from Point Clear to accelerate nights Search ???
     def Remove_Used_Points(self, cont=None, points=None):
+        """
+        Remove_Used_Points()
+        """
         for p_nr in cont.order:
             
             #This has to be 2 separate loops, otherwise one element is missing
@@ -716,6 +747,9 @@ class ReadDXF(QtCore.QObject):
     #Alle Punkte im Pfad aus Points l�schen um n�chte Suche zu beschleunigen
     #All the points in the path from Point Clear to accelerate nights Search ???
     def Contours_Points2Geo(self, cont=None, points=None):
+        """
+        Contours_Points2Geo()
+        """
         #print cont.order
         for c_nr in range(len(cont.order)):
             cont.order[c_nr][0] = points[cont.order[c_nr][0]].geo_nr
@@ -735,24 +769,22 @@ class dxflinepairsClass:
     def __str__(self):
         return 'Number of Line Pairs: ' + str(self.nrs)
     
-    #Sucht nach beiden Angaben in den Line Pairs code & value
-    #optional mit start und endwert f�r die Suche
     #Search for information in the line pairs (both code & value)
     #Optional start and end values for the search
     def index_both(self, code=0, value=0, start=0, stop= -1):
+        """
+        index_both()
+        """
         
-        #Wenn bei stop -1 angegeben wird stop am ende der pairs
         #If stop==-1 then stop at the end of the pairs
         if stop == -1:
             stop = len(self.line_pair)
         
-        #Starten der Suche innerhalb mit den angegeben parametern
         #Start the search within the specified parameters
         for i in range(start, stop):
             if (self.line_pair[i].code == code) & (self.line_pair[i].value == value):
                 return i
         
-        #Wenn nicht gefunden wird None ausgeben
         #If nothing found return "None"
         return None
     
@@ -761,19 +793,19 @@ class dxflinepairsClass:
     #Search for information in the Line Pairs (both code & value)
     #Optional start and end values for the search
     def index_code(self, code=0, start=0, stop= -1):
+        """
+        index_code()
+        """
         
-        #Wenn bei stop -1 angegeben wird stop am ende der pairs
         #If stop==-1 then stop at the end of the pairs
         if stop == -1:
             stop = len(self.line_pair)
             
-        #Starten der Suche innerhalb mit den angegeben parametern
         #Start the search within the specified parameters
         for i in range(start, stop):
             if (self.line_pair[i].code == code):
                 return i
             
-        #Wenn nicht gefunden wird None ausgeben
         #If nothing found return "None"
         return None
 

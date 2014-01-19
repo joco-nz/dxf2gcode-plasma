@@ -139,6 +139,9 @@ OPTION_DEFAULTS = {
 
 
 def getObj(s):
+    """
+    getObj
+    """
     global compiler
     if compiler is None:
         import compiler
@@ -148,6 +151,9 @@ def getObj(s):
 
 
 class UnknownType(Exception):
+    """"
+    UnknownType
+    """
     pass
 
 

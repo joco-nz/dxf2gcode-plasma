@@ -113,6 +113,9 @@ class BiarcClass:
                                     s_ang=s_ang2, e_ang=e_ang2, direction=dir_ang2)) 
 
     def calc_O1_O2_k(self, r1, r2, tan_a, teta):
+        """
+        calc_O1_O2_k()
+        """
         #print("r1: %0.3f, r2: %0.3f, tan_a: %0.3f, teta: %0.3f" %(r1,r2,tan_a,teta))
         #print("N1: x: %0.3f, y: %0.3f" %(-sin(tan_a), cos(tan_a)))
         #print("V: x: %0.3f, y: %0.3f" %(-sin(teta+tan_a),cos(teta+tan_a)))
@@ -126,11 +129,17 @@ class BiarcClass:
         return O1, O2, k
 
     def calc_normal(self, Pa, Pb):
+        """
+        calc_normal()
+        """
         norm_angle = Pa.norm_angle(Pb)
         l = Pa.distance(Pb)
         return norm_angle, l        
 
     def calc_diff_angles(self, norm_angle, tan_a, tan_b, min_alpha):
+        """
+        calc_diff_angles()
+        """
         #print("Norm angle: %0.3f, tan_a: %0.3f, tan_b %0.3f" %(norm_angle,tan_a,tan_b))
         alpha = (norm_angle - tan_a)   
         beta = (tan_b - norm_angle)
@@ -149,6 +158,9 @@ class BiarcClass:
         return alpha, beta, teta, shape    
 
     def limit_angles(self, alpha, beta):
+        """
+        limit_angles()
+        """
         #print("limit_angles: alpha: %s, beta: %s" %(alpha,beta))
         if (alpha < -pi):
             alpha += 2 * pi
@@ -166,6 +178,9 @@ class BiarcClass:
         return alpha, beta
             
     def calc_r1_r2(self, l, alpha, beta, teta):
+        """
+        calc_r1_r2()
+        """
         #print("alpha: %s, beta: %s, teta: %s" %(alpha,beta,teta))
         r1 = (l / (2 * sin((alpha + beta) / 2)) * 
               sin((beta - alpha + teta) / 2) / sin(teta / 2))
@@ -174,12 +189,17 @@ class BiarcClass:
         return r1, r2
     
     def calc_s_e_ang(self, P1, O, P2):
+        """
+        calc_s_e_ang()
+        """
         s_ang = O.norm_angle(P1)
         e_ang = O.norm_angle(P2)
         return s_ang, e_ang
     
     def get_biarc_fitting_error(self, Pt):
-        #Abfrage in welchem Kreissegment der Punkt liegt:
+        """
+        get_biarc_fitting_error()
+        """
         #Query in which segment of the circle the point is:
         w1 = self.geos[0].O.norm_angle(Pt)
         if (w1 >= min([self.geos[0].s_ang, self.geos[0].e_ang]))and\

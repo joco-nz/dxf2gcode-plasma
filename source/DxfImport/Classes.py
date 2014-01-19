@@ -55,9 +55,10 @@ class ContourClass:
         self.order = order
         self.length = length
 
-    #Komplettes umdrehen der Kontur
-    #Reverse the contour
     def reverse(self):
+        """
+        reverse() - Reverse the contour
+        """
         self.order.reverse()
         for i in range(len(self.order)):
             if self.order[i][1] == 0:
@@ -66,11 +67,12 @@ class ContourClass:
                 self.order[i][1] = 0
         return
 
-    #Ist die klasse geschlossen wenn ja dann 1 zurück geben
-    #If contour is closed return 1
     def is_contour_closed(self):
+        """
+        is_contour_closed()
+        Return 1 if the contour is closed
+        """
 
-        #Immer nur die Letzte überprüfen da diese neu ist
         #Check as this is new...
         for j in range(len(self.order) - 1):
             if self.order[-1][0] == self.order[j][0]:
@@ -83,9 +85,10 @@ class ContourClass:
         return self.closed
 
 
-    #Ist die klasse geschlossen wenn ja dann 1 zurück geben
-    #If the contour is closed return 1
     def remove_other_closed_contour(self):
+        """
+        remove_other_closed_contour()
+        """
         for i in range(len(self.order)):
             for j in range(i + 1, len(self.order)):
                 #print '\ni: '+str(i)+'j: '+str(j)
@@ -93,10 +96,12 @@ class ContourClass:
                     self.order = self.order[0:i]
                     break
         return 
-    #Berechnen der Zusammengesetzen Kontur Länge
-    #Calculate the contour length
+    
+    
     def calc_length(self, geos=None):        
-        #Falls die beste geschlossen ist und erste Geo == Letze dann entfernen
+        """
+        Calculate the contour length
+        """
         #If the best is closed and first geo == last then remove
         if (self.closed == 1) & (len(self.order) > 1):
             if self.order[0] == self.order[-1]:
@@ -107,7 +112,6 @@ class ContourClass:
             self.length += geos[self.order[i][0]].length
         return
 
-    #Neuen Startpunkt an den Anfang stellen
     #New starting point, set to the beginning
     def set_new_startpoint(self, st_p):
         self.order = self.order[st_p:len(self.order)] + self.order[0:st_p]

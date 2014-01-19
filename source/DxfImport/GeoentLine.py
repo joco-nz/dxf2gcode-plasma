@@ -63,9 +63,12 @@ class GeoentLine:
    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+        """
+        App_Cont_or_Calc_IntPts()
+        """
         if abs(self.length) > tol:
-            points.append(PointsClass(point_nr=len(points), geo_nr=i, \
-                                      Layer_Nr=self.Layer_Nr, \
+            points.append(PointsClass(point_nr=len(points), geo_nr=i,
+                                      Layer_Nr=self.Layer_Nr,
                                       be=self.geo[-1].Pa,
                                       en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
         else:
@@ -76,28 +79,29 @@ class GeoentLine:
         return warning
         
     def Read(self, caller):
-        #Kürzere Namen zuweisen
+        """
+        Read()
+        """
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
 
-        #Layer zuweisen
         #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
+        
         #X Value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
-        #YWert
+        
         #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
-        #XWert2
+        
         #X Value 2
         s = lp.index_code(11, s + 1)
         x1 = float(lp.line_pair[s].value)
-        #YWert2
+        
         #Y Value 2
         s = lp.index_code(21, s + 1)
         y1 = float(lp.line_pair[s].value)
@@ -128,6 +132,9 @@ class GeoentLine:
         caller.start = s
 
     def get_start_end_points(self, direction):
+        """
+        get_start_end_points()
+        """
         punkt, angle = self.geo[-1].get_start_end_points(direction)
         return punkt, angle
             

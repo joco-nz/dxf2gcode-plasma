@@ -51,7 +51,8 @@ class LineGeo(QtCore.QObject):
         self.length = self.Pa.distance(self.Pe)
 
     def __deepcopy__(self, memo):
-        return LineGeo(copy.deepcopy(self.Pa, memo), copy.deepcopy(self.Pe, memo))
+        return LineGeo(copy.deepcopy(self.Pa, memo),
+                       copy.deepcopy(self.Pe, memo))
 
     def __str__(self):
         """ 
@@ -82,7 +83,7 @@ class LineGeo(QtCore.QObject):
         return unicode(QtGui.QApplication.translate("ReadDXF",
                                                     string_to_translate,
                                                     None,
-                                                    QtGui.QApplication.UnicodeUTF8)) 
+                                                    QtGui.QApplication.UnicodeUTF8))
    
     def make_abs_geo(self, parent=None, reverse=0):
         """
@@ -117,8 +118,8 @@ class LineGeo(QtCore.QObject):
 
 #    def add2hitpath(self, hitpath=None, parent=None, tolerance=None):
 #        """
-#        Plots the geometry of self into defined path for hit testing. Refer
-#        to http://stackoverflow.com/questions/11734618/check-if-point-exists-in-qpainterpath
+#        Plots the geometry of self into defined path for hit testing. Refer to
+#        http://stackoverflow.com/questions/11734618/check-if-point-exists-in-qpainterpath
 #        for description
 #        @param hitpath: The hitpath to add the geometrie
 #        @param parent: The parent of the shape

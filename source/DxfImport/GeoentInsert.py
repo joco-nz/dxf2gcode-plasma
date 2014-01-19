@@ -55,30 +55,34 @@ class GeoentInsert:
                 '\nScale:       %s' % self.Scale 
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
-        
+        """
+        App_Cont_or_Calc_IntPts()
+        """
         cont.append(ContourClass(len(cont), 0, [[i, 0]], 0))
         return warning
     
     
     def Read(self, caller):
-        #K�rzere Namen zuweisen
+        """
+        Read()
+        """
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
 
         #Block Name        
         ind = lp.index_code(2, caller.start + 1, e)
-        #print lp.line_pair[ind].value ####################################################################
+        #print lp.line_pair[ind].value ########################################
         self.BlockName = lp.line_pair[ind].value
-        #Layer zuweisen
+        
         #Assign layer
         s = lp.index_code(8, caller.start + 1, e)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
+        
         #X Value
         s = lp.index_code(10, s + 1, e)
         x0 = float(lp.line_pair[s].value)
-        #YWert
+        
         #Y Value
         s = lp.index_code(20, s + 1, e)
         y0 = float(lp.line_pair[s].value)
@@ -88,22 +92,22 @@ class GeoentInsert:
         s_temp = lp.index_code(41, s + 1, e)
         if s_temp != None:
             self.Scale[0] = float(lp.line_pair[s_temp].value)
+        
         #YScale
         s_temp = lp.index_code(42, s + 1, e)
         if s_temp != None:
-            self.Scale[1] = float(lp.line_pair[s_temp].value) 
+            self.Scale[1] = float(lp.line_pair[s_temp].value)
+        
         #ZScale
         s_temp = lp.index_code(43, s + 1, e)
         if s_temp != None:
             self.Scale[2] = float(lp.line_pair[s_temp].value)
-            
+        
         #Rotation
         s_temp = lp.index_code(50, s + 1, e)
         if s_temp != None:
             self.rot = radians(float(lp.line_pair[s_temp].value))
-
-
-        #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben
+        
         #New starting value for the next geometry
         caller.start = e      
 

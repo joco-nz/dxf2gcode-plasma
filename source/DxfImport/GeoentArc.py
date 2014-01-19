@@ -63,43 +63,49 @@ class GeoentArc(QtCore.QObject):
                                                     QtGui.QApplication.UnicodeUTF8)) 
    
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+        """
+        App_Cont_or_Calc_IntPts()
+        """
         if abs(self.length) > tol:
-            points.append(PointsClass(point_nr=len(points), geo_nr=i, \
-                              Layer_Nr=self.Layer_Nr, \
-                              be=self.geo[-1].Pa, \
-                              en=self.geo[-1].Pe, \
-                              be_cp=[], en_cp=[]))
+            points.append(PointsClass(point_nr=len(points),
+                          geo_nr=i,
+                          Layer_Nr=self.Layer_Nr,
+                          be=self.geo[-1].Pa,
+                          en=self.geo[-1].Pe,
+                          be_cp=[], en_cp=[]))
         else:
             warning = 1
         return warning
     
     def Read(self, caller):
-        #Kürzere Namen zuweisen
+        """
+        Read()
+        """
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
 
-        #Layer zuweisen
         #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
+        
         #X Value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
-        #YWert
+        
         #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
         O = Point(x0, y0)
+        
         #Radius
         s = lp.index_code(40, s + 1)
         r = float(lp.line_pair[s].value)
-        #Start Winkel
+        
         #Start angle
         s = lp.index_code(50, s + 1)
         s_ang = radians(float(lp.line_pair[s].value))
-        #End Winkel
+        
         #End angle
         s = lp.index_code(51, s + 1)
         e_ang = radians(float(lp.line_pair[s].value))
@@ -116,9 +122,6 @@ class GeoentArc(QtCore.QObject):
                 s_ang = s_ang + pi
                 e_ang = e_ang + pi
            
-
-
-        #Berechnen der Start und Endwerte des Arcs
         #Calculate the start and end points of the arcs 
         Pa = Point(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
         Pe = Point(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
@@ -139,6 +142,9 @@ class GeoentArc(QtCore.QObject):
         caller.start = s
 
     def get_start_end_points(self, direction):
+        """
+        get_start_end_points()
+        """
         punkt, angle = self.geo[-1].get_start_end_points(direction)
         return punkt, angle
 

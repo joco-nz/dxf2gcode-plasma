@@ -249,7 +249,7 @@ class Main(QtGui.QMainWindow):
         self.TreeHandler.updateExportOrder()
         self.MyGraphicsScene.addexproutest()
         
-        for  LayerContent in self.LayerContents:
+        for LayerContent in self.LayerContents:
             
             #Initial values for the Lists to export.
             self.shapes_to_write = []
@@ -297,7 +297,6 @@ class Main(QtGui.QMainWindow):
                 for it_nr in range(iter_):
                     #Only show each 50th step.
                     if (it_nr % 50) == 0:
-                        
                         TSPs[-1].calc_next_iteration()
                         new_exp_order = []
                         for nr in TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]:
@@ -311,7 +310,7 @@ class Main(QtGui.QMainWindow):
                                                  LayerContent.LayerNr)
                 logger.debug(self.tr("New Export Order after TSP: %s")
                                      % new_exp_order)
-                self.app.processEvents() 
+                self.app.processEvents()
             else:
                 LayerContent.exp_order = []
             
@@ -655,7 +654,6 @@ class Main(QtGui.QMainWindow):
         insert_nr = values.entities.get_insert_nr()
         logger.info(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s, Number of inserts: %i') \
                                  % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
-                                 
         
         if g.config.metric == 0:
             logger.info("Drawing units: inches")
@@ -675,7 +673,6 @@ class Main(QtGui.QMainWindow):
             self.ui.unitLabel_7.setText("[mm]")
             self.ui.unitLabel_8.setText("[mm/min]")
             self.ui.unitLabel_9.setText("[mm/min]")
-        
         
         self.makeShapesAndPlot(values)
         
@@ -750,11 +747,11 @@ class Main(QtGui.QMainWindow):
         
     def makeEntitiesShapes(self, parent = None, ent_nr = -1):
         """
-        Instance is called prior to the plotting of the shapes. It creates
+        Instance is called prior to plotting the shapes. It creates
         all shape classes which are later plotted into the graphics.
         
-        @param parent: The parent of a shape is always a Entities. It may be root 
-        or if it is a Block this is the Block. 
+        @param parent: The parent of a shape is always an Entities. It may be root 
+        or, if it is a Block, this is the Block. 
         @param ent_nr: The values given in self.values are sorted so
         that 0 is the Root Entities and 1 is beginning with the first block. 
         This value gives the index of self.values to be used.
@@ -803,23 +800,24 @@ class Main(QtGui.QMainWindow):
                 
                 parent.addchild(NewEntitieContent)
                 
-                self.makeEntitiesShapes(parent = NewEntitieContent, ent_nr = ent_nr)
+                self.makeEntitiesShapes(parent = NewEntitieContent,
+                                        ent_nr = ent_nr)
                 
             else:
                 #Loop for the number of geometries
                 self.shapes.append(ShapeClass(len(self.shapes),
-                                                cont.closed,
-                                                40,
-                                                0.0,
-                                                parent,
-                                                []))
+                                              cont.closed,
+                                              40,
+                                              0.0,
+                                              parent,
+                                              []))
                 
                 for ent_geo_nr in range(len(cont.order)):
-                    ent_geo=ent_geos[cont.order[ent_geo_nr][0]]
+                    ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
                     if cont.order[ent_geo_nr][1]:
                         ent_geo.geo.reverse()
                         for geo in ent_geo.geo:
-                            geo=copy(geo)
+                            geo = copy(geo)
                             geo.reverse()
                             self.appendshapes(geo)                       
                         ent_geo.geo.reverse()
@@ -839,6 +837,9 @@ class Main(QtGui.QMainWindow):
                 parent.addchild(self.shapes[-1])
 
     def appendshapes(self, geo):
+        """
+        Documentation required
+        """
         if self.ui.actionSplit_edges.isChecked() == True:
             if geo.type == 'LineGeo':
                 xdiff = (geo.Pe.x - geo.Pa.x) / 2.0

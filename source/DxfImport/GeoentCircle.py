@@ -67,26 +67,26 @@ class GeoentCircle(QtCore.QObject):
         return warning
         
     def Read(self, caller):
-
-        #K�rzere Namen zuweisen
+        """
+        Read()
+        """
+        
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
-
-
-        #Layer zuweisen
+        
         #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert
+        
         #X Value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
-        #YWert
+        
         #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
-
+        
         #Radius
         s = lp.index_code(40, s + 1)
         r = float(lp.line_pair[s].value)
@@ -100,37 +100,35 @@ class GeoentCircle(QtCore.QObject):
                                  % extrusion_dir)
             if extrusion_dir == -1:
                 x0 = -x0
-                
+            
         O = Point(x0, y0)
-
-        #Berechnen der Start und Endwerte des Kreises ohne �berschneidung
+        
         #Calculate the start and end values of the circle without clipping
         s_ang = -3 * pi / 4
         m_ang = s_ang -pi
         e_ang = -3 * pi / 4
-
-        #Berechnen der Start und Endwerte des Arcs
+        
         #Calculate the start and end values of the arcs
         Pa = Point(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
         Pm = Point(x=cos(m_ang) * r, y=sin(m_ang) * r) + O
         Pe = Point(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
-
-        #Anh�ngen der ArcGeo Klasse f�r die Geometrie
+        
         #Annexes to ArcGeo class for geometry
         self.geo.append(ArcGeo(Pa=Pa, Pe=Pm, O=O, r=r,
                                s_ang=s_ang, e_ang=m_ang, direction=-1))
         self.geo.append(ArcGeo(Pa=Pm, Pe=Pe, O=O, r=r,
                                s_ang=m_ang, e_ang=e_ang, direction=-1))
-
-        #L�nge entspricht der L�nge des Kreises
+        
         #Length corresponds to the length (circumference?) of the circle
         self.length = self.geo[-1].length+self.geo[-2].length
-       
-        #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben
+        
         #New starting value for the next geometry
         caller.start = s        
 
     def get_start_end_points(self, direction=0):
+        """
+        get_start_end_points()
+        """
         if not(direction):
             punkt, angle = self.geo[0].get_start_end_points(direction)
         elif direction:

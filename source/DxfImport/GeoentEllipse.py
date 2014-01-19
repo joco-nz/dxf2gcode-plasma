@@ -31,6 +31,9 @@ from DxfImport.biarc import BiarcClass
 
 
 class GeoentEllipse:
+    """
+    GeoentEllipse()
+    """
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Ellipse'
         self.Nr = Nr
@@ -38,16 +41,15 @@ class GeoentEllipse:
         #Initialise the values
         self.Layer_Nr = 0
         self.center = Point(0, 0) #Centre of the geometry
-        self.vector = Point(1, 0) #Vektor A = gro�e Halbachse a, = Drehung der Ellipse
-                                  # Vector A = semi-major axis.
+        self.vector = Point(1, 0) # Vector A = semi-major axis.
                                   # a = rotation of the ellipse
                                   # http://de.wikipedia.org/wiki/Gro%C3%9Fe_Halbachse
         self.ratio = 1            #Verh�ltnis der kleinen zur gro�en Halbachse (b/a)
                                   #Ratio of the minor to major axis (b/a)
-        #self.AngS = 0              #Startwinkel beim zeichnen eines Ellipsensegments
-                                    #Starting angle when drawing an ellipse segment
-        #self.AngE = radians(360)   #Endwinkel (Winkel im DXF als Radians!)
-                                    #End angle (angle in radians as DXF!)
+        #self.AngS = 0            #Startwinkel beim zeichnen eines Ellipsensegments
+                                  #Starting angle when drawing an ellipse segment
+        #self.AngE = radians(360) #Endwinkel (Winkel im DXF als Radians!)
+                                  #End angle (angle in radians as DXF!)
         #Die folgenden Grundwerte werden sp�ter ein mal berechnet
         #The following limits are calculated later
 
@@ -83,11 +85,17 @@ class GeoentEllipse:
         return s
 
     def reverse(self):
+        """
+        reverse()
+        """
         self.geo.reverse()
         for geo in self.geo:
             geo.reverse()    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+        """
+        App_Cont_or_Calc_IntPts()
+        """
         #Hinzuf�gen falls es keine geschlossene Polyline ist
         #Add if it is not a closed polyline
         if self.geo[0].Pa.isintol(self.geo[-1].Pe, tol):
@@ -101,15 +109,17 @@ class GeoentEllipse:
         return warning
 
     def Read(self, caller):
-        #K�rzere Namen zuweisen
+        """
+        Read()
+        """
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
-        #Layer zuweisen
+        
         #Assign Layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
-        #XWert, YWert Center
+        
         #Centre X value, Y value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
@@ -140,6 +150,9 @@ class GeoentEllipse:
         
 
     def analyse_and_opt(self):
+        """
+        analyse_and_opt()
+        """
         #Richtung in welcher der Anfang liegen soll (unten links)
         #Direction of top (lower left) ???
         Popt = Point(x= -1e3, y= -1e6)
@@ -158,6 +171,9 @@ class GeoentEllipse:
         self.geo = self.geo[min_geo_nr:len(self.geo)] + self.geo[0:min_geo_nr]
         
     def get_start_end_points(self, direction=0):
+        """
+        get_start_end_points()
+        """
         if not(direction):
             punkt, angle = self.geo[0].get_start_end_points(direction)
         elif direction:
@@ -165,6 +181,9 @@ class GeoentEllipse:
         return punkt, angle
     
     def Ellipse_2_Arcs(self, tol):
+        """
+        Ellipse_2_Arcs()
+        """
         #Anfangswert f�r Anzahl Elemente
         #Initial value for number of elements
         num_elements = 2
@@ -181,20 +200,16 @@ class GeoentEllipse:
             angle = self.AngS
             Pa = self.Ellipse_Point(angle)
             tana = self.Ellipse_Tangent(angle)
-
+            
             self.geo = []
             self.PtsVec = []
             self.PtsVec.append([Pa, tana])
             
-            
             for sec in range(num_elements):
-                #Schrittweite errechnen
                 #Calculate Increment
                 step = self.ext / num_elements
-                
                 #print degrees(step)
                 
-                #Endwerte errechnen
                 #Calculate final values
                 Pb = self.Ellipse_Point(angle + step)
                 tanb = self.Ellipse_Tangent(angle + step)
@@ -204,7 +219,6 @@ class GeoentEllipse:
                 biarcs = BiarcClass(Pa, tana, Pb, tanb, tol / 100)
                 self.geo += biarcs.geos[:]             
 
-                #Letzer Wert = Startwert
                 #Last value = Start value
                 Pa = Pb
                 tana = tanb
@@ -216,7 +230,6 @@ class GeoentEllipse:
                     num_elements += 1
                     break
                 
-                #Neuer Winkel errechnen
                 #Calculate new angle
                 angle += step
         #print degrees(angle)
@@ -225,6 +238,9 @@ class GeoentEllipse:
         
                       
     def check_ellipse_fitting_tolerance(self, biarc, tol, ang0, ang1):
+        """
+        check_ellipse_fitting_tolerance()
+        """
         check_step = (ang1 - ang0) / 4
         check_ang = []
         check_Pts = []
@@ -241,19 +257,23 @@ class GeoentEllipse:
             return 1            
 
     def Ellipse_Grundwerte(self):
-        #Weitere Grundwerte der Ellipse, die nur einmal ausgerechnet werden m�ssen
+        """
+        Ellipse_Grundwerte()
+        """
         #Other values of the ellipse that are calculated only once
         self.rotation = atan2(self.vector.y, self.vector.x)
         self.a = sqrt(self.vector.x ** 2 + self.vector.y ** 2)
         self.b = self.a * self.ratio
         
-        #Aus dem Vorzeichen von dir den extend ausrechnen
         #Calculate angle to extend
         self.ext = self.AngE - self.AngS
         #self.ext=self.ext%(-2*pi)
         #self.ext-=floor(self.ext/(2*pi))*(2*pi)
    
     def Ellipse_Point(self, alpha=0):#Point(0,0)
+        """
+        Ellipse_Point()
+        """
         #gro�e Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         #Semi-major axis, minor axis, rotation of the ellipse (rad), the point in the ellipse angle (rad) ???
         Ex = self.a * cos(alpha) * cos(self.rotation) - self.b * sin(alpha) * sin(self.rotation)
@@ -261,6 +281,9 @@ class GeoentEllipse:
         return Point(self.center.x + Ex, self.center.y + Ey)
     
     def Ellipse_Tangent(self, alpha=0):#Point(0,0)
+        """
+        Ellipse_Tanget()
+        """
         #gro�e Halbachse, kleine Halbachse, rotation der Ellipse (rad), Winkel des Punkts in der Ellipse (rad)
         #Semi-major axis, minor axis, rotation of the ellipse (rad), the point in the ellipse angle (rad) ???
         phi = atan2(self.a * sin(alpha), self.b * cos(alpha)) + self.rotation + pi / 2

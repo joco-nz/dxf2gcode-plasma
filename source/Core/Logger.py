@@ -45,7 +45,7 @@ class LoggerClass(QtCore.QObject):
         self.console_handler = logging.StreamHandler()
         self.console_handler.setFormatter(logging.Formatter("%(name)-25s %(funcName)-12s %(lineno)-3d:  - %(message)s"))
         self.console_handler.setLevel(self._cvtlevel(console_loglevel))
-        self.console_handler.addFilter(FilterModule()) 
+        self.console_handler.addFilter(FilterModule())
         
         self.rootlogger.addHandler(self.console_handler)
 

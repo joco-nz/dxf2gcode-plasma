@@ -379,7 +379,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         logger.debug(self.tr("Analysing the shape for CW direction Nr: %s") % (self.nr))
         # Optimization for closed shapes
         if self.closed:
-            # Startwert setzen f�r die erste Summe
             # Start value for the first sum
             start, dummy = self.geos[0].get_start_end_points(0)
             summe = 0.0
@@ -392,7 +391,8 @@ class ShapeClass(QtGui.QGraphicsItem):
                     segments = int((abs(degrees(geo.ext)) // 90) + 1)
                     for i in range(segments): 
                         ang = geo.s_ang + (i + 1) * geo.ext / segments
-                        ende = Point(x=(geo.O.x + cos(ang) * abs(geo.r)), y=(geo.O.y + sin(ang) * abs(geo.r)))
+                        ende = Point(x=(geo.O.x + cos(ang) * abs(geo.r)),
+                                     y=(geo.O.y + sin(ang) * abs(geo.r)))
                         summe += (start.x + ende.x) * (ende.y - start.y) / 2
                         start = deepcopy(ende)
 
@@ -408,8 +408,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param StPoint: This i sthe point for which the nearest point shall
         be searched.
         """
-        
-        
+                
         if self.closed:
             logger.debug(self.tr("Clicked Point: %s") %StPoint)
             start, dummy = self.geos[0].get_start_end_points(0, self.parent)
@@ -457,6 +456,9 @@ class ShapeClass(QtGui.QGraphicsItem):
     def switch_cut_cor(self):
         """ 
         Switches the cutter direction between 41 and 42.
+
+        G41 = Tool radius compensation left.
+        G42 = Tool radius compensation right
         """ 
         if self.cut_cor == 41:
             self.cut_cor = 42
@@ -468,7 +470,7 @@ class ShapeClass(QtGui.QGraphicsItem):
     def get_st_en_points(self, dir=None):
         """
         Returns the start/end Point and its direction
-        @param direction: 0 to return start Point and 1 to return end Point
+        @param dir: direction - 0 to return start Point or 1 to return end Point
         @return: a list of Point and angle 
         """
         start, start_ang = self.geos[0].get_start_end_points(0, self.parent)
@@ -524,7 +526,7 @@ class ShapeClass(QtGui.QGraphicsItem):
     def updateCCplot(self):
         """
         This function is called to update the Cutter Correction Plot and therefore 
-        the  startmoves if smth. has changed or it shall be generated for 
+        the startmoves if something has changed or it shall be generated for 
         first time.
         """
         self.stmove.updateCCplot()  
@@ -533,7 +535,7 @@ class ShapeClass(QtGui.QGraphicsItem):
     def Write_GCode(self, LayerContent=None, PostPro=None):
         """
         This method returns the string to be exported for this shape, including
-        the defined start and end move of teh shape.
+        the defined start and end move of the shape.
         @param LayerContent: This parameter includes the parent LayerContent 
         which includes tool and additional cutting parameters.
         @param PostPro: this is the Postprocessor class including the methods
@@ -551,12 +553,12 @@ class ShapeClass(QtGui.QGraphicsItem):
         #BaseEntitie created to add the StartMoves etc. This Entitie must not
         #be offset or rotated etc.
         BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
-                                        parent=None,
-                                        children=[],
-                                        p0=Point(x=0.0, y=0.0),
-                                        pb=Point(x=0.0, y=0.0),
-                                        sca=[1, 1, 1],
-                                        rot=0.0)
+                                          parent=None,
+                                          children=[],
+                                          p0=Point(x=0.0, y=0.0),
+                                          pb=Point(x=0.0, y=0.0),
+                                          sca=[1, 1, 1],
+                                          rot=0.0)
 
 
         #Get the mill settings defined in the GUI
@@ -606,7 +608,6 @@ class ShapeClass(QtGui.QGraphicsItem):
             exstr += self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
             exstr += self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
 
-
         exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin)) #Compute the safe margin from the initial mill depth
         exstr += PostPro.chg_feed_rate(f_g1_depth)
         exstr += PostPro.lin_pol_z(mom_depth)
@@ -621,7 +622,6 @@ class ShapeClass(QtGui.QGraphicsItem):
             
             exstr += self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
             exstr += self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-
 
         #Write the geometries for the first cut
         for geo in self.geos:
@@ -683,7 +683,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         exstr += PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
         exstr += PostPro.rap_pos_z(safe_retract_depth)
 
-        #If cutter radius compensation is not turned off.
+        #If cutter radius compensation is turned on.
         if (not(self.cut_cor == 40)) & (not(PostPro.vars.General["cancel_cc_for_depth"])):
             #Calculate the contour values - with cutter radius compensation and without
             ende, en_angle = self.get_st_en_points(1)
