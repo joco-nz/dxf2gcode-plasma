@@ -39,9 +39,9 @@ class VersionMismatchError(Exception):
         self.fileversion = fileversion
         self.CONFIG_VERSION = CONFIG_VERSION
     def __str__(self):
-        return repr(self.tr('config file versions do not match - internal: %s,'
-                            ' config file %s, delete existing file to resolve issue'
-                            % (self.CONFIG_VERSION, self.fileversion)))
+        return repr('config file versions do not match - internal: %s,'
+                    ' config file %s, delete existing file to resolve issue'
+                    % (self.CONFIG_VERSION, self.fileversion))
 
 class OptionError(SyntaxError):
     """
