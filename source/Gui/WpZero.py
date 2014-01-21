@@ -30,6 +30,9 @@ dl = 0.2
 DEBUG = 1
 
 class WpZero(QtGui.QGraphicsItem):
+    """
+    class WpZero
+    """
     def __init__(self, center, color=QtCore.Qt.gray):
         self.sc = 1
         super(WpZero, self).__init__()
@@ -45,6 +48,9 @@ class WpZero(QtGui.QGraphicsItem):
         self.diameter = 20.0
 
     def contains_point(self, x, y):
+        """
+        TODO - check arguments as this returns a constant value
+        """
         min_distance = float(0x7fffffff)
         return min_distance
  
@@ -69,6 +75,9 @@ class WpZero(QtGui.QGraphicsItem):
         self.update(self.boundingRect())
                
     def paint(self, painter, option, widget=None):
+        """
+        paint()
+        """
         demat = painter.deviceTransform()
         self.sc = demat.m11()
         
@@ -95,6 +104,4 @@ class WpZero(QtGui.QGraphicsItem):
         """
         diameter = self.diameter / self.sc
         return QtCore.QRectF(-20, -20.0, 40.0, 40.0)
-
- 
-
+        

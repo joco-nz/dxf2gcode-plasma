@@ -60,7 +60,7 @@ POSTPRO_SPEC = str('''
     
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
-    code_begin = string(default="G90 (Absolute programming) G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")                    
+    code_begin = string(default="G90 (Absolute programming) G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
     code_end = string(default="M2 (Program end)")
     
     [Number_Format]
@@ -130,7 +130,7 @@ class MyPostProConfig(QtCore.QObject):
     def load_config(self):
         """
         This method tries to load the defined postprocessor file given in 
-        self.filename. If this fail it will create a new one 
+        self.filename. If this fails it will create a new one 
         """
 
         try:
@@ -222,6 +222,9 @@ class MyPostProConfig(QtCore.QObject):
 #        self.var_dict.write()   
 #    
     def print_vars(self):
+        """
+        Print all the variables with their values
+        """
         print "Variables:"
         for k, v in self.var_dict['Variables'].items():
             print k, " = ", v
@@ -256,5 +259,3 @@ class DictDotLookup(object):
 
 #    def __repr__(self):
 #        return pprint.pformat(self.__dict__)
-
-

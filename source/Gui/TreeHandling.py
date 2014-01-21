@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 """
-This class is intended to deal with the drawing (.dxf) structure. It has the following functions:
+This class is intended to deal with the drawing (.dxf) structure.
+It has the following functions:
 - populate the entities treeView and the layers treeView
-- allow selection of shapes from any treeView and show the selection on the graphic view
+- allow selection of shapes from any treeView and show the
+  selection on the graphic view
 - allow to enable/disable shapes from any treeView
 - reflects into the treeView the changes that occurs on the graphic view
 - set export order using drag & drop
 @newfield purpose: Purpose
 @newfield sideeffect: Side effect, Side effects
 
-@purpose: display tree structure of the .dxf file, select, enable and set export order of the shapes
+@purpose: display tree structure of the .dxf file, select,
+          enable and set export order of the shapes
 @author: Xavier Izard
 @since:  2012.10.01
 @license: GPL
@@ -27,7 +30,8 @@ import logging
 logger = logging.getLogger("Gui.TreeHandling") 
 
 #defines some arbitrary types for the objects stored into the treeView.
-#These types will eg help us to find which kind of data is stored in the element received from a click() event
+#These types will eg help us to find which kind of data is stored
+#in the element received from a click() event
 ENTITY_OBJECT = QtCore.Qt.UserRole + 1 #For storing refs to the entities elements (entities_list)
 LAYER_OBJECT = QtCore.Qt.UserRole + 2  #For storing refs to the layers elements (layers_list)
 SHAPE_OBJECT = QtCore.Qt.UserRole + 3  #For storing refs to the shape elements (entities_list & layers_list)
@@ -63,8 +67,12 @@ class TreeHandler(QtGui.QWidget):
         self.ui.layersShapesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.layersShapesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
-        QtCore.QObject.connect(self.ui.layersGoUpPushButton, QtCore.SIGNAL("clicked()"), self.ui.layersShapesTreeView.moveUpCurrentItem)
-        QtCore.QObject.connect(self.ui.layersGoDownPushButton, QtCore.SIGNAL("clicked()"), self.ui.layersShapesTreeView.moveDownCurrentItem)
+        QtCore.QObject.connect(self.ui.layersGoUpPushButton,
+                               QtCore.SIGNAL("clicked()"),
+                               self.ui.layersShapesTreeView.moveUpCurrentItem)
+        QtCore.QObject.connect(self.ui.layersGoDownPushButton,
+                               QtCore.SIGNAL("clicked()"),
+                               self.ui.layersShapesTreeView.moveDownCurrentItem)
 
         #Load the tools from the config file to the tool selection combobox
         for tool in g.config.vars.Tool_Parameters:
@@ -74,14 +82,30 @@ class TreeHandler(QtGui.QWidget):
         self.ui.toolDiameterComboBox.setCurrentIndex(0)
         self.toolUpdate(self.ui.toolDiameterComboBox.currentText())
 
-        QtCore.QObject.connect(self.ui.toolDiameterComboBox, QtCore.SIGNAL("activated(const QString &)"), self.toolUpdate)
-        QtCore.QObject.connect(self.ui.zRetractionArealLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzRetractionArealUpdate)
-        QtCore.QObject.connect(self.ui.zSafetyMarginLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzSafetyMarginUpdate)
-        QtCore.QObject.connect(self.ui.zInfeedDepthLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzInfeedDepthUpdate)
-        QtCore.QObject.connect(self.ui.zInitialMillDepthLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzInitialMillDepthUpdate)
-        QtCore.QObject.connect(self.ui.zFinalMillDepthLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterzFinalMillDepthUpdate)
-        QtCore.QObject.connect(self.ui.g1FeedXYLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterg1FeedXYUpdate)
-        QtCore.QObject.connect(self.ui.g1FeedZLineEdit, QtCore.SIGNAL("textEdited(const QString &)"), self.toolParameterg1FeedZUpdate)
+        QtCore.QObject.connect(self.ui.toolDiameterComboBox,
+                               QtCore.SIGNAL("activated(const QString &)"),
+                               self.toolUpdate)
+        QtCore.QObject.connect(self.ui.zRetractionArealLineEdit,
+                               QtCore.SIGNAL("textEdited(const QString &)"),
+                               self.toolParameterzRetractionArealUpdate)
+        QtCore.QObject.connect(self.ui.zSafetyMarginLineEdit,
+                               QtCore.SIGNAL("textEdited(const QString &)"),
+                               self.toolParameterzSafetyMarginUpdate)
+        QtCore.QObject.connect(self.ui.zInfeedDepthLineEdit,
+                               QtCore.SIGNAL("textEdited(const QString &)"),
+                               self.toolParameterzInfeedDepthUpdate)
+        QtCore.QObject.connect(self.ui.zInitialMillDepthLineEdit,
+                               QtCore.SIGNAL("textEdited(const QString &)"),
+                               self.toolParameterzInitialMillDepthUpdate)
+        QtCore.QObject.connect(self.ui.zFinalMillDepthLineEdit,
+                               QtCore.SIGNAL("textEdited(const QString &)"),
+                               self.toolParameterzFinalMillDepthUpdate)
+        QtCore.QObject.connect(self.ui.g1FeedXYLineEdit,
+                               QtCore.SIGNAL("textEdited(const QString &)"),
+                               self.toolParameterg1FeedXYUpdate)
+        QtCore.QObject.connect(self.ui.g1FeedZLineEdit,
+                               QtCore.SIGNAL("textEdited(const QString &)"),
+                               self.toolParameterg1FeedZUpdate)
 
         #Entities TreeView
         self.entity_item_model = None
@@ -90,37 +114,41 @@ class TreeHandler(QtGui.QWidget):
         self.ui.entitiesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.entitiesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.entitiesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-
-        QtCore.QObject.connect(self.ui.blocksCollapsePushButton, QtCore.SIGNAL("clicked()"), self.expandToDepth0)
-        QtCore.QObject.connect(self.ui.blocksExpandPushButton, QtCore.SIGNAL("clicked()"), self.ui.entitiesTreeView.expandAll)
-
+        
+        QtCore.QObject.connect(self.ui.blocksCollapsePushButton,
+                               QtCore.SIGNAL("clicked()"),
+                               self.expandToDepth0)
+        QtCore.QObject.connect(self.ui.blocksExpandPushButton,
+                               QtCore.SIGNAL("clicked()"),
+                               self.ui.entitiesTreeView.expandAll)
+        
         #Build the contextual menu (mouse right click)
         self.context_menu = QtGui.QMenu(self)
-
+        
         menu_action = self.context_menu.addAction("Unselect all")
         menu_action.triggered.connect(self.ui.layersShapesTreeView.clearSelection)
-
+        
         menu_action = self.context_menu.addAction("Select all")
         menu_action.triggered.connect(self.ui.layersShapesTreeView.selectAll)
-
+        
         self.context_menu.addSeparator()
-
+        
         menu_action = self.context_menu.addAction("Disable selection")
         menu_action.triggered.connect(self.disableSelectedItems)
-
+        
         menu_action = self.context_menu.addAction("Enable selection")
         menu_action.triggered.connect(self.enableSelectedItems)
-
+        
         self.context_menu.addSeparator()
-
+        
         menu_action = self.context_menu.addAction("Don't opti. route for selection")
         menu_action.triggered.connect(self.doNotOptimizeRouteForSelectedItems)
-
+        
         menu_action = self.context_menu.addAction("Optimize route for selection")
         menu_action.triggered.connect(self.optimizeRouteForSelectedItems)
-
+        
         self.context_menu.addSeparator()
-
+        
         menu_action = self.context_menu.addAction("Remove custom GCode")
         menu_action.triggered.connect(self.removeCustomGCode)
 
@@ -133,7 +161,9 @@ class TreeHandler(QtGui.QWidget):
 
         #Right click menu
         self.ui.layersShapesTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        QtCore.QObject.connect(self.ui.layersShapesTreeView, QtCore.SIGNAL("customContextMenuRequested(const QPoint &)"), self.displayContextMenu)
+        QtCore.QObject.connect(self.ui.layersShapesTreeView,
+                               QtCore.SIGNAL("customContextMenuRequested(const QPoint &)"),
+                               self.displayContextMenu)
 
         #Not used for now, so hide them
         self.ui.startAtXLabel.hide()
@@ -142,12 +172,11 @@ class TreeHandler(QtGui.QWidget):
         self.ui.unitLabel_2.hide()
         self.ui.startAtXLineEdit.hide()
         self.ui.startAtYLineEdit.hide()
-
-
-
+    
+    
     def displayContextMenu(self, position):
         """
-        Slot used to display a right click context menu
+        Function used to display a right click context menu
         @param position: position of the cursor within the treeView widget
         """
         selected_action = self.context_menu.exec_(self.ui.layersShapesTreeView.mapToGlobal(position))
@@ -155,7 +184,7 @@ class TreeHandler(QtGui.QWidget):
         if selected_action and selected_action.data().isValid():
             #contextual menu selection concerns a custom gcode
             custom_gcode_name = selected_action.data().toString()
-
+            
             self.addCustomGCodeAfter(custom_gcode_name)
 
 
@@ -250,7 +279,8 @@ class TreeHandler(QtGui.QWidget):
 
     def buildEntitiesTree(self, entities_list):
         """
-        This method populates the Entities (blocks) QTreeView with all the elements contained in the entities_list
+        This method populates the Entities (blocks) QTreeView with
+        all the elements contained in the entities_list
         Method must be called each time a new .dxf file is loaded. 
         options
         @param entities_list: list of the layers and shapes (created in the main)
@@ -272,7 +302,9 @@ class TreeHandler(QtGui.QWidget):
         self.buildEntitiesSubTree(modele_root_element, entities_list)
 
         #Signal to get events when a checkbox state changes (enable or disable shapes)
-        QtCore.QObject.connect(self.entity_item_model, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.on_itemChanged)
+        QtCore.QObject.connect(self.entity_item_model,
+                               QtCore.SIGNAL("itemChanged(QStandardItem*)"),
+                               self.on_itemChanged)
 
         self.ui.entitiesTreeView.setModel(self.entity_item_model)
 
@@ -446,6 +478,9 @@ class TreeHandler(QtGui.QWidget):
 
 
     def columnsSelectDeselect(self, selection_model, item_index, select):
+        """
+        columnsSelectDeselect()
+        """
         if select:
             #Select the matching shape in the list.
             selection_model.select(item_index, QtGui.QItemSelectionModel.Select | QtGui.QItemSelectionModel.Rows)
@@ -1095,46 +1130,74 @@ class TreeHandler(QtGui.QWidget):
             self.ui.toolDiameterComboBox.setPalette(palette)
         self.tool_nr = layer_item.tool_nr
 
-        self.tool_diameter = self.updateAndColorizeWidget(self.ui.toolDiameterLabel, self.tool_diameter, layer_item.tool_diameter)
+        self.tool_diameter = self.updateAndColorizeWidget(self.ui.toolDiameterLabel,
+                                                          self.tool_diameter,
+                                                          layer_item.tool_diameter)
 
-        self.speed = self.updateAndColorizeWidget(self.ui.toolSpeedLabel, self.speed, layer_item.speed)
+        self.speed = self.updateAndColorizeWidget(self.ui.toolSpeedLabel,
+                                                  self.speed, layer_item.speed)
 
-        self.start_radius = self.updateAndColorizeWidget(self.ui.startRadiusLabel, self.start_radius, layer_item.start_radius)
+        self.start_radius = self.updateAndColorizeWidget(self.ui.startRadiusLabel,
+                                                         self.start_radius,
+                                                         layer_item.start_radius)
 
-        self.axis3_retract = self.updateAndColorizeWidget(self.ui.zRetractionArealLineEdit, self.axis3_retract, layer_item.axis3_retract)
+        self.axis3_retract = self.updateAndColorizeWidget(self.ui.zRetractionArealLineEdit,
+                                                          self.axis3_retract,
+                                                          layer_item.axis3_retract)
 
-        self.axis3_safe_margin = self.updateAndColorizeWidget(self.ui.zSafetyMarginLineEdit, self.axis3_safe_margin, layer_item.axis3_safe_margin)
+        self.axis3_safe_margin = self.updateAndColorizeWidget(self.ui.zSafetyMarginLineEdit,
+                                                              self.axis3_safe_margin,
+                                                              layer_item.axis3_safe_margin)
 
         if shape_item and shape_item.axis3_slice_depth is not None:
             #If Shape slice_depth is defined, then use it instead of the one of the layer
-            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit, self.axis3_slice_depth, shape_item.axis3_slice_depth)
+            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
+                                                                  self.axis3_slice_depth,
+                                                                  shape_item.axis3_slice_depth)
         else:
-            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit, self.axis3_slice_depth, layer_item.axis3_slice_depth)
+            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
+                                                                  self.axis3_slice_depth,
+                                                                  layer_item.axis3_slice_depth)
 
         if shape_item and shape_item.axis3_start_mill_depth is not None:
             #If Shape initial mill_depth is defined, then use it instead of the one of the layer
-            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit, self.axis3_start_mill_depth, shape_item.axis3_start_mill_depth)
+            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
+                                                                       self.axis3_start_mill_depth,
+                                                                       shape_item.axis3_start_mill_depth)
         else:
-            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit, self.axis3_start_mill_depth, layer_item.axis3_start_mill_depth)
+            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
+                                                                       self.axis3_start_mill_depth,
+                                                                       layer_item.axis3_start_mill_depth)
 
         if shape_item and shape_item.axis3_mill_depth is not None:
             #If Shape mill_depth is defined, then use it instead of the one of the layer
-            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit, self.axis3_mill_depth, shape_item.axis3_mill_depth)
+            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
+                                                                 self.axis3_mill_depth,
+                                                                 shape_item.axis3_mill_depth)
         else:
-            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit, self.axis3_mill_depth, layer_item.axis3_mill_depth)
+            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
+                                                                 self.axis3_mill_depth,
+                                                                 layer_item.axis3_mill_depth)
 
         if shape_item and shape_item.f_g1_plane is not None:
             #If Shape XY speed is defined, then use it instead of the one of the layer
-            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit, self.f_g1_plane, shape_item.f_g1_plane)
+            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+                                                           self.f_g1_plane,
+                                                           shape_item.f_g1_plane)
         else:
-            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit, self.f_g1_plane, layer_item.f_g1_plane)
+            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+                                                           self.f_g1_plane,
+                                                           layer_item.f_g1_plane)
 
         if shape_item and shape_item.f_g1_depth is not None:
             #If Shape Z speed is defined, then use it instead of the one of the layer
-            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit, self.f_g1_depth, shape_item.f_g1_depth)
+            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
+                                                           self.f_g1_depth,
+                                                           shape_item.f_g1_depth)
         else:
-            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit, self.f_g1_depth, layer_item.f_g1_depth)
-
+            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
+                                                           self.f_g1_depth,
+                                                           layer_item.f_g1_depth)
 
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
@@ -1322,7 +1385,8 @@ class TreeHandler(QtGui.QWidget):
         Enable / disable all the columns from a row, except the first
         one (because the first column contains the checkbox that must
         stay enabled in order to be clickable)
-        @param item: item is the modified element. It can be a Shape, a Layer or an Entity
+        @param item: item is the modified element.
+                     It can be a Shape, a Layer or an Entity
         """
         current_tree_view = None
         if item.model() == self.layer_item_model:
@@ -1383,9 +1447,11 @@ class TreeHandler(QtGui.QWidget):
         """
         Add a custom GCode object into the treeView, just after the
         current item. Custom GCode are defined into the config file
-        @param action_name: the name of the custom GCode to be inserted. This name must match one of the subsection names of [Custom_Actions] from the config file.
+        @param action_name: the name of the custom GCode to be inserted.
+                            This name must match one of the subsection names
+                            of [Custom_Actions] from the config file.
         """
-        logger.debug(_('Adding custom GCode "%s"') %(action_name))
+        logger.debug(_('Adding custom GCode "%s"') % (action_name))
 
         g_code = "(No custom GCode defined)"
         if action_name and len(action_name) > 0:

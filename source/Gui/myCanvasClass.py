@@ -245,6 +245,9 @@ class MyGraphicsView(QtGui.QGraphicsView):
         del(scene) 
 
 class MyDropDownMenu(QtGui.QMenu):
+    """
+    class MyDropDownMenu
+    """
     def __init__(self, MyGraphicsView, MyGraphicsScene, position):
         
         QtGui.QMenu.__init__(self)
@@ -258,7 +261,7 @@ class MyDropDownMenu(QtGui.QMenu):
              
         if len(self.MyGraphicsScene.selectedItems()) == 0:
             return
-       
+        
         invertAction = self.addAction(self.tr("Invert Selection"))
         disableAction = self.addAction(self.tr("Disable Selection"))
         enableAction = self.addAction(self.tr("Enable Selection"))
@@ -293,7 +296,6 @@ class MyDropDownMenu(QtGui.QMenu):
         self.leCompAction.triggered.connect(self.setLeftComp)
         self.reCompAction.triggered.connect(self.setRightComp)
         
-
         self.exec_(self.position)
         
     def tr(self, string_to_translate):
@@ -405,7 +407,7 @@ class MyDropDownMenu(QtGui.QMenu):
     
     def setNoComp(self):
         """
-        Sets the compensation 40, which is none for the selected shapes.
+        Sets the compensation to 40, which is none, for the selected shapes.
         """
         shapes = self.MyGraphicsScene.selectedItems()
         for shape in shapes:
@@ -418,7 +420,7 @@ class MyDropDownMenu(QtGui.QMenu):
             
     def setLeftComp(self):
         """
-        Sets the compensation 41, which is Left for the selected shapes.
+        Sets the compensation to 41, which is Left, for the selected shapes.
         """
         shapes = self.MyGraphicsScene.selectedItems()
         for shape in shapes:
@@ -430,7 +432,7 @@ class MyDropDownMenu(QtGui.QMenu):
             
     def setRightComp(self):
         """
-        Sets the compensation 42, which is Right for the selected shapes.
+        Sets the compensation to 42, which is Right, for the selected shapes.
         """
         shapes = self.MyGraphicsScene.selectedItems()
         for shape in shapes:
@@ -488,12 +490,12 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param sca: The scale of the basis function (default =1)
         @param rot: The rotation of the geometries around base (default =0)
         """
-
+        
         self.shapes = shapes
         self.EntitiesRoot = EntitiesRoot
-
+        
         del(self.wpzero)
-     
+        
         self.plot_shapes()
         self.plot_wp_zero() 
         self.update()
@@ -521,7 +523,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     def plot_shape(self, shape):
         """
         Create all plotting related parts of one shape. 
-        @param shape: The shape which shall be plotted.
+        @param shape: The shape to be plotted.
         """
         shape.make_papath()
         shape.starrow = self.createstarrow(shape)
@@ -548,10 +550,11 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                       pencolor=QtGui.QColor(50, 100, 255))
         arrow.hide()
         return arrow
-        
+    
+    
     def createenarrow(self, shape):
         """
-        This function creates the Arrows at the start point of a shape when the 
+        This function creates the Arrows at the end point of a shape when the 
         shape is selected.
         @param shape: The shape for which the Arrow shall be created.
         """
@@ -565,7 +568,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         arrow.hide()
         return arrow
     
-
+    
     def createstmove(self, shape):
         """
         This function creates the Additional Start and End Moves in the plot
@@ -614,7 +617,6 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                 
         #shapes_st_en_points.append([start,ende])
     
-        #Ausdrucken der optimierten Route
         #Print the optimised route
         for shape_nr in range(len(exp_order)):
             st = self.expprv
@@ -624,20 +626,21 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 #            en=shapes_st_en_points[route[en_nr]][0]
 
             self.routearrows.append(Arrow(startp=st,
-                  endp=en,
-                  color=self.expcol,
-                  pencolor=self.expcol))
-                  
+                                          endp=en,
+                                          color=self.expcol,
+                                          pencolor=self.expcol))
+            
             self.expcol = QtCore.Qt.darkGray
             
             self.routetext.append(RouteText(text=("%s,%s" % (layer_nr, shape_nr+1)),
                                             startp=en)) 
             
-            #self.routetext[-1].ItemIgnoresTransformations 
+            #self.routetext[-1].ItemIgnoresTransformations
             
             self.addItem(self.routetext[-1])
             self.addItem(self.routearrows[-1])
-        
+    
+    
     def addexprouteen(self):
         """
         This function initialises the Arrows of the export route order and 
@@ -651,14 +654,14 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         st = self.expprv
         en = Point(x=x_st, y=y_st)
         self.expcol = QtCore.Qt.darkRed
-
+        
         self.routearrows.append(Arrow(startp=st,
-              endp=en,
-              color=self.expcol,
-              pencolor=self.expcol))
+                                      endp=en,
+                                      color=self.expcol,
+                                      pencolor=self.expcol))
         
         self.addItem(self.routearrows[-1])
-
+    
     def delete_opt_path(self):
         """
         This function deletes all the plotted export routes. 

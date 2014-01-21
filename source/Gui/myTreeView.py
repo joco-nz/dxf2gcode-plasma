@@ -7,7 +7,8 @@ Subclass is done in order to:
 @newfield purpose: Purpose
 @newfield sideeffect: Side effect, Side effects
 
-@purpose: display tree structure of the .dxf file, select, enable and set export order of the shapes
+@purpose: display tree structure of the .dxf file, select,
+          enable and set export order of the shapes
 @author: Xavier Izard
 @since:  2012.10.01
 @license: GPL
@@ -80,7 +81,7 @@ class MyTreeView(QtGui.QTreeView):
 
     def elementPressed(self, element_model_index):
         """
-        This slot is called when an element (Shape, ...) is pressed
+        This function is called when an element (Shape, ...) is pressed
         with the mouse. It aims to store the index (QModelIndex) of
         the element pressed.
         options
@@ -95,14 +96,14 @@ class MyTreeView(QtGui.QTreeView):
     def dropEvent(self, event):
         """
         This function is called when the user has released the mouse
-        button to drop an element at the mouse pointer place.
+        button to drop an element at the mouse pointer location.
         Note: we have totally reimplemented this function because the
         default QT implementation wants to Copy & Delete each dragged
         item, even when we only use internals move inside the treeView.
         This is totally unnecessary and over-complicated for us because
         it would imply to implement a QMimeData import and export
         functions to export our Shapes / Layers / Entities. The code
-        below tries to move the items at the right place when they are
+        below tries to move the items to the right place when they are
         dropped ; it uses simple lists permutations (ie no duplicates
         & deletes).
         options
@@ -170,7 +171,6 @@ class MyTreeView(QtGui.QTreeView):
                 drag_row = self.dragged_element_model_index.row() #original row
                 drop_row = items_parent.rowCount() #insert at end
                 #print("\033[32;1mACCEPTED AT END!\033[m\n")
-
 
             #effectively move the item
             if drop_row >= 0:
@@ -319,5 +319,3 @@ class MyStandardItemModel(QtGui.QStandardItemModel):
         mimeData.setData("application/x-qstandarditemmodeldatalist", "")
 
         return mimeData
-
-

@@ -39,8 +39,8 @@ DEBUG = 1
 
 class StMove(QtGui.QGraphicsLineItem):
     """
-    This is the Function which generates the StartMove for each shape. This 
-    function also performs the Plotting and Export of this moves. It is linked
+    This Function generates the StartMove for each shape. It
+    also performs the Plotting and Export of this moves. It is linked
     to the shape as its parent
     """
     def __init__(self, startp, angle, 
@@ -68,7 +68,6 @@ class StMove(QtGui.QGraphicsLineItem):
         self.geos = []
         self.path = QtGui.QPainterPath()
         
-        
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
         
         self.pen = QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
@@ -81,12 +80,15 @@ class StMove(QtGui.QGraphicsLineItem):
 
 
     def contains_point(self, x, y):
+        """
+        TODO - check as this returns a constant
+        """
         min_distance = float(0x7fffffff)
         return min_distance
 
     def make_start_moves(self):
         """
-        This function is called to create the start move. It will
+        This function called to create the start move. It will
         be generated based on the given values for start and angle.
         """
         del(self.geos[:])
@@ -153,7 +155,7 @@ class StMove(QtGui.QGraphicsLineItem):
     def updateCutCor(self, cutcor):
         """
         This function is called to update the Cutter Correction, and therefore 
-        the start moves, if something has changed or it shall be generated for 
+        the start moves, if something has changed or it needs generated for 
         first time.
         """
         logger.debug("Updating CutterCorrection of Selected shape")
@@ -163,9 +165,9 @@ class StMove(QtGui.QGraphicsLineItem):
    
     def updateCCplot(self):
         """
-        This function is called to update the Cutter Correction, and therefore 
-        the start moves, if something has changed or it shall be generated for 
-        first time.
+        This function is called to update the Cutter Correction plotting, and
+        therefore the start moves, if something has changed or it needs
+        generated for first time.
         """
         logger.debug("Updating CutterCorrection of Selected shape plotting")
         
@@ -181,7 +183,9 @@ class StMove(QtGui.QGraphicsLineItem):
         self.update()
         
     def createccarrow(self):
-         
+        """
+        createccarrow()
+        """
         length = 20
         if self.shape.cut_cor == 40:
             self.ccarrow = None

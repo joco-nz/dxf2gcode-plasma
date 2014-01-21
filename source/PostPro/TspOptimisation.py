@@ -85,6 +85,9 @@ class TSPoptimize(QtCore.QObject):
         #self.optmove=ClassOptMove(dmatrix=self.DistanceMatrix.matrix, nei_nr=int(round(self.shape_nrs/10)))
              
     def calc_next_iteration(self):
+        """
+        calc_next_iteration()
+        """
         #Algorithmus ausfürhen
         # ? Algorithm ???
         self.Population.genetic_algorithm(Result=self.Fittness, mutate_rate=self.mutate_rate)
@@ -160,11 +163,17 @@ class PopulationClass:
 
 
     def random_begin(self, size):
+        """
+        random_begin for TSP
+        """
         tour = range(size)
         shuffle(tour)
         return tour
 
     def heurestic_begin(self, dmatrix=[]):
+        """
+        heurestic_begin for TSP
+        """
         tour = []
         possibilities = range(len(dmatrix[0]))
         start_nr = int(floor(random()*len(dmatrix[0])))
@@ -185,6 +194,9 @@ class PopulationClass:
         return tour
           
     def heurestic_find_next(self, start=1, possibilities=[], dmatrix=[]):
+        """
+        heurestic_find_next() for TSP
+        """
         #Auswahl der Entfernungen des nächsten Punkts
         #The distances of the point selection ???
         min_dist = 1e99
@@ -197,6 +209,9 @@ class PopulationClass:
         return min_point
 
     def genetic_algorithm(self, Result=[], mutate_rate=0.95):
+        """
+        genetic_algorithm for TSP
+        """
         self.mutate_rate = mutate_rate        
 
         #Neue Population Matrix erstellen
@@ -240,13 +255,11 @@ class PopulationClass:
         crossover = range(self.size[1] / 2)
         shuffle(crossover)
         for nr in range(self.size[1] / 4):
-            #Parents sind die Gewinner der ersten Runde (Gentische Selektion!?)
             #child = parent2
             #Parents are the winners of the first round (Genetic Selection?)
             parent1 = winners_r1[crossover[nr * 2]][:]
             child = winners_r1[crossover[(nr * 2) + 1]][:]
 
-            #Die Genreihe die im Kind vom parent1 ausgetauscht wird
             #The genetic line that is exchanged in the child parent1
             indx = [int(floor(random()*self.size[0])), int(floor(random()*self.size[0]))]
             indx.sort()
@@ -255,28 +268,23 @@ class PopulationClass:
                 indx.sort()        
             gens = parent1[indx[0]:indx[1] + 1]
 
-            #Entfernen der auszutauschenden Gene
             #Remove the exchanged genes
             for gen in gens:
                 child.pop(child.index(gen))
 
-            #Einfügen der neuen Gene an einer Random Position
             #Insert the new genes at a random position
             ins_indx = int(floor(random()*self.size[0]))
             new_children = child[0:ins_indx] + gens + child[ins_indx:len(child)]
             
-            #Schreiben der neuen Kinder in die neue Population Matrix
             #Write the new children in the new population matrix
             for pnr in range(2):
                 new_pop[int((pnr + 0.5) * self.size[1] / 2 + nr)] = new_children[:]
  
-        #Mutieren der 2.ten Hälfte der Population Matrix
         #Mutate the 2nd half of the population matrix
         mutate = range(self.size[1] / 2)
         shuffle(mutate)
         num_mutations = int(round(mutate_rate * self.size[1] / 2))
         for nr in range(num_mutations):
-            #Die Genreihe die im Kind vom parent1 ausgetauscht wird
             #The genetic line that is exchanged in the child parent1 ???
             indx = [int(floor(random()*self.size[0])), int(floor(random()*self.size[0]))]
             indx.sort()
@@ -298,7 +306,6 @@ class PopulationClass:
             new_pop[self.size[1] / 2 + mutate[nr]] = mutline
 
 
-        #Zuweisen der neuen Populationsmatrix
         #Assign the new population matrix
         self.pop = new_pop
 
@@ -311,10 +318,17 @@ class PopulationClass:
         return string
 
 class DistanceMatrixClass:
+    """
+    DistanceMatrixClass
+    """
     def __init__(self, matrix=[]):
         self.matrix = matrix      
         self.size = [0, 0]
+    
     def generate_matrix(self, st_end_points):
+        """
+        generate_matrix()
+        """
         x_vals = range(len(st_end_points))
         self.matrix = []
         for nr_y in range(len(st_end_points)):
@@ -366,33 +380,39 @@ class FittnessClass:
         an additional option in the config file?"""
         
         for pop_nr in range(len(self.population.pop)):
-            #Suchen der momentanen Reihenfolge
             #Search the current order
             order_index = self.get_pop_index_list(self.population.pop[pop_nr])
             #Momentane Reihenfolge der indexe sortieren
             #Current sort order of the index ???
             order_index.sort()
-            #Indexe nach soll Reihenfolge korrigieren
             #Indices according to correct order
             for ind_nr in range(len(order_index)):
                 self.population.pop[pop_nr][order_index[ind_nr]] = self.order[ind_nr]
                 
     def set_startpoint(self):
+        """
+        set_startpoint()
+        """
         n_pts = len(self.population.pop[-1])
         for pop_nr in range(len(self.population.pop)):
             pop = self.population.pop[pop_nr]
             st_pt_nr = pop.index(n_pts - 1)
-            #Kontur so anordnen das Startpunkt am Anfang liegt
             #Contour is then in order with the starting point at the beginning
             self.population.pop[pop_nr] = pop[st_pt_nr:n_pts] + pop[0:st_pt_nr]
 
     def get_pop_index_list(self, pop):
+        """
+        get_pop_index_list
+        """
         pop_index_list = []
         for val_nr in range(len(self.order)):
             pop_index_list.append(pop.index(self.order[val_nr]))
         return pop_index_list
 
-    def select_best_fittness(self):      
+    def select_best_fittness(self):
+        """
+        select_best_fittness
+        """
         self.best_fittness.append(min(self.cur_fittness))
         self.best_route = self.cur_fittness.index(self.best_fittness[-1])
 

@@ -61,6 +61,9 @@ class Arrow(QtGui.QGraphicsLineItem):
         self.pen.setCosmetic(True)
 
     def contains_point(self, x, y):
+        """
+        TODO - check args as function returns a constant
+        """
         min_distance = float(0x7fffffff)
         return min_distance
 
@@ -80,8 +83,8 @@ class Arrow(QtGui.QGraphicsLineItem):
         
     def reverseshape(self, startp, angle):
         """
-        Method is called when the shape direction is changed and therefore the
-        arrow gets new Point and direction
+        Method is called when the shape direction is changed and
+        therefore the arrow gets new Point and direction
         @param startp: The new startpoint
         @param angle: The new angle of the arrow
         """
@@ -91,8 +94,8 @@ class Arrow(QtGui.QGraphicsLineItem):
         
     def setallwaysshow(self, flag=False):
         """
-        If the directions shall be allwaysshown the parameter will be set and 
-        all paths will be shown.
+        If the directions shall be allwaysshown the parameter
+        will be set and  all paths will be shown.
         @param flag: The flag to enable or disable Selection
         """
         self.allwaysshow = flag

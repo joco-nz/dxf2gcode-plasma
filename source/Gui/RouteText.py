@@ -98,5 +98,4 @@ class RouteText(QtGui.QGraphicsItem):
                              self.startp.y()+rect[1]/self.sc,
                              rect[2]/self.sc,
                              rect[3]/self.sc)
-        
         return newrect

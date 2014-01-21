@@ -36,8 +36,8 @@ class myMessageBox(QtGui.QTextBrowser):
 
     def write(self, charstr):
         """
-        The function is called by the window logger to write the log message to
-        the Messagebox
+        The function is called by the window logger to write
+        the log message to the Messagebox
         @param charstr: The log message which will be written.
         """
 
