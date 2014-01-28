@@ -70,10 +70,6 @@ class LayerContentClass:
         self.start_radius = vars.Tool_Parameters['1']['start_radius']
 
 
-        if self.should_ignore():
-            for shape in self.shapes:
-                shape.setDisable(True, True)
-
         #search for layer commands to override defaults
         if self.LayerName.startswith("MILL:"):
             lopts_re = re.compile("([a-zA-Z]{1,10}:\s{0,}[\-\.0-9]{1,30}\s{0,})")

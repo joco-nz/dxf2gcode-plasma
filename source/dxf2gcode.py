@@ -875,17 +875,25 @@ class Main(QtGui.QMainWindow):
         @param shape: The shape to be appended of the shape 
         @param lay_nr: The Nr. of the layer
         """
+
+        # Disable shape by default, if it lives on an ignored layer        
+        #if shape.LayerContent.should_ignore():
+        #    shape.setDisable(True, True)
+        
         #Check if the layer already exists and add shape if it is.
         for LayCon in self.LayerContents:
             if LayCon.LayerNr == lay_nr:
                 LayCon.shapes.append(shape)
                 shape.LayerContent = LayCon
+                shape.setDisabledIfOnDisabledLayer()
                 return
         
         #If the Layer does not exist create a new one.
         LayerName = self.values.layers[lay_nr].name
         self.LayerContents.append(LayerContentClass(lay_nr, LayerName, [shape]))
         shape.LayerContent = self.LayerContents[-1]
+        shape.setDisabledIfOnDisabledLayer()
+        
 
     def automaticCutterCompensation(self):
         if self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:

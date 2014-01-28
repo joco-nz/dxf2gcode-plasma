@@ -329,6 +329,10 @@ class ShapeClass(QtGui.QGraphicsItem):
         if self.selectionChangedCallback and not blockSignals:
             self.selectionChangedCallback(self, flag)
 
+    def setDisabledIfOnDisabledLayer(self):
+        if self.LayerContent.should_ignore():
+            self.setDisable(True, True)
+             
     def setDisable(self, flag=False, blockSignals=False):
         """
         New implemented function which is in parallel to show and hide. 
