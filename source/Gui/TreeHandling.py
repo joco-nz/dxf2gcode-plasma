@@ -221,7 +221,10 @@ class TreeHandler(QtGui.QWidget):
             checkbox_element = QtGui.QStandardItem(icon, "")
             checkbox_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
             checkbox_element.setData(QtCore.QVariant(layer), LAYER_OBJECT) #store a ref to the layer in our treeView element - this is a method to map tree elements with real data
-            checkbox_element.setCheckState(QtCore.Qt.Checked)
+            if layer.should_ignore():
+                checkbox_element.setCheckState(QtCore.Qt.Unchecked)
+            else:
+                checkbox_element.setCheckState(QtCore.Qt.Checked)
 
             modele_element = QtGui.QStandardItem(layer.LayerName)
             modele_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)

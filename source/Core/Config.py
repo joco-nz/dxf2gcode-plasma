@@ -87,6 +87,7 @@ CONFIG_SPEC = str('''
     write_to_stdout = boolean(default = False)
     live_update_export_route = boolean(default = False)
     default_SplitEdges = boolean(default = False)
+    default_AutomaticCutterCompensation = boolean(default = False)
     
     [Route_Optimisation]
     default_TSP = boolean(default = False)

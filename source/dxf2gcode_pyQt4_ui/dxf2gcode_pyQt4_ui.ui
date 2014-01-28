@@ -828,7 +828,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -880,6 +880,8 @@
     <addaction name="actionRotate_all"/>
     <addaction name="separator"/>
     <addaction name="actionMove_WP_zero"/>
+    <addaction name="separator"/>
+    <addaction name="actionAutomatic_Cutter_Compensation"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1070,6 +1072,14 @@
    </property>
    <property name="statusTip">
     <string>Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC</string>
+   </property>
+  </action>
+  <action name="actionAutomatic_Cutter_Compensation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Automatic Cutter Compensation</string>
    </property>
   </action>
  </widget>

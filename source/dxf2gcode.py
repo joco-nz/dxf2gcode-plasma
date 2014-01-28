@@ -105,6 +105,12 @@ class Main(QtGui.QMainWindow):
         
         if g.config.vars.General['default_SplitEdges']:
             self.ui.actionSplit_edges.setChecked(True)
+            
+        if g.config.vars.General['default_AutomaticCutterCompensation']:
+            self.ui.actionAutomatic_Cutter_Compensation.setChecked(True)
+            
+            
+        self.readSettings()            
         
         g.config.metric = 1 # default drawing units: millimeters
         
@@ -695,6 +701,9 @@ class Main(QtGui.QMainWindow):
                         sca = [self.cont_scale, self.cont_scale, self.cont_scale],
                         rot = self.rotate)
         
+        # Automatic cutter compensation 
+        self.automaticCutterCompensation()
+        
         #Populate the treeViews
         self.TreeHandler.buildEntitiesTree(self.EntitiesRoot)
         self.TreeHandler.buildLayerTree(self.LayerContents)
@@ -878,6 +887,51 @@ class Main(QtGui.QMainWindow):
         self.LayerContents.append(LayerContentClass(lay_nr, LayerName, [shape]))
         shape.LayerContent = self.LayerContents[-1]
 
+    def automaticCutterCompensation(self):
+        if self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
+            for layerContent in self.LayerContents:
+                newShapes = [];
+                for shape in layerContent.shapes:
+                    shape.make_papath()
+                for shape in layerContent.shapes:
+                    container = None
+                    myBounds = shape.boundingRect()
+                    for otherShape in layerContent.shapes :
+                        if shape != otherShape and otherShape.boundingRect().contains(myBounds):
+                            logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
+                            container = otherShape
+                    if container is None:
+                        shape.cut_cor = 41
+                        newShapes.append(shape)
+                    else:
+                        shape.cut_cor = 42
+                        newShapes.insert(layerContent.shapes.index(container), shape)
+                    #shape.updateCutCor()
+                    #shape.updateCCplot()
+                layerContent.shapes = newShapes
+                logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
+                for shape in layerContent.shapes:
+                    logger.debug(self.tr(">>Shape: %s") % (shape.nr))
+                
+    def closeEvent(self, e):
+        logger.debug(self.tr("exiting"))
+        self.writeSettings()
+        e.accept()
+    
+    def readSettings(self):
+        settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
+        settings.beginGroup("MainWindow");
+        self.resize(settings.value("size", QtCore.QSize(800, 600)).toSize());
+        self.move(settings.value("pos", QtCore.QPoint(200, 200)).toPoint());
+        settings.endGroup();
+            
+    def writeSettings(self):
+        settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
+        settings.beginGroup("MainWindow");
+        settings.setValue("size", self.size());
+        settings.setValue("pos", self.pos());
+        settings.endGroup();         
+    
 if __name__ == "__main__":
     """
     The main function which is executed after program start.
@@ -895,7 +949,7 @@ if __name__ == "__main__":
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
         print(dir(translator))
-    
+        
     window = Main(app)
     g.window = window
     

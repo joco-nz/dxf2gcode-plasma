@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Wed Dec 04 16:18:55 2013
-#      by: PyQt4 UI code generator 4.9.6
+# Created: Tue Jan 28 18:22:49 2014
+#      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -446,7 +446,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.myMessageBox)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 20))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -519,6 +519,9 @@ class Ui_MainWindow(object):
         self.actionSplit_edges = QtGui.QAction(MainWindow)
         self.actionSplit_edges.setCheckable(True)
         self.actionSplit_edges.setObjectName(_fromUtf8("actionSplit_edges"))
+        self.actionAutomatic_Cutter_Compensation = QtGui.QAction(MainWindow)
+        self.actionAutomatic_Cutter_Compensation.setCheckable(True)
+        self.actionAutomatic_Cutter_Compensation.setObjectName(_fromUtf8("actionAutomatic_Cutter_Compensation"))
         self.menuFile.addAction(self.actionLoad_File)
         self.menuFile.addAction(self.actionReload_File)
         self.menuFile.addSeparator()
@@ -543,6 +546,8 @@ class Ui_MainWindow(object):
         self.menuTolerances.addAction(self.actionRotate_all)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionMove_WP_zero)
+        self.menuTolerances.addSeparator()
+        self.menuTolerances.addAction(self.actionAutomatic_Cutter_Compensation)
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuExport.menuAction())
@@ -628,6 +633,7 @@ class Ui_MainWindow(object):
         self.actionReload_File.setShortcut(_translate("MainWindow", "Ctrl+R", None))
         self.actionSplit_edges.setText(_translate("MainWindow", "Split edges", None))
         self.actionSplit_edges.setStatusTip(_translate("MainWindow", "Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC", None))
+        self.actionAutomatic_Cutter_Compensation.setText(_translate("MainWindow", "Automatic Cutter Compensation", None))
 
 from Gui.myCanvasClass import MyGraphicsView
 from Gui.myTreeView import MyTreeView

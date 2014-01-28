@@ -337,16 +337,17 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.disabled = flag
         scene = self.scene()
 
-        if not(scene.showDisabled) and flag:
-            self.hide()
-            self.starrow.setSelected(False)
-            self.enarrow.setSelected(False)
-            self.stmove.setSelected(False)
-        else:
-            self.show()
+        if scene != None:
+            if not(scene.showDisabled) and flag:
+                self.hide()
+                self.starrow.setSelected(False)
+                self.enarrow.setSelected(False)
+                self.stmove.setSelected(False)
+            else:
+                self.show()
 
-        self.update(self.boundingRect())
-        # Needed to refresh view when setDisabled() function is called from a TreeView event
+                self.update(self.boundingRect())
+                # Needed to refresh view when setDisabled() function is called from a TreeView event
 
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)
