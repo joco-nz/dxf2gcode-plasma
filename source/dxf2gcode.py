@@ -203,8 +203,6 @@ class Main(QtGui.QMainWindow):
         load the selected file.
         """
         
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-        
         self.filename = QtGui.QFileDialog.getOpenFileName(self,
                     self.tr("Open file"),
                     g.config.vars.Paths['import_dir'], self.tr(\
@@ -214,6 +212,8 @@ class Main(QtGui.QMainWindow):
                     "PDF files (*.pdf);;"\
                     "all files (*.*)"))
         
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+
         #If there is something to load then call the load function callback
         if not(self.filename == ""):
             logger.info(self.tr("File: %s selected") % self.filename)
