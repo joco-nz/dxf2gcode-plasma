@@ -328,18 +328,21 @@ class TreeHandler(QtGui.QWidget):
         options
         @param elements_model: the treeView model (used to store the data, see QT docs)
         @param elements_list: either a list of entities, or a shape
+        @return (containsChecked, containsUnchecked) indicating whether the subtree contains checked and/or unchecked elements
         """
+        containsChecked = False
+        containsUnchecked = False
         if isinstance(elements_list, list):
             #We got a list
             for element in elements_list:
-                self.addEntitySubTree(elements_model, element)
-
+                (checked, unchecked) = self.addEntitySubTree(elements_model, element)
+                containsChecked = containsChecked or checked
+                containsUnchecked = containsUnchecked or unchecked
         else:
             #Unique element (shape)
             element = elements_list
-            self.addEntitySubTree(elements_model, element)
-
-
+            (containsChecked, containsUnchecked) = self.addEntitySubTree(elements_model, element)            
+        return (containsChecked, containsUnchecked)
 
     def addEntitySubTree(self, elements_model, element):
         """
@@ -349,7 +352,10 @@ class TreeHandler(QtGui.QWidget):
         options
         @param elements_model: the treeView model (used to store the data, see QT docs)
         @param element: the Entity or Shape element
+        @return (containsChecked, containsUnchecked) indicating whether the subtree contains checked and/or unchecked elements
         """
+        containsChecked = False
+        containsUnchecked = False
         item_col_0 = None
         if element.type == "Entitie":
             icon = QtGui.QIcon()
@@ -367,23 +373,28 @@ class TreeHandler(QtGui.QWidget):
             elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
 
             for sub_element in element.children:
-                self.buildEntitiesSubTree(item_col_0, sub_element)
-
+                (checked, unchecked) = self.buildEntitiesSubTree(item_col_0, sub_element)
+                containsChecked = containsChecked or checked
+                containsUnchecked = containsUnchecked or unchecked
+                
         elif element.type == "Shape":
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
             item_col_0.setData(QtCore.QVariant(element), SHAPE_OBJECT) #store a ref to the entity in our treeView element
-
+            if element.isDisabled():
+                containsUnchecked = True
+            else:
+                containsChecked = True                
             item_col_1 = QtGui.QStandardItem(element.type)
             item_col_2 = QtGui.QStandardItem(str(element.nr))
             item_col_3 = QtGui.QStandardItem(element.type)
             item_col_4 = QtGui.QStandardItem()
             item_col_5 = QtGui.QStandardItem()
             item_col_6 = QtGui.QStandardItem()
-
             elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
 
+        item_col_0.setCheckState(self.getCheckState(containsChecked, containsUnchecked))
         item_col_0.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
         item_col_1.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         item_col_2.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
@@ -392,10 +403,16 @@ class TreeHandler(QtGui.QWidget):
         item_col_5.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
         item_col_6.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
-        #Deal with the checkbox (everything is enabled at start)
-        item_col_0.setCheckState(QtCore.Qt.Checked)
+        return (containsChecked, containsUnchecked)
 
-
+    def getCheckState(self, containsChecked, containsUnchecked):
+        if containsChecked:
+            if containsUnchecked:
+                return QtCore.Qt.PartiallyChecked
+            else:
+                return QtCore.Qt.Checked
+        else:
+            return QtCore.Qt.Unchecked
 
     def updateExportOrder(self):
         """

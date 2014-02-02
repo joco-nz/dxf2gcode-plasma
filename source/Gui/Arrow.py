@@ -140,36 +140,33 @@ class Arrow(QtGui.QGraphicsLineItem):
         self.setLine(QtCore.QLineF(endp, self.startp))
         line = self.line()
 
-        angle = acos(line.dx() / line.length())
-#        try:
-#            angle = acos(line.dx() / line.length())
-#        except ZeroDivisionError: #FIXME : added by Xavier because the file "problem_with_arc_and_problem_with_G41-G42_auto_switch.dxf" throw a division by zero error
-#            return
-
-        if line.dy() >= 0:
-            angle = (pi * 2.0) - angle
-
-        if self.dir == 0:
-            arrowP1 = line.p1() + QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
-                                                 cos(angle + pi / 3.0) * arrowSize)
-            arrowP2 = line.p1() + QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
-                                                 cos(angle + pi - pi / 3.0) * arrowSize)
-            self.arrowHead.clear()
-            for Point in [line.p1(), arrowP1, arrowP2]:
-                self.arrowHead.append(Point)
-                
-        else:
-            arrowP1 = line.p2() - QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
-                                                 cos(angle + pi / 3.0) * arrowSize)
-            arrowP2 = line.p2() - QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
-                                                 cos(angle + pi - pi / 3.0) * arrowSize)
-            self.arrowHead.clear()
-            for Point in [line.p2(), arrowP1, arrowP2]:
-                self.arrowHead.append(Point)
-        
-
-        painter.drawLine(line)
-        painter.drawPolygon(self.arrowHead)
+        if (line.length() != 0):
+            angle = acos(line.dx() / line.length())
+    
+            if line.dy() >= 0:
+                angle = (pi * 2.0) - angle
+    
+            if self.dir == 0:
+                arrowP1 = line.p1() + QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
+                                                     cos(angle + pi / 3.0) * arrowSize)
+                arrowP2 = line.p1() + QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
+                                                     cos(angle + pi - pi / 3.0) * arrowSize)
+                self.arrowHead.clear()
+                for Point in [line.p1(), arrowP1, arrowP2]:
+                    self.arrowHead.append(Point)
+                    
+            else:
+                arrowP1 = line.p2() - QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
+                                                     cos(angle + pi / 3.0) * arrowSize)
+                arrowP2 = line.p2() - QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
+                                                     cos(angle + pi - pi / 3.0) * arrowSize)
+                self.arrowHead.clear()
+                for Point in [line.p2(), arrowP1, arrowP2]:
+                    self.arrowHead.append(Point)
+            
+    
+            painter.drawLine(line)
+            painter.drawPolygon(self.arrowHead)
 
 
     def boundingRect(self):

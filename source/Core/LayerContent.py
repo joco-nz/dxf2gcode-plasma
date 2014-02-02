@@ -71,7 +71,7 @@ class LayerContentClass:
 
 
         #search for layer commands to override defaults
-        if self.LayerName.startswith("MILL:"):
+        if self.LayerName.startswith("MILL:") or self.isBreakLayer():
             lopts_re = re.compile("([a-zA-Z]{1,10}:\s{0,}[\-\.0-9]{1,30}\s{0,})")
             #result = rcmp.search(self.LayerName)
             layer_commands = self.LayerName.replace(",", ".")
@@ -139,4 +139,7 @@ class LayerContentClass:
                ('\ntool_diameter: %i' % self.tool_nr)
 
     def should_ignore(self):
-        return self.LayerName.startswith("IGNORE:")
+        return self.LayerName.startswith("IGNORE:") or self.isBreakLayer()
+    
+    def isBreakLayer(self):
+        return self.LayerName.startswith("BREAKS:")

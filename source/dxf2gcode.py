@@ -43,6 +43,7 @@ import Core.constants as c
 from Core.Shape import ShapeClass
 
 from PostPro.PostProcessor import MyPostProcessor
+from PostPro.Breaks import Breaks
 
 from DxfImport.Import import ReadDXF
 
@@ -605,13 +606,26 @@ class Main(QtGui.QMainWindow):
         label = ((self.tr("Offset %s axis by mm:") % g.config.vars.Axis_letters['ax1_letter']), \
                (self.tr("Offset %s axis by mm:") % g.config.vars.Axis_letters['ax2_letter']))
         value = (self.cont_dx, self.cont_dy)
-        MoveWpzDialog = myDialog(title, label, value)
+        MoveWpzDialog = myDialog(title, label, value, True)
         
         if MoveWpzDialog.result == None:
             return
         
-        self.cont_dx = float(MoveWpzDialog.result[0])
-        self.cont_dy = float(MoveWpzDialog.result[1])
+        if MoveWpzDialog.result == 'Auto':
+            minx = sys.float_info.max
+            maxy = - sys.float_info.max
+            for shape in self.shapes:
+                if not(shape.isDisabled()):
+                    r = shape.boundingRect()
+                    if r.left() < minx:
+                        minx = r.left()
+                    if r.bottom()  > maxy:
+                        maxy = r.bottom()
+            self.cont_dx = self.EntitiesRoot.p0.x - minx
+            self.cont_dy = self.EntitiesRoot.p0.y + maxy
+        else:
+            self.cont_dx = float(MoveWpzDialog.result[0])
+            self.cont_dy = float(MoveWpzDialog.result[1])
         
         self.EntitiesRoot.p0.x = self.cont_dx
         self.EntitiesRoot.p0.y = self.cont_dy
@@ -703,6 +717,9 @@ class Main(QtGui.QMainWindow):
         
         # Automatic cutter compensation 
         self.automaticCutterCompensation()
+        
+        # Break insertion
+        Breaks(self.LayerContents).process()
         
         #Populate the treeViews
         self.TreeHandler.buildEntitiesTree(self.EntitiesRoot)

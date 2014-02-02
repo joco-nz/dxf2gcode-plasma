@@ -23,7 +23,6 @@
 
 
 from math import sqrt
-from Point import Point
 from PyQt4 import QtCore, QtGui
 
 import logging

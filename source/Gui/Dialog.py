@@ -7,7 +7,7 @@ class myDialog(QtGui.QDialog):
     class myDialog
     """
     
-    def __init__(self, title="Test", label=('Value1'), value=(1.0)):
+    def __init__(self, title="Test", label=('Value1'), value=(1.0), haveAuto=False):
         super(myDialog, self).__init__()
         
         logger.debug(title)
@@ -23,9 +23,9 @@ class myDialog(QtGui.QDialog):
         if not(len(label) == len(value)):
             raise Exception, "Number of labels different to number of values"
         
-        self.initUI()
+        self.initUI(haveAuto)
     
-    def initUI(self):
+    def initUI(self, haveAuto):
         """
         initUI()
         """
@@ -55,14 +55,18 @@ class myDialog(QtGui.QDialog):
         grid2 = QtGui.QGridLayout()
         grid2.setSpacing(5)
         
+        autoButton = QtGui.QPushButton("Auto")        
         okButton = QtGui.QPushButton("OK")
         cancelButton = QtGui.QPushButton("Cancel")
         
+        autoButton.clicked.connect(self.cbAuto)
         okButton.clicked.connect(self.cbOK)
         cancelButton.clicked.connect(self.cbCancel)
         
-        grid2.addWidget(okButton, 0, 0)
-        grid2.addWidget(cancelButton, 0, 1) # 5, 1
+        if haveAuto:
+            grid2.addWidget(autoButton, 0, 0)
+        grid2.addWidget(okButton, 0, 1)
+        grid2.addWidget(cancelButton, 0, 2) # 5, 1
         
         bottom.setLayout(grid2) 
         
@@ -79,6 +83,13 @@ class myDialog(QtGui.QDialog):
         self.setWindowIcon(QtGui.QIcon(iconWT))
         
         self.exec_()
+        
+    def cbAuto(self):
+        """
+        Determine WP zero automatically by finding the left/bottom-most shape
+        """
+        self.result = 'Auto'
+        self.close()
         
     def cbOK(self):
         """
