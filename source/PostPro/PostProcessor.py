@@ -27,6 +27,7 @@
 
 import os
 import time
+import re
 
 from math import degrees
 
@@ -297,7 +298,7 @@ class MyPostProcessor(QtCore.QObject):
         """
         if self.vars.General["output_type"] == 'g-code':
             exstr = self.tr("(Generated with: %s, Version: %s, Date: %s)\n") % (c.APPNAME, c.VERSION, c.DATE)
-            exstr += self.tr("(Created from file: %s)\n") % load_filename
+            exstr += self.tr("(Created from file: %s)\n") % re.sub('[()]', '_', load_filename)
             exstr += self.tr("(Time: %s)\n") % time.asctime()
         elif self.vars.General["output_type"] == 'dxf':
             exstr = ''
