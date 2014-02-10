@@ -651,10 +651,12 @@ class Main(QtGui.QMainWindow):
             
             #Create temporary file which will be read by the program
             filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf').encode("cp1252")
-            pstoedit_cmd = self.config.pstoedit_cmd.encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
-            pstoedit_opt = eval(self.config.pstoedit_opt) #['-f','dxf','-mm']
+           
+            pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd'].encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
+            pstoedit_opt = g.config.vars.Filters['pstoedit_opt'] #['-f','dxf','-mm']
             ps_filename = os.path.normcase(self.load_filename.encode("cp1252"))
             cmd = [(('%s') % pstoedit_cmd)] + pstoedit_opt + [(('%s') % ps_filename), (('%s') % filename)]
+            logger.debug(cmd)
             retcode = subprocess.call(cmd)
         
         #self.textbox.text.delete(7.0, END)

@@ -151,7 +151,7 @@ CONFIG_SPEC = str('''
     gcode = string(default = "(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
     
     [Filters]
-    pstoedit_cmd = string(default = "/opt/local/bin/pstoedit")
+    pstoedit_cmd = string(default = "C:\Program Files (x86)\pstoedit\pstoedit.exe")
     pstoedit_opt = list(default = list('-f', 'dxf', '-mm'))
     
     [Logging]
