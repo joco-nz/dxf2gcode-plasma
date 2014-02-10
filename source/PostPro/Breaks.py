@@ -67,7 +67,7 @@ class Breaks(QtCore.QObject):
             if (isinstance(geo, LineGeo)):
                 for breakLayer in breakLayers:
                     for breakShape in breakLayer.shapes:
-                        intersections = self.breakGeo(geo, breakShape)
+                        intersections = self.intersectGeometry(geo, breakShape)
                         if (len(intersections) == 2):
                             logger.debug("Shape %s broken by %s", shape, breakShape)
                             (near, far) = self.classifyIntersections(geo, intersections)
@@ -79,7 +79,7 @@ class Breaks(QtCore.QObject):
                 newGeos.append(geo)
         shape.geos = newGeos
 
-    def breakGeo(self, lineGeo, breakShape):
+    def intersectGeometry(self, lineGeo, breakShape):
         """
         Try to break lineGeo with the given breakShape. Will return the intersection points of lineGeo with breakShape.
         """
