@@ -32,7 +32,7 @@ from math import atan2
 import logging
 logger = logging.getLogger("DxfImport.SplineConvert") 
 
-debug_on = True
+debug_on = False
 
 class Spline2Arcs:
     def __init__(self, degree=0, Knots=[], Weights=[], CPoints=[], tol=0.01, check=1):
@@ -52,8 +52,10 @@ class Spline2Arcs:
         if debug_on:
             logger.debug(self.NURBS)
         
+        logger.debug("Next High accurancy BiarCurve")
         #High Accuracy Biarc fitting of NURBS
         BiarcCurves, self.PtsVec = self.calc_high_accurancy_BiarcCurve()
+        logger.debug("Next Analyse and Compress")
         
         #Komprimieren der Biarc und der Linien
         self.Curve = self.analyse_and_compress(BiarcCurves)
@@ -360,6 +362,8 @@ class Spline2Arcs:
         
         #Schleife f�r die einzelnen Abschnitte
         for u_sect in u_sections:
+            if debug_on:
+                logger.debug("Calculation Biarc Section: %s" %u_sect)
             BiarcCurve, PtsVec = self.calc_Biarc_section(u_sect, self.epsilon, self.epsilon_high)
             BiarcCurves.append(BiarcCurve)
             PtsVecs.append(PtsVec)
@@ -415,11 +419,14 @@ class Spline2Arcs:
         BiarcCurve = []
         cur_step = self.max_step
         u = u_sect[0] + min_u
+        
         PtsVec = [self.NURBS.NURBS_evaluate(n=1, u=u)]
         step = 0
+        
         #Berechnen bis alle Biarcs berechnet sind
         while(u < u_sect[-1] - min_u):
             step += 1
+            #logger.debug(step)
             u += cur_step
             
             #Begrenzung von u auf den Maximalwert
@@ -608,12 +615,17 @@ class NURBSClass:
         """
         #Errechnen der korrigierten u's
         #cor_u=self.correct_u(u)
+        #logger.debug("Bin da")
         
         #Errechnen der Homogenen Punkte bis zur n ten Ableitung
         HPt = self.BSpline.bspline_ders_evaluate(n=n, u=u)
         
+        #logger.debug(HPt)
+        
         #Punkt wieder in Normal Koordinaten zur�ck transformieren
         Point = self.HPt_2_Pt(HPt[0])
+        
+        #logger.debug(HPt)
         
         #Errechnen der ersten Ableitung wenn n>0 als Richtungsvektor
         dPt = []
@@ -665,8 +677,8 @@ class BSplineClass:
         if  self.Knots_len < self.degree + 1:
             raise ValueError, "degree greater than number of control points."
         if self.Knots_len != (self.CPts_len + self.degree + 1):
-            print ("shall be: %s" % (self.CPts_len + self.degree + 1))
-            print ("is: %s" % self.Knots_len)
+            logger.error("shall be: %s" % (self.CPts_len + self.degree + 1))
+            logger.error("is: %s" % self.Knots_len)
             raise ValueError, "Knot/Control Point/degree number error."
     
     def calc_curve(self, n=0, cpts_nr=20):
@@ -709,6 +721,8 @@ class BSplineClass:
         p = self.degree
         du = min(n, p)
         
+       #logger.debug(du)
+        
         CK = []
         dPts = []
         for i in range(self.CPt_len):
@@ -727,6 +741,10 @@ class BSplineClass:
         """
         Algorithm A2.1 from "THE NURBS BOOK" pg.68
         """
+        #logger.debug(u)
+        #logger.debug(self.degree)
+        #logger.debug(self.Knots)
+        
         #Spezialfall wenn der Wert==Endpunkt ist
         if(u == self.Knots[-1]):
             return self.Knots_len - self.degree - 2 #self.Knots_len #-1
@@ -734,15 +752,26 @@ class BSplineClass:
         #Bin�re Suche starten
         #(Der Interval von low zu high wird immer halbiert bis
         #wert zwischen im Intervall von Knots[mid:mi+1] liegt)
-        low = self.degree
+        low = self.degree-1
         high = self.Knots_len
         mid = (low + high) / 2
-        while ((u < self.Knots[mid])or(u >= self.Knots[mid + 1])):
+        counter=1
+        while ((u < self.Knots[mid])or(u >= self.Knots[mid +1])):
+            counter=counter+1
+            
             if (u < self.Knots[mid]):
                 high = mid
             else:
                 low = mid
-            mid = (low + high) / 2
+            
+            mid = ((low + high) / 2)
+            
+            if debug_on:
+                logger.debug("high: %s; low: %s; mid: %s" %(high,low,mid))
+                logger.debug("u: %s; self.Knots[mid]: %s; self.Knots[mid+1]: %s" %(u,self.Knots[mid],self.Knots[mid+1]))
+            
+            if counter > 100:
+                raise ValueError, "Iterations above 100 cannot find span"
         return mid
     
     def ders_basis_functions(self, span, u, n):
