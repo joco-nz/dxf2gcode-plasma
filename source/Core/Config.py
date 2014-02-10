@@ -103,7 +103,7 @@ CONFIG_SPEC = str('''
     
     [Import_Parameters]
     point_tolerance = float(default = 0.001)
-    spline_check = integer(default = 1)
+    spline_check = integer(default = 3)
     fitting_tolerance = float(default = 0.001)
     
     [Layer_Options]

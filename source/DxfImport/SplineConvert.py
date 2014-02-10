@@ -471,7 +471,8 @@ class Spline2Arcs:
             check_Pts.append(self.NURBS.NURBS_evaluate(n=0, u=check_u[-1]))
             fit_error.append(Biarc.get_biarc_fitting_error(check_Pts[-1]))
             
-        if debug_on:
+        #if debug_on:
+        if 0:
             logger.debug('u0: %s' %u0)
             logger.debug('u1: %s' %u1)
             logger.debug('Biarc: %s' %Biarc)
@@ -533,13 +534,14 @@ class NURBSClass:
                 else:
                     knt_vec.append([self.Knots[knt_nr]])
                 knt_nr += 1
+            logger.debug("Checking Knots: %s" %knt_vec)
             
             for knt_spts in knt_vec:
                 if (len(knt_spts) > self.degree + 1):
                     raise ValueError, "Same Knots Nr. bigger then degree+1"
                 
                 #�berpr�fen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
-                elif ((len(knt_spts) > self.degree)
+                elif ((len(knt_spts) >= self.degree)
                         and(knt_spts[-1] > knt_vec[0][0])
                         and(knt_spts[-1] < knt_vec[-1][-1])):
                     
@@ -548,7 +550,8 @@ class NURBSClass:
                     
                     if abs(tangent0 - tangent1) > 1e-6:
                         self.knt_m_change.append(knt_spts[0])
-                    
+                
+            logger.debug("Nots with change of direction: %s" %self.knt_m_change)
                 
             #�berpr�fen der Kontrollpunkte
             #Suchen von mehrachen Kontrollpunkten (Anzahl �ber degree+2 => nicht errechnen
@@ -567,8 +570,8 @@ class NURBSClass:
                     self.ignor.append([self.Knots[same_ctlpt[0] + self.degree / 2], \
                                        self.Knots[same_ctlpt[-1] + self.degree / 2]])
         
-        #raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
-        logger.debug("Same Controlpoints Nr. bigger then degree+2")
+#        raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
+#            logger.debug("Same Controlpoints Nr. bigger then degree+2")
         for ignor in self.ignor:
             logger.debug("Ignoring u's between u: %s and u: %s" % (ignor[0], ignor[1]))
         
