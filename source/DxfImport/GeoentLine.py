@@ -73,7 +73,7 @@ class GeoentLine:
                                       en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
         else:
 #            showwarning("Short Arc Elemente", ("Length of Line geometry too short!"\
-#                                               "\nLength must be greater then tolerance."\
+#                                               "\nLength must be greater than tolerance."\
 #                                               "\nSkipping Line Geometry"))
             warning = 1
         return warning

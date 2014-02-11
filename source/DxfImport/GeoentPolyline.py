@@ -83,7 +83,7 @@ class GeoentPolyline:
 ##                                          en=self.geo[-1].Pe,be_cp=[],en_cp=[])) 
 ##            else:
 ##                showwarning("Short Polyline Elemente", ("Length of Line geometrie too short!"\
-##                                                   "\nLenght must be greater then tolerance."\
+##                                                   "\nLenght must be greater than tolerance."\
 ##                                                   "\nSkipping Line Geometrie"))
             
     def analyse_and_opt(self):

@@ -49,7 +49,6 @@ logger = logging.getLogger("DxfImport.Import")
 
 
 class ReadDXF(QtCore.QObject):
-    #Initialisierung der Klasse
     #Initialise the class
     def __init__(self, filename=None):
         QtCore.QObject.__init__(self)
@@ -61,7 +60,6 @@ class ReadDXF(QtCore.QObject):
         str_ = self.Read_File(filename)
         g.config.metric = self.Get_Unit(str_)
         
-        #Laden der Kontur und speichern der Werte in die Klassen
         #Load the contour and store the values in the classes
         self.line_pairs = self.Get_Line_Pairs(str_)        
 
@@ -197,7 +195,7 @@ class ReadDXF(QtCore.QObject):
             name_pos = self.line_pairs.index_code(2, start + 1)
             sections[-1].name = self.line_pairs.line_pair[name_pos].value
             end = self.line_pairs.index_both(0, "ENDSEC", start + 1)
-            #Falls Section nicht richtig beendet wurde
+			
             #If section was not properly terminated
             if end == None:
                 end = self.line_pairs.nrs - 1
@@ -212,7 +210,6 @@ class ReadDXF(QtCore.QObject):
         
         return sections
     
-    #Suchen der TABLES Section innerhalb der Sectionen diese beinhaltet die LAYERS
     #Search the TABLES section of the sections within this include LAYERS ???
     def Read_Layers(self, section):
         """
@@ -223,8 +220,7 @@ class ReadDXF(QtCore.QObject):
                 tables_section = section[sect_nr]
                 break
         
-        #Falls das DXF Bloecke hat diese einlesen
-        #If the DXF block has this einlese???
+        #If the DXF blocks has, read this???
         layers = []
         if vars().has_key('tables_section'):
             tables_section = section[sect_nr]
@@ -243,8 +239,6 @@ class ReadDXF(QtCore.QObject):
         
         return layers
         
-        
-    #Suchen der BLOCKS Section innerhalb der Sectionen
     #Search the BLOCKS section within sections
     def Get_Blocks_pos(self, section):
         """
@@ -255,8 +249,7 @@ class ReadDXF(QtCore.QObject):
                 blocks_section = section[sect_nr]
                 break
         
-        #Falls das DXF Bloecke hat diese einlesen
-        #If the DXF block has read this ???
+        #If the DXF blocks has, read this???
         blocks = []
         if vars().has_key('blocks_section'):
             start = blocks_section.begin
@@ -286,7 +279,6 @@ class ReadDXF(QtCore.QObject):
             logger.info("Reading Block %s; Nr: %i" % (blocks_pos[block_nr].name, block_nr))
             
             blocks.Entities.append(EntitiesClass(block_nr, blocks_pos[block_nr].name, []))
-            #Lesen der BasisWerte f�r den Block
             #Read the Baseline values for the block
             s = blocks_pos[block_nr].begin + 1
             e = blocks_pos[block_nr].end - 1
@@ -459,7 +451,7 @@ class ReadDXF(QtCore.QObject):
         if warning:
             QtGui.QMessageBox.warning(g.window, self.tr("Short Elements"),
                                       self.tr("Length of some Elements too short!"\
-                                      "\nLength must be greater then tolerance."\
+                                      "\nLength must be greater than tolerance."\
                                       "\nSkipped Geometries"))
         
         return points
@@ -615,9 +607,7 @@ class ReadDXF(QtCore.QObject):
         """
         Search_Paths() - Search the paths through the Contour
         """
-        
-        # RECURSIVE LOOP WAS DIFFICULT
-
+		
         #Define the direction of the search (1 = positive, 0 = neg or reverse)
         
         #If it is the first call a new contour is to be created
@@ -716,7 +706,6 @@ class ReadDXF(QtCore.QObject):
 
         return best_c
     
-    #Alle Punkte im Pfad aus Points löschen um nächte Suche zu beschleunigen
     #All the points in the path from Point Clear to accelerate nights Search ???
     def Remove_Used_Points(self, cont=None, points=None):
         """
@@ -740,11 +729,9 @@ class ReadDXF(QtCore.QObject):
                         del Point.en_cp[Point.en_cp.index(en_cp)]
                         break
                 
-        #R�ckgabe der Kontur
         #Return to the contour ???
         return points
     
-    #Alle Punkte im Pfad aus Points l�schen um n�chte Suche zu beschleunigen
     #All the points in the path from Point Clear to accelerate nights Search ???
     def Contours_Points2Geo(self, cont=None, points=None):
         """
@@ -797,7 +784,7 @@ class dxflinepairsClass:
         index_code()
         """
         
-        #If stop==-1 then stop at the end of the pairs
+        #If stop == -1 then stop at the end of the pairs
         if stop == -1:
             stop = len(self.line_pair)
             

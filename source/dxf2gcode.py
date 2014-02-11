@@ -483,10 +483,10 @@ class Main(QtGui.QMainWindow):
                 "<a href='http://code.google.com/p/dxf2gcode/'>http://code.google.com/p/dxf2gcode/</a><br>"\
                 "For any questions on how to use dxf2gcode please use the<br>"\
                 "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br><br>"\
-                "To log bugs or feature requests please use the <br>"\
+                "To log bugs, or request features please use the <br>"\
                 "<a href='http://code.google.com/p/dxf2gcode/issues/list'>issue tracking system</a><br>"\
                 "<h2>License and copyright:</h2>"\
-                "This program is written in Python and is published under the "\
+                "<body>This program is written in Python and is published under the "\
                 "<a href='http://www.gnu.org/licenses/gpl.html'>GNU GPL 3 license.</a><br>"\
                 "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
         
