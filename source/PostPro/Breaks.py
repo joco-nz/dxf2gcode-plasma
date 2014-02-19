@@ -48,7 +48,7 @@ class Breaks(QtCore.QObject):
         for layerContent in self.layerContents:
             if layerContent.isBreakLayer():
                 breakLayers.append(layerContent)
-            else:
+            elif not layerContent.should_ignore():
                 processLayers.append(layerContent)
       
         logger.debug("Found %d break layers and %d processing layers" % (len(breakLayers), len(processLayers)) )
@@ -60,6 +60,7 @@ class Breaks(QtCore.QObject):
             for shape in layer.shapes:
                 self.breakShape(shape, breakLayers)
     
+    # TODO :: algorithm is broken; if a shape is broken more than once, we will get multiple geos for a single original line, depending on the order of the original geos
     def breakShape(self, shape, breakLayers):
         newGeos = []
         for geo in shape.geos:
