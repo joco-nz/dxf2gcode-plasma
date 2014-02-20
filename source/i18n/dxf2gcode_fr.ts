@@ -151,7 +151,7 @@
     <message>
         <location filename="dxf2gcode.py" line="606"/>
         <source>Offset %s axis by mm:</source>
-        <translation>Décalage %s axes en mm:</translation>
+        <translation>Décalage axe %s en mm:</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="650"/>
@@ -196,37 +196,37 @@
     <message>
         <location filename="dxf2gcode.py" line="491"/>
         <source>&lt;html&gt;&lt;h2&gt;&lt;center&gt;You are using&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Last change: %s&lt;br&gt;Changed by: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Where to get help:&lt;/h2&gt;For more information and updates, please visit the Google Code Project: &lt;a href=&apos;http://code.google.com/p/dxf2gcode/&apos;&gt;http://code.google.com/p/dxf2gcode/&lt;/a&gt;&lt;br&gt;For any questions on how to use dxf2gcode please use the&lt;br&gt;&lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;mailing list&lt;/a&gt;&lt;br&gt;&lt;br&gt;To log bugs, or request features please use the &lt;br&gt;&lt;a href=&apos;http://code.google.com/p/dxf2gcode/issues/list&apos;&gt;issue tracking system&lt;/a&gt;&lt;br&gt;&lt;h2&gt;License and copyright:&lt;/h2&gt;&lt;body&gt;This program is written in Python and is published under the &lt;a href=&apos;http://www.gnu.org/licenses/gpl.html&apos;&gt;GNU GPL 3 license.&lt;/a&gt;&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="unfinished"></translation>
+        <translation>&lt;html&gt;&lt;h2&gt;&lt;center&gt;Vous utilisez&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Dernière modification: %s&lt;br&gt;Modifié par: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Ou trouver de l&apos;aide:&lt;/h2&gt;Pour plus d&apos;informationds et mises à jour, aller sur Google Code Project: &lt;a href=&apos;http://code.google.com/p/dxf2gcode/&apos;&gt;http://code.google.com/p/dxf2gcode/&lt;/a&gt;&lt;br&gt;Pour toute questions sur l&apos;utilisation de dxf2gcode aller voir&lt;br&gt;&lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;mailing list&lt;/a&gt;&lt;br&gt;&lt;br&gt;Pour rapporter un bug ou toute autre demande se rendre sur &lt;br&gt;&lt;a href=&apos;http://code.google.com/p/dxf2gcode/issues/list&apos;&gt;issue tracking system&lt;/a&gt;&lt;br&gt;&lt;h2&gt;Licence et copyright:&lt;/h2&gt;&lt;body&gt;Ce programme est écrit en Python et est publié sous &lt;a href=&apos;http://www.gnu.org/licenses/gpl.html&apos;&gt;licence.GNU GPL 3 licence.&lt;/a&gt;&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="538"/>
         <source>Tolerance for common points [in]:</source>
-        <translation type="unfinished"></translation>
+        <translation>Tolérances points [in]:</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="538"/>
         <source>Tolerance for curve fitting [in]:</source>
-        <translation type="unfinished"></translation>
+        <translation>Tolérances courbes [in]:</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="928"/>
         <source>Shape: %s is contained in shape %s</source>
-        <translation type="unfinished"></translation>
+        <translation>Forme: %s contenue dans forme %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="939"/>
         <source>new order for layer %s:</source>
-        <translation type="unfinished"></translation>
+        <translation>Nouvel ordre pour le calque %s:</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="941"/>
         <source>&gt;&gt;Shape: %s</source>
-        <translation type="unfinished"></translation>
+        <translation>&gt;&gt;Forme: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="944"/>
         <source>exiting</source>
-        <translation type="unfinished"></translation>
+        <translation>Sortie</translation>
     </message>
 </context>
 <context>
@@ -526,57 +526,57 @@
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="437"/>
         <source>Feed rate XY</source>
-        <translation type="unfinished"></translation>
+        <translation>Vitesse d&apos;avance XY</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="730"/>
         <source>[mm/min]</source>
-        <translation type="unfinished"></translation>
+        <translation>[mm/min]</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="470"/>
         <source>Z Final mill depth</source>
-        <translation type="unfinished"></translation>
+        <translation>Prof. usinage totale Z</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="510"/>
         <source>Z Infeed depth</source>
-        <translation type="unfinished"></translation>
+        <translation>Prof. passe Z</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="560"/>
         <source>Z Safety margin</source>
-        <translation type="unfinished"></translation>
+        <translation>Haut. Z liaison</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="600"/>
         <source>Z Retraction area</source>
-        <translation type="unfinished"></translation>
+        <translation>Haut. Z sécurité</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="630"/>
         <source>Z Workpiece top</source>
-        <translation type="unfinished"></translation>
+        <translation>Haut. Z brut</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="670"/>
         <source>Start X</source>
-        <translation type="unfinished"></translation>
+        <translation>Départ à X</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="720"/>
         <source>Feed rate Z</source>
-        <translation type="unfinished"></translation>
+        <translation>Vitesse avance Z </translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="753"/>
         <source>Start Y</source>
-        <translation type="unfinished"></translation>
+        <translation>Départ à Y</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1082"/>
         <source>Automatic Cutter Compensation</source>
-        <translation type="unfinished"></translation>
+        <translation>Compensation outil automatique</translation>
     </message>
 </context>
 <context>
@@ -863,7 +863,8 @@ La longueur doit être supérieure à la tolérance</translation>
         <source>Length of some Elements too short!
 Length must be greater than tolerance.
 Skipped Geometries</source>
-        <translation type="unfinished"></translation>
+        <translation>Longueur de certains éléments trop petite!
+La longueur doit être supérieure à la tolérance</translation>
     </message>
 </context>
 <context>
