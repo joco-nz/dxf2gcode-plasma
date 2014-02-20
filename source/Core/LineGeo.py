@@ -63,6 +63,13 @@ class LineGeo(QtCore.QObject):
                ("\nPe : %s" % self.Pe) + \
                ("\nlength: %0.5f" % self.length)        
 
+    def toShortString(self):
+        """ 
+        Method to print only start and end point of the line 
+        @return: A string
+        """ 
+        return ("(%f, %f) -> (%f, %f)" % (self.Pa.x, self.Pa.y, self.Pe.x, self.Pe.y));        
+
     def reverse(self):
         """ 
         Reverses the direction of the arc (switch direction).
