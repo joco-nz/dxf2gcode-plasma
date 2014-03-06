@@ -71,7 +71,7 @@ class LayerContentClass:
 
 
         #search for layer commands to override defaults
-        if self.LayerName.startswith("MILL:") or self.isBreakLayer():
+        if self.isParameterizableLayer():
             lopts_re = re.compile("([a-zA-Z]{1,10}:\s{0,}[\-\.0-9]{1,30}\s{0,})")
             #result = rcmp.search(self.LayerName)
             layer_commands = self.LayerName.replace(",", ".")
@@ -143,3 +143,15 @@ class LayerContentClass:
     
     def isBreakLayer(self):
         return self.LayerName.startswith("BREAKS:")
+    
+    def isMillLayer(self):
+        return self.LayerName.startswith("MILL:")
+    
+    def isDrillLayer(self):
+        return self.LayerName.startswith("DRILL:")
+    
+    def isParameterizableLayer(self):
+        return self.isMillLayer() or self.isDrillLayer() or self.isBreakLayer()
+    
+    def automaticCutterCompensationEnabled(self):
+        return not self.should_ignore() and not self.isDrillLayer()

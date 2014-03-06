@@ -23,39 +23,32 @@
 from PyQt4 import QtCore, QtGui
 
 import logging
-logger = logging.getLogger("Core.BreakGeo") 
+logger = logging.getLogger("Core.HoleGeo") 
 
-import copy
-
-class BreakGeo(QtCore.QObject):
+class HoleGeo(QtCore.QObject):
     """
-    BreakGeo decorates another geometry item by changing the Z-Position.
+    HoleGeo represents drilling holes.
     """ 
-    def __init__(self, inner, height, xyfeed, zfeed):
-        self.type = "BreakGeo"
-        self.inner = inner
-        self.height = height
-        self.xyfeed = xyfeed
-        self.zfeed = zfeed
-
-    def __deepcopy__(self, memo):
-        return BreakGeo(copy.deepcopy(self.inner, memo),
-                       copy.deepcopy(self.height, memo),
-                       copy.deepcopy(self.xyfeed, memo), 
-                       copy.deepcopy(self.zfeed, memo))
+    def __init__(self, P):
+        """
+        Standard Method to initialise the HoleGeo
+        """
+        QtCore.QObject.__init__(self)
+        self.type = "HoleGeo"
+        self.P = P
 
     def __str__(self):
         """ 
         Standard method to print the object
         @return: A string
         """ 
-        return "\nBreakGeo (height= %s), decorating %s" % (self.height, self.inner)        
+        return "\nHoleGeo at (%s) " % (self.P)        
 
     def reverse(self):
         """ 
         Reverses the direction.
         """ 
-        self.inner.reverse()
+        pass
 
     def tr(self, string_to_translate):
         """
@@ -63,7 +56,7 @@ class BreakGeo(QtCore.QObject):
         @param: string_to_translate: a unicode string    
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("BreakGeo",
+        return unicode(QtGui.QApplication.translate("HoleGeo",
                                                     string_to_translate,
                                                     None,
                                                     QtGui.QApplication.UnicodeUTF8))
@@ -76,22 +69,35 @@ class BreakGeo(QtCore.QObject):
         @param tolerance: The tolerance to be added to geometrie for hit
         testing.
         """
-        self.inner.add2path(papath, parent)
+        abs_geo = self.make_abs_geo(parent, 0)
+        papath.addRoundedRect(abs_geo.P.x - 2, -abs_geo.P.y -2, 4, 4, 2, 2)
+        
+    def make_abs_geo(self, parent=None, reverse=0):
+        """
+        Generates the absolute geometry based on the geometry self and the
+        parent. If reverse 1 is given the geometry may be reversed.
+        @param parent: The parent of the geometry (EntitieContentClass)
+        @param reverse: If 1 the geometry direction will be switched.
+        @return: A new LineGeoClass will be returned.
+        """ 
+        
+        P = self.P.rot_sca_abs(parent=parent)
+        abs_geo = HoleGeo(P)
+        return abs_geo
+        
+    def get_start_end_points(self, direction, parent=None):
+        """
+        Returns the start/end Point and its direction
+        @param direction: 0 to return start Point and 1 to return end Point
+        @return: a list of Point and angle 
+        """
+        return self.P, 0
+        
 
     def Write_GCode(self, parent=None, PostPro=None):
         """
-        To be called if a BreakGeo shall be written to the PostProcessor.
-        @param pospro: The used Posprocessor instance
+        To be called if a HoleGeo shall be written to the PostProcessor.
+        @param PostPro: The used Posprocessor instance
         @return: a string to be written into the file
         """        
-        oldZ = PostPro.ze
-        oldFeed = PostPro.feed
-        return (
-            PostPro.chg_feed_rate(self.zfeed) + 
-            PostPro.lin_pol_z(self.height) + 
-            PostPro.chg_feed_rate(self.xyfeed) + 
-            self.inner.Write_GCode(parent, PostPro) + 
-            PostPro.chg_feed_rate(self.zfeed) + 
-            PostPro.lin_pol_z(oldZ) +
-            PostPro.chg_feed_rate(oldFeed)  
-        )
+        return PostPro.make_print_str("(Drilled hole)%nl")

@@ -917,28 +917,30 @@ class Main(QtGui.QMainWindow):
     def automaticCutterCompensation(self):
         if self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
             for layerContent in self.LayerContents:
-                newShapes = [];
-                for shape in layerContent.shapes:
-                    shape.make_papath()
-                for shape in layerContent.shapes:
-                    container = None
-                    myBounds = shape.boundingRect()
-                    for otherShape in layerContent.shapes :
-                        if shape != otherShape and otherShape.boundingRect().contains(myBounds):
-                            logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
-                            container = otherShape
-                    if container is None:
-                        shape.cut_cor = 41
-                        newShapes.append(shape)
-                    else:
-                        shape.cut_cor = 42
-                        newShapes.insert(layerContent.shapes.index(container), shape)
-                    #shape.updateCutCor()
-                    #shape.updateCCplot()
-                layerContent.shapes = newShapes
-                logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
-                for shape in layerContent.shapes:
-                    logger.debug(self.tr(">>Shape: %s") % (shape.nr))
+                if layerContent.automaticCutterCompensationEnabled():
+                    newShapes = [];
+                    for shape in layerContent.shapes:
+                        shape.make_papath()
+                    for shape in layerContent.shapes:
+                        if shape.closed:
+                            container = None
+                            myBounds = shape.boundingRect()
+                            for otherShape in layerContent.shapes :
+                                if shape != otherShape and otherShape.boundingRect().contains(myBounds):
+                                    logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
+                                    container = otherShape
+                            if container is None:
+                                shape.cut_cor = 41
+                                newShapes.append(shape)
+                            else:
+                                shape.cut_cor = 42
+                                newShapes.insert(layerContent.shapes.index(container), shape)
+                        else:
+                            newShapes.append(shape)
+                    layerContent.shapes = newShapes
+                    logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
+                    for shape in layerContent.shapes:
+                        logger.debug(self.tr(">>Shape: %s") % (shape.nr))
                 
     def closeEvent(self, e):
         logger.debug(self.tr("exiting"))

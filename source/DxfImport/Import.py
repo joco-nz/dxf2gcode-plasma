@@ -37,6 +37,7 @@ from DxfImport.GeoentPolyline import GeoentPolyline
 from DxfImport.GeoentSpline import GeoentSpline
 from DxfImport.GeoentEllipse import GeoentEllipse
 from DxfImport.GeoentLwpolyline import GeoentLwPolyline
+from DxfImport.GeoentPoint import GeoentPoint
 
 #from tkMessageBox import showwarning
 from PyQt4 import QtGui, QtCore
@@ -390,6 +391,8 @@ class ReadDXF(QtCore.QObject):
             geo = GeoentEllipse(geo_nr, self)
         elif (name == "LWPOLYLINE"):
             geo = GeoentLwPolyline(geo_nr, self)
+        elif (name == "POINT"):
+            geo = GeoentPoint(geo_nr, self)
         else: 
             logger.info(("Found unsupported geometry type: %s !" % name))
             self.start += 1 #Eins hochz�hlen sonst gibts ne dauer Schleife
