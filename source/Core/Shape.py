@@ -67,8 +67,9 @@ class ShapeClass(QtGui.QGraphicsItem):
         QtGui.QGraphicsItem.__init__(self) 
         
         
-        self.pen = QtGui.QPen(QtCore.Qt.black, 2)
-        self.pen.setCosmetic(True)
+        self.pen = QtGui.QPen(QtCore.Qt.black)
+        self.left_pen = QtGui.QPen(QtCore.Qt.darkCyan)
+        self.right_pen = QtGui.QPen(QtCore.Qt.darkMagenta)
         self.sel_pen = QtGui.QPen(QtCore.Qt.red, 2) #,QtCore.Qt.DashLine
         self.sel_pen.setCosmetic(True)
         self.dis_pen = QtGui.QPen(QtCore.Qt.gray) #2,QtCore.Qt.DotLine
@@ -176,12 +177,17 @@ class ShapeClass(QtGui.QGraphicsItem):
         if self.isSelected() and not(self.isDisabled()):
             painter.setPen(self.sel_pen)
         elif not(self.isDisabled()):
-            painter.setPen(self.pen)
+            if self.cut_cor == 41:
+                painter.setPen(self.left_pen)
+            elif self.cut_cor == 42:
+                painter.setPen(self.right_pen)
+            else:
+                painter.setPen(self.pen)
         elif self.isSelected() and self.isDisabled():
             painter.setPen(self.sel_dis_pen)
         else:
             painter.setPen(self.dis_pen)
-    
+            
         painter.drawPath(self.path) 
         
     def boundingRect(self):
