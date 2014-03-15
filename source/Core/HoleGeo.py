@@ -91,7 +91,7 @@ class HoleGeo(QtCore.QObject):
         @param direction: 0 to return start Point and 1 to return end Point
         @return: a list of Point and angle 
         """
-        return self.P, 0
+        return self.P.rot_sca_abs(parent=parent), 0
         
 
     def Write_GCode(self, parent=None, PostPro=None):
