@@ -43,7 +43,16 @@ class ArcGeo(QtCore.QObject):
     def __init__(self, Pa = None, Pe = None, O = None, r = 1,
                  s_ang = None, e_ang = None, direction = 1):
         """
-        Standard Method to initialize the LineGeo
+        Standard Method to initialize the ArcGeo. Not all of the parameters are
+        required to fully define a arc. e.g. Pa and Pe may be given or s_ang and
+        e_ang
+        @param Pa: The Start Point of the arc
+        @param Pe: the End Point of the arc
+        @param O: The center of the arc
+        @param r: The radius of the arc
+        @param s_ang: The Start Angle of the arc
+        @param e_ang: the End Angle of the arc
+        @param direction: The arc direction where 1 is in positive direction
         """
         QtCore.QObject.__init__(self)
         

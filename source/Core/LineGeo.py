@@ -41,7 +41,9 @@ class LineGeo(QtCore.QObject):
     """ 
     def __init__(self, Pa, Pe):
         """
-        Standard Method to initialise the LineGeo
+        Standard Method to initialize the LineGeo. 
+        @param Pa: The Start Point of the line
+        @param Pe: the End Point of the line
         """
         self.type = "LineGeo"
         self.Pa = Pa
