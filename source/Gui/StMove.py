@@ -235,7 +235,7 @@ class StMove(QtGui.QGraphicsLineItem):
         self.path = QtGui.QPainterPath()
         
         for geo in self.geos:
-            geo.add2path(papath=self.path, parent=self.parent)
+            geo.add2path(papath=self.path, parent=self.parent, layerContent=None)
         self.show()
 
     def setSelected(self, flag=True):

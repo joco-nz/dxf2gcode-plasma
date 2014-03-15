@@ -125,7 +125,7 @@ class ArcGeo(QtCore.QObject):
                ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
     
     
-    def add2path(self, papath = None, parent = None):
+    def add2path(self, papath = None, parent = None, layerContent=None):
         """
         Plots the geometry of self into defined path for hit testing. Refer
         to http://stackoverflow.com/questions/11734618/check-if-point-exists-in-qpainterpath

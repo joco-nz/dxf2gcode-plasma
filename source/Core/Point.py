@@ -106,7 +106,7 @@ class Point:
         Point = self.rot_sca_abs(parent=parent)
         return PostPro.rap_pos_xy(Point)
     
-    def add2path(self, papath=None, parent=None):
+    def add2path(self, papath=None, parent=None, layerContent=None):
         """
         Plots the geometry of self into the defined canvas.
         Arcs will be plotted as line segments.

@@ -501,7 +501,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         logger.debug(self.tr("Adding shape to Scene Nr: %i") % (self.nr))
         
         for geo in self.geos:
-            geo.add2path(papath=self.path, parent=self.parent)
+            geo.add2path(papath=self.path, parent=self.parent, layerContent=self.LayerContent)
             
     
     def update_plot(self):

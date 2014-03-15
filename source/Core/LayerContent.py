@@ -155,3 +155,6 @@ class LayerContentClass:
     
     def automaticCutterCompensationEnabled(self):
         return not self.should_ignore() and not self.isDrillLayer()
+    
+    def getToolRadius(self): 
+        return self.tool_diameter / 2;

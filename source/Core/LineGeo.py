@@ -111,7 +111,7 @@ class LineGeo(QtCore.QObject):
         return abs_geo
     
         
-    def add2path(self, papath=None, parent=None):
+    def add2path(self, papath=None, parent=None, layerContent=None):
         """
         Plots the geometry of self into defined path for hit testing..
         @param hitpath: The hitpath to add the geometrie

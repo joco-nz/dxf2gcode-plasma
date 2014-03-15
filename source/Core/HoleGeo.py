@@ -61,7 +61,7 @@ class HoleGeo(QtCore.QObject):
                                                     None,
                                                     QtGui.QApplication.UnicodeUTF8))
         
-    def add2path(self, papath=None, parent=None):
+    def add2path(self, papath=None, parent=None, layerContent=None):
         """
         Plots the geometry of self into defined path for hit testing..
         @param hitpath: The hitpath to add the geometrie
@@ -70,7 +70,10 @@ class HoleGeo(QtCore.QObject):
         testing.
         """
         abs_geo = self.make_abs_geo(parent, 0)
-        papath.addRoundedRect(abs_geo.P.x - 2, -abs_geo.P.y -2, 4, 4, 2, 2)
+        radius = 2
+        if layerContent is not None:
+            radius = layerContent.getToolRadius()
+        papath.addRoundedRect(abs_geo.P.x - radius, -abs_geo.P.y - radius, 2*radius, 2*radius, radius, radius)
         
     def make_abs_geo(self, parent=None, reverse=0):
         """
