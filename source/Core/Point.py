@@ -23,6 +23,7 @@
 
 
 #from Canvas import Oval, Arc, Line
+from __future__ import division
 from math import sqrt, sin, cos, atan2, pi
 import Core.Globals as g
 
@@ -30,16 +31,17 @@ import logging
 logger = logging.getLogger("Core.Point") 
 
 class Point:
-    __slots__ = ["x", "y"]  
-    def __init__(self, x=0, y=0):
+    __slots__ = ["x", "y", "z"]  
+    def __init__(self, x=0, y=0, z=0):
         
         self.x = x
         self.y = y
+        self.z = z
     def __str__(self):
         return ('X ->%6.3f  Y ->%6.3f' % (self.x, self.y))
         #return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
-    def __cmp__(self, other) : 
-        return (self.x == other.x) and (self.y == other.y)
+    def __eq__(self, other):
+        return (-1e-15 < self.x - other.x < 1e-15) and (-1e-15 < self.y - other.y < 1e-15)
     def __neg__(self):
         return -1.0 * self
     def __add__(self, other): # add to another Point
@@ -55,6 +57,11 @@ class Point:
         else:
             #Calculate Scalar (dot) Product
             return self.x * other.x + self.y * other.y
+    def __truediv__(self, other):
+        return Point(x=self.x / other, y=self.y / other)
+
+    def cross_product(self, other):
+        return Point(self.y*other.z - self.z*other.y, self.z*other.x - self.x*other.z, self.x*other.y - self.y*other.x)
 
     def unit_vector(self, Pto=None):
         """Returns vector of length 1"""

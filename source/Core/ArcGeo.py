@@ -31,6 +31,8 @@ from Core.Point import Point
 import logging
 logger = logging.getLogger("Core.ArcGeo")
 
+import copy
+
 #Length of the cross.
 dl = 0.2
 DEBUG = 1
@@ -41,7 +43,7 @@ class ArcGeo(QtCore.QObject):
     G-Code export.
     """ 
     def __init__(self, Pa = None, Pe = None, O = None, r = 1,
-                 s_ang = None, e_ang = None, direction = 1):
+                 s_ang = None, e_ang = None, direction = 1, drag = False):
         """
         Standard Method to initialize the ArcGeo. Not all of the parameters are
         required to fully define a arc. e.g. Pa and Pe may be given or s_ang and
@@ -64,6 +66,7 @@ class ArcGeo(QtCore.QObject):
         self.s_ang = s_ang
         self.e_ang = e_ang
         self.col = 'Black'
+        self.drag = drag
         
         
         # Get the Circle Milllw with known Start and End Points
@@ -111,6 +114,16 @@ class ArcGeo(QtCore.QObject):
             self.ext = 2 * pi
         
         self.length = self.r * abs(self.ext)
+    
+    
+    def __deepcopy__(self, memo):
+        return ArcGeo(copy.deepcopy(self.Pa, memo),
+                       copy.deepcopy(self.Pe, memo),
+                       copy.deepcopy(self.O, memo),
+                       copy.deepcopy(self.r, memo),
+                       copy.deepcopy(self.s_ang, memo),
+                       copy.deepcopy(self.e_ang, memo),
+                       copy.deepcopy(self.ext, memo))
     
     
     def __str__(self):
