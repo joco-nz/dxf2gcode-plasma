@@ -204,17 +204,9 @@ class ArcGeo(QtCore.QObject):
         """
         Reverses the direction of the arc (switch direction).
         """
-        Pa = self.Pa
-        Pe = self.Pe
-        ext = self.ext
-        s_ang = self.e_ang
-        e_ang = self.s_ang
-        
-        self.Pa = Pe
-        self.Pe = Pa
-        self.ext = ext * -1
-        self.s_ang = s_ang
-        self.e_ang = e_ang
+        self.Pa, self.Pe = self.Pe, self.Pa
+        self.s_ang, self.e_ang = self.e_ang, self.s_ang
+        self.ext = -self.ext
     
     def make_abs_geo(self, parent = None, reverse = 0):
         """

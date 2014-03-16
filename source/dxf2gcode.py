@@ -859,7 +859,7 @@ class Main(QtGui.QMainWindow):
                 self.shapes[-1].setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
                 self.shapes[-1].setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
                 
-                #self.shapes[-1].geos = self.updateshapewithswivelknife(self.shapes[-1].geos) # replace shape with a shape for a swivel knife tool
+                self.shapes[-1].geos = self.updateshapewithswivelknife(self.shapes[-1].geos) # replace shape with a shape for a swivel knife tool
                 
                 self.addtoLayerContents(self.shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])
@@ -944,10 +944,15 @@ class Main(QtGui.QMainWindow):
                     swivel = ArcGeo(Pa=prvend, Pe=geo_b.Pa, r=offset, direction=prvnorm.cross_product(norma).z)
                     swivel.drag = dragAngle < abs(swivel.ext)
                     shape.append(swivel)
-                shape.append(ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=geo_b.ext))
-                
                 prvend = geo_b.Pe
                 prvnorm = offset*norme
+                if -pi<geo_b.ext<pi:
+                    shape.append(ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=geo_b.ext))
+                else:
+                    geo_b = ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=-geo_b.ext)
+                    geo_b.ext = -geo_b.ext
+                    shape.append(geo_b)
+                
             else:
                 shape.append(copy(geo))
         if not prvnorm == startnorm:

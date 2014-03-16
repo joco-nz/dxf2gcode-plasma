@@ -76,11 +76,7 @@ class LineGeo(QtCore.QObject):
         """ 
         Reverses the direction of the arc (switch direction).
         """ 
-        Pa = self.Pa
-        Pe = self.Pe
-        
-        self.Pa = Pe
-        self.Pe = Pa
+        self.Pa, self.Pe = self.Pe, self.Pa
 
     def tr(self, string_to_translate):
         """

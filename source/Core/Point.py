@@ -41,7 +41,7 @@ class Point:
         return ('X ->%6.3f  Y ->%6.3f' % (self.x, self.y))
         #return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
     def __eq__(self, other):
-        return (-1e-15 < self.x - other.x < 1e-15) and (-1e-15 < self.y - other.y < 1e-15)
+        return (-1e-12 < self.x - other.x < 1e-12) and (-1e-12 < self.y - other.y < 1e-12)
     def __neg__(self):
         return -1.0 * self
     def __add__(self, other): # add to another Point
