@@ -859,7 +859,7 @@ class Main(QtGui.QMainWindow):
                 self.shapes[-1].setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
                 self.shapes[-1].setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
                 
-                self.shapes[-1].geos = self.updateshapewithswivelknife(self.shapes[-1].geos) # replace shape with a shape for a swivel knife tool
+                #self.shapes[-1].geos = self.updateshapewithswivelknife(self.shapes[-1].geos) # replace shape with a shape for a swivel knife tool
                 
                 self.addtoLayerContents(self.shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])
@@ -882,82 +882,7 @@ class Main(QtGui.QMainWindow):
         else:
             self.shapes[-1].geos.append(geo)
             
-    def updateshapewithswivelknife(self, geos):
-        ###########################################################################
-        #  Set these variables for your tool and material
-        #    offset: knife tip distance from tool centerline
-        #    dragDepth: a smaller depth used for retract/swivel move
-        #    dragAngle: if larger than this angle, tool retracts to dragDepth
-        ###########################################################################
-        from math import sin, cos, pi, sqrt
-        from Core.LineGeo import LineGeo
-        from Core.ArcGeo import ArcGeo
-        from Core.Point import Point
-
-        offset = 0.5
-        dragAngle = 20 *pi/180
-        shape = []
-        prvend, prvnorm = Point(0,0),Point(0,0)
-        first = 1
-        startnorm = offset*Point(1,0,0)
-        for geo in geos:
-            if geo.type == 'LineGeo':
-                geo_b = deepcopy(geo)
-                if first:
-                    first = 0
-                    prvend = geo_b.Pa + startnorm
-                    prvnorm = startnorm
-                norm = offset*geo_b.Pa.unit_vector(geo_b.Pe)
-                geo_b.Pa += norm
-                geo_b.Pe += norm
-                if not prvnorm == norm:
-                    swivel = ArcGeo(Pa=prvend, Pe=geo_b.Pa, r=offset, direction=prvnorm.cross_product(norm).z)
-                    swivel.drag = dragAngle < abs(swivel.ext)
-                    shape.append(swivel)
-                shape.append(geo_b)
-                
-                prvend = geo_b.Pe
-                prvnorm = norm
-            elif geo.type == 'ArcGeo':
-                geo_b = deepcopy(geo)
-                if first:
-                    first = 0
-                    prvend = geo_b.Pa + startnorm
-                    prvnorm = startnorm
-                if geo_b.ext > 0.0:
-                    norma = offset*Point(cos(geo_b.s_ang+pi/2), sin(geo_b.s_ang+pi/2))
-                    norme = Point(cos(geo_b.e_ang+pi/2), sin(geo_b.e_ang+pi/2))
-                else:
-                    norma = offset*Point(cos(geo_b.s_ang-pi/2), sin(geo_b.s_ang-pi/2))
-                    norme = Point(cos(geo_b.e_ang-pi/2), sin(geo_b.e_ang-pi/2))
-                geo_b.Pa += norma
-                if norme.x > 0:
-                    geo_b.Pe = Point(geo_b.Pe.x+offset/(sqrt(1+(norme.y/norme.x)**2)),
-                        geo_b.Pe.y+(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
-                elif norme.x ==0:
-                    geo_b.Pe = Point(geo_b.Pe.x,
-                        geo_b.Pe.y)
-                else:
-                    geo_b.Pe = Point(geo_b.Pe.x-offset/(sqrt(1+(norme.y/norme.x)**2)),
-                        geo_b.Pe.y-(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
-                if not prvnorm == norma:
-                    swivel = ArcGeo(Pa=prvend, Pe=geo_b.Pa, r=offset, direction=prvnorm.cross_product(norma).z)
-                    swivel.drag = dragAngle < abs(swivel.ext)
-                    shape.append(swivel)
-                prvend = geo_b.Pe
-                prvnorm = offset*norme
-                if -pi<geo_b.ext<pi:
-                    shape.append(ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=geo_b.ext))
-                else:
-                    geo_b = ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=-geo_b.ext)
-                    geo_b.ext = -geo_b.ext
-                    shape.append(geo_b)
-                
-            else:
-                shape.append(copy(geo))
-        if not prvnorm == startnorm:
-            shape.append(ArcGeo(Pa=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
-        return shape
+ 
         
     def addtoLayerContents(self, shape, lay_nr):
         """

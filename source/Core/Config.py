@@ -42,7 +42,7 @@ from PyQt4 import QtGui, QtCore
 import logging
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "8"
+CONFIG_VERSION = "9"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -88,6 +88,7 @@ CONFIG_SPEC = str('''
     live_update_export_route = boolean(default = False)
     default_SplitEdges = boolean(default = False)
     default_AutomaticCutterCompensation = boolean(default = False)
+    maschine_type = option('milling', 'drag_knife', default = 'milling')
     
     [Route_Optimisation]
     default_TSP = boolean(default = False)

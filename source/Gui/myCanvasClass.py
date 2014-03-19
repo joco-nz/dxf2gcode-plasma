@@ -271,19 +271,23 @@ class MyDropDownMenu(QtGui.QMenu):
         swdirectionAction = self.addAction(self.tr("Switch Direction"))
         SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
         
-        self.addSeparator()
-        submenu1 = QtGui.QMenu(self.tr('Cutter Compensation'), self)
-        self.noCompAction = submenu1.addAction(self.tr("G40 No Compensation"))
-        self.noCompAction.setCheckable(True)
-        self.leCompAction = submenu1.addAction(self.tr("G41 Left Compensation"))
-        self.leCompAction.setCheckable(True)
-        self.reCompAction = submenu1.addAction(self.tr("G42 Right Compensation"))
-        self.reCompAction.setCheckable(True)
         
-        logger.debug(self.tr("The selected shapes have the following direction: %i") % (self.calcMenuDir()))
-        self.checkMenuDir(self.calcMenuDir())
+        if g.config.vars.General['maschine_type'] == 'drag_knife':
+            pass
+        else:
+            self.addSeparator()
+            submenu1 = QtGui.QMenu(self.tr('Cutter Compensation'), self)
+            self.noCompAction = submenu1.addAction(self.tr("G40 No Compensation"))
+            self.noCompAction.setCheckable(True)
+            self.leCompAction = submenu1.addAction(self.tr("G41 Left Compensation"))
+            self.leCompAction.setCheckable(True)
+            self.reCompAction = submenu1.addAction(self.tr("G42 Right Compensation"))
+            self.reCompAction.setCheckable(True)
         
-        self.addMenu(submenu1)
+            logger.debug(self.tr("The selected shapes have the following direction: %i") % (self.calcMenuDir()))
+            self.checkMenuDir(self.calcMenuDir())
+        
+            self.addMenu(submenu1)
         
         invertAction.triggered.connect(self.invertSelection)
         disableAction.triggered.connect(self.disableSelection)
@@ -292,9 +296,12 @@ class MyDropDownMenu(QtGui.QMenu):
         swdirectionAction.triggered.connect(self.switchDirection)
         SetNxtStPAction.triggered.connect(self.setNearestStP)
         
-        self.noCompAction.triggered.connect(self.setNoComp)
-        self.leCompAction.triggered.connect(self.setLeftComp)
-        self.reCompAction.triggered.connect(self.setRightComp)
+        if g.config.vars.General['maschine_type'] == 'drag_knife':
+            pass
+        else:
+            self.noCompAction.triggered.connect(self.setNoComp)
+            self.leCompAction.triggered.connect(self.setLeftComp)
+            self.reCompAction.triggered.connect(self.setRightComp)
         
         self.exec_(self.position)
         
