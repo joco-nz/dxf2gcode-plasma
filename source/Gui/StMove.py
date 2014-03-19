@@ -203,7 +203,7 @@ class StMove(QtGui.QGraphicsLineItem):
                 if not prvnorm == norm:
                     swivel = ArcGeo(Pa=prvend, Pe=geo_b.Pa, r=offset, direction=prvnorm.cross_product(norm).z)
                     swivel.drag = dragAngle < abs(swivel.ext)
-                    shape.append(swivel)
+                    self.geos.append(swivel)
                 self.geos.append(geo_b)
                 
                 prvend = geo_b.Pe
