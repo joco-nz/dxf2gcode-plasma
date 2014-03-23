@@ -105,8 +105,6 @@ class Point:
         This function is used for the export of a point.
         @param parent: The parent of the point is a EntitieContent Class, this
         is used for rotating and scaling purposes
-        @param PostPro: This is the PostProcessor Class which includes all the 
-        export functionality
         @return: The function returns the string which will be added to the 
         string for export.
         """  
@@ -118,13 +116,18 @@ class Point:
         Plots the geometry of self into the defined canvas.
         Arcs will be plotted as line segments.
         @param papath: The painterpath where the geometries shall be added
-        @param parent: FIXME
+        @param parent: The parent of the geometry (EntitieContentClass)
         """
-        logger.debug('Point: x: %0.2f, y: %0.2f' % (self.x, self.y))
-        papath.moveTo(self.x, -self.y)
+        Point = self.rot_sca_abs(parent=parent)
+        logger.debug('Point: x: %0.2f, y: %0.2f' % (Point.x, Point.y))
+        papath.moveTo(Point.x, -Point.y)
     
     def triangle_height(self, other1, other2):
-        """Calculate height of triangle given lengths of the sides"""
+        """
+        Calculate height of triangle given lengths of the sides
+        @param other1: Point 1 for triangle
+        @param other2: Point 2 for triangel
+        """
         #The 3 lengths of the triangle to calculate
         a = self.distance(other1)
         b = other1.distance(other2)
@@ -132,7 +135,16 @@ class Point:
         return sqrt(pow(b, 2) - pow((pow(c, 2) + pow(b, 2) - pow(a, 2)) / (2 * c), 2))
       
     def rot_sca_abs(self, sca=None, p0=None, pb=None, rot=None, parent=None):
-        """NEEDS DOCUMENTED"""
+        """
+        Generates the absolute geometry based on the geometry self and the
+        parent. If reverse = 1 is given the geometry may be reversed.
+        @param sca: The Scale
+        @param p0: The Offset
+        @param pb: The Base Point
+        @param rot: The angle by which the contur is rotated around p0
+        @param parent: The parent of the geometry (EntitieContentClass)
+        @return: A new Point which is absolute position
+        """
         if type(sca) == type(None) and type(parent) != type(None):
             p0 = parent.p0
             pb = parent.pb
@@ -144,8 +156,7 @@ class Point:
             roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
             p1 = Point(x=rotx, y=roty) + p0
             
-            #Rekursive Schleife falls selbst eingefügt
-            #Recursive loop if gt introduced
+            #Recursive loop if the point self is  introduced
             if type(parent.parent) != type(None):
                 p1 = p1.rot_sca_abs(parent=parent.parent)
             

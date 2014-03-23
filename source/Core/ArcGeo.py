@@ -79,7 +79,15 @@ class ArcGeo(QtCore.QObject):
                 arc = self.Pe.norm_angle(Pa) - pi / 2
                 Ve = Pe - Pa
                 m = (sqrt(pow(Ve.x, 2) + pow(Ve.y, 2))) / 2
-                lo = sqrt(pow(r, 2) - pow(m, 2))
+                
+                if DEBUG:
+                    logger.debug('lo: %s; m: %s' %(r,m))
+                    
+                if abs(r-m)<0.0001:
+                    lo = 0.0;
+                else:        
+                    lo = sqrt(pow(r, 2) - pow(m, 2))
+                
                 if direction < 0:
                     d = -1
                 else:

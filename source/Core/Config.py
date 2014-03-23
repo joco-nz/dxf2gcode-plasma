@@ -90,6 +90,11 @@ CONFIG_SPEC = str('''
     default_AutomaticCutterCompensation = boolean(default = False)
     maschine_type = option('milling', 'drag_knife', default = 'milling')
     
+    [Drag_Knife_Options]
+    # dragDepth is not used by now as well as dragAngle. May be done later.
+    dragAngle = float(default = 20)
+    dragDepth = float(default = 0.0)
+    
     [Route_Optimisation]
     default_TSP = boolean(default = False)
     

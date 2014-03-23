@@ -27,6 +27,8 @@ import Core.Globals as g
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
 from Core.Point import Point
+from Core.EntitieContent import EntitieContentClass
+
 from Gui.Arrow import Arrow
 
 from math import sin, cos, pi, sqrt
@@ -102,6 +104,18 @@ class StMove(QtGui.QGraphicsLineItem):
             self.make_swivelknife_move()
             return
         
+        #BaseEntitie created to add the StartMoves etc. This Entitie must not
+        #be offset or rotated etc.
+        BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
+                                          parent=None,
+                                          children=[],
+                                          p0=Point(x=0.0, y=0.0),
+                                          pb=Point(x=0.0, y=0.0),
+                                          sca=[1, 1, 1],
+                                          rot=0.0)
+        
+        self.parent = BaseEntitie
+        
 
         #Get the start rad. and the length of the line segment at begin. 
         start_rad = self.shape.LayerContent.start_radius
@@ -164,31 +178,25 @@ class StMove(QtGui.QGraphicsLineItem):
     
     def make_swivelknife_move(self):
         """
-        This method returns the string to be exported for this shape, including
-        the defined start and end move of the shape.
-        @param LayerContent: This parameter includes the parent LayerContent 
-        which includes tool and additional cutting parameters.
-        @param PostPro: this is the Postprocessor class including the methods
-        to export        
+        Set these variables for your tool and material
+        @param offset: knife tip distance from tool centerline. The radius of the
+        tool is used for this.
         """
         
-        ###########################################################################
-        #  Set these variables for your tool and material
-        #    offset: knife tip distance from tool centerline
-        #    dragDepth: a smaller depth used for retract/swivel move
-        #    dragAngle: if larger than this angle, tool retracts to dragDepth
-        ###########################################################################
 
 
-        offset = 0.5
-        dragAngle = 20 *pi/180
-        shape = []
+        offset =self.shape.LayerContent.tool_diameter/2
+        dragAngle = self.shape.dragAngle
+
+        startnorm = offset*Point(1,0,0)
         prvend, prvnorm = Point(0,0),Point(0,0)
         first = 1
-        startnorm = offset*Point(1,0,0)
+
         
-        start = self.startp     
-        self.geos.append(start)
+        #start = self.startp     
+
+        #Use The same parent as for the shape
+        self.parent=self.shape.parent
         
         for geo in self.shape.geos:
             if geo.type == 'LineGeo':
@@ -247,6 +255,8 @@ class StMove(QtGui.QGraphicsLineItem):
                 self.geos.append(copy(geo))
         if not prvnorm == startnorm:
             self.geos.append(ArcGeo(Pa=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
+            
+        self.geos.insert(0,self.geos[0].Pa)
    
     def updateCutCor(self, cutcor):
         """
