@@ -753,6 +753,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         at once for now.
         """
         mom_depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
+        drag_depth = LayerContent.axis3_slice_depth if self.axis3_slice_depth is None else self.axis3_slice_depth
 
 
         #Move the tool to the start.          
@@ -765,11 +766,42 @@ class ShapeClass(QtGui.QGraphicsItem):
         #Move into workpiece and start cutting into Z
         exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin)) #Compute the safe margin from the initial mill depth
         exstr += PostPro.chg_feed_rate(f_g1_depth)
-        exstr += PostPro.lin_pol_z(mom_depth)
-        exstr += PostPro.chg_feed_rate(f_g1_plane)
 
         #Write the geometries for the first cut
-        for geo in self.stmove.geos:
+        drag = False
+        if self.stmove.geos[1].type == "ArcGeo":
+            if self.stmove.geos[1].drag:
+                exstr += PostPro.lin_pol_z(drag_depth)
+                drag = True
+            else:
+                exstr += PostPro.lin_pol_z(mom_depth)
+                drag = False
+        else:
+            exstr += PostPro.lin_pol_z(mom_depth)
+            drag = False
+        exstr += PostPro.chg_feed_rate(f_g1_plane)
+        
+        exstr += self.stmove.geos[1].Write_GCode(parent = self.stmove.parent, 
+                                 PostPro = PostPro)
+                                 
+        for geo in self.stmove.geos[2:]:
+            if geo.type == "ArcGeo":
+                if geo.drag:
+                    exstr += PostPro.chg_feed_rate(f_g1_depth)
+                    exstr += PostPro.lin_pol_z(drag_depth)
+                    exstr += PostPro.chg_feed_rate(f_g1_plane)
+                    drag = True
+                elif drag:
+                    exstr += PostPro.chg_feed_rate(f_g1_depth)
+                    exstr += PostPro.lin_pol_z(mom_depth)
+                    exstr += PostPro.chg_feed_rate(f_g1_plane)
+                    drag = False
+            elif drag:
+                exstr += PostPro.chg_feed_rate(f_g1_depth)
+                exstr += PostPro.lin_pol_z(mom_depth)
+                exstr += PostPro.chg_feed_rate(f_g1_plane)
+                drag = False
+                
             exstr += geo.Write_GCode(parent = self.stmove.parent, 
                                      PostPro = PostPro)
 

@@ -108,6 +108,8 @@ class Main(QtGui.QMainWindow):
         if g.config.vars.General['default_AutomaticCutterCompensation']:
             self.ui.actionAutomatic_Cutter_Compensation.setChecked(True)
             
+        if g.config.vars.General['maschine_type'] == 'drag_knife':        
+            self.ui.label_9.setText(self.tr("Z Drag depth"))
             
         self.readSettings()            
         

@@ -369,8 +369,10 @@ class MyPostProcessor(QtCore.QObject):
         @param feed: New feedrate
         @return: Returns the string which shall be added.
         """
-        self.feed = feed
-        return self.make_print_str(self.vars.Program["feed_change"]) 
+        if self.feed != feed:
+            self.feed = feed
+            return self.make_print_str(self.vars.Program["feed_change"])
+        return ""
         
     def set_cut_cor(self, cut_cor, Pe):
         """
