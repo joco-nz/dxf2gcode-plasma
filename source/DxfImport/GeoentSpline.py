@@ -27,6 +27,9 @@ from DxfImport.SplineConvert import Spline2Arcs
 from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
 
+import logging
+logger = logging.getLogger("DxfImport.GeoentSpline")
+
 class GeoentSpline:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Spline'
@@ -127,6 +130,8 @@ class GeoentSpline:
             self.reverse()
         
         #Find the smallest starting point from bottom left X (Must be new loop!)
+        #logger.debug(self.geo)
+        
         min_distance = self.geo[0].Pa.distance(Popt)
         min_geo_nr = 0
         for geo_nr in range(1, len(self.geo)):

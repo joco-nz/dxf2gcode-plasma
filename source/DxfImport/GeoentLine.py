@@ -28,7 +28,7 @@ from DxfImport.Classes import PointsClass
 from Core.LineGeo import  LineGeo 
 
 import logging
-logger = logging.getLogger("DXFImport.GeoentCircle") 
+logger = logging.getLogger("DXFImport.GeoentLine") 
 
 class GeoentLine:
     def __init__(self, Nr=0, caller=None):
@@ -80,7 +80,8 @@ class GeoentLine:
         
     def Read(self, caller):
         """
-        Read()
+        This function does read the geometry.
+        @param caller: The instance which is calling the function
         """
         #Assign short name
         lp = caller.line_pairs
@@ -91,15 +92,16 @@ class GeoentLine:
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
         
         #X Value
-        s = lp.index_code(10, s + 1)
-        x0 = float(lp.line_pair[s].value)
+        sl = lp.index_code(10, s + 1)
+        x0 = float(lp.line_pair[sl].value)
         
         #Y Value
-        s = lp.index_code(20, s + 1)
+        s = lp.index_code(20, sl + 1)
         y0 = float(lp.line_pair[s].value)
         
+               
         #X Value 2
-        s = lp.index_code(11, s + 1)
+        s = lp.index_code(11, sl + 1)
         x1 = float(lp.line_pair[s].value)
         
         #Y Value 2
