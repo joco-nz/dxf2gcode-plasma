@@ -103,15 +103,14 @@ class Main(QtGui.QMainWindow):
             self.ui.actionLive_update_export_route.setChecked(True)
         
         if g.config.vars.General['default_SplitEdges']:
-            self.ui.actionSplit_edges.setChecked(True)
+            self.ui.actionSplit_Edges.setChecked(True)
             
         if g.config.vars.General['default_AutomaticCutterCompensation']:
             self.ui.actionAutomatic_Cutter_Compensation.setChecked(True)
             
-        if g.config.vars.General['maschine_type'] == 'drag_knife':        
-            self.ui.label_9.setText(self.tr("Z Drag depth"))
+        self.updateMachineType()
             
-        self.readSettings()            
+        self.readSettings()
         
         g.config.metric = 1 # default drawing units: millimeters
         
@@ -149,10 +148,13 @@ class Main(QtGui.QMainWindow):
         self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
         
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
-        self.ui.actionSplit_edges.triggered.connect(self.setSplit_edges)
         self.ui.actionRotate_all.triggered.connect(self.CallRotateAll)
         self.ui.actionScale_all.triggered.connect(self.CallScaleAll)
         self.ui.actionMove_WP_zero.triggered.connect(self.CallMoveWpZero)
+        self.ui.actionSplit_Edges.triggered.connect(self.reloadFile)
+        self.ui.actionAutomatic_Cutter_Compensation.triggered.connect(self.reloadFile)
+        self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
+        self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
         
         self.ui.actionAbout.triggered.connect(self.about)
 
@@ -555,13 +557,6 @@ class Main(QtGui.QMainWindow):
         self.reloadFile()
         #self.MyGraphicsView.update()
         
-    def setSplit_edges(self):
-        """
-        This function is called by the menu "Split edges" of the main 
-        """
-        self.reloadFile()
-        #self.MyGraphicsView.update()
-        
     def CallScaleAll(self):
         """
         This function is called when the Option=>Scale All Menu is clicked.
@@ -633,6 +628,33 @@ class Main(QtGui.QMainWindow):
         self.reloadFile()
         #self.MyGraphicsView.update()
         
+    def setMachineTypeToMilling(self):
+        """
+        This function is called by the menu when Machine Type -> Milling is clicked.
+        """
+        g.config.machine_type = 'milling'
+        self.updateMachineType()
+        self.reloadFile()
+        
+    def setMachineTypeToDragKnife(self):
+        """
+        This function is called by the menu when Machine Type -> Drag Knife is clicked.
+        """
+        g.config.machine_type = 'drag_knife'
+        self.updateMachineType()
+        self.reloadFile()
+        
+    def updateMachineType(self):
+        if g.config.machine_type == 'milling':
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(True)
+            self.ui.actionMilling.setChecked(True)
+            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.label_9.setText(self.tr("Z Infeed depth"))
+        else:
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionMilling.setChecked(False)
+            self.ui.actionDrag_Knife.setChecked(True)
+            self.ui.label_9.setText(self.tr("Z Drag depth"))
     
     def loadFile(self, filename):
         """
@@ -870,7 +892,7 @@ class Main(QtGui.QMainWindow):
         """
         Documentation required
         """
-        if self.ui.actionSplit_edges.isChecked() == True:
+        if self.ui.actionSplit_Edges.isChecked() == True:
             if geo.type == 'LineGeo':
                 diff = (geo.Pe - geo.Pa) / 2.0
                 geo_b = deepcopy(geo)
@@ -916,7 +938,7 @@ class Main(QtGui.QMainWindow):
         
 
     def automaticCutterCompensation(self):
-        if self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
+        if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() == self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
             for layerContent in self.LayerContents:
                 if layerContent.automaticCutterCompensationEnabled():
                     newShapes = [];

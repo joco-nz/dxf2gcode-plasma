@@ -42,7 +42,7 @@ from PyQt4 import QtGui, QtCore
 import logging
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "9"
+CONFIG_VERSION = "9.1"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -88,12 +88,10 @@ CONFIG_SPEC = str('''
     live_update_export_route = boolean(default = False)
     default_SplitEdges = boolean(default = False)
     default_AutomaticCutterCompensation = boolean(default = False)
-    maschine_type = option('milling', 'drag_knife', default = 'milling')
+    machine_type = option('milling', 'drag_knife', default = 'milling')
     
     [Drag_Knife_Options]
-    # dragDepth is not used by now as well as dragAngle. May be done later.
     dragAngle = float(default = 20)
-    dragDepth = float(default = 0.0)
     
     [Route_Optimisation]
     default_TSP = boolean(default = False)
@@ -206,6 +204,7 @@ class MyConfig(QtCore.QObject):
         #try:
         self.load_config()
         
+        self.machine_type = self.vars.General['machine_type']
         self.fitting_tolerance = self.vars.Import_Parameters['fitting_tolerance']
         self.point_tolerance = self.vars.Import_Parameters['point_tolerance']
         

@@ -88,9 +88,9 @@ class GeoentPoint:
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
 
-        P = Point(x0, y0)
+        Pa = Point(x0, y0)
 
-        self.geo.append(HoleGeo(P=P))
+        self.geo.append(HoleGeo(Pa))
         #self.geo.append(LineGeo(Pa=Point(0,0), Pe=P))
 
         #Neuen Startwert für die nächste Geometrie zurückgeben

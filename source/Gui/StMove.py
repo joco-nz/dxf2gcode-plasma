@@ -100,7 +100,7 @@ class StMove(QtGui.QGraphicsLineItem):
         del(self.geos[:])
 
 
-        if g.config.vars.General['maschine_type'] == 'drag_knife':
+        if g.config.machine_type == 'drag_knife':
             self.make_swivelknife_move()
             return
         
@@ -250,9 +250,8 @@ class StMove(QtGui.QGraphicsLineItem):
                     geo_b = ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=-geo_b.ext)
                     geo_b.ext = -geo_b.ext
                     self.geos.append(geo_b)
-                
-            else:
-                self.geos.append(copy(geo))
+            #else:
+            #    self.geos.append(copy(geo))
         if not prvnorm == startnorm:
             self.geos.append(ArcGeo(Pa=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
             

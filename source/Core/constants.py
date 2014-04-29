@@ -28,6 +28,7 @@ see http://code.activestate.com/recipes/65207/ for module const
 @author: Christian Kohlöffel
 @since:  21.12.2010
 @license: GPL
+
 '''
 
 import logging

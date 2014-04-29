@@ -272,7 +272,7 @@ class MyDropDownMenu(QtGui.QMenu):
         SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
         
         
-        if g.config.vars.General['maschine_type'] == 'drag_knife':
+        if g.config.machine_type == 'drag_knife':
             pass
         else:
             self.addSeparator()
@@ -296,7 +296,7 @@ class MyDropDownMenu(QtGui.QMenu):
         swdirectionAction.triggered.connect(self.switchDirection)
         SetNxtStPAction.triggered.connect(self.setNearestStP)
         
-        if g.config.vars.General['maschine_type'] == 'drag_knife':
+        if g.config.machine_type == 'drag_knife':
             pass
         else:
             self.noCompAction.triggered.connect(self.setNoComp)

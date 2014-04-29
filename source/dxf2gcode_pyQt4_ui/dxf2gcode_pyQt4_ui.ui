@@ -828,7 +828,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>20</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -872,16 +872,23 @@
     <property name="title">
      <string>Options</string>
     </property>
+    <widget class="QMenu" name="menuMachine_Type">
+     <property name="title">
+      <string>Machine Type</string>
+     </property>
+     <addaction name="actionMilling"/>
+     <addaction name="actionDrag_Knife"/>
+    </widget>
     <addaction name="actionTolerances"/>
-    <addaction name="separator"/>
-    <addaction name="actionSplit_edges"/>
     <addaction name="separator"/>
     <addaction name="actionScale_all"/>
     <addaction name="actionRotate_all"/>
     <addaction name="separator"/>
     <addaction name="actionMove_WP_zero"/>
     <addaction name="separator"/>
+    <addaction name="actionSplit_Edges"/>
     <addaction name="actionAutomatic_Cutter_Compensation"/>
+    <addaction name="menuMachine_Type"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -1063,12 +1070,12 @@
     <string>Ctrl+R</string>
    </property>
   </action>
-  <action name="actionSplit_edges">
+  <action name="actionSplit_Edges">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Split edges</string>
+    <string>Split Edges</string>
    </property>
    <property name="statusTip">
     <string>Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC</string>
@@ -1078,8 +1085,27 @@
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Automatic Cutter Compensation</string>
+   </property>
+  </action>
+  <action name="actionMilling">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Milling</string>
+   </property>
+  </action>
+  <action name="actionDrag_Knife">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Drag Knife</string>
    </property>
   </action>
  </widget>

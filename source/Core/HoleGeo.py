@@ -29,20 +29,20 @@ class HoleGeo(QtCore.QObject):
     """
     HoleGeo represents drilling holes.
     """ 
-    def __init__(self, P):
+    def __init__(self, Pa):
         """
         Standard Method to initialise the HoleGeo
         """
         QtCore.QObject.__init__(self)
         self.type = "HoleGeo"
-        self.P = P
+        self.Pa = Pa
 
     def __str__(self):
         """ 
         Standard method to print the object
         @return: A string
         """ 
-        return "\nHoleGeo at (%s) " % (self.P)        
+        return "\nHoleGeo at (%s) " % (self.Pa)        
 
     def reverse(self):
         """ 
@@ -73,7 +73,7 @@ class HoleGeo(QtCore.QObject):
         radius = 2
         if layerContent is not None:
             radius = layerContent.getToolRadius()
-        papath.addRoundedRect(abs_geo.P.x - radius, -abs_geo.P.y - radius, 2*radius, 2*radius, radius, radius)
+        papath.addRoundedRect(abs_geo.Pa.x - radius, -abs_geo.Pa.y - radius, 2*radius, 2*radius, radius, radius)
         
     def make_abs_geo(self, parent=None, reverse=0):
         """
@@ -84,8 +84,8 @@ class HoleGeo(QtCore.QObject):
         @return: A new LineGeoClass will be returned.
         """ 
         
-        P = self.P.rot_sca_abs(parent=parent)
-        abs_geo = HoleGeo(P)
+        Pa = self.Pa.rot_sca_abs(parent=parent)
+        abs_geo = HoleGeo(Pa)
         return abs_geo
         
     def get_start_end_points(self, direction, parent=None):
@@ -94,7 +94,7 @@ class HoleGeo(QtCore.QObject):
         @param direction: 0 to return start Point and 1 to return end Point
         @return: a list of Point and angle 
         """
-        return self.P.rot_sca_abs(parent=parent), 0
+        return self.Pa.rot_sca_abs(parent=parent), 0
         
 
     def Write_GCode(self, parent=None, PostPro=None):

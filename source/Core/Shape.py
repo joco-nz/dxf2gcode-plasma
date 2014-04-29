@@ -108,7 +108,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         working up to now.
         """
         self.dragAngle = g.config.vars.Drag_Knife_Options['dragAngle'] *pi/180
-        self.dragDepth =  g.config.vars.Drag_Knife_Options['dragDepth']
+        #self.dragDepth = axis3_slice_depth #g.config.vars.Drag_Knife_Options['dragDepth']
         
 
     def contains_point(self, x, y):
@@ -565,7 +565,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         to export        
         """
         
-        if g.config.vars.General['maschine_type'] == 'drag_knife':
+        if g.config.machine_type == 'drag_knife':
             return self.Write_GCode_Drag_Knife(LayerContent=LayerContent, 
                                                PostPro=PostPro)
         
@@ -732,7 +732,8 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param PostPro: this is the Postprocessor class including the methods
         to export        
         """
-        
+        if self.stmove.shape.geos[0].type == 'HoleGeo':
+            return ""
         #initialisation of the string
         exstr = "" 
         
