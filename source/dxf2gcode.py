@@ -1,16 +1,28 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""
-The main
-@newfield purpose: Purpose
-
-@purpose:  program arguments & options handling, read the config file
-@author: Christian Kohlöffel 
-@since:  21.12.2010
-@license: GPL
-"""
-
+############################################################################
+#   
+#   Copyright (C) 2010-2014
+#    Christian Kohlöffel
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 # Import Qt modules
 
@@ -489,7 +501,7 @@ class Main(QtGui.QMainWindow):
                 "<a href='http://code.google.com/p/dxf2gcode/issues/list'>issue tracking system</a><br>"\
                 "<h2>License and copyright:</h2>"\
                 "<body>This program is written in Python and is published under the "\
-                "<a href='http://www.gnu.org/licenses/gpl.html'>GNU GPL 3 license.</a><br>"\
+                "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"\
                 "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
         
         myAboutDialog(title = "About DXF2GCODE", message = message)
@@ -883,8 +895,6 @@ class Main(QtGui.QMainWindow):
                 self.shapes[-1].setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
                 self.shapes[-1].setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
                 
-                #self.shapes[-1].geos = self.updateshapewithswivelknife(self.shapes[-1].geos) # replace shape with a shape for a swivel knife tool
-                
                 self.addtoLayerContents(self.shapes[-1], ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])
 
@@ -906,8 +916,6 @@ class Main(QtGui.QMainWindow):
         else:
             self.shapes[-1].geos.append(geo)
             
- 
-        
     def addtoLayerContents(self, shape, lay_nr):
         """
         Instance is called while the shapes are created. This gives the 
