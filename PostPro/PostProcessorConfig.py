@@ -1,15 +1,28 @@
 # -*- coding: utf-8 -*-
 
-"""
-@newfield purpose: Purpose
-@newfield sideeffect: Side effect, Side effects
-
-@purpose:  TBD
-
-@author: Christian Kohl�ffel
-@since:  26.12.2009
-@license: GPL
-"""
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 import os
 

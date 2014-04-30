@@ -1,32 +1,42 @@
 #!/usr/bin/python
 # -*- coding: ISO-8859-1 -*-
-#
-#dxf2gcode_b02_point
-#Programmers:   Christian Kohlöffel
-#               Vinzenz Schulz
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 from math import pi
 
 import Core.Globals as g
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
+from Core.Point import Point
+from Core.EntitieContent import EntitieContentClass
+
 from Gui.Arrow import Arrow
+
+from math import sin, cos, pi, sqrt
+from copy import copy, deepcopy
 
 import logging
 logger = logging.getLogger('Gui.StMove')
@@ -93,6 +103,24 @@ class StMove(QtGui.QGraphicsLineItem):
         """
         del(self.geos[:])
 
+
+        if g.config.machine_type == 'drag_knife':
+            self.make_swivelknife_move()
+            return
+        
+        #BaseEntitie created to add the StartMoves etc. This Entitie must not
+        #be offset or rotated etc.
+        BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
+                                          parent=None,
+                                          children=[],
+                                          p0=Point(x=0.0, y=0.0),
+                                          pb=Point(x=0.0, y=0.0),
+                                          sca=[1, 1, 1],
+                                          rot=0.0)
+        
+        self.parent = BaseEntitie
+        
+
         #Get the start rad. and the length of the line segment at begin. 
         start_rad = self.shape.LayerContent.start_radius
         start_ver = start_rad
@@ -151,7 +179,88 @@ class StMove(QtGui.QGraphicsLineItem):
                                r=start_rad + tool_rad, direction=0)
             self.geos.append(start_rad)
             
+    
+    def make_swivelknife_move(self):
+        """
+        Set these variables for your tool and material
+        @param offset: knife tip distance from tool centerline. The radius of the
+        tool is used for this.
+        """
+        
+
+
+        offset =self.shape.LayerContent.tool_diameter/2
+        dragAngle = self.shape.dragAngle
+
+        startnorm = offset*Point(1,0,0)
+        prvend, prvnorm = Point(0,0),Point(0,0)
+        first = 1
+
+        
+        #start = self.startp     
+
+        #Use The same parent as for the shape
+        self.parent=self.shape.parent
+        
+        for geo in self.shape.geos:
+            if geo.type == 'LineGeo':
+                geo_b = deepcopy(geo)
+                if first:
+                    first = 0
+                    prvend = geo_b.Pa + startnorm
+                    prvnorm = startnorm
+                norm = offset*geo_b.Pa.unit_vector(geo_b.Pe)
+                geo_b.Pa += norm
+                geo_b.Pe += norm
+                if not prvnorm == norm:
+                    swivel = ArcGeo(Pa=prvend, Pe=geo_b.Pa, r=offset, direction=prvnorm.cross_product(norm).z)
+                    swivel.drag = dragAngle < abs(swivel.ext)
+                    self.geos.append(swivel)
+                self.geos.append(geo_b)
+                
+                prvend = geo_b.Pe
+                prvnorm = norm
+            elif geo.type == 'ArcGeo':
+                geo_b = deepcopy(geo)
+                if first:
+                    first = 0
+                    prvend = geo_b.Pa + startnorm
+                    prvnorm = startnorm
+                if geo_b.ext > 0.0:
+                    norma = offset*Point(cos(geo_b.s_ang+pi/2), sin(geo_b.s_ang+pi/2))
+                    norme = Point(cos(geo_b.e_ang+pi/2), sin(geo_b.e_ang+pi/2))
+                else:
+                    norma = offset*Point(cos(geo_b.s_ang-pi/2), sin(geo_b.s_ang-pi/2))
+                    norme = Point(cos(geo_b.e_ang-pi/2), sin(geo_b.e_ang-pi/2))
+                geo_b.Pa += norma
+                if norme.x > 0:
+                    geo_b.Pe = Point(geo_b.Pe.x+offset/(sqrt(1+(norme.y/norme.x)**2)),
+                        geo_b.Pe.y+(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
+                elif norme.x ==0:
+                    geo_b.Pe = Point(geo_b.Pe.x,
+                        geo_b.Pe.y)
+                else:
+                    geo_b.Pe = Point(geo_b.Pe.x-offset/(sqrt(1+(norme.y/norme.x)**2)),
+                        geo_b.Pe.y-(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
+                if not prvnorm == norma:
+                    swivel = ArcGeo(Pa=prvend, Pe=geo_b.Pa, r=offset, direction=prvnorm.cross_product(norma).z)
+                    swivel.drag = dragAngle < abs(swivel.ext)
+                    self.geos.append(swivel)
+                prvend = geo_b.Pe
+                prvnorm = offset*norme
+                if -pi<geo_b.ext<pi:
+                    self.geos.append(ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=geo_b.ext))
+                else:
+                    geo_b = ArcGeo(Pa=geo_b.Pa, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=-geo_b.ext)
+                    geo_b.ext = -geo_b.ext
+                    self.geos.append(geo_b)
+            #else:
+            #    self.geos.append(copy(geo))
+        if not prvnorm == startnorm:
+            self.geos.append(ArcGeo(Pa=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
             
+        self.geos.insert(0,self.geos[0].Pa)
+   
     def updateCutCor(self, cutcor):
         """
         This function is called to update the Cutter Correction, and therefore 
@@ -235,7 +344,7 @@ class StMove(QtGui.QGraphicsLineItem):
         self.path = QtGui.QPainterPath()
         
         for geo in self.geos:
-            geo.add2path(papath=self.path, parent=self.parent)
+            geo.add2path(papath=self.path, parent=self.parent, layerContent=None)
         self.show()
 
     def setSelected(self, flag=True):

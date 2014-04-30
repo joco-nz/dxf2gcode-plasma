@@ -1,28 +1,28 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
-#
-#dxf2gcode_b02_dxf_import
-#Programmer: Christian Kohloeffel
-#E-mail:     n/A
-#
-#Copyright 2008 Christian Kohloeffel
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 import Core.Globals as g
 
@@ -37,6 +37,7 @@ from DxfImport.GeoentPolyline import GeoentPolyline
 from DxfImport.GeoentSpline import GeoentSpline
 from DxfImport.GeoentEllipse import GeoentEllipse
 from DxfImport.GeoentLwpolyline import GeoentLwPolyline
+from DxfImport.GeoentPoint import GeoentPoint
 
 #from tkMessageBox import showwarning
 from PyQt4 import QtGui, QtCore
@@ -292,8 +293,6 @@ class ReadDXF(QtCore.QThread):
         
         return blocks
     
-    #Lesen der Blocks Geometrien
-    #Read the block geometries
     def Read_Blocks(self, blocks_pos):
         """
         Read_Blocks() - Read the block geometries
@@ -422,6 +421,8 @@ class ReadDXF(QtCore.QThread):
             geo = GeoentEllipse(geo_nr, self)
         elif (name == "LWPOLYLINE"):
             geo = GeoentLwPolyline(geo_nr, self)
+        elif (name == "POINT"):
+            geo = GeoentPoint(geo_nr, self)
         else: 
             logger.info(("Found unsupported geometry type: %s !" % name))
             self.start += 1 #Eins hochzï¿½hlen sonst gibts ne dauer Schleife

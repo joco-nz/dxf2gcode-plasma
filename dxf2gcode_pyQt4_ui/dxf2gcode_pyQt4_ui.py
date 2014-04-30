@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Tue Jan 28 18:22:49 2014
-#      by: PyQt4 UI code generator 4.10.1
+# Created: Tue Apr 29 21:21:40 2014
+#      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -446,7 +446,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.addWidget(self.myMessageBox)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtGui.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 20))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
         self.menubar.setObjectName(_fromUtf8("menubar"))
         self.menuFile = QtGui.QMenu(self.menubar)
         self.menuFile.setObjectName(_fromUtf8("menuFile"))
@@ -457,6 +457,8 @@ class Ui_MainWindow(object):
         self.menuView.setObjectName(_fromUtf8("menuView"))
         self.menuTolerances = QtGui.QMenu(self.menubar)
         self.menuTolerances.setObjectName(_fromUtf8("menuTolerances"))
+        self.menuMachine_Type = QtGui.QMenu(self.menuTolerances)
+        self.menuMachine_Type.setObjectName(_fromUtf8("menuMachine_Type"))
         self.menuHelp = QtGui.QMenu(self.menubar)
         self.menuHelp.setObjectName(_fromUtf8("menuHelp"))
         MainWindow.setMenuBar(self.menubar)
@@ -516,12 +518,19 @@ class Ui_MainWindow(object):
         self.actionLive_update_export_route.setObjectName(_fromUtf8("actionLive_update_export_route"))
         self.actionReload_File = QtGui.QAction(MainWindow)
         self.actionReload_File.setObjectName(_fromUtf8("actionReload_File"))
-        self.actionSplit_edges = QtGui.QAction(MainWindow)
-        self.actionSplit_edges.setCheckable(True)
-        self.actionSplit_edges.setObjectName(_fromUtf8("actionSplit_edges"))
+        self.actionSplit_Edges = QtGui.QAction(MainWindow)
+        self.actionSplit_Edges.setCheckable(True)
+        self.actionSplit_Edges.setObjectName(_fromUtf8("actionSplit_Edges"))
         self.actionAutomatic_Cutter_Compensation = QtGui.QAction(MainWindow)
         self.actionAutomatic_Cutter_Compensation.setCheckable(True)
+        self.actionAutomatic_Cutter_Compensation.setEnabled(False)
         self.actionAutomatic_Cutter_Compensation.setObjectName(_fromUtf8("actionAutomatic_Cutter_Compensation"))
+        self.actionMilling = QtGui.QAction(MainWindow)
+        self.actionMilling.setCheckable(True)
+        self.actionMilling.setObjectName(_fromUtf8("actionMilling"))
+        self.actionDrag_Knife = QtGui.QAction(MainWindow)
+        self.actionDrag_Knife.setCheckable(True)
+        self.actionDrag_Knife.setObjectName(_fromUtf8("actionDrag_Knife"))
         self.menuFile.addAction(self.actionLoad_File)
         self.menuFile.addAction(self.actionReload_File)
         self.menuFile.addSeparator()
@@ -538,16 +547,18 @@ class Ui_MainWindow(object):
         self.menuView.addAction(self.actionAutoscale)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionDelete_G0_paths)
+        self.menuMachine_Type.addAction(self.actionMilling)
+        self.menuMachine_Type.addAction(self.actionDrag_Knife)
         self.menuTolerances.addAction(self.actionTolerances)
-        self.menuTolerances.addSeparator()
-        self.menuTolerances.addAction(self.actionSplit_edges)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionScale_all)
         self.menuTolerances.addAction(self.actionRotate_all)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionMove_WP_zero)
         self.menuTolerances.addSeparator()
+        self.menuTolerances.addAction(self.actionSplit_Edges)
         self.menuTolerances.addAction(self.actionAutomatic_Cutter_Compensation)
+        self.menuTolerances.addAction(self.menuMachine_Type.menuAction())
         self.menuHelp.addAction(self.actionAbout)
         self.menubar.addAction(self.menuFile.menuAction())
         self.menubar.addAction(self.menuExport.menuAction())
@@ -603,6 +614,7 @@ class Ui_MainWindow(object):
         self.menuExport.setTitle(_translate("MainWindow", "Export", None))
         self.menuView.setTitle(_translate("MainWindow", "View", None))
         self.menuTolerances.setTitle(_translate("MainWindow", "Options", None))
+        self.menuMachine_Type.setTitle(_translate("MainWindow", "Machine Type", None))
         self.menuHelp.setTitle(_translate("MainWindow", "Help", None))
         self.actionLoad_File.setText(_translate("MainWindow", "Load File", None))
         self.actionLoad_File.setStatusTip(_translate("MainWindow", "Load DXF or other supportet document", None))
@@ -631,9 +643,11 @@ class Ui_MainWindow(object):
         self.actionLive_update_export_route.setText(_translate("MainWindow", "Live update export route", None))
         self.actionReload_File.setText(_translate("MainWindow", "Reload File", None))
         self.actionReload_File.setShortcut(_translate("MainWindow", "Ctrl+R", None))
-        self.actionSplit_edges.setText(_translate("MainWindow", "Split edges", None))
-        self.actionSplit_edges.setStatusTip(_translate("MainWindow", "Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC", None))
+        self.actionSplit_Edges.setText(_translate("MainWindow", "Split Edges", None))
+        self.actionSplit_Edges.setStatusTip(_translate("MainWindow", "Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC", None))
         self.actionAutomatic_Cutter_Compensation.setText(_translate("MainWindow", "Automatic Cutter Compensation", None))
+        self.actionMilling.setText(_translate("MainWindow", "Milling", None))
+        self.actionDrag_Knife.setText(_translate("MainWindow", "Drag Knife", None))
 
 from Gui.myCanvasClass import MyGraphicsView
 from Gui.myTreeView import MyTreeView

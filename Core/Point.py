@@ -1,28 +1,32 @@
 #!/usr/bin/python
 # -*- coding: ISO-8859-1 -*-
-#
-#dxf2gcode_b02_point
-#Programmers:   Christian Kohlöffel
-#               Vinzenz Schulz
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 #from Canvas import Oval, Arc, Line
+from __future__ import division
 from math import sqrt, sin, cos, atan2, pi
 import Core.Globals as g
 
@@ -30,16 +34,17 @@ import logging
 logger = logging.getLogger("Core.Point") 
 
 class Point:
-    __slots__ = ["x", "y"]  
-    def __init__(self, x=0, y=0):
+    __slots__ = ["x", "y", "z"]  
+    def __init__(self, x=0, y=0, z=0):
         
         self.x = x
         self.y = y
+        self.z = z
     def __str__(self):
         return ('X ->%6.3f  Y ->%6.3f' % (self.x, self.y))
         #return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
-    def __cmp__(self, other) : 
-        return (self.x == other.x) and (self.y == other.y)
+    def __eq__(self, other):
+        return (-1e-12 < self.x - other.x < 1e-12) and (-1e-12 < self.y - other.y < 1e-12)
     def __neg__(self):
         return -1.0 * self
     def __add__(self, other): # add to another Point
@@ -55,6 +60,11 @@ class Point:
         else:
             #Calculate Scalar (dot) Product
             return self.x * other.x + self.y * other.y
+    def __truediv__(self, other):
+        return Point(x=self.x / other, y=self.y / other)
+
+    def cross_product(self, other):
+        return Point(self.y*other.z - self.z*other.y, self.z*other.x - self.x*other.z, self.x*other.y - self.y*other.x)
 
     def unit_vector(self, Pto=None):
         """Returns vector of length 1"""
@@ -98,26 +108,29 @@ class Point:
         This function is used for the export of a point.
         @param parent: The parent of the point is a EntitieContent Class, this
         is used for rotating and scaling purposes
-        @param PostPro: This is the PostProcessor Class which includes all the 
-        export functionality
         @return: The function returns the string which will be added to the 
         string for export.
         """  
         Point = self.rot_sca_abs(parent=parent)
         return PostPro.rap_pos_xy(Point)
     
-    def add2path(self, papath=None, parent=None):
+    def add2path(self, papath=None, parent=None, layerContent=None):
         """
         Plots the geometry of self into the defined canvas.
         Arcs will be plotted as line segments.
         @param papath: The painterpath where the geometries shall be added
-        @param parent: FIXME
+        @param parent: The parent of the geometry (EntitieContentClass)
         """
-        logger.debug('Point: x: %0.2f, y: %0.2f' % (self.x, self.y))
-        papath.moveTo(self.x, -self.y)
+        Point = self.rot_sca_abs(parent=parent)
+        logger.debug('Point: x: %0.2f, y: %0.2f' % (Point.x, Point.y))
+        papath.moveTo(Point.x, -Point.y)
     
     def triangle_height(self, other1, other2):
-        """Calculate height of triangle given lengths of the sides"""
+        """
+        Calculate height of triangle given lengths of the sides
+        @param other1: Point 1 for triangle
+        @param other2: Point 2 for triangel
+        """
         #The 3 lengths of the triangle to calculate
         a = self.distance(other1)
         b = other1.distance(other2)
@@ -125,7 +138,16 @@ class Point:
         return sqrt(pow(b, 2) - pow((pow(c, 2) + pow(b, 2) - pow(a, 2)) / (2 * c), 2))
       
     def rot_sca_abs(self, sca=None, p0=None, pb=None, rot=None, parent=None):
-        """NEEDS DOCUMENTED"""
+        """
+        Generates the absolute geometry based on the geometry self and the
+        parent. If reverse = 1 is given the geometry may be reversed.
+        @param sca: The Scale
+        @param p0: The Offset
+        @param pb: The Base Point
+        @param rot: The angle by which the contur is rotated around p0
+        @param parent: The parent of the geometry (EntitieContentClass)
+        @return: A new Point which is absolute position
+        """
         if type(sca) == type(None) and type(parent) != type(None):
             p0 = parent.p0
             pb = parent.pb
@@ -137,8 +159,7 @@ class Point:
             roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
             p1 = Point(x=rotx, y=roty) + p0
             
-            #Rekursive Schleife falls selbst eingefügt
-            #Recursive loop if gt introduced
+            #Recursive loop if the point self is  introduced
             if type(parent.parent) != type(None):
                 p1 = p1.rot_sca_abs(parent=parent.parent)
             

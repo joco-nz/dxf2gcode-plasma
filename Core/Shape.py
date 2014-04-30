@@ -1,29 +1,31 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
-#
-#dxf2gcode_b02_shape.py
-#Programmers:   Christian Kohl�ffel
-#               Vinzenz Schulz
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-#
+
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
+
 #Main Class Shape
-
-
 
 #import sys, os, string, ConfigParser 
 
@@ -67,8 +69,9 @@ class ShapeClass(QtGui.QGraphicsItem):
         QtGui.QGraphicsItem.__init__(self) 
         
         
-        self.pen = QtGui.QPen(QtCore.Qt.black, 2)
-        self.pen.setCosmetic(True)
+        self.pen = QtGui.QPen(QtCore.Qt.black)
+        self.left_pen = QtGui.QPen(QtCore.Qt.darkCyan)
+        self.right_pen = QtGui.QPen(QtCore.Qt.darkMagenta)
         self.sel_pen = QtGui.QPen(QtCore.Qt.red, 2) #,QtCore.Qt.DashLine
         self.sel_pen.setCosmetic(True)
         self.dis_pen = QtGui.QPen(QtCore.Qt.gray) #2,QtCore.Qt.DotLine
@@ -97,6 +100,18 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.f_g1_depth = f_g1_depth
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
+        
+        #Parameters for drag knife
+        """
+        @param dragDepth: a smaller depth used for retract/swivel move This is 
+        not implemented for now. If required may be done TODO.
+        @param dragAngle: if larger than this angle, tool retracts to dragDepth 
+        This will set a variable of ArcGeo.drag to true TODO fix in export. Not 
+        working up to now.
+        """
+        self.dragAngle = g.config.vars.Drag_Knife_Options['dragAngle'] *pi/180
+        #self.dragDepth = axis3_slice_depth #g.config.vars.Drag_Knife_Options['dragDepth']
+        
 
     def contains_point(self, x, y):
         min_distance = float(0x7fffffff)
@@ -176,12 +191,17 @@ class ShapeClass(QtGui.QGraphicsItem):
         if self.isSelected() and not(self.isDisabled()):
             painter.setPen(self.sel_pen)
         elif not(self.isDisabled()):
-            painter.setPen(self.pen)
+            if self.cut_cor == 41:
+                painter.setPen(self.left_pen)
+            elif self.cut_cor == 42:
+                painter.setPen(self.right_pen)
+            else:
+                painter.setPen(self.pen)
         elif self.isSelected() and self.isDisabled():
             painter.setPen(self.sel_dis_pen)
         else:
             painter.setPen(self.dis_pen)
-    
+            
         painter.drawPath(self.path) 
         
     def boundingRect(self):
@@ -501,7 +521,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         logger.debug(self.tr("Adding shape to Scene Nr: %i") % (self.nr))
         
         for geo in self.geos:
-            geo.add2path(papath=self.path, parent=self.parent)
+            geo.add2path(papath=self.path, parent=self.parent, layerContent=self.LayerContent)
             
     
     def update_plot(self):
@@ -546,25 +566,19 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param PostPro: this is the Postprocessor class including the methods
         to export        
         """
+        
+        if g.config.machine_type == 'drag_knife':
+            return self.Write_GCode_Drag_Knife(LayerContent=LayerContent, 
+                                               PostPro=PostPro)
+        
         #initialisation of the string
-        exstr = ""
+        exstr = "" 
         
         #Create the Start_moves once again if something was changed.
         self.stmove.make_start_moves()
         
         #Calculate tool Radius.        
         tool_rad = LayerContent.tool_diameter / 2
-
-        #BaseEntitie created to add the StartMoves etc. This Entitie must not
-        #be offset or rotated etc.
-        BaseEntitie = EntitieContentClass(Nr= -1, Name='BaseEntitie',
-                                          parent=None,
-                                          children=[],
-                                          p0=Point(x=0.0, y=0.0),
-                                          pb=Point(x=0.0, y=0.0),
-                                          sca=[1, 1, 1],
-                                          rot=0.0)
-
 
         #Get the mill settings defined in the GUI
         safe_retract_depth = LayerContent.axis3_retract
@@ -597,7 +611,8 @@ class ShapeClass(QtGui.QGraphicsItem):
 
 
         #Move the tool to the start.          
-        exstr += self.stmove.geos[0].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+        exstr += self.stmove.geos[0].Write_GCode(parent=self.stmove.parent, 
+                                                 PostPro=PostPro)
         
         #Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
@@ -610,8 +625,10 @@ class ShapeClass(QtGui.QGraphicsItem):
             exstr += PostPro.set_cut_cor(self.cut_cor, start)
             
             exstr += PostPro.chg_feed_rate(f_g1_plane) #Added by Xavier because of code move (see above)
-            exstr += self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-            exstr += self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr += self.stmove.geos[1].Write_GCode(parent=self.stmove.parent, 
+                                                     PostPro=PostPro)
+            exstr += self.stmove.geos[2].Write_GCode(parent=self.stmove.parent, 
+                                                     PostPro=PostPro)
 
         exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin)) #Compute the safe margin from the initial mill depth
         exstr += PostPro.chg_feed_rate(f_g1_depth)
@@ -625,8 +642,10 @@ class ShapeClass(QtGui.QGraphicsItem):
             start, start_ang = self.get_st_en_points(0)
             exstr += PostPro.set_cut_cor(self.cut_cor, start)
             
-            exstr += self.stmove.geos[1].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
-            exstr += self.stmove.geos[2].Write_GCode(parent=BaseEntitie, PostPro=PostPro)
+            exstr += self.stmove.geos[1].Write_GCode(parent=self.stmove.parent, 
+                                                     PostPro=PostPro)
+            exstr += self.stmove.geos[2].Write_GCode(parent=self.stmove.parent, 
+                                                     PostPro=PostPro)
 
         #Write the geometries for the first cut
         for geo in self.geos:
@@ -699,6 +718,101 @@ class ShapeClass(QtGui.QGraphicsItem):
             self.reverse()
             self.switch_cut_cor()
             
+        #Add string to be added before the shape will be cut.
+        exstr += PostPro.write_post_shape_cut()
+
+        return exstr
+    
+    
+    def Write_GCode_Drag_Knife(self, LayerContent=None, PostPro=None):
+        """
+        This method returns the string to be exported for this shape, including
+        the defined start and end move of the shape. This function is used for 
+        Drag Knife cutting maschine only.
+        @param LayerContent: This parameter includes the parent LayerContent 
+        which includes tool and additional cutting parameters.
+        @param PostPro: this is the Postprocessor class including the methods
+        to export        
+        """
+        if self.stmove.shape.geos[0].type == 'HoleGeo':
+            return ""
+        #initialisation of the string
+        exstr = "" 
+        
+        #Create the Start_moves once again if something was changed.
+        self.stmove.make_start_moves()
+        
+
+        #Get the mill settings defined in the GUI
+        safe_retract_depth = LayerContent.axis3_retract
+        safe_margin = LayerContent.axis3_safe_margin
+        #If defined, choose the parameters from the Shape itself. Otherwise, choose the parameters from the parent Layer
+        workpiece_top_Z = LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
+        f_g1_plane = LayerContent.f_g1_plane if self.f_g1_plane is None else self.f_g1_plane
+        f_g1_depth = LayerContent.f_g1_depth if self.f_g1_depth is None else self.f_g1_depth
+
+        """
+        Cutting in slices is not supported for Swivel Knife tool. All is cutted
+        at once for now.
+        """
+        mom_depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
+        drag_depth = LayerContent.axis3_slice_depth if self.axis3_slice_depth is None else self.axis3_slice_depth
+
+
+        #Move the tool to the start.          
+        exstr += self.stmove.geos[0].Write_GCode(parent=self.stmove.parent, 
+                                                 PostPro=PostPro)
+        
+        #Add string to be added before the shape will be cut.
+        exstr += PostPro.write_pre_shape_cut()
+
+        #Move into workpiece and start cutting into Z
+        exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin)) #Compute the safe margin from the initial mill depth
+        exstr += PostPro.chg_feed_rate(f_g1_depth)
+
+        #Write the geometries for the first cut
+        drag = False
+        if self.stmove.geos[1].type == "ArcGeo":
+            if self.stmove.geos[1].drag:
+                exstr += PostPro.lin_pol_z(drag_depth)
+                drag = True
+            else:
+                exstr += PostPro.lin_pol_z(mom_depth)
+                drag = False
+        else:
+            exstr += PostPro.lin_pol_z(mom_depth)
+            drag = False
+        exstr += PostPro.chg_feed_rate(f_g1_plane)
+        
+        exstr += self.stmove.geos[1].Write_GCode(parent = self.stmove.parent, 
+                                 PostPro = PostPro)
+                                 
+        for geo in self.stmove.geos[2:]:
+            if geo.type == "ArcGeo":
+                if geo.drag:
+                    exstr += PostPro.chg_feed_rate(f_g1_depth)
+                    exstr += PostPro.lin_pol_z(drag_depth)
+                    exstr += PostPro.chg_feed_rate(f_g1_plane)
+                    drag = True
+                elif drag:
+                    exstr += PostPro.chg_feed_rate(f_g1_depth)
+                    exstr += PostPro.lin_pol_z(mom_depth)
+                    exstr += PostPro.chg_feed_rate(f_g1_plane)
+                    drag = False
+            elif drag:
+                exstr += PostPro.chg_feed_rate(f_g1_depth)
+                exstr += PostPro.lin_pol_z(mom_depth)
+                exstr += PostPro.chg_feed_rate(f_g1_plane)
+                drag = False
+                
+            exstr += geo.Write_GCode(parent = self.stmove.parent, 
+                                     PostPro = PostPro)
+
+        #Do the tool retraction
+        exstr += PostPro.chg_feed_rate(f_g1_depth)
+        exstr += PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
+        exstr += PostPro.rap_pos_z(safe_retract_depth)
+
         #Add string to be added before the shape will be cut.
         exstr += PostPro.write_post_shape_cut()
 

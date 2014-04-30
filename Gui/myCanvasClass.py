@@ -1,15 +1,34 @@
 # -*- coding: utf-8 -*-
 
+############################################################################
+#   
+#   Copyright (C) 2011-2014
+#    Christian Kohlöffel
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
+
 """
 Special purpose canvas including all required plotting function etc.
-@newfield purpose: Purpose
-@newfield sideeffect: Side effect, Side effects
 
 @purpose:  Plotting all
-@author: Christian Kohl�ffel 
-@since:  22.04.2011
-@license: GPL
 """
+
 #from copy import copy
 
 from PyQt4 import QtCore, QtGui
@@ -271,19 +290,23 @@ class MyDropDownMenu(QtGui.QMenu):
         swdirectionAction = self.addAction(self.tr("Switch Direction"))
         SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
         
-        self.addSeparator()
-        submenu1 = QtGui.QMenu(self.tr('Cutter Compensation'), self)
-        self.noCompAction = submenu1.addAction(self.tr("G40 No Compensation"))
-        self.noCompAction.setCheckable(True)
-        self.leCompAction = submenu1.addAction(self.tr("G41 Left Compensation"))
-        self.leCompAction.setCheckable(True)
-        self.reCompAction = submenu1.addAction(self.tr("G42 Right Compensation"))
-        self.reCompAction.setCheckable(True)
         
-        logger.debug(self.tr("The selected shapes have the following direction: %i") % (self.calcMenuDir()))
-        self.checkMenuDir(self.calcMenuDir())
+        if g.config.machine_type == 'drag_knife':
+            pass
+        else:
+            self.addSeparator()
+            submenu1 = QtGui.QMenu(self.tr('Cutter Compensation'), self)
+            self.noCompAction = submenu1.addAction(self.tr("G40 No Compensation"))
+            self.noCompAction.setCheckable(True)
+            self.leCompAction = submenu1.addAction(self.tr("G41 Left Compensation"))
+            self.leCompAction.setCheckable(True)
+            self.reCompAction = submenu1.addAction(self.tr("G42 Right Compensation"))
+            self.reCompAction.setCheckable(True)
         
-        self.addMenu(submenu1)
+            logger.debug(self.tr("The selected shapes have the following direction: %i") % (self.calcMenuDir()))
+            self.checkMenuDir(self.calcMenuDir())
+        
+            self.addMenu(submenu1)
         
         invertAction.triggered.connect(self.invertSelection)
         disableAction.triggered.connect(self.disableSelection)
@@ -292,9 +315,12 @@ class MyDropDownMenu(QtGui.QMenu):
         swdirectionAction.triggered.connect(self.switchDirection)
         SetNxtStPAction.triggered.connect(self.setNearestStP)
         
-        self.noCompAction.triggered.connect(self.setNoComp)
-        self.leCompAction.triggered.connect(self.setLeftComp)
-        self.reCompAction.triggered.connect(self.setRightComp)
+        if g.config.machine_type == 'drag_knife':
+            pass
+        else:
+            self.noCompAction.triggered.connect(self.setNoComp)
+            self.leCompAction.triggered.connect(self.setLeftComp)
+            self.reCompAction.triggered.connect(self.setRightComp)
         
         self.exec_(self.position)
         

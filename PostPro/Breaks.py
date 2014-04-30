@@ -1,25 +1,27 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
-#
-#Breaks.py
-#Programmers:   Robert Lichtenberger
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+############################################################################
+#   
+#   Copyright (C) 2014-2014
+#    Robert Lichtenberger
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 from PyQt4 import QtCore
 
@@ -48,7 +50,7 @@ class Breaks(QtCore.QObject):
         for layerContent in self.layerContents:
             if layerContent.isBreakLayer():
                 breakLayers.append(layerContent)
-            else:
+            elif not layerContent.should_ignore():
                 processLayers.append(layerContent)
       
         logger.debug("Found %d break layers and %d processing layers" % (len(breakLayers), len(processLayers)) )
@@ -60,24 +62,35 @@ class Breaks(QtCore.QObject):
             for shape in layer.shapes:
                 self.breakShape(shape, breakLayers)
     
+    # TODO :: algorithm is broken; if a shape is broken more than once, we will get multiple geos for a single original line, depending on the order of the original geos
     def breakShape(self, shape, breakLayers):
         newGeos = []
         for geo in shape.geos:
-            replaced = False;
             if (isinstance(geo, LineGeo)):
-                for breakLayer in breakLayers:
-                    for breakShape in breakLayer.shapes:
-                        intersections = self.intersectGeometry(geo, breakShape)
-                        if (len(intersections) == 2):
-                            logger.debug("Shape %s broken by %s", shape, breakShape)
-                            (near, far) = self.classifyIntersections(geo, intersections)
-                            newGeos.append(LineGeo(geo.Pa, near))
-                            newGeos.append(BreakGeo(LineGeo(near, far), breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))  
-                            newGeos.append(LineGeo(far, geo.Pe))
-                            replaced = True
-            if not(replaced):
+                newGeos.extend(self.breakLineGeo(geo, breakLayers))
+            else:
                 newGeos.append(geo)
         shape.geos = newGeos
+        
+    def breakLineGeo(self, lineGeo, breakLayers):
+        """
+        Try to break passed lineGeo with any of the shapes on a break layers.
+        Will break lineGeos recursively.
+        @return: The list of geometries after breaking (lineGeo itself if no breaking happened)
+        """
+        newGeos = []
+        for breakLayer in breakLayers:
+            for breakShape in breakLayer.shapes:
+                intersections = self.intersectGeometry(lineGeo, breakShape)
+                if (len(intersections) == 2):
+                    (near, far) = self.classifyIntersections(lineGeo, intersections)
+                    logger.debug("Line %s broken from (%f, %f) to (%f, %f)" % (lineGeo.toShortString(), near.x, near.y, far.x, far.y))
+                    newGeos.extend(self.breakLineGeo(LineGeo(lineGeo.Pa, near), breakLayers))
+                    newGeos.append(BreakGeo(LineGeo(near, far), breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))  
+                    newGeos.extend(self.breakLineGeo(LineGeo(far, lineGeo.Pe), breakLayers))
+                    return newGeos  
+        
+        return [ lineGeo ];
 
     def intersectGeometry(self, lineGeo, breakShape):
         """
@@ -91,7 +104,6 @@ class Breaks(QtCore.QObject):
                 intersection = QtCore.QPointF(5, 5);
                 res = line.intersect(breakLine, intersection)
                 if (res == QtCore.QLineF.BoundedIntersection):
-                    logger.debug("Intersection found at (%d, %d)" %(intersection.x(), intersection.y()))
                     intersections.append(Point(intersection.x(), intersection.y()))
         return intersections
 

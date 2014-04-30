@@ -1,28 +1,27 @@
 # -*- coding: iso-8859-1 -*-
-#
-# This program is free software; you can redistribute it and/or
-# modify it under the terms of the GNU General Public License
-# as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-"""
-@newfield purpose: Purpose
-@newfield sideeffect: Side effect, Side effects
 
-@purpose:  TBD
-
-@author: Christian Kohlöffel
-@since:  26.12.2009
-@license: GPL
-"""
+############################################################################
+#   
+#   Copyright (C) 2009-2014
+#    Christian Kohlöffel
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 import os
 
@@ -42,7 +41,7 @@ from PyQt4 import QtGui, QtCore
 import logging
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "8"
+CONFIG_VERSION = "9.1"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -88,6 +87,10 @@ CONFIG_SPEC = str('''
     live_update_export_route = boolean(default = False)
     default_SplitEdges = boolean(default = False)
     default_AutomaticCutterCompensation = boolean(default = False)
+    machine_type = option('milling', 'drag_knife', default = 'milling')
+    
+    [Drag_Knife_Options]
+    dragAngle = float(default = 20)
     
     [Route_Optimisation]
     default_TSP = boolean(default = False)
@@ -200,6 +203,7 @@ class MyConfig(QtCore.QObject):
         #try:
         self.load_config()
         
+        self.machine_type = self.vars.General['machine_type']
         self.fitting_tolerance = self.vars.Import_Parameters['fitting_tolerance']
         self.point_tolerance = self.vars.Import_Parameters['point_tolerance']
         

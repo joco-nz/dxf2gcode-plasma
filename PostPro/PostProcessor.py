@@ -1,29 +1,30 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
-#
-#dxf2gcode_b02_config.py
-#Programmers:   Christian Kohloeffel
-#               Vinzenz Schulz
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#About Dialog
-#First Version of dxf2gcode Hopefully all works as it should
-#Compiled with --onefile --noconsole --upx --tk dxf2gcode_b02.py
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
+
 
 import os
 import time
@@ -369,8 +370,10 @@ class MyPostProcessor(QtCore.QObject):
         @param feed: New feedrate
         @return: Returns the string which shall be added.
         """
-        self.feed = feed
-        return self.make_print_str(self.vars.Program["feed_change"]) 
+        if self.feed != feed:
+            self.feed = feed
+            return self.make_print_str(self.vars.Program["feed_change"])
+        return ""
         
     def set_cut_cor(self, cut_cor, Pe):
         """

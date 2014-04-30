@@ -1,17 +1,28 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""
-The main
-@newfield purpose: Purpose
-
-@purpose:  program arguments & options handling, read the config file
-@author: Christian Kohlöffel 
-@since:  21.12.2010
-@license: GPL
-"""
-
-
+############################################################################
+#   
+#   Copyright (C) 2010-2014
+#    Christian Kohlöffel
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 # Import Qt modules
 
@@ -53,7 +64,6 @@ from Gui.Dialog import myDialog
 from Gui.AboutDialog import myAboutDialog
 
 from PostPro.TspOptimisation import TSPoptimize
-
 
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
@@ -105,13 +115,14 @@ class Main(QtGui.QMainWindow):
             self.ui.actionLive_update_export_route.setChecked(True)
         
         if g.config.vars.General['default_SplitEdges']:
-            self.ui.actionSplit_edges.setChecked(True)
+            self.ui.actionSplit_Edges.setChecked(True)
             
         if g.config.vars.General['default_AutomaticCutterCompensation']:
             self.ui.actionAutomatic_Cutter_Compensation.setChecked(True)
             
+        self.updateMachineType()
             
-        self.readSettings()            
+        self.readSettings()
         
         g.config.metric = 1 # default drawing units: millimeters
         
@@ -149,10 +160,13 @@ class Main(QtGui.QMainWindow):
         self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
         
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
-        self.ui.actionSplit_edges.triggered.connect(self.setSplit_edges)
         self.ui.actionRotate_all.triggered.connect(self.CallRotateAll)
         self.ui.actionScale_all.triggered.connect(self.CallScaleAll)
         self.ui.actionMove_WP_zero.triggered.connect(self.CallMoveWpZero)
+        self.ui.actionSplit_Edges.triggered.connect(self.reloadFile)
+        self.ui.actionAutomatic_Cutter_Compensation.triggered.connect(self.reloadFile)
+        self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
+        self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
         
         self.ui.actionAbout.triggered.connect(self.about)
 
@@ -487,7 +501,7 @@ class Main(QtGui.QMainWindow):
                 "<a href='http://code.google.com/p/dxf2gcode/issues/list'>issue tracking system</a><br>"\
                 "<h2>License and copyright:</h2>"\
                 "<body>This program is written in Python and is published under the "\
-                "<a href='http://www.gnu.org/licenses/gpl.html'>GNU GPL 3 license.</a><br>"\
+                "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"\
                 "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
         
         myAboutDialog(title = "About DXF2GCODE", message = message)
@@ -552,13 +566,6 @@ class Main(QtGui.QMainWindow):
         g.config.point_tolerance = float(SetTolDialog.result[0])
         g.config.fitting_tolerance = float(SetTolDialog.result[1])
         
-        self.reloadFile()
-        #self.MyGraphicsView.update()
-        
-    def setSplit_edges(self):
-        """
-        This function is called by the menu "Split edges" of the main 
-        """
         self.reloadFile()
         #self.MyGraphicsView.update()
         
@@ -633,6 +640,33 @@ class Main(QtGui.QMainWindow):
         self.reloadFile()
         #self.MyGraphicsView.update()
         
+    def setMachineTypeToMilling(self):
+        """
+        This function is called by the menu when Machine Type -> Milling is clicked.
+        """
+        g.config.machine_type = 'milling'
+        self.updateMachineType()
+        self.reloadFile()
+        
+    def setMachineTypeToDragKnife(self):
+        """
+        This function is called by the menu when Machine Type -> Drag Knife is clicked.
+        """
+        g.config.machine_type = 'drag_knife'
+        self.updateMachineType()
+        self.reloadFile()
+        
+    def updateMachineType(self):
+        if g.config.machine_type == 'milling':
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(True)
+            self.ui.actionMilling.setChecked(True)
+            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.label_9.setText(self.tr("Z Infeed depth"))
+        else:
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionMilling.setChecked(False)
+            self.ui.actionDrag_Knife.setChecked(True)
+            self.ui.label_9.setText(self.tr("Z Drag depth"))
     
     def loadFile(self, filename):
         """
@@ -915,16 +949,13 @@ class Main(QtGui.QMainWindow):
         """
         Documentation required
         """
-        if self.ui.actionSplit_edges.isChecked() == True:
+        if self.ui.actionSplit_Edges.isChecked() == True:
             if geo.type == 'LineGeo':
-                xdiff = (geo.Pe.x - geo.Pa.x) / 2.0
-                ydiff = (geo.Pe.y - geo.Pa.y) / 2.0
+                diff = (geo.Pe - geo.Pa) / 2.0
                 geo_b = deepcopy(geo)
                 geo_a = deepcopy(geo)
-                geo_b.Pe.x -= xdiff
-                geo_b.Pe.y -= ydiff
-                geo_a.Pa.x += xdiff
-                geo_a.Pa.y += ydiff
+                geo_b.Pe -= diff
+                geo_a.Pa += diff
                 self.shapes[-1].geos.append(geo_b)
                 self.shapes[-1].geos.append(geo_a)
             else:
@@ -962,30 +993,32 @@ class Main(QtGui.QMainWindow):
         
 
     def automaticCutterCompensation(self):
-        if self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
+        if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() == self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
             for layerContent in self.LayerContents:
-                newShapes = [];
-                for shape in layerContent.shapes:
-                    shape.make_papath()
-                for shape in layerContent.shapes:
-                    container = None
-                    myBounds = shape.boundingRect()
-                    for otherShape in layerContent.shapes :
-                        if shape != otherShape and otherShape.boundingRect().contains(myBounds):
-                            logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
-                            container = otherShape
-                    if container is None:
-                        shape.cut_cor = 41
-                        newShapes.append(shape)
-                    else:
-                        shape.cut_cor = 42
-                        newShapes.insert(layerContent.shapes.index(container), shape)
-                    #shape.updateCutCor()
-                    #shape.updateCCplot()
-                layerContent.shapes = newShapes
-                logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
-                for shape in layerContent.shapes:
-                    logger.debug(self.tr(">>Shape: %s") % (shape.nr))
+                if layerContent.automaticCutterCompensationEnabled():
+                    newShapes = [];
+                    for shape in layerContent.shapes:
+                        shape.make_papath()
+                    for shape in layerContent.shapes:
+                        if shape.closed:
+                            container = None
+                            myBounds = shape.boundingRect()
+                            for otherShape in layerContent.shapes :
+                                if shape != otherShape and otherShape.boundingRect().contains(myBounds):
+                                    logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
+                                    container = otherShape
+                            if container is None:
+                                shape.cut_cor = 41
+                                newShapes.append(shape)
+                            else:
+                                shape.cut_cor = 42
+                                newShapes.insert(layerContent.shapes.index(container), shape)
+                        else:
+                            newShapes.append(shape)
+                    layerContent.shapes = newShapes
+                    logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
+                    for shape in layerContent.shapes:
+                        logger.debug(self.tr(">>Shape: %s") % (shape.nr))
                 
     def closeEvent(self, e):
         logger.debug(self.tr("exiting"))

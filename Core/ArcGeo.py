@@ -1,26 +1,29 @@
 #!/usr/bin/python
 # -*- coding: ISO-8859-1 -*-
-#
-#dxf2gcode_b02_point
-#Programmers:   Christian Kohlöffel
-#               Vinzenz Schulz
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 from math import sqrt, sin, cos, degrees, pi, floor, ceil
 
@@ -30,6 +33,8 @@ from Core.Point import Point
 
 import logging
 logger = logging.getLogger("Core.ArcGeo")
+
+import copy
 
 #Length of the cross.
 dl = 0.2
@@ -41,9 +46,18 @@ class ArcGeo(QtCore.QObject):
     G-Code export.
     """ 
     def __init__(self, Pa = None, Pe = None, O = None, r = 1,
-                 s_ang = None, e_ang = None, direction = 1):
+                 s_ang = None, e_ang = None, direction = 1, drag = False):
         """
-        Standard Method to initialize the LineGeo
+        Standard Method to initialize the ArcGeo. Not all of the parameters are
+        required to fully define a arc. e.g. Pa and Pe may be given or s_ang and
+        e_ang
+        @param Pa: The Start Point of the arc
+        @param Pe: the End Point of the arc
+        @param O: The center of the arc
+        @param r: The radius of the arc
+        @param s_ang: The Start Angle of the arc
+        @param e_ang: the End Angle of the arc
+        @param direction: The arc direction where 1 is in positive direction
         """
         QtCore.QObject.__init__(self)
         
@@ -55,6 +69,7 @@ class ArcGeo(QtCore.QObject):
         self.s_ang = s_ang
         self.e_ang = e_ang
         self.col = 'Black'
+        self.drag = drag
         
         
         # Get the Circle Milllw with known Start and End Points
@@ -67,7 +82,15 @@ class ArcGeo(QtCore.QObject):
                 arc = self.Pe.norm_angle(Pa) - pi / 2
                 Ve = Pe - Pa
                 m = (sqrt(pow(Ve.x, 2) + pow(Ve.y, 2))) / 2
-                lo = sqrt(pow(r, 2) - pow(m, 2))
+                
+                if DEBUG:
+                    logger.debug('lo: %s; m: %s' %(r,m))
+                    
+                if abs(r-m)<0.0001:
+                    lo = 0.0;
+                else:        
+                    lo = sqrt(pow(r, 2) - pow(m, 2))
+                
                 if direction < 0:
                     d = -1
                 else:
@@ -104,6 +127,16 @@ class ArcGeo(QtCore.QObject):
         self.length = self.r * abs(self.ext)
     
     
+    def __deepcopy__(self, memo):
+        return ArcGeo(copy.deepcopy(self.Pa, memo),
+                       copy.deepcopy(self.Pe, memo),
+                       copy.deepcopy(self.O, memo),
+                       copy.deepcopy(self.r, memo),
+                       copy.deepcopy(self.s_ang, memo),
+                       copy.deepcopy(self.e_ang, memo),
+                       copy.deepcopy(self.ext, memo))
+    
+    
     def __str__(self):
         """ 
         Standard method to print the object
@@ -116,7 +149,7 @@ class ArcGeo(QtCore.QObject):
                ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
     
     
-    def add2path(self, papath = None, parent = None):
+    def add2path(self, papath = None, parent = None, layerContent=None):
         """
         Plots the geometry of self into defined path for hit testing. Refer
         to http://stackoverflow.com/questions/11734618/check-if-point-exists-in-qpainterpath
@@ -182,17 +215,9 @@ class ArcGeo(QtCore.QObject):
         """
         Reverses the direction of the arc (switch direction).
         """
-        Pa = self.Pa
-        Pe = self.Pe
-        ext = self.ext
-        s_ang = self.e_ang
-        e_ang = self.s_ang
-        
-        self.Pa = Pe
-        self.Pe = Pa
-        self.ext = ext * -1
-        self.s_ang = s_ang
-        self.e_ang = e_ang
+        self.Pa, self.Pe = self.Pe, self.Pa
+        self.s_ang, self.e_ang = self.e_ang, self.s_ang
+        self.ext = -self.ext
     
     def make_abs_geo(self, parent = None, reverse = 0):
         """

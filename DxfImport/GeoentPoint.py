@@ -1,11 +1,10 @@
 #!/usr/bin/python
-# -*- coding: cp1252 -*-
+# -*- coding: UTF-8 -*-
 
 ############################################################################
 #   
-#   Copyright (C) 2008-2014
-#    Christian Kohlöffel
-#    Vinzenz Schulz
+#   Copyright (C) 2014-2014
+#    Robert Lichtenberger
 #   
 #   This file is part of DXF2GCODE.
 #   
@@ -24,34 +23,35 @@
 #   
 ############################################################################
 
-from math import  sin, cos, pi
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 
+from Core.HoleGeo import  HoleGeo 
+from Core.LineGeo import  LineGeo 
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
-from Core.ArcGeo import ArcGeo 
 
 import logging
-logger = logging.getLogger("DXFImport.GeoentCircle") 
+logger = logging.getLogger("DXFImport.GeoentPoint") 
 
-class GeoentCircle(QtCore.QObject):
+class GeoentPoint:
     def __init__(self, Nr=0, caller=None):
-        self.Typ = 'Circle'
+        self.Typ = 'Point'
         self.Nr = Nr
         self.Layer_Nr = 0
-        self.length = 0.0
         self.geo = []
+        self.length = 0;
 
         #Lesen der Geometrie
         #Read the geometry
         self.Read(caller)
-        
+
     def __str__(self):
         # how to print the object
-        return("\nTyp: Circle ") + \
+        return("\nTyp: Point") + \
               ("\nNr: %i" % self.Nr) + \
-              ("\nLayer Nr:%i" % self.Layer_Nr) + \
+              ("\nLayer Nr: %i" % self.Layer_Nr) + \
               str(self.geo[-1])
+
               
     def tr(self, string_to_translate):
         """
@@ -66,18 +66,20 @@ class GeoentCircle(QtCore.QObject):
    
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
-        cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length))
+        """
+        App_Cont_or_Calc_IntPts()
+        """
+        cont.append(ContourClass(len(cont), 0, [[i, 0]], 0))
         return warning
         
     def Read(self, caller):
         """
         Read()
         """
-        
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
-        
+
         #Assign layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
@@ -89,51 +91,13 @@ class GeoentCircle(QtCore.QObject):
         #Y Value
         s = lp.index_code(20, s + 1)
         y0 = float(lp.line_pair[s].value)
-        
-        #Radius
-        s = lp.index_code(40, s + 1)
-        r = float(lp.line_pair[s].value)
-        
-        #Searching for an extrusion direction
-        s_nxt_xt = lp.index_code(230, s + 1, e)
-        #If there is a extrusion direction given flip around x-Axis
-        if s_nxt_xt != None:
-            extrusion_dir = float(lp.line_pair[s_nxt_xt].value)
-            logger.debug(self.tr('Found extrusion direction: %s')
-                                 % extrusion_dir)
-            if extrusion_dir == -1:
-                x0 = -x0
-            
-        O = Point(x0, y0)
-        
-        #Calculate the start and end values of the circle without clipping
-        s_ang = -3 * pi / 4
-        m_ang = s_ang -pi
-        e_ang = -3 * pi / 4
-        
-        #Calculate the start and end values of the arcs
-        Pa = Point(x=cos(s_ang) * r, y=sin(s_ang) * r) + O
-        Pm = Point(x=cos(m_ang) * r, y=sin(m_ang) * r) + O
-        Pe = Point(x=cos(e_ang) * r, y=sin(e_ang) * r) + O
-        
-        #Annexes to ArcGeo class for geometry
-        self.geo.append(ArcGeo(Pa=Pa, Pe=Pm, O=O, r=r,
-                               s_ang=s_ang, e_ang=m_ang, direction=-1))
-        self.geo.append(ArcGeo(Pa=Pm, Pe=Pe, O=O, r=r,
-                               s_ang=m_ang, e_ang=e_ang, direction=-1))
-        
-        #Length corresponds to the length (circumference?) of the circle
-        self.length = self.geo[-1].length+self.geo[-2].length
-        
-        #New starting value for the next geometry
-        caller.start = s        
 
-    def get_start_end_points(self, direction=0):
-        """
-        get_start_end_points()
-        """
-        if not(direction):
-            punkt, angle = self.geo[0].get_start_end_points(direction)
-        elif direction:
-            punkt, angle = self.geo[-1].get_start_end_points(direction)
-        return punkt, angle
+        Pa = Point(x0, y0)
+
+        self.geo.append(HoleGeo(Pa))
+        #self.geo.append(LineGeo(Pa=Point(0,0), Pe=P))
+
+        #Neuen Startwert für die nächste Geometrie zurückgeben
+        #New starting value for the next geometry
+        caller.start = s
+

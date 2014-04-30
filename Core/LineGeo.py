@@ -1,26 +1,29 @@
 #!/usr/bin/python
 # -*- coding: ISO-8859-1 -*-
-#
-#dxf2gcode_b02_point
-#Programmers:   Christian Kohlöffel
-#               Vinzenz Schulz
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 from math import sqrt
 from PyQt4 import QtCore, QtGui
@@ -41,7 +44,9 @@ class LineGeo(QtCore.QObject):
     """ 
     def __init__(self, Pa, Pe):
         """
-        Standard Method to initialise the LineGeo
+        Standard Method to initialize the LineGeo. 
+        @param Pa: The Start Point of the line
+        @param Pe: the End Point of the line
         """
         self.type = "LineGeo"
         self.Pa = Pa
@@ -63,15 +68,18 @@ class LineGeo(QtCore.QObject):
                ("\nPe : %s" % self.Pe) + \
                ("\nlength: %0.5f" % self.length)        
 
+    def toShortString(self):
+        """ 
+        Method to print only start and end point of the line 
+        @return: A string
+        """ 
+        return ("(%f, %f) -> (%f, %f)" % (self.Pa.x, self.Pa.y, self.Pe.x, self.Pe.y));        
+
     def reverse(self):
         """ 
         Reverses the direction of the arc (switch direction).
         """ 
-        Pa = self.Pa
-        Pe = self.Pe
-        
-        self.Pa = Pe
-        self.Pe = Pa
+        self.Pa, self.Pe = self.Pe, self.Pa
 
     def tr(self, string_to_translate):
         """
@@ -102,7 +110,7 @@ class LineGeo(QtCore.QObject):
         return abs_geo
     
         
-    def add2path(self, papath=None, parent=None):
+    def add2path(self, papath=None, parent=None, layerContent=None):
         """
         Plots the geometry of self into defined path for hit testing..
         @param hitpath: The hitpath to add the geometrie

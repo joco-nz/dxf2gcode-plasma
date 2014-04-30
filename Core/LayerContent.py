@@ -1,25 +1,30 @@
 #!/usr/bin/python
 # -*- coding: cp1252 -*-
-#
-#Programmers:   Christian Kohl�ffel
-#               Vinzenz Schulz
-#
-#Distributed under the terms of the GPL (GNU Public License)
-#
-#dxf2gcode is free software; you can redistribute it and/or modify
-#it under the terms of the GNU General Public License as published by
-#the Free Software Foundation; either version 2 of the License, or
-#(at your option) any later version.
-#
-#This program is distributed in the hope that it will be useful,
-#but WITHOUT ANY WARRANTY; without even the implied warranty of
-#MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#GNU General Public License for more details.
-#
-#You should have received a copy of the GNU General Public License
-#along with this program; if not, write to the Free Software
-#Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
+############################################################################
+#   
+#   Copyright (C) 2008-2014
+#    Christian Kohlöffel
+#    Vinzenz Schulz
+#    Jean-Paul Schouwstra
+#    Robert Lichtenberger
+#   
+#   This file is part of DXF2GCODE.
+#   
+#   DXF2GCODE is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#   
+#   DXF2GCODE is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#   
+#   You should have received a copy of the GNU General Public License
+#   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
+#   
+############################################################################
 
 import Core.Globals as g
 
@@ -71,7 +76,7 @@ class LayerContentClass:
 
 
         #search for layer commands to override defaults
-        if self.LayerName.startswith("MILL:") or self.isBreakLayer():
+        if self.isParameterizableLayer():
             lopts_re = re.compile("([a-zA-Z]{1,10}:\s{0,}[\-\.0-9]{1,30}\s{0,})")
             #result = rcmp.search(self.LayerName)
             layer_commands = self.LayerName.replace(",", ".")
@@ -143,3 +148,18 @@ class LayerContentClass:
     
     def isBreakLayer(self):
         return self.LayerName.startswith("BREAKS:")
+    
+    def isMillLayer(self):
+        return self.LayerName.startswith("MILL:")
+    
+    def isDrillLayer(self):
+        return self.LayerName.startswith("DRILL:")
+    
+    def isParameterizableLayer(self):
+        return self.isMillLayer() or self.isDrillLayer() or self.isBreakLayer()
+    
+    def automaticCutterCompensationEnabled(self):
+        return not self.should_ignore() and not self.isDrillLayer()
+    
+    def getToolRadius(self): 
+        return self.tool_diameter / 2;
