@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-15 -*-
+# -*- coding: utf-8 -*-
 
 ############################################################################
 #   
@@ -39,8 +39,8 @@ APPNAME = "DXF2GCODE"
 VERSION = "PyQt4 Beta"
 
 
-DATE     =   "$Date:: 2014-04-29 22:00:20#$"
-REVISION =   "$Rev:: 516                  $"
+DATE     =   "$Date:: 2014-04-30 22:04:23#$"
+REVISION =   "$Rev:: 517                  $"
 AUTHOR   =  u"$Author:: jp1357                           $"
 
 CONFIG_EXTENSION = '.cfg'

@@ -1,5 +1,4 @@
-#!/usr/bin/python
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 
 ############################################################################
 #   
@@ -305,8 +304,6 @@ class MyPostProcessor(QtCore.QObject):
             exstr = ''
         else:
             exstr = ''
-        
-        exstr = (exstr.encode("utf-8"))
         
         # In addition the text defined in the PostProcessor Config file is
         # added.

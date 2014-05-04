@@ -381,7 +381,7 @@ class Main(QtGui.QMainWindow):
             #Get the name of the File to export
             if saveas == None:
                 filename = self.showSaveDialog()
-                self.save_filename = filename[0]
+                self.save_filename = str(filename[0].toUtf8()).decode("utf-8")
             else:
                 filename = [None, None]
                 self.save_filename = saveas
@@ -393,7 +393,7 @@ class Main(QtGui.QMainWindow):
                 
                 return
             
-            (beg, ende) = os.path.split(str(self.save_filename))
+            (beg, ende) = os.path.split(self.save_filename)
             (fileBaseName, fileExtension) = os.path.splitext(ende) 
             
             pp_file_nr = 0
@@ -456,7 +456,7 @@ class Main(QtGui.QMainWindow):
             format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
             MyFormats = MyFormats + name + format_
             
-        (beg, ende) = os.path.split(str(self.load_filename))
+        (beg, ende) = os.path.split(self.load_filename)
         (fileBaseName, fileExtension) = os.path.splitext(ende)
         
         default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
@@ -677,18 +677,19 @@ class Main(QtGui.QMainWindow):
         
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         
-        self.load_filename = str(filename)
-        (name, ext) = os.path.splitext(str(filename))
+        filename = str(filename.toUtf8()).decode("utf-8")
+        self.load_filename = filename
+        (name, ext) = os.path.splitext(filename)
         
         if (ext.lower() == ".ps") or (ext.lower() == ".pdf"):
             logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
             
             #Create temporary file which will be read by the program
-            filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf').encode("cp1252")
+            filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
            
-            pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd'].encode("cp1252") #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
+            pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd'] #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
             pstoedit_opt = g.config.vars.Filters['pstoedit_opt'] #['-f','dxf','-mm']
-            ps_filename = os.path.normcase(self.load_filename.encode("cp1252"))
+            ps_filename = os.path.normcase(self.load_filename)
             cmd = [(('%s') % pstoedit_cmd)] + pstoedit_opt + [(('%s') % ps_filename), (('%s') % filename)]
             logger.debug(cmd)
             retcode = subprocess.call(cmd)
