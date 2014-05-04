@@ -1,5 +1,4 @@
-#!/usr/bin/python
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 
 ############################################################################
 #   
@@ -58,7 +57,7 @@ class LayerContentClass:
         self.shapes = shapes
         self.exp_order = [] #used for shape order optimization, ... Only contains shapes
         self.exp_order_complete = [] #used for outputing the GCODE ; can contain shapes, custom gcode, ...
-
+        
         #preset defaults
         self.axis3_slice_depth = vars.Depth_Coordinates['axis3_slice_depth']
         self.axis3_start_mill_depth = vars.Depth_Coordinates['axis3_start_mill_depth']
@@ -67,99 +66,84 @@ class LayerContentClass:
         self.axis3_safe_margin = vars.Depth_Coordinates['axis3_safe_margin']
         self.f_g1_plane = vars.Feed_Rates['f_g1_plane']
         self.f_g1_depth = vars.Feed_Rates['f_g1_depth']
-
+        
         #Use default tool 1 (always exists in config)
         self.tool_nr = 1
         self.tool_diameter = vars.Tool_Parameters['1']['diameter']
         self.speed = vars.Tool_Parameters['1']['speed']
         self.start_radius = vars.Tool_Parameters['1']['start_radius']
-
-
+        
         #search for layer commands to override defaults
         if self.isParameterizableLayer():
-            lopts_re = re.compile("([a-zA-Z]{1,10}:\s{0,}[\-\.0-9]{1,30}\s{0,})")
-            #result = rcmp.search(self.LayerName)
             layer_commands = self.LayerName.replace(",", ".")
-            
+            lopts_re = re.compile("([a-zA-Z]+ *"+vars.Layer_Options['idfloatseparator']+" *[\-\.0-9]+)")
+            print lopts_re.findall(layer_commands)
             for lc in lopts_re.findall(layer_commands):
-                try:
-                    name, value = lc.split(":")
-                except ValueError:
-                    continue
-
+                name, value = lc.split(vars.Layer_Options['idfloatseparator'])
+                name = name.strip()
+                print '\"%s\" \"%s\"' %(name, value)
                 if name in vars.Layer_Options['mill_depth_identifiers']:
                     self.axis3_mill_depth = float(value)
-
-                if name in vars.Layer_Options['slice_depth_identifiers']:
+                elif name in vars.Layer_Options['slice_depth_identifiers']:
                     self.axis3_slice_depth = float(value)
-                
-                if name in vars.Layer_Options['start_mill_depth_identifiers']:
+                elif name in vars.Layer_Options['start_mill_depth_identifiers']:
                     self.axis3_start_mill_depth = float(value)
-                
-                if name in vars.Layer_Options['retract_identifiers']:
+                elif name in vars.Layer_Options['retract_identifiers']:
                     self.axis3_retract = float(value)
-                
-                if name in vars.Layer_Options['safe_margin_identifiers']:
+                elif name in vars.Layer_Options['safe_margin_identifiers']:
                     self.axis3_safe_margin = float(value)
-
-                if name in vars.Layer_Options['f_g1_plane_identifiers']:
+                elif name in vars.Layer_Options['f_g1_plane_identifiers']:
                     self.f_g1_plane = float(value)
-                
-                if name in vars.Layer_Options['f_g1_depth_identifiers']:
+                elif name in vars.Layer_Options['f_g1_depth_identifiers']:
                     self.f_g1_depth = float(value)
-
-                if name in vars.Layer_Options['tool_nr_identifiers']:
+                elif name in vars.Layer_Options['tool_nr_identifiers']:
                     self.tool_nr = float(value)
-                
-                if name in vars.Layer_Options['tool_diameter_identifiers']:
+                elif name in vars.Layer_Options['tool_diameter_identifiers']:
                     self.tool_diameter = float(value)
-
-                if name in vars.Layer_Options['spindle_speed_identifiers']:
+                elif name in vars.Layer_Options['spindle_speed_identifiers']:
                     self.speed = float(value)
-                
-                if name in vars.Layer_Options['start_radius_identifiers']:
+                elif name in vars.Layer_Options['start_radius_identifiers']:
                     self.start_radius = float(value)
-                
-
-        
-        
+                    
     def __cmp__(self, other):
         """
         This function just compares the LayerNr to sort the List of LayerContents
         @param other: This is the 2nd of the LayerContentClass to be compared.
         """
         return cmp(self.LayerNr, other.LayerNr)
-
+        
     def __str__(self):
         """ 
         Standard method to print the object
         @return: A string
         """
         return ('\ntype:          %s' % self.type) +\
-               ('\nLayerNr :      %i' % self.LayerNr) +\
+               ('\nLayerNr:       %i' % self.LayerNr) +\
                ('\nLayerName:     %s' % self.LayerName)+\
                ('\nshapes:        %s' % self.shapes)+\
                ('\nexp_order:     %s' % self.exp_order)+\
                ('\nexp_order_comp:%s' % self.exp_order_complete)+\
                ('\ntool_diameter: %i' % self.tool_nr)
-
+               
     def should_ignore(self):
-        return self.LayerName.startswith("IGNORE:") or self.isBreakLayer()
-    
+        return self.LayerName.startswith("IGNORE"+g.config.vars.Layer_Options['idfloatseparator']) or self.isBreakLayer()
+        
     def isBreakLayer(self):
-        return self.LayerName.startswith("BREAKS:")
-    
+        return self.LayerName.startswith("BREAKS"+g.config.vars.Layer_Options['idfloatseparator'])
+        
     def isMillLayer(self):
-        return self.LayerName.startswith("MILL:")
-    
+        print '\"%s\"' % ("MILL"+g.config.vars.Layer_Options['idfloatseparator'])
+        return self.LayerName.startswith("MILL"+g.config.vars.Layer_Options['idfloatseparator'])
+        
     def isDrillLayer(self):
-        return self.LayerName.startswith("DRILL:")
-    
+        return self.LayerName.startswith("DRILL"+g.config.vars.Layer_Options['idfloatseparator'])
+        
     def isParameterizableLayer(self):
         return self.isMillLayer() or self.isDrillLayer() or self.isBreakLayer()
-    
+        
     def automaticCutterCompensationEnabled(self):
         return not self.should_ignore() and not self.isDrillLayer()
-    
+        
     def getToolRadius(self): 
         return self.tool_diameter / 2;
+        

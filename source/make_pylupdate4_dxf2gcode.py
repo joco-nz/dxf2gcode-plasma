@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 """ 
 Generates the tr file based on the defined pyQt Project File
 """ 

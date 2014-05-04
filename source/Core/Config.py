@@ -1,4 +1,4 @@
-# -*- coding: iso-8859-1 -*-
+# -*- coding: utf-8 -*-
 
 ############################################################################
 #   
@@ -41,7 +41,7 @@ from PyQt4 import QtGui, QtCore
 import logging
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "9.1"
+CONFIG_VERSION = "9.2"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -58,7 +58,7 @@ CONFIG_SPEC = str('''
     # do not edit the following value:
     config_version = string(default = "'''  + \
     str(CONFIG_VERSION) + '")\n' + \
-'''
+    '''
     [Paths]
     # by default look for DXF files in
     import_dir = string(default = "D:/Eclipse_Workspace/DXF2GCODE/trunk/dxf")
@@ -110,6 +110,8 @@ CONFIG_SPEC = str('''
     fitting_tolerance = float(default = 0.001)
     
     [Layer_Options]
+    idfloatseparator = string(default = ":")
+    
     # mill options
     mill_depth_identifiers = list(default = list('MillDepth', 'Md', 'TiefeGesamt', 'Tg'))
     slice_depth_identifiers = list(default = list('SliceDepth', 'Sd', 'TiefeZustellung', 'Tz'))
