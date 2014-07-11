@@ -206,7 +206,7 @@ class MyPostProcessor(QtCore.QObject):
         if g.config.vars.General['write_to_stdout']:
             print(exstr)
             logger.info(self.tr("Export to STDOUT was successful"))
-            self.close
+            #self.close
     
         else:
             #Export Data to file

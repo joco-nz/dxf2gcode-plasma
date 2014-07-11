@@ -409,6 +409,7 @@ class Main(QtGui.QMainWindow):
             
             self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
+            self.save_filename = None
             self.MyPostProcessor.getPostProVars(0)
         
         """
@@ -421,6 +422,9 @@ class Main(QtGui.QMainWindow):
                                           self.LayerContents)
         
         QtGui.QApplication.restoreOverrideCursor()
+    
+        if g.config.vars.General['write_to_stdout']:
+            self.close()
     
     def optimizeAndExportShapes(self):
         """
