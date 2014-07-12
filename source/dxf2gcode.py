@@ -38,7 +38,7 @@ from copy import copy, deepcopy
 
 import subprocess, tempfile #webbrowser, gettext, tempfile
 
-from optparse import OptionParser
+import argparse
 from PyQt4 import QtGui, QtCore
 
 # Import the compiled UI module
@@ -681,7 +681,7 @@ class Main(QtGui.QMainWindow):
         
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         
-        filename = str(filename.toUtf8()).decode("utf-8")
+        filename = str(filename.decode("utf-8"))
         self.load_filename = filename
         (name, ext) = os.path.splitext(filename)
         
@@ -1024,19 +1024,27 @@ if __name__ == "__main__":
     #shall be sent to. This Class needs a function "def write(self, charstr)
     Log.set_window_logstream(window.myMessageBox)
     
-    parser = OptionParser("usage: %prog [options]")
-    parser.add_option("-f", "--file", dest = "filename",
-                      help = "read data from FILENAME")
-    parser.add_option("-e", "--export", dest = "export_filename",
+    parser = argparse.ArgumentParser()
+    
+    parser.add_argument("filename",nargs="?")
+
+#    parser.add_argument("-f", "--file", dest = "filename",
+#                      help = "read data from FILENAME")
+    parser.add_argument("-e", "--export", dest = "export_filename",
                       help = "export data to FILENAME")
-    parser.add_option("-q", "--quiet", action = "store_true",
+    parser.add_argument("-q", "--quiet", action = "store_true",
                       dest = "quiet", help = "no GUI")
     
 #    parser.add_option("-v", "--verbose",
 #                      action = "store_true", dest = "verbose")
 
-    (options, args) = parser.parse_args()
-    logger.debug("Started with following options \n%s" % (options))
+    options = parser.parse_args()
+    print options.export_filename
+    print options
+
+
+    #(options, args) = parser.parse_args()
+    logger.debug("Started with following options \n%s" % (parser))
     
     if not options.quiet:
         window.show()
