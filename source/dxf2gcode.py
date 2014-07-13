@@ -1010,10 +1010,8 @@ if __name__ == "__main__":
     #Get local language and install if available.
     locale = QtCore.QLocale.system().name()
     translator = QtCore.QTranslator()
-    print("dxf2gcode_" + locale, "./i18n")
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
-        print(dir(translator))
         
     window = Main(app)
     g.window = window
@@ -1037,11 +1035,7 @@ if __name__ == "__main__":
     
 #    parser.add_option("-v", "--verbose",
 #                      action = "store_true", dest = "verbose")
-
     options = parser.parse_args()
-    print options.export_filename
-    print options
-
 
     #(options, args) = parser.parse_args()
     logger.debug("Started with following options \n%s" % (parser))

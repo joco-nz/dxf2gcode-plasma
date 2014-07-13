@@ -132,7 +132,6 @@ class LayerContentClass:
         return self.LayerName.startswith("BREAKS"+g.config.vars.Layer_Options['idfloatseparator'])
         
     def isMillLayer(self):
-        print '\"%s\"' % ("MILL"+g.config.vars.Layer_Options['idfloatseparator'])
         return self.LayerName.startswith("MILL"+g.config.vars.Layer_Options['idfloatseparator'])
         
     def isDrillLayer(self):

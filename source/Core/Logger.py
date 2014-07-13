@@ -43,7 +43,7 @@ class LoggerClass(QtCore.QObject):
         self.file_handler = None
         self.window_handler = None
         self.rootlogger = rootlogger
-        self.rootlogger.setLevel(logging.DEBUG)
+        self.rootlogger.setLevel(logging.CRITICAL)
         
         # always log to the console window
         self.console_handler = logging.StreamHandler()
