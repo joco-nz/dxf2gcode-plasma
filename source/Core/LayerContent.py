@@ -77,11 +77,11 @@ class LayerContentClass:
         if self.isParameterizableLayer():
             layer_commands = self.LayerName.replace(",", ".")
             lopts_re = re.compile("([a-zA-Z]+ *"+vars.Layer_Options['idfloatseparator']+" *[\-\.0-9]+)")
-            print lopts_re.findall(layer_commands)
+            #print lopts_re.findall(layer_commands)
             for lc in lopts_re.findall(layer_commands):
                 name, value = lc.split(vars.Layer_Options['idfloatseparator'])
                 name = name.strip()
-                print '\"%s\" \"%s\"' %(name, value)
+                #print '\"%s\" \"%s\"' %(name, value)
                 if name in vars.Layer_Options['mill_depth_identifiers']:
                     self.axis3_mill_depth = float(value)
                 elif name in vars.Layer_Options['slice_depth_identifiers']:

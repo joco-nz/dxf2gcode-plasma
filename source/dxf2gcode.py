@@ -681,7 +681,7 @@ class Main(QtGui.QMainWindow):
         
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         
-        filename = str(filename.decode("utf-8"))
+        filename = str(filename).decode("utf-8")
         self.load_filename = filename
         (name, ext) = os.path.splitext(filename)
         
