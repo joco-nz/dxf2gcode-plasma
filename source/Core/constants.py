@@ -3,7 +3,7 @@
 ############################################################################
 #   
 #   Copyright (C) 2010-2014
-#    Christian Kohlöffel
+#    Christian Kohlï¿½ffel
 #    Jean-Paul Schouwstra
 #   
 #   This file is part of DXF2GCODE.
@@ -31,6 +31,7 @@ see http://code.activestate.com/recipes/65207/ for module const
 
 @purpose:  initialization of the global constants used within the other modules.
 """
+
 
 import logging
 
