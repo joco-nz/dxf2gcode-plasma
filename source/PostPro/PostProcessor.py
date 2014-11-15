@@ -3,7 +3,7 @@
 ############################################################################
 #   
 #   Copyright (C) 2008-2014
-#    Christian Kohlöffel
+#    Christian Kohlï¿½ffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
 #   
@@ -62,7 +62,7 @@ class MyPostProcessor(QtCore.QObject):
         """
 
         try:
-            lfiles = os.listdir(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR))
+            lfiles = sorted(os.listdir(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)))
             """
             FIXME Folder needs to be empty or valid config file within.
             """
