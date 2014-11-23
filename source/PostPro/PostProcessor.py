@@ -531,7 +531,7 @@ class MyPostProcessor(QtCore.QObject):
         by the real Z value in the defined Number Format.
         """
         
-        if self.vars.General["output_maschine"]=='Lathe':
+        if g.config.vars.General['machine_type']=='lathe':
             fac = 2
         else:
             fac = 1

@@ -87,7 +87,7 @@ CONFIG_SPEC = str('''
     live_update_export_route = boolean(default = False)
     default_SplitEdges = boolean(default = False)
     default_AutomaticCutterCompensation = boolean(default = False)
-    machine_type = option('milling', 'drag_knife', default = 'milling')
+    machine_type = option('milling', 'drag_knife', 'lathe', default = 'milling')
     
     [Drag_Knife_Options]
     dragAngle = float(default = 20)
