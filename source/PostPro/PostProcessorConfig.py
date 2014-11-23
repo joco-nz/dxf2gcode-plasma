@@ -41,7 +41,7 @@ from PyQt4 import QtCore, QtGui
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig") 
 
-POSTPRO_VERSION = "4"
+POSTPRO_VERSION = "5"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -64,6 +64,7 @@ POSTPRO_SPEC = str('''
     output_format = string(default=".ngc")
     output_text = string(default="G-CODE for LinuxCNC")
     output_type = string(default="g-code")
+    output_maschine = option('Mill','Lathe', default = 'Mill')
     
     abs_export = boolean(default=True)
     cancel_cc_for_depth = boolean(default=False)
