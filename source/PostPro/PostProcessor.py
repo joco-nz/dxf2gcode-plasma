@@ -213,7 +213,7 @@ class MyPostProcessor(QtCore.QObject):
             try:
                 #File open and write
                 f = open(save_filename, "w")
-                f.write(exstr)
+                f.write(exstr.encode('utf8'))
                 f.close()
                 logger.info(self.tr("Export to FILE was successful"))    
             except IOError:
