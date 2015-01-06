@@ -877,6 +877,7 @@
       <string>Machine Type</string>
      </property>
      <addaction name="actionMilling"/>
+     <addaction name="actionLathe"/>
      <addaction name="actionDrag_Knife"/>
     </widget>
     <addaction name="actionTolerances"/>
@@ -1106,6 +1107,14 @@
    </property>
    <property name="text">
     <string>Drag Knife</string>
+   </property>
+  </action>
+  <action name="actionLathe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lathe</string>
    </property>
   </action>
  </widget>

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Tue Apr 29 21:21:40 2014
+# Created: Tue Jan 06 17:17:06 2015
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -531,6 +531,9 @@ class Ui_MainWindow(object):
         self.actionDrag_Knife = QtGui.QAction(MainWindow)
         self.actionDrag_Knife.setCheckable(True)
         self.actionDrag_Knife.setObjectName(_fromUtf8("actionDrag_Knife"))
+        self.actionLathe = QtGui.QAction(MainWindow)
+        self.actionLathe.setCheckable(True)
+        self.actionLathe.setObjectName(_fromUtf8("actionLathe"))
         self.menuFile.addAction(self.actionLoad_File)
         self.menuFile.addAction(self.actionReload_File)
         self.menuFile.addSeparator()
@@ -548,6 +551,7 @@ class Ui_MainWindow(object):
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionDelete_G0_paths)
         self.menuMachine_Type.addAction(self.actionMilling)
+        self.menuMachine_Type.addAction(self.actionLathe)
         self.menuMachine_Type.addAction(self.actionDrag_Knife)
         self.menuTolerances.addAction(self.actionTolerances)
         self.menuTolerances.addSeparator()
@@ -648,6 +652,7 @@ class Ui_MainWindow(object):
         self.actionAutomatic_Cutter_Compensation.setText(_translate("MainWindow", "Automatic Cutter Compensation", None))
         self.actionMilling.setText(_translate("MainWindow", "Milling", None))
         self.actionDrag_Knife.setText(_translate("MainWindow", "Drag Knife", None))
+        self.actionLathe.setText(_translate("MainWindow", "Lathe", None))
 
 from Gui.myCanvasClass import MyGraphicsView
 from Gui.myTreeView import MyTreeView

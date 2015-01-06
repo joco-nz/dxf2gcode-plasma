@@ -170,6 +170,7 @@ class Main(QtGui.QMainWindow):
         self.ui.actionAutomatic_Cutter_Compensation.triggered.connect(self.reloadFile)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
+        self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
         
         self.ui.actionAbout.triggered.connect(self.about)
 
@@ -663,17 +664,36 @@ class Main(QtGui.QMainWindow):
         self.updateMachineType()
         self.reloadFile()
         
+    def setMachineTypeToLathe(self):
+        """
+        This function is called by the menu when Machine Type -> Lathe is clicked.
+        """
+        g.config.machine_type = 'lathe'
+        self.updateMachineType()
+        self.reloadFile()
+        
     def updateMachineType(self):
         if g.config.machine_type == 'milling':
             self.ui.actionAutomatic_Cutter_Compensation.setEnabled(True)
             self.ui.actionMilling.setChecked(True)
             self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Infeed depth"))
-        else:
+        elif g.config.machine_type == 'lathe':
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionMilling.setChecked(False)
+            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionLathe.setChecked(True)
+            self.ui.label_9.setText(self.tr("No Z-Axis for lathe"))
+        elif g.config.machine_type == "drag_knife":
+            # TODO: Update of Maschine Type Lathe required. Z-Axis not available
+            # But fields may be used for other purpose.
             self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
             self.ui.actionDrag_Knife.setChecked(True)
+            self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
+            
     
     def loadFile(self, filename):
         """
