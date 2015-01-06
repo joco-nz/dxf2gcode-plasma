@@ -33,6 +33,9 @@ from math import degrees, radians
 
 import logging
 logger = logging.getLogger()
+from Core.Logger import LoggerClass
+
+import time
 
 from copy import copy, deepcopy
 
@@ -44,7 +47,7 @@ from PyQt4 import QtGui, QtCore
 # Import the compiled UI module
 from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
 
-from Core.Logger import LoggerClass
+
 from Core.Config import MyConfig
 from Core.Point import Point
 from Core.LayerContent import LayerContentClass
@@ -853,7 +856,6 @@ class Main(QtGui.QMainWindow):
                 sca = ent_geos[cont.order[0][0]].Scale
                 rot = ent_geos[cont.order[0][0]].rot
                 
-                logger.debug(new_entities)
                 
                 #Erstellen des neuen Entitie Contents f�r das Insert
                 #Creating the new Entitie Contents for the insert
@@ -995,17 +997,25 @@ class Main(QtGui.QMainWindow):
         settings.beginGroup("MainWindow");
         settings.setValue("size", self.size());
         settings.setValue("pos", self.pos());
-        settings.endGroup();         
+        settings.endGroup();   
+
     
 if __name__ == "__main__":
     """
     The main function which is executed after program start.
     """
-    Log = LoggerClass(rootlogger = logger, console_loglevel = logging.DEBUG)
-    
+    Log=LoggerClass(logger)
+
     g.config = MyConfig()
+    Log.set_console_handler_loglevel()
+    Log.add_file_logger()
 
     app = QtGui.QApplication(sys.argv)
+    window = Main(app)
+    g.window = window
+    
+    #shall be sent to. This Class needs a function "def write(self, charstr)
+    Log.add_window_logger(window.myMessageBox)
     
     #Get local language and install if available.
     locale = QtCore.QLocale.system().name()
@@ -1013,14 +1023,6 @@ if __name__ == "__main__":
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
         
-    window = Main(app)
-    g.window = window
-    
-    # LogText window exists, setup logging
-    Log.add_window_logger(log_level = logging.INFO)
-    #This is the handle to the GUI where the log message 
-    #shall be sent to. This Class needs a function "def write(self, charstr)
-    Log.set_window_logstream(window.myMessageBox)
     
     parser = argparse.ArgumentParser()
     
@@ -1040,9 +1042,11 @@ if __name__ == "__main__":
     #(options, args) = parser.parse_args()
     logger.debug("Started with following options \n%s" % (parser))
     
+
+
     if not options.quiet:
         window.show()
-    
+
     if not(options.filename is None):
         window.filename = options.filename
         #Initialize the scale, rotate and move coordinates

@@ -3,7 +3,7 @@
 ############################################################################
 #   
 #   Copyright (C) 2008-2014
-#    Christian Kohlöffel
+#    Christian Kohlï¿½ffel
 #    Jean-Paul Schouwstra
 #   
 #   This file is part of DXF2GCODE.
@@ -174,6 +174,7 @@ class ReadDXF(QtCore.QObject):
             #g.logger.logger.info(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
             
         line_pairs.nrs = len(line_pairs.line_pair)
+        logger.debug(self.tr('Did read %i of linepairs from DXF ') % line_pairs.nrs)
         return line_pairs
     
     #Search the sections in the DXF file to recognize Blocke.
@@ -580,10 +581,10 @@ class ReadDXF(QtCore.QObject):
                 cont.append(self.Get_Best_Contour(len(cont), new_cont_neg, geo, points))
             elif (len(points[0].be_cp)>0) & (len(points[0].en_cp)>0):
                 #print '\nGibt was in beiden Richtungen'
-                #Suchen der möglichen Pfade
+                #Suchen der mï¿½glichen Pfade
                 #Search the possible paths
                 new_cont_pos = self.Search_Paths(0, [], points[0].point_nr, 1, points)
-                #Bestimmen des besten Pfades und übergabe in cont
+                #Bestimmen des besten Pfades und ï¿½bergabe in cont
                 #Determine the best path and Xbergabe in cont ???
                 cont.append(self.Get_Best_Contour(len(cont), new_cont_pos, geo, points))
                 #points = self.Remove_Used_Points(cont[-1], points)

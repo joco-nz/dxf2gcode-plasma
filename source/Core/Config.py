@@ -160,9 +160,8 @@ CONFIG_SPEC = str('''
     pstoedit_opt = list(default = list('-f', 'dxf', '-mm'))
     
     [Logging]
-    # set this to 'logfile = <filename>' to turn on file logging
-    # or give the '-L logfile' program option
-    logfile = string(default = "")
+    # Logging to textfile is enabled automatically for now
+    logfile = string(default = "logfile.txt")
     
     # log levels are one in increasing importance:
     #      DEBUG INFO WARNING  ERROR CRITICAL
@@ -170,7 +169,7 @@ CONFIG_SPEC = str('''
     # corresponding output
     
     # this really goes to stderr
-    console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'DEBUG')
+    console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'CRITICAL')
     
     file_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'DEBUG')
     
@@ -244,7 +243,7 @@ class MyConfig(QtCore.QObject):
                 validate_errors = flatten_errors(self.var_dict, result)
                 
                 if validate_errors:
-                    g.logger.logger.error(self.tr("errors reading %s:") % (self.filename))
+                    logger.error(self.tr("errors reading %s:") % (self.filename))
 
                 for entry in validate_errors:
                     section_list, key, error = entry
@@ -255,7 +254,7 @@ class MyConfig(QtCore.QObject):
                     section_string = ', '.join(section_list)
                     if error == False:
                         error = self.tr('Missing value or section.')
-                    g.logger.logger.error( section_string + ' = ' + error)
+                    logger.error( section_string + ' = ' + error)
                 
                 if validate_errors:
                     raise BadConfigFileError,"syntax errors in config file"

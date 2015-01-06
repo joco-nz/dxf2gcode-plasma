@@ -23,8 +23,8 @@
 ############################################################################
 
 import sys
-import time
 import logging
+logger = logging.getLogger(__name__)
 
 import Core.Globals as g
 
@@ -37,86 +37,91 @@ class LoggerClass(QtCore.QObject):
         file
         message window
     '''
-    def __init__(self, rootlogger, console_loglevel):
+    def __init__(self,root_logger):
+        """
+        Initilaishation of the Logger Class. Only the root logger is initialized
+        and the console handler ist set. All other handlers needs to be set later
+        since the config / window is not present during the start already. 
+        """
         QtCore.QObject.__init__(self)
         
-        self.file_handler = None
-        self.window_handler = None
-        self.rootlogger = rootlogger
-        self.rootlogger.setLevel(logging.CRITICAL)
+        self.root_logger=root_logger
         
-        # always log to the console window
-        self.console_handler = logging.StreamHandler()
-        self.console_handler.setFormatter(logging.Formatter("%(name)-25s %(funcName)-12s %(lineno)-3d:  - %(message)s"))
-        self.console_handler.setLevel(self._cvtlevel(console_loglevel))
-        self.console_handler.addFilter(FilterModule())
+        """ 
+        The level of the root_logger needs to be the highest in order to get 
+        all messages into the handlers. The handles may have higher logging level
+        """
+        root_logger.setLevel(logging.DEBUG)
         
-        self.rootlogger.addHandler(self.console_handler)
-
-    # allow  'INFO' or logging.INFO  args
-    def _cvtlevel(self, level):
-        """NEEDS DOCUMENTED"""
-        if isinstance(level, basestring):
-            return logging._levelNames[level]
-        else:
-            return level
-
-    # logging to file + window - explicitly enabled
-    def add_file_logger(self, logfile, log_level):
-        """Add file logger"""
+        self.console_handler = logging.StreamHandler(sys.stderr)
+        self.console_handler.setLevel(logging.ERROR)
         
-        self.file_handler = logging.FileHandler(logfile, 'w')  # recreate 
-        self.file_handler.setFormatter(logging.Formatter("%(levelname)-10s %(module)-15s %(name)-15s %(funcName)-10s %(lineno)-4d:  - %(message)s"))
-        self.file_handler.setLevel(self._cvtlevel(log_level))
-        #self.logger.addHandler(self.file_handler)
+        formatter=logging.Formatter("%(levelname)-10s %(name)-15s %(funcName)-10s %(lineno)-4d:  - %(message)s")
+        self.console_handler.setFormatter(formatter)
+        root_logger.addHandler(self.console_handler)
+        
+        
+    def set_console_handler_loglevel(self):
+        """
+        This function is used to reset the Loglevel after the config file hase 
+        been loaded.
+        """
+        self.console_handler.setLevel(self._cvtlevel(g.config.vars.Logging['console_loglevel']))
     
-    def change_file_logging(self, onoff):
-        """Switch logging to file on or off"""
-        if onoff:
-            if not hasattr(self.logger, 'file_handler'):
-                self.add_file_logger(g.config.logfile, g.config.file_loglevel)
-            self.rootlogger.addHandler(self.file_handler)
-            self.rootlogger.info(self.tr("file logging started at %s", time.asctime()))
-        else:
-            self.rootlogger.info(self.tr("file logging stopped at %s", time.asctime()))
-            self.rootlogger.removeHandler(self.file_handler)
-    
-    def add_window_logger(self, log_level):
-        """Add window logger"""
+    def add_window_logger(self,  stream=sys.stderr):
+        """
+        Add the logger, which may be used to log to the window. This stream will
+        be shown in the messagebox in the canvas window.
+        @param stream: The stream which shall be used for writing. Here the 
+        window will be used. This Class needs a function "def write(self, charstr) 
+        {DEBUG, INFO, WARNING,  ERROR, CRITICAL}
+        """
         
-        self.window_handler = logging.StreamHandler()
-        if log_level == logging.INFO:
+        self.window_handler = logging.StreamHandler(stream=stream)
+        self.window_handler.setLevel(self._cvtlevel(g.config.vars.Logging['window_loglevel']))
+        
+        if g.config.vars.Logging['window_loglevel'] == "INFO":
             self.window_handler.setFormatter(logging.Formatter("%(message)s"))
         else:
-            self.window_handler.setFormatter(logging.Formatter("%(levelname)s - %(message)s"))
-            
-        self.window_handler.setLevel(self._cvtlevel(log_level))
-        self.rootlogger.addHandler(self.window_handler)
-        
-    def set_window_logstream(self, stream=sys.stderr):
-        """Set window logstream"""
-        if self.window_handler:
-            self.window_handler.stream = stream
-        
-    def set_window_loglevel(self, log_level):
-        """Set window log level"""
-        if self.window_handler:
-            self.window_handler.setLevel(self._cvtlevel(log_level))
-    
-    def set_file_loglevel(self, log_level):
-        """Set file log level"""
-        if self.file_handler:
-            self.file_handler.setLevel(self._cvtlevel(log_level))
-                      
-    def set_console_loglevel(self, log_level):
-        """Set console log level"""
-        if self.console_handler:
-            self.console_handler.setLevel(self._cvtlevel(log_level))
-            
+            formatter=logging.Formatter("%(levelname)s - %(message)s")
+            self.window_handler.setFormatter(formatter)
+                   
+        self.root_logger.addHandler(self.window_handler)  
 
+             
+
+    def add_file_logger(self):
+        """
+        Add the logger, which may be used to log to a dedicated file. This logger
+        will be enabled all the time.
+        """
+        
+        self.file_handler = logging.FileHandler(g.config.vars.Logging['logfile'], 'w')  #create 
+        self.file_handler.setLevel(self._cvtlevel(g.config.vars.Logging['file_loglevel']))
+        self.file_handler.setFormatter(logging.Formatter("%(levelname)-10s %(name)-15s %(funcName)-10s %(lineno)-4d:  - %(message)s"))
+        self.root_logger.addHandler(self.file_handler)
+       
+ 
+    def _cvtlevel(self, level):
+        """
+        This function converts the given logging levels as they are:
+        {DEBUG, INFO, WARNING,  ERROR, CRITICAL} to a conform format which is
+        required by the vunction e.g. logging.DEBUG
+        @param level: The String with the Level
+        @return: Returns the converted string acc. to logging needs. 
+        """
+        if isinstance(level, basestring):    
+            return logging._levelNames[level]
+        else:
+            return level 
+       
+     
 
 class FilterModule(logging.Filter): 
     def filter(self, record): 
-        """NEEDS DOCUMENTED"""
+        """A dedicated filter may be added here for debug use
+        @param record: The log message is posted here in order to do some checks
+        @return: If the value is true it will be shown in the log 
+        """
         return True
     
