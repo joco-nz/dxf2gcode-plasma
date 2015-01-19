@@ -151,7 +151,11 @@ class Point:
             return ((self.y <= C.y) and (C.y <= B.y)) or ((self.y >= C.y) and (C.y >= B.y))
         
     def unit_vector(self, Pto=None):
-        """Returns vector of length 1"""
+        """
+        Returns vector of length 1 with similar direction as input
+        @param Pto: The other point 
+        @return: Returns the Unit vector
+        """
         diffVec = Pto - self
         l = diffVec.distance()
         return Point(diffVec.x / l, diffVec.y / l)
@@ -186,8 +190,17 @@ class Point:
         """ 
         return Point(x=self.x + cos(ang) * r, \
                      y=self.y + sin(ang) * r)
-
-    
+        
+    def get_normal_vector(self,other,r=1):
+        """
+        This function return the Normal to a vector defined by self and other
+        @param: The second point
+        @param r: The length of the normal (-length for other direction)
+        @return: Returns the Normal Vector
+        """
+        unit_vector=self.unit_vector(other)
+        return Point(x=unit_vector.y*r,y=-unit_vector.x*r)
+        
     def triangle_height(self, other1, other2):
         """
         Calculate height of triangle given lengths of the sides
@@ -421,13 +434,13 @@ class LineGeo:
         else:
             return False
         
-    def distance2point(self,point):
-        AE=self.Pa.distance(self.Pe)
-        AP=self.Pa.distance(point)
-        EP=self.Pe.distance(point)
-        AEPA=(AE+AP+EP)/2
-        return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
-    
+#    def distance2point(self,point):
+#        AE=self.Pa.distance(self.Pe)
+#        AP=self.Pa.distance(point)
+#        EP=self.Pe.distance(point)
+#        AEPA=(AE+AP+EP)/2
+#        return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
+#    
     
     def distance_to_geo(self, other=[]):
         """
@@ -436,7 +449,7 @@ class LineGeo:
         @param other: the instance of the 2nd geometry element.
         @return: The distance between the two geometries 
         """
-        if other.type == "CCLineGeo":
+        if other.type == "LineGeo":
             return self.distance_line_line(other)
         else:
             logger.error(self.tr("Unsupported geometry type: %s" %other.type)) 
@@ -565,7 +578,6 @@ class LineGeo:
         C= other.Pa
         D= other.Pe
         return A.ccw(C,D) != B.ccw(C,D) and A.ccw(B,C) != A.ccw(B,D)
-     
     
     def join_colinear_line(self,other):
         """
@@ -935,6 +947,66 @@ class offShapeClass(ShapeClass):
             
         #If no start_vertex exisst return None
         return None
+    
+    def interfering_full(self,Line1,dir,Line2):
+        """
+        Check if the Endpoint (dependent on dir) of Line 1 is interfering with 
+        line 2 Definition according to Definition 6
+        @param Line 1: The first Line 
+        @param dir: The direction of the line 1, as given -1 reversed direction
+        @param Line 2: The second line to be checked
+        @ return: Returns True or False
+        """
+        #Make the Center Point of the tangent Circle of End.
+        if (self.offtype=="in")and(dir==1):
+            PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,offset)
+        elif (self.offtype=="in")and(dir==-1):
+            PeTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,offset)
+        elif (self.offtype=="out")and(dir==1):
+             PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
+        elif (self.offtype=="out")and(dir==1):
+             PeTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
+
+        # If the distance from the Line to the Center of the Tangential Circle 
+        #is smaller then the radius we have an intersection
+        logger.debug(Line2.distance_point_line(PeTan))
+        return Line2.distance_point_line(PeTan)<=offset
+    
+    def interfering_partly(self,Line1,dir,Line2):
+        """
+        Check if any tangential circle of Line 1 is interfering with 
+        line 2. Definition according to Definition 5
+        @param Line 1: The first Line 
+        @param dir: The direction of the line 1, as given -1 reversed direction
+        @param Line 2: The second line to be checked
+        @ return: Returns True or False
+        """
+        #Make the Center Point of the tangent Circle of End.
+        if (self.offtype=="in"):
+            PaTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,offset)
+            PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,offset)
+        elif (self.offtype=="out"):
+             PaTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
+             PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
+        
+        offLine=LineGeo(PaTan,PeTan)
+
+        # If the distance from the Line to the Center of the Tangential Circle 
+        #is smaller then the radius we have an intersection
+        logger.debug(Line2.distance_line_line(offLine))
+        return Line2.distance_line_line(offLine)<=offset
+    
+    def Interfering_relation(self, Line1, dir1, Line2, dir1):
+        """
+        Check the interfering relation between two sigements (line1 and line2).
+        Definition acccording to Definition 6 
+        @param Line1: The first segment
+        @param dir1: The direction of Line1 (-1 for reversed)
+        @param Line2: The second segment
+        @param dir2: The direction of Line 2 (-1 for reversed)
+        @return: Returns one of [full, partial, reverse] interfering relations
+        
+        """
                 
 class PlotClass:
     """
@@ -973,7 +1045,7 @@ class PlotClass:
             line.Pe.plot2plot(self.plot1,format='og')
             self.plot1.text(line.Pa.x,line.Pa.y,line_nr,ha='left', fontsize=10, color='red')
             
-        #self.plot1.axis('scaled')     
+        self.plot1.axis('scaled')     
         self.plot1.margins(y=.1, x=.1)
         self.plot1.autoscale(True,'both',False)
         self.canvas.show()
@@ -1168,6 +1240,35 @@ class ExampleClass:
             offshape3.segments[offshape3.start_vertex].Pa.plot2plot(Pl.plot1,format='or')
         
         Pl.canvas.show()
+        
+    def PWIDTest(self):
+        master.title("PS Curve Parameterization Check")
+        
+        L0=LineGeo(Point(x=0,y=-1),Point(x=1,y=0))
+        L1=LineGeo(Point(x=1,y=0),Point(x=2,y=2))
+        L2=LineGeo(Point(x=2,y=2),Point(x=3,y=3))
+        L3=LineGeo(Point(x=3,y=3),Point(x=4,y=0))
+        L4=LineGeo(Point(x=4,y=0),Point(x=5,y=3))
+        L5=LineGeo(Point(x=5,y=3),Point(x=5,y=-6))
+        L6=LineGeo(Point(x=5,y=-6),Point(x=0,y=-5))
+        L7=LineGeo(Point(x=0,y=-5), Point(x=0,y=-4))
+        L8=LineGeo(Point(x=0,y=-4), Point(x=0,y=-1))
+        
+        shape=ShapeClass(geos=[L0,L1,L2,L3,L4,L5,L6,L7,L8],closed=True)
+        Pl.plot_lines_plot(shape.geos,221)
+        
+        Normal=L0.Pa.get_normal_vector(L0.Pe,1.5)
+        Normal_Line1=LineGeo(L0.Pe,L0.Pe+Normal)
+        
+        Normal2=L2.Pa.get_normal_vector(L2.Pe,-0.5)
+        Normal_Line2=LineGeo(L2.Pe,L2.Pe+Normal2)
+        
+        Normal3=L3.Pa.get_normal_vector(L3.Pe,2)
+        Normal_Line3=LineGeo(L3.Pe,L3.Pe+Normal3)
+        
+        Pl.plot_lines_plot(shape.geos+[Normal_Line1,Normal_Line2,Normal_Line3],221)
+        
+      
 
 if 1:
     logging.basicConfig(level=logging.DEBUG)
@@ -1179,7 +1280,8 @@ if 1:
     #Ex.CheckColinearLines()
     #CheckForIntersections()
     #Ex.SimplePolygonCheck()
-    Ex.PsCurveParametrizationCheck() 
+    #Ex.PsCurveParametrizationCheck() 
+    Ex.PWIDTest()
          
     master.mainloop()
 
