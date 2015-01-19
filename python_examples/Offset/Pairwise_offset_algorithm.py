@@ -855,7 +855,6 @@ class ShapeClass():
         """
         return string_to_translate
 
-
 class offShapeClass(ShapeClass):
     """
     This Class is used to generate The fofset aof a shape according to:
@@ -885,6 +884,8 @@ class offShapeClass(ShapeClass):
         self.join_colinear_lines()
 
         self.make_segment_types()
+        self.start_vertex=self.get_start_vertex()     
+        
         
     def make_segment_types(self):
         """
@@ -911,14 +912,30 @@ class offShapeClass(ShapeClass):
             #If it is a reflex vertex add a reflex segemnt (single point)
             if (((geo1.Pa.ccw(geo1.Pe,geo2.Pe)==1) and  self.offtype=="in") or
                 (geo1.Pa.ccw(geo1.Pe,geo2.Pe)==-1 and self.offtype=="out")):
-                self.segments+=[geo1.Pe]
+                self.segments+=[geo1.Pe]           
             
             #Add the linear segment which is a line connecting 2 vertices
             self.segments+=[geo2]
         
+    def get_start_vertex(self):
+        """
+        Find first convex vertex to start PWID Testing. Any of the convex vertexes
+        can be used as a starting point 
+        """
+        if self.closed:
+            start=0
+        else:
+            start=1
+        
+        for i in range(start,len(self.segments)):
+            seg1=self.segments[i-1]
+            seg2=self.segments[i]
+            if seg1.type=="LineGeo" and seg2.type=="LineGeo":
+                return i
+            
+        #If no start_vertex exisst return None
+        return None
                 
-
-
 class PlotClass:
     """
     Class which calls matplotlib to plot the results.
@@ -939,7 +956,6 @@ class PlotClass:
         self.toolbar = NavigationToolbar2TkAgg(self.canvas, self.frame_c)
         self.toolbar.update()
         self.canvas._tkcanvas.pack( fill=BOTH, expand=1)
-
 
     def plot_lines_plot(self,lines,sb_nr=111,text=""):
         self.plot1 = self.figure.add_subplot(sb_nr)
@@ -987,14 +1003,10 @@ class PlotClass:
         self.plot1.autoscale(True,'both',False)
         self.canvas.show()
     
-
-if 1:
-    logging.basicConfig(level=logging.DEBUG)
-    master = Tk()
-    Pl=PlotClass(master)
-    
-
-    if 0:
+class ExampleClass:
+    def __init__(self):
+        pass
+    def CheckColinearLines(self):
         master.title("Check for Colinear Lines and Join")
         
         L1=LineGeo(Point(x=0,y=0),Point(x=2,y=2))
@@ -1039,7 +1051,7 @@ if 1:
         Pl.plot_lines_plot(lines3,223,text3)
         Pl.plot_lines_plot(lines4,224,text4)
         
-    if 0:
+    def CheckForIntersections(self):
         master.title("Check for Intersections and split Lines")
         
         L1=LineGeo(Point(x=0,y=0),Point(x=2,y=2))
@@ -1083,7 +1095,7 @@ if 1:
         Pl.plot_lines_plot(lines3,223,text3)
         Pl.plot_lines_plot(lines4,224,text4)
         
-    if 0:
+    def SimplePolygonCheck(self):
         master.title("Simple Polygon Check")
         
         L0=LineGeo(Point(x=0,y=-1),Point(x=0,y=0))
@@ -1114,8 +1126,8 @@ if 1:
         shape2.join_colinear_lines()
         Pl.plot_lines_plot(shape2.geos,224)
         
-    if 1:
-        master.title("PS Curve Parametterization Check")
+    def PsCurveParametrizationCheck(self):
+        master.title("PS Curve Parameterization Check")
         
         L0=LineGeo(Point(x=0,y=-1),Point(x=0,y=0))
         L1=LineGeo(Point(x=0,y=0),Point(x=2,y=2))
@@ -1126,15 +1138,49 @@ if 1:
         L6=LineGeo(Point(x=5,y=-6),Point(x=0,y=-5))
         L7=LineGeo(Point(x=0,y=-5), Point(x=0,y=-4))
         L8=LineGeo(Point(x=0,y=-4), Point(x=0,y=-1))
+        
         shape=ShapeClass(geos=[L0,L1,L2,L3,L4,L5,L6,L7,L8],closed=True)
         Pl.plot_lines_plot(shape.geos,221)
            
         offshape=offShapeClass(parent=shape,offset=1,offtype='in') 
-        Pl.plot_segments(offshape.segments,222)
+        Pl.plot_segments(offshape.segments,222,'inner offset')
+        if not(offshape.start_vertex is None):
+            offshape.segments[offshape.start_vertex].Pa.plot2plot(Pl.plot1,format='or')
         
         offshape2=offShapeClass(parent=shape,offset=1,offtype='out') 
-        Pl.plot_segments(offshape2.segments,223)
-                
+        Pl.plot_segments(offshape2.segments,223,'outter offset')
+        
+        if not(offshape2.start_vertex is None):
+            offshape2.segments[offshape2.start_vertex].Pa.plot2plot(Pl.plot1,format='or')        
+        
+        L0=LineGeo(Point(x=0,y=-1),Point(x=0,y=0))
+        L1=LineGeo(Point(x=0,y=0),Point(x=2,y=2))
+        L2=LineGeo(Point(x=2,y=2),Point(x=3,y=3))
+        L3=LineGeo(Point(x=3,y=3),Point(x=3,y=-6))
+        L4=LineGeo(Point(x=3,y=-6),Point(x=0,y=-5))
+        L5=LineGeo(Point(x=0,y=-5), Point(x=0,y=-4))
+        L6=LineGeo(Point(x=0,y=-4), Point(x=0,y=-1))
+        shape3=ShapeClass(geos=[L0,L1,L2,L3,L4,L5,L6],closed=True)
+                  
+        offshape3=offShapeClass(parent=shape3,offset=1,offtype='out') 
+        Pl.plot_segments(offshape3.segments,224,'outer offset')
+        if not(offshape3.start_vertex is None):
+            offshape3.segments[offshape3.start_vertex].Pa.plot2plot(Pl.plot1,format='or')
+        
+        Pl.canvas.show()
+
+if 1:
+    logging.basicConfig(level=logging.DEBUG)
+    master = Tk()
+    Pl=PlotClass(master)
+    Ex=ExampleClass()
+    
+    
+    #Ex.CheckColinearLines()
+    #CheckForIntersections()
+    #Ex.SimplePolygonCheck()
+    Ex.PsCurveParametrizationCheck() 
+         
     master.mainloop()
 
 
