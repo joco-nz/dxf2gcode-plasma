@@ -50,7 +50,6 @@ logger = logging.getLogger()
 class Point:
     __slots__ = ["x", "y", "z"]  
     def __init__(self, x=0, y=0, z=0):
-        self.type="Point"
         self.x = x
         self.y = y
         self.z = z
@@ -82,12 +81,23 @@ class Point:
     def __rmul__(self, other):
         return Point(other * self.x, other * self.y)
     def __mul__(self, other):
-        if type(other) == list:
+        """
+        The function which is called if the object is multiplied with another
+        object. Dependent on the object type different operations are performed
+        @param other: The element which is used for the multiplication
+        @return: Returns the result dependent on object type
+        """
+        if isinstance(other, list):
             #Scale the points
             return Point(x=self.x * other[0], y=self.y * other[1])
-        else:
+        elif isinstance(other, (int, float, long, complex)):
+            return Point(x=self.x*other, y=self.y*other)
+        elif isinstance(other,Point):
             #Calculate Scalar (dot) Product
             return self.x * other.x + self.y * other.y
+        else:
+            logger.warning("Unsupported type: %s" %type(other))
+            
     def __truediv__(self, other):
         return Point(x=self.x / other, y=self.y / other)
 
@@ -164,7 +174,11 @@ class Point:
         """Returns distance between two given points"""
         if type(other) == type(None):
             other = Point(x=0.0, y=0.0)
-        return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+        
+        if isinstance(other,Point):
+            return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+        elif isinstance(other,LineGeo):
+            return other.distance(self)
 
     def norm_angle(self, other=None):
         """Returns angle between two given points"""
@@ -442,17 +456,19 @@ class LineGeo:
 #        return abs(2*sqrt(abs(AEPA*(AEPA-AE)*(AEPA-AP)*(AEPA-EP)))/AE)
 #    
     
-    def distance_to_geo(self, other=[]):
+    def distance(self, other=[]):
         """
         Find the distance between 2 geometry elements. Possible is CCLineGeo
         and CCArcGeo
         @param other: the instance of the 2nd geometry element.
         @return: The distance between the two geometries 
         """
-        if other.type == "LineGeo":
+        if isinstance(other,LineGeo):
             return self.distance_line_line(other)
+        elif isinstance(other,Point):
+            return self.distance_point_line(other)
         else:
-            logger.error(self.tr("Unsupported geometry type: %s" %other.type)) 
+            logger.error(self.tr("Unsupported geometry type: %s" %type(other))) 
             
     def distance_line_line(self,other):
         """
@@ -480,14 +496,14 @@ class LineGeo:
         d=self.Pe-self.Pa
         v=Point-self.Pa
     
-        t=dotProd(d,v)
+        t=d.dotProd(v)
         
         if t<=0:
             #our Point is lying "behind" the segment
             #so end Point 1 is closest to Point and distance is length of
             #vector from end Point 1 to Point.
             return self.Pa.distance(Point)
-        elif t>=dotProd(d,d):
+        elif t>=d.dotProd(d):
             #our Point is lying "ahead" of the segment
             #so end Point 2 is closest to Point and distance is length of
             #vector from end Point 2 to Point.
@@ -496,7 +512,7 @@ class LineGeo:
             #our Point is lying "inside" the segment
             #i.e.:a perpendicular from it to the line that contains the line
             #segment has an end Point inside the segment
-            return sqrt(dotProd(v,v) - (t*t)/dotProd(d,d));
+            return sqrt(v.dotProd(v) - (t*t)/d.dotProd(d));
                 
     
     def find_inter_point(self, other, type='TIP'):
@@ -709,7 +725,6 @@ class ShapeClass():
         also contain arcs. These will be reflected by multiple lines in order 
         to easy calclations.
         """       
-        self.type = "Shape"
         self.geos = geos
         self.closed = closed
         self.length = length
@@ -888,7 +903,7 @@ class offShapeClass(ShapeClass):
         ShapeClass.__init__(self, closed=parent.closed, 
                             length=parent.length,
                             geos=deepcopy(parent.geos))
-        self.type = "offShape"
+        self.offset=offset
         self.offtype= offtype
         self.segments=[]
         
@@ -897,6 +912,8 @@ class offShapeClass(ShapeClass):
 
         self.make_segment_types()
         self.start_vertex=self.get_start_vertex()     
+        
+        self.PairWiseInterferenceDetection(self.start_vertex,self.start_vertex-1)
         
         
     def make_segment_types(self):
@@ -919,11 +936,16 @@ class offShapeClass(ShapeClass):
             
         for i in range(start,len(self.geos)):
             geo1=self.geos[i-1]
+            geo1.end_normal=geo1.Pa.get_normal_vector(geo1.Pe)
             geo2=self.geos[i]
+            geo2.start_normal=geo2.Pa.get_normal_vector(geo2.Pe)
+            geo2.end_normal=geo2.Pa.get_normal_vector(geo2.Pe)
           
             #If it is a reflex vertex add a reflex segemnt (single point)
             if (((geo1.Pa.ccw(geo1.Pe,geo2.Pe)==1) and  self.offtype=="in") or
                 (geo1.Pa.ccw(geo1.Pe,geo2.Pe)==-1 and self.offtype=="out")):
+                geo1.Pe.start_normal=geo1.end_normal
+                geo1.Pe.end_normal=geo2.end_normal
                 self.segments+=[geo1.Pe]           
             
             #Add the linear segment which is a line connecting 2 vertices
@@ -939,74 +961,126 @@ class offShapeClass(ShapeClass):
         else:
             start=1
         
-        for i in range(start,len(self.segments)):
+        for i in range(start,len(self.geos)):
             seg1=self.segments[i-1]
             seg2=self.segments[i]
-            if seg1.type=="LineGeo" and seg2.type=="LineGeo":
+            if isinstance(seg1,LineGeo) and isinstance(seg2,LineGeo):
                 return i
             
         #If no start_vertex exisst return None
         return None
     
-    def interfering_full(self,Line1,dir,Line2):
+    def interfering_full(self,segment1,dir,segment2):
         """
-        Check if the Endpoint (dependent on dir) of Line 1 is interfering with 
-        line 2 Definition according to Definition 6
-        @param Line 1: The first Line 
+        Check if the Endpoint (dependent on dir) of segment 1 is interfering with 
+        segment 2 Definition according to Definition 6
+        @param segment 1: The first segment 
         @param dir: The direction of the line 1, as given -1 reversed direction
-        @param Line 2: The second line to be checked
+        @param segment 2: The second segment to be checked
         @ return: Returns True or False
         """
-        #Make the Center Point of the tangent Circle of End.
-        if (self.offtype=="in")and(dir==1):
-            PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,offset)
-        elif (self.offtype=="in")and(dir==-1):
-            PeTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,offset)
-        elif (self.offtype=="out")and(dir==1):
-             PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
-        elif (self.offtype=="out")and(dir==1):
-             PeTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
-
-        # If the distance from the Line to the Center of the Tangential Circle 
-        #is smaller then the radius we have an intersection
-        logger.debug(Line2.distance_point_line(PeTan))
-        return Line2.distance_point_line(PeTan)<=offset
-    
-    def interfering_partly(self,Line1,dir,Line2):
-        """
-        Check if any tangential circle of Line 1 is interfering with 
-        line 2. Definition according to Definition 5
-        @param Line 1: The first Line 
-        @param dir: The direction of the line 1, as given -1 reversed direction
-        @param Line 2: The second line to be checked
-        @ return: Returns True or False
-        """
-        #Make the Center Point of the tangent Circle of End.
-        if (self.offtype=="in"):
-            PaTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,offset)
-            PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,offset)
-        elif (self.offtype=="out"):
-             PaTan=Line1.Pa+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
-             PeTan=Line1.Pe+Line1.Pa.get_normal_vector(Line1.Pe,-offset)
         
-        offLine=LineGeo(PaTan,PeTan)
+        #if segement 1 is inverted change End Point
+        if isinstance(segment1,LineGeo) and dir==1:
+            Pe=segment1.Pe
+        elif isinstance(segment1,LineGeo) and dir==-1:
+            Pe=segment1.Pa
+        elif isinstance(segment1,Point):
+            Pe=segment1
+        else:
+            logger.error("Unsupportet Object type: %s" %type(segment1))
+            
+        # if we cut outside reverse the offset
+        if self.offtype=="out":
+            offset=-self.offset
+        else:
+            offset=self.offset
+            
+        distance=segment2.distance(Pe+segment1.end_normal*offset)
+        
 
+        # If the distance from the Segment to the Center of the Tangential Circle 
+        #is smaller then the radius we have an intersection
+        logger.debug(distance)
+        return distance<=offset
+    
+    def interfering_partly(self,segment1,dir,segment2):
+        """
+        Check if any tangential circle of segment 1 is interfering with 
+        segment 2. Definition according to Definition 5
+        @param segment 1: The first Line 
+        @param dir: The direction of the segment 1, as given -1 reversed direction
+        @param segment 2: The second line to be checked
+        @ return: Returns True or False
+        """
+        # if we cut outside reverse the offset
+        # if we cut outside reverse the offset
+        if self.offtype=="out":
+            offset=-self.offset
+        else:
+            offset=self.offset
+        
+        #if segement 1 is inverted change End Point
+        if isinstance(segment1,LineGeo):
+            Pa=segment1.Pa+segment1.start_normal*offset
+            Pe=segment1.Pe+segment1.end_normal*offset
+        elif isinstance(segment1,Point):
+            Pa=segment1+segment1.start_normal*offset
+            Pe=segment1+segment1.end_normal*offset
+        else:
+            logger.error("Unsupportet Object type: %s" %type(segment1))
+            
+        offLine=LineGeo(Pa,Pe)
+     
         # If the distance from the Line to the Center of the Tangential Circle 
         #is smaller then the radius we have an intersection
-        logger.debug(Line2.distance_line_line(offLine))
-        return Line2.distance_line_line(offLine)<=offset
+        logger.debug(segment2.distance(offLine))
+        return segment2.distance(offLine)<=offset
     
-    def Interfering_relation(self, Line1, dir1, Line2, dir1):
+    def Interfering_relation(self, segment1, dir1, segment2, dir2):
         """
-        Check the interfering relation between two sigements (line1 and line2).
+        Check the interfering relation between two segements (segment1 and segment2).
         Definition acccording to Definition 6 
-        @param Line1: The first segment
-        @param dir1: The direction of Line1 (-1 for reversed)
-        @param Line2: The second segment
-        @param dir2: The direction of Line 2 (-1 for reversed)
-        @return: Returns one of [full, partial, reverse] interfering relations
-        
+        @param segment1: The first segment
+        @param dir1: The direction of segment 1 (-1 for reversed)
+        @param segment2: The second segment
+        @param dir2: The direction of segment 2 (-1 for reversed)
+        @return: Returns one of [full, partial, reverse] interfering relations 
+        for both segments
         """
+        
+        if self.interfering_full(segment1, dir1,segment2):
+            L1_status="full"
+        elif self.interfering_partly(segment1,dir1,segment2):
+            L1_status="partial"
+        else:
+            L1_status="reverse"
+            
+        if self.interfering_full(segment2, dir2, segment1):
+            L2_status="full"
+        elif self.interfering_partly(segment2,dir2,segment1):
+            L2_status="partial"
+        else:
+            L2_status="reverse"
+        
+        return [L1_status,L2_status]
+    
+    def PairWiseInterferenceDetection(self, forward, backward):
+        """
+        Returns the first forward and backward segment nr. for which both
+        interfering conditions are partly.
+        @param foward: The nr of the first forward segment
+        @param backward: the nr. of the first backward segment
+        @return: forward, backward
+        """
+
+        segment1=self.segments[forward]
+        segment2=self.segments[backward]
+        [L1_status,L2_status]=self.Interfering_relation(segment1,1,segment2,-1)
+        
+        logger.debug("L1_status: %s,L2_status: %s" %(L1_status,L2_status))
+              
+        
                 
 class PlotClass:
     """
@@ -1061,7 +1135,7 @@ class PlotClass:
             
             seg=segments[segment_nr]
             seg.plot2plot(self.plot1)
-            if seg.type=='LineGeo':
+            if isinstance(seg,LineGeo):
                 Pa=(seg.Pa+seg.Pe)/2
                 
                 seg.Pa.plot2plot(self.plot1,format='xr')
@@ -1237,7 +1311,7 @@ class ExampleClass:
         offshape3=offShapeClass(parent=shape3,offset=1,offtype='out') 
         Pl.plot_segments(offshape3.segments,224,'outer offset')
         if not(offshape3.start_vertex is None):
-            offshape3.segments[offshape3.start_vertex].Pa.plot2plot(Pl.plot1,format='or')
+            offshape3.segments[offshape3.start_vertex].Pa.plot2plot(Pl.plot1,format='oc')
         
         Pl.canvas.show()
         
@@ -1257,21 +1331,26 @@ class ExampleClass:
         shape=ShapeClass(geos=[L0,L1,L2,L3,L4,L5,L6,L7,L8],closed=True)
         Pl.plot_lines_plot(shape.geos,221)
         
-        Normal=L0.Pa.get_normal_vector(L0.Pe,1.5)
+        Normal=L0.Pa.get_normal_vector(L0.Pe,0.5)
         Normal_Line1=LineGeo(L0.Pe,L0.Pe+Normal)
         
         Normal2=L2.Pa.get_normal_vector(L2.Pe,-0.5)
         Normal_Line2=LineGeo(L2.Pe,L2.Pe+Normal2)
         
-        Normal3=L3.Pa.get_normal_vector(L3.Pe,2)
+        Normal3=L3.Pa.get_normal_vector(L3.Pe,0.75)
         Normal_Line3=LineGeo(L3.Pe,L3.Pe+Normal3)
         
         Pl.plot_lines_plot(shape.geos+[Normal_Line1,Normal_Line2,Normal_Line3],221)
         
+        offshape=offShapeClass(shape, offset=1, offtype='in')
+        Pl.plot_segments(offshape.segments,222,offshape.start_vertex)
+        #if not(offshape.start_vertex is None):
+        offshape.segments[offshape.start_vertex].Pa.plot2plot(Pl.plot1,format='oc')
+        Pl.canvas.show()
       
 
 if 1:
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.DEBUG,format="%(funcName)-30s %(lineno)-6d: %(message)s")
     master = Tk()
     Pl=PlotClass(master)
     Ex=ExampleClass()
