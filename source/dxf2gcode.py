@@ -1025,23 +1025,28 @@ if __name__ == "__main__":
     The main function which is executed after program start.
     """
     Log=LoggerClass(logger)
+    #Get local language and install if available.
+
 
     g.config = MyConfig()
     Log.set_console_handler_loglevel()
     Log.add_file_logger()
 
     app = QtGui.QApplication(sys.argv)
+    
+    locale = QtCore.QLocale.system().name()
+    logger.debug("locale: %s" %locale)
+    translator = QtCore.QTranslator()
+    if translator.load("dxf2gcode_" + locale, "./i18n"):
+        app.installTranslator(translator)    
+    
     window = Main(app)
     g.window = window
     
     #shall be sent to. This Class needs a function "def write(self, charstr)
     Log.add_window_logger(window.myMessageBox)
     
-    #Get local language and install if available.
-    locale = QtCore.QLocale.system().name()
-    translator = QtCore.QTranslator()
-    if translator.load("dxf2gcode_" + locale, "./i18n"):
-        app.installTranslator(translator)
+
         
     
     parser = argparse.ArgumentParser()
