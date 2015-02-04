@@ -157,7 +157,7 @@ CONFIG_SPEC = str('''
     
     [Filters]
     pstoedit_cmd = string(default = "C:\Program Files (x86)\pstoedit\pstoedit.exe")
-    pstoedit_opt = list(default = list('-f', 'dxf', '-mm'))
+    pstoedit_opt = list(default = list('-f', 'dxf', '-mm', '-dt'))
     
     [Logging]
     # Logging to textfile is enabled automatically for now
