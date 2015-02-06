@@ -242,8 +242,10 @@ class Main(QtGui.QMainWindow):
             self.cont_dx = 0.0
             self.cont_dy = 0.0
             self.rotate = 0.0
-            self.loadFile(self.filename)
+            self.filename = unicode(self.filename.toUtf8(), encoding="UTF-8")
             
+            self.loadFile(self.filename)
+
         QtGui.QApplication.restoreOverrideCursor()
     
     def reloadFile(self):
@@ -704,7 +706,10 @@ class Main(QtGui.QMainWindow):
         
         QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
         
-        filename = str(filename).decode("utf-8")
+#        if isinstance(filename,QtCore.QString):
+#            filename =unicode(filename.toUtf8(), encoding="UTF-8")
+#        else:
+#            filename = unicode(filename, encoding='UTF-8')
         self.load_filename = filename
         (name, ext) = os.path.splitext(filename)
         
@@ -1073,14 +1078,14 @@ if __name__ == "__main__":
         window.show()
 
     if not(options.filename is None):
-        window.filename = options.filename
+        window.filename = options.filename.decode("cp1252")
         #Initialize the scale, rotate and move coordinates
         window.cont_scale = 1.0
         window.cont_dx = 0.0
         window.cont_dy = 0.0
         window.rotate = 0.0
         
-        window.loadFile(options.filename)
+        window.loadFile(window.filename)
         
     if not(options.export_filename is None):
         window.exportShapes(None, options.export_filename)

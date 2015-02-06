@@ -608,9 +608,9 @@ class MyPostProcessor(QtCore.QObject):
         exstr_end += numstr[-(post_dec):]
 
         #Add's Zero's to the end if required
-        if post_dec_z_pad == 0:
+        if not(post_dec_z_pad):
             while (len(exstr_end) > 0) and ((exstr_end[-1] == '0') \
-                   or (exstr_end[-1] == self.dec_sep)):
+                   or (exstr_end[-1] == dec_sep)):
                 exstr_end = exstr_end[0:-1]                
         return exstr + exstr_end
     
