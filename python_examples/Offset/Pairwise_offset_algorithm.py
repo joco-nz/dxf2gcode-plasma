@@ -175,11 +175,14 @@ class Point:
         """Returns distance between two given points"""
         if type(other) == type(None):
             other = Point(x=0.0, y=0.0)
-        
         if isinstance(other,Point):
             return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
         elif isinstance(other,LineGeo):
             return other.distance(self)
+        elif isinstance(other, ArcGeo):
+            return other.distance(self)
+        else:
+            logger.error("unsupported instance: %s" %type(other))
 
     def dotProd(self,P2):
         """
@@ -406,9 +409,8 @@ class LineGeo:
         Standard method to print the object
         @return: A string
         """ 
-        return ("type:% s" % self.type) + \
-               ("\nPa : %s" % self.Pa) + \
-               ("\nPe : %s" % self.Pe)  
+        return ("\nLineGeo(Pa=Point(x=%s ,y=%s),\n" %(self.Pa.x,self.Pa.y))  + \
+               ("Pe=Point(x=%s, y=%s))" %(self.Pe.x,self.Pe.y))  
                
     def calc_bounding_box(self):
         """
@@ -539,29 +541,36 @@ class LineGeo:
         # The Line is outside of the Arc
         if other.O.distance(POnearest)>other.r:
             #If the Nearest Point is on Arc Segement it is the neares one.
+            #logger.debug("Nearest Point is outside of arc")
             if other.PointAng_withinArc(POnearest):
-                return other.O.distance(POnearest)-other.r
+                return POnearest.distance(other.O.get_arc_point(other.O.norm_angle(POnearest),r=other.r))
             elif self.distance(other.Pa)<self.distance(other.Pe):
-                self.distance(other.Pa)
+                    return self.get_nearest_point(other.Pa).distance(other.Pa)
             else:
-                self.distance(other.Pe)
+                    return self.get_nearest_point(other.Pe).distance(other.Pe)
         
+        #logger.debug("Nearest Point is Inside of arc")
+        #logger.debug("self.distance(other.Pa): %s, self.distance(other.Pe): %s" %(self.distance(other.Pa),self.distance(other.Pe)))
         # The Line may be inside of the ARc or cross it
         if self.distance(other.Pa)<self.distance(other.Pe):
             dis_min=self.distance(other.Pa)
+            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
         else:
-            dis_min=self.distance(other.Pa)
+            dis_min=self.distance(other.Pe)
+            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
         
         if ((other.PointAng_withinArc(self.Pa)) and 
             abs(other.r-other.O.distance(self.Pa)) < dis_min):
-            dis_min=other.r-other.O.distance(self.Pa)
+            dis_min=abs(other.r-other.O.distance(self.Pa))
+            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
             
         if ((other.PointAng_withinArc(self.Pe)) and 
-            abs(other.r-other.O.distance(self.Pe)) < dis_min):
-            dis_min=other.r-other.O.distance(self.Pe)
+            abs((other.r-other.O.distance(self.Pe))) < dis_min):
+            dis_min=abs(other.r-other.O.distance(self.Pe))
+            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
         
         return dis_min
-            
+      
     def distance_l_p(self,Point):
         """
         Find the shortest distance between CCLineGeo and Point elements.  
@@ -1083,11 +1092,18 @@ class ArcGeo:
         Standard method to print the object
         @return: A string
         """ 
-        return ("\nArcGeo") + \
-               ("\nPa : %s; s_ang: %0.5f" % (self.Pa, self.s_ang)) + \
-               ("\nPe : %s; e_ang: %0.5f" % (self.Pe, self.e_ang)) + \
-               ("\nO  : %s; r: %0.3f" % (self.O, self.r)) + \
-               ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
+        return ("\nArcGeo(Pa=Point(x=%s ,y=%s), \n" %(self.Pa.x,self.Pa.y))  + \
+               ("Pe=Point(x=%s, y=%s),\n" %(self.Pe.x,self.Pe.y))  +\
+               ("O=Point(x=%s, y=%s),\n" %(self.O.x,self.O.y))  +\
+               ("s_ang=%s,e_ang=%s,\n" %(self.s_ang,self.e_ang))+\
+               ("r=%s, \n" %self.r) +\
+               ("ext=%s)" %self.ext)
+               
+#        return ("\nArcGeo") + \
+#               ("\nPa : %s; s_ang: %0.5f" % (self.Pa, self.s_ang)) + \
+#               ("\nPe : %s; e_ang: %0.5f" % (self.Pe, self.e_ang)) + \
+#               ("\nO  : %s; r: %0.3f" % (self.O, self.r)) + \
+#               ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
   
     def angle_between(self, min_ang, max_ang, angle):
         """
@@ -1184,7 +1200,7 @@ class ArcGeo:
         elif isinstance(other,Point):
             return self.distance_a_p(other)
         elif isinstance(other,ArcGeo):
-            return self.distance_arc_arc(other)
+            return self.distance_a_a(other)
         else:
             logger.error(self.tr("Unsupported geometry type: %s" %type(other))) 
     
@@ -1194,7 +1210,7 @@ class ArcGeo:
         @param other: the instance of the 2nd geometry element.
         @return: The distance between the two geometries 
         """
-        
+        logger.error('Unsupported function')
         return 1e99
     
     def distance_a_p(self, other):
@@ -1203,8 +1219,34 @@ class ArcGeo:
         @param other: the instance of the 2nd geometry element.
         @return: The distance between the two geometries 
         """
-        return 1e99
- 
+        # The Pont is outside of the Arc
+        if self.O.distance(other)>self.r:
+            #If the Nearest Point is on Arc Segement it is the neares one.
+            #logger.debug("Nearest Point is outside of arc")
+            if self.PointAng_withinArc(other):
+                return other.distance(self.O.get_arc_point(self.O.norm_angle(other),r=self.r))
+            elif other.distance(self.Pa)<other.distance(self.Pe):
+                    return other.distance(self.Pa)
+            else:
+                    return other.distance(self.Pe)
+        
+        #logger.debug("Nearest Point is Inside of arc")
+        #logger.debug("self.distance(other.Pa): %s, self.distance(other.Pe): %s" %(self.distance(other.Pa),self.distance(other.Pe)))
+        # The Line may be inside of the ARc or cross it
+        if other.distance(self.Pa)<other.distance(self.Pe):
+            dis_min=other.distance(self.Pa)
+            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+        else:
+            dis_min=other.distance(self.Pe)
+            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+        
+        if ((self.PointAng_withinArc(other)) and 
+            abs(self.r-self.O.distance(other)) < dis_min):
+            dis_min=abs(self.r-self.O.distance(other))
+            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+            
+        return dis_min 
+    
     def find_inter_point(self, other=[], type='TIP'):
         """
         Find the intersection between 2 geometry elements. Possible is CCLineGeo
@@ -1693,11 +1735,19 @@ class offShapeClass(ShapeClass):
 
         self.make_segment_types()
         nextConvexPoint=[e for e in self.segments if isinstance(e,ConvexPoint)]
-        
+        #nextConvexPoint=[nextConvexPoint[31]]
+        self.counter=0
+
+                
         while len(nextConvexPoint): # [self.convex_vertex[-1]]:
             convex_vertex_nr=self.segments.index(nextConvexPoint[0])
             
             forward,backward=self.PairWiseInterferenceDetection(convex_vertex_nr+1,convex_vertex_nr-1)
+            
+            if forward is None:
+                return
+                break
+            
             
             if backward==0 and forward ==(len(self.segments)-1):
                 self.segments=[]
@@ -1717,12 +1767,18 @@ class offShapeClass(ShapeClass):
             
 
             if iPoint is None:
+                logger.error("No intersection found?!")
+                #logger.debug(fw_rawoff_seg)
+                #logger.debug(bw_rawoff_seg)
                 break
             
             #Reomve the LIR from the PS Curce
             self.remove_LIR(forward,backward,iPoint)
             nextConvexPoint=[e for e in self.segments if isinstance(e,ConvexPoint)]
             #logger.debug(nextConvexPoint)
+            #nextConvexPoint=[]
+            #logger.debug(nextConvexPoint)
+        
         
         for seg in self.segments:
             self.rawoff+=[self.make_rawoff_seg(seg)]
@@ -1748,6 +1804,7 @@ class offShapeClass(ShapeClass):
             Pa=seg.Pa+seg.start_normal*offset
             Pe=seg.Pe+seg.end_normal*offset
             return LineGeo(Pa,Pe)
+    
         elif isinstance(seg,Point):
             Pa=seg+seg.start_normal*offset
             Pe=seg+seg.end_normal*offset
@@ -1889,8 +1946,9 @@ class offShapeClass(ShapeClass):
         else:
             logger.error("Unsupportet Object type: %s" %type(segment1))
             
-        offGeo=LineGeo(Pa,Pe)
-     
+        #offGeo=LineGeo(Pa,Pe)
+        #logger.debug(segment2)
+        #logger.debug(offGeo)
         #logger.debug("Partly distance: %s" %segment2.distance(offGeo))
         # If the distance from the Line to the Center of the Tangential Circle 
         #is smaller then the radius we have an intersection
@@ -1930,7 +1988,7 @@ class offShapeClass(ShapeClass):
         
         return [L1_status,L2_status]
     
-    def PairWiseInterferenceDetection(self, forward, backward):
+    def PairWiseInterferenceDetection(self, forward, backward,):
         """
         Returns the first forward and backward segment nr. for which both
         interfering conditions are partly.
@@ -1938,18 +1996,30 @@ class offShapeClass(ShapeClass):
         @param backward: the nr. of the first backward segment
         @return: forward, backward
         """
-
-        counter=0
+        val=1000
+        self.counter=0
+        #self.counter=0
         L1_status,L2_status="full","full"
         #Repeat until we reached the Partial-interfering-relation
         while not(L1_status=="partial" and L2_status=="partial"):
             self.interferingshapes=[]
-            counter+=1
-            logger.debug("Checking: forward: %s, backward: %s" %(forward, backward))
+            self.counter+=1
+            
             segment1=self.segments[forward]
             segment2=self.segments[backward]
             
+            if isinstance(segment1,ConvexPoint):
+                forward+=1
+                segment1=self.segments[forward]
+                #logger.debug("Forward ConvexPoint")
+            if isinstance(segment2,ConvexPoint):
+                backward-=1
+                segment2=self.segments[backward]
+                #logger.debug("Backward ConvexPoint")
+            
+            #logger.debug("Checking: forward: %s, backward: %s" %(forward, backward))
             [L1_status,L2_status]=self.Interfering_relation(segment1,segment2)
+            #logger.debug("Start Status: L1_status: %s,L2_status: %s" %(L1_status,L2_status))
         
             """
             The reverse interfering segment is replaced  by the first 
@@ -1957,42 +2027,75 @@ class offShapeClass(ShapeClass):
             """
             if L1_status=="reverse":
                 while L1_status=="reverse":
+                    self.counter+=1
+                    #logger.debug(self.counter)
+                    if self.counter>val:
+                        break
+                    if self.counter >=val:
+                        self.interferingshapes=[]
                     forward+=1
                     if forward>=len(self.segments):
                         forward=0
-                    #logger.debug("Reverse Replace Checking: forward: %s, backward: %s" %(forward, backward))
                     segment1=self.segments[forward]
+                    
+                    if isinstance(segment1,ConvexPoint):
+                        forward+=1
+                        segment1=self.segments[forward]
+                        #logger.debug("Forward ConvexPoint")
+
+                    #logger.debug("Reverse Replace Checking: forward: %s, backward: %s" %(forward, backward))
+                    
                     [L1_status,L2_status]=self.Interfering_relation(segment1,segment2)
+                    #logger.debug("Checking: forward: %s, backward: %s" %(forward, backward))
                     #logger.debug("Replace Reverse: L1_status: %s,L2_status: %s" %(L1_status,L2_status))
+
             elif L2_status=="reverse":
                 while L2_status=="reverse":
+                    self.counter+=1
+                    #logger.debug(self.counter)
+                    if self.counter>val:
+                        break
+                    if self.counter >= val:
+                        self.interferingshapes=[]
                     backward-=1
                     #logger.debug("Reveerse Replace Checking: forward: %s, backward: %s" %(forward, backward))
                     segment2=self.segments[backward]
+                    
+                    if isinstance(segment2,ConvexPoint):
+                        backward-=1
+                        segment2=self.segments[backward]
+                        #logger.debug("Backward ConvexPoint")
+
+                    
                     [L1_status,L2_status]=self.Interfering_relation(segment1,segment2)
+                    #logger.debug("Checking: forward: %s, backward: %s" %(forward, backward))
                     #logger.debug("Replace Reverse: L1_status: %s,L2_status: %s" %(L1_status,L2_status))
+
       
             """
             Full interfering segment is replaced by the nexst segemnt along the
             tracking direction.
             """
-            if L1_status=="full":
+            if L1_status=="full" and (L2_status=="partial" or L2_status=="full"):
                 forward+=1
-            elif L2_status=="full":
+            elif L2_status=="full" and (L1_status=="partial" or L1_status=="partial"):
                 backward-=1
 
             #If The begin end point is the end end point we are done.
             if L1_status is None and L2_status is None:
-                logger.debug("Begin = End; Remove all")
+                #logger.debug("Begin = End; Remove all")
                 return len(self.segments)-1, 0
 
-            logger.debug(counter)
+            #logger.debug(self.counter)
             #logger.debug("L1_status: %s,L2_status: %s" %(L1_status,L2_status))
-            if counter>500:
+            if self.counter ==val:
+                self.interferingshapes=[]
+            
+            if self.counter>val: #26:
                 logger.error("No partial - partial status found")
                 return None, None
                 
-            
+        #logger.debug("Result: forward: %s, backward: %s" %(forward, backward))
         return forward,backward
                          
     def remove_LIR(self,forward, backward, iPoint):
@@ -2239,12 +2342,7 @@ class SweepLine:
                 self.sweep_array.append(SweepElement(Point=iPoint[1],add=[],remove=[],swoop=[[geo1,geo2]]))
                 
             self.sweep_array.sort(self.cmp_SweepElement)
-            #logger.debug(self)
-                
-
-
-    
-                
+            #logger.debug(self)              
 class SweepElement:
     def __init__(self,Point=Point(0,0),add=[],remove=[],swoop=[]):
         """
@@ -2268,7 +2366,6 @@ class SweepElement:
                ('\nadd:       %s ' % self.add) + \
                ('\nremove:    %s ' % self.remove) 
               
-
 class PlotClass:
     """
     Class which calls matplotlib to plot the results.
@@ -2492,6 +2589,8 @@ class ExampleClass:
         Linet=LineGeo(Point(-11.409,14.364),Point(-11.497,14.364))
         Arct.find_inter_point(Linet)
         
+
+        
         
         PointN1=L1.get_nearest_point(L3)
         PointN2=L3.get_nearest_point(L1)
@@ -2522,9 +2621,9 @@ class ExampleClass:
 
         
         segments=[L1,L3,L7,Lt,Lc,Li]
-        Pl.plot_segments(segments,121,text=("SD1: %0.2f, SD2: %0.2f, SD3: %0.2f, SD4: %0.2f, SD5: %0.2f") %(SD1, SD2, SD3, SD4,SD5))
+        Pl.plot_segments(segments,131,text=("SD1: %0.2f, SD2: %0.2f, SD3: %0.2f, SD4: %0.2f, SD5: %0.2f") %(SD1, SD2, SD3, SD4,SD5))
         seg_con=[NL,NL1,NL2,NL3,NL4]
-        Pl.plot_segments(seg_con,121,format=('b','.b','ob'),fcol='blue')
+        Pl.plot_segments(seg_con,131,format=('b','.b','ob'),fcol='blue')
         
         Arc0=ArcGeo(Pa=Point(x=1,y=0),Pe=Point(x=0,y=1),O=Point(x=0,y=0),r=1)
         Lin=LineGeo(Point(-1,1),Point(0.7,0.7))
@@ -2561,9 +2660,33 @@ class ExampleClass:
         segments=[Arc0,L1,Lin,Lout,Lin2,Linet,Arct]
         seg_con=[NL1,NL2,NL3,NL4]
 
-        Pl.plot_segments(segments,122,text=("SD1: %0.2f, SD2: %0.2f, SD3: %0.2f, SD4: %0.2f, SD5: %s") %(SD1, SD2, SD3, SD4, SD5))
+        Pl.plot_segments(segments,132,text=("SD1: %0.2f, SD2: %0.2f, SD3: %0.2f, SD4: %0.2f, SD5: %s") %(SD1, SD2, SD3, SD4, SD5))
 
-        Pl.plot_segments(seg_con,122,format=('b','.b','ob'),fcol='blue')
+        Pl.plot_segments(seg_con,132,format=('b','.b','ob'),fcol='blue')
+        
+        Ltest=LineGeo(Pa=Point(x=-12.222 ,y=13.466),Pe=Point(x=-12.222, y=15.144))
+        Atest=ArcGeo(Pa=Point(x=-10.509 ,y=13.364), 
+                        Pe=Point(x=-11.409, y=14.264),
+                        O=Point(x=-11.409, y=13.364),
+                        s_ang=0.0,e_ang=1.57079632679,
+                        r=0.9,
+                        direction=1.57079632679)
+
+        
+        Pt1=Ltest.get_nearest_point(Atest)
+        Pt2=Atest.get_nearest_point(Ltest)
+        
+        NLt=LineGeo(Pt1,Pt2)
+
+        SDt=Ltest.distance(Atest)
+        logger.debug(SDt)
+
+        
+        segments=[Atest,Ltest]
+        seg_con=[NLt]
+
+        Pl.plot_segments(segments,133,text=("SDt: %0.2f") %(SDt))
+        Pl.plot_segments(seg_con,133,format=('b','.b','ob'),fcol='blue')
 
         
 #        L0=LineGeo(Point(x=0,y=-0),Point(x=0.5,y=0))
@@ -2636,104 +2759,7 @@ class ExampleClass:
 #                                LineGeo(Point(-6.072,17.836),Point(-5.742,18.346)),
 #                                LineGeo(Point(-5.742,18.346),Point(-5.412,18.854)),
 #                                LineGeo(Point(-5.412,18.854),Point(-5.107,19.412)),
-#                                LineGeo(Point(-5.107,19.412),Point(-4.802,20.022)),
-#                                LineGeo(Point(-4.802,20.022),Point(-2.109,15.956)),
-#                                LineGeo(Point(-2.109,15.956),Point(-1.143,17.736)),
-#                                LineGeo(Point(-1.143,17.736),Point(-0.584,16.464)),
-#                                LineGeo(Point(-0.584,16.464),Point(-2.032,13.72)),
-#                                LineGeo(Point(-2.032,13.72),Point(-2.032,-11.79)),
-#                                LineGeo(Point(-2.032,-11.79),Point(-1.88,-11.738)),
-#                                LineGeo(Point(-1.88,-11.738),Point(-1.727,-11.738)),
-#                                LineGeo(Point(-1.727,-11.738),Point(-1.575,-11.688)),
-#                                LineGeo(Point(-1.575,-11.688),Point(-1.397,-11.636)),
-#                                LineGeo(Point(-1.397,-11.636),Point(-1.245,-11.636)),
-#                                LineGeo(Point(-1.245,-11.636),Point(-1.092,-11.586)),
-#                                LineGeo(Point(-1.092,-11.586),Point(-0.94,-11.586)),
-#                                LineGeo(Point(-0.94,-11.586),Point(-0.787,-11.586)),
-#                                LineGeo(Point(-0.787,-11.586),Point(-0.787,-13.264)),
-#                                LineGeo(Point(-0.787,-13.264),Point(-1.321,-13.364)),
-#                                LineGeo(Point(-1.321,-13.364),Point(-1.829,-13.518)),
-#                                LineGeo(Point(-1.829,-13.518),Point(-2.337,-13.72)),
-#                                LineGeo(Point(-2.337,-13.72),Point(-2.82,-13.924)),
-#                                LineGeo(Point(-2.82,-13.924),Point(-3.277,-14.228)),
-#                                LineGeo(Point(-3.277,-14.228),Point(-3.735,-14.534)),
-#                                LineGeo(Point(-3.735,-14.534),Point(-4.167,-14.89)),
-#                                LineGeo(Point(-4.167,-14.89),Point(-4.573,-15.296)),
-#                                LineGeo(Point(-4.573,-15.296),Point(-4.98,-15.754)),
-#                                LineGeo(Point(-4.98,-15.754),Point(-5.361,-16.21)),
-#                                LineGeo(Point(-5.361,-16.21),Point(-5.717,-16.77)),
-#                                LineGeo(Point(-5.717,-16.77),Point(-6.072,-17.328)),
-#                                LineGeo(Point(-6.072,-17.328),Point(-6.403,-17.938)),
-#                                LineGeo(Point(-6.403,-17.938),Point(-6.733,-18.548)),
-#                                LineGeo(Point(-6.733,-18.548),Point(-7.038,-19.26)),
-#                                LineGeo(Point(-7.038,-19.26),Point(-7.318,-19.972)),
-#                                LineGeo(Point(-7.318,-19.972),Point(-7.572,-19.412)),
-#                                LineGeo(Point(-7.572,-19.412),Point(-7.851,-18.752)),
-#                                LineGeo(Point(-7.851,-18.752),Point(-8.131,-18.142)),
-#                                LineGeo(Point(-8.131,-18.142),Point(-8.359,-17.634)),
-#                                LineGeo(Point(-8.359,-17.634),Point(-8.563,-17.176)),
-#                                LineGeo(Point(-8.563,-17.176),Point(-8.766,-16.77)),
-#                                LineGeo(Point(-8.766,-16.77),Point(-8.944,-16.414)),
-#                                LineGeo(Point(-8.944,-16.414),Point(-9.071,-16.16)),
-#                                LineGeo(Point(-9.071,-16.16),Point(-9.198,-15.956)),
-#                                LineGeo(Point(-9.198,-15.956),Point(-9.3,-15.804)),
-#                                LineGeo(Point(-9.3,-15.804),Point(-9.427,-15.702)),
-#                                LineGeo(Point(-9.427,-15.702),Point(-9.528,-15.6)),
-#                                LineGeo(Point(-9.528,-15.6),Point(-9.655,-15.5)),
-#                                LineGeo(Point(-9.655,-15.5),Point(-9.782,-15.448)),
-#                                LineGeo(Point(-9.782,-15.448),Point(-9.909,-15.398)),
-#                                LineGeo(Point(-9.909,-15.398),Point(-10.036,-15.346)),
-#                                LineGeo(Point(-10.036,-15.346),Point(-10.163,-15.346)),
-#                                LineGeo(Point(-10.163,-15.346),Point(-10.291,-15.346)),
-#                                LineGeo(Point(-10.291,-15.346),Point(-10.418,-15.398)),
-#                                LineGeo(Point(-10.418,-15.398),Point(-10.545,-15.448)),
-#                                LineGeo(Point(-10.545,-15.448),Point(-10.646,-15.55)),
-#                                LineGeo(Point(-10.646,-15.55),Point(-10.697,-15.6)),
-#                                LineGeo(Point(-10.697,-15.6),Point(-10.799,-15.702)),
-#                                LineGeo(Point(-10.799,-15.702),Point(-10.9,-15.804)),
-#                                LineGeo(Point(-10.9,-15.804),Point(-11.027,-16.008)),
-#                                LineGeo(Point(-11.027,-16.008),Point(-11.154,-16.16)),
-#                                LineGeo(Point(-11.154,-16.16),Point(-11.332,-16.414)),
-#                                LineGeo(Point(-11.332,-16.414),Point(-11.51,-16.668)),
-#                                LineGeo(Point(-11.51,-16.668),Point(-11.714,-16.922)),
-#                                LineGeo(Point(-11.714,-16.922),Point(-12.222,-15.5)),
-#                                LineGeo(Point(-12.222,-15.5),Point(-12.171,-15.398)),
-#                                LineGeo(Point(-12.171,-15.398),Point(-12.095,-15.296)),
-#                                LineGeo(Point(-12.095,-15.296),Point(-12.044,-15.244)),
-#                                LineGeo(Point(-12.044,-15.244),Point(-11.993,-15.144)),
-#                                LineGeo(Point(-11.993,-15.144),Point(-11.561,-14.534)),
-#                                LineGeo(Point(-11.561,-14.534),Point(-11.18,-13.974)),
-#                                LineGeo(Point(-11.18,-13.974),Point(-10.824,-13.466)),
-#                                LineGeo(Point(-10.824,-13.466),Point(-10.519,-13.06)),
-#                                LineGeo(Point(-10.519,-13.06),Point(-10.265,-12.704)),
-#                                LineGeo(Point(-10.265,-12.704),Point(-10.036,-12.4)),
-#                                LineGeo(Point(-10.036,-12.4),Point(-9.833,-12.144)),
-#                                LineGeo(Point(-9.833,-12.144),Point(-9.681,-11.992)),
-#                                LineGeo(Point(-9.681,-11.992),Point(-9.554,-11.89)),
-#                                LineGeo(Point(-9.554,-11.89),Point(-9.401,-11.79)),
-#                                LineGeo(Point(-9.401,-11.79),Point(-9.249,-11.688)),
-#                                LineGeo(Point(-9.249,-11.688),Point(-9.096,-11.636)),
-#                                LineGeo(Point(-9.096,-11.636),Point(-8.918,-11.586)),
-#                                LineGeo(Point(-8.918,-11.586),Point(-8.741,-11.536)),
-#                                LineGeo(Point(-8.741,-11.536),Point(-8.563,-11.484)),
-#                                LineGeo(Point(-8.563,-11.484),Point(-8.385,-11.484)),
-#                                LineGeo(Point(-8.385,-11.484),Point(-8.004,-11.536)),
-#                                LineGeo(Point(-8.004,-11.536),Point(-7.622,-11.636)),
-#                                LineGeo(Point(-7.622,-11.636),Point(-7.267,-11.89)),
-#                                LineGeo(Point(-7.267,-11.89),Point(-6.911,-12.196)),
-#                                LineGeo(Point(-6.911,-12.196),Point(-6.555,-12.552)),
-#                                LineGeo(Point(-6.555,-12.552),Point(-6.2,-13.06)),
-#                                LineGeo(Point(-6.2,-13.06),Point(-5.844,-13.618)),
-#                                LineGeo(Point(-5.844,-13.618),Point(-5.513,-14.28)),
-#                                LineGeo(Point(-5.513,-14.28),Point(-5.386,-14.126)),
-#                                LineGeo(Point(-5.386,-14.126),Point(-5.285,-13.924)),
-#                                LineGeo(Point(-5.285,-13.924),Point(-5.158,-13.772)),
-#                                LineGeo(Point(-5.158,-13.772),Point(-5.031,-13.618)),
-#                                LineGeo(Point(-5.031,-13.618),Point(-4.904,-13.466)),
-#                                LineGeo(Point(-4.904,-13.466),Point(-4.777,-13.314)),
-#                                LineGeo(Point(-4.777,-13.314),Point(-4.65,-13.212)),
-#                                LineGeo(Point(-4.65,-13.212),Point(-4.522,-13.06)),
-#                                LineGeo(Point(-4.522,-13.06),Point(-4.522,1.066))],closed=True)
+#                                LineGeo(Point(-5.107,19.412),Point(-4.522,1.066))],closed=True)
         
         shape=ShapeClass(geos=[LineGeo(Point(-16.084,7.926),Point(-16.973,8.028)),
                                 LineGeo(Point(-16.973,8.028),Point(-17.914,8.282)),
@@ -3033,18 +3059,30 @@ class ExampleClass:
                                 LineGeo(Point(0,-81.412),Point(-18.193,-50.818)),
                                 LineGeo(Point(-18.193,-50.818),Point(-16.084,7.926))],closed=True)
                 
-        
+#        shape=ShapeClass(geos=[LineGeo(Point(x=0,y=-1),Point(x=0,y=0)),
+#                               LineGeo(Point(x=0,y=0),Point(x=2,y=2)),
+#                               LineGeo(Point(x=2,y=2),Point(x=3,y=3)),
+#                               LineGeo(Point(x=3,y=3),Point(x=3,y=0.5)),
+#                               LineGeo(Point(x=3,y=0.5),Point(x=6,y=2)),
+#                               LineGeo(Point(x=6,y=2),Point(x=6,y=-4)),
+#                               LineGeo(Point(x=6,y=-4),Point(x=3,y=-0.5)),
+#                               LineGeo(Point(x=3,y=-0.5),Point(x=0,y=-5)),
+#                               LineGeo(Point(x=0,y=-5), Point(x=0,y=-4)),
+#                               LineGeo(Point(x=0,y=-4), Point(x=0,y=-1))],
+#                               closed=True)
         #offshape=offShapeClass(shape, offset=4, offtype='in')
         #offshape1=offShapeClass(shape, offset=8, offtype='in')
-        offshape2=offShapeClass(shape, offset=10.6, offtype='in')
+        offshape2=offShapeClass(shape, offset=7.64, offtype='in')
         #offshape3=offShapeClass(shape, offset=16, offtype='in')
-        Pl.plot_lines_plot(offshape2.geos,111,wtp=[True,True,True])
+        #Pl.plot_lines_plot(offshape2.geos,111,wtp=[True,True,True])
         
         #Pl.plot_segments(offshape.rawoff,121,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
-        Pl.plot_segments(offshape2.segments,111,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
-        Pl.plot_segments(offshape2.plotshapes,111,format=('b','.b','.b'),fcol='blue',wtp=[True,True,True])
+        Pl.plot_segments(offshape2.segments,111,format=('b','.b','.b'),fcol='blue',wtp=[True,True,True])
+        Pl.plot_segments(offshape2.interferingshapes,111,format=('m','.m','.m'),fcol='blue',wtp=[True,False,False])
+        
+        
 
-        Pl.plot_segments(offshape2.rawoff,111,format=('b','.b','.b'),fcol='blue',wtp=[True,True,True])
+        Pl.plot_segments(offshape2.rawoff,111,format=('c','.c','.c'),fcol='blue',wtp=[True,False,False])
         #Pl.plot_segments(offshape3.rawoff,121,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
         
         #Pl.plot_lines_plot(offshape.geos,132,wtp=[True,False,False])
@@ -3381,7 +3419,7 @@ class ExampleClass:
 #                               closed=True)
                 
         
-        offshape=offShapeClass(shape, offset=10.6, offtype='in')
+        offshape=offShapeClass(shape, offset=17.5, offtype='in')
         Pl.plot_lines_plot(offshape.geos,111,wtp=[True,False,False])
         Pl.plot_segments(offshape.rawoff,111,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
         
@@ -3401,8 +3439,7 @@ Ex=ExampleClass()
 #Ex.Distance_Check() 
 #cProfile.run("Ex.PWIDTest()",sort='cumtime')
 #Ex.PWIDTest()
-#Ex.SweepLineTest()
-Ex.PWIDTest()
+Ex.SweepLineTest()
 #self.make_offshape()
 
 
