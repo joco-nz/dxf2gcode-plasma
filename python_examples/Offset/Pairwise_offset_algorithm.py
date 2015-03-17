@@ -579,8 +579,7 @@ class LineGeo:
         http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm
         @param Point: the Point
         @return: The shortest distance between the Point and Line
-        """
-        
+        """      
         d=self.Pe-self.Pa
         v=Point-self.Pa
     
@@ -600,6 +599,12 @@ class LineGeo:
             #our Point is lying "inside" the segment
             #i.e.:a perpendicular from it to the line that contains the line
             #segment has an end Point inside the segment
+            #logger.debug(v.dotProd(v))
+            #logger.debug(d.dotProd(d))
+            #logger.debug(v.dotProd(v) - (t*t)/d.dotProd(d))
+            if abs(v.dotProd(v) - (t*t)/d.dotProd(d))<eps:
+                return 0.0
+            
             return sqrt(v.dotProd(v) - (t*t)/d.dotProd(d));
                 
     def find_inter_point(self, other, type='TIP'):
@@ -1406,8 +1411,70 @@ class ArcGeo:
             return self.Pe
         
     def get_nearest_point_a_a(self,other):
-        logger.error("Not implemented now")
-        return Point(0,0)
+        """
+        Get the nearest point to a line lieing on the line
+        @param other: The Point to be nearest to
+        @return: The point which is the nearest to other
+        """
+        if self.intersect(other):
+            return self.find_inter_point_a_a(other)
+        
+        
+        
+        # The Line is outside of the Arc
+        if other.O.distance(self.O)>(other.r+other.r):
+            pass
+            #If the Nearest Point is on Arc Segement it is the neares one.
+            #logger.debug("Nearest Point is outside of arc")
+#            if other.PointAng_withinArc(POnearest):
+#                if ret=="line":
+#                    return POnearest
+#                elif ret=="arc":
+#                    return other.O.get_arc_point(other.O.norm_angle(POnearest),r=other.r)
+#            elif self.distance(other.Pa)<self.distance(other.Pe):
+#                if ret=="line":
+#                    return self.get_nearest_point(other.Pa)
+#                elif ret=="arc":
+#                    return other.Pa
+#            else:
+#                if ret=="line":
+#                    return self.get_nearest_point(other.Pe)
+#                elif ret=="art":
+#                    return other.Pe
+#        
+#        #logger.debug("Nearest Point is Inside of arc")
+#        #logger.debug("self.distance(other.Pa): %s, self.distance(other.Pe): %s" %(self.distance(other.Pa),self.distance(other.Pe)))
+#        # The Line may be inside of the ARc or cross it
+#        if self.distance(other.Pa)<self.distance(other.Pe):
+#            Pnearest=self.get_nearest_point(other.Pa)
+#            Pnother=other.Pa
+#            dis_min=self.distance(other.Pa)
+#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#        else:
+#            Pnearest=self.get_nearest_point(other.Pe)
+#            Pnother=other.Pe
+#            dis_min=self.distance(other.Pe)
+#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#        
+#        if ((other.PointAng_withinArc(self.Pa)) and 
+#            abs(other.r-other.O.distance(self.Pa)) < dis_min):
+#            
+#            Pnearest=self.Pa
+#            Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
+#            dis_min=abs(other.r-other.O.distance(self.Pa))
+#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#            
+#        if ((other.PointAng_withinArc(self.Pe)) and 
+#            abs((other.r-other.O.distance(self.Pe))) < dis_min):
+#            Pnearest=self.Pe
+#            Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
+#
+#            dis_min=abs(other.r-other.O.distance(self.Pe))
+#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#        if ret=="line":
+#            return Pnearest
+#        elif ret=="arc":
+#            return Pnother
     
     def intersect(self,other):
         """
@@ -1623,7 +1690,8 @@ class ShapeClass():
             #Remove first geometry and add result of joined geometries. Required
             #Cause the join will give back the last 2 geometries.
             new_geos.pop()
-            new_geos+=geo1.join_colinear_line(geo2)
+            if isinstance(geo1,LineGeo) and isinstance(geo2,LineGeo):
+                new_geos+=geo1.join_colinear_line(geo2)
             
             #If start end End Point are the same remove geometry
             if new_geos[-1].Pa==new_geos[-1].Pe:
@@ -1657,12 +1725,12 @@ class ShapeClass():
         
         summe = 0.0
         for geo in self.geos:
-            if geo.type == 'LineGeo':
+            if isinstance(geo,LineGeo):
                 start = geo.Pa
                 ende  = geo.Pe
                 summe += (start.x + ende.x) * (ende.y - start.y) / 2
                 start = ende
-            elif geo.type == 'ArcGeo':
+            elif isinstance(geo,ArcGeo):
                 segments = int((abs(degrees(geo.ext)) // 90) + 1)
                 for i in range(segments): 
                     ang = geo.s_ang + (i + 1) * geo.ext / segments
@@ -1731,7 +1799,7 @@ class offShapeClass(ShapeClass):
         self.plotshapes=[]
         
         self.make_shape_ccw()
-        self.join_colinear_lines()
+        #self.join_colinear_lines()
 
         self.make_segment_types()
         nextConvexPoint=[e for e in self.segments if isinstance(e,ConvexPoint)]
@@ -1810,6 +1878,15 @@ class offShapeClass(ShapeClass):
             Pe=seg+seg.end_normal*offset
             
             return ArcGeo(Pa=Pa,Pe=Pe,O=deepcopy(seg),r=self.offset,direction=offset)
+        elif isinstance(seg,ArcGeo):
+            Pa=seg.Pa+seg.start_normal*offset
+            Pe=seg.Pe+seg.end_normal*offset
+            
+            if selg.ext>0:
+                return ArcGeo(Pa=Pa,Pe=Pe,O=seg.O,r=seg.r-offset,direction=seg.ext)
+            else:
+                return ArcGeo(Pa=Pa,Pe=Pe,O=seg.O,r=seg.r-offset,direction=seg.ext)
+                
         elif isinstance(seg,ConvexPoint):
             Pa=seg+seg.start_normal*offset
             Pe=seg+seg.end_normal*offset
@@ -1878,6 +1955,10 @@ class offShapeClass(ShapeClass):
             return False
         elif isinstance(segment1,Point):
             Pe=segment1
+        elif isinstance(segment1,ArcGeo) and dir==1:
+            Pe=segment1.Pe
+        elif isinstance(segment1,ArcGeo) and dir==-1:
+            Pe=segment1.Pa
         else:
             logger.error("Unsupportet Object type: %s" %type(segment1))
             
@@ -1933,6 +2014,23 @@ class offShapeClass(ShapeClass):
             Pe=segment1.Pe+segment1.end_normal*offset
             offGeo=LineGeo(Pa,Pe)
             self.interferingshapes+=[offGeo]
+        elif isinstance(segment1, ArcGeo):
+            #if the direction is cw and resulting radius is still bigger 0
+            if segment1.r+offset>0:
+                Pa=segment1.Pa+segment1.start_normal*offset
+                Pe=segment1.Pe+segment1.end_normal*offset
+                r=segment1.r+offset
+                offGeo=ArcGeo(Pa=Pa,Pe=Pe,O=segment1.O,r=r,direction=segment1.ext)
+                self.interferingshapes+=[offGeo]
+            #if the direction is cw and resulting radius is still bigger 0
+    
+                
+            #Resulting radius is smaller then 0
+            else:
+                logger.error("Should not be here")
+                
+            
+            
         elif isinstance(segment1,ConvexPoint):
             #logger.debug("Should not be here")
             return False
@@ -2673,16 +2771,16 @@ class ExampleClass:
                         direction=1.57079632679)
 
         
-        Pt1=Ltest.get_nearest_point(Atest)
-        Pt2=Atest.get_nearest_point(Ltest)
+        Pt1=Arct.get_nearest_point(Atest)
+        Pt2=Atest.get_nearest_point(Arct)
         
         NLt=LineGeo(Pt1,Pt2)
 
-        SDt=Ltest.distance(Atest)
+        SDt=Arct.distance(Atest)
         logger.debug(SDt)
 
         
-        segments=[Atest,Ltest]
+        segments=[Atest,Arct]
         seg_con=[NLt]
 
         Pl.plot_segments(segments,133,text=("SDt: %0.2f") %(SDt))
@@ -2761,303 +2859,303 @@ class ExampleClass:
 #                                LineGeo(Point(-5.412,18.854),Point(-5.107,19.412)),
 #                                LineGeo(Point(-5.107,19.412),Point(-4.522,1.066))],closed=True)
         
-        shape=ShapeClass(geos=[LineGeo(Point(-16.084,7.926),Point(-16.973,8.028)),
-                                LineGeo(Point(-16.973,8.028),Point(-17.914,8.282)),
-                                LineGeo(Point(-17.914,8.282),Point(-18.854,8.638)),
-                                LineGeo(Point(-18.854,8.638),Point(-19.794,9.096)),
-                                LineGeo(Point(-19.794,9.096),Point(-20.785,9.706)),
-                                LineGeo(Point(-20.785,9.706),Point(-21.75,10.366)),
-                                LineGeo(Point(-21.75,10.366),Point(-22.741,11.18)),
-                                LineGeo(Point(-22.741,11.18),Point(-23.732,12.044)),
-                                LineGeo(Point(-23.732,12.044),Point(-24.723,13.06)),
-                                LineGeo(Point(-24.723,13.06),Point(-25.714,14.126)),
-                                LineGeo(Point(-25.714,14.126),Point(-26.705,15.296)),
-                                LineGeo(Point(-26.705,15.296),Point(-27.696,16.566)),
-                                LineGeo(Point(-27.696,16.566),Point(-28.662,17.938)),
-                                LineGeo(Point(-28.662,17.938),Point(-29.628,19.362)),
-                                LineGeo(Point(-29.628,19.362),Point(-30.568,20.886)),
-                                LineGeo(Point(-30.568,20.886),Point(-31.482,22.512)),
-                                LineGeo(Point(-31.482,22.512),Point(-32.372,24.19)),
-                                LineGeo(Point(-32.372,24.19),Point(-33.261,25.918)),
-                                LineGeo(Point(-33.261,25.918),Point(-34.1,27.746)),
-                                LineGeo(Point(-34.1,27.746),Point(-34.913,29.628)),
-                                LineGeo(Point(-34.913,29.628),Point(-35.675,31.61)),
-                                LineGeo(Point(-35.675,31.61),Point(-36.437,33.592)),
-                                LineGeo(Point(-36.437,33.592),Point(-37.124,35.674)),
-                                LineGeo(Point(-37.124,35.674),Point(-37.784,37.81)),
-                                LineGeo(Point(-37.784,37.81),Point(-38.394,39.994)),
-                                LineGeo(Point(-38.394,39.994),Point(-38.953,42.23)),
-                                LineGeo(Point(-38.953,42.23),Point(-39.461,44.518)),
-                                LineGeo(Point(-39.461,44.518),Point(-39.893,46.856)),
-                                LineGeo(Point(-39.893,46.856),Point(-40.3,49.244)),
-                                LineGeo(Point(-40.3,49.244),Point(-40.63,51.682)),
-                                LineGeo(Point(-40.63,51.682),Point(-40.884,54.122)),
-                                LineGeo(Point(-40.884,54.122),Point(-41.087,56.612)),
-                                LineGeo(Point(-41.087,56.612),Point(-41.087,56.866)),
-                                LineGeo(Point(-41.087,56.866),Point(-41.138,57.172)),
-                                LineGeo(Point(-41.138,57.172),Point(-41.215,57.528)),
-                                LineGeo(Point(-41.215,57.528),Point(-41.316,57.882)),
-                                LineGeo(Point(-41.316,57.882),Point(-41.469,58.238)),
-                                LineGeo(Point(-41.469,58.238),Point(-41.646,58.492)),
-                                LineGeo(Point(-41.646,58.492),Point(-41.875,58.696)),
-                                LineGeo(Point(-41.875,58.696),Point(-42.155,58.746)),
-                                LineGeo(Point(-42.155,58.746),Point(-82.785,58.746)),
-                                LineGeo(Point(-82.785,58.746),Point(-93.102,76.484)),
-                                LineGeo(Point(-93.102,76.484),Point(-92.975,76.484)),
-                                LineGeo(Point(-92.975,76.484),Point(-92.594,76.484)),
-                                LineGeo(Point(-92.594,76.484),Point(-91.958,76.484)),
-                                LineGeo(Point(-91.958,76.484),Point(-91.12,76.484)),
-                                LineGeo(Point(-91.12,76.484),Point(-90.053,76.484)),
-                                LineGeo(Point(-90.053,76.484),Point(-88.782,76.484)),
-                                LineGeo(Point(-88.782,76.484),Point(-87.334,76.484)),
-                                LineGeo(Point(-87.334,76.484),Point(-85.733,76.484)),
-                                LineGeo(Point(-85.733,76.484),Point(-83.954,76.484)),
-                                LineGeo(Point(-83.954,76.484),Point(-82.023,76.484)),
-                                LineGeo(Point(-82.023,76.484),Point(-79.99,76.484)),
-                                LineGeo(Point(-79.99,76.484),Point(-77.805,76.484)),
-                                LineGeo(Point(-77.805,76.484),Point(-75.543,76.484)),
-                                LineGeo(Point(-75.543,76.484),Point(-73.18,76.484)),
-                                LineGeo(Point(-73.18,76.484),Point(-70.741,76.484)),
-                                LineGeo(Point(-70.741,76.484),Point(-68.251,76.484)),
-                                LineGeo(Point(-68.251,76.484),Point(-65.71,76.484)),
-                                LineGeo(Point(-65.71,76.484),Point(-63.118,76.484)),
-                                LineGeo(Point(-63.118,76.484),Point(-60.526,76.484)),
-                                LineGeo(Point(-60.526,76.484),Point(-57.909,76.484)),
-                                LineGeo(Point(-57.909,76.484),Point(-55.292,76.484)),
-                                LineGeo(Point(-55.292,76.484),Point(-52.7,76.484)),
-                                LineGeo(Point(-52.7,76.484),Point(-50.159,76.484)),
-                                LineGeo(Point(-50.159,76.484),Point(-47.643,76.484)),
-                                LineGeo(Point(-47.643,76.484),Point(-45.204,76.484)),
-                                LineGeo(Point(-45.204,76.484),Point(-42.841,76.484)),
-                                LineGeo(Point(-42.841,76.484),Point(-40.554,76.484)),
-                                LineGeo(Point(-40.554,76.484),Point(-38.369,76.484)),
-                                LineGeo(Point(-38.369,76.484),Point(-36.285,76.484)),
-                                LineGeo(Point(-36.285,76.484),Point(-34.354,76.484)),
-                                LineGeo(Point(-34.354,76.484),Point(-32.55,76.484)),
-                                LineGeo(Point(-32.55,76.484),Point(-30.898,76.484)),
-                                LineGeo(Point(-30.898,76.484),Point(-31.152,73.942)),
-                                LineGeo(Point(-31.152,73.942),Point(-31.33,71.452)),
-                                LineGeo(Point(-31.33,71.452),Point(-31.457,69.012)),
-                                LineGeo(Point(-31.457,69.012),Point(-31.508,66.624)),
-                                LineGeo(Point(-31.508,66.624),Point(-31.533,64.338)),
-                                LineGeo(Point(-31.533,64.338),Point(-31.482,62.102)),
-                                LineGeo(Point(-31.482,62.102),Point(-31.381,59.916)),
-                                LineGeo(Point(-31.381,59.916),Point(-31.228,57.782)),
-                                LineGeo(Point(-31.228,57.782),Point(-31.025,55.748)),
-                                LineGeo(Point(-31.025,55.748),Point(-30.746,53.766)),
-                                LineGeo(Point(-30.746,53.766),Point(-30.441,51.836)),
-                                LineGeo(Point(-30.441,51.836),Point(-30.085,49.956)),
-                                LineGeo(Point(-30.085,49.956),Point(-29.653,48.176)),
-                                LineGeo(Point(-29.653,48.176),Point(-29.196,46.5)),
-                                LineGeo(Point(-29.196,46.5),Point(-28.687,44.822)),
-                                LineGeo(Point(-28.687,44.822),Point(-28.128,43.246)),
-                                LineGeo(Point(-28.128,43.246),Point(-27.519,41.774)),
-                                LineGeo(Point(-27.519,41.774),Point(-26.858,40.35)),
-                                LineGeo(Point(-26.858,40.35),Point(-26.172,38.978)),
-                                LineGeo(Point(-26.172,38.978),Point(-25.435,37.708)),
-                                LineGeo(Point(-25.435,37.708),Point(-24.647,36.488)),
-                                LineGeo(Point(-24.647,36.488),Point(-23.809,35.37)),
-                                LineGeo(Point(-23.809,35.37),Point(-22.945,34.302)),
-                                LineGeo(Point(-22.945,34.302),Point(-22.03,33.286)),
-                                LineGeo(Point(-22.03,33.286),Point(-21.09,32.422)),
-                                LineGeo(Point(-21.09,32.422),Point(-20.099,31.558)),
-                                LineGeo(Point(-20.099,31.558),Point(-19.082,30.846)),
-                                LineGeo(Point(-19.082,30.846),Point(-18.015,30.186)),
-                                LineGeo(Point(-18.015,30.186),Point(-16.923,29.576)),
-                                LineGeo(Point(-16.923,29.576),Point(-15.779,29.068)),
-                                LineGeo(Point(-15.779,29.068),Point(-14.61,28.662)),
-                                LineGeo(Point(-14.61,28.662),Point(-13.416,28.306)),
-                                LineGeo(Point(-13.416,28.306),Point(-13.035,29.83)),
-                                LineGeo(Point(-13.035,29.83),Point(-12.603,31.558)),
-                                LineGeo(Point(-12.603,31.558),Point(-12.196,33.438)),
-                                LineGeo(Point(-12.196,33.438),Point(-11.79,35.37)),
-                                LineGeo(Point(-11.79,35.37),Point(-11.459,37.402)),
-                                LineGeo(Point(-11.459,37.402),Point(-11.205,39.486)),
-                                LineGeo(Point(-11.205,39.486),Point(-11.053,41.468)),
-                                LineGeo(Point(-11.053,41.468),Point(-11.002,43.45)),
-                                LineGeo(Point(-11.002,43.45),Point(-11.129,45.28)),
-                                LineGeo(Point(-11.129,45.28),Point(-11.434,47.008)),
-                                LineGeo(Point(-11.434,47.008),Point(-11.917,48.532)),
-                                LineGeo(Point(-11.917,48.532),Point(-12.654,49.802)),
-                                LineGeo(Point(-12.654,49.802),Point(-13.619,50.82)),
-                                LineGeo(Point(-13.619,50.82),Point(-14.864,51.48)),
-                                LineGeo(Point(-14.864,51.48),Point(-16.44,51.836)),
-                                LineGeo(Point(-16.44,51.836),Point(-18.32,51.734)),
-                                LineGeo(Point(-18.32,51.734),Point(-18.396,53.056)),
-                                LineGeo(Point(-18.396,53.056),Point(-18.473,54.428)),
-                                LineGeo(Point(-18.473,54.428),Point(-18.473,55.952)),
-                                LineGeo(Point(-18.473,55.952),Point(-18.422,57.528)),
-                                LineGeo(Point(-18.422,57.528),Point(-18.295,59.102)),
-                                LineGeo(Point(-18.295,59.102),Point(-18.117,60.728)),
-                                LineGeo(Point(-18.117,60.728),Point(-17.812,62.356)),
-                                LineGeo(Point(-17.812,62.356),Point(-17.431,63.93)),
-                                LineGeo(Point(-17.431,63.93),Point(-16.923,65.404)),
-                                LineGeo(Point(-16.923,65.404),Point(-16.287,66.828)),
-                                LineGeo(Point(-16.287,66.828),Point(-15.525,68.148)),
-                                LineGeo(Point(-15.525,68.148),Point(-14.61,69.318)),
-                                LineGeo(Point(-14.61,69.318),Point(-13.518,70.284)),
-                                LineGeo(Point(-13.518,70.284),Point(-12.273,71.148)),
-                                LineGeo(Point(-12.273,71.148),Point(-10.824,71.756)),
-                                LineGeo(Point(-10.824,71.756),Point(-9.198,72.112)),
-                                LineGeo(Point(-9.198,72.112),Point(-8.893,72.926)),
-                                LineGeo(Point(-8.893,72.926),Point(-8.563,73.688)),
-                                LineGeo(Point(-8.563,73.688),Point(-8.182,74.4)),
-                                LineGeo(Point(-8.182,74.4),Point(-7.75,75.06)),
-                                LineGeo(Point(-7.75,75.06),Point(-7.292,75.62)),
-                                LineGeo(Point(-7.292,75.62),Point(-6.784,76.128)),
-                                LineGeo(Point(-6.784,76.128),Point(-6.276,76.584)),
-                                LineGeo(Point(-6.276,76.584),Point(-5.717,76.94)),
-                                LineGeo(Point(-5.717,76.94),Point(-5.158,77.296)),
-                                LineGeo(Point(-5.158,77.296),Point(-4.548,77.602)),
-                                LineGeo(Point(-4.548,77.602),Point(-3.938,77.804)),
-                                LineGeo(Point(-3.938,77.804),Point(-3.303,78.008)),
-                                LineGeo(Point(-3.303,78.008),Point(-2.668,78.16)),
-                                LineGeo(Point(-2.668,78.16),Point(-2.007,78.262)),
-                                LineGeo(Point(-2.007,78.262),Point(-1.346,78.312)),
-                                LineGeo(Point(-1.346,78.312),Point(-0.66,78.364)),
-                                LineGeo(Point(-0.66,78.364),Point(0,78.364)),
-                                LineGeo(Point(0,78.364),Point(0.66,78.312)),
-                                LineGeo(Point(0.66,78.312),Point(1.321,78.21)),
-                                LineGeo(Point(1.321,78.21),Point(1.981,78.11)),
-                                LineGeo(Point(1.981,78.11),Point(2.617,78.008)),
-                                LineGeo(Point(2.617,78.008),Point(3.252,77.856)),
-                                LineGeo(Point(3.252,77.856),Point(3.862,77.652)),
-                                LineGeo(Point(3.862,77.652),Point(4.446,77.448)),
-                                LineGeo(Point(4.446,77.448),Point(5.031,77.246)),
-                                LineGeo(Point(5.031,77.246),Point(5.564,76.992)),
-                                LineGeo(Point(5.564,76.992),Point(6.098,76.738)),
-                                LineGeo(Point(6.098,76.738),Point(6.581,76.484)),
-                                LineGeo(Point(6.581,76.484),Point(7.038,76.178)),
-                                LineGeo(Point(7.038,76.178),Point(7.445,75.924)),
-                                LineGeo(Point(7.445,75.924),Point(7.826,75.62)),
-                                LineGeo(Point(7.826,75.62),Point(8.156,75.314)),
-                                LineGeo(Point(8.156,75.314),Point(9.401,73.586)),
-                                LineGeo(Point(9.401,73.586),Point(10.494,71.3)),
-                                LineGeo(Point(10.494,71.3),Point(11.434,68.504)),
-                                LineGeo(Point(11.434,68.504),Point(12.247,65.404)),
-                                LineGeo(Point(12.247,65.404),Point(12.959,61.948)),
-                                LineGeo(Point(12.959,61.948),Point(13.543,58.29)),
-                                LineGeo(Point(13.543,58.29),Point(14.051,54.528)),
-                                LineGeo(Point(14.051,54.528),Point(14.458,50.768)),
-                                LineGeo(Point(14.458,50.768),Point(14.788,47.008)),
-                                LineGeo(Point(14.788,47.008),Point(15.042,43.348)),
-                                LineGeo(Point(15.042,43.348),Point(15.246,39.944)),
-                                LineGeo(Point(15.246,39.944),Point(15.373,36.844)),
-                                LineGeo(Point(15.373,36.844),Point(15.5,34.15)),
-                                LineGeo(Point(15.5,34.15),Point(15.576,31.914)),
-                                LineGeo(Point(15.576,31.914),Point(15.627,30.236)),
-                                LineGeo(Point(15.627,30.236),Point(15.677,29.22)),
-                                LineGeo(Point(15.677,29.22),Point(15.754,28.052)),
-                                LineGeo(Point(15.754,28.052),Point(16.821,28.764)),
-                                LineGeo(Point(16.821,28.764),Point(17.863,29.526)),
-                                LineGeo(Point(17.863,29.526),Point(18.854,30.288)),
-                                LineGeo(Point(18.854,30.288),Point(19.794,31.152)),
-                                LineGeo(Point(19.794,31.152),Point(20.709,32.016)),
-                                LineGeo(Point(20.709,32.016),Point(21.598,32.93)),
-                                LineGeo(Point(21.598,32.93),Point(22.411,33.896)),
-                                LineGeo(Point(22.411,33.896),Point(23.224,34.862)),
-                                LineGeo(Point(23.224,34.862),Point(23.961,35.928)),
-                                LineGeo(Point(23.961,35.928),Point(24.673,37.046)),
-                                LineGeo(Point(24.673,37.046),Point(25.333,38.164)),
-                                LineGeo(Point(25.333,38.164),Point(25.969,39.384)),
-                                LineGeo(Point(25.969,39.384),Point(26.553,40.604)),
-                                LineGeo(Point(26.553,40.604),Point(27.112,41.926)),
-                                LineGeo(Point(27.112,41.926),Point(27.595,43.298)),
-                                LineGeo(Point(27.595,43.298),Point(28.052,44.72)),
-                                LineGeo(Point(28.052,44.72),Point(28.484,46.194)),
-                                LineGeo(Point(28.484,46.194),Point(28.84,47.718)),
-                                LineGeo(Point(28.84,47.718),Point(29.17,49.346)),
-                                LineGeo(Point(29.17,49.346),Point(29.475,51.022)),
-                                LineGeo(Point(29.475,51.022),Point(29.704,52.75)),
-                                LineGeo(Point(29.704,52.75),Point(29.907,54.528)),
-                                LineGeo(Point(29.907,54.528),Point(30.06,56.41)),
-                                LineGeo(Point(30.06,56.41),Point(30.187,58.34)),
-                                LineGeo(Point(30.187,58.34),Point(30.237,60.322)),
-                                LineGeo(Point(30.237,60.322),Point(30.263,62.406)),
-                                LineGeo(Point(30.263,62.406),Point(30.237,64.592)),
-                                LineGeo(Point(30.237,64.592),Point(30.187,66.776)),
-                                LineGeo(Point(30.187,66.776),Point(30.06,69.114)),
-                                LineGeo(Point(30.06,69.114),Point(29.907,71.502)),
-                                LineGeo(Point(29.907,71.502),Point(29.704,73.942)),
-                                LineGeo(Point(29.704,73.942),Point(29.45,76.484)),
-                                LineGeo(Point(29.45,76.484),Point(31.101,76.484)),
-                                LineGeo(Point(31.101,76.484),Point(32.905,76.484)),
-                                LineGeo(Point(32.905,76.484),Point(34.862,76.484)),
-                                LineGeo(Point(34.862,76.484),Point(36.971,76.484)),
-                                LineGeo(Point(36.971,76.484),Point(39.182,76.484)),
-                                LineGeo(Point(39.182,76.484),Point(41.519,76.484)),
-                                LineGeo(Point(41.519,76.484),Point(43.933,76.484)),
-                                LineGeo(Point(43.933,76.484),Point(46.424,76.484)),
-                                LineGeo(Point(46.424,76.484),Point(48.99,76.484)),
-                                LineGeo(Point(48.99,76.484),Point(51.607,76.484)),
-                                LineGeo(Point(51.607,76.484),Point(54.25,76.484)),
-                                LineGeo(Point(54.25,76.484),Point(56.918,76.484)),
-                                LineGeo(Point(56.918,76.484),Point(59.586,76.484)),
-                                LineGeo(Point(59.586,76.484),Point(62.254,76.484)),
-                                LineGeo(Point(62.254,76.484),Point(64.922,76.484)),
-                                LineGeo(Point(64.922,76.484),Point(67.539,76.484)),
-                                LineGeo(Point(67.539,76.484),Point(70.08,76.484)),
-                                LineGeo(Point(70.08,76.484),Point(72.596,76.484)),
-                                LineGeo(Point(72.596,76.484),Point(75.01,76.484)),
-                                LineGeo(Point(75.01,76.484),Point(77.348,76.484)),
-                                LineGeo(Point(77.348,76.484),Point(79.584,76.484)),
-                                LineGeo(Point(79.584,76.484),Point(81.693,76.484)),
-                                LineGeo(Point(81.693,76.484),Point(83.675,76.484)),
-                                LineGeo(Point(83.675,76.484),Point(85.504,76.484)),
-                                LineGeo(Point(85.504,76.484),Point(87.156,76.484)),
-                                LineGeo(Point(87.156,76.484),Point(88.655,76.484)),
-                                LineGeo(Point(88.655,76.484),Point(89.951,76.484)),
-                                LineGeo(Point(89.951,76.484),Point(91.044,76.484)),
-                                LineGeo(Point(91.044,76.484),Point(91.933,76.484)),
-                                LineGeo(Point(91.933,76.484),Point(92.568,76.484)),
-                                LineGeo(Point(92.568,76.484),Point(92.975,76.484)),
-                                LineGeo(Point(92.975,76.484),Point(93.102,76.484)),
-                                LineGeo(Point(93.102,76.484),Point(82.785,58.746)),
-                                LineGeo(Point(82.785,58.746),Point(42.155,58.746)),
-                                LineGeo(Point(42.155,58.746),Point(41.875,58.696)),
-                                LineGeo(Point(41.875,58.696),Point(41.646,58.492)),
-                                LineGeo(Point(41.646,58.492),Point(41.469,58.238)),
-                                LineGeo(Point(41.469,58.238),Point(41.316,57.882)),
-                                LineGeo(Point(41.316,57.882),Point(41.215,57.528)),
-                                LineGeo(Point(41.215,57.528),Point(41.138,57.172)),
-                                LineGeo(Point(41.138,57.172),Point(41.113,56.866)),
-                                LineGeo(Point(41.113,56.866),Point(41.087,56.612)),
-                                LineGeo(Point(41.087,56.612),Point(40.884,54.122)),
-                                LineGeo(Point(40.884,54.122),Point(40.63,51.682)),
-                                LineGeo(Point(40.63,51.682),Point(40.3,49.244)),
-                                LineGeo(Point(40.3,49.244),Point(39.919,46.856)),
-                                LineGeo(Point(39.919,46.856),Point(39.461,44.518)),
-                                LineGeo(Point(39.461,44.518),Point(38.953,42.23)),
-                                LineGeo(Point(38.953,42.23),Point(38.394,39.994)),
-                                LineGeo(Point(38.394,39.994),Point(37.784,37.81)),
-                                LineGeo(Point(37.784,37.81),Point(37.149,35.674)),
-                                LineGeo(Point(37.149,35.674),Point(36.437,33.592)),
-                                LineGeo(Point(36.437,33.592),Point(35.701,31.61)),
-                                LineGeo(Point(35.701,31.61),Point(34.913,29.628)),
-                                LineGeo(Point(34.913,29.628),Point(34.1,27.746)),
-                                LineGeo(Point(34.1,27.746),Point(33.261,25.918)),
-                                LineGeo(Point(33.261,25.918),Point(32.397,24.19)),
-                                LineGeo(Point(32.397,24.19),Point(31.482,22.512)),
-                                LineGeo(Point(31.482,22.512),Point(30.568,20.886)),
-                                LineGeo(Point(30.568,20.886),Point(29.628,19.362)),
-                                LineGeo(Point(29.628,19.362),Point(28.662,17.938)),
-                                LineGeo(Point(28.662,17.938),Point(27.696,16.566)),
-                                LineGeo(Point(27.696,16.566),Point(26.731,15.296)),
-                                LineGeo(Point(26.731,15.296),Point(25.74,14.126)),
-                                LineGeo(Point(25.74,14.126),Point(24.723,13.06)),
-                                LineGeo(Point(24.723,13.06),Point(23.732,12.044)),
-                                LineGeo(Point(23.732,12.044),Point(22.741,11.18)),
-                                LineGeo(Point(22.741,11.18),Point(21.75,10.366)),
-                                LineGeo(Point(21.75,10.366),Point(20.785,9.706)),
-                                LineGeo(Point(20.785,9.706),Point(19.794,9.096)),
-                                LineGeo(Point(19.794,9.096),Point(18.854,8.638)),
-                                LineGeo(Point(18.854,8.638),Point(17.914,8.282)),
-                                LineGeo(Point(17.914,8.282),Point(16.973,8.028)),
-                                LineGeo(Point(16.973,8.028),Point(16.084,7.926)),
-                                LineGeo(Point(16.084,7.926),Point(18.193,-50.818)),
-                                LineGeo(Point(18.193,-50.818),Point(0,-81.412)),
-                                LineGeo(Point(0,-81.412),Point(-18.193,-50.818)),
-                                LineGeo(Point(-18.193,-50.818),Point(-16.084,7.926))],closed=True)
+#        shape=ShapeClass(geos=[LineGeo(Point(-16.084,7.926),Point(-16.973,8.028)),
+#                                LineGeo(Point(-16.973,8.028),Point(-17.914,8.282)),
+#                                LineGeo(Point(-17.914,8.282),Point(-18.854,8.638)),
+#                                LineGeo(Point(-18.854,8.638),Point(-19.794,9.096)),
+#                                LineGeo(Point(-19.794,9.096),Point(-20.785,9.706)),
+#                                LineGeo(Point(-20.785,9.706),Point(-21.75,10.366)),
+#                                LineGeo(Point(-21.75,10.366),Point(-22.741,11.18)),
+#                                LineGeo(Point(-22.741,11.18),Point(-23.732,12.044)),
+#                                LineGeo(Point(-23.732,12.044),Point(-24.723,13.06)),
+#                                LineGeo(Point(-24.723,13.06),Point(-25.714,14.126)),
+#                                LineGeo(Point(-25.714,14.126),Point(-26.705,15.296)),
+#                                LineGeo(Point(-26.705,15.296),Point(-27.696,16.566)),
+#                                LineGeo(Point(-27.696,16.566),Point(-28.662,17.938)),
+#                                LineGeo(Point(-28.662,17.938),Point(-29.628,19.362)),
+#                                LineGeo(Point(-29.628,19.362),Point(-30.568,20.886)),
+#                                LineGeo(Point(-30.568,20.886),Point(-31.482,22.512)),
+#                                LineGeo(Point(-31.482,22.512),Point(-32.372,24.19)),
+#                                LineGeo(Point(-32.372,24.19),Point(-33.261,25.918)),
+#                                LineGeo(Point(-33.261,25.918),Point(-34.1,27.746)),
+#                                LineGeo(Point(-34.1,27.746),Point(-34.913,29.628)),
+#                                LineGeo(Point(-34.913,29.628),Point(-35.675,31.61)),
+#                                LineGeo(Point(-35.675,31.61),Point(-36.437,33.592)),
+#                                LineGeo(Point(-36.437,33.592),Point(-37.124,35.674)),
+#                                LineGeo(Point(-37.124,35.674),Point(-37.784,37.81)),
+#                                LineGeo(Point(-37.784,37.81),Point(-38.394,39.994)),
+#                                LineGeo(Point(-38.394,39.994),Point(-38.953,42.23)),
+#                                LineGeo(Point(-38.953,42.23),Point(-39.461,44.518)),
+#                                LineGeo(Point(-39.461,44.518),Point(-39.893,46.856)),
+#                                LineGeo(Point(-39.893,46.856),Point(-40.3,49.244)),
+#                                LineGeo(Point(-40.3,49.244),Point(-40.63,51.682)),
+#                                LineGeo(Point(-40.63,51.682),Point(-40.884,54.122)),
+#                                LineGeo(Point(-40.884,54.122),Point(-41.087,56.612)),
+#                                LineGeo(Point(-41.087,56.612),Point(-41.087,56.866)),
+#                                LineGeo(Point(-41.087,56.866),Point(-41.138,57.172)),
+#                                LineGeo(Point(-41.138,57.172),Point(-41.215,57.528)),
+#                                LineGeo(Point(-41.215,57.528),Point(-41.316,57.882)),
+#                                LineGeo(Point(-41.316,57.882),Point(-41.469,58.238)),
+#                                LineGeo(Point(-41.469,58.238),Point(-41.646,58.492)),
+#                                LineGeo(Point(-41.646,58.492),Point(-41.875,58.696)),
+#                                LineGeo(Point(-41.875,58.696),Point(-42.155,58.746)),
+#                                LineGeo(Point(-42.155,58.746),Point(-82.785,58.746)),
+#                                LineGeo(Point(-82.785,58.746),Point(-93.102,76.484)),
+#                                LineGeo(Point(-93.102,76.484),Point(-92.975,76.484)),
+#                                LineGeo(Point(-92.975,76.484),Point(-92.594,76.484)),
+#                                LineGeo(Point(-92.594,76.484),Point(-91.958,76.484)),
+#                                LineGeo(Point(-91.958,76.484),Point(-91.12,76.484)),
+#                                LineGeo(Point(-91.12,76.484),Point(-90.053,76.484)),
+#                                LineGeo(Point(-90.053,76.484),Point(-88.782,76.484)),
+#                                LineGeo(Point(-88.782,76.484),Point(-87.334,76.484)),
+#                                LineGeo(Point(-87.334,76.484),Point(-85.733,76.484)),
+#                                LineGeo(Point(-85.733,76.484),Point(-83.954,76.484)),
+#                                LineGeo(Point(-83.954,76.484),Point(-82.023,76.484)),
+#                                LineGeo(Point(-82.023,76.484),Point(-79.99,76.484)),
+#                                LineGeo(Point(-79.99,76.484),Point(-77.805,76.484)),
+#                                LineGeo(Point(-77.805,76.484),Point(-75.543,76.484)),
+#                                LineGeo(Point(-75.543,76.484),Point(-73.18,76.484)),
+#                                LineGeo(Point(-73.18,76.484),Point(-70.741,76.484)),
+#                                LineGeo(Point(-70.741,76.484),Point(-68.251,76.484)),
+#                                LineGeo(Point(-68.251,76.484),Point(-65.71,76.484)),
+#                                LineGeo(Point(-65.71,76.484),Point(-63.118,76.484)),
+#                                LineGeo(Point(-63.118,76.484),Point(-60.526,76.484)),
+#                                LineGeo(Point(-60.526,76.484),Point(-57.909,76.484)),
+#                                LineGeo(Point(-57.909,76.484),Point(-55.292,76.484)),
+#                                LineGeo(Point(-55.292,76.484),Point(-52.7,76.484)),
+#                                LineGeo(Point(-52.7,76.484),Point(-50.159,76.484)),
+#                                LineGeo(Point(-50.159,76.484),Point(-47.643,76.484)),
+#                                LineGeo(Point(-47.643,76.484),Point(-45.204,76.484)),
+#                                LineGeo(Point(-45.204,76.484),Point(-42.841,76.484)),
+#                                LineGeo(Point(-42.841,76.484),Point(-40.554,76.484)),
+#                                LineGeo(Point(-40.554,76.484),Point(-38.369,76.484)),
+#                                LineGeo(Point(-38.369,76.484),Point(-36.285,76.484)),
+#                                LineGeo(Point(-36.285,76.484),Point(-34.354,76.484)),
+#                                LineGeo(Point(-34.354,76.484),Point(-32.55,76.484)),
+#                                LineGeo(Point(-32.55,76.484),Point(-30.898,76.484)),
+#                                LineGeo(Point(-30.898,76.484),Point(-31.152,73.942)),
+#                                LineGeo(Point(-31.152,73.942),Point(-31.33,71.452)),
+#                                LineGeo(Point(-31.33,71.452),Point(-31.457,69.012)),
+#                                LineGeo(Point(-31.457,69.012),Point(-31.508,66.624)),
+#                                LineGeo(Point(-31.508,66.624),Point(-31.533,64.338)),
+#                                LineGeo(Point(-31.533,64.338),Point(-31.482,62.102)),
+#                                LineGeo(Point(-31.482,62.102),Point(-31.381,59.916)),
+#                                LineGeo(Point(-31.381,59.916),Point(-31.228,57.782)),
+#                                LineGeo(Point(-31.228,57.782),Point(-31.025,55.748)),
+#                                LineGeo(Point(-31.025,55.748),Point(-30.746,53.766)),
+#                                LineGeo(Point(-30.746,53.766),Point(-30.441,51.836)),
+#                                LineGeo(Point(-30.441,51.836),Point(-30.085,49.956)),
+#                                LineGeo(Point(-30.085,49.956),Point(-29.653,48.176)),
+#                                LineGeo(Point(-29.653,48.176),Point(-29.196,46.5)),
+#                                LineGeo(Point(-29.196,46.5),Point(-28.687,44.822)),
+#                                LineGeo(Point(-28.687,44.822),Point(-28.128,43.246)),
+#                                LineGeo(Point(-28.128,43.246),Point(-27.519,41.774)),
+#                                LineGeo(Point(-27.519,41.774),Point(-26.858,40.35)),
+#                                LineGeo(Point(-26.858,40.35),Point(-26.172,38.978)),
+#                                LineGeo(Point(-26.172,38.978),Point(-25.435,37.708)),
+#                                LineGeo(Point(-25.435,37.708),Point(-24.647,36.488)),
+#                                LineGeo(Point(-24.647,36.488),Point(-23.809,35.37)),
+#                                LineGeo(Point(-23.809,35.37),Point(-22.945,34.302)),
+#                                LineGeo(Point(-22.945,34.302),Point(-22.03,33.286)),
+#                                LineGeo(Point(-22.03,33.286),Point(-21.09,32.422)),
+#                                LineGeo(Point(-21.09,32.422),Point(-20.099,31.558)),
+#                                LineGeo(Point(-20.099,31.558),Point(-19.082,30.846)),
+#                                LineGeo(Point(-19.082,30.846),Point(-18.015,30.186)),
+#                                LineGeo(Point(-18.015,30.186),Point(-16.923,29.576)),
+#                                LineGeo(Point(-16.923,29.576),Point(-15.779,29.068)),
+#                                LineGeo(Point(-15.779,29.068),Point(-14.61,28.662)),
+#                                LineGeo(Point(-14.61,28.662),Point(-13.416,28.306)),
+#                                LineGeo(Point(-13.416,28.306),Point(-13.035,29.83)),
+#                                LineGeo(Point(-13.035,29.83),Point(-12.603,31.558)),
+#                                LineGeo(Point(-12.603,31.558),Point(-12.196,33.438)),
+#                                LineGeo(Point(-12.196,33.438),Point(-11.79,35.37)),
+#                                LineGeo(Point(-11.79,35.37),Point(-11.459,37.402)),
+#                                LineGeo(Point(-11.459,37.402),Point(-11.205,39.486)),
+#                                LineGeo(Point(-11.205,39.486),Point(-11.053,41.468)),
+#                                LineGeo(Point(-11.053,41.468),Point(-11.002,43.45)),
+#                                LineGeo(Point(-11.002,43.45),Point(-11.129,45.28)),
+#                                LineGeo(Point(-11.129,45.28),Point(-11.434,47.008)),
+#                                LineGeo(Point(-11.434,47.008),Point(-11.917,48.532)),
+#                                LineGeo(Point(-11.917,48.532),Point(-12.654,49.802)),
+#                                LineGeo(Point(-12.654,49.802),Point(-13.619,50.82)),
+#                                LineGeo(Point(-13.619,50.82),Point(-14.864,51.48)),
+#                                LineGeo(Point(-14.864,51.48),Point(-16.44,51.836)),
+#                                LineGeo(Point(-16.44,51.836),Point(-18.32,51.734)),
+#                                LineGeo(Point(-18.32,51.734),Point(-18.396,53.056)),
+#                                LineGeo(Point(-18.396,53.056),Point(-18.473,54.428)),
+#                                LineGeo(Point(-18.473,54.428),Point(-18.473,55.952)),
+#                                LineGeo(Point(-18.473,55.952),Point(-18.422,57.528)),
+#                                LineGeo(Point(-18.422,57.528),Point(-18.295,59.102)),
+#                                LineGeo(Point(-18.295,59.102),Point(-18.117,60.728)),
+#                                LineGeo(Point(-18.117,60.728),Point(-17.812,62.356)),
+#                                LineGeo(Point(-17.812,62.356),Point(-17.431,63.93)),
+#                                LineGeo(Point(-17.431,63.93),Point(-16.923,65.404)),
+#                                LineGeo(Point(-16.923,65.404),Point(-16.287,66.828)),
+#                                LineGeo(Point(-16.287,66.828),Point(-15.525,68.148)),
+#                                LineGeo(Point(-15.525,68.148),Point(-14.61,69.318)),
+#                                LineGeo(Point(-14.61,69.318),Point(-13.518,70.284)),
+#                                LineGeo(Point(-13.518,70.284),Point(-12.273,71.148)),
+#                                LineGeo(Point(-12.273,71.148),Point(-10.824,71.756)),
+#                                LineGeo(Point(-10.824,71.756),Point(-9.198,72.112)),
+#                                LineGeo(Point(-9.198,72.112),Point(-8.893,72.926)),
+#                                LineGeo(Point(-8.893,72.926),Point(-8.563,73.688)),
+#                                LineGeo(Point(-8.563,73.688),Point(-8.182,74.4)),
+#                                LineGeo(Point(-8.182,74.4),Point(-7.75,75.06)),
+#                                LineGeo(Point(-7.75,75.06),Point(-7.292,75.62)),
+#                                LineGeo(Point(-7.292,75.62),Point(-6.784,76.128)),
+#                                LineGeo(Point(-6.784,76.128),Point(-6.276,76.584)),
+#                                LineGeo(Point(-6.276,76.584),Point(-5.717,76.94)),
+#                                LineGeo(Point(-5.717,76.94),Point(-5.158,77.296)),
+#                                LineGeo(Point(-5.158,77.296),Point(-4.548,77.602)),
+#                                LineGeo(Point(-4.548,77.602),Point(-3.938,77.804)),
+#                                LineGeo(Point(-3.938,77.804),Point(-3.303,78.008)),
+#                                LineGeo(Point(-3.303,78.008),Point(-2.668,78.16)),
+#                                LineGeo(Point(-2.668,78.16),Point(-2.007,78.262)),
+#                                LineGeo(Point(-2.007,78.262),Point(-1.346,78.312)),
+#                                LineGeo(Point(-1.346,78.312),Point(-0.66,78.364)),
+#                                LineGeo(Point(-0.66,78.364),Point(0,78.364)),
+#                                LineGeo(Point(0,78.364),Point(0.66,78.312)),
+#                                LineGeo(Point(0.66,78.312),Point(1.321,78.21)),
+#                                LineGeo(Point(1.321,78.21),Point(1.981,78.11)),
+#                                LineGeo(Point(1.981,78.11),Point(2.617,78.008)),
+#                                LineGeo(Point(2.617,78.008),Point(3.252,77.856)),
+#                                LineGeo(Point(3.252,77.856),Point(3.862,77.652)),
+#                                LineGeo(Point(3.862,77.652),Point(4.446,77.448)),
+#                                LineGeo(Point(4.446,77.448),Point(5.031,77.246)),
+#                                LineGeo(Point(5.031,77.246),Point(5.564,76.992)),
+#                                LineGeo(Point(5.564,76.992),Point(6.098,76.738)),
+#                                LineGeo(Point(6.098,76.738),Point(6.581,76.484)),
+#                                LineGeo(Point(6.581,76.484),Point(7.038,76.178)),
+#                                LineGeo(Point(7.038,76.178),Point(7.445,75.924)),
+#                                LineGeo(Point(7.445,75.924),Point(7.826,75.62)),
+#                                LineGeo(Point(7.826,75.62),Point(8.156,75.314)),
+#                                LineGeo(Point(8.156,75.314),Point(9.401,73.586)),
+#                                LineGeo(Point(9.401,73.586),Point(10.494,71.3)),
+#                                LineGeo(Point(10.494,71.3),Point(11.434,68.504)),
+#                                LineGeo(Point(11.434,68.504),Point(12.247,65.404)),
+#                                LineGeo(Point(12.247,65.404),Point(12.959,61.948)),
+#                                LineGeo(Point(12.959,61.948),Point(13.543,58.29)),
+#                                LineGeo(Point(13.543,58.29),Point(14.051,54.528)),
+#                                LineGeo(Point(14.051,54.528),Point(14.458,50.768)),
+#                                LineGeo(Point(14.458,50.768),Point(14.788,47.008)),
+#                                LineGeo(Point(14.788,47.008),Point(15.042,43.348)),
+#                                LineGeo(Point(15.042,43.348),Point(15.246,39.944)),
+#                                LineGeo(Point(15.246,39.944),Point(15.373,36.844)),
+#                                LineGeo(Point(15.373,36.844),Point(15.5,34.15)),
+#                                LineGeo(Point(15.5,34.15),Point(15.576,31.914)),
+#                                LineGeo(Point(15.576,31.914),Point(15.627,30.236)),
+#                                LineGeo(Point(15.627,30.236),Point(15.677,29.22)),
+#                                LineGeo(Point(15.677,29.22),Point(15.754,28.052)),
+#                                LineGeo(Point(15.754,28.052),Point(16.821,28.764)),
+#                                LineGeo(Point(16.821,28.764),Point(17.863,29.526)),
+#                                LineGeo(Point(17.863,29.526),Point(18.854,30.288)),
+#                                LineGeo(Point(18.854,30.288),Point(19.794,31.152)),
+#                                LineGeo(Point(19.794,31.152),Point(20.709,32.016)),
+#                                LineGeo(Point(20.709,32.016),Point(21.598,32.93)),
+#                                LineGeo(Point(21.598,32.93),Point(22.411,33.896)),
+#                                LineGeo(Point(22.411,33.896),Point(23.224,34.862)),
+#                                LineGeo(Point(23.224,34.862),Point(23.961,35.928)),
+#                                LineGeo(Point(23.961,35.928),Point(24.673,37.046)),
+#                                LineGeo(Point(24.673,37.046),Point(25.333,38.164)),
+#                                LineGeo(Point(25.333,38.164),Point(25.969,39.384)),
+#                                LineGeo(Point(25.969,39.384),Point(26.553,40.604)),
+#                                LineGeo(Point(26.553,40.604),Point(27.112,41.926)),
+#                                LineGeo(Point(27.112,41.926),Point(27.595,43.298)),
+#                                LineGeo(Point(27.595,43.298),Point(28.052,44.72)),
+#                                LineGeo(Point(28.052,44.72),Point(28.484,46.194)),
+#                                LineGeo(Point(28.484,46.194),Point(28.84,47.718)),
+#                                LineGeo(Point(28.84,47.718),Point(29.17,49.346)),
+#                                LineGeo(Point(29.17,49.346),Point(29.475,51.022)),
+#                                LineGeo(Point(29.475,51.022),Point(29.704,52.75)),
+#                                LineGeo(Point(29.704,52.75),Point(29.907,54.528)),
+#                                LineGeo(Point(29.907,54.528),Point(30.06,56.41)),
+#                                LineGeo(Point(30.06,56.41),Point(30.187,58.34)),
+#                                LineGeo(Point(30.187,58.34),Point(30.237,60.322)),
+#                                LineGeo(Point(30.237,60.322),Point(30.263,62.406)),
+#                                LineGeo(Point(30.263,62.406),Point(30.237,64.592)),
+#                                LineGeo(Point(30.237,64.592),Point(30.187,66.776)),
+#                                LineGeo(Point(30.187,66.776),Point(30.06,69.114)),
+#                                LineGeo(Point(30.06,69.114),Point(29.907,71.502)),
+#                                LineGeo(Point(29.907,71.502),Point(29.704,73.942)),
+#                                LineGeo(Point(29.704,73.942),Point(29.45,76.484)),
+#                                LineGeo(Point(29.45,76.484),Point(31.101,76.484)),
+#                                LineGeo(Point(31.101,76.484),Point(32.905,76.484)),
+#                                LineGeo(Point(32.905,76.484),Point(34.862,76.484)),
+#                                LineGeo(Point(34.862,76.484),Point(36.971,76.484)),
+#                                LineGeo(Point(36.971,76.484),Point(39.182,76.484)),
+#                                LineGeo(Point(39.182,76.484),Point(41.519,76.484)),
+#                                LineGeo(Point(41.519,76.484),Point(43.933,76.484)),
+#                                LineGeo(Point(43.933,76.484),Point(46.424,76.484)),
+#                                LineGeo(Point(46.424,76.484),Point(48.99,76.484)),
+#                                LineGeo(Point(48.99,76.484),Point(51.607,76.484)),
+#                                LineGeo(Point(51.607,76.484),Point(54.25,76.484)),
+#                                LineGeo(Point(54.25,76.484),Point(56.918,76.484)),
+#                                LineGeo(Point(56.918,76.484),Point(59.586,76.484)),
+#                                LineGeo(Point(59.586,76.484),Point(62.254,76.484)),
+#                                LineGeo(Point(62.254,76.484),Point(64.922,76.484)),
+#                                LineGeo(Point(64.922,76.484),Point(67.539,76.484)),
+#                                LineGeo(Point(67.539,76.484),Point(70.08,76.484)),
+#                                LineGeo(Point(70.08,76.484),Point(72.596,76.484)),
+#                                LineGeo(Point(72.596,76.484),Point(75.01,76.484)),
+#                                LineGeo(Point(75.01,76.484),Point(77.348,76.484)),
+#                                LineGeo(Point(77.348,76.484),Point(79.584,76.484)),
+#                                LineGeo(Point(79.584,76.484),Point(81.693,76.484)),
+#                                LineGeo(Point(81.693,76.484),Point(83.675,76.484)),
+#                                LineGeo(Point(83.675,76.484),Point(85.504,76.484)),
+#                                LineGeo(Point(85.504,76.484),Point(87.156,76.484)),
+#                                LineGeo(Point(87.156,76.484),Point(88.655,76.484)),
+#                                LineGeo(Point(88.655,76.484),Point(89.951,76.484)),
+#                                LineGeo(Point(89.951,76.484),Point(91.044,76.484)),
+#                                LineGeo(Point(91.044,76.484),Point(91.933,76.484)),
+#                                LineGeo(Point(91.933,76.484),Point(92.568,76.484)),
+#                                LineGeo(Point(92.568,76.484),Point(92.975,76.484)),
+#                                LineGeo(Point(92.975,76.484),Point(93.102,76.484)),
+#                                LineGeo(Point(93.102,76.484),Point(82.785,58.746)),
+#                                LineGeo(Point(82.785,58.746),Point(42.155,58.746)),
+#                                LineGeo(Point(42.155,58.746),Point(41.875,58.696)),
+#                                LineGeo(Point(41.875,58.696),Point(41.646,58.492)),
+#                                LineGeo(Point(41.646,58.492),Point(41.469,58.238)),
+#                                LineGeo(Point(41.469,58.238),Point(41.316,57.882)),
+#                                LineGeo(Point(41.316,57.882),Point(41.215,57.528)),
+#                                LineGeo(Point(41.215,57.528),Point(41.138,57.172)),
+#                                LineGeo(Point(41.138,57.172),Point(41.113,56.866)),
+#                                LineGeo(Point(41.113,56.866),Point(41.087,56.612)),
+#                                LineGeo(Point(41.087,56.612),Point(40.884,54.122)),
+#                                LineGeo(Point(40.884,54.122),Point(40.63,51.682)),
+#                                LineGeo(Point(40.63,51.682),Point(40.3,49.244)),
+#                                LineGeo(Point(40.3,49.244),Point(39.919,46.856)),
+#                                LineGeo(Point(39.919,46.856),Point(39.461,44.518)),
+#                                LineGeo(Point(39.461,44.518),Point(38.953,42.23)),
+#                                LineGeo(Point(38.953,42.23),Point(38.394,39.994)),
+#                                LineGeo(Point(38.394,39.994),Point(37.784,37.81)),
+#                                LineGeo(Point(37.784,37.81),Point(37.149,35.674)),
+#                                LineGeo(Point(37.149,35.674),Point(36.437,33.592)),
+#                                LineGeo(Point(36.437,33.592),Point(35.701,31.61)),
+#                                LineGeo(Point(35.701,31.61),Point(34.913,29.628)),
+#                                LineGeo(Point(34.913,29.628),Point(34.1,27.746)),
+#                                LineGeo(Point(34.1,27.746),Point(33.261,25.918)),
+#                                LineGeo(Point(33.261,25.918),Point(32.397,24.19)),
+#                                LineGeo(Point(32.397,24.19),Point(31.482,22.512)),
+#                                LineGeo(Point(31.482,22.512),Point(30.568,20.886)),
+#                                LineGeo(Point(30.568,20.886),Point(29.628,19.362)),
+#                                LineGeo(Point(29.628,19.362),Point(28.662,17.938)),
+#                                LineGeo(Point(28.662,17.938),Point(27.696,16.566)),
+#                                LineGeo(Point(27.696,16.566),Point(26.731,15.296)),
+#                                LineGeo(Point(26.731,15.296),Point(25.74,14.126)),
+#                                LineGeo(Point(25.74,14.126),Point(24.723,13.06)),
+#                                LineGeo(Point(24.723,13.06),Point(23.732,12.044)),
+#                                LineGeo(Point(23.732,12.044),Point(22.741,11.18)),
+#                                LineGeo(Point(22.741,11.18),Point(21.75,10.366)),
+#                                LineGeo(Point(21.75,10.366),Point(20.785,9.706)),
+#                                LineGeo(Point(20.785,9.706),Point(19.794,9.096)),
+#                                LineGeo(Point(19.794,9.096),Point(18.854,8.638)),
+#                                LineGeo(Point(18.854,8.638),Point(17.914,8.282)),
+#                                LineGeo(Point(17.914,8.282),Point(16.973,8.028)),
+#                                LineGeo(Point(16.973,8.028),Point(16.084,7.926)),
+#                                LineGeo(Point(16.084,7.926),Point(18.193,-50.818)),
+#                                LineGeo(Point(18.193,-50.818),Point(0,-81.412)),
+#                                LineGeo(Point(0,-81.412),Point(-18.193,-50.818)),
+#                                LineGeo(Point(-18.193,-50.818),Point(-16.084,7.926))],closed=True)
                 
 #        shape=ShapeClass(geos=[LineGeo(Point(x=0,y=-1),Point(x=0,y=0)),
 #                               LineGeo(Point(x=0,y=0),Point(x=2,y=2)),
@@ -3072,17 +3170,28 @@ class ExampleClass:
 #                               closed=True)
         #offshape=offShapeClass(shape, offset=4, offtype='in')
         #offshape1=offShapeClass(shape, offset=8, offtype='in')
-        offshape2=offShapeClass(shape, offset=7.64, offtype='in')
+
+        shape=ShapeClass(geos=[LineGeo(Point(10,29),Point(30,29)),
+                                LineGeo(Point(30,29),Point(30,-29)),
+                                LineGeo(Point(30,-29),Point(10,-29)),
+                                ArcGeo(Pa=Point(10,-29),Pe=Point(-10,-29),O=Point(0,-29),s_ang=90/180*pi,e_ang=90/180*pi,r=10,direction=-1),
+                                LineGeo(Point(-10,-29),Point(-30,-29)),
+                                LineGeo(Point(-30,-29),Point(-30,29)),
+                                LineGeo(Point(-30,29),Point(-10,29)),
+                                ArcGeo(Pa=Point(-10,29),Pe=Point(10,29),O=Point(0,29),s_ang=270/180*pi,e_ang=-90/180*pi,r=10,direction=-1)],
+                         closed=True)
+        
+        offshape2=offShapeClass(shape, offset=0.1, offtype='in')
         #offshape3=offShapeClass(shape, offset=16, offtype='in')
-        #Pl.plot_lines_plot(offshape2.geos,111,wtp=[True,True,True])
+        Pl.plot_lines_plot(offshape2.geos,121,wtp=[True,True,True])
         
         #Pl.plot_segments(offshape.rawoff,121,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
-        Pl.plot_segments(offshape2.segments,111,format=('b','.b','.b'),fcol='blue',wtp=[True,True,True])
-        Pl.plot_segments(offshape2.interferingshapes,111,format=('m','.m','.m'),fcol='blue',wtp=[True,False,False])
+        Pl.plot_segments(offshape2.segments,122,format=('b','.b','.b'),fcol='blue',wtp=[True,True,True])
+        Pl.plot_segments(offshape2.interferingshapes,122,format=('m','.m','.m'),fcol='blue',wtp=[True,False,False])
         
         
 
-        Pl.plot_segments(offshape2.rawoff,111,format=('c','.c','.c'),fcol='blue',wtp=[True,False,False])
+        Pl.plot_segments(offshape2.rawoff,122,format=('c','.c','.c'),fcol='blue',wtp=[True,False,False])
         #Pl.plot_segments(offshape3.rawoff,121,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
         
         #Pl.plot_lines_plot(offshape.geos,132,wtp=[True,False,False])
@@ -3436,10 +3545,10 @@ Ex=ExampleClass()
 #Ex.CheckColinearLines()
 #CheckForIntersections()
 #Ex.SimplePolygonCheck()
-#Ex.Distance_Check() 
+Ex.Distance_Check() 
 #cProfile.run("Ex.PWIDTest()",sort='cumtime')
 #Ex.PWIDTest()
-Ex.SweepLineTest()
+#Ex.SweepLineTest()
 #self.make_offshape()
 
 
