@@ -264,16 +264,6 @@ class Point:
             other = Point(x=0.0, y=0.0)
         return atan2(other.y - self.y, other.x - self.x)
 
-    def unit_vector(self, Pto=None):
-        """
-        Returns vector of length 1 with similar direction as input
-        @param Pto: The other point 
-        @return: Returns the Unit vector
-        """
-        diffVec = Pto - self
-        l = diffVec.distance()
-        return Point(diffVec.x / l, diffVec.y / l)
-
     def transform_to_Norm_Coord(self, other, alpha):
         xt = other.x + self.x * cos(alpha) + self.y * sin(alpha)
         yt = other.y + self.x * sin(alpha) + self.y * cos(alpha)
@@ -356,7 +346,7 @@ class BoundingBox:
         """
         
         if type(self.Pa) == type(None) or type(self.Pe) == type(None):
-            return BoundingBox(copy(other.Pa), copy(other.Pe))
+            return BoundingBox(deepcopy(other.Pa), deepcopy(other.Pe))
         
         xmin = min(self.Pa.x, other.Pa.x)
         xmax = max(self.Pe.x, other.Pe.x)
@@ -1040,9 +1030,6 @@ class ArcGeo:
                 arc = self.Pe.norm_angle(Pa) - pi / 2
                 Ve = Pe - Pa
                 m = (sqrt(pow(Ve.x, 2) + pow(Ve.y, 2))) / 2
-                
-                if DEBUG:
-                    logger.debug('lo: %s; m: %s' %(r,m))
                     
                 if abs(r-m)<0.0001:
                     lo = 0.0;
@@ -1882,7 +1869,7 @@ class offShapeClass(ShapeClass):
             Pa=seg.Pa+seg.start_normal*offset
             Pe=seg.Pe+seg.end_normal*offset
             
-            if selg.ext>0:
+            if seg.ext>0:
                 return ArcGeo(Pa=Pa,Pe=Pe,O=seg.O,r=seg.r-offset,direction=seg.ext)
             else:
                 return ArcGeo(Pa=Pa,Pe=Pe,O=seg.O,r=seg.r-offset,direction=seg.ext)
