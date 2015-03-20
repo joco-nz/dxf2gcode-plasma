@@ -56,6 +56,12 @@ docs/_build/
 # PyBuilder
 target/
 
-#Eclipse Project stuff
+# Config files
+*.cfg
+
+# Eclipse Project stuff
 /.project
 /.pydevproject
+
+# PyCharm stuff
+.idea/
