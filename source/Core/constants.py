@@ -2,8 +2,8 @@
 
 ############################################################################
 #   
-#   Copyright (C) 2010-2014
-#    Christian Kohl�ffel
+#   Copyright (C) 2010-2015
+#    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #   
 #   This file is part of DXF2GCODE.
@@ -40,10 +40,9 @@ import logging
 APPNAME = "DXF2GCODE"
 VERSION = "PyQt4 Beta"
 
-
-DATE     =   "$Date::                     $"
-REVISION =   "$Rev::                      $"
-AUTHOR   =  u"$Author::                                  $"
+DATE     =  "$Date$"
+REVISION =  "$Revision$"
+AUTHOR   = u"$Author$"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'

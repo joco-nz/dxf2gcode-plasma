@@ -3,7 +3,7 @@
 
 ############################################################################
 #   
-#   Copyright (C) 2010-2014
+#   Copyright (C) 2010-2015
 #    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #   
@@ -503,12 +503,12 @@ class Main(QtGui.QMainWindow):
                 "Changed by: %s<br></body>"\
                 "<h2>Where to get help:</h2>"\
                 "For more information and updates, "\
-                "please visit the Google Code Project: "\
-                "<a href='http://code.google.com/p/dxf2gcode/'>http://code.google.com/p/dxf2gcode/</a><br>"\
-                "For any questions on how to use dxf2gcode please use the<br>"\
-                "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br><br>"\
-                "To log bugs, or request features please use the <br>"\
-                "<a href='http://code.google.com/p/dxf2gcode/issues/list'>issue tracking system</a><br>"\
+                "please visit "\
+                "<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a><br>"\
+                "For any questions on how to use dxf2gcode please use the "\
+                "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"\
+                "To log bugs, or request features please use the "\
+                "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"\
                 "<h2>License and copyright:</h2>"\
                 "<body>This program is written in Python and is published under the "\
                 "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"\
