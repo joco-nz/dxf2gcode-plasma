@@ -1202,8 +1202,10 @@ class ArcGeo:
         @param other: the instance of the 2nd geometry element.
         @return: The distance between the two geometries 
         """
-        logger.error('Unsupported function')
-        return 1e99
+        #logger.error('Unsupported function')
+        Pself=self.get_nearest_point(other)
+        Pother=other.get_nearest_point(self)
+        return Pself.distance(Pother)
     
     def distance_a_p(self, other):
         """
@@ -1397,7 +1399,7 @@ class ArcGeo:
         else:
             return self.Pe
         
-    def get_nearest_point_a_a(self,other):
+    def get_nearest_point_a_a(self,other,ret="self"):
         """
         Get the nearest point to a line lieing on the line
         @param other: The Point to be nearest to
@@ -1408,60 +1410,98 @@ class ArcGeo:
         
         
         
-        # The Line is outside of the Arc
-        if other.O.distance(self.O)>(other.r+other.r):
-            pass
-            #If the Nearest Point is on Arc Segement it is the neares one.
-            #logger.debug("Nearest Point is outside of arc")
-#            if other.PointAng_withinArc(POnearest):
-#                if ret=="line":
-#                    return POnearest
-#                elif ret=="arc":
-#                    return other.O.get_arc_point(other.O.norm_angle(POnearest),r=other.r)
-#            elif self.distance(other.Pa)<self.distance(other.Pe):
-#                if ret=="line":
-#                    return self.get_nearest_point(other.Pa)
-#                elif ret=="arc":
-#                    return other.Pa
-#            else:
-#                if ret=="line":
-#                    return self.get_nearest_point(other.Pe)
-#                elif ret=="art":
-#                    return other.Pe
-#        
-#        #logger.debug("Nearest Point is Inside of arc")
-#        #logger.debug("self.distance(other.Pa): %s, self.distance(other.Pe): %s" %(self.distance(other.Pa),self.distance(other.Pe)))
-#        # The Line may be inside of the ARc or cross it
-#        if self.distance(other.Pa)<self.distance(other.Pe):
-#            Pnearest=self.get_nearest_point(other.Pa)
-#            Pnother=other.Pa
-#            dis_min=self.distance(other.Pa)
-#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#        else:
-#            Pnearest=self.get_nearest_point(other.Pe)
-#            Pnother=other.Pe
-#            dis_min=self.distance(other.Pe)
-#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#        
-#        if ((other.PointAng_withinArc(self.Pa)) and 
-#            abs(other.r-other.O.distance(self.Pa)) < dis_min):
-#            
-#            Pnearest=self.Pa
-#            Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
-#            dis_min=abs(other.r-other.O.distance(self.Pa))
-#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#            
-#        if ((other.PointAng_withinArc(self.Pe)) and 
-#            abs((other.r-other.O.distance(self.Pe))) < dis_min):
-#            Pnearest=self.Pe
-#            Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
-#
-#            dis_min=abs(other.r-other.O.distance(self.Pe))
-#            #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#        if ret=="line":
-#            return Pnearest
-#        elif ret=="arc":
-#            return Pnother
+        # The Arc is outside of the Arc
+        #if other.O.distance(self.O)>(other.r+other.r):
+
+        #If Nearest point is on both Arc Segments.
+        if other.PointAng_withinArc(self.O) and self.PointAng_withinArc(other.O):
+            if ret=="self":
+                return self.O.get_arc_point(self.O.norm_angle(other.O),r=self.r)
+            elif ret=="other":
+                return other.O.get_arc_point(other.O.norm_angle(self.O),r=other.r)
+        #If Nearest point is on self Arc Segment but not other
+        elif self.PointAng_withinArc(other.O):
+            if self.distance(other.Pa)<self.distance(other.Pe):
+                if ret=="self":
+                    return self.O.get_arc_point(other.Pa,r=self.r)
+                elif ret=="other":
+                    return other.Pa
+            else:
+                if ret=="self":
+                    return self.O.get_arc_point(other.Pe,r=self.r)
+                elif ret=="other":
+                    return other.Pe
+        #If Nearest point is on other Arc Segment but not self
+        elif other.PointAng_withinArc(self.O):
+            if other.distance(self.Pa)<other.distance(self.Pe):
+                if ret=="self":
+                    return self.Pa
+                elif ret=="other":
+                    return other.O.get_arc_point(self.Pa,r=other.r)
+            else:
+                if ret=="self":
+                    return self.Pe
+                elif ret=="other":
+                    return other.O.get_arc_point(self.Pe,r=other.r)
+        #If the min distance is not on any arc segemtn but other.Pa is nearer then other.Pe
+        elif self.distance(other.Pa)<self.distance(other.Pe):
+            if self.Pa.distance(other.Pa)<self.Pe.distance(other.Pa):
+                if ret=="self":
+                    return self.Pa
+                elif ret=="other":
+                    return other.Pa
+            else:
+                if ret=="self":
+                    return self.Pe
+                elif ret=="other":
+                    return other.Pa                     
+        else:
+            if self.Pa.distance(other.Pe)<self.Pe.distance(other.Pe):
+                if ret=="self":
+                    return self.Pa
+                elif ret=="other":
+                    return other.Pe
+            else:
+                if ret=="self":
+                    return self.Pe
+                elif ret=="other":
+                    return other.Pe    
+            
+                
+        
+#         #logger.debug("Nearest Point is Inside of arc")
+#         #logger.debug("self.distance(other.Pa): %s, self.distance(other.Pe): %s" %(self.distance(other.Pa),self.distance(other.Pe)))
+#         # The Line may be inside of the ARc or cross it
+#         if self.distance(other.Pa)<self.distance(other.Pe):
+#             Pnearest=self.get_nearest_point(other.Pa)
+#             Pnother=other.Pa
+#             dis_min=self.distance(other.Pa)
+#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#         else:
+#             Pnearest=self.get_nearest_point(other.Pe)
+#             Pnother=other.Pe
+#             dis_min=self.distance(other.Pe)
+#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#         
+#         if ((other.PointAng_withinArc(self.Pa)) and 
+#             abs(other.r-other.O.distance(self.Pa)) < dis_min):
+#             
+#             Pnearest=self.Pa
+#             Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
+#             dis_min=abs(other.r-other.O.distance(self.Pa))
+#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#             
+#         if ((other.PointAng_withinArc(self.Pe)) and 
+#             abs((other.r-other.O.distance(self.Pe))) < dis_min):
+#             Pnearest=self.Pe
+#             Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
+# 
+#             dis_min=abs(other.r-other.O.distance(self.Pe))
+#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#         if ret=="line":
+#             return Pnearest
+#         elif ret=="arc":
+#             return Pnother
     
     def intersect(self,other):
         """
