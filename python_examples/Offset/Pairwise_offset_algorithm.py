@@ -302,7 +302,7 @@ class Point:
             self.end_normal = new_normal
             return self
 
-    def unit_vector(self, Pto=None):
+    def unit_vector(self, Pto=None, r=1):
         """
         Returns vector of length 1 with similar direction as input
         @param Pto: The other point 
@@ -310,7 +310,7 @@ class Point:
         """
         diffVec = Pto - self
         l = diffVec.distance()
-        return Point(diffVec.x / l, diffVec.y / l)
+        return Point(diffVec.x / l * r, diffVec.y / l * r)
 
     def plot2plot(self, plot, format='xr'):
         plot.plot([self.x], [self.y], format)
@@ -1144,7 +1144,7 @@ class ArcGeo:
             Pa.x = min(self.Pa.x, self.Pe.x)
 
         # If the negative Y is crossed
-        if not(self.wrap(s_ang - 1.5 * pi, 0) >=
+        if not(self.wrap(s_ang - 1.5 * pi, 0) >= 
                 self.wrap(e_ang - 1.5 * pi, 1)):
             Pa.y = min(self.Pa.y, self.Pe.y)
 
@@ -1290,7 +1290,7 @@ class ArcGeo:
         # The following algorithm was found on :
         # http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
 
-        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) *
+        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) * 
                   (pow(O_dis, 2) - pow(other.r - self.r, 2)))
 
         # If the Line is a tangent the root is 0.0.
@@ -1875,8 +1875,8 @@ class offShapeClass(ShapeClass):
             # logger.debug(nextConvexPoint)
 
 
-        for seg in self.segments:
-            self.rawoff += [self.make_rawoff_seg(seg)]
+        # for seg in self.segments:
+        #    self.rawoff += [self.make_rawoff_seg(seg)]
 
     def make_rawoff_seg(self, seg):
         """
@@ -1910,7 +1910,7 @@ class offShapeClass(ShapeClass):
             Pe = seg.Pe + seg.end_normal * offset
 
             if seg.ext > 0:
-                return ArcGeo(Pa=Pa, Pe=Pe, O=seg.O, r=seg.r - offset, direction=seg.ext)
+                return ArcGeo(Pa=Pa, Pe=Pe, O=seg.O, r=seg.r + offset, direction=seg.ext)
             else:
                 return ArcGeo(Pa=Pa, Pe=Pe, O=seg.O, r=seg.r - offset, direction=seg.ext)
 
@@ -1942,26 +1942,75 @@ class offShapeClass(ShapeClass):
         for i in range(start, len(self.geos)):
             geo1 = self.geos[i - 1]
             geo2 = self.geos[i]
-            geo2.start_normal = geo2.Pa.get_normal_vector(geo2.Pe)
-            geo2.end_normal = geo2.Pa.get_normal_vector(geo2.Pe)
+
+            if i == start:
+                if isinstance(geo1, LineGeo):
+                    geo1.start_normal = geo1.Pa.get_normal_vector(geo1.Pe)
+                    geo1.end_normal = geo1.Pa.get_normal_vector(geo1.Pe)
+                else:
+                    geo1.start_normal = geo1.Pa.unit_vector(geo1.O, r=1)
+                    geo1.end_normal = geo1.Pe.unit_vector(geo1.O, r=1)
+                
+            logger.debug(i)
             # logger.debug("geo1: %s, geo2: %s" %(geo1,geo2))
 
             # If it is a reflex vertex add a reflex segemnt (single point)
-            if (((geo1.Pa.ccw(geo1.Pe, geo2.Pe) == 1) and  self.offtype == "in") or
-                (geo1.Pa.ccw(geo1.Pe, geo2.Pe) == -1 and self.offtype == "out")):
-                # logger.debug("reflex")
-                if hasattr(geo1, "end_normal"):
-                    geo1.Pe.start_normal = geo1.end_normal
+            if  (isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo)):
+                geo2.start_normal = geo2.Pa.get_normal_vector(geo2.Pe)
+                geo2.end_normal = geo2.Pa.get_normal_vector(geo2.Pe)
+
+                if (((geo1.Pa.ccw(geo1.Pe, geo2.Pe) == 1) and  self.offtype == "in") or
+                    (geo1.Pa.ccw(geo1.Pe, geo2.Pe) == -1 and self.offtype == "out")):
+                    # logger.debug("reflex")
+                    if hasattr(geo1, "end_normal"):
+                        geo1.Pe.start_normal = geo1.end_normal
+                    else:
+                        geo1.Pe.start_normal = geo1.Pa.get_normal_vector(geo1.Pe)
+
+                    geo1.Pe.end_normal = geo2.end_normal
+                    self.segments += [geo1.Pe, geo2]
+
+                # Add the linear segment which is a line connecting 2 vertices
                 else:
-                    geo1.Pe.start_normal = geo1.Pa.get_normal_vector(geo1.Pe)
+                    # logger.debug("convex")
+                    self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
 
-                geo1.Pe.end_normal = geo2.end_normal
-                self.segments += [geo1.Pe, geo2]
+            elif isinstance(geo1, LineGeo) and isinstance(geo2, ArcGeo):
+                geo2.start_normal = geo2.Pa.unit_vector(geo2.O, r=1)
+                geo2.end_normal = geo2.Pe.unit_vector(geo2.O, r=1)
+                if (((geo1.Pa.ccw(geo1.end_normal, geo2.start_normal) == 1) and  self.offtype == "in") or
+                    (geo1.Pa.ccw(geo1.end_normal, geo2.start_normal) == -1 and self.offtype == "out")):
+                    geo1.Pe.start_normal = geo1.end_normal
+                    geo1.Pe.end_normal = geo2.start_normal
+                    self.segments += [geo1.Pe, geo2]
+                else:
+                    self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
 
-            # Add the linear segment which is a line connecting 2 vertices
-            else:
-                # logger.debug("convex")
-                self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
+            elif isinstance(geo1, ArcGeo) and isinstance(geo2, LineGeo):
+                geo2.start_normal = geo2.Pa.get_normal_vector(geo2.Pe)
+                geo2.end_normal = geo2.Pa.get_normal_vector(geo2.Pe)
+                if (((geo1.Pa.ccw(geo1.end_normal, geo2.start_normal) == 1) and  self.offtype == "in") or
+                    (geo1.Pa.ccw(geo1.end_normal, geo2.start_normal) == -1 and self.offtype == "out")):
+                    geo1.Pe.start_normal = geo1.end_normal
+                    geo1.Pe.end_normal = geo2.start_normal
+                    self.segments += [geo1.Pe, geo2]
+                else:
+                    self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
+
+            elif isinstance(geo1, ArcGeo) and isinstance(geo2, ArcGeo):
+                geo2.start_normal = geo2.Pa.unit_vector(geo2.O, r=1)
+                geo2.end_normal = geo2.Pe.unit_vector(geo2.O, r=1)
+                if (((geo1.Pa.ccw(geo1.end_normal, geo2.start_normal) == 1) and  self.offtype == "in") or
+                    (geo1.Pa.ccw(geo1.end_normal, geo2.start_normal) == -1 and self.offtype == "out")):
+                    geo1.Pe.start_normal = geo1.end_normal
+                    geo1.Pe.end_normal = geo2.start_normal
+                    self.segments += [geo1.Pe, geo2]
+                else:
+                    self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
+
+
+
+
 
     def interfering_full(self, segment1, dir, segment2):
         """
@@ -2028,48 +2077,54 @@ class offShapeClass(ShapeClass):
         @param segment 2: The second line to be checked
         @ return: Returns True or False
         """
-        # if we cut outside reverse the offset
+        if isinstance(segment1, ConvexPoint):
+            logger.debug("Should not be here")
+            return False
+        else:
+            offGeo = self.make_rawoff_seg(segment1)
+            self.interferingshapes += [offGeo]
+        
         # if we cut outside reverse the offset
         if self.offtype == "out":
             offset = -abs(self.offset)
         else:
             offset = abs(self.offset)
-
-        # if segement 1 is inverted change End Point
-        if isinstance(segment1, LineGeo):
-            Pa = segment1.Pa + segment1.start_normal * offset
-            Pe = segment1.Pe + segment1.end_normal * offset
-            offGeo = LineGeo(Pa, Pe)
-            self.interferingshapes += [offGeo]
-        elif isinstance(segment1, ArcGeo):
-            # if the direction is cw and resulting radius is still bigger 0
-            if segment1.r + offset > 0:
-                Pa = segment1.Pa + segment1.start_normal * offset
-                Pe = segment1.Pe + segment1.end_normal * offset
-                r = segment1.r + offset
-                offGeo = ArcGeo(Pa=Pa, Pe=Pe, O=segment1.O, r=r, direction=segment1.ext)
-                self.interferingshapes += [offGeo]
-            # if the direction is cw and resulting radius is still bigger 0
-
-
-            # Resulting radius is smaller then 0
-            else:
-                logger.error("Should not be here")
-
-
-
-        elif isinstance(segment1, ConvexPoint):
-            # logger.debug("Should not be here")
-            return False
-        elif isinstance(segment1, Point):
-            Pa = segment1 + segment1.start_normal * offset
-            Pe = segment1 + segment1.end_normal * offset
-            O = segment1
-            r = offset
-            offGeo = ArcGeo(Pa=Pa, Pe=Pe, O=segment1, r=offset, direction=offset)
-            self.interferingshapes += [offGeo]
-        else:
-            logger.error("Unsupportet Object type: %s" % type(segment1))
+# 
+#         # if segement 1 is inverted change End Point
+#         if isinstance(segment1, LineGeo):
+#             Pa = segment1.Pa + segment1.start_normal * offset
+#             Pe = segment1.Pe + segment1.end_normal * offset
+#             offGeo = LineGeo(Pa, Pe)
+#             self.interferingshapes += [offGeo]
+#         elif isinstance(segment1, ArcGeo):
+#             # if the direction is cw and resulting radius is still bigger 0
+#             if segment1.r + offset > 0:
+#                 Pa = segment1.Pa + segment1.start_normal * offset
+#                 Pe = segment1.Pe + segment1.end_normal * offset
+#                 r = segment1.r + offset
+#                 offGeo = ArcGeo(Pa=Pa, Pe=Pe, O=segment1.O, r=r, direction=segment1.ext)
+#                 self.interferingshapes += [offGeo]
+#             # if the direction is cw and resulting radius is still bigger 0
+# 
+# 
+#             # Resulting radius is smaller then 0
+#             else:
+#                 logger.error("Should not be here")
+# 
+# 
+# 
+#         elif isinstance(segment1, ConvexPoint):
+#             # logger.debug("Should not be here")
+#             return False
+#         elif isinstance(segment1, Point):
+#             Pa = segment1 + segment1.start_normal * offset
+#             Pe = segment1 + segment1.end_normal * offset
+#             O = segment1
+#             r = offset
+#             offGeo = ArcGeo(Pa=Pa, Pe=Pe, O=segment1, r=offset, direction=offset)
+#             self.interferingshapes += [offGeo]
+#         else:
+#             logger.error("Unsupportet Object type: %s" % type(segment1))
 
         # offGeo=LineGeo(Pa,Pe)
         # logger.debug(segment2)
@@ -3211,14 +3266,17 @@ class ExampleClass:
         offshape2 = offShapeClass(shape, offset=1, offtype='in')
         # offshape3=offShapeClass(shape, offset=16, offtype='in')
         Pl.plot_lines_plot(offshape2.geos, 121, wtp=[True, True, True])
+        Pl.plot_segments(offshape2.plotshapes, 121, format=('b', '.b', '.b'), fcol='blue', wtp=[True, False, False])
 
         # Pl.plot_segments(offshape.rawoff,121,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
-        Pl.plot_segments(offshape2.segments, 122, format=('b', '.b', '.b'), fcol='blue', wtp=[True, True, True])
-        Pl.plot_segments(offshape2.interferingshapes, 122, format=('m', '.m', '.m'), fcol='blue', wtp=[True, False, False])
+        Pl.plot_segments(offshape2.segments, 122, format=('m', '.m', '.m'), fcol='blue', wtp=[True, True, True])
+        
+
+        Pl.plot_segments(offshape2.interferingshapes, 122, format=('b', '.b', '.b'), fcol='blue', wtp=[True, False, False])
 
 
 
-        Pl.plot_segments(offshape2.rawoff, 122, format=('c', '.c', '.c'), fcol='blue', wtp=[True, False, False])
+        # Pl.plot_segments(offshape2.rawoff, 122, format=('c', '.c', '.c'), fcol='blue', wtp=[True, False, False])
         # Pl.plot_segments(offshape3.rawoff,121,format=('b','.b','.b'),fcol='blue',wtp=[True,False,False])
 
         # Pl.plot_lines_plot(offshape.geos,132,wtp=[True,False,False])
