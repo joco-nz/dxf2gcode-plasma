@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
 ############################################################################
-#   
-#   Copyright (C) 2012-2014
+#
+#   Copyright (C) 2012-2015
 #    Xavier Izard
 #    Jean-Paul Schouwstra
-#   
+#
 #   This file is part of DXF2GCODE.
-#   
+#
 #   DXF2GCODE is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   DXF2GCODE is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
-#   
+#
 ############################################################################
 
 """
@@ -49,7 +49,7 @@ import Core.Globals as g
 from Core.CustomGCode import CustomGCodeClass
 
 import logging
-logger = logging.getLogger("Gui.TreeHandling") 
+logger = logging.getLogger("Gui.TreeHandling")
 
 #defines some arbitrary types for the objects stored into the treeView.
 #These types will eg help us to find which kind of data is stored
@@ -136,41 +136,41 @@ class TreeHandler(QtGui.QWidget):
         self.ui.entitiesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.entitiesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.entitiesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
-        
+
         QtCore.QObject.connect(self.ui.blocksCollapsePushButton,
                                QtCore.SIGNAL("clicked()"),
                                self.expandToDepth0)
         QtCore.QObject.connect(self.ui.blocksExpandPushButton,
                                QtCore.SIGNAL("clicked()"),
                                self.ui.entitiesTreeView.expandAll)
-        
+
         #Build the contextual menu (mouse right click)
         self.context_menu = QtGui.QMenu(self)
-        
+
         menu_action = self.context_menu.addAction("Unselect all")
         menu_action.triggered.connect(self.ui.layersShapesTreeView.clearSelection)
-        
+
         menu_action = self.context_menu.addAction("Select all")
         menu_action.triggered.connect(self.ui.layersShapesTreeView.selectAll)
-        
+
         self.context_menu.addSeparator()
-        
+
         menu_action = self.context_menu.addAction("Disable selection")
         menu_action.triggered.connect(self.disableSelectedItems)
-        
+
         menu_action = self.context_menu.addAction("Enable selection")
         menu_action.triggered.connect(self.enableSelectedItems)
-        
+
         self.context_menu.addSeparator()
-        
+
         menu_action = self.context_menu.addAction("Don't opti. route for selection")
         menu_action.triggered.connect(self.doNotOptimizeRouteForSelectedItems)
-        
+
         menu_action = self.context_menu.addAction("Optimize route for selection")
         menu_action.triggered.connect(self.optimizeRouteForSelectedItems)
-        
+
         self.context_menu.addSeparator()
-        
+
         menu_action = self.context_menu.addAction("Remove custom GCode")
         menu_action.triggered.connect(self.removeCustomGCode)
 
@@ -194,8 +194,8 @@ class TreeHandler(QtGui.QWidget):
         self.ui.unitLabel_2.hide()
         self.ui.startAtXLineEdit.hide()
         self.ui.startAtYLineEdit.hide()
-    
-    
+
+
     def displayContextMenu(self, position):
         """
         Function used to display a right click context menu
@@ -206,7 +206,7 @@ class TreeHandler(QtGui.QWidget):
         if selected_action and selected_action.data().isValid():
             #contextual menu selection concerns a custom gcode
             custom_gcode_name = selected_action.data().toString()
-            
+
             self.addCustomGCodeAfter(custom_gcode_name)
 
 
@@ -222,7 +222,7 @@ class TreeHandler(QtGui.QWidget):
     def buildLayerTree(self, layers_list):
         """
         This method populates the Layers QTreeView with all the elements contained into the layers_list
-        Method must be called each time a new .dxf file is loaded. 
+        Method must be called each time a new .dxf file is loaded.
         options
         @param layers_list: list of the layers and shapes (created in the main)
         """
@@ -306,7 +306,7 @@ class TreeHandler(QtGui.QWidget):
         """
         This method populates the Entities (blocks) QTreeView with
         all the elements contained in the entities_list
-        Method must be called each time a new .dxf file is loaded. 
+        Method must be called each time a new .dxf file is loaded.
         options
         @param entities_list: list of the layers and shapes (created in the main)
         """
@@ -363,7 +363,7 @@ class TreeHandler(QtGui.QWidget):
         else:
             #Unique element (shape)
             element = elements_list
-            (containsChecked, containsUnchecked) = self.addEntitySubTree(elements_model, element)            
+            (containsChecked, containsUnchecked) = self.addEntitySubTree(elements_model, element)
         return (containsChecked, containsUnchecked)
 
     def addEntitySubTree(self, elements_model, element):
@@ -379,7 +379,7 @@ class TreeHandler(QtGui.QWidget):
         containsChecked = False
         containsUnchecked = False
         item_col_0 = None
-        if element.type == "Entitie":
+        if element.type == "Entity":
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/blocks.png"))
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
@@ -398,7 +398,7 @@ class TreeHandler(QtGui.QWidget):
                 (checked, unchecked) = self.buildEntitiesSubTree(item_col_0, sub_element)
                 containsChecked = containsChecked or checked
                 containsUnchecked = containsUnchecked or unchecked
-                
+
         elif element.type == "Shape":
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
@@ -407,7 +407,7 @@ class TreeHandler(QtGui.QWidget):
             if element.isDisabled():
                 containsUnchecked = True
             else:
-                containsChecked = True                
+                containsChecked = True
             item_col_1 = QtGui.QStandardItem(element.type)
             item_col_2 = QtGui.QStandardItem(str(element.nr))
             item_col_3 = QtGui.QStandardItem(element.type)
@@ -805,7 +805,7 @@ class TreeHandler(QtGui.QWidget):
             val = text.toInt()
             if val[1]:
                 selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
-    
+
                 for model_index in selected_indexes_list:
                     if model_index.isValid():
                         model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
@@ -1106,7 +1106,7 @@ class TreeHandler(QtGui.QWidget):
                             #Deselect the Entities in the list.
                             self.columnsSelectDeselect(selection_model, model_index, False)
                             self.traverseChildrenAndSelect(self.entity_item_model, model_index, itemEntitySelection)
-                            
+
         selectionLayer = self.ui.layersShapesTreeView.selectionModel()
         selectionLayer.select(itemLayerSelection, QtGui.QItemSelectionModel.Select | QtGui.QItemSelectionModel.Rows)
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
@@ -1309,7 +1309,7 @@ class TreeHandler(QtGui.QWidget):
     def actionOnKeyPress(self, key_code, item_index):
         """
         This function is a callback called from QTreeView class when a
-        key is pressed on the treeView. If the key is the spacebar, and O, then 
+        key is pressed on the treeView. If the key is the spacebar, and O, then
         capture it to enable/disable shape and optimize path ...
         @param key_code: the key code as defined by QT
         @param item_index: the item on which the keyPress event occurred
@@ -1325,7 +1325,7 @@ class TreeHandler(QtGui.QWidget):
                         #sub_item_index = sub_item_index.sibling(sub_item_index.row(), 0) #Get the first column of the row (ie the one that contains the enable/disable checkbox)
                         sub_item = sub_item_index.model().itemFromIndex(sub_item_index)
                         sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked) #Toggle enable/disable checkbox
-                        
+
         #Optimize path checkbox
         if key_code == QtCore.Qt.Key_O and item_index and item_index.isValid():
             for layer in self.layers_list:
@@ -1508,7 +1508,7 @@ class TreeHandler(QtGui.QWidget):
             if not current_item_parent:
                 #parent is 0, so we are probably on a layer
                 #get the first column of the selected row, since it's the only one that contains data
-                current_item_parent_index = current_item_index.sibling(current_item_index.row(), 0) 
+                current_item_parent_index = current_item_index.sibling(current_item_index.row(), 0)
                 current_item_parent = current_item_parent_index.model().itemFromIndex(current_item_parent_index)
                 push_row = 0 #insert before any shape
 
