@@ -383,22 +383,20 @@ class MyDropDownMenu(QtGui.QMenu):
     def disableSelection(self):
         """
         Disable all shapes which are currently selected. Based on the view
-        options they are not shown or shown in a different color and pointed
+        options they are not shown, or showed in a different color
         """
-        #scene = self.scene()
         for shape in self.MyGraphicsScene.shapes:
-            if shape.isSelected():
+            if shape.isSelected() and shape.allowedToChange:
                 shape.setDisable(True)
         self.MyGraphicsScene.update()
 
     def enableSelection(self):
         """
         Enable all shapes which are currently selected. Based on the view
-        options they are not shown or shown in a different color and pointed
+        options they are not shown, or showed in a different color
         """
-        #scene = self.scene()
         for shape in self.MyGraphicsScene.shapes:
-            if shape.isSelected():
+            if shape.isSelected() and shape.allowedToChange:
                 shape.setDisable(False)
         self.MyGraphicsScene.update()
 

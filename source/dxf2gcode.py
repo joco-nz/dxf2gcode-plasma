@@ -946,6 +946,10 @@ class Main(QtGui.QMainWindow):
         else:
             self.shapes[-1].geos.append(geo)
 
+        if g.config.machine_type == 'drag_knife' and geo.type == 'HoleGeo':
+            self.shapes[-1].disabled = True
+            self.shapes[-1].allowedToChange = False
+
     def addtoLayerContents(self, shape, lay_nr):
         """
         Instance is called while the shapes are created. This gives the
@@ -955,10 +959,6 @@ class Main(QtGui.QMainWindow):
         @param shape: The shape to be appended of the shape
         @param lay_nr: The Nr. of the layer
         """
-
-        # Disable shape by default, if it lives on an ignored layer
-        #if shape.LayerContent.should_ignore():
-        #    shape.setDisable(True, True)
 
         #Check if the layer already exists and add shape if it is.
         for LayCon in self.LayerContents:

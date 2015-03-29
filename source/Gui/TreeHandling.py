@@ -241,47 +241,48 @@ class TreeHandler(QtGui.QWidget):
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/layer.png"))
             checkbox_element = QtGui.QStandardItem(icon, "")
-            checkbox_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
-            checkbox_element.setData(QtCore.QVariant(layer), LAYER_OBJECT) #store a ref to the layer in our treeView element - this is a method to map tree elements with real data
-            if layer.should_ignore():
-                checkbox_element.setCheckState(QtCore.Qt.Unchecked)
-            else:
-                checkbox_element.setCheckState(QtCore.Qt.Checked)
-
+            checkbox_element.setData(QtCore.QVariant(layer), LAYER_OBJECT)  # store a ref in our treeView element
             modele_element = QtGui.QStandardItem(layer.LayerName)
-            modele_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-
             nbr_element = QtGui.QStandardItem()
-            nbr_element.setFlags(QtCore.Qt.ItemIsEnabled)
             optimise_element = QtGui.QStandardItem()
-            optimise_element.setFlags(QtCore.Qt.ItemIsEnabled)
-
             modele_root_element.appendRow([checkbox_element, modele_element, nbr_element, optimise_element])
 
+            parent_item = modele_root_element.child(modele_root_element.rowCount() - 1, 0)
+            containsChecked = False
+            containsUnchecked = False
             for shape in layer.shapes:
                 icon = QtGui.QIcon()
                 icon.addPixmap(QtGui.QPixmap(":/images/shape.png"))
-                item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
-                item_col_0.setData(QtCore.QVariant(shape), SHAPE_OBJECT) #store a ref to the shape in our treeView element
-                item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
-
+                item_col_0 = QtGui.QStandardItem(icon, "")
+                item_col_0.setData(QtCore.QVariant(shape), SHAPE_OBJECT)  # store a ref in our treeView element
                 item_col_1 = QtGui.QStandardItem(shape.type)
-                item_col_1.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-
                 item_col_2 = QtGui.QStandardItem(str(shape.nr))
-                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-
                 item_col_3 = QtGui.QStandardItem()
-                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
-
-                parent_item = modele_root_element.child(modele_root_element.rowCount() - 1, 0)
                 parent_item.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
 
-                #Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
+                # Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
                 item_col_0.setCheckState(QtCore.Qt.Unchecked if shape.isDisabled() else QtCore.Qt.Checked)
                 item_col_3.setCheckState(QtCore.Qt.Checked if shape.isToolPathOptimized() else QtCore.Qt.Unchecked)
 
-        #Signal to get events when a checkbox state changes (enable or disable shapes)
+                flags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsSelectable
+                if shape.allowedToChange:
+                    flags |= QtCore.Qt.ItemIsEnabled
+                item_col_0.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
+                item_col_1.setFlags(flags)
+                item_col_2.setFlags(flags)
+                item_col_3.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
+                if shape.isDisabled():
+                    containsUnchecked = True
+                else:
+                    containsChecked = True
+
+            checkbox_element.setCheckState(self.getCheckState(containsChecked, containsUnchecked))
+            checkbox_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsUserCheckable)
+            modele_element.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+            nbr_element.setFlags(QtCore.Qt.ItemIsEnabled)
+            optimise_element.setFlags(QtCore.Qt.ItemIsEnabled)
+
+        # Signal to get events when a checkbox state changes (enable or disable shapes)
         QtCore.QObject.connect(self.layer_item_model, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.on_itemChanged)
 
         self.ui.layersShapesTreeView.setModel(self.layer_item_model) #Affect our model to the GUI TreeView, in order to display it
@@ -295,12 +296,8 @@ class TreeHandler(QtGui.QWidget):
         self.ui.layersShapesTreeView.setAcceptDrops(True)
         self.ui.layersShapesTreeView.setDragEnabled(True)
 
-        self.ui.layersShapesTreeView.resizeColumnToContents(3)
-        self.ui.layersShapesTreeView.resizeColumnToContents(2)
-        self.ui.layersShapesTreeView.resizeColumnToContents(1)
-        self.ui.layersShapesTreeView.resizeColumnToContents(0)
-
-
+        for i in range(4):
+            self.ui.layersShapesTreeView.resizeColumnToContents(i)
 
     def buildEntitiesTree(self, entities_list):
         """
@@ -326,21 +323,15 @@ class TreeHandler(QtGui.QWidget):
 
         self.buildEntitiesSubTree(modele_root_element, entities_list)
 
-        #Signal to get events when a checkbox state changes (enable or disable shapes)
-        QtCore.QObject.connect(self.entity_item_model,
-                               QtCore.SIGNAL("itemChanged(QStandardItem*)"),
-                               self.on_itemChanged)
+        # Signal to get events when a checkbox state changes (enable or disable shapes)
+        QtCore.QObject.connect(self.entity_item_model, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.on_itemChanged)
 
         self.ui.entitiesTreeView.setModel(self.entity_item_model)
 
         self.ui.entitiesTreeView.expandToDepth(0)
 
-        i = 0
-        while(i < 6):
+        for i in range(6):
             self.ui.entitiesTreeView.resizeColumnToContents(i)
-            i += 1
-
-
 
     def buildEntitiesSubTree(self, elements_model, elements_list):
         """
@@ -355,16 +346,16 @@ class TreeHandler(QtGui.QWidget):
         containsChecked = False
         containsUnchecked = False
         if isinstance(elements_list, list):
-            #We got a list
+            # We got a list
             for element in elements_list:
                 (checked, unchecked) = self.addEntitySubTree(elements_model, element)
                 containsChecked = containsChecked or checked
                 containsUnchecked = containsUnchecked or unchecked
         else:
-            #Unique element (shape)
+            # Unique element (shape)
             element = elements_list
-            (containsChecked, containsUnchecked) = self.addEntitySubTree(elements_model, element)
-        return (containsChecked, containsUnchecked)
+            containsChecked, containsUnchecked = self.addEntitySubTree(elements_model, element)
+        return containsChecked, containsUnchecked
 
     def addEntitySubTree(self, elements_model, element):
         """
@@ -382,16 +373,14 @@ class TreeHandler(QtGui.QWidget):
         if element.type == "Entity":
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/blocks.png"))
-            item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
-            item_col_0.setData(QtCore.QVariant(element), ENTITY_OBJECT) #store a ref to the entity in our treeView element
-
+            item_col_0 = QtGui.QStandardItem(icon, "")  # will only display a checkbox + an icon that will never be disabled
+            item_col_0.setData(QtCore.QVariant(element), ENTITY_OBJECT)  # store a ref in our treeView element
             item_col_1 = QtGui.QStandardItem(element.Name)
             item_col_2 = QtGui.QStandardItem(str(element.Nr))
             item_col_3 = QtGui.QStandardItem(element.type)
             item_col_4 = QtGui.QStandardItem(str(element.p0))
             item_col_5 = QtGui.QStandardItem(str(element.sca))
             item_col_6 = QtGui.QStandardItem(str(round(degrees(element.rot), 3))) #convert the angle into degrees with 3 digit after the decimal point
-
             elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
 
             for sub_element in element.children:
@@ -399,15 +388,13 @@ class TreeHandler(QtGui.QWidget):
                 containsChecked = containsChecked or checked
                 containsUnchecked = containsUnchecked or unchecked
 
+            flags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled
+
         elif element.type == "Shape":
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
-            item_col_0.setData(QtCore.QVariant(element), SHAPE_OBJECT) #store a ref to the entity in our treeView element
-            if element.isDisabled():
-                containsUnchecked = True
-            else:
-                containsChecked = True
+            item_col_0.setData(QtCore.QVariant(element), SHAPE_OBJECT)  # store a ref in our treeView element
             item_col_1 = QtGui.QStandardItem(element.type)
             item_col_2 = QtGui.QStandardItem(str(element.nr))
             item_col_3 = QtGui.QStandardItem(element.type)
@@ -415,15 +402,24 @@ class TreeHandler(QtGui.QWidget):
             item_col_5 = QtGui.QStandardItem()
             item_col_6 = QtGui.QStandardItem()
             elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
+            if element.isDisabled():
+                containsUnchecked = True
+            else:
+                containsChecked = True
+
+            flags = QtCore.Qt.ItemIsSelectable
+            if element.allowedToChange:
+                flags |= QtCore.Qt.ItemIsEnabled
 
         item_col_0.setCheckState(self.getCheckState(containsChecked, containsUnchecked))
-        item_col_0.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
-        item_col_1.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        item_col_2.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        item_col_3.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        item_col_4.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        item_col_5.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-        item_col_6.setFlags(QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
+
+        item_col_0.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
+        item_col_1.setFlags(flags)
+        item_col_2.setFlags(flags)
+        item_col_3.setFlags(flags)
+        item_col_4.setFlags(flags)
+        item_col_5.setFlags(flags)
+        item_col_6.setFlags(flags)
 
         return (containsChecked, containsUnchecked)
 
@@ -719,19 +715,15 @@ class TreeHandler(QtGui.QWidget):
         @param checked_state: the state of the checkbox
         """
 
-        i = 0
-        while i < item_model.rowCount(item_index):
+        for i in range(item_model.rowCount(item_index)):
             sub_item_index = item_model.index(i, 0, item_index)
 
             if item_model.hasChildren(sub_item_index):
                 self.traverseChildrenAndEnableDisable(item_model, sub_item_index, checked_state)
 
             item = item_model.itemFromIndex(sub_item_index)
-            if item:
+            if item and item.isEnabled():  # FIXME when parent was partially checked and a child cannot be checked
                 self.updateCheckboxOfItem(item, checked_state)
-
-            i += 1
-
 
     def traverseParentsAndUpdateEnableDisable(self, item_model, item_index):
         """
@@ -1267,9 +1259,10 @@ class TreeHandler(QtGui.QWidget):
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
-                model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                model_index = model_index.sibling(model_index.row(), 0)
                 element = model_index.model().itemFromIndex(model_index)
-                element.setCheckState(QtCore.Qt.Unchecked)
+                if element.isEnabled():
+                    element.setCheckState(QtCore.Qt.Unchecked)
 
 
     def enableSelectedItems(self):
@@ -1277,34 +1270,30 @@ class TreeHandler(QtGui.QWidget):
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
-                model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                model_index = model_index.sibling(model_index.row(), 0)
                 element = model_index.model().itemFromIndex(model_index)
-                element.setCheckState(QtCore.Qt.Checked)
-
-
+                if element.isEnabled():
+                    element.setCheckState(QtCore.Qt.Checked)
 
     def doNotOptimizeRouteForSelectedItems(self):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
-                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL) #get the first column of the selected row, since it's the only one that contains data
+                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL)
                 element = model_index.model().itemFromIndex(model_index)
-                if element.isCheckable():
+                if element.isEnabled():
                     element.setCheckState(QtCore.Qt.Unchecked)
-
 
     def optimizeRouteForSelectedItems(self):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
             if model_index.isValid():
-                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL) #Get the column of the row that contains the "Optimize Path" checkbox
+                model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL)
                 element = model_index.model().itemFromIndex(model_index)
-                if element.isCheckable():
+                if element.isEnabled():
                     element.setCheckState(QtCore.Qt.Checked)
-
-
 
     def actionOnKeyPress(self, key_code, item_index):
         """
@@ -1317,14 +1306,16 @@ class TreeHandler(QtGui.QWidget):
 
         #Enable/disable checkbox
         if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
-            selection_model = self.ui.layersShapesTreeView.selectionModel() #Use selection models such that we can still reverse the tree with the keyboard
             for layer in self.layers_list:
                 for shape in layer.shapes:
-                    sub_item_index = self.findLayerItemIndexFromShape(shape)
-                    if selection_model.isSelected(sub_item_index):
-                        #sub_item_index = sub_item_index.sibling(sub_item_index.row(), 0) #Get the first column of the row (ie the one that contains the enable/disable checkbox)
+                    if shape.isSelected():
+                        sub_item_index = self.findLayerItemIndexFromShape(shape)
+                        # Get the first column of the row (ie the one that contains the enable/disable checkbox)
+                        sub_item_index = sub_item_index.sibling(sub_item_index.row(), 0)
                         sub_item = sub_item_index.model().itemFromIndex(sub_item_index)
-                        sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked) #Toggle enable/disable checkbox
+                        if sub_item.isEnabled():
+                            # Toggle checkbox
+                            sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked)
 
         #Optimize path checkbox
         if key_code == QtCore.Qt.Key_O and item_index and item_index.isValid():
@@ -1332,10 +1323,12 @@ class TreeHandler(QtGui.QWidget):
                 for shape in layer.shapes:
                     if shape.isSelected():
                         sub_item_index = self.findLayerItemIndexFromShape(shape)
-                        sub_item_index = sub_item_index.sibling(sub_item_index.row(), PATH_OPTIMISATION_COL) #Get the column of the row that contains the "Optimize Path" checkbox
+                        # Get the column of the row that contains the "Optimize Path" checkbox
+                        sub_item_index = sub_item_index.sibling(sub_item_index.row(), PATH_OPTIMISATION_COL)
                         sub_item = sub_item_index.model().itemFromIndex(sub_item_index)
-                        if sub_item.isCheckable():
-                            sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked) #Toggle checkbox
+                        if sub_item.isEnabled():
+                            # Toggle checkbox
+                            sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked)
 
 
     def on_itemChanged(self, item):

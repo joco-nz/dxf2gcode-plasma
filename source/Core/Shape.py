@@ -77,6 +77,7 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
         self.disabled = False
+        self.allowedToChange = True
         self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
         self.type = "Shape"
         self.nr = nr
@@ -608,8 +609,6 @@ class ShapeClass(QtGui.QGraphicsItem):
         @param PostPro: this is the Postprocessor class including the methods
         to export
         """
-        if self.stmove.shape.geos[0].type == 'HoleGeo': #TODO fix this nicely in the GUI
-            return ""
 
         # initialisation of the string
         exstr = ""
