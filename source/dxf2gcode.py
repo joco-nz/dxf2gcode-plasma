@@ -104,7 +104,6 @@ class Main(QtGui.QMainWindow):
 
         self.shapes = []
         self.LayerContents = []
-        self.EntitieContents = []
         self.EntitiesRoot = []
 
         self.filename = "" #loaded file name
@@ -112,6 +111,9 @@ class Main(QtGui.QMainWindow):
         QtCore.QObject.connect(self.TreeHandler,
                                QtCore.SIGNAL("exportOrderUpdated"),
                                self.updateExportRoute)
+
+        if g.config.vars.General['show_disabled_paths']:
+            self.ui.actionShow_disabled_paths.setChecked(True)
 
         if g.config.vars.General['live_update_export_route']:
             self.ui.actionLive_update_export_route.setChecked(True)

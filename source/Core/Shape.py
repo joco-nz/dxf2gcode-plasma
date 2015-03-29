@@ -66,11 +66,11 @@ class ShapeClass(QtGui.QGraphicsItem):
         self.pen = QtGui.QPen(QtCore.Qt.black)
         self.left_pen = QtGui.QPen(QtCore.Qt.darkCyan)
         self.right_pen = QtGui.QPen(QtCore.Qt.darkMagenta)
-        self.sel_pen = QtGui.QPen(QtCore.Qt.red, 2)  # QtCore.Qt.DashLine
+        self.sel_pen = QtGui.QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.MiterJoin)
         self.sel_pen.setCosmetic(True)
-        self.dis_pen = QtGui.QPen(QtCore.Qt.gray)  # QtCore.Qt.DotLine
+        self.dis_pen = QtGui.QPen(QtCore.Qt.gray, 1, QtCore.Qt.DotLine)
         self.dis_pen.setCosmetic(True)
-        self.sel_dis_pen = QtGui.QPen(QtCore.Qt.blue)  # QtCore.Qt.DotLine
+        self.sel_dis_pen = QtGui.QPen(QtCore.Qt.blue, 1, QtCore.Qt.DashLine)
         self.sel_dis_pen.setCosmetic(True)
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
