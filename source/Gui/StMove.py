@@ -177,28 +177,21 @@ class StMove(QtGui.QGraphicsLineItem):
                                r=start_rad + tool_rad, direction=0)
             self.geos.append(start_rad)
 
-
     def make_swivelknife_move(self):
         """
         Set these variables for your tool and material
         @param offset: knife tip distance from tool centerline. The radius of the
         tool is used for this.
         """
-
-
-
-        offset =self.shape.LayerContent.tool_diameter/2
+        offset = self.shape.LayerContent.tool_diameter/2
         dragAngle = self.shape.dragAngle
 
-        startnorm = offset*Point(1,0,0)
-        prvend, prvnorm = Point(0,0),Point(0,0)
+        startnorm = offset*Point(1, 0, 0)  # TODO make knife direction a config setting
+        prvend, prvnorm = Point(), Point()
         first = 1
 
-
-        #start = self.startp
-
         #Use The same parent as for the shape
-        self.parent=self.shape.parent
+        self.parent = self.shape.parent
 
         for geo in self.shape.geos:
             if geo.type == 'LineGeo':
@@ -207,17 +200,18 @@ class StMove(QtGui.QGraphicsLineItem):
                     first = 0
                     prvend = geo_b.Ps + startnorm
                     prvnorm = startnorm
-                norm = offset* geo_b.Ps.unit_vector(geo_b.Pe)
-                geo_b.Ps += norm
-                geo_b.Pe += norm
-                if not prvnorm == norm:
-                    swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=prvnorm.cross_product(norm).z)
-                    swivel.drag = dragAngle < abs(swivel.ext)
-                    self.geos.append(swivel)
-                self.geos.append(geo_b)
+                if geo_b.Ps != geo_b.Pe:  # TODO this "fix" should be done during import
+                    norm = offset * geo_b.Ps.unit_vector(geo_b.Pe)
+                    geo_b.Ps += norm
+                    geo_b.Pe += norm
+                    if not prvnorm == norm:
+                        swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=prvnorm.cross_product(norm).z)
+                        swivel.drag = dragAngle < abs(swivel.ext)
+                        self.geos.append(swivel)
+                    self.geos.append(geo_b)
 
-                prvend = geo_b.Pe
-                prvnorm = norm
+                    prvend = geo_b.Pe
+                    prvnorm = norm
             elif geo.type == 'ArcGeo':
                 geo_b = deepcopy(geo)
                 if first:
@@ -233,31 +227,32 @@ class StMove(QtGui.QGraphicsLineItem):
                 geo_b.Ps += norma
                 if norme.x > 0:
                     geo_b.Pe = Point(geo_b.Pe.x+offset/(sqrt(1+(norme.y/norme.x)**2)),
-                        geo_b.Pe.y+(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
-                elif norme.x ==0:
+                                     geo_b.Pe.y+(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
+                elif norme.x == 0:
                     geo_b.Pe = Point(geo_b.Pe.x,
-                        geo_b.Pe.y)
+                                     geo_b.Pe.y)
                 else:
                     geo_b.Pe = Point(geo_b.Pe.x-offset/(sqrt(1+(norme.y/norme.x)**2)),
-                        geo_b.Pe.y-(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
-                if not prvnorm == norma:
+                                     geo_b.Pe.y-(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
+                if prvnorm != norma:
                     swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=prvnorm.cross_product(norma).z)
                     swivel.drag = dragAngle < abs(swivel.ext)
                     self.geos.append(swivel)
                 prvend = geo_b.Pe
                 prvnorm = offset*norme
-                if -pi<geo_b.ext<pi:
+                if -pi < geo_b.ext < pi:
                     self.geos.append(ArcGeo(Ps=geo_b.Ps, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=geo_b.ext))
                 else:
                     geo_b = ArcGeo(Ps=geo_b.Ps, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=-geo_b.ext)
                     geo_b.ext = -geo_b.ext
                     self.geos.append(geo_b)
-            #else:
-            #    self.geos.append(copy(geo))
+            # TODO support different geos, or disable them in the GUI
+            # else:
+            #     self.geos.append(copy(geo))
         if not prvnorm == startnorm:
             self.geos.append(ArcGeo(Ps=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
 
-        self.geos.insert(0,self.geos[0].Ps)
+        self.geos.insert(0, self.geos[0].Ps)
 
     def updateCutCor(self, cutcor):
         """
