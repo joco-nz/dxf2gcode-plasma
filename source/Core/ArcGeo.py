@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
 
 ############################################################################
-#   
+#
 #   Copyright (C) 2008-2014
-#    Christian Kohlöffel
+#    Christian Kohlï¿½ffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
-#   
+#
 #   This file is part of DXF2GCODE.
-#   
+#
 #   DXF2GCODE is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   DXF2GCODE is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
-#   
+#
 ############################################################################
 
 from math import sqrt, sin, cos, degrees, pi, floor, ceil
@@ -43,7 +43,7 @@ class ArcGeo(QtCore.QObject):
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
-    """ 
+    """
     def __init__(self, Pa = None, Pe = None, O = None, r = 1,
                  s_ang = None, e_ang = None, direction = 1, drag = False):
         """
@@ -59,7 +59,7 @@ class ArcGeo(QtCore.QObject):
         @param direction: The arc direction where 1 is in positive direction
         """
         QtCore.QObject.__init__(self)
-        
+
         self.type = "ArcGeo"
         self.Pa = Pa
         self.Pe = Pe
@@ -69,27 +69,27 @@ class ArcGeo(QtCore.QObject):
         self.e_ang = e_ang
         self.col = 'Black'
         self.drag = drag
-        
-        
+
+
         # Get the Circle Milllw with known Start and End Points
         if type(self.O) == type(None):
-            
+
             if (type(Pa) != type(None)) and \
             (type(Pe) != type(None)) and \
             (type(direction) != type(None)):
-                
+
                 arc = self.Pe.norm_angle(Pa) - pi / 2
                 Ve = Pe - Pa
                 m = (sqrt(pow(Ve.x, 2) + pow(Ve.y, 2))) / 2
-                
+
                 if DEBUG:
                     logger.debug('lo: %s; m: %s' %(r,m))
-                    
+
                 if abs(r-m)<0.0001:
                     lo = 0.0;
-                else:        
+                else:
                     lo = sqrt(pow(r, 2) - pow(m, 2))
-                
+
                 if direction < 0:
                     d = -1
                 else:
@@ -97,35 +97,35 @@ class ArcGeo(QtCore.QObject):
                 self.O = Pa + 0.5 * Ve
                 self.O.y += lo * sin(arc) * d
                 self.O.x += lo * cos(arc) * d
-                
-                
-        # Falls nicht übergeben Mittelpunkt ausrechnen
+
+
+        # Falls nicht ï¿½bergeben Mittelpunkt ausrechnen
         # Compute centre...
             elif (type(self.s_ang) != type(None)) and (type(self.e_ang) != type(None)):
                 self.O.x = self.Pa.x - r * cos(self.s_ang)
                 self.O.y = self.Pa.y - r * sin(self.s_ang)
             else:
                 logger.error(self.tr("Missing value for Arc Geometry"))
-        
-        #Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen
+
+        #Falls nicht ï¿½bergeben dann Anfangs- und Endwinkel ausrechen
         #Calculate start and end angles
         if type(self.s_ang) == type(None):
             self.s_ang = self.O.norm_angle(Pa)
-        
+
         if type(self.e_ang) == type(None):
             self.e_ang = self.O.norm_angle(Pe)
-        
+
         self.ext = self.dif_ang(self.Pa, self.Pe, direction)
         #self.get_arc_extend(direction)
-        
+
         #Falls es ein Kreis ist Umfang 2pi einsetzen
         #If there is a circumference use 2*pi
         if self.ext == 0.0:
             self.ext = 2 * pi
-        
+
         self.length = self.r * abs(self.ext)
-    
-    
+
+
     def __deepcopy__(self, memo):
         return ArcGeo(copy.deepcopy(self.Pa, memo),
                        copy.deepcopy(self.Pe, memo),
@@ -134,20 +134,26 @@ class ArcGeo(QtCore.QObject):
                        copy.deepcopy(self.s_ang, memo),
                        copy.deepcopy(self.e_ang, memo),
                        copy.deepcopy(self.ext, memo))
-    
-    
+
+
     def __str__(self):
-        """ 
+        """
         Standard method to print the object
         @return: A string
-        """ 
+        """
         return ("\nArcGeo") + \
                ("\nPa : %s; s_ang: %0.5f" % (self.Pa, self.s_ang)) + \
                ("\nPe : %s; e_ang: %0.5f" % (self.Pe, self.e_ang)) + \
                ("\nO  : %s; r: %0.3f" % (self.O, self.r)) + \
                ("\next  : %0.5f; length: %0.5f" % (self.ext, self.length))
-    
-    
+
+    def toShortString(self):
+        """
+        Method to print only start and end point of the arc
+        @return: A string
+        """
+        return ("(%f, %f) -> (%f, %f)" % (self.Pa.x, self.Pa.y, self.Pe.x, self.Pe.y));
+
     def add2path(self, papath = None, parent = None, layerContent=None):
         """
         Plots the geometry of self into defined path for hit testing. Refer
@@ -156,20 +162,20 @@ class ArcGeo(QtCore.QObject):
         @param hitpath: The hitpath to add the geometrie
         @param parent: The parent of the shape
         """
-        
+
         abs_geo = self.make_abs_geo(parent, 0)
-        
+
         segments = int((abs(degrees(abs_geo.ext)) // 3) + 1)
-        
+
         for i in range(segments + 1):
-            
+
             ang = abs_geo.s_ang + i * abs_geo.ext / segments
             p_cur = Point(x = (abs_geo.O.x + cos(ang) * abs(abs_geo.r)), \
                           y = (abs_geo.O.y + sin(ang) * abs(abs_geo.r)))
-            
+
             if i >= 1:
                 papath.lineTo(p_cur.x, -p_cur.y)
-    
+
 #
 #    def add2hitpath(self, hitpath = None, parent = None, tolerance = None):
 #        """
@@ -181,9 +187,9 @@ class ArcGeo(QtCore.QObject):
 #        @param tolerance: The tolerance to be added to geometrie for hit
 #        testing.
 #        """
-#        
+#
 #        self.add2path(papath = hitpath, parent = parent)
-#    
+#
     def dif_ang(self, P1, P2, direction, tol = 0.005):
         """
         Calculated the angle of extend based on the 3 given points. Center Point,
@@ -193,23 +199,23 @@ class ArcGeo(QtCore.QObject):
         @param direction: the direction of the arc
         @return: Returns the angle between -2* pi and 2 *pi for the arc extend
         """
-        
+
 #        FIXME This could indicate problems in a real arc
 #        if P1.isintol(P2, tol):
 #            return 0.0
-#        
+#
         sa = self.O.norm_angle(P1)
         ea = self.O.norm_angle(P2)
-        
+
         if(direction > 0.0):     # GU
             dif_ang = (ea-sa) % (-2*pi)
             dif_ang -= floor(dif_ang / (2 * pi)) * (2 * pi)
         else:
             dif_ang = (ea-sa) % (-2*pi)
             dif_ang += ceil(dif_ang / (2 * pi)) * (2 * pi)
-        
+
         return dif_ang
-    
+
     def reverse(self):
         """
         Reverses the direction of the arc (switch direction).
@@ -217,7 +223,7 @@ class ArcGeo(QtCore.QObject):
         self.Pa, self.Pe = self.Pe, self.Pa
         self.s_ang, self.e_ang = self.e_ang, self.s_ang
         self.ext = -self.ext
-    
+
     def make_abs_geo(self, parent = None, reverse = 0):
         """
         Generates the absolute geometry based on the geometry self and the
@@ -225,43 +231,43 @@ class ArcGeo(QtCore.QObject):
         @param parent: The parent of the geometry (EntitieContentClass)
         @param reverse: If 1 the geometry direction will be switched.
         @return: A new ArcGeoClass will be returned.
-        """ 
-        
+        """
+
         Pa = self.Pa.rot_sca_abs(parent = parent)
         Pe = self.Pe.rot_sca_abs(parent = parent)
         O = self.O.rot_sca_abs(parent = parent)
         r = self.scaleR(self.r, parent)
         #s_ang = self.rot_angle(self.s_ang, parent)
         #e_ang = self.rot_angle(self.e_ang, parent)
-        
+
         if self.ext > 0.0:
             direction = 1
         else:
             direction = -1
-        
+
         if type(parent) != type(None):
             if parent.sca[0]*parent.sca[1] < 0.0:
                 direction = direction * -1
-        
+
         #abs_geo = ArcGeo(Pa = Pa, Pe = Pe, O = O, r = r, s_ang = s_ang,
         #                 e_ang = e_ang, direction = direction)
         abs_geo = ArcGeo(Pa = Pa, Pe = Pe, O = O, r = r, direction = direction)
-        
+
         if reverse:
             abs_geo.reverse()
-        
+
         return abs_geo
-    
-    
+
+
     def get_start_end_points(self, direction, parent = None):
         """
         Returns the start/end Point and its direction
         @param direction: 0 to return start Point and 1 to return end Point
         @return: a list of Point and angle Returns the hdl or hdls of the plotted objects.
         """
-        
+
         abs_geo = self.make_abs_geo(parent)
-        
+
         if not(direction):
             punkt = abs_geo.Pa
             angle = abs_geo.s_ang + pi/2 * abs_geo.ext / abs(abs_geo.ext)
@@ -269,7 +275,7 @@ class ArcGeo(QtCore.QObject):
             punkt = abs_geo.Pe
             angle = abs_geo.e_ang - pi/2 * abs_geo.ext / abs(abs_geo.ext)
         return punkt, angle
-    
+
     def angle_between(self, min_ang, max_ang, angle):
         """
         Returns if the angle is in the range between 2 other angles
@@ -279,15 +285,15 @@ class ArcGeo(QtCore.QObject):
         """
         if min_ang < 0.0:
             min_ang += 2 * pi
-        
+
         while max_ang < min_ang:
             max_ang += 2 * pi
-        
+
         while angle < min_ang:
             angle += 2 * pi
-        
+
         return (min_ang < angle) and (angle <= max_ang)
-    
+
 #    def rot_angle(self, angle, parent):
 #        """
 #        Rotates the given angle based on the rotations given in its parents.
@@ -300,18 +306,18 @@ class ArcGeo(QtCore.QObject):
 ##        #Recursive loop if nested
 #        if type(parent) != type(None):
 #            angle += parent.rot
-#            
+#
 #            if parent.sca[0] < 0.0:
 #                angle = pi-angle
-#                
+#
 #            if parent.sca[1] < 0.0:
 #                angle = pi-angle
-#                
+#
 #            angle = self.rot_angle(angle, parent.parent)
-#        
-#        
+#
+#
 #        return angle
-    
+
     def scaleR(self, sR, parent):
         """
         Scales the radius based on the scale given in its parents. This is done
@@ -320,15 +326,15 @@ class ArcGeo(QtCore.QObject):
         @param parent: The parent Entitie (Instance: EntitieContentClass)
         @return: The scaled radius
         """
-        
+
         #Rekursive Schleife falls mehrfach verschachtelt.
         #Recursive loop if nested.
         if type(parent) != type(None):
             sR = sR * parent.sca[0]
             sR = self.scaleR(sR, parent.parent)
-        
+
         return sR
-    
+
     def Write_GCode(self, parent = None, PostPro = None):
         """
         Writes the GCODE for a ARC.
@@ -336,19 +342,19 @@ class ArcGeo(QtCore.QObject):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        
+
         abs_geo = self.make_abs_geo(parent, 0)
-        
+
         anf, s_ang = abs_geo.get_start_end_points(0)
         ende, e_ang = abs_geo.get_start_end_points(1)
-        
+
         O = abs_geo.O
         sR = abs_geo.r
         IJ = (O-anf)
-        
+
         #If the radius of the element is bigger then the max. radius export
         #the element as an line.
-        
+
         if sR > PostPro.vars.General["max_arc_radius"]:
             string = PostPro.lin_pol_xy(anf, ende)
         else:
