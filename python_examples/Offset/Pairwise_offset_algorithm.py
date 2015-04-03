@@ -2346,6 +2346,47 @@ class SweepLine:
                 self.sweep_array[-1].remove += sweep_array[ele_nr].remove
             else:
                 self.sweep_array.append(sweep_array[ele_nr])
+          
+    def cmp_asscending_arc(self, P1, P2):
+        """
+        Compare Function for the sorting of Intersection Points on one common ARC
+        @param P1: The first Point to be compared
+        @param P2: The secon Point to be compared
+        @return: 1 if the distance to the start point of P1 is bigger
+        """  
+        
+        # The angle between startpoint and where the intersection occures
+        d_ang1 = (self.O.norm_angle(P1) - self.s_ang) % (2 * pi)
+        d_ang2 = (self.O.norm_angle(P2) - self.s_ang) % (2 * pi)
+        
+        # Correct by 2*pi if the direction is wrong
+        if self.ext < 0.0:
+            d_ang1 -= 2 * pi
+            d_ang2 -= 2 * pi
+                
+        if d_ang1 > d_ang2:
+            return 1
+        elif d_ang1 == d_ang2:
+            return 0
+        else:
+            return -1
+        
+    def cmp_asscending_line(self, P1, P2):
+        """
+        Compare Function for the sorting of Intersection points on one common LINE
+        @param P1: The first Point to be compared
+        @param P2: The secon Point to be compared
+        @return: 1 if the distance to the start point of P1 is bigger
+        """  
+        d1 = P1.distance(self.Pa)
+        d2 = P2.distance(self.Pa)
+              
+        if d1 > d2:
+            return 1
+        elif d1 == d2:
+            return 0
+        else:
+            return -1
 
     def cmp_SweepElement(self, ele1, ele2):
         """
