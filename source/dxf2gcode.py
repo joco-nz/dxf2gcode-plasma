@@ -936,7 +936,9 @@ class Main(QtGui.QMainWindow):
         """
         if self.ui.actionSplit_Edges.isChecked() == True:
             if geo.type == 'LineGeo':
-                diff = (geo.Pe - geo.Pa) / 2.0
+                diff = (geo.Pe - geo.Pa)
+                diff.x = diff.x / 2
+                diff.y = diff.y / 2
                 geo_b = deepcopy(geo)
                 geo_a = deepcopy(geo)
                 geo_b.Pe -= diff
