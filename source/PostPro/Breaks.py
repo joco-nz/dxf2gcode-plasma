@@ -2,8 +2,9 @@
 
 ############################################################################
 #
-#   Copyright (C) 2014-2014
+#   Copyright (C) 2014-2015
 #    Robert Lichtenberger
+#    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
 #
@@ -63,7 +64,6 @@ class Breaks(QtCore.QObject):
             for shape in layer.shapes:
                 self.breakShape(shape, breakLayers)
 
-    # TODO :: algorithm is broken; if a shape is broken more than once, we will get multiple geos for a single original line, depending on the order of the original geos
     def breakShape(self, shape, breakLayers):
         newGeos = []
         for geo in shape.geos:
@@ -97,6 +97,7 @@ class Breaks(QtCore.QObject):
     def breakArcGeo(self, arcGeo, breakLayers):
         """
         Try to break passed arcGeo with any of the shapes on a break layers.
+        Will break arcGeos recursively.
         @return: The list of geometries after breaking (arcGeo itself if no breaking happened)
         """
         newGeos = []
@@ -106,9 +107,9 @@ class Breaks(QtCore.QObject):
                 if len(intersections) == 2:
                     (near, far) = self.classifyIntersections(arcGeo, intersections)
                     logger.debug("Arc %s broken from (%f, %f) to (%f, %f)" % (arcGeo.toShortString(), near.x, near.y, far.x, far.y))
-                    newGeos.append(ArcGeo(Pa=arcGeo.Pa, Pe=near, O=arcGeo.O, r=arcGeo.r, direction=arcGeo.ext))
+                    newGeos.extend(self.breakArcGeo(ArcGeo(Pa=arcGeo.Pa, Pe=near, O=arcGeo.O, r=arcGeo.r, s_ang=arcGeo.s_ang, direction=arcGeo.ext), breakLayers))
                     newGeos.append(BreakGeo(LineGeo(near, far), breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))
-                    newGeos.append(ArcGeo(Pa=far, Pe=arcGeo.Pe, O=arcGeo.O, r=arcGeo.r, direction=arcGeo.ext))
+                    newGeos.extend(self.breakArcGeo(ArcGeo(Pa=far, Pe=arcGeo.Pe, O=arcGeo.O, r=arcGeo.r, e_ang=arcGeo.e_ang, direction=arcGeo.ext), breakLayers))
                     return newGeos
         return [arcGeo]
 
@@ -128,37 +129,43 @@ class Breaks(QtCore.QObject):
         return intersections
 
     def intersectArcGeometry(self, arcGeo, breakShape):
+        """
+        Get the intersections between the finite line and arc.
+        Algorithm based on http://vvvv.org/contribution/2d-circle-line-intersections
+        """
         intersections = []
         for breakGeo in breakShape.geos:
             if isinstance(breakGeo, LineGeo):
-                # http://stackoverflow.com/questions/13053061/circle-line-intersection-points
-                baX = breakGeo.Pe.x - breakGeo.Pa.x
-                baY = breakGeo.Pe.y - breakGeo.Pa.y
-                caX = arcGeo.O.x - breakGeo.Pa.x
-                caY = arcGeo.O.y - breakGeo.Pa.y
+                dxy = breakGeo.Pe - breakGeo.Pa
+                a = dxy.x**2 + dxy.y**2
+                b = 2 * (dxy.x * (breakGeo.Pa.x - arcGeo.O.x) + dxy.y * (breakGeo.Pa.y - arcGeo.O.y))
+                c = breakGeo.Pa.x**2 + breakGeo.Pa.y**2 + arcGeo.O.x**2 + arcGeo.O.y**2\
+                    - 2 * (arcGeo.O.x * breakGeo.Pa.x + arcGeo.O.y * breakGeo.Pa.y)\
+                    - arcGeo.r**2
+                bb4ac = b * b - 4 * a * c
 
-                a = baX * baX + baY * baY
-                bBy2 = baX * caX + baY * caY
-                c = caX * caX + caY * caY - arcGeo.r * arcGeo.r
+                if bb4ac > 0:
+                    mu1 = (-b + sqrt(bb4ac)) / (2*a)
+                    mu2 = (-b - sqrt(bb4ac)) / (2*a)
+                    p1 = breakGeo.Pa + mu1 * dxy
+                    p2 = breakGeo.Pa + mu2 * dxy
 
-                pBy2 = bBy2 / a
-                q = c / a
+                    # Points belong to the finite line?
+                    if not\
+                        (p1.x < breakGeo.Pa.x and p2.x < breakGeo.Pa.x and p1.x < breakGeo.Pe.x and p2.x < breakGeo.Pe.x or
+                         p1.y < breakGeo.Pa.y and p2.y < breakGeo.Pa.y and p1.y < breakGeo.Pe.y and p2.y < breakGeo.Pe.y or
+                         p1.x > breakGeo.Pa.x and p2.x > breakGeo.Pa.x and p1.x > breakGeo.Pe.x and p2.x > breakGeo.Pe.x or
+                         p1.y > breakGeo.Pa.y and p2.y > breakGeo.Pa.y and p1.y > breakGeo.Pe.y and p2.y > breakGeo.Pe.y):
 
-                disc = pBy2 * pBy2 - q
-                if disc > 0:
-                    tmpSqrt = sqrt(disc)
-                    abScalingFactor1 = -pBy2 + tmpSqrt
-                    abScalingFactor2 = -pBy2 - tmpSqrt
-
-                    p1 = Point(breakGeo.Pa.x - baX * abScalingFactor1, breakGeo.Pa.y
-                        - baY * abScalingFactor1)
-                    p2 = Point(breakGeo.Pa.x - baX * abScalingFactor2, breakGeo.Pa.y
-                        - baY * abScalingFactor2)
-                    intersections.append(self.determinePointForArcLineIntesection(arcGeo.Pa, p1, p2))
+                        if arcGeo.O.distance(breakGeo.Pa) >= arcGeo.r and self.point_belongs_to_arc(p2, arcGeo):
+                            intersections.append(p2)
+                        if arcGeo.O.distance(breakGeo.Pe) >= arcGeo.r and self.point_belongs_to_arc(p1, arcGeo):
+                            intersections.append(p1)
         return intersections
 
-    def determinePointForArcLineIntesection(selfself, refpoint, point1, point2):
-        return point1 if refpoint.distance(point1) < refpoint.distance(point2) else point2
+    def point_belongs_to_arc(self, point, arcGeo):
+        ang = arcGeo.dif_ang(arcGeo.Pa, point, arcGeo.ext)
+        return arcGeo.ext >= ang if arcGeo.ext > 0 else arcGeo.ext <= ang
 
     def classifyIntersections(self, geo, intersection):
         """
