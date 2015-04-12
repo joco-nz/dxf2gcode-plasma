@@ -232,9 +232,12 @@ class ShapeClass(QtGui.QGraphicsItem):
         if self.selectionChangedCallback and not blockSignals:
             self.selectionChangedCallback(self, flag)
 
-    def setDisabledIfOnDisabledLayer(self):
+    def setSpecificLayerOptions(self, LayerContent):
+        self.LayerContent = LayerContent
         if self.LayerContent.should_ignore():
             self.setDisable(True, True)
+        if self.LayerContent.isBreakLayer():
+            self.pen.setColor(QtCore.Qt.magenta)
 
     def setDisable(self, flag=False, blockSignals=False):
         """

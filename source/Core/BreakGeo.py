@@ -28,16 +28,18 @@ import copy
 
 from PyQt4 import QtCore
 
+from Core.LineGeo import LineGeo
+
 
 logger = logging.getLogger("Core.BreakGeo")
 
 
-class BreakGeo(QtCore.QObject):
+class BreakGeo(LineGeo):
     """
     BreakGeo interrupts another geometry item by changing the Z-Position.
     """
     def __init__(self, inter, height, xyfeed, zfeed):
-        QtCore.QObject.__init__(self)
+        LineGeo.__init__(self, inter.Ps, inter.Pe)
 
         self.type = "BreakGeo"
         self.inter = inter
@@ -69,20 +71,6 @@ class BreakGeo(QtCore.QObject):
         return unicode(QtCore.QCoreApplication.translate('BreakGeo',
                                                          string_to_translate,
                                                          encoding=QtCore.QCoreApplication.UnicodeUTF8))
-
-    def reverse(self):
-        """
-        Reverses the direction.
-        """
-        self.inter.reverse()
-
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into defined path for hit testing.
-        @param papath: The hitpath to add the geometrie
-        @param parent: The parent of the shape
-        """
-        self.inter.add2path(papath, parent)
 
     def Write_GCode(self, parent=None, PostPro=None):
         """

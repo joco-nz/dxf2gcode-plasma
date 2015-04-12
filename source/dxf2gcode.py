@@ -964,15 +964,13 @@ class Main(QtGui.QMainWindow):
         for LayCon in self.LayerContents:
             if LayCon.LayerNr == lay_nr:
                 LayCon.shapes.append(shape)
-                shape.LayerContent = LayCon
-                shape.setDisabledIfOnDisabledLayer()
+                shape.setSpecificLayerOptions(LayCon)
                 return
 
         #If the Layer does not exist create a new one.
         LayerName = self.values.layers[lay_nr].name
         self.LayerContents.append(LayerContentClass(lay_nr, LayerName, [shape]))
-        shape.LayerContent = self.LayerContents[-1]
-        shape.setDisabledIfOnDisabledLayer()
+        shape.setSpecificLayerOptions(self.LayerContents[-1])
 
 
     def automaticCutterCompensation(self):
