@@ -161,7 +161,7 @@ class ArcGeo(QtCore.QObject):
         if direction > 0:
             dif_ang += 2 * pi
         elif dif_ang == 0:
-            self.ext = -2 * pi
+            dif_ang = -2 * pi
 
         return dif_ang
 

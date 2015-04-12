@@ -165,7 +165,7 @@ class Breaks(QtCore.QObject):
 
     def point_belongs_to_arc(self, point, arcGeo):
         ang = arcGeo.dif_ang(arcGeo.Ps, point, arcGeo.ext)
-        return arcGeo.ext >= ang if arcGeo.ext > 0 else arcGeo.ext <= ang
+        return arcGeo.ext >= ang > 0 if arcGeo.ext > 0 else arcGeo.ext <= ang < 0
 
     def classifyIntersections(self, geo, intersection):
         """
