@@ -130,6 +130,13 @@ class ArcGeo(QtCore.QObject):
                "\nO:   %s; r: %0.3f" % (self.O, self.r) +\
                "\next: %0.5f; length: %0.5f" % (self.ext, self.length)
 
+    def toShortString(self):
+        """
+        Method to print only start and end point of the arc
+        @return: A string
+        """
+        return ("(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y));
+
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
@@ -254,7 +261,7 @@ class ArcGeo(QtCore.QObject):
         r = abs_geo.r
         IJ = O - Ps
 
-        # If the radius of the element is bigger then the max. radius export the element as an line.
+        # If the radius of the element is bigger than the max, radius export the element as an line.
         if r > PostPro.vars.General["max_arc_radius"]:
             string = PostPro.lin_pol_xy(Ps, Pe)
         else:
