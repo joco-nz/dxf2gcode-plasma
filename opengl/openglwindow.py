@@ -46,7 +46,7 @@ import array
 
 from PyQt5.QtCore import QEvent
 from PyQt5.QtGui import (QGuiApplication, QMatrix4x4, QOpenGLContext,
-        QOpenGLShader, QOpenGLShaderProgram, QSurfaceFormat, QWindow)
+        QOpenGLShader, QOpenGLShaderProgram, QSurfaceFormat, QWindow, QOpenGLVersionProfile)
 
 
 class OpenGLWindow(QWindow):
@@ -92,7 +92,9 @@ class OpenGLWindow(QWindow):
         self.m_context.makeCurrent(self)
 
         if needsInitialize:
-            self.m_gl = self.m_context.versionFunctions()
+            version = QOpenGLVersionProfile()
+            version.setVersion(2, 0)
+            self.m_gl = self.m_context.versionFunctions(version)
             self.m_gl.initializeOpenGLFunctions()
 
             self.initialize()

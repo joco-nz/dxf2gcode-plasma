@@ -48,7 +48,7 @@ import math, random
 from PyQt5.QtCore import (QPoint, QPointF, QRect, QRectF, QSize, Qt, QTime,
         QTimer)
 from PyQt5.QtGui import (QBrush, QColor, QFontMetrics, QImage, QPainter,
-        QRadialGradient, QSurfaceFormat)
+        QRadialGradient, QSurfaceFormat, QOpenGLVersionProfile)
 from PyQt5.QtWidgets import QApplication, QOpenGLWidget
 
 
@@ -157,7 +157,9 @@ class GLWidget(QOpenGLWidget):
             self.zRot = angle
 
     def initializeGL(self):
-        self.gl = self.context().versionFunctions()
+        version = QOpenGLVersionProfile()
+        version.setVersion(2, 0)
+        self.gl = self.context().versionFunctions(version)
         self.gl.initializeOpenGLFunctions()
 
         self.object = self.makeObject()

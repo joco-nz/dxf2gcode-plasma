@@ -46,7 +46,7 @@ import sys
 
 from PyQt5.QtCore import pyqtSignal, QFileInfo, QPoint, QSize, Qt, QTimer
 from PyQt5.QtGui import (QColor, QImage, QMatrix4x4, QOpenGLShader,
-        QOpenGLShaderProgram, QOpenGLTexture, QSurfaceFormat)
+        QOpenGLShaderProgram, QOpenGLTexture, QSurfaceFormat, QOpenGLVersionProfile)
 from PyQt5.QtWidgets import QApplication, QGridLayout, QOpenGLWidget, QWidget
 
 
@@ -114,7 +114,9 @@ void main(void)
         self.update()
 
     def initializeGL(self):
-        self.gl = self.context().versionFunctions()
+        version = QOpenGLVersionProfile()
+        version.setVersion(2, 0)
+        self.gl = self.context().versionFunctions(version)
         self.gl.initializeOpenGLFunctions()
 
         self.makeObject()
