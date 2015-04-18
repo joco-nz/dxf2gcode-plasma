@@ -23,16 +23,12 @@
 
 import math
 
-from PyQt5.QtCore import pyqtSignal, QPoint, QSize, Qt
+from PyQt5.QtCore import QPoint, QSize, Qt
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
 from PyQt5.QtWidgets import QOpenGLWidget
 
 
 class GLWidget(QOpenGLWidget):
-    xRotationChanged = pyqtSignal(int)
-    yRotationChanged = pyqtSignal(int)
-    zRotationChanged = pyqtSignal(int)
-
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
 
@@ -74,25 +70,13 @@ class GLWidget(QOpenGLWidget):
         return QSize(400, 400)
 
     def setXRotation(self, angle):
-        angle = self.normalizeAngle(angle)
-        if angle != self.rotX:
-            self.rotX = angle
-            self.xRotationChanged.emit(angle)
-            self.update()
+        self.rotX = self.normalizeAngle(angle)
 
     def setYRotation(self, angle):
-        angle = self.normalizeAngle(angle)
-        if angle != self.rotY:
-            self.rotY = angle
-            self.yRotationChanged.emit(angle)
-            self.update()
+        self.rotY = self.normalizeAngle(angle)
 
     def setZRotation(self, angle):
-        angle = self.normalizeAngle(angle)
-        if angle != self.rotZ:
-            self.rotZ = angle
-            self.zRotationChanged.emit(angle)
-            self.update()
+        self.rotZ = self.normalizeAngle(angle)
 
     def normalizeAngle(self, angle):
         while angle < 0:
@@ -146,9 +130,8 @@ class GLWidget(QOpenGLWidget):
                 self.posX += dx / min_side
                 self.posY -= dy / min_side
 
-                self.update()
-
         self._lastPos = event.pos()
+        self.update()
 
     def wheelEvent(self, event):
         min_side = min(self.frameSize().width(), self.frameSize().height())
