@@ -23,8 +23,8 @@
 #
 ############################################################################
 
-from math import  sin, cos, radians, pi
-from PyQt4 import QtCore, QtGui
+from math import sin, cos, radians, pi
+from PyQt5 import QtCore
 
 from Core.Point import Point
 from DxfImport.Classes import PointsClass

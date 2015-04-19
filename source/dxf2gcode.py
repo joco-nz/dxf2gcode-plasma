@@ -30,6 +30,7 @@ from PyQt5.QtGui import QSurfaceFormat
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, QFileDialog
 
 from gui.canvas import GLWidget
+from DxfImport.Import import ReadDXF
 
 
 class MainWindow(QMainWindow):

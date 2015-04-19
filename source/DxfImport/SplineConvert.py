@@ -461,7 +461,7 @@ class Spline2Arcs:
                     cur_step *= 0.7
             #print cur_step
             if step > 10000:
-                raise ValueError, "Iterations above 10000 reduce tolerance"
+                raise ValueError("Iterations above 10000 reduce tolerance")
 
         return BiarcCurve, PtsVec
 
@@ -546,7 +546,7 @@ class NURBSClass:
 
             for knt_spts in knt_vec:
                 if (len(knt_spts) > self.degree + 1):
-                    raise ValueError, "Same Knots Nr. bigger then degree+1"
+                    raise ValueError("Same Knots Nr. bigger then degree+1")
 
                 #�berpr�fen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
                 elif ((len(knt_spts) >= self.degree)
@@ -676,11 +676,11 @@ class BSplineClass:
 
         #Eingangspr�fung, ober KnotenAnzahl usw. passt
         if  self.Knots_len < self.degree + 1:
-            raise ValueError, "degree greater than number of control points."
+            raise ValueError("degree greater than number of control points.")
         if self.Knots_len != (self.CPts_len + self.degree + 1):
             logger.error("shall be: %s" % (self.CPts_len + self.degree + 1))
             logger.error("is: %s" % self.Knots_len)
-            raise ValueError, "Knot/Control Point/degree number error."
+            raise ValueError("Knot/Control Point/degree number error.")
 
     def calc_curve(self, n=0, cpts_nr=20):
         """
@@ -772,7 +772,7 @@ class BSplineClass:
                 logger.debug("u: %s; self.Knots[mid]: %s; self.Knots[mid+1]: %s" %(u,self.Knots[mid],self.Knots[mid+1]))
 
             if counter > 100:
-                raise ValueError, "Iterations above 100 cannot find span"
+                raise ValueError("Iterations above 100 cannot find span")
         return mid
 
     def ders_basis_functions(self, span, u, n):

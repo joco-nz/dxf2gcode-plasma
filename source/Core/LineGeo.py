@@ -29,7 +29,7 @@ from math import sqrt
 import logging
 import copy
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 
 logger = logging.getLogger("Core.LineGeo")

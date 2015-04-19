@@ -22,10 +22,9 @@
 #
 ############################################################################
 
-from PyQt4 import QtGui
+from PyQt5 import QtGui
 
-from Core.HoleGeo import  HoleGeo
-from Core.LineGeo import  LineGeo
+from Core.HoleGeo import HoleGeo
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
 

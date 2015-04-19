@@ -25,14 +25,13 @@
 ############################################################################
 
 from __future__ import absolute_import
-from math import sqrt, sin, cos, degrees, pi, floor, ceil
+from math import sqrt, sin, cos, degrees, pi
 import logging
 import copy
 
-from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 from Core.Point import Point
-import Core.Globals as g
 
 
 logger = logging.getLogger("Core.ArcGeo")

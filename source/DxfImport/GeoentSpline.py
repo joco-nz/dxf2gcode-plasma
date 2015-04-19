@@ -23,7 +23,6 @@
 #
 ############################################################################
 
-import Core.Globals as g
 
 from DxfImport.SplineConvert import Spline2Arcs
 from Core.Point import Point

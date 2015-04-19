@@ -23,7 +23,7 @@
 #
 ############################################################################
 
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtGui
 
 from Core.Point import Point
 from DxfImport.Classes import PointsClass

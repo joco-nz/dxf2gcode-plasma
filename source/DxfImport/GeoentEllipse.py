@@ -23,8 +23,6 @@
 #
 ############################################################################
 
-import Core.Globals as g
-
 from math import sqrt, sin, cos, atan2, degrees, pi
 from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
