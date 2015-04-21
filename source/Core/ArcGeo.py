@@ -24,20 +24,12 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
-from math import sqrt, sin, cos, degrees, pi
-import logging
+from math import sqrt, sin, cos, pi
 import copy
-
-from PyQt5 import QtCore
-
-from Core.Point import Point
+import math
 
 
-logger = logging.getLogger("Core.ArcGeo")
-
-
-class ArcGeo(QtCore.QObject):
+class ArcGeo(object):
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
@@ -56,9 +48,6 @@ class ArcGeo(QtCore.QObject):
         @param e_ang: the End Angle of the arc
         @param direction: The arc direction where 1 is in positive direction
         """
-        QtCore.QObject.__init__(self)
-
-        self.type = "ArcGeo"
         self.Ps = Ps
         self.Pe = Pe
         self.O = O
@@ -90,15 +79,13 @@ class ArcGeo(QtCore.QObject):
                 self.O.y += lo * sin(arc) * d
                 self.O.x += lo * cos(arc) * d
 
-            # Falls nicht übergeben Mittelpunkt ausrechnen
-            # Compute centre...
+            # Compute center point
             elif self.s_ang is not None and self.e_ang is not None:
                 self.O.x = self.Ps.x - self.r * cos(self.s_ang)
                 self.O.y = self.Ps.y - self.r * sin(self.s_ang)
             else:
                 logger.error(self.tr("Missing value for Arc Geometry"))
 
-        # Falls nicht übergeben dann Anfangs- und Endwinkel ausrechen
         # Calculate start and end angles
         if self.s_ang is None:
             self.s_ang = self.O.norm_angle(Ps)
@@ -119,10 +106,6 @@ class ArcGeo(QtCore.QObject):
                       copy.deepcopy(self.ext, memo))
 
     def __str__(self):
-        """
-        Standard method to print the object
-        @return: A string
-        """
         return "\nArcGeo" +\
                "\nPs:  %s; s_ang: %0.5f" % (self.Ps, self.s_ang) +\
                "\nPe:  %s; e_ang: %0.5f" % (self.Pe, self.e_ang) +\
@@ -130,21 +113,7 @@ class ArcGeo(QtCore.QObject):
                "\next: %0.5f; length: %0.5f" % (self.ext, self.length)
 
     def toShortString(self):
-        """
-        Method to print only start and end point of the arc
-        @return: A string
-        """
-        return ("(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y));
-
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('ArcGeo',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
 
     def dif_ang(self, Ps, Pe, direction):
         """
@@ -165,19 +134,11 @@ class ArcGeo(QtCore.QObject):
         return dif_ang
 
     def reverse(self):
-        """
-        Reverses the direction of the arc (switch direction).
-        """
         self.Ps, self.Pe = self.Pe, self.Ps
         self.s_ang, self.e_ang = self.e_ang, self.s_ang
         self.ext = -self.ext
 
     def make_abs_geo(self, parent=None):
-        """
-        Generates the absolute geometry based on itself self and the parent.
-        @param parent: The parent of the geometry (EntityContentClass)
-        @return: A new ArcGeoClass will be returned.
-        """
         Ps = self.Ps.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
         O = self.O.rot_sca_abs(parent=parent)
@@ -207,11 +168,6 @@ class ArcGeo(QtCore.QObject):
         return r
 
     def get_start_end_points(self, direction, parent=None):
-        """
-        Returns the start/end Point and its direction
-        @param direction: 0 to return start Point and 1 to return end Point
-        @return: a list of Point and angle Returns the hdl or hdls of the plotted objects.
-        """
         abs_geo = self.make_abs_geo(parent)
 
         if not direction:
@@ -222,53 +178,3 @@ class ArcGeo(QtCore.QObject):
             angle = abs_geo.e_ang - pi/2 * abs_geo.ext / abs(abs_geo.ext)
 
         return punkt, angle
-
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into defined path for hit testing. Refer
-        to http://stackoverflow.com/questions/11734618/check-if-point-exists-in-qpainterpath
-        for description
-        @param papath: The hitpath to add the geometrie
-        @param parent: The parent of the shape
-        """
-        abs_geo = self.make_abs_geo(parent)
-
-        segments = int(abs(degrees(abs_geo.ext) // 3) + 1)
-
-        for i in range(segments + 1):
-
-            ang = abs_geo.s_ang + i * abs_geo.ext / segments
-            p_cur = Point(abs_geo.O.x + cos(ang) * abs(abs_geo.r),
-                          abs_geo.O.y + sin(ang) * abs(abs_geo.r))
-
-            if i >= 1:
-                papath.lineTo(p_cur.x, -p_cur.y)
-
-    def Write_GCode(self, parent=None, PostPro=None):
-        """
-        Writes the GCODE for an Arc.
-        @param parent: This is the parent LayerContentClass
-        @param PostPro: The PostProcessor instance to be used
-        @return: Returns the string to be written to a file.
-        """
-        abs_geo = self.make_abs_geo(parent)
-
-        Ps, s_ang = abs_geo.get_start_end_points(0)
-        Pe, e_ang = abs_geo.get_start_end_points(1)
-
-        O = abs_geo.O
-        r = abs_geo.r
-        IJ = O - Ps
-
-        # If the radius of the element is bigger than the max, radius export the element as an line.
-        if r > PostPro.vars.General["max_arc_radius"]:
-            string = PostPro.lin_pol_xy(Ps, Pe)
-        else:
-            if self.ext > 0:
-                string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ)
-            elif self.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
-                string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe)
-            else:
-                string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ)
-
-        return string

@@ -26,16 +26,10 @@
 
 from __future__ import absolute_import
 from math import sqrt
-import logging
 import copy
 
-from PyQt5 import QtCore
 
-
-logger = logging.getLogger("Core.LineGeo")
-
-
-class LineGeo(QtCore.QObject):
+class LineGeo(object):
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
@@ -46,9 +40,6 @@ class LineGeo(QtCore.QObject):
         @param Ps: The Start Point of the line
         @param Pe: the End Point of the line
         """
-        QtCore.QObject.__init__(self)
-
-        self.type = "LineGeo"
         self.Ps = Ps
         self.Pe = Pe
         self.length = self.Ps.distance(self.Pe)
@@ -58,36 +49,15 @@ class LineGeo(QtCore.QObject):
                        copy.deepcopy(self.Pe, memo))
 
     def __str__(self):
-        """
-        Standard method to print the object
-        @return: A string
-        """
         return "\nLineGeo" +\
                "\nPs:     %s" % self.Ps +\
                "\nPe:     %s" % self.Pe +\
                "\nlength: %0.5f" % self.length
 
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('LineGeo',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
-
     def to_short_string(self):
-        """
-        Method to print only start and end point of the line
-        @return: A string
-        """
-        return ("(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y));
+        return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
 
     def reverse(self):
-        """
-        Reverses the direction of the arc (switch direction).
-        """
         self.Ps, self.Pe = self.Pe, self.Ps
 
     def make_abs_geo(self, parent=None):
@@ -107,22 +77,17 @@ class LineGeo(QtCore.QObject):
         @param point: The Point which shall be checked
         @return: returns the distance to the Line
         """
-        try:
+        if self.Ps == self.Pe:
+            return 1e10
+        else:
             AE = self.Ps.distance(self.Pe)
             AP = self.Ps.distance(point)
             EP = self.Pe.distance(point)
             AEPA = (AE + AP + EP) / 2
             return abs(2 * sqrt(abs(AEPA * (AEPA - AE) *
                                     (AEPA - AP) * (AEPA - EP))) / AE)
-        except:
-            return 1e10
 
     def get_start_end_points(self, direction, parent=None):
-        """
-        Returns the start/end Point and its direction
-        @param direction: 0 to return start Point and 1 to return end Point
-        @return: a list of Point and angle
-        """
         if not direction:
             punkt = self.Ps.rot_sca_abs(parent=parent)
             punkt_e = self.Pe.rot_sca_abs(parent=parent)
@@ -133,26 +98,3 @@ class LineGeo(QtCore.QObject):
             angle = punkt.norm_angle(punkt_a)
 
         return punkt, angle
-
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into defined path for hit testing..
-        @param hitpath: The hitpath to add the geometrie
-        @param parent: The parent of the shape
-        @param tolerance: The tolerance to be added to geometrie for hit
-        testing.
-        """
-        abs_geo = self.make_abs_geo(parent)
-        papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
-
-    def Write_GCode(self, parent=None, PostPro=None):
-        """
-        Writes the GCODE for a Line.
-        @param parent: This is the parent LayerContentClass
-        @param PostPro: The PostProcessor instance to be used
-        @return: Returns the string to be written to a file.
-        """
-        anf, anf_ang = self.get_start_end_points(0, parent)
-        ende, end_ang = self.get_start_end_points(1, parent)
-
-        return PostPro.lin_pol_xy(anf, ende)
