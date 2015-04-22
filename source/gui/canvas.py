@@ -21,7 +21,7 @@
 ############################################################################
 
 
-from math import sin, cos, degrees
+from math import sin, cos, degrees, pi
 
 from PyQt5.QtCore import QPoint, QSize, Qt
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import QOpenGLWidget
 
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
+from Core.Point import Point
 
 
 class GLWidget(QOpenGLWidget):
@@ -213,6 +214,8 @@ class GLWidget(QOpenGLWidget):
         self.gl.glEnable(self.gl.GL_NORMALIZE)
         self.gl.glBegin(self.gl.GL_QUADS)
 
+        if not shape.closed:
+            self.paintArc(shape.geos[0].Ps, 0, 0, 2*pi)  # TODO
         for geo in shape.geos:
             if isinstance(geo, LineGeo):
                 abs_geo = geo.make_abs_geo(shape.parentEntity)
@@ -220,6 +223,7 @@ class GLWidget(QOpenGLWidget):
             elif isinstance(geo, ArcGeo):
                 abs_geo = geo.make_abs_geo(shape.parentEntity)
                 self.paintArc(abs_geo.O, abs_geo.r, abs_geo.s_ang, abs_geo.ext)
+            self.paintArc(abs_geo.Pe, 0, 0, 2*pi)  # TODO
 
         self.gl.glEnd()
         self.gl.glEndList()
@@ -233,15 +237,15 @@ class GLWidget(QOpenGLWidget):
         zTop = 0
 
         cam = Ps.unit_vector(Pe)
-        d = cam*[toolwidth, toolwidth]
-        xy1 = Ps.x + d.y, Ps.y - d.x
-        xy2 = Pe.x + d.y, Pe.y - d.x
-        xy3 = Pe.x - d.y, Pe.y + d.x
-        xy4 = Ps.x - d.y, Ps.y + d.x
+        d = Point(cam.y * toolwidth, -cam.x * toolwidth)
+        xy1 = Ps + d
+        xy2 = Pe + d
+        xy3 = Pe - d
+        xy4 = Ps - d
 
         self.quad(xy1, xy2, xy3, xy4, zTop, zBottom)
-        self.extrude(xy1, xy2, zTop, zBottom, d.y, -d.x)
-        self.extrude(xy3, xy4, zTop, zBottom, -d.y, d.x)
+        self.extrude(xy1, xy2, zTop, zBottom)
+        self.extrude(xy3, xy4, zTop, zBottom)
 
     def paintArc(self, origin, r, s_ang, ext):
 
@@ -251,42 +255,38 @@ class GLWidget(QOpenGLWidget):
 
         segments = int((abs(degrees(ext)) // 3) + 1)
 
-        direction = 1 if ext > 0 else -1
-
         for i in range(segments):
+            angle1 = s_ang + i * ext / segments
+            angle2 = s_ang + (i + 1) * ext / segments
 
-            prv_ang = s_ang + i * ext / segments
-            ang = s_ang + (i + 1) * ext / segments
+            prv_ang, ang = (angle1, angle2) if ext > 0 else (angle2, angle1)
 
-            xy1 = origin.x + cos(prv_ang) * (r + toolwidth * direction), \
-                  origin.y + sin(prv_ang) * (r + toolwidth * direction)
-            xy2 = origin.x + cos(ang) * (r + toolwidth * direction), \
-                  origin.y + sin(ang) * (r + toolwidth * direction)
-            xy3 = origin.x + cos(ang) * (r - toolwidth * direction), \
-                  origin.y + sin(ang) * (r - toolwidth * direction)
-            xy4 = origin.x + cos(prv_ang) * (r - toolwidth * direction), \
-                  origin.y + sin(prv_ang) * (r - toolwidth * direction)
+            xy1 = origin.get_arc_point(prv_ang, r + toolwidth)
+            xy2 = origin.get_arc_point(ang, r + toolwidth)
+            xy3 = origin.get_arc_point(ang, r - toolwidth)
+            xy4 = origin.get_arc_point(prv_ang, r - toolwidth)
 
             self.quad(xy1, xy2, xy3, xy4, zTop, zBottom)
-            self.extrude(xy1, xy2, zTop, zBottom, sin(prv_ang) * direction, -cos(prv_ang) * direction)
-            self.extrude(xy3, xy4, zTop, zBottom, -sin(ang) * direction, cos(ang) * direction)
+            self.extrude(xy1, xy2, zTop, zBottom)
+            self.extrude(xy3, xy4, zTop, zBottom)
 
     def quad(self, xy1, xy2, xy3, xy4, zTop, zBottom):
         self.gl.glNormal3d(0.0, 0.0, -1)
-        self.gl.glVertex3d(xy1[0], xy1[1], zBottom)
-        self.gl.glVertex3d(xy2[0], xy2[1], zBottom)
-        self.gl.glVertex3d(xy3[0], xy3[1], zBottom)
-        self.gl.glVertex3d(xy4[0], xy4[1], zBottom)
+        self.gl.glVertex3d(xy2.x, -xy2.y, zBottom)
+        self.gl.glVertex3d(xy1.x, -xy1.y, zBottom)
+        self.gl.glVertex3d(xy4.x, -xy4.y, zBottom)
+        self.gl.glVertex3d(xy3.x, -xy3.y, zBottom)
 
         self.gl.glNormal3d(0.0, 0.0, 1)
-        self.gl.glVertex3d(xy4[0], xy4[1], zTop)
-        self.gl.glVertex3d(xy3[0], xy3[1], zTop)
-        self.gl.glVertex3d(xy2[0], xy2[1], zTop)
-        self.gl.glVertex3d(xy1[0], xy1[1], zTop)
+        self.gl.glVertex3d(xy3.x, -xy3.y, zTop)
+        self.gl.glVertex3d(xy4.x, -xy4.y, zTop)
+        self.gl.glVertex3d(xy1.x, -xy1.y, zTop)
+        self.gl.glVertex3d(xy2.x, -xy2.y, zTop)
 
-    def extrude(self, xy1, xy2, zTop, zBottom, dx, dy):
-        self.gl.glNormal3d(dx, dy, 0.0)
-        self.gl.glVertex3d(xy1[0], xy1[1], zTop)
-        self.gl.glVertex3d(xy2[0], xy2[1], zTop)
-        self.gl.glVertex3d(xy2[0], xy2[1], zBottom)
-        self.gl.glVertex3d(xy1[0], xy1[1], zBottom)
+    def extrude(self, xy1, xy2, zTop, zBottom):
+        d = xy1.unit_vector(xy2)
+        self.gl.glNormal3d(d.y, d.x, 0)
+        self.gl.glVertex3d(xy2.x, -xy2.y, zTop)
+        self.gl.glVertex3d(xy1.x, -xy1.y, zTop)
+        self.gl.glVertex3d(xy1.x, -xy1.y, zBottom)
+        self.gl.glVertex3d(xy2.x, -xy2.y, zBottom)
