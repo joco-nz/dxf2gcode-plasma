@@ -66,6 +66,11 @@ class GLWidget(QOpenGLWidget):
         self.colorNormalDisabled = QColor.fromCmykF(0.4, 0.0, 1.0, 0.0, 0.3)
         self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.3)
 
+        self.maxViewX = 0
+        self.maxViewY = 0
+        self.minViewX = 0
+        self.minViewY = 0
+
     def minimumSizeHint(self):
         return QSize(50, 50)
 
@@ -283,6 +288,11 @@ class GLWidget(QOpenGLWidget):
         self.gl.glVertex3d(xy1.x, -xy1.y, zTop)
         self.gl.glVertex3d(xy2.x, -xy2.y, zTop)
 
+        self.determineViewMaxMin(xy1)
+        self.determineViewMaxMin(xy2)
+        self.determineViewMaxMin(xy3)
+        self.determineViewMaxMin(xy4)
+
     def extrude(self, xy1, xy2, zTop, zBottom):
         d = xy1.unit_vector(xy2)
         self.gl.glNormal3d(d.y, d.x, 0)
@@ -290,3 +300,17 @@ class GLWidget(QOpenGLWidget):
         self.gl.glVertex3d(xy1.x, -xy1.y, zTop)
         self.gl.glVertex3d(xy1.x, -xy1.y, zBottom)
         self.gl.glVertex3d(xy2.x, -xy2.y, zBottom)
+
+    def determineViewMaxMin(self, point):
+        self.maxViewX = max(self.maxViewX, point.x)
+        self.maxViewY = max(self.maxViewY, point.y)
+        self.minViewX = min(self.minViewX, point.x)
+        self.minViewY = min(self.minViewY, point.y)
+
+    def autoScale(self):
+        scaleX = (self.camRightX - self.camLeftX) / (self.maxViewX - self.minViewX)
+        scaleY = (self.camBottomY - self.camTopY) / (self.maxViewY - self.minViewY)
+        self.scale = min(scaleX, scaleY) * 0.95
+        self.posX = self.camLeftX * 0.95 - self.minViewX * self.scale
+        self.posY = -self.camTopY * 0.95 + self.minViewY * self.scale
+        self.update()

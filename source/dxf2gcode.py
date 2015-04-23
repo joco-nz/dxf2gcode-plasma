@@ -110,6 +110,8 @@ class MainWindow(QMainWindow):
         for shape in self.shapes:
             self.glWidget.addShape(shape)
 
+        self.glWidget.autoScale()
+
         self.glWidget.unsetCursor()
 
     def makeShapes(self, values, p0, pb, sca, rot):
