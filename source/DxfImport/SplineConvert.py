@@ -26,7 +26,7 @@
 from Core.Point import Point
 from Core.ArcGeo import ArcGeo
 from Core.LineGeo import  LineGeo
-from DxfImport.biarc import BiarcClass
+from DxfImport.Biarc import BiarcClass
 
 from math import atan2
 

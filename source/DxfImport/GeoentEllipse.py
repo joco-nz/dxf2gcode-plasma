@@ -26,7 +26,7 @@
 from math import sqrt, sin, cos, atan2, degrees, pi
 from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
-from DxfImport.biarc import BiarcClass
+from DxfImport.Biarc import BiarcClass
 
 
 

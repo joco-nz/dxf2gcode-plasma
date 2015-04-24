@@ -36,7 +36,7 @@ from DxfImport.GeoentEllipse import GeoentEllipse
 from DxfImport.GeoentLwpolyline import GeoentLwPolyline
 from DxfImport.GeoentPoint import GeoentPoint
 
-from config import config
+from Global import config
 
 from PyQt5 import QtGui, QtCore
 

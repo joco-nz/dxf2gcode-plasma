@@ -32,7 +32,7 @@ from Core.EntityContent import EntityContent
 from Core.LayerContent import LayerContent
 from Core.Shape import Shape
 
-from gui.canvas import GLWidget
+from Gui.Canvas import GLWidget
 from Core.Point import Point
 from DxfImport.Import import ReadDXF
 
