@@ -112,6 +112,8 @@ class MainWindow(QMainWindow):
 
         self.glWidget.autoScale()
 
+        self.glWidget.paintOrientation()
+
         self.glWidget.unsetCursor()
 
     def makeShapes(self, values, p0, pb, sca, rot):

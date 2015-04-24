@@ -37,8 +37,7 @@ class GLWidget(QOpenGLWidget):
         super(GLWidget, self).__init__(parent)
 
         self.objects = []
-
-        self.flipFlop = False
+        self.orientation = 0
 
         self._isPanning = False
         self._isRotating = False
@@ -170,10 +169,10 @@ class GLWidget(QOpenGLWidget):
         self.gl.glEnable(self.gl.GL_BLEND)
         self.gl.glBlendFunc(self.gl.GL_SRC_ALPHA, self.gl.GL_ONE_MINUS_SRC_ALPHA)
         self.gl.glLightfv(self.gl.GL_LIGHT0, self.gl.GL_POSITION, (0.5, 5.0, 7.0, 1.0))
+        self.gl.glEnable(self.gl.GL_NORMALIZE)
 
     def paintGL(self):
         # The last transformation you specify takes place first.
-        print("flip") if self.flipFlop else print("flop")
         self.gl.glClear(self.gl.GL_COLOR_BUFFER_BIT | self.gl.GL_DEPTH_BUFFER_BIT)
         self.gl.glLoadIdentity()
         self.gl.glTranslated(self.posX, self.posY, self.posZ)
@@ -184,7 +183,7 @@ class GLWidget(QOpenGLWidget):
         self.setColor(self.colorSelect)
         for object in self.objects:
             self.gl.glCallList(object)
-        self.flipFlop = not self.flipFlop
+        self.gl.glCallList(self.orientation)
 
     def resizeGL(self, width, height):
         side = min(width, height)
@@ -206,8 +205,10 @@ class GLWidget(QOpenGLWidget):
         self.gl.glClearColor(c.redF(), c.greenF(), c.blueF(), c.alphaF())
 
     def setColor(self, c):
-        self.gl.glMaterialfv(self.gl.GL_FRONT, self.gl.GL_DIFFUSE,
-                             (c.redF(), c.greenF(), c.blueF(), c.alphaF()))
+        self.setColorRGBA(c.redF(), c.greenF(), c.blueF(), c.alphaF())
+
+    def setColorRGBA(self, r, g, b, a):
+        self.gl.glMaterialfv(self.gl.GL_FRONT, self.gl.GL_DIFFUSE, (r, g, b, a))
 
     def addShape(self, shape):
         self.objects.append(self.makeShape(shape))
@@ -215,9 +216,6 @@ class GLWidget(QOpenGLWidget):
     def makeShape(self, shape):
         genList = self.gl.glGenLists(1)
         self.gl.glNewList(genList, self.gl.GL_COMPILE)
-
-        self.gl.glEnable(self.gl.GL_NORMALIZE)
-        self.gl.glBegin(self.gl.GL_QUADS)
 
         if not shape.closed:
             self.paintArc(shape.geos[0].Ps, 0, 0, 2*pi)  # TODO
@@ -230,12 +228,13 @@ class GLWidget(QOpenGLWidget):
                 self.paintArc(abs_geo.O, abs_geo.r, abs_geo.s_ang, abs_geo.ext)
             self.paintArc(abs_geo.Pe, 0, 0, 2*pi)  # TODO
 
-        self.gl.glEnd()
         self.gl.glEndList()
 
         return genList
 
     def paintLine(self, Ps, Pe):
+
+        self.gl.glBegin(self.gl.GL_QUADS)
 
         toolwidth = 1.5
         zBottom = -3
@@ -252,11 +251,17 @@ class GLWidget(QOpenGLWidget):
         self.extrude(xy1, xy2, zTop, zBottom)
         self.extrude(xy3, xy4, zTop, zBottom)
 
+        self.gl.glEnd()
+
     def paintArc(self, origin, r, s_ang, ext):
+
+        self.gl.glBegin(self.gl.GL_QUADS)
 
         toolwidth = 1.5
         zBottom = -3
         zTop = 0
+
+        rMin = max(r - toolwidth, 0)
 
         segments = int((abs(degrees(ext)) // 3) + 1)
 
@@ -268,12 +273,96 @@ class GLWidget(QOpenGLWidget):
 
             xy1 = origin.get_arc_point(prv_ang, r + toolwidth)
             xy2 = origin.get_arc_point(ang, r + toolwidth)
-            xy3 = origin.get_arc_point(ang, r - toolwidth)
-            xy4 = origin.get_arc_point(prv_ang, r - toolwidth)
+            xy3 = origin.get_arc_point(ang, rMin)
+            xy4 = origin.get_arc_point(prv_ang, rMin)
 
             self.quad(xy1, xy2, xy3, xy4, zTop, zBottom)
             self.extrude(xy1, xy2, zTop, zBottom)
             self.extrude(xy3, xy4, zTop, zBottom)
+
+        self.gl.glEnd()
+
+    def paintOrientation(self):
+
+        rCone = 1.0
+        rCylinder = 0.4
+        zTop = 5
+        zMiddle = 2
+        zBottom = 0.0
+
+        arrow = self.gl.glGenLists(1)
+        self.gl.glNewList(arrow, self.gl.GL_COMPILE)
+
+        self.paintCone(Point(), rCone, zTop, zMiddle)
+        self.paintSolidCircle(Point(), rCone, zMiddle)
+        self.paintCylinder(Point(), rCylinder, zMiddle, zBottom)
+        self.paintSolidCircle(Point(), rCylinder, zBottom)
+
+        self.gl.glEndList()
+
+        self.orientation = self.gl.glGenLists(1)
+        self.gl.glNewList(self.orientation, self.gl.GL_COMPILE)
+
+        self.setColorRGBA(0.0, 0.0, 1.0, 0.5)
+        self.gl.glCallList(arrow)
+
+        self.gl.glRotated(90, 0, 1, 0)
+        self.setColorRGBA(1.0, 0.0, 0.0, 0.5)
+        self.gl.glCallList(arrow)
+
+        self.gl.glRotated(90, 1, 0, 0)
+        self.setColorRGBA(0.0, 1.0, 0.0, 0.5)
+        self.gl.glCallList(arrow)
+
+        self.gl.glEndList()
+
+    def paintSolidCircle(self, origin, r, z):
+
+        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
+
+        self.gl.glNormal3d(0, 0, -1)
+        self.gl.glVertex3d(origin.x, -origin.y, z)
+
+        segments = int((abs(360) // 3) + 1)
+        for i in range(segments + 1):
+            ang = -i * 2 * pi / segments
+            xy2 = origin.get_arc_point(ang, r)
+            self.gl.glVertex3d(xy2.x, -xy2.y, z)
+
+        self.gl.glEnd()
+
+    def paintCone(self, origin, r, zTop, zBottom):
+
+        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
+
+        xy1 = Point(origin.x, -origin.y, zTop)
+        self.gl.glVertex3d(xy1.x, xy1.y, xy1.z)
+        segments = int((abs(360) // 3) + 1)
+        for i in range(segments + 1):
+            ang = i * 2 * pi / segments
+            xy2 = origin.get_arc_point(ang, r)
+
+            d = xy1.unit_vector(xy2)
+            self.gl.glNormal3d(d.x, -d.y, 1)
+            self.gl.glVertex3d(xy2.x, -xy2.y, zBottom)
+
+        self.gl.glEnd()
+
+    def paintCylinder(self, origin, r, zTop, zBottom):
+
+        self.gl.glBegin(self.gl.GL_QUADS)
+
+        segments = int((abs(360) // 3) + 1)
+        for i in range(segments + 1):
+            prv_ang = i * 2 * pi / segments
+            ang = (i + 1) * 2 * pi / segments
+
+            xy1 = origin.get_arc_point(prv_ang, r)
+            xy2 = origin.get_arc_point(ang, r)
+
+            self.extrude(xy1, xy2, zTop, zBottom)
+
+        self.gl.glEnd()
 
     def quad(self, xy1, xy2, xy3, xy4, zTop, zBottom):
         self.gl.glNormal3d(0.0, 0.0, -1)
@@ -294,7 +383,7 @@ class GLWidget(QOpenGLWidget):
         self.determineViewMaxMin(xy4)
 
     def extrude(self, xy1, xy2, zTop, zBottom):
-        d = xy1.unit_vector(xy2)
+        d = xy2 - xy1
         self.gl.glNormal3d(d.y, d.x, 0)
         self.gl.glVertex3d(xy2.x, -xy2.y, zTop)
         self.gl.glVertex3d(xy1.x, -xy1.y, zTop)
