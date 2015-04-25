@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
-#   Copyright (C) 2014-2014
+#   Copyright (C) 2014-2015
 #    Robert Lichtenberger
 #
 #   This file is part of DXF2GCODE.
@@ -31,6 +29,7 @@ from DxfImport.Classes import ContourClass
 import logging
 logger = logging.getLogger("DXFImport.GeoentPoint")
 
+
 class GeoentPoint:
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Point'
@@ -57,11 +56,7 @@ class GeoentPoint:
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("ReadDXF",
-                                                    string_to_translate,
-                                                    None,
-                                                    QtGui.QApplication.UnicodeUTF8))
-
+        return QtGui.QApplication.translate("ReadDXF", string_to_translate, None)
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         """
@@ -98,4 +93,3 @@ class GeoentPoint:
         #Neuen Startwert für die nächste Geometrie zurückgeben
         #New starting value for the next geometry
         caller.start = s
-

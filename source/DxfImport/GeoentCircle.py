@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
 #   Copyright (C) 2008-2015
@@ -34,7 +32,7 @@ import logging
 logger = logging.getLogger("DXFImport.GeoentCircle")
 
 
-class GeoentCircle(QtCore.QObject):
+class GeoentCircle(object):
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Circle'
         self.Nr = Nr
@@ -59,9 +57,7 @@ class GeoentCircle(QtCore.QObject):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('ReadDXF',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return QtCore.QCoreApplication.translate('ReadDXF', string_to_translate, None)
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length))

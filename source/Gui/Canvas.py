@@ -20,8 +20,7 @@
 #
 ############################################################################
 
-
-from math import sin, cos, degrees, pi
+from math import degrees, pi
 
 from PyQt5.QtCore import QPoint, QSize, Qt
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile

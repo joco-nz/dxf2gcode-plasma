@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
 #   Copyright (C) 2008-2015
@@ -27,6 +25,7 @@ from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
 from Core.ArcGeo import ArcGeo
 from Core.LineGeo import LineGeo
+
 
 class GeoentPolyline:
     def __init__(self, Nr=0, caller=None):

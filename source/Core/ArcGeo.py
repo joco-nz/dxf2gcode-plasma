@@ -26,7 +26,12 @@
 
 from math import sqrt, sin, cos, pi
 import copy
-import math
+import logging
+
+import Global.Globals as g
+
+
+logger = logging.getLogger("Core.ArcGeo")
 
 
 class ArcGeo(object):
@@ -66,8 +71,6 @@ class ArcGeo(object):
                 arc = self.Pe.norm_angle(self.Ps) - pi / 2
                 m = self.Pe.distance(self.Ps) / 2
 
-                logger.debug('lo: %s; m: %s' % (self.r, m))
-
                 if abs(self.r - m) < g.config.fitting_tolerance:
                     lo = 0.0
                 else:
@@ -80,11 +83,11 @@ class ArcGeo(object):
                 self.O.x += lo * cos(arc) * d
 
             # Compute center point
-            elif self.s_ang is not None and self.e_ang is not None:
+            elif self.s_ang is not None:
                 self.O.x = self.Ps.x - self.r * cos(self.s_ang)
                 self.O.y = self.Ps.y - self.r * sin(self.s_ang)
             else:
-                logger.error(self.tr("Missing value for Arc Geometry"))
+                logger.error("Missing value for Arc Geometry")
 
         # Calculate start and end angles
         if self.s_ang is None:

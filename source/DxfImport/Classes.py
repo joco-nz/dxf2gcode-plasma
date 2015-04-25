@@ -1,29 +1,26 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
-#   
-#   Copyright (C) 2008-2014
-#    Christian Kohlöffel
+#
+#   Copyright (C) 2008-2015
+#    Christian KohlÃ¶ffel
 #    Vinzenz Schulz
-#   
+#
 #   This file is part of DXF2GCODE.
-#   
+#
 #   DXF2GCODE is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   DXF2GCODE is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
-#   
+#
 ############################################################################
 
-#from Canvas import Oval, Arc, Line
 
 class PointsClass:
     #Initialisieren der Klasse
@@ -36,8 +33,8 @@ class PointsClass:
         self.en = en
         self.be_cp = be_cp
         self.en_cp = en_cp
-        
-    
+
+
     #Wie die Klasse ausgegeben wird.
     #???
     def __str__(self):
@@ -96,10 +93,10 @@ class ContourClass:
                 if self.order[i][0] == self.order[j][0]:
                     self.order = self.order[0:i]
                     break
-        return 
-    
-    
-    def calc_length(self, geos=None):        
+        return
+
+
+    def calc_length(self, geos=None):
         """
         Calculate the contour length
         """
@@ -116,7 +113,7 @@ class ContourClass:
     #New starting point, set to the beginning
     def set_new_startpoint(self, st_p):
         self.order = self.order[st_p:len(self.order)] + self.order[0:st_p]
-        
+
     #Wie die Klasse ausgegeben wird.
     #???
     def __str__(self):

@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
-#   Copyright (C) 2008-2014
-#    Christian Kohl�ffel
+#   Copyright (C) 2008-2015
+#    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
@@ -23,9 +21,13 @@
 #
 ############################################################################
 
+from copy import deepcopy, copy
+import logging
+
+from PyQt5 import QtWidgets, QtCore
+
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
-
 from DxfImport.GeoentArc import GeoentArc
 from DxfImport.GeoentCircle import GeoentCircle
 from DxfImport.GeoentInsert import GeoentInsert
@@ -35,14 +37,9 @@ from DxfImport.GeoentSpline import GeoentSpline
 from DxfImport.GeoentEllipse import GeoentEllipse
 from DxfImport.GeoentLwpolyline import GeoentLwPolyline
 from DxfImport.GeoentPoint import GeoentPoint
+import Global.Globals as g
 
-from Global import config
 
-from PyQt5 import QtGui, QtCore
-
-from copy import deepcopy, copy
-
-import logging
 logger = logging.getLogger("DxfImport.Import")
 
 
@@ -56,7 +53,7 @@ class ReadDXF(QtCore.QObject):
         #logger = g.logger.logger
 
         str_ = self.Read_File(filename)
-        config.metric = self.Get_Unit(str_)
+        g.config.metric = self.Get_Unit(str_)
 
         #Load the contour and store the values in the classes
         self.line_pairs = self.Get_Line_Pairs(str_)
@@ -85,6 +82,14 @@ class ReadDXF(QtCore.QObject):
 
         logger.info(self.tr("Creating Contours of Entities"))
         self.entities.cont = self.Get_Contour(self.entities)
+
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return QtCore.QCoreApplication.translate("ReadDXF", string_to_translate, None)
 
     def Read_File(self, filename):
         """
@@ -152,7 +157,7 @@ class ReadDXF(QtCore.QObject):
                 line += 2
 
         except:
-            QtGui.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"),
+            QtWidgets.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"),
                 self.tr("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file") % (line))
 
             #showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
@@ -429,7 +434,7 @@ class ReadDXF(QtCore.QObject):
         Calculate and assign the start and end points
         """
 
-        tol = config.point_tolerance
+        tol = g.config.point_tolerance
         points = []
         warning = 0
         for i in range(len(geo)) :
@@ -437,7 +442,7 @@ class ReadDXF(QtCore.QObject):
             warning = geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
 
         if warning:
-            QtGui.QMessageBox.warning(g.window, self.tr("Short Elements"),
+            QtWidgets.QMessageBox.warning(g.window, self.tr("Short Elements"),
                                       self.tr("Length of some Elements too short!"\
                                       "\nLength must be greater than tolerance."\
                                       "\nSkipped Geometries"))
@@ -449,7 +454,7 @@ class ReadDXF(QtCore.QObject):
         Find_Common_Points() - Find common points
         """
         #tol = self.config.points_tolerance.get()
-        tol = config.point_tolerance
+        tol = g.config.point_tolerance
 
         p_list = []
 

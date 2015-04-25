@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
 #   Copyright (C) 2008-2015
@@ -23,11 +21,11 @@
 #
 ############################################################################
 
-#from Canvas import Oval, Arc, Line
 from math import sin, cos, pi, ceil
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
 from Core.Point import Point
+
 
 class BiarcClass:
     """

@@ -23,12 +23,18 @@
 ############################################################################
 
 from math import sqrt
+from math import cos, sin, degrees
+from copy import deepcopy
+import logging
+
+from PyQt5 import QtCore
 
 from Core.Point import Point
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
-from math import cos, sin, degrees
-from copy import deepcopy
+
+
+logger = logging.getLogger("Core.Shape")
 
 
 class Shape(object):
@@ -62,6 +68,26 @@ class Shape(object):
         self.parentLayer = None
         self.geos = geos
 
+    def __str__(self):
+        """
+        Standard method to print the object
+        @return: A string
+        """
+        return "\ntype:        %s" % self.type +\
+               "\nnr:          %i" % self.nr +\
+               "\nclosed:      %i" % self.closed +\
+               "\ncut_cor:     %s" % self.cut_cor +\
+               "\nlen(geos):   %i" % len(self.geos) +\
+               "\ngeos:        %s" % self.geos
+
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return QtCore.QCoreApplication.translate("ShapeClass", string_to_translate, None)
+
     def contains_point(self, x, y):
         min_distance = float(0x7fffffff)
         p = (x, y)
@@ -80,20 +106,8 @@ class Shape(object):
         b = p1[1] - p0[1]
         return sqrt(a * a + b * b)
 
-    def __str__(self):
-        """
-        Standard method to print the object
-        @return: A string
-        """
-        return "\ntype:        %s" % self.type +\
-               "\nnr:          %i" % self.nr +\
-               "\nclosed:      %i" % self.closed +\
-               "\ncut_cor:     %s" % self.cut_cor +\
-               "\nlen(geos):   %i" % len(self.geos) +\
-               "\ngeos:        %s" % self.geos
-
     def AnalyseAndOptimize(self):
-        print("Analysing the shape for CW direction Nr: %s" % self.nr)
+        logger.debug(self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
         # Optimization for closed shapes
         if self.closed:
             # Start value for the first sum
@@ -115,15 +129,15 @@ class Shape(object):
 
             if summe > 0.0:
                 self.reverse()
-                print("Had to reverse the shape to be ccw")
+                logger.debug(self.tr("Had to reverse the shape to be cw"))
 
     def setNearestStPoint(self, stPoint):
         if self.closed:
-            print("Clicked Point: %s" % stPoint)
+            logger.debug(self.tr("Clicked Point: %s" % stPoint))
             start, dummy = self.geos[0].get_start_end_points(0, self.parentEntity)
             min_distance = start.distance(stPoint)
 
-            print("Old Start Point: %s" % start)
+            logger.debug(self.tr("Old Start Point: %s" % start))
 
             min_geo_nr = 0
             for geo_nr in range(1, len(self.geos)):
@@ -137,7 +151,7 @@ class Shape(object):
             self.geos = self.geos[min_geo_nr:len(self.geos)] + self.geos[0:min_geo_nr]
 
             start, dummy = self.geos[0].get_start_end_points(0, self.parentEntity)
-            print("New Start Point: %s" % start)
+            logger.debug(self.tr("New Start Point: %s" % start))
 
     def reverse(self):
         self.geos.reverse()

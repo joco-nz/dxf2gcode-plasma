@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
 #   Copyright (C) 2008-2015
@@ -93,9 +91,9 @@ class Spline2Arcs:
             #Wenn die L�nge mindestens 3 sind
             if len(NewCurve) >= 3:
                 #Steigende Spirale
-                if ((NewCurve[-3].type == "ArcGeo")
-                   and (NewCurve[-2].type == "ArcGeo")
-                   and (NewCurve[-1].type == "ArcGeo")):
+                if isinstance(NewCurve[-3], ArcGeo)\
+                   and isinstance(NewCurve[-2], ArcGeo)\
+                   and isinstance(NewCurve[-1], ArcGeo):
                     Pts.append(geo.Pe)
                     if (NewCurve[-3].r <= NewCurve[-2].r) \
                         and (NewCurve[-2].r <= NewCurve[-1].r) \
@@ -319,7 +317,7 @@ class Spline2Arcs:
             anz = len(NewCurve)
             if anz >= 2:
                 #Wenn Geo eine Linie ist anh�ngen und �berpr�fen
-                if (NewCurve[-2].type == "LineGeo") and (NewCurve[-1].type == "LineGeo"):
+                if isinstance(NewCurve[-2], LineGeo) and isinstance(NewCurve[-1], LineGeo):
                     Pts.append(geo.Pe)
                     JointLine = LineGeo(NewCurve[-2].Ps, NewCurve[-1].Pe)
 
@@ -330,7 +328,7 @@ class Spline2Arcs:
                     #print res
 
                     #Wenn die Abweichung OK ist Vorheriges anh�ngen
-                    if (max(res) < self.epsilon):
+                    if max(res) < self.epsilon:
                         anz = len(NewCurve)
                         del NewCurve[anz - 2:anz]
                         NewCurve.append(JointLine)
@@ -575,8 +573,8 @@ class NURBSClass:
 
             for same_ctlpt in ctlpt_vec:
                 if (len(same_ctlpt) > self.degree + 1):
-                    self.ignor.append([self.Knots[same_ctlpt[0] + self.degree / 2], \
-                                       self.Knots[same_ctlpt[-1] + self.degree / 2]])
+                    self.ignor.append([self.Knots[same_ctlpt[0] + self.degree // 2],
+                                       self.Knots[same_ctlpt[-1] + self.degree // 2]])
 
 #        raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
 #            logger.debug("Same Controlpoints Nr. bigger then degree+2")
@@ -584,7 +582,7 @@ class NURBSClass:
             logger.debug("Ignoring u's between u: %s and u: %s" % (ignor[0], ignor[1]))
 
         if len(self.knt_m_change):
-            logger.debug("Non steady Angles between Knots: %s" % (self.knt_m_change))
+            logger.debug("Non steady Angles between Knots: %s" % self.knt_m_change)
 
 
     def calc_curve(self, n=0, cpts_nr=20):
@@ -755,21 +753,22 @@ class BSplineClass:
         #wert zwischen im Intervall von Knots[mid:mi+1] liegt)
         low = self.degree-1
         high = self.Knots_len
-        mid = (low + high) / 2
-        counter=1
-        while ((u < self.Knots[mid])or(u >= self.Knots[mid +1])):
-            counter=counter+1
+        mid = (low + high) // 2
+        counter = 1
+        while u < self.Knots[mid] or u >= self.Knots[mid + 1]:
+            counter += 1
 
-            if (u < self.Knots[mid]):
+            if u < self.Knots[mid]:
                 high = mid
             else:
                 low = mid
 
-            mid = ((low + high) / 2)
+            mid = (low + high) // 2
 
             if debug_on:
-                logger.debug("high: %s; low: %s; mid: %s" %(high,low,mid))
-                logger.debug("u: %s; self.Knots[mid]: %s; self.Knots[mid+1]: %s" %(u,self.Knots[mid],self.Knots[mid+1]))
+                logger.debug("high: %s; low: %s; mid: %s" % (high, low, mid))
+                logger.debug("u: %s; self.Knots[mid]: %s; self.Knots[mid+1]: %s" %
+                             (u, self.Knots[mid], self.Knots[mid + 1]))
 
             if counter > 100:
                 raise ValueError("Iterations above 100 cannot find span")

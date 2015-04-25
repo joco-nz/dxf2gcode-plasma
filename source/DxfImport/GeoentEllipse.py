@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
 #   Copyright (C) 2008-2015
@@ -28,9 +26,10 @@ from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
 from DxfImport.Biarc import BiarcClass
 
+import Global.Globals as g
 
 
-class GeoentEllipse:
+class GeoentEllipse(object):
     """
     GeoentEllipse()
     """

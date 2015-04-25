@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 ############################################################################
 #
 #   Copyright (C) 2008-2015
@@ -27,6 +25,7 @@
 from DxfImport.SplineConvert import Spline2Arcs
 from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
+import Global.Globals as g
 
 import logging
 logger = logging.getLogger("DxfImport.GeoentSpline")

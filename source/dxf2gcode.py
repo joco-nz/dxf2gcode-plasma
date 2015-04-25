@@ -22,21 +22,32 @@
 #
 ############################################################################
 
-
 import sys
+import os
+import logging
+from copy import copy
 
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QLocale, QTranslator
 from PyQt5.QtGui import QSurfaceFormat
 from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, QFileDialog
+
 from Core.EntityContent import EntityContent
 from Core.LayerContent import LayerContent
 from Core.Shape import Shape
-
+import Global.Globals as g
+from Global.config import MyConfig
+from Global.logger import LoggerClass
 from Gui.Canvas import GLWidget
 from Core.Point import Point
 from DxfImport.Import import ReadDXF
 
-from copy import copy, deepcopy
+
+logger = logging.getLogger()
+
+# Get folder of the main instance and write into globals
+g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
+if os.path.islink(sys.argv[0]):
+    g.folder = os.path.dirname(os.readlink(sys.argv[0]))
 
 
 class MainWindow(QMainWindow):
@@ -226,6 +237,22 @@ if __name__ == '__main__':
     fmt.setSamples(4)
     QSurfaceFormat.setDefaultFormat(fmt)
 
+    Log=LoggerClass(logger)
+    #Get local language and install if available.
+
+    g.config = MyConfig()
+    Log.set_console_handler_loglevel()
+    Log.add_file_logger()
+
+    locale = QLocale.system().name()
+    logger.debug("locale: %s" %locale)
+    translator = QTranslator()
+    if translator.load("dxf2gcode_" + locale, "./i18n"):
+        app.installTranslator(translator)
+
     window = MainWindow()
+    g.window = window
     window.show()
+
+
     sys.exit(app.exec_())

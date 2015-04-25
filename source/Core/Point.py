@@ -91,6 +91,8 @@ class Point(object):
         """
         Returns vector of length 1
         """
+        if self == other:
+            return Point(0, 0)
         abs_point = other - self
         length = abs_point.distance()
         return Point(abs_point.x / length, abs_point.y / length)

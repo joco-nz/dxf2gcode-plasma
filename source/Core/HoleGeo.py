@@ -32,7 +32,7 @@ from PyQt5 import QtCore
 logger = logging.getLogger("Core.HoleGeo")
 
 
-class HoleGeo(QtCore.QObject):
+class HoleGeo(object):
     """
     HoleGeo represents drilling holes.
     """
@@ -40,9 +40,6 @@ class HoleGeo(QtCore.QObject):
         """
         Standard Method to initialise the HoleGeo
         """
-        QtCore.QObject.__init__(self)
-
-        self.type = "HoleGeo"
         self.Ps = Ps
 
     def __deepcopy__(self, memo):
@@ -54,16 +51,6 @@ class HoleGeo(QtCore.QObject):
         @return: A string
         """
         return "\nHoleGeo at (%s) " % self.Ps
-
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('HoleGeo',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
 
     def reverse(self):
         """
