@@ -182,6 +182,7 @@ class GLWidget(QOpenGLWidget):
         self.setColor(self.colorSelect)
         for object in self.objects:
             self.gl.glCallList(object)
+        self.gl.glScaled(1/self.scale, 1/self.scale, 1/self.scale)
         self.gl.glCallList(self.orientation)
 
     def resizeGL(self, width, height):
@@ -283,10 +284,10 @@ class GLWidget(QOpenGLWidget):
 
     def paintOrientation(self):
 
-        rCone = 1.0
-        rCylinder = 0.4
-        zTop = 5
-        zMiddle = 2
+        rCone = 0.01
+        rCylinder = 0.004
+        zTop = 0.05
+        zMiddle = 0.02
         zBottom = 0.0
 
         arrow = self.gl.glGenLists(1)
