@@ -1,0 +1,32 @@
+#!/usr/bin/python
+
+"""
+Generates the python file based on the defined uifile
+"""
+
+import os
+import sys
+import subprocess
+
+PYTHONPATH = os.path.split(sys.executable)[0]
+UICPATH = os.path.join(PYTHONPATH, "Lib\\site-packages\\PyQt5")
+FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
+
+UIFILE = "dxf2gcode.ui"
+PYFILE = "dxf2gcode_ui.py"
+
+RCFILE = "dxf2gcode_images.qrc"
+RCPYFILE = "dxf2gcode_images_rc.py"
+
+OPTIONS = ("-o")
+
+CMD1 = ("%s\\pyuic5.bat %s %s %s" % (UICPATH, UIFILE, OPTIONS, PYFILE))
+CMD2 = ("%s\\pyrcc5.exe %s %s %s" % (UICPATH, OPTIONS, RCPYFILE, RCFILE))
+
+print(CMD1)
+print(subprocess.call(CMD1))
+
+print(CMD2)
+print(subprocess.call(CMD2))
+
+print("\nREADY")

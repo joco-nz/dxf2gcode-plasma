@@ -78,7 +78,7 @@ class LoggerClass(object):
         if g.config.vars.Logging['window_loglevel'] == 'INFO':
             self.window_handler.setFormatter(logging.Formatter("%(message)s"))
         else:
-            formatter=logging.Formatter("%(levelname)s - %(message)s")
+            formatter = logging.Formatter("%(levelname)s - %(message)s")
             self.window_handler.setFormatter(formatter)
 
         self.root_logger.addHandler(self.window_handler)
@@ -88,7 +88,7 @@ class LoggerClass(object):
         Add the logger, which may be used to log to a dedicated file. This logger
         will be enabled all the time.
         """
-        self.file_handler = logging.FileHandler(g.config.vars.Logging['logfile'], 'w')  #create
+        self.file_handler = logging.FileHandler(g.config.vars.Logging['logfile'], 'w')  # create
         self.file_handler.setLevel(self._cvtlevel(g.config.vars.Logging['file_loglevel']))
         self.file_handler.setFormatter(logging.Formatter("%(levelname)-10s %(name)-15s %(funcName)-10s %(lineno)-4d:  - %(message)s"))
         self.root_logger.addHandler(self.file_handler)

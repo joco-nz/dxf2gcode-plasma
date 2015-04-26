@@ -58,7 +58,7 @@ class GLWidget(QOpenGLWidget):
         self.camNearZ = 4.0
         self.camFarZ = 14.0
 
-        self.colorBackground = QColor.fromHsl(160, 0, 240, 255)
+        self.colorBackground = QColor.fromHsl(160, 0, 255, 255)
         self.colorNormal = QColor.fromCmykF(0.4, 0.0, 1.0, 0.0, 1.0)
         self.colorSelect = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 1.0)
         self.colorNormalDisabled = QColor.fromCmykF(0.4, 0.0, 1.0, 0.0, 0.3)
@@ -68,12 +68,6 @@ class GLWidget(QOpenGLWidget):
         self.maxViewY = 0
         self.minViewX = 0
         self.minViewY = 0
-
-    def minimumSizeHint(self):
-        return QSize(50, 50)
-
-    def sizeHint(self):
-        return QSize(400, 400)
 
     def setXRotation(self, angle):
         self.rotX = self.normalizeAngle(angle)

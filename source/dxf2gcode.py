@@ -27,9 +27,9 @@ import os
 import logging
 from copy import copy
 
-from PyQt5.QtCore import Qt, QLocale, QTranslator
+from PyQt5.QtCore import Qt, QLocale, QTranslator, QCoreApplication
 from PyQt5.QtGui import QSurfaceFormat
-from PyQt5.QtWidgets import QMainWindow, QApplication, QAction, QFileDialog
+from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 from Core.EntityContent import EntityContent
 from Core.LayerContent import LayerContent
@@ -37,9 +37,10 @@ from Core.Shape import Shape
 import Global.Globals as g
 from Global.config import MyConfig
 from Global.logger import LoggerClass
-from Gui.Canvas import GLWidget
 from Core.Point import Point
 from DxfImport.Import import ReadDXF
+from Gui.TreeHandling import TreeHandler
+from dxf2gcode_ui import Ui_MainWindow
 
 
 logger = logging.getLogger()
@@ -54,17 +55,16 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow, self).__init__()
 
-        self.setWindowTitle("DXF2GCODE")
-        self.glWidget = GLWidget()
-        self.setCentralWidget(self.glWidget)
+        self.ui = Ui_MainWindow()
 
-        self.menu = self.menuBar()
-        self.menu.file = self.menu.addMenu('&File')
-        self.menu.file.open = QAction("&Open...", self, shortcut="Ctrl+O", triggered=self.open)
-        self.menu.file.close = QAction("&Close", self, shortcut="Ctrl+Q", triggered=self.close)
-        self.menu.file.addAction(self.menu.file.open)
-        self.menu.file.addSeparator()
-        self.menu.file.addAction(self.menu.file.close)
+        self.ui.setupUi(self)
+
+        self.glWidget = self.ui.canvas
+
+        self.TreeHandler = TreeHandler(self.ui)
+
+        self.ui.actionOpen.triggered.connect(self.open)
+        self.ui.actionClose.triggered.connect(self.close)
 
         self.filename = ""
 
@@ -77,6 +77,14 @@ class MainWindow(QMainWindow):
         self.cont_rotate = 0.0
         self.cont_scale = 1.0
 
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return QCoreApplication.translate("Main", string_to_translate, None)
+
     def open(self):
         self.filename, _ = QFileDialog.getOpenFileName(self, 'Open File', '',
                                                        # "All supported files (*.dxf *.ps *.pdf);;"
@@ -86,7 +94,7 @@ class MainWindow(QMainWindow):
                                                        "All types (*.*)")
 
         if self.filename:
-            print("File: %s selected" % self.filename)
+            logger.info(self.tr("File: %s selected" % self.filename))
             self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
             self.load(self.filename)
 
@@ -98,21 +106,21 @@ class MainWindow(QMainWindow):
         """
         self.glWidget.setCursor(Qt.WaitCursor)
 
-        print('Loading file: %s' % filename)
+        logger.info(self.tr('Loading file: %s' % filename))
 
         values = ReadDXF(filename)
 
         # Output the information in the text window
-        print('Loaded layers: %s' % len(values.layers))
-        print('Loaded blocks: %s' % len(values.blocks.Entities))
+        logger.info(self.tr('Loaded layers: %s' % len(values.layers)))
+        logger.info(self.tr('Loaded blocks: %s' % len(values.blocks.Entities)))
         for i in range(len(values.blocks.Entities)):
             layers = values.blocks.Entities[i].get_used_layers()
-            print('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s'
-                  % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))
+            logger.info(self.tr('Block %i includes %i Geometries; reduced to %i Contours; used layers %s'
+                        % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers)))
         layers = values.entities.get_used_layers()
         insert_nr = values.entities.get_insert_nr()
-        print('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s, Number of inserts: %i'
-              % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
+        logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers %s; number of inserts %i'
+                    % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr)))
 
         self.makeShapes(values, Point(self.cont_dx, self.cont_dy), Point(),
                         [self.cont_scale, self.cont_scale, self.cont_scale],
@@ -237,13 +245,13 @@ if __name__ == '__main__':
     fmt.setSamples(4)
     QSurfaceFormat.setDefaultFormat(fmt)
 
-    Log=LoggerClass(logger)
-    #Get local language and install if available.
+    Log = LoggerClass(logger)
 
     g.config = MyConfig()
     Log.set_console_handler_loglevel()
     Log.add_file_logger()
 
+    #Get local language and install if available.
     locale = QLocale.system().name()
     logger.debug("locale: %s" %locale)
     translator = QTranslator()
@@ -252,7 +260,7 @@ if __name__ == '__main__':
 
     window = MainWindow()
     g.window = window
+    Log.add_window_logger(window.ui.messageBox)
     window.show()
-
 
     sys.exit(app.exec_())
