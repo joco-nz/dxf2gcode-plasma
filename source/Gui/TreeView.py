@@ -133,7 +133,7 @@ class TreeView(QTreeView):
             relative_position = self.dropIndicatorPosition()
 
             #compute the new position of the layer or the shape
-            if drop_model_index.isValid() and relative_position != QtGui.QTreeView.OnViewport:
+            if drop_model_index.isValid() and relative_position != QTreeView.OnViewport:
                 #drop position is computable from a real element
                 drop_item = drop_model_index.model().itemFromIndex(drop_model_index)
 
@@ -142,12 +142,12 @@ class TreeView(QTreeView):
                     #dragged element...
                     drag_row = self.dragged_element_model_index.row() #original row
                     #destination row (+1 if relative pos is below the drop element)...
-                    drop_row = drop_model_index.row() + (1 if relative_position == QtGui.QTreeView.BelowItem else 0)
+                    drop_row = drop_model_index.row() + (1 if relative_position == QTreeView.BelowItem else 0)
                     #print("\033[32;1mACCEPTED!\033[m\n")
 
                 elif (drag_item.parent() == drop_item or not drop_item.parent()\
                   and drag_item.parent() == drop_item.model().invisibleRootItem().child(drop_item.row(), 0))\
-                  and (relative_position == QtGui.QTreeView.BelowItem or relative_position == QtGui.QTreeView.OnItem):
+                  and (relative_position == QTreeView.BelowItem or relative_position == QTreeView.OnItem):
                     #we are on parent item (second test takes the first column
                     # of the drop_item's row. First column is where child are
                     # inserted, so we must compare with this col)
@@ -158,7 +158,7 @@ class TreeView(QTreeView):
                     drop_row = 0
                     #print("\033[32;1mACCEPTED ON PARENT!\033[m\n")
                 elif (not drop_item.parent() and self.dragged_element_model_index.parent().sibling(self.dragged_element_model_index.parent().row()+1, 0) == drop_item.model().invisibleRootItem().child(drop_item.row(), 0).index())\
-                 and (relative_position == QtGui.QTreeView.AboveItem or relative_position == QtGui.QTreeView.OnItem):
+                 and (relative_position == QTreeView.AboveItem or relative_position == QTreeView.OnItem):
                     #we are on next parent item => insert at end of the dragged item's layer
                     # original row...
                     drag_row = self.dragged_element_model_index.row()
@@ -266,7 +266,7 @@ class TreeView(QTreeView):
         @param deselected: list of deselected items
         print("\033[32;1mselectionChanged selected count = {0} ; deselected count = {1}\033[m".format(selected.count(), deselected.count()))
         """
-        QtGui.QTreeView.selectionChanged(self, selected, deselected)
+        QTreeView.selectionChanged(self, selected, deselected)
 
         if self.selectionChangedcallback and not self.signals_blocked:
             self.selectionChangedcallback(self, selected, deselected)

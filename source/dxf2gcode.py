@@ -126,12 +126,17 @@ class MainWindow(QMainWindow):
                         [self.cont_scale, self.cont_scale, self.cont_scale],
                         self.cont_rotate)
 
+        # Populate the treeViews
+        self.TreeHandler.buildEntitiesTree(self.entityRoot)
+        self.TreeHandler.buildLayerTree(self.layerContents)
+
+        # Paint the canvas
         for shape in self.shapes:
             self.glWidget.addShape(shape)
 
-        self.glWidget.autoScale()
-
         self.glWidget.paintOrientation()
+
+        self.glWidget.autoScale()
 
         self.glWidget.unsetCursor()
 
@@ -189,9 +194,9 @@ class MainWindow(QMainWindow):
                                                  sca=sca,
                                                  rot=rot)
 
-                parent.addchild(newEntityContent)
+                parent.append(newEntityContent)
 
-                self.makeEntitiesShapes(values, newEntityContent)
+                self.makeEntityShapes(values, newEntityContent)
 
             else:
                 # Loop for the number of geometries

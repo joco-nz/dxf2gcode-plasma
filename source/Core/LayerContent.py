@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (C) 2015
+#   Copyright (C) 2008-2015
 #    Christian Kohlöffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
@@ -23,12 +23,24 @@
 #
 ############################################################################
 
+import Global.Globals as g
+
 
 class LayerContent(object):
     def __init__(self, nr, name, shapes):
         self.nr = nr
         self.name = name
         self.shapes = shapes
+
+        # preset defaults
+        self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']
+        self.axis3_safe_margin = g.config.vars.Depth_Coordinates['axis3_safe_margin']
+
+        # Use default tool 1 (always exists in config)
+        self.tool_nr = 1
+        self.tool_diameter = g.config.vars.Tool_Parameters['1']['diameter']
+        self.speed = g.config.vars.Tool_Parameters['1']['speed']
+        self.start_radius = g.config.vars.Tool_Parameters['1']['start_radius']
 
     def __cmp__(self, other):
         return self.LayerNr == other.LayerNr

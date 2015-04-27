@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>images/custom.png</file>
     <file>images/blocks.png</file>
     <file>images/collapse-all.png</file>
     <file>images/delete.png</file>

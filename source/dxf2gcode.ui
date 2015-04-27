@@ -827,7 +827,7 @@
     <item>
      <widget class="MessageBox" name="messageBox">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Maximum">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -835,7 +835,7 @@
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>120</height>
+        <height>100</height>
        </size>
       </property>
       <property name="verticalScrollBarPolicy">
@@ -1157,6 +1157,29 @@
    <header>Gui.TreeView</header>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>mytabWidget</tabstop>
+  <tabstop>entitiesTreeView</tabstop>
+  <tabstop>blocksCollapsePushButton</tabstop>
+  <tabstop>blocksExpandPushButton</tabstop>
+  <tabstop>canvas</tabstop>
+  <tabstop>messageBox</tabstop>
+  <tabstop>layersShapesTreeView</tabstop>
+  <tabstop>layersCollapsePushButton</tabstop>
+  <tabstop>layersExpandPushButton</tabstop>
+  <tabstop>layersGoUpPushButton</tabstop>
+  <tabstop>layersGoDownPushButton</tabstop>
+  <tabstop>toolDiameterComboBox</tabstop>
+  <tabstop>startAtXLineEdit</tabstop>
+  <tabstop>startAtYLineEdit</tabstop>
+  <tabstop>zRetractionArealLineEdit</tabstop>
+  <tabstop>zSafetyMarginLineEdit</tabstop>
+  <tabstop>zInitialMillDepthLineEdit</tabstop>
+  <tabstop>zInfeedDepthLineEdit</tabstop>
+  <tabstop>zFinalMillDepthLineEdit</tabstop>
+  <tabstop>g1FeedXYLineEdit</tabstop>
+  <tabstop>g1FeedZLineEdit</tabstop>
+ </tabstops>
  <resources>
   <include location="dxf2gcode_images.qrc"/>
  </resources>

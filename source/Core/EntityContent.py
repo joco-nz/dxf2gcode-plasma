@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (C) 2015
+#   Copyright (C) 2008-2015
 #    Christian Kohlöffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra

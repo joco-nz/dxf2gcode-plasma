@@ -422,12 +422,12 @@ class Ui_MainWindow(object):
         self.canvas.setObjectName("canvas")
         self.verticalLayout.addWidget(self.splitter)
         self.messageBox = MessageBox(self.centralwidget)
-        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Maximum)
+        sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(self.messageBox.sizePolicy().hasHeightForWidth())
         self.messageBox.setSizePolicy(sizePolicy)
-        self.messageBox.setMaximumSize(QtCore.QSize(16777215, 120))
+        self.messageBox.setMaximumSize(QtCore.QSize(16777215, 100))
         self.messageBox.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.messageBox.setObjectName("messageBox")
         self.verticalLayout.addWidget(self.messageBox)
@@ -561,6 +561,26 @@ class Ui_MainWindow(object):
         self.layersCollapsePushButton.clicked.connect(self.layersShapesTreeView.collapseAll)
         self.layersExpandPushButton.clicked.connect(self.layersShapesTreeView.expandAll)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.mytabWidget, self.entitiesTreeView)
+        MainWindow.setTabOrder(self.entitiesTreeView, self.blocksCollapsePushButton)
+        MainWindow.setTabOrder(self.blocksCollapsePushButton, self.blocksExpandPushButton)
+        MainWindow.setTabOrder(self.blocksExpandPushButton, self.canvas)
+        MainWindow.setTabOrder(self.canvas, self.messageBox)
+        MainWindow.setTabOrder(self.messageBox, self.layersShapesTreeView)
+        MainWindow.setTabOrder(self.layersShapesTreeView, self.layersCollapsePushButton)
+        MainWindow.setTabOrder(self.layersCollapsePushButton, self.layersExpandPushButton)
+        MainWindow.setTabOrder(self.layersExpandPushButton, self.layersGoUpPushButton)
+        MainWindow.setTabOrder(self.layersGoUpPushButton, self.layersGoDownPushButton)
+        MainWindow.setTabOrder(self.layersGoDownPushButton, self.toolDiameterComboBox)
+        MainWindow.setTabOrder(self.toolDiameterComboBox, self.startAtXLineEdit)
+        MainWindow.setTabOrder(self.startAtXLineEdit, self.startAtYLineEdit)
+        MainWindow.setTabOrder(self.startAtYLineEdit, self.zRetractionArealLineEdit)
+        MainWindow.setTabOrder(self.zRetractionArealLineEdit, self.zSafetyMarginLineEdit)
+        MainWindow.setTabOrder(self.zSafetyMarginLineEdit, self.zInitialMillDepthLineEdit)
+        MainWindow.setTabOrder(self.zInitialMillDepthLineEdit, self.zInfeedDepthLineEdit)
+        MainWindow.setTabOrder(self.zInfeedDepthLineEdit, self.zFinalMillDepthLineEdit)
+        MainWindow.setTabOrder(self.zFinalMillDepthLineEdit, self.g1FeedXYLineEdit)
+        MainWindow.setTabOrder(self.g1FeedXYLineEdit, self.g1FeedZLineEdit)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -639,7 +659,7 @@ class Ui_MainWindow(object):
         self.actionDrag_Knife.setText(_translate("MainWindow", "Drag Knife"))
         self.actionLathe.setText(_translate("MainWindow", "Lathe"))
 
+from Gui.Canvas import GLWidget
 from Gui.MessageBox import MessageBox
 from Gui.TreeView import TreeView
-from Gui.Canvas import GLWidget
 import dxf2gcode_images_rc

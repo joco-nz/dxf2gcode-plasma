@@ -1,6 +1,6 @@
 ############################################################################
 #
-#   Copyright (C) 2008-2014
+#   Copyright (C) 2008-2015
 #    Christian Kohlöffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
@@ -29,6 +29,7 @@ import logging
 
 from PyQt5 import QtCore
 
+import Global.Globals as g
 from Core.Point import Point
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
@@ -68,6 +69,18 @@ class Shape(object):
         self.parentLayer = None
         self.geos = geos
 
+        self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
+
+        self.disabled = False
+        self.allowedToChange = True
+
+        # preset defaults
+        self.axis3_start_mill_depth = g.config.vars.Depth_Coordinates['axis3_start_mill_depth']
+        self.axis3_slice_depth = g.config.vars.Depth_Coordinates['axis3_slice_depth']
+        self.axis3_mill_depth = g.config.vars.Depth_Coordinates['axis3_mill_depth']
+        self.f_g1_plane = g.config.vars.Feed_Rates['f_g1_plane']
+        self.f_g1_depth = g.config.vars.Feed_Rates['f_g1_depth']
+
     def __str__(self):
         """
         Standard method to print the object
@@ -105,6 +118,18 @@ class Shape(object):
         a = p1[0] - p0[0]
         b = p1[1] - p0[1]
         return sqrt(a * a + b * b)
+
+    def setDisable(self, flag=False):
+        self.disabled = flag
+
+    def isDisabled(self):
+        return self.disabled
+
+    def setToolPathOptimized(self, flag=False):
+        self.send_to_TSP = flag
+
+    def isToolPathOptimized(self):
+        return self.send_to_TSP
 
     def AnalyseAndOptimize(self):
         logger.debug(self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
