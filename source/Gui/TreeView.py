@@ -271,21 +271,6 @@ class TreeView(QTreeView):
         if self.selectionChangedcallback and not self.signals_blocked:
             self.selectionChangedcallback(self, selected, deselected)
 
-    def keyPressEvent(self, keyEvent):
-        """
-        Function called by QT when a key has been pressed inside the treeView.
-        Subclassed in order to call a callback function
-        @param keyEvent: keyboard event
-        print("\033[31;1mkeyPressEvent() key = {0}\033[m".format(keyEvent.key()))
-        """
-
-        if self.keyPressEventcallback and not self.signals_blocked:
-            if self.keyPressEventcallback(keyEvent.key(), self.currentIndex()) == False:
-                #key not accepted => send it back to the parent
-                QtGui.QTreeView.keyPressEvent(self, keyEvent)
-        else:
-            QtGui.QTreeView.keyPressEvent(self, keyEvent)
-
 
 class MyStandardItemModel(QtGui.QStandardItemModel):
     """

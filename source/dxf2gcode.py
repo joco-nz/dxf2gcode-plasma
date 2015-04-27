@@ -237,6 +237,22 @@ class MainWindow(QMainWindow):
         self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
         shape.parentLayer = self.layerContents[-1]
 
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Control:
+            self.glWidget.isPanning = True
+            self.glWidget.setCursor(Qt.OpenHandCursor)
+        elif event.key() == Qt.Key_Alt:
+            self.glWidget.isRotating = True
+            self.glWidget.setCursor(Qt.PointingHandCursor)
+
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Control:
+            self.glWidget.isPanning = False
+            self.glWidget.unsetCursor()
+        elif event.key() == Qt.Key_Alt:
+            self.glWidget.isRotating = False
+            self.glWidget.unsetCursor()
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

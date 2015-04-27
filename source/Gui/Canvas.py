@@ -22,7 +22,7 @@
 
 from math import degrees, pi
 
-from PyQt5.QtCore import QPoint, QSize, Qt
+from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
 from PyQt5.QtWidgets import QOpenGLWidget
 
@@ -38,10 +38,9 @@ class GLWidget(QOpenGLWidget):
         self.objects = []
         self.orientation = 0
 
-        self._isPanning = False
-        self._isRotating = False
+        self.isPanning = False
+        self.isRotating = False
         self._lastPos = QPoint()
-        self.setFocusPolicy(Qt.StrongFocus)
 
         self.posX = 0.0
         self.posY = 0.0
@@ -85,46 +84,30 @@ class GLWidget(QOpenGLWidget):
             angle -= 360 * 16
         return angle
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Control:
-            self._isPanning = True
-            self.setCursor(Qt.OpenHandCursor)
-        elif event.key() == Qt.Key_Alt:
-            self._isRotating = True
-            self.setCursor(Qt.PointingHandCursor)
-
-    def keyReleaseEvent(self, event):
-        if event.key() == Qt.Key_Control:
-            self._isPanning = False
-            self.unsetCursor()
-        elif event.key() == Qt.Key_Alt:
-            self._isRotating = False
-            self.unsetCursor()
-
     def mousePressEvent(self, event):
         self._lastPos = event.pos()
-        if self._isPanning or self._isRotating:
+        if self.isPanning or self.isRotating:
             self.setCursor(Qt.ClosedHandCursor)
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
-            if self._isPanning:
+            if self.isPanning:
                 self.setCursor(Qt.OpenHandCursor)
-            elif self._isRotating:
+            elif self.isRotating:
                 self.setCursor(Qt.PointingHandCursor)
 
     def mouseMoveEvent(self, event):
         dx = event.x() - self._lastPos.x()
         dy = -event.y() + self._lastPos.y()
 
-        if self._isRotating:
+        if self.isRotating:
             if event.buttons() == Qt.LeftButton:
                 self.setXRotation(self.rotX + 8 * dy)
                 self.setYRotation(self.rotY + 8 * dx)
             elif event.buttons() == Qt.RightButton:
                 self.setXRotation(self.rotX + 8 * dy)
                 self.setZRotation(self.rotZ + 8 * dx)
-        elif self._isPanning:
+        elif self.isPanning:
             if event.buttons() == Qt.LeftButton:
                 min_side = min(self.frameSize().width(), self.frameSize().height())
                 self.posX += dx / min_side
