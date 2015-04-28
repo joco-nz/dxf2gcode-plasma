@@ -59,6 +59,12 @@ class CustomGCode(object):
                "\nnr:    %i" % self.nr +\
                "\ngcode: %s" % self.gcode
 
+    def setSelected(self, flag=False):
+        self.selected = flag
+
+    def isSelected(self):
+        return self.selected
+
     def setDisable(self, flag=False):
         """
         Function to modify the disable property

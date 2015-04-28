@@ -37,10 +37,7 @@ from PyQt5.QtWidgets import QTreeView
 
 
 class TreeView(QTreeView):
-    """
-    Subclassed QTreeView to match our needs.
-    Implement a simple (ie not complex) drag & drop, get selection events
-    """
+    keyPressed = QtCore.pyqtSignal(QtGui.QKeyEvent)
 
     def __init__(self, parent = None):
         """
@@ -51,7 +48,6 @@ class TreeView(QTreeView):
         self.dragged_element = False #No item is currently dragged & dropped
         self.dragged_element_model_index = None
         self.selectionChangedcallback = None
-        self.keyPressEventcallback = None
         self.signals_blocked = False #Transmit events between classes
 
         self.pressed.connect(self.elementPressed)
@@ -64,12 +60,11 @@ class TreeView(QTreeView):
         """
         self.selectionChangedcallback = callback
 
-    def setKeyPressEventCallback(self, callback):
-        """
-        Register a callback function called when a key is pressed on the TreeView
-        @param callback: function with prototype : accepted functionName(key_code, item_index):
-        """
-        self.keyPressEventcallback = callback
+    def keyPressEvent(self, event):
+        if event.key() == QtCore.Qt.Key_Space or event.key() == QtCore.Qt.Key_O:
+            self.keyPressed.emit(event)
+        else:
+            super(TreeView, self).keyPressEvent(event)
 
     def dragEnterEvent(self, event):
         """

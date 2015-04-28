@@ -71,6 +71,7 @@ class Shape(object):
 
         self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
 
+        self.selected = False
         self.disabled = False
         self.allowedToChange = True
 
@@ -118,6 +119,12 @@ class Shape(object):
         a = p1[0] - p0[0]
         b = p1[1] - p0[1]
         return sqrt(a * a + b * b)
+
+    def setSelected(self, flag=False):
+        self.selected = flag
+
+    def isSelected(self):
+        return self.selected
 
     def setDisable(self, flag=False):
         self.disabled = flag

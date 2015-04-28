@@ -70,7 +70,7 @@ class TreeHandler(QWidget):
         self.layers_list = None
         self.auto_update_export_order = False
         self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
-        self.ui.layersShapesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
+        self.ui.layersShapesTreeView.keyPressed.connect(self.actionOnKeyPress)
         self.ui.layersShapesTreeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.ui.layersShapesTreeView.setSelectionBehavior(QAbstractItemView.SelectRows)
 
@@ -98,7 +98,7 @@ class TreeHandler(QWidget):
         self.entity_item_model = None
         self.entities_list = None
         self.ui.entitiesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
-        self.ui.entitiesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
+        self.ui.entitiesTreeView.keyPressed.connect(self.actionOnKeyPress)
         self.ui.entitiesTreeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.ui.entitiesTreeView.setSelectionBehavior(QAbstractItemView.SelectRows)
 
@@ -914,7 +914,7 @@ class TreeHandler(QWidget):
                 element = model_index.model().itemFromIndex(model_index)
                 if element.data(SHAPE_OBJECT):
                     real_item = element.data(SHAPE_OBJECT)
-                    #real_item.setSelected(False, True) #Deselect the shape on the canvas
+                    real_item.setSelected(False)  # Deselect the shape on the canvas
                     #Update the other TreeViews
                     item_index = self.findEntityItemIndexFromShape(real_item)
                     if model_index.model() == self.layer_item_model and item_index:
@@ -944,7 +944,7 @@ class TreeHandler(QWidget):
                     #update the tools parameters according to the selection
                     self.displayToolParametersForItem(real_item.parentLayer, real_item)
 
-                    #real_item.setSelected(True, True) #Select the shape on the canvas
+                    real_item.setSelected(True)  # Select the shape on the canvas
                     #Update the other TreeViews
                     item_index = self.findEntityItemIndexFromShape(real_item)
                     if model_index.model() == self.layer_item_model and item_index:
@@ -1132,7 +1132,7 @@ class TreeHandler(QWidget):
             if element.isEnabled():
                 element.setCheckState(QtCore.Qt.Checked)
 
-    def actionOnKeyPress(self, key_code, item_index):
+    def actionOnKeyPress(self, event):
         """
         This function is a callback called from QTreeView class when a
         key is pressed on the treeView. If the key is the spacebar, and O, then
@@ -1142,7 +1142,7 @@ class TreeHandler(QWidget):
         """
 
         #Enable/disable checkbox
-        if key_code == QtCore.Qt.Key_Space and item_index:
+        if event.key() == QtCore.Qt.Key_Space:
             for layer in self.layers_list:
                 for shape in layer.shapes:
                     if shape.isSelected():
@@ -1155,7 +1155,7 @@ class TreeHandler(QWidget):
                             sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked)
 
         #Optimize path checkbox
-        if key_code == QtCore.Qt.Key_O and item_index:
+        if event.key() == QtCore.Qt.Key_O:
             for layer in self.layers_list:
                 for shape in layer.shapes:
                     if shape.isSelected():
