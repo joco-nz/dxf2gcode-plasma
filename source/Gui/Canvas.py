@@ -20,7 +20,7 @@
 #
 ############################################################################
 
-from math import degrees, pi
+from math import degrees, pi, cos, sin
 
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
@@ -44,7 +44,7 @@ class GLWidget(QOpenGLWidget):
 
         self.posX = 0.0
         self.posY = 0.0
-        self.posZ = -10.0
+        self.posZ = 0.0
         self.rotX = 0.0
         self.rotY = 0.0
         self.rotZ = 0.0
@@ -54,7 +54,7 @@ class GLWidget(QOpenGLWidget):
         self.camRightX = 0.5
         self.camBottomY = 0.5
         self.camTopY = -0.5
-        self.camNearZ = 4.0
+        self.camNearZ = -14.0
         self.camFarZ = 14.0
 
         self.colorBackground = QColor.fromHsl(160, 0, 255, 255)
@@ -98,20 +98,22 @@ class GLWidget(QOpenGLWidget):
 
     def mouseMoveEvent(self, event):
         dx = event.x() - self._lastPos.x()
-        dy = -event.y() + self._lastPos.y()
+        dy = event.y() - self._lastPos.y()
 
         if self.isRotating:
             if event.buttons() == Qt.LeftButton:
-                self.setXRotation(self.rotX + 8 * dy)
-                self.setYRotation(self.rotY + 8 * dx)
+                self.setXRotation(self.rotX - dy / 2)
+                self.setYRotation(self.rotY + dx / 2)
             elif event.buttons() == Qt.RightButton:
-                self.setXRotation(self.rotX + 8 * dy)
-                self.setZRotation(self.rotZ + 8 * dx)
+                self.setXRotation(self.rotX - dy / 2)
+                self.setZRotation(self.rotZ + dx / 2)
         elif self.isPanning:
             if event.buttons() == Qt.LeftButton:
                 min_side = min(self.frameSize().width(), self.frameSize().height())
+                dx, dy, dz = self.deRotate(dx, dy, 0)
                 self.posX += dx / min_side
-                self.posY -= dy / min_side
+                self.posY += dy / min_side
+                self.posZ += dz / min_side
 
         self._lastPos = event.pos()
         self.update()
@@ -122,11 +124,21 @@ class GLWidget(QOpenGLWidget):
         y = (event.pos().y() - self.frameSize().height() / 2) / min_side
         s = 1.001 ** event.angleDelta().y()
 
+        x, y, z = self.deRotate(x, y, 0)
         self.posX = (self.posX - x) * s + x
         self.posY = (self.posY - y) * s + y
+        self.posZ = (self.posZ - z) * s + z
         self.scale *= s
 
         self.update()
+
+    def deRotate(self, x, y, z):
+        angleX = -self.rotX * pi / 180
+        x, y, z = x, y*cos(angleX) - z*sin(angleX), y*sin(angleX) + z*cos(angleX)
+        angleY = -self.rotY * pi / 180
+        x, y, z = x*cos(angleY) + z*sin(angleY), y, -x*sin(angleY) + z*cos(angleY)
+        angleZ = -self.rotZ * pi / 180
+        return x*cos(angleZ) - y*sin(angleZ), x*sin(angleZ) + y*cos(angleZ), z
 
     def initializeGL(self):
         version = QOpenGLVersionProfile()
@@ -151,11 +163,11 @@ class GLWidget(QOpenGLWidget):
         # The last transformation you specify takes place first.
         self.gl.glClear(self.gl.GL_COLOR_BUFFER_BIT | self.gl.GL_DEPTH_BUFFER_BIT)
         self.gl.glLoadIdentity()
-        self.gl.glTranslated(self.posX, self.posY, self.posZ)
         self.gl.glScaled(self.scale, self.scale, self.scale)
-        self.gl.glRotated(self.rotX / 16.0, 1.0, 0.0, 0.0)
-        self.gl.glRotated(self.rotY / 16.0, 0.0, 1.0, 0.0)
-        self.gl.glRotated(self.rotZ / 16.0, 0.0, 0.0, 1.0)
+        self.gl.glRotated(self.rotX, 1.0, 0.0, 0.0)
+        self.gl.glRotated(self.rotY, 0.0, 1.0, 0.0)
+        self.gl.glRotated(self.rotZ, 0.0, 0.0, 1.0)
+        self.gl.glTranslated(self.posX / self.scale, self.posY / self.scale, self.posZ / self.scale)
         self.setColor(self.colorSelect)
         for object in self.objects:
             self.gl.glCallList(object)
