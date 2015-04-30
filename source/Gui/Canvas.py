@@ -37,6 +37,7 @@ class GLWidget(QOpenGLWidget):
 
         self.objects = []
         self.orientation = 0
+        self.wpZero = 0
 
         self.isPanning = False
         self.isRotating = False
@@ -172,6 +173,8 @@ class GLWidget(QOpenGLWidget):
         for object in self.objects:
             self.gl.glCallList(object)
         self.gl.glScaled(1/self.scale, 1/self.scale, 1/self.scale)
+        self.gl.glCallList(self.wpZero)
+        self.gl.glTranslated(-self.posX, -self.posY, -self.posZ)
         self.gl.glCallList(self.orientation)
 
     def resizeGL(self, width, height):
@@ -278,14 +281,15 @@ class GLWidget(QOpenGLWidget):
         zTop = 0.05
         zMiddle = 0.02
         zBottom = 0.0
+        segments = 20
 
         arrow = self.gl.glGenLists(1)
         self.gl.glNewList(arrow, self.gl.GL_COMPILE)
 
-        self.paintCone(Point(), rCone, zTop, zMiddle)
-        self.paintSolidCircle(Point(), rCone, zMiddle)
-        self.paintCylinder(Point(), rCylinder, zMiddle, zBottom)
-        self.paintSolidCircle(Point(), rCylinder, zBottom)
+        self.paintCone(Point(), rCone, zTop, zMiddle, segments)
+        self.paintSolidCircle(Point(), rCone, zMiddle, segments)
+        self.paintCylinder(Point(), rCylinder, zMiddle, zBottom, segments)
+        self.paintSolidCircle(Point(), rCylinder, zBottom, segments)
 
         self.gl.glEndList()
 
@@ -305,14 +309,71 @@ class GLWidget(QOpenGLWidget):
 
         self.gl.glEndList()
 
-    def paintSolidCircle(self, origin, r, z):
+    def paintWpZero(self):
+
+        r = 0.02
+        segments = 20  # must be a multiple of 4
+
+        self.wpZero = self.gl.glGenLists(1)
+        self.gl.glNewList(self.wpZero, self.gl.GL_COMPILE)
+
+        self.setColorRGBA(0.2, 0.2, 0.2, 0.9)
+
+        self.drawSphere(r, segments, segments // 4, segments, segments // 4)
+
+        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
+        self.gl.glVertex3d(0, 0, 0)
+        for i in range(segments // 4 + 1):
+            ang = -i * 2 * pi / segments
+            xy2 = Point().get_arc_point(ang, r)
+            self.gl.glNormal3d(0, -1, 0)
+            self.gl.glVertex3d(xy2.x, 0, xy2.y)
+        for i in range(segments // 4 + 1):
+            ang = -i * 2 * pi / segments
+            xy2 = Point().get_arc_point(ang, r)
+            self.gl.glNormal3d(-1, 0, 0)
+            self.gl.glVertex3d(0, -xy2.y, -xy2.x)
+        for i in range(segments // 4 + 1):
+            ang = -i * 2 * pi / segments
+            xy2 = Point().get_arc_point(ang, r)
+            self.gl.glNormal3d(0, 0, 1)
+            self.gl.glVertex3d(-xy2.y, xy2.x, 0)
+        self.gl.glEnd()
+
+        self.setColorRGBA(0.5, 0.5, 0.5, 0.6)
+
+        self.drawSphere(r * 1.25, segments, segments, segments, segments)
+
+        self.gl.glEndList()
+
+    def drawSphere(self, r, lats, mlats, longs, mlongs):
+        lats //= 2
+        # based on http://www.cburch.com/cs/490/sched/feb8/index.html
+        for i in range(mlats):
+            lat0 = pi * (-0.5 + i / lats)
+            z0 = r * sin(lat0)
+            zr0 = r * cos(lat0)
+            lat1 = pi * (-0.5 + (i + 1) / lats)
+            z1 = r * sin(lat1)
+            zr1 = r * cos(lat1)
+            self.gl.glBegin(self.gl.GL_QUAD_STRIP)
+            for j in range(mlongs + 1):
+                lng = 2 * pi * j / longs
+                x = cos(lng)
+                y = sin(lng)
+
+                self.gl.glNormal3f(x * zr0, y * zr0, z0)
+                self.gl.glVertex3f(x * zr0, y * zr0, z0)
+                self.gl.glNormal3f(x * zr1, y * zr1, z1)
+                self.gl.glVertex3f(x * zr1, y * zr1, z1)
+            self.gl.glEnd()
+
+    def paintSolidCircle(self, origin, r, z, segments):
 
         self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
 
         self.gl.glNormal3d(0, 0, -1)
         self.gl.glVertex3d(origin.x, -origin.y, z)
-
-        segments = int((abs(360) // 3) + 1)
         for i in range(segments + 1):
             ang = -i * 2 * pi / segments
             xy2 = origin.get_arc_point(ang, r)
@@ -320,36 +381,32 @@ class GLWidget(QOpenGLWidget):
 
         self.gl.glEnd()
 
-    def paintCone(self, origin, r, zTop, zBottom):
+    def paintCone(self, origin, r, zTop, zBottom, segments):
 
         self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
 
         xy1 = Point(origin.x, -origin.y, zTop)
         self.gl.glVertex3d(xy1.x, xy1.y, xy1.z)
-        segments = int((abs(360) // 3) + 1)
         for i in range(segments + 1):
             ang = i * 2 * pi / segments
             xy2 = origin.get_arc_point(ang, r)
 
-            d = xy1.unit_vector(xy2)
-            self.gl.glNormal3d(d.x, -d.y, 1)
+            self.gl.glNormal3d(xy2.x, -xy2.y, zBottom)
             self.gl.glVertex3d(xy2.x, -xy2.y, zBottom)
 
         self.gl.glEnd()
 
-    def paintCylinder(self, origin, r, zTop, zBottom):
+    def paintCylinder(self, origin, r, zTop, zBottom, segments):
 
-        self.gl.glBegin(self.gl.GL_QUADS)
+        self.gl.glBegin(self.gl.GL_QUAD_STRIP)
 
-        segments = int((abs(360) // 3) + 1)
         for i in range(segments + 1):
-            prv_ang = i * 2 * pi / segments
-            ang = (i + 1) * 2 * pi / segments
+            ang = i * 2 * pi / segments
+            xy = origin.get_arc_point(ang, r)
 
-            xy1 = origin.get_arc_point(prv_ang, r)
-            xy2 = origin.get_arc_point(ang, r)
-
-            self.extrude(xy1, xy2, zTop, zBottom)
+            self.gl.glNormal3d(xy.x, -xy.y, 0)
+            self.gl.glVertex3d(xy.x, -xy.y, zTop)
+            self.gl.glVertex3d(xy.x, -xy.y, zBottom)
 
         self.gl.glEnd()
 
