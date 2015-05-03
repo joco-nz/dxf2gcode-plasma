@@ -134,7 +134,9 @@ class MainWindow(QMainWindow):
         for shape in self.shapes:
             self.glWidget.addShape(shape)
 
-        self.glWidget.paintOrientation()
+        self.glWidget.drawWpZero()
+
+        self.glWidget.drawOrientationArrows()
 
         self.glWidget.autoScale()
 

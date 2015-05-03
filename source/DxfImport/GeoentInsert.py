@@ -35,7 +35,7 @@ class GeoentInsert:
         self.Layer_Nr = 0
         self.BlockName = ''
         self.Point = []
-        self.Scale = [1, 1, 1]
+        self.Scale = [1.0, 1.0, 1.0]
         self.rot = 0.0
         self.length = 0.0
 
