@@ -494,16 +494,20 @@ class Ui_MainWindow(object):
         self.actionAbout = QtWidgets.QAction(MainWindow)
         self.actionAbout.setObjectName("actionAbout")
         self.actionOptimize_Shape = QtWidgets.QAction(MainWindow)
+        self.actionOptimize_Shape.setEnabled(False)
         self.actionOptimize_Shape.setObjectName("actionOptimize_Shape")
         self.actionExport_Shapes = QtWidgets.QAction(MainWindow)
+        self.actionExport_Shapes.setEnabled(False)
         self.actionExport_Shapes.setObjectName("actionExport_Shapes")
-        self.actionOptimize_and_Export_shapes = QtWidgets.QAction(MainWindow)
-        self.actionOptimize_and_Export_shapes.setObjectName("actionOptimize_and_Export_shapes")
+        self.actionOptimize_and_Export_Shapes = QtWidgets.QAction(MainWindow)
+        self.actionOptimize_and_Export_Shapes.setEnabled(False)
+        self.actionOptimize_and_Export_Shapes.setObjectName("actionOptimize_and_Export_Shapes")
         self.actionLive_update_export_route = QtWidgets.QAction(MainWindow)
         self.actionLive_update_export_route.setCheckable(True)
         self.actionLive_update_export_route.setEnabled(False)
         self.actionLive_update_export_route.setObjectName("actionLive_update_export_route")
         self.actionReload = QtWidgets.QAction(MainWindow)
+        self.actionReload.setEnabled(False)
         self.actionReload.setObjectName("actionReload")
         self.actionSplit_Edges = QtWidgets.QAction(MainWindow)
         self.actionSplit_Edges.setCheckable(True)
@@ -527,7 +531,7 @@ class Ui_MainWindow(object):
         self.menuFile.addAction(self.actionClose)
         self.menuExport.addAction(self.actionOptimize_Shape)
         self.menuExport.addAction(self.actionExport_Shapes)
-        self.menuExport.addAction(self.actionOptimize_and_Export_shapes)
+        self.menuExport.addAction(self.actionOptimize_and_Export_Shapes)
         self.menuView.addAction(self.actionShow_WP_Zero)
         self.menuView.addAction(self.actionShow_path_directions)
         self.menuView.addAction(self.actionShow_disabled_paths)
@@ -647,8 +651,8 @@ class Ui_MainWindow(object):
         self.actionOptimize_Shape.setShortcut(_translate("MainWindow", "Ctrl+Shift+O"))
         self.actionExport_Shapes.setText(_translate("MainWindow", "Export Shapes"))
         self.actionExport_Shapes.setShortcut(_translate("MainWindow", "Ctrl+Shift+E"))
-        self.actionOptimize_and_Export_shapes.setText(_translate("MainWindow", "Optimize and Export shapes"))
-        self.actionOptimize_and_Export_shapes.setShortcut(_translate("MainWindow", "Ctrl+E"))
+        self.actionOptimize_and_Export_Shapes.setText(_translate("MainWindow", "Optimize and Export shapes"))
+        self.actionOptimize_and_Export_Shapes.setShortcut(_translate("MainWindow", "Ctrl+E"))
         self.actionLive_update_export_route.setText(_translate("MainWindow", "Live update export route"))
         self.actionReload.setText(_translate("MainWindow", "Reload"))
         self.actionReload.setShortcut(_translate("MainWindow", "Ctrl+R"))
@@ -659,7 +663,7 @@ class Ui_MainWindow(object):
         self.actionDrag_Knife.setText(_translate("MainWindow", "Drag Knife"))
         self.actionLathe.setText(_translate("MainWindow", "Lathe"))
 
-from Gui.Canvas import GLWidget
 from Gui.MessageBox import MessageBox
+from Gui.Canvas import GLWidget
 from Gui.TreeView import TreeView
 import dxf2gcode_images_rc

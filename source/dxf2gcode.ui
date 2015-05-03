@@ -875,7 +875,7 @@
     </property>
     <addaction name="actionOptimize_Shape"/>
     <addaction name="actionExport_Shapes"/>
-    <addaction name="actionOptimize_and_Export_shapes"/>
+    <addaction name="actionOptimize_and_Export_Shapes"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -1051,6 +1051,9 @@
    </property>
   </action>
   <action name="actionOptimize_Shape">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Optimize Paths </string>
    </property>
@@ -1059,6 +1062,9 @@
    </property>
   </action>
   <action name="actionExport_Shapes">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Export Shapes</string>
    </property>
@@ -1066,7 +1072,10 @@
     <string>Ctrl+Shift+E</string>
    </property>
   </action>
-  <action name="actionOptimize_and_Export_shapes">
+  <action name="actionOptimize_and_Export_Shapes">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Optimize and Export shapes</string>
    </property>
@@ -1086,6 +1095,9 @@
    </property>
   </action>
   <action name="actionReload">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>Reload</string>
    </property>

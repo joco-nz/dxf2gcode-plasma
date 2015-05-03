@@ -70,6 +70,27 @@ class GLWidget(QOpenGLWidget):
         self.minViewX = 0
         self.minViewY = 0
 
+    def resetAll(self):
+        self.gl.glDeleteLists(1, self.orientation)  # the orientation arrows are currently generated last
+        self.objects = []
+        self.wpZero = 0
+        self.orientation = 0
+
+        self.posX = 0.0
+        self.posY = 0.0
+        self.posZ = 0.0
+        self.rotX = 0.0
+        self.rotY = 0.0
+        self.rotZ = 0.0
+        self.scale = 1.0
+
+        self.maxViewX = 0
+        self.maxViewY = 0
+        self.minViewX = 0
+        self.minViewY = 0
+
+        self.update()
+
     def setXRotation(self, angle):
         self.rotX = self.normalizeAngle(angle)
 
@@ -390,4 +411,5 @@ class GLWidget(QOpenGLWidget):
         self.scale = min(scaleX, scaleY) * 0.95
         self.posX = self.camLeftX * 0.95 - self.minViewX * self.scale
         self.posY = -self.camTopY * 0.95 + self.minViewY * self.scale
+        self.posZ = 0
         self.update()

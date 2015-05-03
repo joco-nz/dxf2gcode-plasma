@@ -44,7 +44,6 @@ class Shape(object):
     related to the Shapes.
     """
     def __init__(self, nr, closed,
-                 cut_cor, length,
                  parentEntity,
                  geos):
         """
@@ -64,7 +63,6 @@ class Shape(object):
         self.nr = nr
         self.closed = closed
         self.cut_cor = 40
-        self.lenght = length
         self.parentEntity = parentEntity
         self.parentLayer = None
         self.geos = geos
@@ -101,24 +99,6 @@ class Shape(object):
         @return: the translated unicode string if it was possible to translate
         """
         return QtCore.QCoreApplication.translate("ShapeClass", string_to_translate, None)
-
-    def contains_point(self, x, y):
-        min_distance = float(0x7fffffff)
-        p = (x, y)
-        t = 0.0
-        while t < 1.0:
-            point = self.path.pointAtPercent(t)
-            spline_point = (point.x(), point.y())
-            distance = self.distance(p, spline_point)
-            if distance < min_distance:
-                min_distance = distance
-            t += 0.01
-        return min_distance
-
-    def distance(self, p0, p1):
-        a = p1[0] - p0[0]
-        b = p1[1] - p0[1]
-        return sqrt(a * a + b * b)
 
     def setSelected(self, flag=False):
         self.selected = flag

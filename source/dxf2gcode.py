@@ -63,8 +63,7 @@ class MainWindow(QMainWindow):
 
         self.TreeHandler = TreeHandler(self.ui)
 
-        self.ui.actionOpen.triggered.connect(self.open)
-        self.ui.actionClose.triggered.connect(self.close)
+        self.createActions()
 
         self.filename = ""
 
@@ -77,6 +76,8 @@ class MainWindow(QMainWindow):
         self.cont_rotate = 0.0
         self.cont_scale = 1.0
 
+        self.updateMachineType()
+
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
@@ -84,6 +85,83 @@ class MainWindow(QMainWindow):
         @return: the translated unicode string if it was possible to translate
         """
         return QCoreApplication.translate("Main", string_to_translate, None)
+
+    def createActions(self):
+        # File
+        self.ui.actionOpen.triggered.connect(self.open)
+        self.ui.actionReload.triggered.connect(self.reload)
+        self.ui.actionClose.triggered.connect(self.close)
+
+        # View
+        self.ui.actionAutoscale.triggered.connect(self.glWidget.autoScale)
+
+        # Options
+        self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
+        self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
+        self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Shift:
+            self.glWidget.isPanning = True
+            self.glWidget.setCursor(Qt.OpenHandCursor)
+        elif event.key() == Qt.Key_Alt:
+            self.glWidget.isRotating = True
+            self.glWidget.setCursor(Qt.PointingHandCursor)
+
+    def keyReleaseEvent(self, event):
+        if event.key() == Qt.Key_Shift:
+            self.glWidget.isPanning = False
+            self.glWidget.unsetCursor()
+        elif event.key() == Qt.Key_Alt:
+            self.glWidget.isRotating = False
+            self.glWidget.unsetCursor()
+
+    def enableToolbarButtons(self, status=True):
+        # File
+        self.ui.actionReload.setEnabled(status)
+
+        # Export
+        self.ui.actionOptimize_Shape.setEnabled(status)
+        self.ui.actionExport_Shapes.setEnabled(status)
+        self.ui.actionOptimize_and_Export_Shapes.setEnabled(status)
+
+        # View
+        self.ui.actionAutoscale.setEnabled(status)
+
+    def setMachineTypeToMilling(self):
+        g.config.machine_type = 'milling'
+        self.updateMachineType()
+        self.reloadFile()
+
+    def setMachineTypeToDragKnife(self):
+        g.config.machine_type = 'drag_knife'
+        self.updateMachineType()
+        self.reloadFile()
+
+    def setMachineTypeToLathe(self):
+        g.config.machine_type = 'lathe'
+        self.updateMachineType()
+        self.reloadFile()
+
+    def updateMachineType(self):
+        if g.config.machine_type == 'milling':
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(True)
+            self.ui.actionMilling.setChecked(True)
+            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionLathe.setChecked(False)
+            self.ui.label_9.setText(self.tr("Z Infeed depth"))
+        elif g.config.machine_type == 'lathe':
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionMilling.setChecked(False)
+            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionLathe.setChecked(True)
+            self.ui.label_9.setText(self.tr("No Z-Axis for lathe"))
+        elif g.config.machine_type == "drag_knife":
+            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionMilling.setChecked(False)
+            self.ui.actionDrag_Knife.setChecked(True)
+            self.ui.actionLathe.setChecked(False)
+            self.ui.label_9.setText(self.tr("Z Drag depth"))
 
     def open(self):
         self.filename, _ = QFileDialog.getOpenFileName(self, 'Open File', '',
@@ -105,6 +183,7 @@ class MainWindow(QMainWindow):
         @param filename: String containing filename which should be loaded
         """
         self.glWidget.setCursor(Qt.WaitCursor)
+        self.glWidget.resetAll()
 
         logger.info(self.tr('Loading file: %s' % filename))
 
@@ -133,14 +212,22 @@ class MainWindow(QMainWindow):
         # Paint the canvas
         for shape in self.shapes:
             self.glWidget.addShape(shape)
-
         self.glWidget.drawWpZero()
-
         self.glWidget.drawOrientationArrows()
-
         self.glWidget.autoScale()
 
+        self.enableToolbarButtons()
+
         self.glWidget.unsetCursor()
+
+    def reload(self):
+        """
+        This function is called by the menu "File/Reload File" of the main toolbar.
+        It reloads the previously loaded file (if any)
+        """
+
+        logger.info(self.tr("Reloading file: %s") % self.filename)
+        self.load(self.filename)
 
     def makeShapes(self, values, p0, pb, sca, rot):
         self.entityRoot = EntityContent(nr=0, name='Entities',
@@ -203,10 +290,9 @@ class MainWindow(QMainWindow):
             else:
                 # Loop for the number of geometries
                 self.shapes.append(Shape(len(self.shapes),
-                                              cont.closed,
-                                              40,
-                                              0.0,
-                                              parent,[]))
+                                         cont.closed,
+                                         parent,
+                                         []))
 
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
@@ -243,22 +329,6 @@ class MainWindow(QMainWindow):
         LayerName = values.layers[lay_nr].name
         self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
         shape.parentLayer = self.layerContents[-1]
-
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Control:
-            self.glWidget.isPanning = True
-            self.glWidget.setCursor(Qt.OpenHandCursor)
-        elif event.key() == Qt.Key_Alt:
-            self.glWidget.isRotating = True
-            self.glWidget.setCursor(Qt.PointingHandCursor)
-
-    def keyReleaseEvent(self, event):
-        if event.key() == Qt.Key_Control:
-            self.glWidget.isPanning = False
-            self.glWidget.unsetCursor()
-        elif event.key() == Qt.Key_Alt:
-            self.glWidget.isRotating = False
-            self.glWidget.unsetCursor()
 
 
 if __name__ == '__main__':
