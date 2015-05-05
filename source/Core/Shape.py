@@ -67,6 +67,8 @@ class Shape(object):
         self.parentLayer = None
         self.geos = geos
 
+        self.drawingObject = 0
+
         self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
 
         self.selected = False

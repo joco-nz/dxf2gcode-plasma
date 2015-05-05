@@ -60,10 +60,10 @@ class GLWidget(QOpenGLWidget):
         self.camFarZ = 14.0
 
         self.colorBackground = QColor.fromHsl(160, 0, 255, 255)
-        self.colorNormal = QColor.fromCmykF(0.4, 0.0, 1.0, 0.0, 1.0)
+        self.colorNormal = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 1.0)
         self.colorSelect = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 1.0)
-        self.colorNormalDisabled = QColor.fromCmykF(0.4, 0.0, 1.0, 0.0, 0.3)
-        self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.3)
+        self.colorNormalDisabled = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 0.25)
+        self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.25)
 
         self.maxViewX = 0
         self.maxViewY = 0
@@ -192,9 +192,18 @@ class GLWidget(QOpenGLWidget):
         self.gl.glRotated(self.rotY, 0.0, 1.0, 0.0)
         self.gl.glRotated(self.rotZ, 0.0, 0.0, 1.0)
         self.gl.glTranslated(self.posX / self.scale, self.posY / self.scale, self.posZ / self.scale)
-        self.setColor(self.colorSelect)
-        for object in self.objects:
-            self.gl.glCallList(object)
+        for shape in self.objects:
+            if shape.disabled:
+                if shape.selected:
+                    self.setColor(self.colorSelectDisabled)
+                else:
+                    self.setColor(self.colorNormalDisabled)
+            else:
+                if shape.selected:
+                    self.setColor(self.colorSelect)
+                else:
+                    self.setColor(self.colorNormal)
+            self.gl.glCallList(shape.drawingObject)
         self.gl.glScaled(self.scaleCorr / self.scale, self.scaleCorr / self.scale, self.scaleCorr / self.scale)
         self.gl.glCallList(self.wpZero)
         self.gl.glTranslated(-self.posX / self.scaleCorr, -self.posY / self.scaleCorr, -self.posZ / self.scaleCorr)
@@ -226,7 +235,8 @@ class GLWidget(QOpenGLWidget):
         self.gl.glColor4f(r, g, b, a)
 
     def addShape(self, shape):
-        self.objects.append(self.makeShape(shape))
+        shape.drawingObject = self.makeShape(shape)
+        self.objects.append(shape)
 
     def makeShape(self, shape):
         zTop = 0

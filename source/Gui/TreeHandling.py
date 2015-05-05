@@ -976,6 +976,8 @@ class TreeHandler(QWidget):
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
         selectionEntity.select(itemEntitySelection, QtCore.QItemSelectionModel.Select | QtCore.QItemSelectionModel.Rows)
 
+        self.ui.canvas.update()
+
     def clearToolsParameters(self):
         """
         This function restore defaults for tools parameters widgets
@@ -1201,6 +1203,8 @@ class TreeHandler(QWidget):
             self.traverseChildrenAndEnableDisable(self.entity_item_model, item.index(), item.checkState())
             if self.auto_update_export_order:
                 self.prepareExportOrderUpdate()
+
+        self.ui.canvas.update()
 
     def updateCheckboxOfItem(self, item, check):
         """
