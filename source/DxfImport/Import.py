@@ -106,20 +106,20 @@ class ReadDXF(QtCore.QObject):
         """
         Get_Unit() - Get unit of measure English (Imperial) or Metric from DXF file
         """
-        #Sets drawing units: 0 = English; 1 = Metric
+        # Set drawing units: 0 = English; 1 = Metric
         # Metric will be treated as being in millimeters
         # English as inches
 
-        metric = 1 # default: metric
+        metric = 1  # default: metric
         try:
             line = 0
             while str[line].find("$MEASUREMENT") < 0:
                 line += 1
             metric = int(str[line + 2].strip())
-        except: # $MEASUREMENT not found or is incorrect
+        except:  # $MEASUREMENT not found or is incorrect
             pass
 
-        #Default drawing units for AutoCAD DesignCenter blocks:
+        # Default drawing units for AutoCAD DesignCenter blocks:
         # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
         # 5 = Centimeters; 6 = Meters; 7 = Kilometers; 8 = Microinches;
         # 9 = Mils (thous); 10 = Yards; 11 = Angstroms; 12 = Nanometers;
@@ -135,33 +135,31 @@ class ReadDXF(QtCore.QObject):
                 metric = 0
             elif int(str[line].strip()) == 4:
                 metric = 1
-        except: # $INSUNITS not found or is incorrect
+        except:  # $INSUNITS not found or is incorrect
             pass
 
         return metric
 
-    #Convert the uploaded file to line pairs (code & Value).
+    # Convert the uploaded file into line pairs (code & Value).
     def Get_Line_Pairs(self, string):
         line = 0
-        line_pairs = dxflinepairsClass([])
+        line_pairs = dxflinepairsClass()
 
-        #Start at the first SECTION
+        # Start at the first SECTION
         while string[line].find("SECTION") < 0:
             line += 1
         line -= 1
 
-        #Continue to the end if no error occurs. Otherwise abort with error
+        # Continue to the end if no error occurs. Otherwise abort with error
         try:
-            while line < len(string):
+            while line + 1 < len(string):
                 line_pairs.line_pair.append(dxflinepairClass(int(string[line].strip()), string[line + 1].strip()))
                 line += 2
-
-        except:
-            QtWidgets.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"),
-                self.tr("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file") % (line))
-
-            #showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
-            #g.logger.logger.info(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
+        except ValueError:
+            message = 'Reading stopped at line %i.\n "%s" is not a valid code (number) - please, check/correct dxf file'\
+                      % (line + 1, string[line].strip())
+            logger.warning(message)
+            QtWidgets.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"), self.tr(message))
 
         line_pairs.nrs = len(line_pairs.line_pair)
         logger.debug(self.tr('Did read %i of linepairs from DXF ') % line_pairs.nrs)
