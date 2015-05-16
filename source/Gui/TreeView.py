@@ -251,7 +251,7 @@ class TreeView(QTreeView):
         @param block: whether to block signal (True) or not (False)
         """
         self.signals_blocked = block
-        QtGui.QTreeView.blockSignals(self, block)
+        QTreeView.blockSignals(self, block)
 
     def selectionChanged(self, selected, deselected):
         """

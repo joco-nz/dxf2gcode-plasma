@@ -20,14 +20,12 @@
 #
 ############################################################################
 
-from math import degrees, pi, cos, sin
+from math import pi, cos, sin
 
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
 from PyQt5.QtWidgets import QOpenGLWidget
 
-from Core.LineGeo import LineGeo
-from Core.ArcGeo import ArcGeo
 from Core.Point import Point
 
 
@@ -65,10 +63,8 @@ class GLWidget(QOpenGLWidget):
         self.colorNormalDisabled = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 0.25)
         self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.25)
 
-        self.maxViewX = 0
-        self.maxViewY = 0
-        self.minViewX = 0
-        self.minViewY = 0
+        self.topLeft = Point()
+        self.bottomRight = Point()
 
     def resetAll(self):
         self.gl.glDeleteLists(1, self.orientation)  # the orientation arrows are currently generated last
@@ -84,10 +80,8 @@ class GLWidget(QOpenGLWidget):
         self.rotZ = 0.0
         self.scale = 1.0
 
-        self.maxViewX = 0
-        self.maxViewY = 0
-        self.minViewX = 0
-        self.minViewY = 0
+        self.topLeft = Point()
+        self.bottomRight = Point()
 
         self.update()
 
@@ -239,50 +233,27 @@ class GLWidget(QOpenGLWidget):
         self.objects.append(shape)
 
     def makeShape(self, shape):
-        zTop = 0
-        zBottom = -3
-
         genList = self.gl.glGenLists(1)
         self.gl.glNewList(genList, self.gl.GL_COMPILE)
 
         self.gl.glBegin(self.gl.GL_LINES)
-
-        for geo in shape.geos:
-            abs_geo = geo.make_abs_geo(shape.parentEntity)
-            self.gl.glVertex3d(abs_geo.Ps.x, -abs_geo.Ps.y, zTop)
-            self.gl.glVertex3d(abs_geo.Ps.x, -abs_geo.Ps.y, zBottom)
-            if isinstance(geo, LineGeo):
-                self.drawLine(abs_geo.Ps, abs_geo.Pe, zTop, zBottom)
-            elif isinstance(geo, ArcGeo):
-                self.drawArc(abs_geo.O, abs_geo.r, abs_geo.s_ang, abs_geo.ext, zTop, zBottom)
-        if not shape.closed:
-            self.gl.glVertex3d(abs_geo.Pe.x, -abs_geo.Pe.y, zTop)
-            self.gl.glVertex3d(abs_geo.Pe.x, -abs_geo.Pe.y, zBottom)
-
+        shape.make_path(self.drawHorLine, self.drawVerLine)
         self.gl.glEnd()
 
         self.gl.glEndList()
 
+        self.topLeft.detTopLeft(shape.topLeft)
+        self.bottomRight.detBottomRight(shape.bottomRight)
+
         return genList
 
-    def drawLine(self, Ps, Pe, zTop, zBottom):
-        self.gl.glVertex3d(Ps.x, -Ps.y, zBottom)
-        self.gl.glVertex3d(Pe.x, -Pe.y, zBottom)
+    def drawHorLine(self, Ps, Pe, z):
+        self.gl.glVertex3d(Ps.x, -Ps.y, z)
+        self.gl.glVertex3d(Pe.x, -Pe.y, z)
 
+    def drawVerLine(self, Ps, zTop, zBottom):
         self.gl.glVertex3d(Ps.x, -Ps.y, zTop)
-        self.gl.glVertex3d(Pe.x, -Pe.y, zTop)
-
-        self.determineViewMaxMin(Ps)
-        self.determineViewMaxMin(Pe)
-
-    def drawArc(self, origin, r, s_ang, ext, zTop, zBottom):
-        segments = int(abs(degrees(ext)) // 3 + 1)
-        Ps = origin.get_arc_point(s_ang, r)
-        for i in range(1, segments + 1):
-            ang = s_ang + i * ext / segments
-            Pe = origin.get_arc_point(ang, r)
-            self.drawLine(Ps, Pe, zTop, zBottom)
-            Ps = Pe
+        self.gl.glVertex3d(Ps.x, -Ps.y, zBottom)
 
     def drawOrientationArrows(self):
 
@@ -409,17 +380,11 @@ class GLWidget(QOpenGLWidget):
             self.gl.glVertex3d(xy.x, -xy.y, zBottom)
         self.gl.glEnd()
 
-    def determineViewMaxMin(self, point):
-        self.maxViewX = max(self.maxViewX, point.x)
-        self.maxViewY = max(self.maxViewY, point.y)
-        self.minViewX = min(self.minViewX, point.x)
-        self.minViewY = min(self.minViewY, point.y)
-
     def autoScale(self):
-        scaleX = (self.camRightX - self.camLeftX) / (self.maxViewX - self.minViewX)
-        scaleY = (self.camBottomY - self.camTopY) / (self.maxViewY - self.minViewY)
+        scaleX = (self.camRightX - self.camLeftX) / (self.bottomRight.x - self.topLeft.x)
+        scaleY = (self.camBottomY - self.camTopY) / (self.topLeft.y - self.bottomRight.y)
         self.scale = min(scaleX, scaleY) * 0.95
-        self.posX = self.camLeftX * 0.95 - self.minViewX * self.scale
-        self.posY = -self.camTopY * 0.95 + self.minViewY * self.scale
+        self.posX = self.camLeftX * 0.95 - self.topLeft.x * self.scale
+        self.posY = -self.camTopY * 0.95 + self.bottomRight.y * self.scale
         self.posZ = 0
         self.update()

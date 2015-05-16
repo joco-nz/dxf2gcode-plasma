@@ -181,24 +181,10 @@ class Point(object):
 
         return p1
 
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into the defined canvas.
-        Arcs will be plotted as line segments.
-        @param papath: The painter path where the geometries shall be added
-        @param parent: The parent of the geometry (EntityContentClass)
-        """
-        point = self.rot_sca_abs(parent=parent)
-        logger.debug('Point: x: %0.2f, y: %0.2f' % (point.x, point.y))
-        papath.moveTo(point.x, -point.y)
+    def detTopLeft(self, point):
+        self.x = min(self.x, point.x)
+        self.y = max(self.y, point.y)
 
-    def Write_GCode(self, parent=None, PostPro=None):
-        """
-        This function is used for the export of a point.
-        @param parent: The parent of the point is a EntityContentClass, this
-        is used for rotating and scaling purposes
-        @return: The function returns the string which will be added to the
-        string for export.
-        """
-        point = self.rot_sca_abs(parent=parent)
-        return PostPro.rap_pos_xy(point)
+    def detBottomRight(self, point):
+        self.x = max(self.x, point.x)
+        self.y = min(self.y, point.y)

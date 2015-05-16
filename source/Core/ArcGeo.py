@@ -22,8 +22,8 @@
 #
 ############################################################################
 
-from math import sqrt, sin, cos, pi
-import copy
+from math import sqrt, sin, cos, pi, degrees
+from copy import deepcopy
 import logging
 
 import Global.Globals as g
@@ -97,14 +97,17 @@ class ArcGeo(object):
 
         self.length = self.r * abs(self.ext)
 
+        self.topLeft = None
+        self.bottomRight = None
+
     def __deepcopy__(self, memo):
-        return ArcGeo(copy.deepcopy(self.Ps, memo),
-                      copy.deepcopy(self.Pe, memo),
-                      copy.deepcopy(self.O, memo),
-                      copy.deepcopy(self.r, memo),
-                      copy.deepcopy(self.s_ang, memo),
-                      copy.deepcopy(self.e_ang, memo),
-                      copy.deepcopy(self.ext, memo))
+        return ArcGeo(deepcopy(self.Ps, memo),
+                      deepcopy(self.Pe, memo),
+                      deepcopy(self.O, memo),
+                      deepcopy(self.r, memo),
+                      deepcopy(self.s_ang, memo),
+                      deepcopy(self.e_ang, memo),
+                      deepcopy(self.ext, memo))
 
     def __str__(self):
         return "\nArcGeo" +\
@@ -179,3 +182,19 @@ class ArcGeo(object):
             angle = abs_geo.e_ang - pi/2 * abs_geo.ext / abs(abs_geo.ext)
 
         return punkt, angle
+
+    def make_path(self, caller, drawHorLine):
+        abs_geo = self.make_abs_geo(caller.parentEntity)
+
+        segments = int(abs(degrees(abs_geo.ext)) // 3 + 1)
+        Ps = abs_geo.O.get_arc_point(abs_geo.s_ang, abs_geo.r)
+        self.topLeft = deepcopy(Ps)
+        self.bottomRight = deepcopy(Ps)
+        for i in range(1, segments + 1):
+            ang = abs_geo.s_ang + i * abs_geo.ext / segments
+            Pe = abs_geo.O.get_arc_point(ang, abs_geo.r)
+            drawHorLine(Ps, Pe, caller.axis3_start_mill_depth)
+            drawHorLine(Ps, Pe, caller.axis3_mill_depth)
+            self.topLeft.detTopLeft(Pe)
+            self.bottomRight.detBottomRight(Pe)
+            Ps = Pe

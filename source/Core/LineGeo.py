@@ -22,9 +22,8 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
 from math import sqrt
-import copy
+from copy import deepcopy
 
 
 class LineGeo(object):
@@ -42,9 +41,12 @@ class LineGeo(object):
         self.Pe = Pe
         self.length = self.Ps.distance(self.Pe)
 
+        self.topLeft = None
+        self.bottomRight = None
+
     def __deepcopy__(self, memo):
-        return LineGeo(copy.deepcopy(self.Ps, memo),
-                       copy.deepcopy(self.Pe, memo))
+        return LineGeo(deepcopy(self.Ps, memo),
+                       deepcopy(self.Pe, memo))
 
     def __str__(self):
         return "\nLineGeo" +\
@@ -96,3 +98,13 @@ class LineGeo(object):
             angle = punkt.norm_angle(punkt_a)
 
         return punkt, angle
+
+    def make_path(self, caller, drawHorLine):
+        abs_geo = self.make_abs_geo(caller.parentEntity)
+
+        drawHorLine(abs_geo.Ps, abs_geo.Pe, caller.axis3_start_mill_depth)
+        drawHorLine(abs_geo.Ps, abs_geo.Pe, caller.axis3_mill_depth)
+        self.topLeft = deepcopy(abs_geo.Ps)
+        self.bottomRight = deepcopy(abs_geo.Ps)
+        self.topLeft.detTopLeft(abs_geo.Pe)
+        self.bottomRight.detBottomRight(abs_geo.Pe)

@@ -2,6 +2,7 @@
 #
 #   Copyright (C) 2014-2015
 #    Robert Lichtenberger
+#    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
 #
@@ -20,11 +21,9 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
 import logging
-import copy
-
-from PyQt5 import QtCore
+from copy import deepcopy
+from math import pi
 
 
 logger = logging.getLogger("Core.HoleGeo")
@@ -40,8 +39,11 @@ class HoleGeo(object):
         """
         self.Ps = Ps
 
+        self.topLeft = None
+        self.bottomRight = None
+
     def __deepcopy__(self, memo):
-        return HoleGeo(copy.deepcopy(self.Ps, memo))
+        return HoleGeo(deepcopy(self.Ps, memo))
 
     def __str__(self):
         """
@@ -74,18 +76,22 @@ class HoleGeo(object):
         """
         return self.Ps.rot_sca_abs(parent=parent), 0
 
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into defined path for hit testing.
-        @param papath: The hitpath to add the geometrie
-        @param parent: The parent of the shape
-        testing.
-        """
-        abs_geo = self.make_abs_geo(parent)
-        radius = 2
-        if layerContent is not None:
-            radius = layerContent.getToolRadius()
-        papath.addRoundedRect(abs_geo.Ps.x - radius, -abs_geo.Ps.y - radius, 2*radius, 2*radius, radius, radius)
+    def make_path(self, caller, drawHorLine):
+        abs_geo = self.make_abs_geo(caller.parentEntity)
+
+        radius = caller.parentLayer.tool_diameter / 2
+        segments = 30
+        Ps = abs_geo.Ps.get_arc_point(0, radius)
+        self.topLeft = deepcopy(Ps)
+        self.bottomRight = deepcopy(Ps)
+        for i in range(1, segments + 1):
+            ang = i * 2 * pi / segments
+            Pe = abs_geo.Ps.get_arc_point(ang, radius)
+            drawHorLine(Ps, Pe, caller.axis3_start_mill_depth)
+            drawHorLine(Ps, Pe, caller.axis3_mill_depth)
+            self.topLeft.detTopLeft(Pe)
+            self.bottomRight.detBottomRight(Pe)
+            Ps = Pe
 
     def Write_GCode(self, parent=None, PostPro=None):
         """

@@ -25,7 +25,7 @@
 import sys
 import os
 import logging
-from copy import copy
+from copy import copy, deepcopy
 
 from PyQt5.QtCore import Qt, QLocale, QTranslator, QCoreApplication
 from PyQt5.QtGui import QSurfaceFormat
@@ -34,6 +34,8 @@ from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 from Core.EntityContent import EntityContent
 from Core.LayerContent import LayerContent
 from Core.Shape import Shape
+from Core.LineGeo import LineGeo
+from Core.HoleGeo import HoleGeo
 import Global.Globals as g
 from Global.config import MyConfig
 from Global.logger import LoggerClass
@@ -64,6 +66,7 @@ class MainWindow(QMainWindow):
         self.TreeHandler = TreeHandler(self.ui)
 
         self.createActions()
+        self.connectToolbarToConfig()
 
         self.filename = ""
 
@@ -75,8 +78,6 @@ class MainWindow(QMainWindow):
         self.cont_dy = 0.0
         self.cont_rotate = 0.0
         self.cont_scale = 1.0
-
-        self.updateMachineType()
 
     def tr(self, string_to_translate):
         """
@@ -96,9 +97,16 @@ class MainWindow(QMainWindow):
         self.ui.actionAutoscale.triggered.connect(self.glWidget.autoScale)
 
         # Options
+        self.ui.actionSplit_Line_Segments.triggered.connect(self.reload)  # TODO no need to redo the importing
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
+
+    def connectToolbarToConfig(self):
+        # Options
+        if g.config.vars.General['split_line_segments']:
+            self.ui.actionSplit_Line_Segments.setChecked(True)
+        self.updateMachineType()
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Shift:
@@ -315,7 +323,26 @@ class MainWindow(QMainWindow):
                 parent.append(self.shapes[-1])
 
     def appendshapes(self, geo):
-        self.shapes[-1].geos.append(geo)
+        if self.ui.actionSplit_Line_Segments.isChecked():
+            if isinstance(geo, LineGeo):
+                diff = (geo.Pe - geo.Ps) / 2.0
+                geo_b = deepcopy(geo)
+                geo_a = deepcopy(geo)
+                geo_b.Pe -= diff
+                geo_a.Ps += diff
+                self.shapes[-1].geos.append(geo_b)
+                self.shapes[-1].geos.append(geo_a)
+            else:
+                self.shapes[-1].geos.append(geo)
+        else:
+            self.shapes[-1].geos.append(geo)
+
+        if isinstance(geo, HoleGeo):
+            self.shapes[-1].type = 'Hole'
+            self.shapes[-1].closed = 1  # TODO adjust import for holes?
+            if g.config.machine_type == 'drag_knife':
+                self.shapes[-1].disabled = True
+                self.shapes[-1].allowedToChange = False
 
     def addtoLayerContents(self, values, shape, lay_nr):
         # Check if the layer already exists and add shape if it is.

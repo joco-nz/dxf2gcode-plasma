@@ -38,7 +38,7 @@ from Global.d2gexceptions import *
 
 logger = logging.getLogger("Global.Config")
 
-CONFIG_VERSION = "9.4"
+CONFIG_VERSION = "9.5"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -83,8 +83,8 @@ CONFIG_SPEC = str('''
     write_to_stdout = boolean(default = False)
     show_disabled_paths = boolean(default = True)
     live_update_export_route = boolean(default = False)
-    default_SplitEdges = boolean(default = False)
-    default_AutomaticCutterCompensation = boolean(default = False)
+    split_line_segments = boolean(default = False)
+    automatic_cutter_compensation = boolean(default = False)
     machine_type = option('milling', 'drag_knife', 'lathe', default = 'milling')
 
     [Drag_Knife_Options]

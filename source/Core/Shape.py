@@ -22,7 +22,6 @@
 #
 ############################################################################
 
-from math import sqrt
 from math import cos, sin, degrees
 from copy import deepcopy
 import logging
@@ -68,6 +67,9 @@ class Shape(object):
         self.geos = geos
 
         self.drawingObject = 0
+
+        self.topLeft = None
+        self.bottomRight = None
 
         self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
 
@@ -182,3 +184,19 @@ class Shape(object):
             return start, start_ang
         elif direction == 1:
             return end, end_ang
+
+    def make_path(self, drawHorLine, drawVerLine):
+        for geo in self.geos:
+            drawVerLine(geo.Ps.rot_sca_abs(parent=self.parentEntity), self.axis3_start_mill_depth, self.axis3_mill_depth)
+
+            geo.make_path(self, drawHorLine)
+
+            if self.topLeft is None:
+                self.topLeft = deepcopy(geo.topLeft)
+                self.bottomRight = deepcopy(geo.bottomRight)
+            else:
+                self.topLeft.detTopLeft(geo.topLeft)
+                self.bottomRight.detBottomRight(geo.bottomRight)
+
+        if not self.closed:
+            drawVerLine(geo.Pe.rot_sca_abs(parent=self.parentEntity), self.axis3_start_mill_depth, self.axis3_mill_depth)
