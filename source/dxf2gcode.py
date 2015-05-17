@@ -2,7 +2,8 @@
 
 ############################################################################
 #
-#   Copyright (C) 2015
+#   Copyright (C) 2010-2015
+#    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
@@ -25,6 +26,7 @@
 import sys
 import os
 import logging
+from math import degrees, radians
 from copy import copy, deepcopy
 
 from PyQt5.QtCore import Qt, QLocale, QTranslator, QCoreApplication
@@ -41,6 +43,7 @@ from Global.config import MyConfig
 from Global.logger import LoggerClass
 from Core.Point import Point
 from DxfImport.Import import ReadDXF
+from Gui.PopUpDialog import PopUpDialog
 from Gui.TreeHandling import TreeHandler
 from dxf2gcode_ui import Ui_MainWindow
 
@@ -97,6 +100,10 @@ class MainWindow(QMainWindow):
         self.ui.actionAutoscale.triggered.connect(self.glWidget.autoScale)
 
         # Options
+        self.ui.actionTolerances.triggered.connect(self.setTolerances)
+        self.ui.actionRotate_All.triggered.connect(self.rotateAll)
+        self.ui.actionScale_All.triggered.connect(self.scaleAll)
+        self.ui.actionMove_Workpiece_Zero.triggered.connect(self.moveWorkpieceZero)
         self.ui.actionSplit_Line_Segments.triggered.connect(self.reload)  # TODO no need to redo the importing
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
@@ -106,6 +113,8 @@ class MainWindow(QMainWindow):
         # Options
         if g.config.vars.General['split_line_segments']:
             self.ui.actionSplit_Line_Segments.setChecked(True)
+        if g.config.vars.General['automatic_cutter_compensation']:
+            self.ui.actionAutomatic_Cutter_Compensation.setChecked(True)
         self.updateMachineType()
 
     def keyPressEvent(self, event):
@@ -135,6 +144,88 @@ class MainWindow(QMainWindow):
 
         # View
         self.ui.actionAutoscale.setEnabled(status)
+
+        # Options
+        self.ui.actionTolerances.setEnabled(status)
+        self.ui.actionRotate_All.setEnabled(status)
+        self.ui.actionScale_All.setEnabled(status)
+        self.ui.actionMove_Workpiece_Zero.setEnabled(status)
+
+    def setTolerances(self):
+        title = self.tr('Contour tolerances')
+        units = "[in]" if g.config.metric == 0 else "[mm]"
+        label = [self.tr("Tolerance for common points %s:") % units,
+                 self.tr("Tolerance for curve fitting %s:") % units]
+        value = [g.config.point_tolerance,
+                 g.config.fitting_tolerance]
+
+        logger.debug(self.tr("set Tolerances"))
+        SetTolDialog = PopUpDialog(title, label, value)
+
+        if SetTolDialog.result == None:
+            return
+
+        g.config.point_tolerance = float(SetTolDialog.result[0])
+        g.config.fitting_tolerance = float(SetTolDialog.result[1])
+
+        self.reload()
+
+    def scaleAll(self):
+        title = self.tr('Scale Contour')
+        label = [self.tr("Scale Contour by factor:")]
+        value = [self.cont_scale]
+        ScaEntDialog = PopUpDialog(title, label, value)
+
+        if ScaEntDialog.result == None:
+            return
+
+        self.cont_scale = float(ScaEntDialog.result[0])
+        self.entityRoot.sca = self.cont_scale
+
+        self.reload()
+
+    def rotateAll(self):
+        title = self.tr('Rotate Contour')
+        label = [self.tr("Rotate Contour by deg:")]  # TODO should we support radians for drawing unit non metric?
+        value = [degrees(self.cont_rotate)]
+        RotEntDialog = PopUpDialog(title, label, value)
+
+        if RotEntDialog.result is None:
+            return
+
+        self.cont_rotate = radians(float(RotEntDialog.result[0]))
+        self.entityRoot.rot = self.cont_rotate
+
+        self.reload()
+
+    def moveWorkpieceZero(self):
+        title = self.tr('Workpiece zero offset')
+        units = "[in]" if g.config.metric == 0 else "[mm]"
+        label = [self.tr("Offset %s axis %s:") % (g.config.vars.Axis_letters['ax1_letter'], units),
+                 self.tr("Offset %s axis %s:") % (g.config.vars.Axis_letters['ax2_letter'], units)]
+        value = [self.cont_dx, self.cont_dy]
+        MoveWpzDialog = PopUpDialog(title, label, value, True)
+
+        if MoveWpzDialog.result is None:
+            return
+
+        if MoveWpzDialog.result == 'Auto':
+            minx = sys.float_info.max
+            miny = sys.float_info.max
+            for shape in self.shapes:
+                if not(shape.isDisabled()):
+                    minx = min(minx, shape.topLeft.x)
+                    miny = min(miny, shape.bottomRight.y)
+            self.cont_dx = self.entityRoot.p0.x - minx
+            self.cont_dy = self.entityRoot.p0.y - miny
+        else:
+            self.cont_dx = float(MoveWpzDialog.result[0])
+            self.cont_dy = float(MoveWpzDialog.result[1])
+
+        self.entityRoot.p0.x = self.cont_dx
+        self.entityRoot.p0.y = self.cont_dy
+
+        self.reload()
 
     def setMachineTypeToMilling(self):
         g.config.machine_type = 'milling'
@@ -208,6 +299,25 @@ class MainWindow(QMainWindow):
         insert_nr = values.entities.get_insert_nr()
         logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers %s; number of inserts %i'
                     % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr)))
+
+        if g.config.metric == 0:
+            logger.info("Drawing units: inches")
+            self.ui.unitLabel_3.setText("[in]")
+            self.ui.unitLabel_4.setText("[in]")
+            self.ui.unitLabel_5.setText("[in]")
+            self.ui.unitLabel_6.setText("[in]")
+            self.ui.unitLabel_7.setText("[in]")
+            self.ui.unitLabel_8.setText("[IPM]")
+            self.ui.unitLabel_9.setText("[IPM]")
+        else:
+            logger.info("Drawing units: millimeters")
+            self.ui.unitLabel_3.setText("[mm]")
+            self.ui.unitLabel_4.setText("[mm]")
+            self.ui.unitLabel_5.setText("[mm]")
+            self.ui.unitLabel_6.setText("[mm]")
+            self.ui.unitLabel_7.setText("[mm]")
+            self.ui.unitLabel_8.setText("[mm/min]")
+            self.ui.unitLabel_9.setText("[mm/min]")
 
         self.makeShapes(values, Point(self.cont_dx, self.cont_dy), Point(),
                         [self.cont_scale, self.cont_scale, self.cont_scale],

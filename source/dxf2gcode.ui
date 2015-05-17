@@ -354,7 +354,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>[mm]</string>
+                     <string notr="true">[mm]</string>
                     </property>
                    </widget>
                   </item>
@@ -380,7 +380,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>[rpm]</string>
+                     <string notr="true">[rpm]</string>
                     </property>
                    </widget>
                   </item>
@@ -410,7 +410,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>[mm]</string>
+                     <string notr="true">[mm]</string>
                     </property>
                    </widget>
                   </item>
@@ -465,7 +465,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_8">
                   <property name="text">
-                   <string>[mm/min]</string>
+                   <string notr="true">[mm/min]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -495,7 +495,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_7">
                   <property name="text">
-                   <string>[mm]</string>
+                   <string notr="true">[mm]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -535,7 +535,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_6">
                   <property name="text">
-                   <string>[mm]</string>
+                   <string notr="true">[mm]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -585,7 +585,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_4">
                   <property name="text">
-                   <string>[mm]</string>
+                   <string notr="true">[mm]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -625,7 +625,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_3">
                   <property name="text">
-                   <string>[mm]</string>
+                   <string notr="true">[mm]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -655,7 +655,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_5">
                   <property name="text">
-                   <string>[mm]</string>
+                   <string notr="true">[mm]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -695,7 +695,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_1">
                   <property name="text">
-                   <string>[mm]</string>
+                   <string notr="true">[mm]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -748,7 +748,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_9">
                   <property name="text">
-                   <string>[mm/min]</string>
+                   <string notr="true">[mm/min]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -778,7 +778,7 @@
                 <item>
                  <widget class="QLabel" name="unitLabel_2">
                   <property name="text">
-                   <string>[mm]</string>
+                   <string notr="true">[mm]</string>
                   </property>
                   <property name="alignment">
                    <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
@@ -904,12 +904,12 @@
     </widget>
     <addaction name="actionTolerances"/>
     <addaction name="separator"/>
-    <addaction name="actionScale_all"/>
-    <addaction name="actionRotate_all"/>
+    <addaction name="actionScale_All"/>
+    <addaction name="actionRotate_All"/>
     <addaction name="separator"/>
-    <addaction name="actionMove_WP_zero"/>
+    <addaction name="actionMove_Workpiece_Zero"/>
     <addaction name="separator"/>
-    <addaction name="actionSplit_Edges"/>
+    <addaction name="actionSplit_Line_Segments"/>
     <addaction name="actionAutomatic_Cutter_Compensation"/>
     <addaction name="menuMachine_Type"/>
    </widget>
@@ -1021,28 +1021,28 @@
     <string>Tolerances</string>
    </property>
   </action>
-  <action name="actionScale_all">
+  <action name="actionScale_All">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Scale all</string>
+    <string>Scale All</string>
    </property>
   </action>
-  <action name="actionRotate_all">
+  <action name="actionRotate_All">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Rotate all</string>
+    <string>Rotate All</string>
    </property>
   </action>
-  <action name="actionMove_WP_zero">
+  <action name="actionMove_Workpiece_Zero">
    <property name="enabled">
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Move WP zero</string>
+    <string>Move Workpiece Zero</string>
    </property>
   </action>
   <action name="actionAbout">
@@ -1105,15 +1105,15 @@
     <string>Ctrl+R</string>
    </property>
   </action>
-  <action name="actionSplit_Edges">
+  <action name="actionSplit_Line_Segments">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Split Edges</string>
+    <string>Split Line Segments</string>
    </property>
    <property name="statusTip">
-    <string>Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC</string>
+    <string>Split line segments, e.g. can be used for compensation (G41/G42) in combination with EMC</string>
    </property>
   </action>
   <action name="actionAutomatic_Cutter_Compensation">
