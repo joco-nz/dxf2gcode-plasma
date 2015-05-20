@@ -864,6 +864,6 @@ class BlocksClass:
     def __str__(self):
         # how to print the object
         s = 'Blocks:\nNumber of Blocks ->' + str(len(self.Entities))
-        for entitie in self.ties:
+        for entitie in self.Entities:
             s = s + str(entitie)
         return s

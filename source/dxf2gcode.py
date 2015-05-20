@@ -838,7 +838,7 @@ class Main(QtGui.QMainWindow):
         self.makeEntitiesShapes(parent = self.EntitiesRoot)
         self.LayerContents.sort()
 
-    def makeEntitiesShapes(self, parent = None, ent_nr = -1):
+    def makeEntitiesShapes(self, parent = None, ent_nr = -1, layerNr=-1):
         """
         Instance is called prior to plotting the shapes. It creates
         all shape classes which are later plotted into the graphics.
@@ -893,7 +893,8 @@ class Main(QtGui.QMainWindow):
                 parent.addchild(NewEntitieContent)
 
                 self.makeEntitiesShapes(parent = NewEntitieContent,
-                                        ent_nr = ent_nr)
+                                        ent_nr = ent_nr,
+                                        layerNr = ent_geo.Layer_Nr)
 
             else:
                 self.shapes.append(ShapeClass(len(self.shapes),
@@ -925,7 +926,7 @@ class Main(QtGui.QMainWindow):
                 self.shapes[-1].setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
                 self.shapes[-1].setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
 
-                self.addtoLayerContents(self.shapes[-1], ent_geo.Layer_Nr)
+                self.addtoLayerContents(self.shapes[-1], layerNr if layerNr != -1 else ent_geo.Layer_Nr)
                 parent.addchild(self.shapes[-1])
 
     def appendshapes(self, geo):
