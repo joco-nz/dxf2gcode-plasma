@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
 ############################################################################
-#   
-#   Copyright (C) 2008-2014
-#    Christian Kohlöffel
+#
+#   Copyright (C) 2008-2015
+#    Christian KohlÃ¶ffel
 #    Vinzenz Schulz
-#   
+#
 #   This file is part of DXF2GCODE.
-#   
+#
 #   DXF2GCODE is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   DXF2GCODE is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
-#   
+#
 ############################################################################
 
 from copy import copy
@@ -33,7 +33,7 @@ import Core.Globals as g
 from PyQt4 import QtCore, QtGui
 
 import logging
-logger = logging.getLogger("PostPro.TSP") 
+logger = logging.getLogger("PostPro.TSP")
 
 class TSPoptimize(QtCore.QObject):
     """
@@ -41,8 +41,8 @@ class TSPoptimize(QtCore.QObject):
     """
     def __init__(self, st_end_points=[], order=[]):
         QtCore.QObject.__init__(self)
-        
-        self.shape_nrs = len(st_end_points)        
+
+        self.shape_nrs = len(st_end_points)
         self.iterations = int(self.shape_nrs) * 10
         self.pop_nr = min(int(ceil(self.shape_nrs / 8.0) * 8.0),
                         g.config.vars.Route_Optimisation['max_population'])
@@ -50,12 +50,12 @@ class TSPoptimize(QtCore.QObject):
         self.opt_route = []
         self.order = order
         self.st_end_points = st_end_points
-        
+
         #Generate the Distance Matrix
         self.DistanceMatrix = DistanceMatrixClass(matrix=[])
         self.DistanceMatrix.generate_matrix(st_end_points)
 
-        #Generation Population 
+        #Generation Population
         self.Population = PopulationClass(size=[self.shape_nrs, self.pop_nr],
                                          dmatrix=self.DistanceMatrix.matrix,
                                          pop=[])
@@ -73,7 +73,7 @@ class TSPoptimize(QtCore.QObject):
 
         #Function to correct the order of the elements
         self.Fittness.correct_constrain_order()
-        
+
         #logger.debug('Calculation of start fitness TSP: %s' %self)
         #logger.debug('Size Distance matrix: %s', len(self.DistanceMatrix.matrix))
         #Erstellen der ersten Ergebnisse
@@ -85,15 +85,15 @@ class TSPoptimize(QtCore.QObject):
         #ERstellen der 2 opt Optimierungs Klasse
         #Create the 2 opt optimization class ???
         #self.optmove=ClassOptMove(dmatrix=self.DistanceMatrix.matrix, nei_nr=int(round(self.shape_nrs/10)))
-             
+
     def calc_next_iteration(self):
         """
         calc_next_iteration()
         """
-        #Algorithmus ausfürhen
+        #Algorithmus ausfÃ¼rhen
         # ? Algorithm ???
         self.Population.genetic_algorithm(Result=self.Fittness, mutate_rate=self.mutate_rate)
-        #Für die Anzahl der Tours die Tours nach dem 2-opt Verfahren optimieren
+        #FÃ¼r die Anzahl der Tours die Tours nach dem 2-opt Verfahren optimieren
         #Optimise the number of Tours de Tours to the 2-opt method ???
 ##        for pop_nr in range(len(self.Population.pop)):
 ##            #print ("Vorher: %0.2f" %self.calc_tour_length(tours[tour_nr]))
@@ -108,7 +108,7 @@ class TSPoptimize(QtCore.QObject):
         #Fittness der jeweiligen Routen ausrechen
         #Calculate fitness of each route
         self.Fittness.calc_cur_fittness(self.DistanceMatrix.matrix)
-        #Straffunktion falls die Route nicht der gewünschten Reihenfolge entspricht
+        #Straffunktion falls die Route nicht der gewÃ¼nschten Reihenfolge entspricht
         #Function if the route is not the desired sequence ???
         #Best route to choose
         self.Fittness.select_best_fittness()
@@ -125,43 +125,43 @@ class TSPoptimize(QtCore.QObject):
                ("\nStart length:   %0.1f" % self.Fittness.best_fittness[0]) + \
                ("\nOpt. length:    %0.1f" % self.Fittness.best_fittness[-1]) + \
                ("\nOpt. route:     %s" % self.opt_route)
-    
+
 class PopulationClass:
     def __init__(self, size=[5, 8], mutate_rate=0.95,
                  dmatrix=[], pop=[], rot=[], order=[]):
-        
+
         self.size = size
         self.mutate_rate = mutate_rate
         self.pop = pop
         self.rot = rot
-        
+
         #logger.debug('The Population size is: %s' %self.size)
 
         for pop_nr in range(self.size[1]):
             #logger.debug("======= TSP initializing population nr %i =======" % pop_nr)
-            
+
             if g.config.vars.Route_Optimisation['begin_art'] == 'ordered':
                 self.pop.append(range(size[0]))
             elif g.config.vars.Route_Optimisation['begin_art'] == 'random':
                 self.pop.append(self.random_begin(size[0]))
-            elif g.config.vars.Route_Optimisation['begin_art'] == 'heurestic':
-                self.pop.append(self.heurestic_begin(dmatrix[:]))
+            elif g.config.vars.Route_Optimisation['begin_art'] == 'heuristic':
+                self.pop.append(self.heuristic_begin(dmatrix[:]))
             else:
                 logger.error(self.tr('Wrong begin art of TSP choosen'))
-          
+
         for rot_nr in range(size[0]):
-            self.rot.append(0)  
+            self.rot.append(0)
 
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
-        @param: string_to_translate: a unicode string    
+        @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
         return unicode(QtGui.QApplication.translate("PopulationClass",
                                                     string_to_translate,
                                                     None,
-                                                    QtGui.QApplication.UnicodeUTF8)) 
+                                                    QtGui.QApplication.UnicodeUTF8))
 
 
     def random_begin(self, size):
@@ -172,38 +172,38 @@ class PopulationClass:
         shuffle(tour)
         return tour
 
-    def heurestic_begin(self, dmatrix=[]):
+    def heuristic_begin(self, dmatrix=[]):
         """
-        heurestic_begin for TSP
+        heuristic_begin for TSP
         """
         tour = []
         possibilities = range(len(dmatrix[0]))
         start_nr = int(floor(random()*len(dmatrix[0])))
 
-        #Hinzufügen der Nr und entfernen aus possibilies
+        #HinzufÃ¼gen der Nr und entfernen aus possibilies
         #Add and remove the number of possibilities ???
         tour.append(start_nr)
         possibilities.pop(possibilities.index(tour[-1]))
         counter = 0
-        
+
         while len(possibilities):
             counter += 1
-            tour.append(self.heurestic_find_next(tour[-1], possibilities, dmatrix))
+            tour.append(self.heuristic_find_next(tour[-1], possibilities, dmatrix))
             possibilities.pop(possibilities.index(tour[-1]))
 
             #if (counter % 10) == 0:
-                #logger.debug("TSP heurestic searching nr %i" % counter)
+                #logger.debug("TSP heuristic searching nr %i" % counter)
         return tour
-          
-    def heurestic_find_next(self, start=1, possibilities=[], dmatrix=[]):
+
+    def heuristic_find_next(self, start=1, possibilities=[], dmatrix=[]):
         """
-        heurestic_find_next() for TSP
+        heuristic_find_next() for TSP
         """
-        #Auswahl der Entfernungen des nächsten Punkts
+        #Auswahl der Entfernungen des nÃ¤chsten Punkts
         #The distances of the point selection ???
         min_dist = 1e99
         darray = dmatrix[start]
-        
+
         for pnr in possibilities:
             if (darray[pnr] < min_dist):
                 min_point = pnr
@@ -214,7 +214,7 @@ class PopulationClass:
         """
         genetic_algorithm for TSP
         """
-        self.mutate_rate = mutate_rate        
+        self.mutate_rate = mutate_rate
 
         #Neue Population Matrix erstellen
         #Create new Population Matrix
@@ -224,7 +224,7 @@ class PopulationClass:
 
         #Tournament Selection 1 between Parents (2 Parents remaining)
         ts_r1 = range(self.size[1])
-        shuffle(ts_r1)        
+        shuffle(ts_r1)
         winners_r1 = []
         tmp_fittness = []
         for nr in range(self.size[1] / 2):
@@ -246,13 +246,13 @@ class PopulationClass:
                 winner = winners_r1[ts_r2[nr * 2]]
             else:
                 winner = winners_r1[ts_r2[(nr * 2) + 1]]
-                
+
             #Schreiben der Gewinner in die neue Population Matrix
             #print winner
             for pnr in range(2):
                 new_pop[pnr * self.size[1] / 2 + nr] = winner[:]
 
-        
+
         #Crossover Gens from 2 Parents
         crossover = range(self.size[1] / 2)
         shuffle(crossover)
@@ -267,7 +267,7 @@ class PopulationClass:
             indx.sort()
             while indx[0] == indx[1]:
                 indx = [int(floor(random()*self.size[0])), int(floor(random()*self.size[0]))]
-                indx.sort()        
+                indx.sort()
             gens = parent1[indx[0]:indx[1] + 1]
 
             #Remove the exchanged genes
@@ -277,11 +277,11 @@ class PopulationClass:
             #Insert the new genes at a random position
             ins_indx = int(floor(random()*self.size[0]))
             new_children = child[0:ins_indx] + gens + child[ins_indx:len(child)]
-            
+
             #Write the new children in the new population matrix
             for pnr in range(2):
                 new_pop[int((pnr + 0.5) * self.size[1] / 2 + nr)] = new_children[:]
- 
+
         #Mutate the 2nd half of the population matrix
         mutate = range(self.size[1] / 2)
         shuffle(mutate)
@@ -293,7 +293,7 @@ class PopulationClass:
             while indx[0] == indx[1]:
                 indx = [int(floor(random()*self.size[0])), int(floor(random()*self.size[0]))]
                 indx.sort()
-                
+
             #Zu mutierende Line
             #Line to be mutated ????
             mutline = new_pop[self.size[1] / 2 + mutate[nr]]
@@ -324,9 +324,9 @@ class DistanceMatrixClass:
     DistanceMatrixClass
     """
     def __init__(self, matrix=[]):
-        self.matrix = matrix      
+        self.matrix = matrix
         self.size = [0, 0]
-    
+
     def generate_matrix(self, st_end_points):
         """
         generate_matrix()
@@ -338,7 +338,7 @@ class DistanceMatrixClass:
                 x_vals[nr_x] = st_end_points[nr_y][1].distance(st_end_points[nr_x][0])
             self.matrix.append(copy(x_vals[:]))
         self.size = [len(st_end_points), len(st_end_points)]
-        
+
     def __str__(self):
         string = ("Distance Matrix; size: %i X %i" % (self.size[0], self.size[1]))
         for line_x in self.matrix:
@@ -365,7 +365,7 @@ class FittnessClass:
         #logger.debug("Calculating current fittness len(self.population.pop): %s"
         #             %(len(self.population.pop)))
         #logger.debug("Length of self.cur_fittness: %s" %(len(self.cur_fittness)))
-        
+
         for pop_nr in range(len(self.population.pop)):
             pop = self.population.pop[pop_nr]
             #logger.debug("pop_nr: %s" %pop_nr)
@@ -373,14 +373,14 @@ class FittnessClass:
             for nr in range(1, len(pop)):
                 dis += matrix[pop[nr - 1]][pop[nr]]
             self.cur_fittness[pop_nr] = dis
-            
-    #2te Möglichkeit die Reihenfolge festzulegen (Korrekturfunktion=Aktiv)
+
+    #2te MÃ¶glichkeit die Reihenfolge festzulegen (Korrekturfunktion=Aktiv)
     #Second option set the order (correction function = Active) ???
     def correct_constrain_order(self):
-        """FIXME: in order to change the correction to have all ordered shapes 
+        """FIXME: in order to change the correction to have all ordered shapes
         in begin this might be the best place to change it. Maybe we can also have
         an additional option in the config file?"""
-        
+
         for pop_nr in range(len(self.population.pop)):
             #Search the current order
             order_index = self.get_pop_index_list(self.population.pop[pop_nr])
@@ -390,7 +390,7 @@ class FittnessClass:
             #Indices according to correct order
             for ind_nr in range(len(order_index)):
                 self.population.pop[pop_nr][order_index[ind_nr]] = self.order[ind_nr]
-                
+
     def set_startpoint(self):
         """
         set_startpoint()

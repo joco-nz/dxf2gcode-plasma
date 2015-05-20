@@ -1,0 +1,14 @@
+# It proves to be very useful to show the user what version he/she is running in the about dialog
+# therefore, the easiest solution to achieve this is to use keyword substitution.
+
+# To add keyword substitution:
+# either, execute the following Git commands:
+
+$ git config filter.rcs-keywords.clean '.git_filters/rcs-keywords.clean'
+$ git config filter.rcs-keywords.smudge '.git_filters/rcs-keywords.smudge %f'
+
+# or add the following to ~/.gitconfig:
+
+[filter "rcs-keywords"]
+	clean  = .git_filters/rcs-keywords.clean
+	smudge = .git_filters/rcs-keywords.smudge %f

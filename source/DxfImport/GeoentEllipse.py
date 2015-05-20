@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
 ############################################################################
-#   
-#   Copyright (C) 2008-2014
+#
+#   Copyright (C) 2008-2015
 #    Christian Kohlöffel
 #    Vinzenz Schulz
-#   
+#
 #   This file is part of DXF2GCODE.
-#   
+#
 #   DXF2GCODE is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   DXF2GCODE is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
-#   
+#
 ############################################################################
 
 import Core.Globals as g
@@ -63,11 +63,11 @@ class GeoentEllipse:
 
         #Zuweisen der Toleranz f�rs Fitting / Assign the tolerance for fitting
         tol = g.config.fitting_tolerance
-        
+
         #Errechnen der Ellipse / Calculate the ellipse
         self.Ellipse_Grundwerte()
         self.Ellipse_2_Arcs(tol)
-        
+
 
     def __str__(self):
         # how to print the object
@@ -92,7 +92,7 @@ class GeoentEllipse:
         """
         self.geo.reverse()
         for geo in self.geo:
-            geo.reverse()    
+            geo.reverse()
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         """
@@ -100,14 +100,14 @@ class GeoentEllipse:
         """
         #Hinzuf�gen falls es keine geschlossene Polyline ist
         #Add if it is not a closed polyline
-        if self.geo[0].Pa.isintol(self.geo[-1].Pe, tol):
+        if self.geo[0].Ps.within_tol(self.geo[-1].Pe, tol):
             self.analyse_and_opt()
             cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length))
         else:
             points.append(PointsClass(point_nr=len(points), geo_nr=i, \
                           Layer_Nr=self.Layer_Nr, \
-                          be=self.geo[0].Pa,
-                          en=self.geo[-1].Pe, be_cp=[], en_cp=[]))  
+                          be=self.geo[0].Ps,
+                          en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
         return warning
 
     def Read(self, caller):
@@ -117,11 +117,11 @@ class GeoentEllipse:
         #Assign short name
         lp = caller.line_pairs
         e = lp.index_code(0, caller.start + 1)
-        
+
         #Assign Layer
         s = lp.index_code(8, caller.start + 1)
         self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
-        
+
         #Centre X value, Y value
         s = lp.index_code(10, s + 1)
         x0 = float(lp.line_pair[s].value)
@@ -149,7 +149,7 @@ class GeoentEllipse:
         #Neuen Startwert f�r die n�chste Geometrie zur�ckgeben
         #New starting value for the next geometry return
         caller.start = e
-        
+
 
     def analyse_and_opt(self):
         """
@@ -158,20 +158,20 @@ class GeoentEllipse:
         #Richtung in welcher der Anfang liegen soll (unten links)
         #Direction of top (lower left) ???
         Popt = Point(x= -1e3, y= -1e6)
-        
+
         #Suchen des kleinsten Startpunkts von unten Links X zuerst (Muss neue Schleife sein!)
         #Find the smallest starting point from bottom left X (Must be new loop!)
-        min_distance = self.geo[0].Pa.distance(Popt)
+        min_distance = self.geo[0].Ps.distance(Popt)
         min_geo_nr = 0
         for geo_nr in range(1, len(self.geo)):
-            if (self.geo[geo_nr].Pa.distance(Popt) < min_distance):
-                min_distance = self.geo[geo_nr].Pa.distance(Popt)
+            if (self.geo[geo_nr].Ps.distance(Popt) < min_distance):
+                min_distance = self.geo[geo_nr].Ps.distance(Popt)
                 min_geo_nr = geo_nr
 
         #Kontur so anordnen das neuer Startpunkt am Anfang liegt
         #Contour so the new starting point is at the start order
         self.geo = self.geo[min_geo_nr:len(self.geo)] + self.geo[0:min_geo_nr]
-        
+
     def get_start_end_points(self, direction=0):
         """
         get_start_end_points()
@@ -181,7 +181,7 @@ class GeoentEllipse:
         elif direction:
             punkt, angle = self.geo[-1].get_start_end_points(direction)
         return punkt, angle
-    
+
     def Ellipse_2_Arcs(self, tol):
         """
         Ellipse_2_Arcs()
@@ -189,56 +189,56 @@ class GeoentEllipse:
         #Anfangswert f�r Anzahl Elemente
         #Initial value for number of elements
         num_elements = 2
-        intol = False   
-        
+        intol = False
+
         #print degrees(self.AngS)
         #print tol
 
         while not(intol):
             intol = True
-            
+
             #Anfangswete Ausrechnen
             #Calculate Anfangswete ???
             angle = self.AngS
-            Pa = self.Ellipse_Point(angle)
+            Ps = self.Ellipse_Point(angle)
             tana = self.Ellipse_Tangent(angle)
-            
+
             self.geo = []
             self.PtsVec = []
-            self.PtsVec.append([Pa, tana])
-            
+            self.PtsVec.append([Ps, tana])
+
             for sec in range(num_elements):
                 #Calculate Increment
                 step = self.ext / num_elements
                 #print degrees(step)
-                
+
                 #Calculate final values
                 Pb = self.Ellipse_Point(angle + step)
                 tanb = self.Ellipse_Tangent(angle + step)
 
                 #Biarc erstellen und an geo anh�ngen
                 #Biarc create and attach them ???
-                biarcs = BiarcClass(Pa, tana, Pb, tanb, tol / 100)
-                self.geo += biarcs.geos[:]             
+                biarcs = BiarcClass(Ps, tana, Pb, tanb, tol / 100)
+                self.geo += biarcs.geos[:]
 
                 #Last value = Start value
-                Pa = Pb
+                Ps = Pb
                 tana = tanb
-                
-                self.PtsVec.append([Pa, tana])
+
+                self.PtsVec.append([Ps, tana])
 
                 if not(self.check_ellipse_fitting_tolerance(biarcs, tol, angle, angle + step)):
                     intol = False
                     num_elements += 1
                     break
-                
+
                 #Calculate new angle
                 angle += step
         #print degrees(angle)
         #print self
-        
-        
-                      
+
+
+
     def check_ellipse_fitting_tolerance(self, biarc, tol, ang0, ang1):
         """
         check_ellipse_fitting_tolerance()
@@ -247,7 +247,7 @@ class GeoentEllipse:
         check_ang = []
         check_Pts = []
         fit_error = []
-        
+
         for i in range(1, 4):
             check_ang.append(ang0 + check_step * i)
             check_Pts.append(self.Ellipse_Point(check_ang[-1]))
@@ -256,7 +256,7 @@ class GeoentEllipse:
         if max(fit_error) >= tol:
             return 0
         else:
-            return 1            
+            return 1
 
     def Ellipse_Grundwerte(self):
         """
@@ -266,12 +266,12 @@ class GeoentEllipse:
         self.rotation = atan2(self.vector.y, self.vector.x)
         self.a = sqrt(self.vector.x ** 2 + self.vector.y ** 2)
         self.b = self.a * self.ratio
-        
+
         #Calculate angle to extend
         self.ext = self.AngE - self.AngS
         #self.ext=self.ext%(-2*pi)
         #self.ext-=floor(self.ext/(2*pi))*(2*pi)
-   
+
     def Ellipse_Point(self, alpha=0):#Point(0,0)
         """
         Ellipse_Point()
@@ -281,7 +281,7 @@ class GeoentEllipse:
         Ex = self.a * cos(alpha) * cos(self.rotation) - self.b * sin(alpha) * sin(self.rotation)
         Ey = self.a * cos(alpha) * sin(self.rotation) + self.b * sin(alpha) * cos(self.rotation)
         return Point(self.center.x + Ex, self.center.y + Ey)
-    
+
     def Ellipse_Tangent(self, alpha=0):#Point(0,0)
         """
         Ellipse_Tanget()

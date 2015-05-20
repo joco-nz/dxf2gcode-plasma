@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
 ############################################################################
-#   
-#   Copyright (C) 2010-2014
-#    Christian Kohl�ffel
+#
+#   Copyright (C) 2010-2015
+#    Christian Kohlöffel
 #    Jean-Paul Schouwstra
-#   
+#
 #   This file is part of DXF2GCODE.
-#   
+#
 #   DXF2GCODE is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   DXF2GCODE is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
-#   
+#
 ############################################################################
 
 """
@@ -33,17 +33,16 @@ see http://code.activestate.com/recipes/65207/ for module const
 """
 
 
-
 import logging
+
 
 # Global Variables
 APPNAME = "DXF2GCODE"
 VERSION = "PyQt4 Beta"
 
-
-DATE     =   "$Date::                     $"
-REVISION =   "$Rev::                      $"
-AUTHOR   =  u"$Author::                                  $"
+DATE     =  "$Date$"
+REVISION =  "$Revision$"
+AUTHOR   = u"$Author$"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
