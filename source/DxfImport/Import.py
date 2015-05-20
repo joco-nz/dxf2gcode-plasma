@@ -143,7 +143,7 @@ class ReadDXF(QtCore.QObject):
     # Convert the uploaded file into line pairs (code & Value).
     def Get_Line_Pairs(self, string):
         line = 0
-        line_pairs = dxflinepairsClass()
+        line_pairs = dxflinepairsClass([])
 
         # Start at the first SECTION
         while string[line].find("SECTION") < 0:
@@ -741,7 +741,7 @@ class dxflinepairClass:
         return 'Code ->' + str(self.code) + '\nvalue ->' + self.value
 
 class dxflinepairsClass:
-    def __init__(self, line_pair=[]):
+    def __init__(self, line_pair):
         self.nrs = 0
         self.line_pair = line_pair
     def __str__(self):
