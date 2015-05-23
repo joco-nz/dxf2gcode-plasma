@@ -95,13 +95,29 @@ class Point(object):
         length = abs_point.distance()
         return Point(abs_point.x / length, abs_point.y / length)
 
+    def length_squared(self):
+        return self.x**2 + self.y**2
+
     def distance(self, other=None):
         """
         Returns distance between two given points
         """
         if other is None:
             other = Point()
-        return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+        return sqrt((self - other).length_squared())
+
+    def distance2_to_line(self, Ps, Pe):
+        dLine = Pe - Ps
+
+        u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
+        if u > 1:
+            u = 1
+        elif u < 0:
+            u = 0
+
+        closest = Ps + u * dLine
+        diff = closest - self
+        return diff.length_squared()
 
     def norm_angle(self, other=None):
         """
@@ -115,6 +131,7 @@ class Point(object):
         """
         Are the two points within tolerance
         """
+        # TODO is this sufficient, or do we want to compare the distance
         return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) < tol)
 
     def get_arc_point(self, ang=0, r=1):

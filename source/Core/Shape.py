@@ -200,3 +200,11 @@ class Shape(object):
 
         if not self.closed:
             drawVerLine(geo.Pe.rot_sca_abs(parent=self.parentEntity), self.axis3_start_mill_depth, self.axis3_mill_depth)
+
+    def isHit(self, xy, tol):
+        if self.topLeft.x - tol <= xy.x <= self.bottomRight.x + tol\
+                and self.bottomRight.y - tol <= xy.y <= self.topLeft.y + tol:
+            for geo in self.geos:
+                if geo.isHit(self, xy, tol):
+                    return True
+        return False

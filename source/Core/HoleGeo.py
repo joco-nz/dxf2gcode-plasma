@@ -42,6 +42,8 @@ class HoleGeo(object):
         self.topLeft = None
         self.bottomRight = None
 
+        self.abs_geo = None
+
     def __deepcopy__(self, memo):
         return HoleGeo(deepcopy(self.Ps, memo))
 
@@ -74,24 +76,39 @@ class HoleGeo(object):
         @param direction: 0 to return start Point and 1 to return end Point
         @return: a list of Point and angle
         """
-        return self.Ps.rot_sca_abs(parent=parent), 0
+        abs_geo = self.make_abs_geo(parent)
+
+        return abs_geo.Ps, 0
 
     def make_path(self, caller, drawHorLine):
-        abs_geo = self.make_abs_geo(caller.parentEntity)
+        self.abs_geo = self.make_abs_geo(caller.parentEntity)
 
         radius = caller.parentLayer.tool_diameter / 2
         segments = 30
-        Ps = abs_geo.Ps.get_arc_point(0, radius)
+        Ps = self.abs_geo.Ps.get_arc_point(0, radius)
         self.topLeft = deepcopy(Ps)
         self.bottomRight = deepcopy(Ps)
         for i in range(1, segments + 1):
             ang = i * 2 * pi / segments
-            Pe = abs_geo.Ps.get_arc_point(ang, radius)
+            Pe = self.abs_geo.Ps.get_arc_point(ang, radius)
             drawHorLine(Ps, Pe, caller.axis3_start_mill_depth)
             drawHorLine(Ps, Pe, caller.axis3_mill_depth)
             self.topLeft.detTopLeft(Pe)
             self.bottomRight.detBottomRight(Pe)
             Ps = Pe
+
+    def isHit(self, caller, xy, tol):
+        tol2 = tol**2
+        radius = caller.parentLayer.tool_diameter / 2
+        segments = 30
+        Ps = self.abs_geo.Ps.get_arc_point(0, radius)
+        for i in range(1, segments + 1):
+            ang = i * 2 * pi / segments
+            Pe = self.abs_geo.Ps.get_arc_point(ang, radius)
+            if xy.distance2_to_line(Ps, Pe) <= tol2:
+                return True
+            Ps = Pe
+        return False
 
     def Write_GCode(self, parent=None, PostPro=None):
         """

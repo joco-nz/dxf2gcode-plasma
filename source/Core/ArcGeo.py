@@ -100,6 +100,8 @@ class ArcGeo(object):
         self.topLeft = None
         self.bottomRight = None
 
+        self.abs_geo = None
+
     def __deepcopy__(self, memo):
         return ArcGeo(deepcopy(self.Ps, memo),
                       deepcopy(self.Pe, memo),
@@ -184,17 +186,29 @@ class ArcGeo(object):
         return punkt, angle
 
     def make_path(self, caller, drawHorLine):
-        abs_geo = self.make_abs_geo(caller.parentEntity)
+        self.abs_geo = self.make_abs_geo(caller.parentEntity)
 
-        segments = int(abs(degrees(abs_geo.ext)) // 3 + 1)
-        Ps = abs_geo.O.get_arc_point(abs_geo.s_ang, abs_geo.r)
+        segments = int(abs(degrees(self.abs_geo.ext)) // 3 + 1)
+        Ps = self.abs_geo.O.get_arc_point(self.abs_geo.s_ang, self.abs_geo.r)
         self.topLeft = deepcopy(Ps)
         self.bottomRight = deepcopy(Ps)
         for i in range(1, segments + 1):
-            ang = abs_geo.s_ang + i * abs_geo.ext / segments
-            Pe = abs_geo.O.get_arc_point(ang, abs_geo.r)
+            ang = self.abs_geo.s_ang + i * self.abs_geo.ext / segments
+            Pe = self.abs_geo.O.get_arc_point(ang, self.abs_geo.r)
             drawHorLine(Ps, Pe, caller.axis3_start_mill_depth)
             drawHorLine(Ps, Pe, caller.axis3_mill_depth)
             self.topLeft.detTopLeft(Pe)
             self.bottomRight.detBottomRight(Pe)
             Ps = Pe
+
+    def isHit(self, caller, xy, tol):
+        tol2 = tol**2
+        segments = int(abs(degrees(self.abs_geo.ext)) // 3 + 1)
+        Ps = self.abs_geo.O.get_arc_point(self.abs_geo.s_ang, self.abs_geo.r)
+        for i in range(1, segments + 1):
+            ang = self.abs_geo.s_ang + i * self.abs_geo.ext / segments
+            Pe = self.abs_geo.O.get_arc_point(ang, self.abs_geo.r)
+            if xy.distance2_to_line(Ps, Pe) <= tol2:
+                return True
+            Ps = Pe
+        return False

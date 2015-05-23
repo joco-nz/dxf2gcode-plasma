@@ -44,6 +44,8 @@ class LineGeo(object):
         self.topLeft = None
         self.bottomRight = None
 
+        self.abs_geo = None
+
     def __deepcopy__(self, memo):
         return LineGeo(deepcopy(self.Ps, memo),
                        deepcopy(self.Pe, memo))
@@ -77,6 +79,7 @@ class LineGeo(object):
         @param point: The Point which shall be checked
         @return: returns the distance to the Line
         """
+        # TODO to check if it can be replaced with distance2_to_line (of Point class)
         if self.Ps == self.Pe:
             return 1e10
         else:
@@ -88,23 +91,26 @@ class LineGeo(object):
                                     (AEPA - AP) * (AEPA - EP))) / AE)
 
     def get_start_end_points(self, direction, parent=None):
+        abs_geo = self.make_abs_geo(parent)
+
         if not direction:
-            punkt = self.Ps.rot_sca_abs(parent=parent)
-            punkt_e = self.Pe.rot_sca_abs(parent=parent)
-            angle = punkt.norm_angle(punkt_e)
+            punkt = abs_geo.Ps
+            angle = punkt.norm_angle(abs_geo.Pe)
         else:
-            punkt_a = self.Ps.rot_sca_abs(parent=parent)
-            punkt = self.Pe.rot_sca_abs(parent=parent)
-            angle = punkt.norm_angle(punkt_a)
+            punkt = abs_geo.Pe
+            angle = punkt.norm_angle(abs_geo.Ps)
 
         return punkt, angle
 
     def make_path(self, caller, drawHorLine):
-        abs_geo = self.make_abs_geo(caller.parentEntity)
+        self.abs_geo = self.make_abs_geo(caller.parentEntity)
 
-        drawHorLine(abs_geo.Ps, abs_geo.Pe, caller.axis3_start_mill_depth)
-        drawHorLine(abs_geo.Ps, abs_geo.Pe, caller.axis3_mill_depth)
-        self.topLeft = deepcopy(abs_geo.Ps)
-        self.bottomRight = deepcopy(abs_geo.Ps)
-        self.topLeft.detTopLeft(abs_geo.Pe)
-        self.bottomRight.detBottomRight(abs_geo.Pe)
+        drawHorLine(self.abs_geo.Ps, self.abs_geo.Pe, caller.axis3_start_mill_depth)
+        drawHorLine(self.abs_geo.Ps, self.abs_geo.Pe, caller.axis3_mill_depth)
+        self.topLeft = deepcopy(self.abs_geo.Ps)
+        self.bottomRight = deepcopy(self.abs_geo.Ps)
+        self.topLeft.detTopLeft(self.abs_geo.Pe)
+        self.bottomRight.detBottomRight(self.abs_geo.Pe)
+
+    def isHit(self, caller, xy, tol):
+        return xy.distance2_to_line(self.abs_geo.Ps, self.abs_geo.Pe) <= tol**2

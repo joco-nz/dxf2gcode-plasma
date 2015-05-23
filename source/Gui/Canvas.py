@@ -20,7 +20,7 @@
 #
 ############################################################################
 
-from math import pi, cos, sin
+from math import pi, cos, sin, radians
 
 from PyQt5.QtCore import QPoint, Qt
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
@@ -28,6 +28,7 @@ from PyQt5.QtWidgets import QOpenGLWidget
 
 from Core.Point import Point
 
+import Global.Globals as g
 
 class GLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
@@ -39,6 +40,7 @@ class GLWidget(QOpenGLWidget):
 
         self.isPanning = False
         self.isRotating = False
+        self.isMultiSelect = False
         self._lastPos = QPoint()
 
         self.posX = 0.0
@@ -65,6 +67,8 @@ class GLWidget(QOpenGLWidget):
 
         self.topLeft = Point()
         self.bottomRight = Point()
+
+        self.tol = 0
 
     def resetAll(self):
         self.gl.glDeleteLists(1, self.orientation)  # the orientation arrows are currently generated last
@@ -95,16 +99,51 @@ class GLWidget(QOpenGLWidget):
         self.rotZ = self.normalizeAngle(angle)
 
     def normalizeAngle(self, angle):
-        while angle < 0:
-            angle += 360 * 16
-        while angle > 360 * 16:
-            angle -= 360 * 16
-        return angle
+        return (angle - 180) % -360 + 180
 
     def mousePressEvent(self, event):
-        self._lastPos = event.pos()
         if self.isPanning or self.isRotating:
             self.setCursor(Qt.ClosedHandCursor)
+        else:
+            min_side = min(self.frameSize().width(), self.frameSize().height())
+            clickedX = (event.pos().x() - self.frameSize().width() / 2) / min_side / self.scale
+            clickedY = (event.pos().y() - self.frameSize().height() / 2) / min_side / self.scale
+            offsetX, offsetY, offsetZ = -self.posX / self.scale, -self.posY / self.scale, -self.posZ / self.scale
+
+            xyForZ = {}
+            tol = 4 * self.scaleCorr / min_side / self.scale
+            for shape in self.objects:
+                hit = False
+                z = shape.axis3_start_mill_depth
+                if z not in xyForZ:
+                    xyForZ[z] = self.determineSelectedPosition(clickedX, clickedY, z, offsetX, offsetY, offsetZ)
+                hit |= shape.isHit(xyForZ[z], tol)
+
+                if not hit:
+                    z = shape.axis3_mill_depth
+                    if z not in xyForZ:
+                        xyForZ[z] = self.determineSelectedPosition(clickedX, clickedY, z, offsetX, offsetY, offsetZ)
+                    hit |= shape.isHit(xyForZ[z], tol)
+
+                if self.isMultiSelect and shape.selected:
+                    hit = not hit
+
+                if hit != shape.selected:
+                    g.window.TreeHandler.updateShapeSelection(shape, hit)
+
+                shape.selected = hit
+
+            self.update()
+        self._lastPos = event.pos()
+
+    def determineSelectedPosition(self, clickedX, clickedY, forZ, offsetX, offsetY, offsetZ):
+        angleX = -radians(self.rotX)
+        angleY = -radians(self.rotY)
+
+        zv = forZ - offsetZ
+        clickedZ = ((zv + clickedX * sin(angleY)) / cos(angleY) - clickedY * sin(angleX)) / cos(angleX)
+        sx, sy, sz = self.deRotate(clickedX, clickedY, clickedZ)
+        return Point(sx + offsetX, - sy - offsetY)  #, sz + offsetZ
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
@@ -114,8 +153,8 @@ class GLWidget(QOpenGLWidget):
                 self.setCursor(Qt.PointingHandCursor)
 
     def mouseMoveEvent(self, event):
-        dx = event.x() - self._lastPos.x()
-        dy = event.y() - self._lastPos.y()
+        dx = event.pos().x() - self._lastPos.x()
+        dy = event.pos().y() - self._lastPos.y()
 
         if self.isRotating:
             if event.buttons() == Qt.LeftButton:
@@ -149,12 +188,20 @@ class GLWidget(QOpenGLWidget):
 
         self.update()
 
-    def deRotate(self, x, y, z):
-        angleX = -self.rotX * pi / 180
-        x, y, z = x, y*cos(angleX) - z*sin(angleX), y*sin(angleX) + z*cos(angleX)
-        angleY = -self.rotY * pi / 180
+    def rotate(self, x, y, z):
+        angleZ = radians(self.rotZ)
+        x, y, z = x*cos(angleZ) - y*sin(angleZ), x*sin(angleZ) + y*cos(angleZ), z
+        angleY = radians(self.rotY)
         x, y, z = x*cos(angleY) + z*sin(angleY), y, -x*sin(angleY) + z*cos(angleY)
-        angleZ = -self.rotZ * pi / 180
+        angleX = radians(self.rotX)
+        return x, y*cos(angleX) - z*sin(angleX), y*sin(angleX) + z*cos(angleX)
+
+    def deRotate(self, x, y, z):
+        angleX = -radians(self.rotX)
+        x, y, z = x, y*cos(angleX) - z*sin(angleX), y*sin(angleX) + z*cos(angleX)
+        angleY = -radians(self.rotY)
+        x, y, z = x*cos(angleY) + z*sin(angleY), y, -x*sin(angleY) + z*cos(angleY)
+        angleZ = -radians(self.rotZ)
         return x*cos(angleZ) - y*sin(angleZ), x*sin(angleZ) + y*cos(angleZ), z
 
     def initializeGL(self):
@@ -181,11 +228,11 @@ class GLWidget(QOpenGLWidget):
         # The last transformation you specify takes place first.
         self.gl.glClear(self.gl.GL_COLOR_BUFFER_BIT | self.gl.GL_DEPTH_BUFFER_BIT)
         self.gl.glLoadIdentity()
-        self.gl.glScaled(self.scale, self.scale, self.scale)
         self.gl.glRotated(self.rotX, 1.0, 0.0, 0.0)
         self.gl.glRotated(self.rotY, 0.0, 1.0, 0.0)
         self.gl.glRotated(self.rotZ, 0.0, 0.0, 1.0)
-        self.gl.glTranslated(self.posX / self.scale, self.posY / self.scale, self.posZ / self.scale)
+        self.gl.glTranslated(self.posX, self.posY, self.posZ)
+        self.gl.glScaled(self.scale, self.scale, self.scale)
         for shape in self.objects:
             if shape.disabled:
                 if shape.selected:
@@ -204,6 +251,7 @@ class GLWidget(QOpenGLWidget):
         self.gl.glCallList(self.orientation)
 
     def resizeGL(self, width, height):
+        self.gl.glViewport(0, 0, width, height)
         side = min(width, height)
         self.gl.glMatrixMode(self.gl.GL_PROJECTION)
         self.gl.glLoadIdentity()
@@ -381,6 +429,7 @@ class GLWidget(QOpenGLWidget):
         self.gl.glEnd()
 
     def autoScale(self):
+        # TODO currently only works correctly when object is not rotated
         scaleX = (self.camRightX - self.camLeftX) / (self.bottomRight.x - self.topLeft.x)
         scaleY = (self.camBottomY - self.camTopY) / (self.topLeft.y - self.bottomRight.y)
         self.scale = min(scaleX, scaleY) * 0.95

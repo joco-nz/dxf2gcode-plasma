@@ -118,7 +118,9 @@ class MainWindow(QMainWindow):
         self.updateMachineType()
 
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Shift:
+        if event.key() == Qt.Key_Control:
+            self.glWidget.isMultiSelect = True
+        elif event.key() == Qt.Key_Shift:
             self.glWidget.isPanning = True
             self.glWidget.setCursor(Qt.OpenHandCursor)
         elif event.key() == Qt.Key_Alt:
@@ -126,7 +128,9 @@ class MainWindow(QMainWindow):
             self.glWidget.setCursor(Qt.PointingHandCursor)
 
     def keyReleaseEvent(self, event):
-        if event.key() == Qt.Key_Shift:
+        if event.key() == Qt.Key_Control:
+            self.glWidget.isMultiSelect = False
+        elif event.key() == Qt.Key_Shift:
             self.glWidget.isPanning = False
             self.glWidget.unsetCursor()
         elif event.key() == Qt.Key_Alt:
