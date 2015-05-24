@@ -86,13 +86,13 @@ class TreeHandler(QWidget):
         self.toolUpdate(self.ui.toolDiameterComboBox.currentText())
 
         self.ui.toolDiameterComboBox.activated.connect(self.toolUpdate)
-        self.ui.zRetractionArealLineEdit.textEdited.connect(self.toolParameterzRetractionArealUpdate)
-        self.ui.zSafetyMarginLineEdit.textEdited.connect(self.toolParameterzSafetyMarginUpdate)
-        self.ui.zInitialMillDepthLineEdit.textEdited.connect(self.toolParameterzInitialMillDepthUpdate)
-        self.ui.zInfeedDepthLineEdit.textEdited.connect(self.toolParameterzInfeedDepthUpdate)
-        self.ui.zFinalMillDepthLineEdit.textEdited.connect(self.toolParameterzFinalMillDepthUpdate)
-        self.ui.g1FeedXYLineEdit.textEdited.connect(self.toolParameterg1FeedXYUpdate)
-        self.ui.g1FeedZLineEdit.textEdited.connect(self.toolParameterg1FeedZUpdate)
+        self.ui.zRetractionArealLineEdit.returnPressed.connect(self.toolParameterzRetractionArealUpdate)
+        self.ui.zSafetyMarginLineEdit.returnPressed.connect(self.toolParameterzSafetyMarginUpdate)
+        self.ui.zInitialMillDepthLineEdit.returnPressed.connect(self.toolParameterzInitialMillDepthUpdate)
+        self.ui.zInfeedDepthLineEdit.returnPressed.connect(self.toolParameterzInfeedDepthUpdate)
+        self.ui.zFinalMillDepthLineEdit.returnPressed.connect(self.toolParameterzFinalMillDepthUpdate)
+        self.ui.g1FeedXYLineEdit.returnPressed.connect(self.toolParameterg1FeedXYUpdate)
+        self.ui.g1FeedZLineEdit.returnPressed.connect(self.toolParameterg1FeedZUpdate)
 
         # Entities TreeView
         self.entity_item_model = None
@@ -715,16 +715,15 @@ class TreeHandler(QWidget):
                     self.speed = new_speed
                     self.start_radius = new_start_radius
 
-    def toolParameterzRetractionArealUpdate(self, text):
+    def toolParameterzRetractionArealUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
-        @param text: the value of the LineEdit
         """
         self.ui.zRetractionArealLineEdit.setPalette(self.palette) #Restore color
 
         # Get the new value and convert it to float
-        val = float(text)
+        val = float(self.ui.zRetractionArealLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
@@ -740,16 +739,15 @@ class TreeHandler(QWidget):
                 real_item.axis3_retract = val
                 self.axis3_retract = real_item.axis3_retract
 
-    def toolParameterzSafetyMarginUpdate(self, text):
+    def toolParameterzSafetyMarginUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
-        @param text: the value of the LineEdit
         """
         self.ui.zSafetyMarginLineEdit.setPalette(self.palette) #Restore color
 
         # Get the new value and convert it to float
-        val = float(text)
+        val = float(self.ui.zSafetyMarginLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
@@ -765,16 +763,15 @@ class TreeHandler(QWidget):
                 real_item.axis3_safe_margin = val
                 self.axis3_safe_margin = real_item.axis3_safe_margin
 
-    def toolParameterzInfeedDepthUpdate(self, text):
+    def toolParameterzInfeedDepthUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
-        @param text: the value of the LineEdit
         """
         self.ui.zInfeedDepthLineEdit.setPalette(self.palette) #Restore color
 
         #Get the new value and convert it to float
-        val = float(text)
+        val = float(self.ui.zInfeedDepthLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
@@ -794,12 +791,11 @@ class TreeHandler(QWidget):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
-        @param text: the value of the LineEdit
         """
         self.ui.g1FeedXYLineEdit.setPalette(self.palette) #Restore color
 
         #Get the new value and convert it to float
-        val = float(text)
+        val = float(self.ui.g1FeedXYLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
@@ -816,16 +812,15 @@ class TreeHandler(QWidget):
                 real_item.f_g1_plane = val
                 self.f_g1_plane = real_item.f_g1_plane
 
-    def toolParameterg1FeedZUpdate(self, text):
+    def toolParameterg1FeedZUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
-        @param text: the value of the LineEdit
         """
         self.ui.g1FeedZLineEdit.setPalette(self.palette) #Restore color
 
         #Get the new value and convert it to float
-        val = float(text)
+        val = float(self.ui.g1FeedZLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
@@ -841,16 +836,15 @@ class TreeHandler(QWidget):
                 real_item.f_g1_depth = val
                 self.f_g1_depth = real_item.f_g1_depth
 
-    def toolParameterzInitialMillDepthUpdate(self, text):
+    def toolParameterzInitialMillDepthUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
-        @param text: the value of the LineEdit
         """
         self.ui.zInitialMillDepthLineEdit.setPalette(self.palette) #Restore color
 
         #Get the new value and convert it to float
-        val = float(text)
+        val = float(self.ui.zInitialMillDepthLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
@@ -866,16 +860,15 @@ class TreeHandler(QWidget):
                 real_item.axis3_start_mill_depth = val
                 self.axis3_start_mill_depth = real_item.axis3_start_mill_depth
 
-    def toolParameterzFinalMillDepthUpdate(self, text):
+    def toolParameterzFinalMillDepthUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
-        @param text: the value of the LineEdit
         """
         self.ui.zFinalMillDepthLineEdit.setPalette(self.palette) #Restore color
 
         #Get the new value and convert it to float
-        val = float(text)
+        val = float(self.ui.zFinalMillDepthLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 

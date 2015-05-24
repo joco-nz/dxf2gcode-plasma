@@ -443,3 +443,15 @@ class GLWidget(QOpenGLWidget):
         self.posY = -self.camTopY * 0.95 * aspect_scale_y + self.bottomRight.y * self.scale
         self.posZ = 0
         self.update()
+
+    def topView(self):
+        self.rotX = 0
+        self.rotY = 0
+        self.rotZ = 0
+        self.update()
+
+    def isometricView(self):
+        self.rotX = -22
+        self.rotY = -22
+        self.rotZ = 0
+        self.update()

@@ -98,23 +98,25 @@ class MainWindow(QMainWindow):
 
         # View
         self.ui.actionAutoscale.triggered.connect(self.glWidget.autoScale)
+        self.ui.actionTopView.triggered.connect(self.glWidget.topView)
+        self.ui.actionIsometricView.triggered.connect(self.glWidget.isometricView)
 
         # Options
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
-        self.ui.actionRotate_All.triggered.connect(self.rotateAll)
-        self.ui.actionScale_All.triggered.connect(self.scaleAll)
-        self.ui.actionMove_Workpiece_Zero.triggered.connect(self.moveWorkpieceZero)
-        self.ui.actionSplit_Line_Segments.triggered.connect(self.reload)  # TODO no need to redo the importing
+        self.ui.actionRotateAll.triggered.connect(self.rotateAll)
+        self.ui.actionScaleAll.triggered.connect(self.scaleAll)
+        self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
+        self.ui.actionSplitLineSegments.triggered.connect(self.reload)  # TODO no need to redo the importing
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
-        self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
+        self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
 
     def connectToolbarToConfig(self):
         # Options
         if g.config.vars.General['split_line_segments']:
-            self.ui.actionSplit_Line_Segments.setChecked(True)
+            self.ui.actionSplitLineSegments.setChecked(True)
         if g.config.vars.General['automatic_cutter_compensation']:
-            self.ui.actionAutomatic_Cutter_Compensation.setChecked(True)
+            self.ui.actionAutomaticCutterCompensation.setChecked(True)
         self.updateMachineType()
 
     def keyPressEvent(self, event):
@@ -149,18 +151,20 @@ class MainWindow(QMainWindow):
         self.ui.actionReload.setEnabled(status)
 
         # Export
-        self.ui.actionOptimize_Shape.setEnabled(status)
-        self.ui.actionExport_Shapes.setEnabled(status)
-        self.ui.actionOptimize_and_Export_Shapes.setEnabled(status)
+        self.ui.actionOptimizePaths.setEnabled(status)
+        self.ui.actionExportShapes.setEnabled(status)
+        self.ui.actionOptimizeAndExportShapes.setEnabled(status)
 
         # View
         self.ui.actionAutoscale.setEnabled(status)
+        self.ui.actionTopView.setEnabled(status)
+        self.ui.actionIsometricView.setEnabled(status)
 
         # Options
         self.ui.actionTolerances.setEnabled(status)
-        self.ui.actionRotate_All.setEnabled(status)
-        self.ui.actionScale_All.setEnabled(status)
-        self.ui.actionMove_Workpiece_Zero.setEnabled(status)
+        self.ui.actionRotateAll.setEnabled(status)
+        self.ui.actionScaleAll.setEnabled(status)
+        self.ui.actionMoveWorkpieceZero.setEnabled(status)
 
     def setTolerances(self):
         title = self.tr('Contour tolerances')
@@ -241,35 +245,35 @@ class MainWindow(QMainWindow):
     def setMachineTypeToMilling(self):
         g.config.machine_type = 'milling'
         self.updateMachineType()
-        self.reloadFile()
+        self.reload()
 
     def setMachineTypeToDragKnife(self):
         g.config.machine_type = 'drag_knife'
         self.updateMachineType()
-        self.reloadFile()
+        self.reload()
 
     def setMachineTypeToLathe(self):
         g.config.machine_type = 'lathe'
         self.updateMachineType()
-        self.reloadFile()
+        self.reload()
 
     def updateMachineType(self):
         if g.config.machine_type == 'milling':
-            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(True)
+            self.ui.actionAutomaticCutterCompensation.setEnabled(True)
             self.ui.actionMilling.setChecked(True)
-            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Infeed depth"))
         elif g.config.machine_type == 'lathe':
-            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
-            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(True)
             self.ui.label_9.setText(self.tr("No Z-Axis for lathe"))
         elif g.config.machine_type == "drag_knife":
-            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
-            self.ui.actionDrag_Knife.setChecked(True)
+            self.ui.actionDragKnife.setChecked(True)
             self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
 
@@ -444,7 +448,7 @@ class MainWindow(QMainWindow):
                 parent.append(self.shapes[-1])
 
     def appendshapes(self, geo):
-        if self.ui.actionSplit_Line_Segments.isChecked():
+        if self.ui.actionSplitLineSegments.isChecked():
             if isinstance(geo, LineGeo):
                 diff = (geo.Pe - geo.Ps) / 2.0
                 geo_b = deepcopy(geo)
