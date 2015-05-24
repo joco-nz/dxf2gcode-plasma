@@ -135,6 +135,13 @@ class MainWindow(QMainWindow):
             self.glWidget.unsetCursor()
         elif event.key() == Qt.Key_Alt:
             self.glWidget.isRotating = False
+            if -5 < self.glWidget.rotX < 5 and\
+               -5 < self.glWidget.rotY < 5 and\
+               -5 < self.glWidget.rotZ < 5:
+                self.glWidget.rotX = 0
+                self.glWidget.rotY = 0
+                self.glWidget.rotZ = 0
+                self.glWidget.update()
             self.glWidget.unsetCursor()
 
     def enableToolbarButtons(self, status=True):

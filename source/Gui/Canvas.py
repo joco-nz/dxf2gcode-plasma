@@ -430,10 +430,16 @@ class GLWidget(QOpenGLWidget):
 
     def autoScale(self):
         # TODO currently only works correctly when object is not rotated
-        scaleX = (self.camRightX - self.camLeftX) / (self.bottomRight.x - self.topLeft.x)
-        scaleY = (self.camBottomY - self.camTopY) / (self.topLeft.y - self.bottomRight.y)
+        if self.frameSize().width() >= self.frameSize().height():
+            aspect_scale_x = self.frameSize().width() / self.frameSize().height()
+            aspect_scale_y = 1
+        else:
+            aspect_scale_x = 1
+            aspect_scale_y = self.frameSize().height() / self.frameSize().width()
+        scaleX = (self.camRightX - self.camLeftX) * aspect_scale_x / (self.bottomRight.x - self.topLeft.x)
+        scaleY = (self.camBottomY - self.camTopY) * aspect_scale_y / (self.topLeft.y - self.bottomRight.y)
         self.scale = min(scaleX, scaleY) * 0.95
-        self.posX = self.camLeftX * 0.95 - self.topLeft.x * self.scale
-        self.posY = -self.camTopY * 0.95 + self.bottomRight.y * self.scale
+        self.posX = self.camLeftX * 0.95 * aspect_scale_x - self.topLeft.x * self.scale
+        self.posY = -self.camTopY * 0.95 * aspect_scale_y + self.bottomRight.y * self.scale
         self.posZ = 0
         self.update()
