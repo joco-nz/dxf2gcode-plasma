@@ -39,7 +39,7 @@ from d2gexceptions import *
 
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "9.4"
+CONFIG_VERSION = "9.5"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -64,12 +64,9 @@ CONFIG_SPEC = str('''
     # export generated gcode by default to
     output_dir = string(default = "D:")
 
-    [Depth_Coordinates]
-    axis3_retract = float(default = 15.0)
-    axis3_slice_depth = float(default = -1.5)
-    axis3_safe_margin = float(default = 3.0)
-    axis3_start_mill_depth = float(default = 0.0)
-    axis3_mill_depth = float(default = -3.0)
+    [Filters]
+    pstoedit_cmd = string(default = "C:\Program Files (x86)\pstoedit\pstoedit.exe")
+    pstoedit_opt = list(default = list('-f', 'dxf', '-mm', '-dt'))
 
     [Axis_letters]
     ax1_letter = string(default = "X")
@@ -80,6 +77,17 @@ CONFIG_SPEC = str('''
     axis1_start_end = float(default = 0)
     axis2_start_end = float(default = 0)
 
+    [Depth_Coordinates]
+    axis3_retract = float(default = 15.0)
+    axis3_safe_margin = float(default = 3.0)
+    axis3_start_mill_depth = float(default = 0.0)
+    axis3_slice_depth = float(default = -1.5)
+    axis3_mill_depth = float(default = -3.0)
+
+    [Feed_Rates]
+    f_g1_plane = float(default = 400)
+    f_g1_depth = float(default = 150)
+
     [General]
     write_to_stdout = boolean(default = False)
     show_disabled_paths = boolean(default = True)
@@ -87,6 +95,7 @@ CONFIG_SPEC = str('''
     default_SplitEdges = boolean(default = False)
     default_AutomaticCutterCompensation = boolean(default = False)
     machine_type = option('milling', 'drag_knife', 'lathe', default = 'milling')
+    tool_units = option('mm', 'in', default = 'mm')
 
     [Drag_Knife_Options]
     # dragAngle: if larger than this angle (in degrees), tool retracts to dragDepth
@@ -122,7 +131,7 @@ CONFIG_SPEC = str('''
     f_g1_plane_identifiers = list(default = list('FeedXY', 'Fxy', 'VorschubXY', 'Vxy', 'F'))
     f_g1_depth_identifiers = list(default = list('FeedZ', 'Fz', 'VorschubZ', 'Vz'))
 
-    #tool options
+    # tool options
     tool_nr_identifiers = list(default = list('ToolNr', 'Tn', 'T', 'WerkzeugNummer', 'Wn'))
     tool_diameter_identifiers = list(default = list('ToolDiameter', 'Td', 'WerkzeugDurchmesser', 'Wd'))
     spindle_speed_identifiers = list(default = list('SpindleSpeed', 'Drehzahl', 'RPM', 'UPM', 'S'))
@@ -156,10 +165,6 @@ CONFIG_SPEC = str('''
     [[__many__]]
     gcode = string(default = "(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
 
-    [Filters]
-    pstoedit_cmd = string(default = "C:\Program Files (x86)\pstoedit\pstoedit.exe")
-    pstoedit_opt = list(default = list('-f', 'dxf', '-mm', '-dt'))
-
     [Logging]
     # Logging to textfile is enabled automatically for now
     logfile = string(default = "logfile.txt")
@@ -176,10 +181,6 @@ CONFIG_SPEC = str('''
 
     # logging level for the message window
     window_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'INFO')
-
-    [Feed_Rates]
-    f_g1_plane = float(default = 400)
-    f_g1_depth = float(default = 150)
 
 ''').splitlines()
 """ format, type and default value specification of the global config file"""
@@ -213,6 +214,7 @@ class MyConfig(QtCore.QObject):
         self.point_tolerance = self.vars.Import_Parameters['point_tolerance']
 
         self.metric = 1  # true unit is determined while importing
+        self.tool_units_metric = 0 if self.vars.General['tool_units'] == 'in' else 1
 
         # except Exception, msg:
         #     logger.warning(self.tr("Config loading failed: %s") % msg)
@@ -345,6 +347,10 @@ class DictDotLookup(object):
     def __getitem__(self, name):
         if name in self.__dict__:
             return self.__dict__[name]
+
+    def __setitem__(self, name, value):
+        if name in self.__dict__:
+            self.__dict__[name] = value
 
     def __iter__(self):
         return iter(self.__dict__.keys())
