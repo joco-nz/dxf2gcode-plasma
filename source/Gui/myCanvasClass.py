@@ -645,7 +645,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
             max_slice = self.shapes[exp_order[shape_nr]].LayerContent.axis3_slice_depth if self.shapes[exp_order[shape_nr]].axis3_slice_depth is None else self.shapes[exp_order[shape_nr]].axis3_slice_depth
             workpiece_top_Z = self.shapes[exp_order[shape_nr]].LayerContent.axis3_start_mill_depth if self.shapes[exp_order[shape_nr]].axis3_start_mill_depth is None else self.shapes[exp_order[shape_nr]].axis3_start_mill_depth
-            depth = self.shapes[exp_order[shape_nr]].LayerContent.axis3_mill_depth if self.shapes[exp_order[shape_nr]].axis3_mill_depth is None else self.shapes[exp_order[shape_nr]].shapes[exp_order[shape_nr]].axis3_mill_depth
+            depth = self.shapes[exp_order[shape_nr]].LayerContent.axis3_mill_depth if self.shapes[exp_order[shape_nr]].axis3_mill_depth is None else self.shapes[exp_order[shape_nr]].axis3_mill_depth
             max_slice = max(max_slice, depth - workpiece_top_Z)
             self.expprv, _ = self.shapes[exp_order[shape_nr]].get_st_en_points((workpiece_top_Z - depth)//max_slice % 2)
 #            st=shapes_st_en_points[route[st_nr]][1]
