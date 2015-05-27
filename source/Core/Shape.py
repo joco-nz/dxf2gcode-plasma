@@ -380,14 +380,19 @@ class ShapeClass(QtGui.QGraphicsItem):
         @return: a list of Point and angle
         """
         start, start_ang = self.geos[0].get_start_end_points(0, self.parent)
-        ende, end_ang = self.geos[-1].get_start_end_points(1, self.parent)
+
+        max_slice = self.LayerContent.axis3_slice_depth if self.axis3_slice_depth is None else self.axis3_slice_depth
+        workpiece_top_Z = self.LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
+        depth = self.LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
+        max_slice = max(max_slice, depth - workpiece_top_Z)
+        end, end_ang = self.geos[-1].get_start_end_points((workpiece_top_Z - depth)//max_slice % 2, self.parent)
 
         if dir is None:
-            return start, ende
+            return start, end
         elif dir == 0:
             return start, start_ang
         elif dir == 1:
-            return ende, end_ang
+            return end, end_ang
 
     def make_papath(self):
         """
