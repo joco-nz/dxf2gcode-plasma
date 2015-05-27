@@ -84,14 +84,14 @@ class BreakGeo(LineGeo):
         oldFeed = PostPro.feed
         if self.height <= oldZ:
             return (
-                self.inner.Write_GCode(parent, PostPro)
+                self.inter.Write_GCode(parent, PostPro)
             )
         else:
             return (
                 PostPro.chg_feed_rate(self.zfeed) + 
                 PostPro.lin_pol_z(self.height) + 
                 PostPro.chg_feed_rate(self.xyfeed) + 
-                self.inner.Write_GCode(parent, PostPro) + 
+                self.inter.Write_GCode(parent, PostPro) + 
                 PostPro.chg_feed_rate(self.zfeed) + 
                 PostPro.lin_pol_z(oldZ) +
                 PostPro.chg_feed_rate(oldFeed)  
