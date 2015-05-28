@@ -98,9 +98,11 @@ POSTPRO_SPEC = str('''
     lin_mov_depth = string(default= G1 Z%ZE%nl)
     arc_int_cw = string(default=G2 X%XE Y%YE I%I J%J%nl)
     arc_int_ccw = string(default=G3 X%XE Y%YE I%I J%J%nl)
-    cutter_comp_off = string(default=G40%nl)
-    cutter_comp_left = string(default=G41%nl)
-    cutter_comp_right = string(default=G42%nl)
+    cutter_comp_off = string(default=G40%nl) ''' + \
+# FIXME: adding G40 before each G41/G42 invokation is a dirty fix for open shapes when using tool compensation. we need to turn it off before turning it on in the opposite direction so the linuxCNC axis does not complain. Needs more elegant way to do that in the code.
+'''
+    cutter_comp_left = string(default=G40%nlG41%nl)
+    cutter_comp_right = string(default=G40%nlG42%nl)
     pre_shape_cut = string(default=M3 M8%nl)
     post_shape_cut = string(default=M9 M5%nl)
     comment = string(default=%nl(%comment)%nl)              
