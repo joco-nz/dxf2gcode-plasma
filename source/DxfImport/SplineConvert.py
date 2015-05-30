@@ -141,13 +141,13 @@ class Spline2Arcs:
         """
         calc_active_tolerance_inc()
         """
-        V0 = arc[0].Ps.unit_vector(arc[0].O)
-        Vb = Arc1.Ps.unit_vector(Arc1.O)
+        V0 = (arc[0].O - arc[0].Ps).unit_vector()
+        Vb = (Arc1.O - Arc1.Ps).unit_vector()
 
         t_ = (2 * arc[0].r * tau + pow(tau, 2)) / \
              (2 * (arc[0].r + (arc[0].r + tau) * V0 * Vb))
 
-        te = arc[0].r + t_ - (Arc0.Pe - (arc[0].O + (t_ * V0))).distance()
+        te = arc[0].r + t_ - (Arc0.Pe - (arc[0].O + (t_ * V0))).length()
 
         tm = arc[1].O.distance(Arc0.Pe) - abs(arc[1].r)
         if tm < 0.0:
@@ -167,13 +167,13 @@ class Spline2Arcs:
         """
         calc_active_tolerance_dec()
         """
-        V0 = arc[2].Ps.unit_vector(arc[2].O)
-        Vb = Arc1.Ps.unit_vector(Arc1.O)
+        V0 = (arc[2].O - arc[2].Ps).unit_vector()
+        Vb = (Arc1.O - Arc1.Ps).unit_vector()
 
         t_ = (2 * arc[2].r * tau + pow(tau, 2)) / \
              (2 * (arc[2].r + (arc[2].r + tau) * V0 * Vb))
 
-        te = arc[2].r + t_ - (Arc0.Pe - (arc[2].O + (t_ * V0))).distance()
+        te = arc[2].r + t_ - (Arc0.Pe - (arc[2].O + (t_ * V0))).length()
         te = tau
 
         tm = -arc[1].O.distance(Arc0.Pe) + abs(arc[1].r)
@@ -195,8 +195,8 @@ class Spline2Arcs:
         """
 
         #Errechnen von tb
-        V0 = arc[0].Ps.unit_vector(arc[0].O)
-        V2 = arc[2].Pe.unit_vector(arc[2].O)
+        V0 = (arc[0].O - arc[0].Ps).unit_vector()
+        V2 = (arc[2].O - arc[2].Pe).unit_vector()
 
         #Errechnen der Hilfgr�ssen
         t0 = (arc[2].r - arc[0].r)
@@ -224,7 +224,7 @@ class Spline2Arcs:
         ra = arc[0].r + t
         Ob = arc[2].O - u * V2
         rb = arc[2].r - u
-        Vn = Ob.unit_vector(Oa)
+        Vn = (Oa - Ob).unit_vector()
         Pn = Oa + ra * Vn
 
         Arc0 = ArcGeo(Ps=arc[0].Ps, Pe=Pn, O=Oa, r=ra, direction=arc[0].ext)
@@ -246,8 +246,8 @@ class Spline2Arcs:
         fit_triac_by_dec_biarc()
         """
 
-        V0 = arc[2].Pe.unit_vector(arc[2].O)
-        V2 = arc[0].Ps.unit_vector(arc[0].O)
+        V0 = (arc[2].O - arc[2].Pe).unit_vector()
+        V2 = (arc[0].O - arc[0].Ps).unit_vector()
 
         #Errechnen der Hilfgr�ssen
         t0 = (arc[0].r - arc[2].r)
@@ -275,15 +275,15 @@ class Spline2Arcs:
         ra = arc[0].r - u
         Ob = arc[2].O + t * V0
         rb = arc[2].r + t
-        Vn = Oa.unit_vector(Ob)
+        Vn = (Ob - Oa).unit_vector()
         Pn = Ob + rb * Vn
 
         Arc0 = ArcGeo(Ps=arc[0].Ps, Pe=Pn, O=Oa, r=ra, \
-                    s_ang=Oa.norm_angle(arc[0].Ps), e_ang=Oa.norm_angle(Pn),
-                    direction=arc[0].ext)
+                      s_ang=Oa.norm_angle(arc[0].Ps), e_ang=Oa.norm_angle(Pn),
+                      direction=arc[0].ext)
         Arc1 = ArcGeo(Ps=Pn, Pe=arc[2].Pe, O=Ob, r=rb, \
-                    s_ang=Ob.norm_angle(Pn), e_ang=Ob.norm_angle(arc[2].Pe),
-                    direction=arc[2].ext)
+                      s_ang=Ob.norm_angle(Pn), e_ang=Ob.norm_angle(arc[2].Pe),
+                      direction=arc[2].ext)
 
         return Arc0, Arc1
 
@@ -880,4 +880,3 @@ class BSplineClass:
                 ders[k][j] *= r
             r *= (d - k)
         return ders
-
