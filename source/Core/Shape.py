@@ -127,13 +127,13 @@ class Shape(object):
         # Optimization for closed shapes
         if self.closed:
             # Start value for the first sum
-            start, dummy = self.geos[0].get_start_end_points(0)
+            start = self.geos[0].get_start_end_points(True)
             summe = 0.0
             for geo in self.geos:
                 if isinstance(geo, LineGeo):
-                    end, dummy = geo.get_start_end_points(1)
+                    end = geo.get_start_end_points(False)
                     summe += (start.x + end.x) * (end.y - start.y) / 2
-                    start = deepcopy(end)
+                    start = end
                 elif isinstance(geo, ArcGeo):
                     segments = int((abs(degrees(geo.ext)) // 90) + 1)
                     for i in range(segments):
@@ -141,7 +141,7 @@ class Shape(object):
                         end = Point(geo.O.x + cos(ang) * abs(geo.r),
                                     geo.O.y + sin(ang) * abs(geo.r))
                         summe += (start.x + end.x) * (end.y - start.y) / 2
-                        start = deepcopy(end)
+                        start = end
 
             if summe > 0.0:
                 self.reverse()
@@ -150,14 +150,14 @@ class Shape(object):
     def setNearestStPoint(self, stPoint):
         if self.closed:
             logger.debug(self.tr("Clicked Point: %s" % stPoint))
-            start, dummy = self.geos[0].get_start_end_points(0, self.parentEntity)
+            start = self.get_start_end_points(True)
             min_distance = start.distance(stPoint)
 
             logger.debug(self.tr("Old Start Point: %s" % start))
 
             min_geo_nr = 0
             for geo_nr in range(1, len(self.geos)):
-                start, dummy = self.geos[geo_nr].get_start_end_points(0, self.parentEntity)
+                start = self.geos[geo_nr].get_start_end_points(True, None, self.parentEntity)
 
                 if start.distance(stPoint) < min_distance:
                     min_distance = start.distance(stPoint)
@@ -166,7 +166,7 @@ class Shape(object):
             # Overwrite the geometries in changed order.
             self.geos = self.geos[min_geo_nr:len(self.geos)] + self.geos[0:min_geo_nr]
 
-            start, dummy = self.geos[0].get_start_end_points(0, self.parentEntity)
+            start = self.get_start_end_points(True)
             logger.debug(self.tr("New Start Point: %s" % start))
 
     def reverse(self):
@@ -174,16 +174,14 @@ class Shape(object):
         for geo in self.geos:
             geo.reverse()
 
-    def get_st_en_points(self, direction=None):
-        start, start_ang = self.geos[0].get_start_end_points(0, self.parentEntity)
-        end, end_ang = self.geos[-1].get_start_end_points(1, self.parentEntity)
-
-        if direction is None:
-            return start, end
-        elif direction == 0:
-            return start, start_ang
-        elif direction == 1:
-            return end, end_ang
+    def get_start_end_points(self, start_point=None, angles=None):
+        if start_point is None:
+            return (self.geos[0].get_start_end_points(True, angles, self.parentEntity),
+                    self.geos[-1].get_start_end_points(False, angles, self.parentEntity))
+        elif start_point:
+            return self.geos[0].get_start_end_points(True, angles, self.parentEntity)
+        else:
+            return self.geos[-1].get_start_end_points(False, angles, self.parentEntity)
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:

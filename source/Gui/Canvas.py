@@ -470,28 +470,13 @@ class GLWidget(QOpenGLWidget):
         self.gl.glEnd()
 
     def makeDirArrows(self, shape):
-        start, end = shape.get_st_en_points()
-        direction = Point(1, 1)
-        # TODO getting directions should be a function of geos
-        if isinstance(shape.geos[0], LineGeo):
-            direction = shape.geos[0].Pe - start
-        elif isinstance(shape.geos[0], ArcGeo):
-            direction = shape.geos[0].O - start
-            direction = (-1 if shape.geos[0].ext >= 0 else 1) * direction
-            direction = Point(-direction.y, direction.x)
+        (start, start_dir), (end, end_dir) = shape.get_start_end_points(None, False)
 
         self.setColor(self.colorEntryArrow)
-        self.drawDirArrow(start.to3D(shape.axis3_start_mill_depth), direction.to3D(0), True)
-
-        if isinstance(shape.geos[-1], LineGeo):
-            direction = end - shape.geos[-1].Ps
-        elif isinstance(shape.geos[-1], ArcGeo):
-            direction = end - shape.geos[-1].O
-            direction = (1 if shape.geos[-1].ext >= 0 else -1) * direction
-            direction = Point(-direction.y, direction.x)
+        self.drawDirArrow(start.to3D(shape.axis3_start_mill_depth), start_dir.to3D(0), True)
 
         self.setColor(self.colorExitArrow)
-        self.drawDirArrow(end.to3D(shape.axis3_mill_depth), direction.to3D(0), False)
+        self.drawDirArrow(end.to3D(shape.axis3_mill_depth), end_dir.to3D(0), False)
 
     def drawDirArrow(self, origin, direction, startError):
         offset = 0.0 if startError else 0.05

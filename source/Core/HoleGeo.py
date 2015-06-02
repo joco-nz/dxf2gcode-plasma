@@ -25,6 +25,8 @@ import logging
 from copy import deepcopy
 from math import pi
 
+from Core.Point import Point
+
 
 logger = logging.getLogger("Core.HoleGeo")
 
@@ -70,15 +72,15 @@ class HoleGeo(object):
 
         return HoleGeo(Ps)
 
-    def get_start_end_points(self, direction, parent=None):
-        """
-        Returns the start/end Point and its direction
-        @param direction: 0 to return start Point and 1 to return end Point
-        @return: a list of Point and angle
-        """
+    def get_start_end_points(self, start_point, angles=None, parent=None):
         abs_geo = self.make_abs_geo(parent)
 
-        return abs_geo.Ps, 0
+        if angles is None:
+            return abs_geo.Ps
+        elif angles:
+            return abs_geo.Ps, 0
+        else:
+            return abs_geo.Ps, Point(0, -1) if start_point else Point(0, -1)
 
     def make_path(self, caller, drawHorLine):
         self.abs_geo = self.make_abs_geo(caller.parentEntity)

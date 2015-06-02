@@ -26,6 +26,7 @@ from math import sqrt, sin, cos, pi, degrees
 from copy import deepcopy
 import logging
 
+from Core.Point import Point
 import Global.Globals as g
 
 
@@ -173,17 +174,27 @@ class ArcGeo(object):
 
         return r
 
-    def get_start_end_points(self, direction, parent=None):
+    def get_start_end_points(self, start_point, angles=None, parent=None):
         abs_geo = self.make_abs_geo(parent)
 
-        if not direction:
-            punkt = abs_geo.Ps
-            angle = abs_geo.s_ang + pi/2 * abs_geo.ext / abs(abs_geo.ext)
+        if start_point:
+            if angles is None:
+                return abs_geo.Ps
+            elif angles:
+                return abs_geo.Ps, abs_geo.s_ang + pi/2 * abs_geo.ext / abs(abs_geo.ext)
+            else:
+                direction = (abs_geo.O - abs_geo.Ps).unit_vector()
+                direction = -direction if abs_geo.ext >= 0 else direction
+                return abs_geo.Ps, Point(-direction.y, direction.x)
         else:
-            punkt = abs_geo.Pe
-            angle = abs_geo.e_ang - pi/2 * abs_geo.ext / abs(abs_geo.ext)
-
-        return punkt, angle
+            if angles is None:
+                return abs_geo.Pe
+            elif angles:
+                return abs_geo.Pe, abs_geo.e_ang - pi/2 * abs_geo.ext / abs(abs_geo.ext)
+            else:
+                direction = (abs_geo.O - abs_geo.Pe).unit_vector()
+                direction = -direction if abs_geo.ext >= 0 else direction
+                return abs_geo.Pe, Point(-direction.y, direction.x)
 
     def make_path(self, caller, drawHorLine):
         self.abs_geo = self.make_abs_geo(caller.parentEntity)

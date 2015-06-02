@@ -90,17 +90,23 @@ class LineGeo(object):
             return abs(2 * sqrt(abs(AEPA * (AEPA - AE) *
                                     (AEPA - AP) * (AEPA - EP))) / AE)
 
-    def get_start_end_points(self, direction, parent=None):
+    def get_start_end_points(self, start_point, angles=None, parent=None):
         abs_geo = self.make_abs_geo(parent)
 
-        if not direction:
-            punkt = abs_geo.Ps
-            angle = punkt.norm_angle(abs_geo.Pe)
+        if start_point:
+            if angles is None:
+                return abs_geo.Ps
+            elif angles:
+                return abs_geo.Ps, abs_geo.Ps.norm_angle(abs_geo.Pe)
+            else:
+                return abs_geo.Ps, (abs_geo.Pe - abs_geo.Ps).unit_vector()
         else:
-            punkt = abs_geo.Pe
-            angle = punkt.norm_angle(abs_geo.Ps)
-
-        return punkt, angle
+            if angles is None:
+                return abs_geo.Pe
+            elif angles:
+                return abs_geo.Pe, abs_geo.Pe.norm_angle(abs_geo.Ps)
+            else:
+                return abs_geo.Pe, (abs_geo.Pe - abs_geo.Ps).unit_vector()
 
     def make_path(self, caller, drawHorLine):
         self.abs_geo = self.make_abs_geo(caller.parentEntity)
