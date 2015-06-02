@@ -21,14 +21,21 @@
 ############################################################################
 
 from math import pi, cos, sin, radians
+import logging
 
-from PyQt5.QtCore import QPoint, Qt
+from PyQt5.QtCore import QPoint, Qt, QCoreApplication
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
-from PyQt5.QtWidgets import QOpenGLWidget
+from PyQt5.QtWidgets import QOpenGLWidget, QMenu
 
+from Core.LineGeo import LineGeo
+from Core.ArcGeo import ArcGeo
 from Core.Point import Point
-
+from Core.Point3D import Point3D
 import Global.Globals as g
+
+
+logger = logging.getLogger("Gui.Canvas")
+
 
 class GLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
@@ -64,6 +71,8 @@ class GLWidget(QOpenGLWidget):
         self.colorSelect = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 1.0)
         self.colorNormalDisabled = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 0.25)
         self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.25)
+        self.colorEntryArrow = QColor.fromRgbF(0.0, 0.0, 1.0, 1.0)
+        self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
 
         self.topLeft = Point()
         self.bottomRight = Point()
@@ -89,6 +98,10 @@ class GLWidget(QOpenGLWidget):
 
         self.update()
 
+    def contextMenuEvent(self, event):
+        clicked, offset, _ = self.getClickedDetails(event)
+        MyDropDownMenu(self, self.objects, event.globalPos(), clicked, offset)
+
     def setXRotation(self, angle):
         self.rotX = self.normalizeAngle(angle)
 
@@ -104,25 +117,21 @@ class GLWidget(QOpenGLWidget):
     def mousePressEvent(self, event):
         if self.isPanning or self.isRotating:
             self.setCursor(Qt.ClosedHandCursor)
-        else:
-            min_side = min(self.frameSize().width(), self.frameSize().height())
-            clickedX = (event.pos().x() - self.frameSize().width() / 2) / min_side / self.scale
-            clickedY = (event.pos().y() - self.frameSize().height() / 2) / min_side / self.scale
-            offsetX, offsetY, offsetZ = -self.posX / self.scale, -self.posY / self.scale, -self.posZ / self.scale
+        elif event.button() == Qt.LeftButton:
+            clicked, offset, tol = self.getClickedDetails(event)
 
             xyForZ = {}
-            tol = 4 * self.scaleCorr / min_side / self.scale
             for shape in self.objects:
                 hit = False
                 z = shape.axis3_start_mill_depth
                 if z not in xyForZ:
-                    xyForZ[z] = self.determineSelectedPosition(clickedX, clickedY, z, offsetX, offsetY, offsetZ)
+                    xyForZ[z] = self.determineSelectedPosition(clicked, z, offset)
                 hit |= shape.isHit(xyForZ[z], tol)
 
                 if not hit:
                     z = shape.axis3_mill_depth
                     if z not in xyForZ:
-                        xyForZ[z] = self.determineSelectedPosition(clickedX, clickedY, z, offsetX, offsetY, offsetZ)
+                        xyForZ[z] = self.determineSelectedPosition(clicked, z, offset)
                     hit |= shape.isHit(xyForZ[z], tol)
 
                 if self.isMultiSelect and shape.selected:
@@ -136,14 +145,22 @@ class GLWidget(QOpenGLWidget):
             self.update()
         self._lastPos = event.pos()
 
-    def determineSelectedPosition(self, clickedX, clickedY, forZ, offsetX, offsetY, offsetZ):
+    def getClickedDetails(self, event):
+        min_side = min(self.frameSize().width(), self.frameSize().height())
+        clicked = Point((event.pos().x() - self.frameSize().width() / 2),
+                        (event.pos().y() - self.frameSize().height() / 2)) / min_side / self.scale
+        offset = Point3D(-self.posX, -self.posY, -self.posZ) / self.scale
+        tol = 4 * self.scaleCorr / min_side / self.scale
+        return clicked, offset, tol
+
+    def determineSelectedPosition(self, clicked, forZ, offset):
         angleX = -radians(self.rotX)
         angleY = -radians(self.rotY)
 
-        zv = forZ - offsetZ
-        clickedZ = ((zv + clickedX * sin(angleY)) / cos(angleY) - clickedY * sin(angleX)) / cos(angleX)
-        sx, sy, sz = self.deRotate(clickedX, clickedY, clickedZ)
-        return Point(sx + offsetX, - sy - offsetY)  #, sz + offsetZ
+        zv = forZ - offset.z
+        clickedZ = ((zv + clicked.x * sin(angleY)) / cos(angleY) - clicked.y * sin(angleX)) / cos(angleX)
+        sx, sy, sz = self.deRotate(clicked.x, clicked.y, clickedZ)
+        return Point(sx + offset.x, - sy - offset.y)  #, sz + offset.z
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
@@ -204,6 +221,28 @@ class GLWidget(QOpenGLWidget):
         angleZ = -radians(self.rotZ)
         return x*cos(angleZ) - y*sin(angleZ), x*sin(angleZ) + y*cos(angleZ), z
 
+    def getRotationVectors(self, orgRefVector, toRefVector):
+        """
+        Generate a rotation matrix such that toRefVector = matrix * orgRefVector
+        @param orgRefVector: A 3D unit vector
+        @param toRefVector: A 3D unit vector
+        @return: 3 vectors such that matrix = [vx; vy; vz]
+        """
+        # based on:
+        # http://math.stackexchange.com/questions/180418/calculate-rotation-matrix-to-align-vector-a-to-vector-b-in-3d
+
+        if orgRefVector == toRefVector:
+            return Point3D(1, 0, 0), Point3D(0, 1, 0), Point3D(0, 0, 1)
+
+        v = orgRefVector.cross_product(toRefVector)
+        mn = (1 - orgRefVector * toRefVector) / v.length_squared()
+
+        vx = Point3D(1, -v.z, v.y) + mn * Point3D(-v.y**2 - v.z**2, v.x * v.y, v.x * v.z)
+        vy = Point3D(v.z, 1, -v.x) + mn * Point3D(v.x * v.y, -v.x**2 - v.z**2, v.y * v.z)
+        vz = Point3D(-v.y, v.x, 1) + mn * Point3D(v.x * v.z, v.y * v.z, -v.x**2 - v.y**2)
+
+        return vx, vy, vz
+
     def initializeGL(self):
         version = QOpenGLVersionProfile()
         version.setVersion(2, 0)
@@ -246,6 +285,9 @@ class GLWidget(QOpenGLWidget):
                     self.setColor(self.colorNormal)
             self.gl.glCallList(shape.drawingObject)
         self.gl.glScaled(self.scaleCorr / self.scale, self.scaleCorr / self.scale, self.scaleCorr / self.scale)
+        for shape in self.objects:
+            if shape.selected:
+                self.makeDirArrows(shape)
         self.gl.glCallList(self.wpZero)
         self.gl.glTranslated(-self.posX / self.scaleCorr, -self.posY / self.scaleCorr, -self.posZ / self.scaleCorr)
         self.gl.glCallList(self.orientation)
@@ -407,8 +449,7 @@ class GLWidget(QOpenGLWidget):
 
     def drawCone(self, origin, r, zTop, zBottom, segments):
         self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
-        xy1 = Point(origin.x, -origin.y, zTop)
-        self.gl.glVertex3d(xy1.x, xy1.y, xy1.z)
+        self.gl.glVertex3d(origin.x, -origin.y, zTop)
         for i in range(segments + 1):
             ang = i * 2 * pi / segments
             xy2 = origin.get_arc_point(ang, r)
@@ -426,6 +467,71 @@ class GLWidget(QOpenGLWidget):
             # self.gl.glNormal3d(xy.x, -xy.y, 0)
             self.gl.glVertex3d(xy.x, -xy.y, zTop)
             self.gl.glVertex3d(xy.x, -xy.y, zBottom)
+        self.gl.glEnd()
+
+    def makeDirArrows(self, shape):
+        start, end = shape.get_st_en_points()
+        direction = Point(1, 1)
+        # TODO getting directions should be a function of geos
+        if isinstance(shape.geos[0], LineGeo):
+            direction = shape.geos[0].Pe - start
+        elif isinstance(shape.geos[0], ArcGeo):
+            direction = shape.geos[0].O - start
+            direction = (-1 if shape.geos[0].ext >= 0 else 1) * direction
+            direction = Point(-direction.y, direction.x)
+
+        self.setColor(self.colorEntryArrow)
+        self.drawDirArrow(start.to3D(shape.axis3_start_mill_depth), direction.to3D(0), True)
+
+        if isinstance(shape.geos[-1], LineGeo):
+            direction = end - shape.geos[-1].Ps
+        elif isinstance(shape.geos[-1], ArcGeo):
+            direction = end - shape.geos[-1].O
+            direction = (1 if shape.geos[-1].ext >= 0 else -1) * direction
+            direction = Point(-direction.y, direction.x)
+
+        self.setColor(self.colorExitArrow)
+        self.drawDirArrow(end.to3D(shape.axis3_mill_depth), direction.to3D(0), False)
+
+    def drawDirArrow(self, origin, direction, startError):
+        offset = 0.0 if startError else 0.05
+        zMiddle = -0.02 + offset
+        zBottom = -0.05 + offset
+        rx, ry, rz = self.getRotationVectors(Point3D(0, 0, 1), direction)
+
+        origin = self.scale / self.scaleCorr * origin
+
+        self.drawArrowHead(origin, rx, ry, rz, offset)
+
+        self.gl.glBegin(self.gl.GL_LINES)
+        zeroMiddle = Point3D(0, 0, zMiddle)
+        self.gl.glVertex3d(zeroMiddle * rx + origin.x, -zeroMiddle * ry - origin.y, zeroMiddle * rz + origin.z)
+        zeroBottom = Point3D(0, 0, zBottom)
+        self.gl.glVertex3d(zeroBottom * rx + origin.x, -zeroBottom * ry - origin.y, zeroBottom * rz + origin.z)
+        self.gl.glEnd()
+
+    def drawArrowHead(self, origin, rx, ry, rz, offset):
+        r = 0.01
+        segments = 10
+        zTop = 0 + offset
+        zBottom = -0.02 + offset
+
+        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
+        zeroTop = Point3D(0, 0, zTop)
+        self.gl.glVertex3d(zeroTop * rx + origin.x, -zeroTop * ry - origin.y, zeroTop * rz + origin.z)
+        for i in range(segments + 1):
+            ang = i * 2 * pi / segments
+            xy2 = Point().get_arc_point(ang, r).to3D(zBottom)
+            self.gl.glVertex3d(xy2 * rx + origin.x, -xy2 * ry - origin.y, xy2 * rz + origin.z)
+        self.gl.glEnd()
+
+        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
+        zeroBottom = Point3D(0, 0, zBottom)
+        self.gl.glVertex3d(zeroBottom * rx + origin.x, -zeroBottom * ry - origin.y, zeroBottom * rz + origin.z)
+        for i in range(segments + 1):
+            ang = -i * 2 * pi / segments
+            xy2 = Point().get_arc_point(ang, r).to3D(zBottom)
+            self.gl.glVertex3d(xy2 * rx + origin.x, -xy2 * ry - origin.y, xy2 * rz + origin.z)
         self.gl.glEnd()
 
     def autoScale(self):
@@ -455,3 +561,138 @@ class GLWidget(QOpenGLWidget):
         self.rotY = -22
         self.rotZ = 0
         self.update()
+
+class MyDropDownMenu(QMenu):
+    def __init__(self, canvas, objects, position, clicked, offset):
+
+        QMenu.__init__(self)
+
+        self.objects = objects
+
+        self.canvas = canvas
+        self.clicked, self.offset = clicked, offset
+
+        self.selectedItems = [shape for shape in objects if shape.selected]
+
+        if len(self.selectedItems) == 0:
+            return
+
+        invertAction = self.addAction(self.tr("Invert Selection"))
+        disableAction = self.addAction(self.tr("Disable Selection"))
+        enableAction = self.addAction(self.tr("Enable Selection"))
+
+        self.addSeparator()
+
+        swdirectionAction = self.addAction(self.tr("Switch Direction"))
+        SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
+
+        if g.config.machine_type == 'drag_knife':
+            pass
+        else:
+            self.addSeparator()
+            submenu1 = QMenu(self.tr('Cutter Compensation'), self)
+            self.noCompAction = submenu1.addAction(self.tr("G40 No Compensation"))
+            self.noCompAction.setCheckable(True)
+            self.leCompAction = submenu1.addAction(self.tr("G41 Left Compensation"))
+            self.leCompAction.setCheckable(True)
+            self.reCompAction = submenu1.addAction(self.tr("G42 Right Compensation"))
+            self.reCompAction.setCheckable(True)
+
+            logger.debug(self.tr("The selected shapes have the following direction: %i") % (self.calcMenuDir()))
+            self.checkMenuDir(self.calcMenuDir())
+
+            self.addMenu(submenu1)
+
+        invertAction.triggered.connect(self.invertSelection)
+        disableAction.triggered.connect(self.disableSelection)
+        enableAction.triggered.connect(self.enableSelection)
+
+        swdirectionAction.triggered.connect(self.switchDirection)
+        SetNxtStPAction.triggered.connect(self.setNearestStPoint)
+
+        if g.config.machine_type == 'drag_knife':
+            pass
+        else:
+            self.noCompAction.triggered.connect(self.setNoComp)
+            self.leCompAction.triggered.connect(self.setLeftComp)
+            self.reCompAction.triggered.connect(self.setRightComp)
+
+        self.exec_(position)
+
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return QCoreApplication.translate("MyDropDownMenu", string_to_translate, None)
+
+    def calcMenuDir(self):
+        dir = self.selectedItems[0].cut_cor
+        for item in self.selectedItems:
+            if not(dir == item.cut_cor):
+                return -1
+
+        return dir-40
+
+    def checkMenuDir(self, dir):
+        self.noCompAction.setChecked(False)
+        self.leCompAction.setChecked(False)
+        self.reCompAction.setChecked(False)
+
+        if dir == 0:
+            self.noCompAction.setChecked(True)
+        elif dir == 1:
+            self.leCompAction.setChecked(True)
+        elif dir == 2:
+            self.reCompAction.setChecked(True)
+
+    def invertSelection(self):
+        for shape in self.objects:
+            shape.selected = not shape.selected
+            g.window.TreeHandler.updateShapeSelection(shape, shape.selected)
+        self.canvas.update()
+
+    def disableSelection(self):
+        for shape in self.selectedItems:
+            if shape.allowedToChange:
+                shape.setDisable(True)
+                g.window.TreeHandler.updateShapeEnabling(shape, False)
+        self.canvas.update()
+
+    def enableSelection(self):
+        for shape in self.selectedItems:
+            if shape.allowedToChange:
+                shape.setDisable(False)
+                g.window.TreeHandler.updateShapeEnabling(shape, True)
+        self.canvas.update()
+
+    def switchDirection(self):
+        for shape in self.selectedItems:
+            shape.reverse()
+            logger.debug(self.tr('Switched Direction at Shape Nr: %i') % shape.nr)
+        self.canvas.update()
+
+    def setNearestStPoint(self):
+        xyForZ = {}
+        for shape in self.selectedItems:
+            z = shape.axis3_start_mill_depth
+            if z not in xyForZ:
+                xyForZ[z] = self.canvas.determineSelectedPosition(self.clicked, z, self.offset)
+            shape.setNearestStPoint(xyForZ[z])
+        self.canvas.update()
+
+    def setNoComp(self):
+        for shape in self.selectedItems:
+            shape.cut_cor = 40
+            logger.debug(self.tr('Changed Cutter Correction to None for shape: %i') % shape.nr)
+
+    def setLeftComp(self):
+        for shape in self.selectedItems:
+            shape.cut_cor = 41
+            logger.debug(self.tr('Changed Cutter Correction to left for shape: %i') % shape.nr)
+
+    def setRightComp(self):
+        for shape in self.selectedItems:
+            shape.cut_cor = 42
+            logger.debug(self.tr('Changed Cutter Correction to right for shape: %i') % shape.nr)
