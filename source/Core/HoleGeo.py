@@ -40,6 +40,7 @@ class HoleGeo(object):
         Standard Method to initialise the HoleGeo
         """
         self.Ps = Ps
+        self.length = -1
 
         self.topLeft = None
         self.bottomRight = None

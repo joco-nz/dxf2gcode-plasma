@@ -43,8 +43,7 @@ class Shape(object):
     related to the Shapes.
     """
     def __init__(self, nr, closed,
-                 parentEntity,
-                 geos):
+                 parentEntity):
         """
         Standard method to initialize the class
         @param nr: The number of the shape. Starting from 0 for the first one
@@ -64,7 +63,7 @@ class Shape(object):
         self.cut_cor = 40
         self.parentEntity = parentEntity
         self.parentLayer = None
-        self.geos = geos
+        self.geos = []
 
         self.drawingObject = 0
 

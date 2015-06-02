@@ -24,7 +24,7 @@
 
 
 class EntityContent(object):
-    def __init__(self, nr, name, parent, children, p0, pb, sca, rot):
+    def __init__(self, nr, name, parent, p0, pb, sca, rot):
         """
         @param p0: The Starting Point to plot (Default x=0 and y=0)
         @param bp: The Base Point to insert the geometry and base for rotation
@@ -35,7 +35,7 @@ class EntityContent(object):
         self.nr = nr
         self.name = name
         self.parent = parent
-        self.children = children
+        self.children = []
         self.p0 = p0
         self.pb = pb
         self.sca = sca

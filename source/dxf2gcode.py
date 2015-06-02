@@ -364,7 +364,7 @@ class MainWindow(QMainWindow):
 
     def makeShapes(self, values, p0, pb, sca, rot):
         self.entityRoot = EntityContent(nr=0, name='Entities',
-                                        parent=None, children=[],
+                                        parent=None,
                                         p0=p0, pb=pb, sca=sca, rot=rot)
         del (self.layerContents[:])
         del (self.shapes[:])
@@ -376,9 +376,9 @@ class MainWindow(QMainWindow):
     def makeEntityShapes(self, values, parent):
         """
         Instance is called prior to plotting the shapes. It creates
-        all shape classes which are later plotted into the graphics.
+        all shape classes which are plotted into the canvas.
 
-        @param parent: The parent of a shape is always an Entities. It may be root
+        @param parent: The parent of a shape is always an Entity. It may be the root
         or, if it is a Block, this is the Block.
         """
 
@@ -410,7 +410,7 @@ class MainWindow(QMainWindow):
                 # Creating the new Entitie Contents for the insert
                 newEntityContent = EntityContent(nr=0,
                                                  name=ent_geo.BlockName,
-                                                 parent=parent, children=[],
+                                                 parent=parent,
                                                  p0=p0,
                                                  pb=pb,
                                                  sca=sca,
@@ -422,10 +422,9 @@ class MainWindow(QMainWindow):
 
             else:
                 # Loop for the number of geometries
-                self.shapes.append(Shape(len(self.shapes),
-                                         cont.closed,
-                                         parent,
-                                         []))
+                tmp_shape = Shape(len(self.shapes),
+                                  cont.closed,
+                                  parent)
 
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
@@ -434,20 +433,25 @@ class MainWindow(QMainWindow):
                         for geo in ent_geo.geo:
                             geo = copy(geo)
                             geo.reverse()
-                            self.appendshapes(geo)
+                            self.append_geo_to_shape(tmp_shape, geo)
                         ent_geo.geo.reverse()
                     else:
                         for geo in ent_geo.geo:
-                            self.appendshapes(copy(geo))
+                            self.append_geo_to_shape(tmp_shape, copy(geo))
 
-                # All shapes have to be CCW direction.
-                self.shapes[-1].AnalyseAndOptimize()
-                self.shapes[-1].setNearestStPoint(parent.pb)
+                if len(tmp_shape.geos) > 0:
+                    # All shapes have to be CCW direction.
+                    tmp_shape.AnalyseAndOptimize()
+                    tmp_shape.setNearestStPoint(parent.pb)
 
-                self.addtoLayerContents(values, self.shapes[-1], ent_geo.Layer_Nr)
-                parent.append(self.shapes[-1])
+                    self.shapes.append(tmp_shape)
+                    self.addtoLayerContents(values, tmp_shape, ent_geo.Layer_Nr)
+                    parent.append(tmp_shape)
 
-    def appendshapes(self, geo):
+    def append_geo_to_shape(self, shape, geo):
+        if geo.length == 0:  # TODO adjust import for this
+            return
+
         if self.ui.actionSplitLineSegments.isChecked():
             if isinstance(geo, LineGeo):
                 diff = (geo.Pe - geo.Ps) / 2.0
@@ -455,19 +459,19 @@ class MainWindow(QMainWindow):
                 geo_a = deepcopy(geo)
                 geo_b.Pe -= diff
                 geo_a.Ps += diff
-                self.shapes[-1].geos.append(geo_b)
-                self.shapes[-1].geos.append(geo_a)
+                shape.geos.append(geo_b)
+                shape.geos.append(geo_a)
             else:
-                self.shapes[-1].geos.append(geo)
+                shape.geos.append(geo)
         else:
-            self.shapes[-1].geos.append(geo)
+            shape.geos.append(geo)
 
         if isinstance(geo, HoleGeo):
-            self.shapes[-1].type = 'Hole'
-            self.shapes[-1].closed = 1  # TODO adjust import for holes?
+            shape.type = 'Hole'
+            shape.closed = 1  # TODO adjust import for holes?
             if g.config.machine_type == 'drag_knife':
-                self.shapes[-1].disabled = True
-                self.shapes[-1].allowedToChange = False
+                shape.disabled = True
+                shape.allowedToChange = False
 
     def addtoLayerContents(self, values, shape, lay_nr):
         # Check if the layer already exists and add shape if it is.
