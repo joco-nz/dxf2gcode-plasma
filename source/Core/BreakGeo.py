@@ -43,13 +43,12 @@ class BreakGeo(LineGeo):
         LineGeo.__init__(self, inter.Ps, inter.Pe)
 
         self.type = "BreakGeo"
-        self.inter = inter
         self.height = height
         self.xyfeed = xyfeed
         self.zfeed = zfeed
 
     def __deepcopy__(self, memo):
-        return BreakGeo(copy.deepcopy(self.inter, memo),
+        return BreakGeo(copy.deepcopy(LineGeo(self.Ps, self.Pe), memo),
                         copy.deepcopy(self.height, memo),
                         copy.deepcopy(self.xyfeed, memo),
                         copy.deepcopy(self.zfeed, memo))
@@ -60,7 +59,8 @@ class BreakGeo(LineGeo):
         @return: A string
         """
         return "\nBreakGeo" +\
-               "\ninter:  %s" % self.inter +\
+               "\nPs:     %s" % self.Ps +\
+               "\nPe:     %s" % self.Pe +\
                "\nheight: %0.5f" % self.height
 
     def tr(self, string_to_translate):
@@ -84,16 +84,16 @@ class BreakGeo(LineGeo):
         oldFeed = PostPro.feed
         if self.height <= oldZ:
             return (
-                self.inter.Write_GCode(parent, PostPro)
+                LineGeo.Write_GCode(self, parent, PostPro)
             )
         else:
             return (
-                PostPro.chg_feed_rate(self.zfeed) + 
-                PostPro.lin_pol_z(self.height) + 
-                PostPro.chg_feed_rate(self.xyfeed) + 
-                self.inter.Write_GCode(parent, PostPro) + 
-                PostPro.chg_feed_rate(self.zfeed) + 
+                PostPro.chg_feed_rate(self.zfeed) +
+                PostPro.lin_pol_z(self.height) +
+                PostPro.chg_feed_rate(self.xyfeed) +
+                LineGeo.Write_GCode(self, parent, PostPro) +
+                PostPro.chg_feed_rate(self.zfeed) +
                 PostPro.lin_pol_z(oldZ) +
-                PostPro.chg_feed_rate(oldFeed)  
+                PostPro.chg_feed_rate(oldFeed)
             )
 
