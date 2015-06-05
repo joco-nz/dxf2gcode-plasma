@@ -67,7 +67,7 @@ class Breaks(QtCore.QObject):
     def breakShape(self, shape, breakLayers):
         newGeos = []
         for geo in shape.geos:
-            if (isinstance(geo, LineGeo)):
+            if isinstance(geo, LineGeo):
                 newGeos.extend(self.breakLineGeo(geo, breakLayers))
             elif isinstance(geo, ArcGeo):
                 newGeos.extend(self.breakArcGeo(geo, breakLayers))
@@ -89,7 +89,7 @@ class Breaks(QtCore.QObject):
                     (near, far) = self.classifyIntersections(lineGeo, intersections)
                     logger.debug("Line %s broken from (%f, %f) to (%f, %f)" % (lineGeo.to_short_string(), near.x, near.y, far.x, far.y))
                     newGeos.extend(self.breakLineGeo(LineGeo(lineGeo.Ps, near), breakLayers))
-                    newGeos.append(BreakGeo(LineGeo(near, far), breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))
+                    newGeos.append(BreakGeo(near, far, breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))
                     newGeos.extend(self.breakLineGeo(LineGeo(far, lineGeo.Pe), breakLayers))
                     return newGeos
         return [lineGeo]
@@ -108,7 +108,7 @@ class Breaks(QtCore.QObject):
                     (near, far) = self.classifyIntersections(arcGeo, intersections)
                     logger.debug("Arc %s broken from (%f, %f) to (%f, %f)" % (arcGeo.toShortString(), near.x, near.y, far.x, far.y))
                     newGeos.extend(self.breakArcGeo(ArcGeo(Ps=arcGeo.Ps, Pe=near, O=arcGeo.O, r=arcGeo.r, s_ang=arcGeo.s_ang, direction=arcGeo.ext), breakLayers))
-                    newGeos.append(BreakGeo(LineGeo(near, far), breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))
+                    newGeos.append(BreakGeo(near, far, breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))
                     newGeos.extend(self.breakArcGeo(ArcGeo(Ps=far, Pe=arcGeo.Pe, O=arcGeo.O, r=arcGeo.r, e_ang=arcGeo.e_ang, direction=arcGeo.ext), breakLayers))
                     return newGeos
         return [arcGeo]
@@ -117,6 +117,7 @@ class Breaks(QtCore.QObject):
         """
         Try to break lineGeo with the given breakShape. Will return the intersection points of lineGeo with breakShape.
         """
+        # TODO geos should be abs
         intersections = []
         line = QtCore.QLineF(lineGeo.Ps.x, lineGeo.Ps.y, lineGeo.Pe.x, lineGeo.Pe.y)
         for breakGeo in breakShape.geos:
@@ -133,6 +134,7 @@ class Breaks(QtCore.QObject):
         Get the intersections between the finite line and arc.
         Algorithm based on http://vvvv.org/contribution/2d-circle-line-intersections
         """
+        # TODO geos should be abs
         intersections = []
         for breakGeo in breakShape.geos:
             if isinstance(breakGeo, LineGeo):

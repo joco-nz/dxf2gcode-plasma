@@ -39,8 +39,8 @@ class BreakGeo(LineGeo):
     """
     BreakGeo interrupts another geometry item by changing the Z-Position.
     """
-    def __init__(self, inter, height, xyfeed, zfeed):
-        LineGeo.__init__(self, inter.Ps, inter.Pe)
+    def __init__(self, Ps, Pe, height, xyfeed, zfeed):
+        LineGeo.__init__(self, Ps, Pe)
 
         self.type = "BreakGeo"
         self.height = height
@@ -48,7 +48,8 @@ class BreakGeo(LineGeo):
         self.zfeed = zfeed
 
     def __deepcopy__(self, memo):
-        return BreakGeo(copy.deepcopy(LineGeo(self.Ps, self.Pe), memo),
+        return BreakGeo(copy.deepcopy(self.Ps, memo),
+                        copy.deepcopy(self.Pe, memo),
                         copy.deepcopy(self.height, memo),
                         copy.deepcopy(self.xyfeed, memo),
                         copy.deepcopy(self.zfeed, memo))
@@ -96,4 +97,3 @@ class BreakGeo(LineGeo):
                 PostPro.lin_pol_z(oldZ) +
                 PostPro.chg_feed_rate(oldFeed)
             )
-
