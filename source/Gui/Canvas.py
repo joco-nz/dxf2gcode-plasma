@@ -27,8 +27,6 @@ from PyQt5.QtCore import QPoint, Qt, QCoreApplication
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
 from PyQt5.QtWidgets import QOpenGLWidget, QMenu
 
-from Core.LineGeo import LineGeo
-from Core.ArcGeo import ArcGeo
 from Core.Point import Point
 from Core.Point3D import Point3D
 import Global.Globals as g
@@ -44,6 +42,8 @@ class GLWidget(QOpenGLWidget):
         self.objects = []
         self.orientation = 0
         self.wpZero = 0
+        self.routeArrows = []
+        self.expprv = None
 
         self.isPanning = False
         self.isRotating = False
@@ -73,6 +73,8 @@ class GLWidget(QOpenGLWidget):
         self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.25)
         self.colorEntryArrow = QColor.fromRgbF(0.0, 0.0, 1.0, 1.0)
         self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
+        self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
+        self.colorRoute = QColor.fromRgbF(0.5, 0.0, 0.0, 1.0)
 
         self.topLeft = Point()
         self.bottomRight = Point()
@@ -84,6 +86,7 @@ class GLWidget(QOpenGLWidget):
         self.objects = []
         self.wpZero = 0
         self.orientation = 0
+        self.delete_opt_paths()
 
         self.posX = 0.0
         self.posY = 0.0
@@ -97,6 +100,42 @@ class GLWidget(QOpenGLWidget):
         self.bottomRight = Point()
 
         self.update()
+
+    def delete_opt_paths(self):
+        if len(self.routeArrows) > 0:
+            self.gl.glDeleteLists(self.routeArrows[0][2], self.routeArrows[-1][2])
+            self.routeArrows = []
+
+    def addexproutest(self):
+        self.expprv = Point3D(g.config.vars.Plane_Coordinates['axis1_start_end'],
+                              g.config.vars.Plane_Coordinates['axis2_start_end'],
+                              0)
+
+    def addexproute(self, exp_order, layer_nr):
+        """
+        This function initialises the Arrows of the export route order and its numbers.
+        """
+        #Print the optimised route
+        for shape_nr in range(len(exp_order)):
+            shape = self.objects[exp_order[shape_nr]]
+            st = self.expprv
+            en, self.expprv = shape.get_start_end_points()
+            en = en.to3D(shape.axis3_start_mill_depth)
+            self.expprv = self.expprv.to3D(shape.axis3_mill_depth)
+
+            self.routeArrows.append([st, en, 0])
+
+            # TODO self.routetext.append(RouteText(text=("%s,%s" % (layer_nr, shape_nr+1)), startp=en))
+
+    def addexprouteen(self):
+        st = self.expprv
+        en = Point3D(g.config.vars.Plane_Coordinates['axis1_start_end'],
+                     g.config.vars.Plane_Coordinates['axis2_start_end'],
+                     0)
+
+        self.routeArrows.append([st, en, 0])
+        for route in self.routeArrows:
+            route[2] = self.makeRouteArrowHead(route[0], route[1])
 
     def contextMenuEvent(self, event):
         clicked, offset, _ = self.getClickedDetails(event)
@@ -284,8 +323,26 @@ class GLWidget(QOpenGLWidget):
                 else:
                     self.setColor(self.colorNormal)
             self.gl.glCallList(shape.drawObject)
+
+        # optimization route arrows
+        self.setColor(self.colorRoute)
+        self.gl.glBegin(self.gl.GL_LINES)
+        for route in self.routeArrows:
+            start = route[0]
+            end = route[1]
+            self.gl.glVertex3d(start.x, -start.y, start.z)
+            self.gl.glVertex3d(end.x, -end.y, end.z)
+        self.gl.glEnd()
+
         self.gl.glScaled(self.scaleCorr / self.scale, self.scaleCorr / self.scale, self.scaleCorr / self.scale)
         scaleArrow = self.scale / self.scaleCorr
+        for route in self.routeArrows:
+            end = scaleArrow * route[1]
+            self.gl.glTranslated(end.x, -end.y, end.z)
+            self.gl.glCallList(route[2])
+            self.gl.glTranslated(-end.x, end.y, -end.z)
+
+        # direction arrows
         for shape in self.objects:
             if shape.selected:
                 start, end = shape.get_start_end_points()
@@ -297,6 +354,7 @@ class GLWidget(QOpenGLWidget):
                 self.gl.glTranslated(end.x, -end.y, end.z)
                 self.gl.glCallList(shape.drawArrowsDirection[1])
                 self.gl.glTranslated(-end.x, end.y, -end.z)
+
         self.gl.glCallList(self.wpZero)
         self.gl.glTranslated(-self.posX / self.scaleCorr, -self.posY / self.scaleCorr, -self.posZ / self.scaleCorr)
         self.gl.glCallList(self.orientation)
@@ -511,6 +569,16 @@ class GLWidget(QOpenGLWidget):
         self.gl.glVertex3d(zeroBottom * rx + origin.x, -zeroBottom * ry - origin.y, zeroBottom * rz + origin.z)
         self.gl.glEnd()
 
+    def makeRouteArrowHead(self, start, end):
+        direction = (end - start).unit_vector()
+        rx, ry, rz = self.getRotationVectors(Point3D(0, 0, 1), direction)
+
+        head = self.gl.glGenLists(1)
+        self.gl.glNewList(head, self.gl.GL_COMPILE)
+        self.drawArrowHead(Point3D(), rx, ry, rz, 0)
+        self.gl.glEndList()
+        return head
+
     def drawArrowHead(self, origin, rx, ry, rz, offset):
         r = 0.01
         segments = 10
@@ -565,7 +633,6 @@ class GLWidget(QOpenGLWidget):
 
 class MyDropDownMenu(QMenu):
     def __init__(self, canvas, objects, position, clicked, offset):
-
         QMenu.__init__(self)
 
         self.objects = objects

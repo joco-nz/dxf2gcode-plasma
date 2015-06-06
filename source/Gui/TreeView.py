@@ -47,10 +47,14 @@ class TreeView(QTreeView):
 
         self.dragged_element = False #No item is currently dragged & dropped
         self.dragged_element_model_index = None
+        self.exportOrderUpdateCallback = None
         self.selectionChangedcallback = None
         self.signals_blocked = False #Transmit events between classes
 
         self.pressed.connect(self.elementPressed)
+
+    def setExportOrderUpdateCallback(self, callback):
+        self.exportOrderUpdateCallback = callback
 
     def setSelectionCallback(self, callback):
         """
@@ -187,8 +191,7 @@ class TreeView(QTreeView):
 
                 if not self.signals_blocked:
                     # Signal that the order of the TreeView has changed...
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
-                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+                    self.exportOrderUpdateCallback()
 
             self.dragged_element = False
         else:
@@ -216,8 +219,7 @@ class TreeView(QTreeView):
 
                 if not self.signals_blocked:
                     # Signal that the order of the TreeView has changed
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
-                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+                    self.exportOrderUpdateCallback()
 
     def moveDownCurrentItem(self):
         """
@@ -240,9 +242,8 @@ class TreeView(QTreeView):
                 self.setCurrentIndex(current_item.index())
 
                 if not self.signals_blocked:
-                    #Signal that order of the TreeView has changed...
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
-                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+                    # Signal that order of the TreeView has changed...
+                    self.exportOrderUpdateCallback()
 
     def blockSignals(self, block):
         """

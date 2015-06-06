@@ -552,8 +552,8 @@ class Ui_MainWindow(object):
         self.menuExport.addAction(self.actionOptimizeAndExportShapes)
         self.menuView.addAction(self.actionShowPathDirections)
         self.menuView.addAction(self.actionShowDisabledPaths)
-        self.menuView.addAction(self.actionLiveUpdateExportRoute)
         self.menuView.addSeparator()
+        self.menuView.addAction(self.actionLiveUpdateExportRoute)
         self.menuView.addAction(self.actionDeleteG0Paths)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionAutoscale)
@@ -675,7 +675,7 @@ class Ui_MainWindow(object):
         self.actionIsometricView.setText(_translate("MainWindow", "Isometric View"))
         self.actionIsometricView.setShortcut(_translate("MainWindow", "Ctrl+V, I"))
 
-from Gui.Canvas import GLWidget
-from Gui.TreeView import TreeView
 from Gui.MessageBox import MessageBox
+from Gui.TreeView import TreeView
+from Gui.Canvas import GLWidget
 import dxf2gcode_images_rc

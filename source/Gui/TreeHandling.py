@@ -69,6 +69,7 @@ class TreeHandler(QWidget):
         self.layer_item_model = None
         self.layers_list = None
         self.auto_update_export_order = False
+        self.ui.layersShapesTreeView.setExportOrderUpdateCallback(self.prepareExportOrderUpdate)
         self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
         self.ui.layersShapesTreeView.keyPressed.connect(self.actionOnKeyPress)
         self.ui.layersShapesTreeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -1365,23 +1366,17 @@ class TreeHandler(QWidget):
         called each time the shape order changes. It aims to update the drawing.
         """
         if self.auto_update_export_order:
-            #Update the exported shapes
+            # Update the exported shapes
             self.updateExportOrder()
 
-            #Emit the signal "exportOrderUpdated", so that the main can update tool path if he wants
-            QtCore.QObject.emit(self, QtCore.SIGNAL("exportOrderUpdated"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+            # Emit the signal "exportOrderUpdated", so that the main can update tool path if he wants
+            g.window.updateExportRoute()
 
-    def setUpdateExportRoute(self, live_update):
+    def setLiveUpdateExportRoute(self, live_update):
         """
         Set or unset the live update of export route.
         """
         self.auto_update_export_order = live_update
 
-        if live_update:
-            #Live update the export route drawing
-            QtCore.QObject.connect(self.ui.layersShapesTreeView, QtCore.SIGNAL("itemMoved"), self.prepareExportOrderUpdate)
+        if self.auto_update_export_order:
             self.prepareExportOrderUpdate()
-
-        else:
-            #Don't automatically update the export route drawing
-            QtCore.QObject.disconnect(self.ui.layersShapesTreeView, QtCore.SIGNAL("itemMoved"), self.prepareExportOrderUpdate)

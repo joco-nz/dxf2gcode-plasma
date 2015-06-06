@@ -31,6 +31,7 @@ class LayerContent(object):
         self.nr = nr
         self.name = name
         self.shapes = shapes
+        self.exp_order = []  # used for shape order optimization, ... Only contains shapes
 
         # preset defaults
         self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']

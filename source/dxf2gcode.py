@@ -46,6 +46,7 @@ from DxfImport.Import import ReadDXF
 from Gui.PopUpDialog import PopUpDialog
 from Gui.TreeHandling import TreeHandler
 from dxf2gcode_ui import Ui_MainWindow
+from PostPro.TspOptimization import TspOptimization
 
 
 logger = logging.getLogger()
@@ -96,7 +97,12 @@ class MainWindow(QMainWindow):
         self.ui.actionReload.triggered.connect(self.reload)
         self.ui.actionClose.triggered.connect(self.close)
 
+        # Export
+        self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
+
         # View
+        self.ui.actionLiveUpdateExportRoute.triggered.connect(self.liveUpdateExportRoute)
+        self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.glWidget.autoScale)
         self.ui.actionTopView.triggered.connect(self.glWidget.topView)
         self.ui.actionIsometricView.triggered.connect(self.glWidget.isometricView)
@@ -156,6 +162,7 @@ class MainWindow(QMainWindow):
         self.ui.actionOptimizeAndExportShapes.setEnabled(status)
 
         # View
+        self.ui.actionLiveUpdateExportRoute.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
         self.ui.actionTopView.setEnabled(status)
         self.ui.actionIsometricView.setEnabled(status)
@@ -277,6 +284,130 @@ class MainWindow(QMainWindow):
             self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
 
+    def deleteG0Paths(self):
+        """
+        Deletes the optimisation paths from the scene.
+        """
+        self.glWidget.setCursor(Qt.WaitCursor)
+
+        self.glWidget.delete_opt_paths()
+        self.ui.actionDeleteG0Paths.setEnabled(False)
+        self.glWidget.update()
+
+        self.glWidget.unsetCursor()
+
+    def liveUpdateExportRoute(self):
+        """
+        This function is called by the menu "Live update tool path" of the
+        main and forwards the call to TreeHandler.setLiveUpdateExportRoute()
+        """
+        flag = self.ui.actionLiveUpdateExportRoute.isChecked()
+        self.TreeHandler.setLiveUpdateExportRoute(flag)
+
+    def updateExportRoute(self):
+        """
+        Update the drawing of the export route
+        """
+        self.glWidget.delete_opt_paths()
+
+        self.glWidget.addexproutest()
+        for LayerContent in self.layerContents:
+            if len(LayerContent.exp_order) > 0:
+                self.glWidget.addexproute(LayerContent.exp_order, LayerContent.nr)
+        if len(self.glWidget.routeArrows) > 0:
+            self.ui.actionDeleteG0Paths.setEnabled(True)
+            self.glWidget.addexprouteen()
+
+        self.glWidget.update()
+
+    def optimizeTSP(self):
+        """
+        Method is called to optimize the order of the shapes. This is performed
+        by solving the TSP Problem.
+        """
+        self.glWidget.setCursor(Qt.WaitCursor)
+
+        logger.debug(self.tr('Optimize order of enabled shapes per layer'))
+        self.glWidget.delete_opt_paths()
+
+        #Get the export order from the QTreeView
+        logger.debug(self.tr('Updating order according to TreeView'))
+        self.TreeHandler.updateExportOrder()
+        self.glWidget.addexproutest()
+
+        for LayerContent in self.layerContents:
+
+            #Initial values for the Lists to export.
+            self.shapes_to_write = []
+            self.shapes_fixed_order = []
+            shapes_st_en_points = []
+
+            #Check all shapes of Layer which shall be exported and create List
+            #for it.
+            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
+                                 % (len(LayerContent.shapes),
+                                 len(LayerContent.exp_order)))
+            logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
+
+            for shape_nr in range(len(LayerContent.exp_order)):
+                if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
+                    self.shapes_fixed_order.append(shape_nr)
+
+                self.shapes_to_write.append(shape_nr)
+                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
+
+            #Perform Export only if the Number of shapes to export is bigger than 0
+            if len(self.shapes_to_write)>0:
+                        #Errechnen der Iterationen
+                        #Calculate the iterations
+                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'],
+                         len(self.shapes_to_write)*50)
+
+                #Adding the Start and End Points to the List.
+                x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
+                y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
+                start = Point(x = x_st, y = y_st)
+                ende = Point(x = x_st, y = y_st)
+                shapes_st_en_points.append([start, ende])
+
+                TSPs = []
+                TSPs.append(TspOptimization(st_end_points = shapes_st_en_points,
+                                        order = self.shapes_fixed_order))
+                logger.info(self.tr("TSP start values initialised for Layer %s")
+                                    % LayerContent.name)
+                logger.debug(self.tr("Shapes to write: %s")
+                                     % self.shapes_to_write)
+                logger.debug(self.tr("Fixed order: %s")
+                                     % self.shapes_fixed_order)
+
+                for it_nr in range(iter_):
+                    #Only show each 50th step.
+                    if (it_nr % 50) == 0:
+                        TSPs[-1].calc_next_iteration()
+                        new_exp_order = []
+                        for nr in TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]:
+                            new_exp_order.append(LayerContent.exp_order[nr])
+
+                logger.debug(self.tr("TSP done with result: %s") % TSPs[-1])
+
+                LayerContent.exp_order = new_exp_order
+
+                self.glWidget.addexproute(LayerContent.exp_order, LayerContent.nr)
+                logger.debug(self.tr("New Export Order after TSP: %s")
+                                     % new_exp_order)
+                self.glWidget.update()
+            else:
+                LayerContent.exp_order = []
+
+        if len(self.glWidget.routeArrows) > 0:
+            self.ui.actionDeleteG0Paths.setEnabled(True)
+            self.glWidget.addexprouteen()
+
+        # Update order in the treeView, according to path calculation done by the TSP
+        self.TreeHandler.updateTreeViewOrder()
+
+        self.glWidget.unsetCursor()
+
     def open(self):
         self.filename, _ = QFileDialog.getOpenFileName(self, 'Open File', '',
                                                        # "All supported files (*.dxf *.ps *.pdf);;"
@@ -358,7 +489,6 @@ class MainWindow(QMainWindow):
         This function is called by the menu "File/Reload File" of the main toolbar.
         It reloads the previously loaded file (if any)
         """
-
         logger.info(self.tr("Reloading file: %s") % self.filename)
         self.load(self.filename)
 
@@ -381,7 +511,6 @@ class MainWindow(QMainWindow):
         @param parent: The parent of a shape is always an Entity. It may be the root
         or, if it is a Block, this is the Block.
         """
-
         if parent.name == "Entities":
             entities = values.entities
         else:

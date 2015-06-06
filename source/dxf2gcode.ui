@@ -883,8 +883,8 @@
     </property>
     <addaction name="actionShowPathDirections"/>
     <addaction name="actionShowDisabledPaths"/>
-    <addaction name="actionLiveUpdateExportRoute"/>
     <addaction name="separator"/>
+    <addaction name="actionLiveUpdateExportRoute"/>
     <addaction name="actionDeleteG0Paths"/>
     <addaction name="separator"/>
     <addaction name="actionAutoscale"/>
