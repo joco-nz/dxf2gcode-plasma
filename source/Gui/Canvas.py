@@ -283,11 +283,20 @@ class GLWidget(QOpenGLWidget):
                     self.setColor(self.colorSelect)
                 else:
                     self.setColor(self.colorNormal)
-            self.gl.glCallList(shape.drawingObject)
+            self.gl.glCallList(shape.drawObject)
         self.gl.glScaled(self.scaleCorr / self.scale, self.scaleCorr / self.scale, self.scaleCorr / self.scale)
+        scaleArrow = self.scale / self.scaleCorr
         for shape in self.objects:
             if shape.selected:
-                self.makeDirArrows(shape)
+                start, end = shape.get_start_end_points()
+                start = scaleArrow * start.to3D(shape.axis3_start_mill_depth)
+                end = scaleArrow * end.to3D(shape.axis3_mill_depth)
+                self.gl.glTranslated(start.x, -start.y, start.z)
+                self.gl.glCallList(shape.drawArrowsDirection[0])
+                self.gl.glTranslated(-start.x, start.y, -start.z)
+                self.gl.glTranslated(end.x, -end.y, end.z)
+                self.gl.glCallList(shape.drawArrowsDirection[1])
+                self.gl.glTranslated(-end.x, end.y, -end.z)
         self.gl.glCallList(self.wpZero)
         self.gl.glTranslated(-self.posX / self.scaleCorr, -self.posY / self.scaleCorr, -self.posZ / self.scaleCorr)
         self.gl.glCallList(self.orientation)
@@ -319,7 +328,8 @@ class GLWidget(QOpenGLWidget):
         self.gl.glColor4f(r, g, b, a)
 
     def addShape(self, shape):
-        shape.drawingObject = self.makeShape(shape)
+        shape.drawObject = self.makeShape(shape)
+        shape.drawArrowsDirection = self.makeDirArrows(shape)
         self.objects.append(shape)
 
     def makeShape(self, shape):
@@ -472,19 +482,25 @@ class GLWidget(QOpenGLWidget):
     def makeDirArrows(self, shape):
         (start, start_dir), (end, end_dir) = shape.get_start_end_points(None, False)
 
+        startArrow = self.gl.glGenLists(1)
+        self.gl.glNewList(startArrow, self.gl.GL_COMPILE)
         self.setColor(self.colorEntryArrow)
-        self.drawDirArrow(start.to3D(shape.axis3_start_mill_depth), start_dir.to3D(0), True)
+        self.drawDirArrow(Point3D(), start_dir.to3D(0), True)
+        self.gl.glEndList()
 
+        endArrow = self.gl.glGenLists(1)
+        self.gl.glNewList(endArrow, self.gl.GL_COMPILE)
         self.setColor(self.colorExitArrow)
-        self.drawDirArrow(end.to3D(shape.axis3_mill_depth), end_dir.to3D(0), False)
+        self.drawDirArrow(Point3D(), end_dir.to3D(0), False)
+        self.gl.glEndList()
+
+        return startArrow, endArrow
 
     def drawDirArrow(self, origin, direction, startError):
         offset = 0.0 if startError else 0.05
         zMiddle = -0.02 + offset
         zBottom = -0.05 + offset
         rx, ry, rz = self.getRotationVectors(Point3D(0, 0, 1), direction)
-
-        origin = self.scale / self.scaleCorr * origin
 
         self.drawArrowHead(origin, rx, ry, rz, offset)
 

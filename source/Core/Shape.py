@@ -65,7 +65,8 @@ class Shape(object):
         self.parentLayer = None
         self.geos = []
 
-        self.drawingObject = 0
+        self.drawObject = 0
+        self.drawArrowsDirection = 0
 
         self.topLeft = None
         self.bottomRight = None
