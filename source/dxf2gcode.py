@@ -459,12 +459,12 @@ class MainWindow(QMainWindow):
                 geo_a = deepcopy(geo)
                 geo_b.Pe -= diff
                 geo_a.Ps += diff
-                shape.geos.append(geo_b)
-                shape.geos.append(geo_a)
+                shape.append(geo_b)
+                shape.append(geo_a)
             else:
-                shape.geos.append(geo)
+                shape.append(geo)
         else:
-            shape.geos.append(geo)
+            shape.append(geo)
 
         if isinstance(geo, HoleGeo):
             shape.type = 'Hole'

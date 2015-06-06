@@ -71,21 +71,17 @@ class HoleGeo(object):
         """
         Ps = self.Ps.rot_sca_abs(parent=parent)
 
-        return HoleGeo(Ps)
+        self.abs_geo = HoleGeo(Ps)
 
-    def get_start_end_points(self, start_point, angles=None, parent=None):
-        abs_geo = self.make_abs_geo(parent)
-
+    def get_start_end_points(self, start_point, angles=None):
         if angles is None:
-            return abs_geo.Ps
+            return self.abs_geo.Ps
         elif angles:
-            return abs_geo.Ps, 0
+            return self.abs_geo.Ps, 0
         else:
-            return abs_geo.Ps, Point(0, -1) if start_point else Point(0, -1)
+            return self.abs_geo.Ps, Point(0, -1) if start_point else Point(0, -1)
 
     def make_path(self, caller, drawHorLine):
-        self.abs_geo = self.make_abs_geo(caller.parentEntity)
-
         radius = caller.parentLayer.tool_diameter / 2
         segments = 30
         Ps = self.abs_geo.Ps.get_arc_point(0, radius)

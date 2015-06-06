@@ -61,6 +61,8 @@ class LineGeo(object):
 
     def reverse(self):
         self.Ps, self.Pe = self.Pe, self.Ps
+        if self.abs_geo:
+            self.abs_geo.reverse()
 
     def make_abs_geo(self, parent=None):
         """
@@ -71,7 +73,7 @@ class LineGeo(object):
         Ps = self.Ps.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
 
-        return LineGeo(Ps=Ps, Pe=Pe)
+        self.abs_geo = LineGeo(Ps=Ps, Pe=Pe)
 
     def distance2point(self, point):
         """
@@ -90,27 +92,23 @@ class LineGeo(object):
             return abs(2 * sqrt(abs(AEPA * (AEPA - AE) *
                                     (AEPA - AP) * (AEPA - EP))) / AE)
 
-    def get_start_end_points(self, start_point, angles=None, parent=None):
-        abs_geo = self.make_abs_geo(parent)
-
+    def get_start_end_points(self, start_point, angles=None):
         if start_point:
             if angles is None:
-                return abs_geo.Ps
+                return self.abs_geo.Ps
             elif angles:
-                return abs_geo.Ps, abs_geo.Ps.norm_angle(abs_geo.Pe)
+                return self.abs_geo.Ps, self.abs_geo.Ps.norm_angle(self.abs_geo.Pe)
             else:
-                return abs_geo.Ps, (abs_geo.Pe - abs_geo.Ps).unit_vector()
+                return self.abs_geo.Ps, (self.abs_geo.Pe - self.abs_geo.Ps).unit_vector()
         else:
             if angles is None:
-                return abs_geo.Pe
+                return self.abs_geo.Pe
             elif angles:
-                return abs_geo.Pe, abs_geo.Pe.norm_angle(abs_geo.Ps)
+                return self.abs_geo.Pe, self.abs_geo.Pe.norm_angle(self.abs_geo.Ps)
             else:
-                return abs_geo.Pe, (abs_geo.Pe - abs_geo.Ps).unit_vector()
+                return self.abs_geo.Pe, (self.abs_geo.Pe - self.abs_geo.Ps).unit_vector()
 
     def make_path(self, caller, drawHorLine):
-        self.abs_geo = self.make_abs_geo(caller.parentEntity)
-
         drawHorLine(self.abs_geo.Ps, self.abs_geo.Pe, caller.axis3_start_mill_depth)
         drawHorLine(self.abs_geo.Ps, self.abs_geo.Pe, caller.axis3_mill_depth)
         self.topLeft = deepcopy(self.abs_geo.Ps)

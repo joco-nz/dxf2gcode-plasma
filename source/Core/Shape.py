@@ -157,7 +157,7 @@ class Shape(object):
 
             min_geo_nr = 0
             for geo_nr in range(1, len(self.geos)):
-                start = self.geos[geo_nr].get_start_end_points(True, None, self.parentEntity)
+                start = self.geos[geo_nr].get_start_end_points(True)
 
                 if start.distance(stPoint) < min_distance:
                     min_distance = start.distance(stPoint)
@@ -174,14 +174,18 @@ class Shape(object):
         for geo in self.geos:
             geo.reverse()
 
+    def append(self, geo):
+        geo.make_abs_geo(self.parentEntity)
+        self.geos.append(geo)
+
     def get_start_end_points(self, start_point=None, angles=None):
         if start_point is None:
-            return (self.geos[0].get_start_end_points(True, angles, self.parentEntity),
-                    self.geos[-1].get_start_end_points(False, angles, self.parentEntity))
+            return (self.geos[0].get_start_end_points(True, angles),
+                    self.geos[-1].get_start_end_points(False, angles))
         elif start_point:
-            return self.geos[0].get_start_end_points(True, angles, self.parentEntity)
+            return self.geos[0].get_start_end_points(True, angles)
         else:
-            return self.geos[-1].get_start_end_points(False, angles, self.parentEntity)
+            return self.geos[-1].get_start_end_points(False, angles)
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:

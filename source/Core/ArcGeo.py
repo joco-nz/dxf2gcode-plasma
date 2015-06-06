@@ -144,6 +144,8 @@ class ArcGeo(object):
         self.Ps, self.Pe = self.Pe, self.Ps
         self.s_ang, self.e_ang = self.e_ang, self.s_ang
         self.ext = -self.ext
+        if self.abs_geo:
+            self.abs_geo.reverse()
 
     def make_abs_geo(self, parent=None):
         Ps = self.Ps.rot_sca_abs(parent=parent)
@@ -156,7 +158,7 @@ class ArcGeo(object):
         if parent is not None and parent.sca[0] * parent.sca[1] < 0.0:
             direction *= -1
 
-        return ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=direction)
+        self.abs_geo = ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=direction)
 
     def scaled_r(self, r, parent):
         """
@@ -174,31 +176,27 @@ class ArcGeo(object):
 
         return r
 
-    def get_start_end_points(self, start_point, angles=None, parent=None):
-        abs_geo = self.make_abs_geo(parent)
-
+    def get_start_end_points(self, start_point, angles=None):
         if start_point:
             if angles is None:
-                return abs_geo.Ps
+                return self.abs_geo.Ps
             elif angles:
-                return abs_geo.Ps, abs_geo.s_ang + pi/2 * abs_geo.ext / abs(abs_geo.ext)
+                return self.abs_geo.Ps, self.abs_geo.s_ang + pi/2 * self.abs_geo.ext / abs(self.abs_geo.ext)
             else:
-                direction = (abs_geo.O - abs_geo.Ps).unit_vector()
-                direction = -direction if abs_geo.ext >= 0 else direction
-                return abs_geo.Ps, Point(-direction.y, direction.x)
+                direction = (self.abs_geo.O - self.abs_geo.Ps).unit_vector()
+                direction = -direction if self.abs_geo.ext >= 0 else direction
+                return self.abs_geo.Ps, Point(-direction.y, direction.x)
         else:
             if angles is None:
-                return abs_geo.Pe
+                return self.abs_geo.Pe
             elif angles:
-                return abs_geo.Pe, abs_geo.e_ang - pi/2 * abs_geo.ext / abs(abs_geo.ext)
+                return self.abs_geo.Pe, self.abs_geo.e_ang - pi/2 * self.abs_geo.ext / abs(self.abs_geo.ext)
             else:
-                direction = (abs_geo.O - abs_geo.Pe).unit_vector()
-                direction = -direction if abs_geo.ext >= 0 else direction
-                return abs_geo.Pe, Point(-direction.y, direction.x)
+                direction = (self.abs_geo.O - self.abs_geo.Pe).unit_vector()
+                direction = -direction if self.abs_geo.ext >= 0 else direction
+                return self.abs_geo.Pe, Point(-direction.y, direction.x)
 
     def make_path(self, caller, drawHorLine):
-        self.abs_geo = self.make_abs_geo(caller.parentEntity)
-
         segments = int(abs(degrees(self.abs_geo.ext)) // 3 + 1)
         Ps = self.abs_geo.O.get_arc_point(self.abs_geo.s_ang, self.abs_geo.r)
         self.topLeft = deepcopy(Ps)
