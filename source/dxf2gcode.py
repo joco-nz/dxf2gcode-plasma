@@ -101,6 +101,7 @@ class MainWindow(QMainWindow):
         self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
 
         # View
+        self.ui.actionShowDisabledPaths.triggered.connect(self.setShowDisabledPaths)
         self.ui.actionLiveUpdateExportRoute.triggered.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.glWidget.autoScale)
@@ -118,6 +119,12 @@ class MainWindow(QMainWindow):
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
 
     def connectToolbarToConfig(self):
+        # View
+        if g.config.vars.General['show_disabled_paths']:
+            self.ui.actionShowDisabledPaths.setChecked(True)
+        if g.config.vars.General['live_update_export_route']:
+            self.ui.actionLiveUpdateExportRoute.setChecked(True)
+
         # Options
         if g.config.vars.General['split_line_segments']:
             self.ui.actionSplitLineSegments.setChecked(True)
@@ -162,6 +169,7 @@ class MainWindow(QMainWindow):
         self.ui.actionOptimizeAndExportShapes.setEnabled(status)
 
         # View
+        self.ui.actionShowDisabledPaths.setEnabled(status)
         self.ui.actionLiveUpdateExportRoute.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
         self.ui.actionTopView.setEnabled(status)
@@ -283,6 +291,15 @@ class MainWindow(QMainWindow):
             self.ui.actionDragKnife.setChecked(True)
             self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
+
+    def setShowDisabledPaths(self):
+        """
+        This function is called by the menu "Show disabled paths" of the
+        main and forwards the call to glWidget.setShow_disabled_paths()
+        """
+        flag = self.ui.actionShowDisabledPaths.isChecked()
+        self.glWidget.showDisabledPaths = flag
+        self.glWidget.update()
 
     def deleteG0Paths(self):
         """
@@ -474,10 +491,7 @@ class MainWindow(QMainWindow):
         self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
-        for shape in self.shapes:
-            self.glWidget.addShape(shape)
-        self.glWidget.drawWpZero()
-        self.glWidget.drawOrientationArrows()
+        self.glWidget.plotAll(self.shapes)
         self.glWidget.autoScale()
 
         self.enableToolbarButtons()

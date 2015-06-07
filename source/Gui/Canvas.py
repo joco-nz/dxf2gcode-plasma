@@ -50,6 +50,8 @@ class GLWidget(QOpenGLWidget):
         self.isMultiSelect = False
         self._lastPos = QPoint()
 
+        self.showDisabledPaths = True
+
         self.posX = 0.0
         self.posY = 0.0
         self.posZ = 0.0
@@ -312,17 +314,21 @@ class GLWidget(QOpenGLWidget):
         self.gl.glTranslated(self.posX, self.posY, self.posZ)
         self.gl.glScaled(self.scale, self.scale, self.scale)
         for shape in self.objects:
-            if shape.disabled:
-                if shape.selected:
-                    self.setColor(self.colorSelectDisabled)
-                else:
-                    self.setColor(self.colorNormalDisabled)
-            else:
-                if shape.selected:
+            if shape.selected:
+                if not shape.disabled:
                     self.setColor(self.colorSelect)
-                else:
+                    self.gl.glCallList(shape.drawObject)
+                elif self.showDisabledPaths:
+                    self.setColor(self.colorSelectDisabled)
+                    self.gl.glCallList(shape.drawObject)
+        for shape in self.objects:
+            if not shape.selected:
+                if not shape.disabled:
                     self.setColor(self.colorNormal)
-            self.gl.glCallList(shape.drawObject)
+                    self.gl.glCallList(shape.drawObject)
+                elif self.showDisabledPaths:
+                    self.setColor(self.colorNormalDisabled)
+                    self.gl.glCallList(shape.drawObject)
 
         # optimization route arrows
         self.setColor(self.colorRoute)
@@ -344,7 +350,7 @@ class GLWidget(QOpenGLWidget):
 
         # direction arrows
         for shape in self.objects:
-            if shape.selected:
+            if shape.selected and (not shape.disabled or self.showDisabledPaths):
                 start, end = shape.get_start_end_points()
                 start = scaleArrow * start.to3D(shape.axis3_start_mill_depth)
                 end = scaleArrow * end.to3D(shape.axis3_mill_depth)
@@ -385,10 +391,13 @@ class GLWidget(QOpenGLWidget):
         # self.gl.glMaterialfv(self.gl.GL_FRONT, self.gl.GL_DIFFUSE, (r, g, b, a))
         self.gl.glColor4f(r, g, b, a)
 
-    def addShape(self, shape):
-        shape.drawObject = self.makeShape(shape)
-        shape.drawArrowsDirection = self.makeDirArrows(shape)
-        self.objects.append(shape)
+    def plotAll(self, shapes):
+        for shape in shapes:
+            shape.drawObject = self.makeShape(shape)
+            shape.drawArrowsDirection = self.makeDirArrows(shape)
+            self.objects.append(shape)
+        self.drawWpZero()
+        self.drawOrientationArrows()
 
     def makeShape(self, shape):
         genList = self.gl.glGenLists(1)

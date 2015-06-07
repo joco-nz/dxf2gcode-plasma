@@ -953,23 +953,6 @@
     <string>Ctrl+Q</string>
    </property>
   </action>
-  <action name="actionShow_WP_Zero">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Show WP zero</string>
-   </property>
-   <property name="statusTip">
-    <string>Show the Workpiece Zero symbol in the plot.</string>
-   </property>
-  </action>
   <action name="actionShowPathDirections">
    <property name="checkable">
     <bool>true</bool>

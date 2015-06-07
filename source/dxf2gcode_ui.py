@@ -471,11 +471,6 @@ class Ui_MainWindow(object):
         icon5.addPixmap(QtGui.QPixmap(":/images/delete.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.actionClose.setIcon(icon5)
         self.actionClose.setObjectName("actionClose")
-        self.actionShow_WP_Zero = QtWidgets.QAction(MainWindow)
-        self.actionShow_WP_Zero.setCheckable(True)
-        self.actionShow_WP_Zero.setChecked(True)
-        self.actionShow_WP_Zero.setEnabled(False)
-        self.actionShow_WP_Zero.setObjectName("actionShow_WP_Zero")
         self.actionShowPathDirections = QtWidgets.QAction(MainWindow)
         self.actionShowPathDirections.setCheckable(True)
         self.actionShowPathDirections.setChecked(False)
@@ -642,8 +637,6 @@ class Ui_MainWindow(object):
         self.actionClose.setText(_translate("MainWindow", "Quit"))
         self.actionClose.setStatusTip(_translate("MainWindow", "Exit DXF2GCODE and close window"))
         self.actionClose.setShortcut(_translate("MainWindow", "Ctrl+Q"))
-        self.actionShow_WP_Zero.setText(_translate("MainWindow", "Show WP zero"))
-        self.actionShow_WP_Zero.setStatusTip(_translate("MainWindow", "Show the Workpiece Zero symbol in the plot."))
         self.actionShowPathDirections.setText(_translate("MainWindow", "Show Path Directions"))
         self.actionShowPathDirections.setStatusTip(_translate("MainWindow", "Always shows the path direction in the plot (not only while selected)"))
         self.actionShowDisabledPaths.setText(_translate("MainWindow", "Show Disabled Paths"))
@@ -675,7 +668,7 @@ class Ui_MainWindow(object):
         self.actionIsometricView.setText(_translate("MainWindow", "Isometric View"))
         self.actionIsometricView.setShortcut(_translate("MainWindow", "Ctrl+V, I"))
 
-from Gui.MessageBox import MessageBox
-from Gui.TreeView import TreeView
 from Gui.Canvas import GLWidget
+from Gui.TreeView import TreeView
+from Gui.MessageBox import MessageBox
 import dxf2gcode_images_rc
