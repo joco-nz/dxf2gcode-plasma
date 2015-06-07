@@ -99,6 +99,8 @@ class MainWindow(QMainWindow):
 
         # Export
         self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
+        self.ui.actionExportShapes.triggered.connect(self.exportShapes)
+        self.ui.actionOptimizeAndExportshapes.triggered.connect(self.optimizeAndExportShapes)
 
         # View
         self.ui.actionShowDisabledPaths.triggered.connect(self.setShowDisabledPaths)
@@ -114,6 +116,7 @@ class MainWindow(QMainWindow):
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)
         self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
         self.ui.actionSplitLineSegments.triggered.connect(self.reload)  # TODO no need to redo the importing
+        self.ui.actionAutomaticCutterCompensation.triggered.connect(self.reloadFile)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
@@ -415,6 +418,137 @@ class MainWindow(QMainWindow):
         self.TreeHandler.updateTreeViewOrder()
 
         self.glWidget.unsetCursor()
+
+    def exportShapes(self, status=False, saveas=None):
+        """
+        This function is called by the menu "Export/Export Shapes". It may open
+        a Save Dialog if used without LinuxCNC integration. Otherwise it's
+        possible to select multiple postprocessor files, which are located
+        in the folder.
+        """
+
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+
+        logger.debug(self.tr('Export the enabled shapes'))
+
+        #Get the export order from the QTreeView
+        self.TreeHandler.updateExportOrder()
+        self.updateExportRoute()
+
+        logger.debug(self.tr("Sorted layers:"))
+        for i, layer in enumerate(self.LayerContents):
+            logger.debug("LayerContents[%i] = %s" % (i, layer))
+
+        if not(g.config.vars.General['write_to_stdout']):
+
+            #Get the name of the File to export
+            if saveas == None:
+                filename = self.showSaveDialog()
+                self.save_filename = str(filename[0].toUtf8()).decode("utf-8")
+            else:
+                filename = [None, None]
+                self.save_filename = saveas
+
+            #If Cancel was pressed
+            if not self.save_filename:
+
+                QtGui.QApplication.restoreOverrideCursor()
+
+                return
+
+            (beg, ende) = os.path.split(self.save_filename)
+            (fileBaseName, fileExtension) = os.path.splitext(ende)
+
+            pp_file_nr = 0
+            for i in range(len(self.MyPostProcessor.output_format)):
+                name = "%s " % (self.MyPostProcessor.output_text[i])
+                format_ = "(*%s)" % (self.MyPostProcessor.output_format[i])
+                MyFormats = name + format_
+                if filename[1] == MyFormats:
+                    pp_file_nr = i
+            if fileExtension != self.MyPostProcessor.output_format[pp_file_nr]:
+                if not QtCore.QFile.exists(self.save_filename):
+                    self.save_filename = self.save_filename + self.MyPostProcessor.output_format[pp_file_nr]
+
+            self.MyPostProcessor.getPostProVars(pp_file_nr)
+        else:
+            self.save_filename = None
+            self.MyPostProcessor.getPostProVars(0)
+
+        """
+        Export will be performed according to LayerContents and their order
+        is given in this variable too.
+        """
+
+        self.MyPostProcessor.exportShapes(self.load_filename,
+                                          self.save_filename,
+                                          self.LayerContents)
+
+        QtGui.QApplication.restoreOverrideCursor()
+
+        if g.config.vars.General['write_to_stdout']:
+            self.close()
+
+    def optimizeAndExportShapes(self):
+        """
+        Optimize the tool path, then export the shapes
+        """
+        self.optimizeTSP()
+        self.exportShapes()
+
+    def showSaveDialog(self):
+        """
+        This function is called by the menu "Export/Export Shapes" of the main toolbar.
+        It creates the selection dialog for the exporter
+        @return: Returns the filename of the selected file.
+        """
+        MyFormats = ""
+        for i in range(len(self.MyPostProcessor.output_format)):
+            name = "%s " % (self.MyPostProcessor.output_text[i])
+            format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
+            MyFormats = MyFormats + name + format_
+
+        (beg, ende) = os.path.split(self.load_filename)
+        (fileBaseName, fileExtension) = os.path.splitext(ende)
+
+        default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
+
+        selected_filter = self.MyPostProcessor.output_format[0]
+        filename = QtGui.QFileDialog.getSaveFileNameAndFilter(self,
+                    self.tr('Export to file'), default_name,
+                    MyFormats, selected_filter)
+
+        logger.info(self.tr("File: %s selected") % filename[0])
+
+        return filename
+
+    def automaticCutterCompensation(self):
+        if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() == self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
+            for layerContent in self.LayerContents:
+                if layerContent.automaticCutterCompensationEnabled():
+                    newShapes = [];
+                    for shape in layerContent.shapes:
+                        shape.make_papath()
+                    for shape in layerContent.shapes:
+                        if shape.closed:
+                            container = None
+                            myBounds = shape.boundingRect()
+                            for otherShape in layerContent.shapes :
+                                if shape != otherShape and otherShape.boundingRect().contains(myBounds):
+                                    logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
+                                    container = otherShape
+                            if container is None:
+                                shape.cut_cor = 41
+                                newShapes.append(shape)
+                            else:
+                                shape.cut_cor = 42
+                                newShapes.insert(layerContent.shapes.index(container), shape)
+                        else:
+                            newShapes.append(shape)
+                    layerContent.shapes = newShapes
+                    logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
+                    for shape in layerContent.shapes:
+                        logger.debug(self.tr(">>Shape: %s") % (shape.nr))
 
     def open(self):
         self.filename, _ = QFileDialog.getOpenFileName(self, 'Open File', '',

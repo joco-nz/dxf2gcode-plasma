@@ -55,6 +55,8 @@ class ReadDXF(QtCore.QObject):
         str_ = self.Read_File(filename)
         g.config.metric = self.Get_Unit(str_)
 
+        self.update_tool_values()
+
         #Load the contour and store the values in the classes
         self.line_pairs = self.Get_Line_Pairs(str_)
 
@@ -139,6 +141,21 @@ class ReadDXF(QtCore.QObject):
             pass
 
         return metric
+
+    def update_tool_values(self):
+        # update the tool default values depending on the unit of the drawing
+        if g.config.tool_units_metric != g.config.metric:
+            scale = 1/25.4 if g.config.metric == 0 else 25.4
+            for key in g.config.vars.Plane_Coordinates:
+                g.config.vars.Plane_Coordinates[key] *= scale
+            for key in g.config.vars.Depth_Coordinates:
+                g.config.vars.Depth_Coordinates[key] *= scale
+            for key in g.config.vars.Feed_Rates:
+                g.config.vars.Feed_Rates[key] *= scale
+            for tool in g.config.vars.Tool_Parameters:
+                g.config.vars.Tool_Parameters[tool]['diameter'] *= scale
+                g.config.vars.Tool_Parameters[tool]['start_radius'] *= scale
+            g.config.tool_units_metric = g.config.metric
 
     # Convert the uploaded file into line pairs (code & Value).
     def Get_Line_Pairs(self, string):
@@ -852,6 +869,6 @@ class BlocksClass:
     def __str__(self):
         # how to print the object
         s = 'Blocks:\nNumber of Blocks ->' + str(len(self.Entities))
-        for entitie in self.ties:
+        for entitie in self.Entities:
             s = s + str(entitie)
         return s
