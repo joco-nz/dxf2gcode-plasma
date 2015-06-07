@@ -353,65 +353,56 @@ class MainWindow(QMainWindow):
         self.glWidget.addexproutest()
 
         for LayerContent in self.layerContents:
-
-            #Initial values for the Lists to export.
-            self.shapes_to_write = []
-            self.shapes_fixed_order = []
+            # Initial values for the Lists to export.
+            shapes_to_write = []
+            shapes_fixed_order = []
             shapes_st_en_points = []
 
-            #Check all shapes of Layer which shall be exported and create List
-            #for it.
+            # Check all shapes of Layer which shall be exported and create List for it.
             logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
                                  % (len(LayerContent.shapes),
                                  len(LayerContent.exp_order)))
             logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
 
             for shape_nr in range(len(LayerContent.exp_order)):
-                if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
-                    self.shapes_fixed_order.append(shape_nr)
+                if not self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP:
+                    shapes_fixed_order.append(shape_nr)
 
-                self.shapes_to_write.append(shape_nr)
+                shapes_to_write.append(shape_nr)
                 shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
 
-            #Perform Export only if the Number of shapes to export is bigger than 0
-            if len(self.shapes_to_write)>0:
-                        #Errechnen der Iterationen
-                        #Calculate the iterations
-                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'],
-                         len(self.shapes_to_write)*50)
+            # Perform Export only if the Number of shapes to export is bigger than 0
+            if len(shapes_to_write) > 0:
+                # Errechnen der Iterationen
+                # Calculate the iterations
+                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'], len(shapes_to_write)*50)
 
-                #Adding the Start and End Points to the List.
+                # Adding the Start and End Points to the List.
                 x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
                 y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
-                start = Point(x = x_st, y = y_st)
-                ende = Point(x = x_st, y = y_st)
+                start = Point(x_st, y_st)
+                ende = Point(x_st, y_st)
                 shapes_st_en_points.append([start, ende])
 
-                TSPs = []
-                TSPs.append(TspOptimization(st_end_points = shapes_st_en_points,
-                                        order = self.shapes_fixed_order))
-                logger.info(self.tr("TSP start values initialised for Layer %s")
-                                    % LayerContent.name)
-                logger.debug(self.tr("Shapes to write: %s")
-                                     % self.shapes_to_write)
-                logger.debug(self.tr("Fixed order: %s")
-                                     % self.shapes_fixed_order)
+                TSPs = TspOptimization(shapes_st_en_points, shapes_fixed_order)
+                logger.info(self.tr("TSP start values initialised for Layer %s") % LayerContent.name)
+                logger.debug(self.tr("Shapes to write: %s") % shapes_to_write)
+                logger.debug(self.tr("Fixed order: %s") % shapes_fixed_order)
 
                 for it_nr in range(iter_):
-                    #Only show each 50th step.
-                    if (it_nr % 50) == 0:
-                        TSPs[-1].calc_next_iteration()
+                    # Only show each 50th step.
+                    if it_nr % 50 == 0:
+                        TSPs.calc_next_iteration()
                         new_exp_order = []
-                        for nr in TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]:
+                        for nr in TSPs.opt_route[1:len(TSPs.opt_route)]:
                             new_exp_order.append(LayerContent.exp_order[nr])
 
-                logger.debug(self.tr("TSP done with result: %s") % TSPs[-1])
+                logger.debug(self.tr("TSP done with result: %s") % TSPs)
 
                 LayerContent.exp_order = new_exp_order
 
                 self.glWidget.addexproute(LayerContent.exp_order, LayerContent.nr)
-                logger.debug(self.tr("New Export Order after TSP: %s")
-                                     % new_exp_order)
+                logger.debug(self.tr("New Export Order after TSP: %s") % new_exp_order)
                 self.glWidget.update()
             else:
                 LayerContent.exp_order = []

@@ -758,6 +758,7 @@ class MyDropDownMenu(QMenu):
                 xyForZ[z] = self.canvas.determineSelectedPosition(self.clicked, z, self.offset)
             shape.setNearestStPoint(xyForZ[z])
         self.canvas.update()
+        g.window.TreeHandler.prepareExportOrderUpdate()
 
     def setNoComp(self):
         for shape in self.selectedItems:

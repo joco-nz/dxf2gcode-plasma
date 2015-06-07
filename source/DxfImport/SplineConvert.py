@@ -167,13 +167,14 @@ class Spline2Arcs:
         """
         calc_active_tolerance_dec()
         """
-        V0 = (arc[2].O - arc[2].Ps).unit_vector()
-        Vb = (Arc1.O - Arc1.Ps).unit_vector()
+        # TODO why does it differ with calc_active_tolerance_inc
+        # V0 = (arc[2].O - arc[2].Ps).unit_vector()
+        # Vb = (Arc1.O - Arc1.Ps).unit_vector()
 
-        t_ = (2 * arc[2].r * tau + pow(tau, 2)) / \
-             (2 * (arc[2].r + (arc[2].r + tau) * V0 * Vb))
+        # t_ = (2 * arc[2].r * tau + pow(tau, 2)) / \
+        #      (2 * (arc[2].r + (arc[2].r + tau) * V0 * Vb))
 
-        te = arc[2].r + t_ - (Arc0.Pe - (arc[2].O + (t_ * V0))).length()
+        # te = arc[2].r + t_ - (Arc0.Pe - (arc[2].O + (t_ * V0))).length()
         te = tau
 
         tm = -arc[1].O.distance(Arc0.Pe) + abs(arc[1].r)
