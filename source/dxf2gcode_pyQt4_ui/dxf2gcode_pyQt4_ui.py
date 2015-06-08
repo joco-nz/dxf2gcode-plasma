@@ -2,8 +2,8 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode_pyQt4_ui.ui'
 #
-# Created: Tue Jan 06 17:17:06 2015
-#      by: PyQt4 UI code generator 4.9.6
+# Created: Mon Jun 08 18:52:21 2015
+#      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
 
