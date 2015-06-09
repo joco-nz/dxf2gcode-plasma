@@ -385,7 +385,10 @@ class ShapeClass(QtGui.QGraphicsItem):
         workpiece_top_Z = self.LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
         depth = self.LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
         max_slice = max(max_slice, depth - workpiece_top_Z)
-        end, end_ang = self.geos[-1].get_start_end_points((workpiece_top_Z - depth)//max_slice % 2, self.parent)
+        if (workpiece_top_Z - depth)//max_slice % 2 == 0:
+            end, end_ang = start, start_ang
+        else:
+            end, end_ang = self.geos[-1].get_start_end_points(1, self.parent)
 
         if dir is None:
             return start, end
