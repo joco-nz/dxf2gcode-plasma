@@ -21,18 +21,21 @@
 #
 ############################################################################
 
-from PyQt4 import QtCore
+from math import sqrt
+import logging
+
+from PyQt5.QtCore import QLineF, QPointF
 
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
 from Core.BreakGeo import BreakGeo
 from Core.Point import Point
-from math import sqrt
 
-import logging
+
 logger = logging.getLogger("PostPro.Breaks")
 
-class Breaks(QtCore.QObject):
+
+class Breaks(object):
     """
     The Breaks Class includes the functions for processing shapes on layers named BREAKS: to break closed shapes so that
     the resulting G-Code will contain rests for the workpiece.
@@ -54,7 +57,7 @@ class Breaks(QtCore.QObject):
                 processLayers.append(layerContent)
 
         logger.debug("Found %d break layers and %d processing layers" % (len(breakLayers), len(processLayers)) )
-        if (len(breakLayers) > 0 and len(processLayers) > 0):
+        if len(breakLayers) > 0 and len(processLayers) > 0:
             self.doProcess(breakLayers, processLayers)
 
     def doProcess(self, breakLayers, processLayers):
@@ -117,13 +120,13 @@ class Breaks(QtCore.QObject):
         """
         # TODO geos should be abs
         intersections = []
-        line = QtCore.QLineF(lineGeo.Ps.x, lineGeo.Ps.y, lineGeo.Pe.x, lineGeo.Pe.y)
+        line = QLineF(lineGeo.Ps.x, lineGeo.Ps.y, lineGeo.Pe.x, lineGeo.Pe.y)
         for breakGeo in breakShape.geos:
             if isinstance(breakGeo, LineGeo):
-                breakLine = QtCore.QLineF(breakGeo.Ps.x, breakGeo.Ps.y, breakGeo.Pe.x, breakGeo.Pe.y)
-                intersection = QtCore.QPointF(0, 0)  # values do not matter
+                breakLine = QLineF(breakGeo.Ps.x, breakGeo.Ps.y, breakGeo.Pe.x, breakGeo.Pe.y)
+                intersection = QPointF(0, 0)  # values do not matter
                 res = line.intersect(breakLine, intersection)
-                if res == QtCore.QLineF.BoundedIntersection:
+                if res == QLineF.BoundedIntersection:
                     intersections.append(Point(intersection.x(), intersection.y()))
         return intersections
 

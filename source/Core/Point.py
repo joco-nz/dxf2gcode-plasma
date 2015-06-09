@@ -177,5 +177,5 @@ class Point(object):
         self.x = max(self.x, point.x)
         self.y = min(self.y, point.y)
 
-    def to3D(self, z):
+    def to3D(self, z=0.0):
         return Point3D(self.x, self.y, z)

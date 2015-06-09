@@ -148,6 +148,10 @@ class ArcGeo(object):
             self.abs_geo.reverse()
 
     def make_abs_geo(self, parent=None):
+        """
+        Generates the absolute geometry based on itself and the parent. This
+        is done for rotating and scaling purposes
+        """
         Ps = self.Ps.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
         O = self.O.rot_sca_abs(parent=parent)
@@ -221,3 +225,29 @@ class ArcGeo(object):
                 return True
             Ps = Pe
         return False
+
+    def Write_GCode(self, PostPro=None):
+        """
+        Writes the GCODE for an Arc.
+        @param PostPro: The PostProcessor instance to be used
+        @return: Returns the string to be written to a file.
+        """
+        Ps, s_ang = self.get_start_end_points(True, True)
+        Pe, e_ang = self.get_start_end_points(False, True)
+
+        O = self.abs_geo.O
+        r = self.abs_geo.r
+        IJ = O - Ps
+
+        # If the radius of the element is bigger than the max, radius export the element as an line.
+        if r > PostPro.vars.General["max_arc_radius"]:
+            string = PostPro.lin_pol_xy(Ps, Pe)
+        else:
+            if self.ext > 0:
+                string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ)
+            elif self.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
+                string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe)
+            else:
+                string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ)
+
+        return string

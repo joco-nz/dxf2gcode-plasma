@@ -65,9 +65,8 @@ class HoleGeo(object):
 
     def make_abs_geo(self, parent=None):
         """
-        Generates the absolute geometry based on itself and the parent.
-        @param parent: The parent of the geometry (EntityContentClass)
-        @return: A new HoleGeoClass will be returned.
+        Generates the absolute geometry based on itself and the parent. This
+        is done for rotating and scaling purposes
         """
         Ps = self.Ps.rot_sca_abs(parent=parent)
 
@@ -109,10 +108,9 @@ class HoleGeo(object):
             Ps = Pe
         return False
 
-    def Write_GCode(self, parent=None, PostPro=None):
+    def Write_GCode(self, PostPro):
         """
         Writes the GCODE for a Hole.
-        @param parent: This is the parent LayerContentClass
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """

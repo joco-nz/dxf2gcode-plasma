@@ -21,11 +21,8 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
+from copy import deepcopy
 import logging
-import copy
-
-from PyQt4 import QtCore
 
 from Core.LineGeo import LineGeo
 
@@ -40,17 +37,16 @@ class BreakGeo(LineGeo):
     def __init__(self, Ps, Pe, height, xyfeed, zfeed):
         LineGeo.__init__(self, Ps, Pe)
 
-        self.type = "BreakGeo"
         self.height = height
         self.xyfeed = xyfeed
         self.zfeed = zfeed
 
     def __deepcopy__(self, memo):
-        return BreakGeo(copy.deepcopy(self.Ps, memo),
-                        copy.deepcopy(self.Pe, memo),
-                        copy.deepcopy(self.height, memo),
-                        copy.deepcopy(self.xyfeed, memo),
-                        copy.deepcopy(self.zfeed, memo))
+        return BreakGeo(deepcopy(self.Ps, memo),
+                        deepcopy(self.Pe, memo),
+                        deepcopy(self.height, memo),
+                        deepcopy(self.xyfeed, memo),
+                        deepcopy(self.zfeed, memo))
 
     def __str__(self):
         """
@@ -62,20 +58,9 @@ class BreakGeo(LineGeo):
                "\nPe:     %s" % self.Pe +\
                "\nheight: %0.5f" % self.height
 
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('BreakGeo',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
-
-    def Write_GCode(self, parent=None, PostPro=None):
+    def Write_GCode(self, PostPro):
         """
         Writes the GCODE for a Break.
-        @param parent: This is the parent LayerContentClass
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to file.
         """
@@ -83,14 +68,14 @@ class BreakGeo(LineGeo):
         oldFeed = PostPro.feed
         if self.height <= oldZ:
             return (
-                LineGeo.Write_GCode(self, parent, PostPro)
+                LineGeo.Write_GCode(self, PostPro)
             )
         else:
             return (
                 PostPro.chg_feed_rate(self.zfeed) +
                 PostPro.lin_pol_z(self.height) +
                 PostPro.chg_feed_rate(self.xyfeed) +
-                LineGeo.Write_GCode(self, parent, PostPro) +
+                LineGeo.Write_GCode(self, PostPro) +
                 PostPro.chg_feed_rate(self.zfeed) +
                 PostPro.lin_pol_z(oldZ) +
                 PostPro.chg_feed_rate(oldFeed)

@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import QOpenGLWidget, QMenu
 
 from Core.Point import Point
 from Core.Point3D import Point3D
+from Core.StMove import StMove
 import Global.Globals as g
 
 
@@ -77,6 +78,7 @@ class GLWidget(QOpenGLWidget):
         self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
         self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
         self.colorRoute = QColor.fromRgbF(0.5, 0.0, 0.0, 1.0)
+        self.colorStMove = QColor.fromRgbF(0.5, 0.0, 0.25, 1.0)
 
         self.topLeft = Point()
         self.bottomRight = Point()
@@ -105,7 +107,7 @@ class GLWidget(QOpenGLWidget):
 
     def delete_opt_paths(self):
         if len(self.routeArrows) > 0:
-            self.gl.glDeleteLists(self.routeArrows[0][2], self.routeArrows[-1][2])
+            self.gl.glDeleteLists(self.routeArrows[0][2], len(self.routeArrows))
             self.routeArrows = []
 
     def addexproutest(self):
@@ -117,7 +119,6 @@ class GLWidget(QOpenGLWidget):
         """
         This function initialises the Arrows of the export route order and its numbers.
         """
-        #Print the optimised route
         for shape_nr in range(len(exp_order)):
             shape = self.objects[exp_order[shape_nr]]
             st = self.expprv
@@ -316,6 +317,8 @@ class GLWidget(QOpenGLWidget):
         for shape in self.objects:
             if shape.selected:
                 if not shape.disabled:
+                    self.setColor(self.colorStMove)
+                    self.gl.glCallList(shape.drawStMove)
                     self.setColor(self.colorSelect)
                     self.gl.glCallList(shape.drawObject)
                 elif self.showDisabledPaths:
@@ -395,6 +398,8 @@ class GLWidget(QOpenGLWidget):
         for shape in shapes:
             shape.drawObject = self.makeShape(shape)
             shape.drawArrowsDirection = self.makeDirArrows(shape)
+            shape.stMove = StMove(shape)
+            shape.drawStMove = self.makeStMove(shape.stMove)
             self.objects.append(shape)
         self.drawWpZero()
         self.drawOrientationArrows()
@@ -411,6 +416,18 @@ class GLWidget(QOpenGLWidget):
 
         self.topLeft.detTopLeft(shape.topLeft)
         self.bottomRight.detBottomRight(shape.bottomRight)
+
+        return genList
+
+    def makeStMove(self, stMove):
+        genList = self.gl.glGenLists(1)
+        self.gl.glNewList(genList, self.gl.GL_COMPILE)
+
+        self.gl.glBegin(self.gl.GL_LINES)
+        stMove.make_path(self.drawHorLine, self.drawVerLine)
+        self.gl.glEnd()
+
+        self.gl.glEndList()
 
         return genList
 
@@ -552,13 +569,13 @@ class GLWidget(QOpenGLWidget):
         startArrow = self.gl.glGenLists(1)
         self.gl.glNewList(startArrow, self.gl.GL_COMPILE)
         self.setColor(self.colorEntryArrow)
-        self.drawDirArrow(Point3D(), start_dir.to3D(0), True)
+        self.drawDirArrow(Point3D(), start_dir.to3D(), True)
         self.gl.glEndList()
 
         endArrow = self.gl.glGenLists(1)
         self.gl.glNewList(endArrow, self.gl.GL_COMPILE)
         self.setColor(self.colorExitArrow)
-        self.drawDirArrow(Point3D(), end_dir.to3D(0), False)
+        self.drawDirArrow(Point3D(), end_dir.to3D(), False)
         self.gl.glEndList()
 
         return startArrow, endArrow

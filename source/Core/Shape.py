@@ -22,7 +22,7 @@
 #
 ############################################################################
 
-from math import cos, sin, degrees
+from math import cos, sin, degrees, pi
 from copy import deepcopy
 import logging
 
@@ -67,6 +67,8 @@ class Shape(object):
 
         self.drawObject = 0
         self.drawArrowsDirection = 0
+        self.drawStMove = 0
+        self.stMove = None
 
         self.topLeft = None
         self.bottomRight = None
@@ -83,6 +85,8 @@ class Shape(object):
         self.axis3_mill_depth = g.config.vars.Depth_Coordinates['axis3_mill_depth']
         self.f_g1_plane = g.config.vars.Feed_Rates['f_g1_plane']
         self.f_g1_depth = g.config.vars.Feed_Rates['f_g1_depth']
+        # Parameters for drag knife
+        self.dragAngle = g.config.vars.Drag_Knife_Options['dragAngle'] * pi / 180
 
     def __str__(self):
         """
@@ -164,7 +168,7 @@ class Shape(object):
                     min_geo_nr = geo_nr
 
             # Overwrite the geometries in changed order.
-            self.geos = self.geos[min_geo_nr:len(self.geos)] + self.geos[0:min_geo_nr]
+            self.geos = self.geos[min_geo_nr:] + self.geos[:min_geo_nr]
 
             start = self.get_start_end_points(True)
             logger.debug(self.tr("New Start Point: %s" % start))
@@ -173,6 +177,18 @@ class Shape(object):
         self.geos.reverse()
         for geo in self.geos:
             geo.reverse()
+
+    def switch_cut_cor(self):
+        """
+        Switches the cutter direction between 41 and 42.
+
+        G41 = Tool radius compensation left.
+        G42 = Tool radius compensation right
+        """
+        if self.cut_cor == 41:
+            self.cut_cor = 42
+        elif self.cut_cor == 42:
+            self.cut_cor = 41
 
     def append(self, geo):
         geo.make_abs_geo(self.parentEntity)
@@ -189,7 +205,7 @@ class Shape(object):
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:
-            drawVerLine(geo.Ps.rot_sca_abs(parent=self.parentEntity), self.axis3_start_mill_depth, self.axis3_mill_depth)
+            drawVerLine(geo.get_start_end_points(True), self.axis3_start_mill_depth, self.axis3_mill_depth)
 
             geo.make_path(self, drawHorLine)
 
@@ -201,7 +217,7 @@ class Shape(object):
                 self.bottomRight.detBottomRight(geo.bottomRight)
 
         if not self.closed:
-            drawVerLine(geo.Pe.rot_sca_abs(parent=self.parentEntity), self.axis3_start_mill_depth, self.axis3_mill_depth)
+            drawVerLine(geo.get_start_end_points(False), self.axis3_start_mill_depth, self.axis3_mill_depth)
 
     def isHit(self, xy, tol):
         if self.topLeft.x - tol <= xy.x <= self.bottomRight.x + tol\
@@ -210,44 +226,42 @@ class Shape(object):
                 if geo.isHit(self, xy, tol):
                     return True
         return False
-       
-    def Write_GCode(self, LayerContent=None, PostPro=None):
+
+    def Write_GCode(self, PostPro=None):
         """
         This method returns the string to be exported for this shape, including
         the defined start and end move of the shape.
-        @param LayerContent: This parameter includes the parent LayerContent
-        which includes tool and additional cutting parameters.
         @param PostPro: this is the Postprocessor class including the methods
         to export
         """
 
         if g.config.machine_type == 'drag_knife':
-            return self.Write_GCode_Drag_Knife(LayerContent=LayerContent,
-                                               PostPro=PostPro)
+            return self.Write_GCode_Drag_Knife(PostPro)
 
         # initialisation of the string
         exstr = ""
 
         # Create the Start_moves once again if something was changed.
-        self.stmove.make_start_moves()
+        # TODO make this redundant
+        self.stMove.make_start_moves()
 
         # Calculate tool Radius.
-        tool_rad = LayerContent.tool_diameter / 2
+        tool_rad = self.parentLayer.tool_diameter / 2
 
         # Get the mill settings defined in the GUI
-        safe_retract_depth = LayerContent.axis3_retract
-        safe_margin = LayerContent.axis3_safe_margin
-        # If defined, choose the parameters from the Shape itself. Otherwise, choose the parameters from the parent Layer
-        max_slice = LayerContent.axis3_slice_depth if self.axis3_slice_depth is None else self.axis3_slice_depth
-        workpiece_top_Z = LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
+        safe_retract_depth = self.parentLayer.axis3_retract
+        safe_margin = self.parentLayer.axis3_safe_margin
+
+        max_slice = self.axis3_slice_depth
+        workpiece_top_Z = self.axis3_start_mill_depth
         # We want to mill the piece, even for the first pass, so remove one "slice"
         initial_mill_depth = workpiece_top_Z - abs(max_slice)
-        depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
-        f_g1_plane = LayerContent.f_g1_plane if self.f_g1_plane is None else self.f_g1_plane
-        f_g1_depth = LayerContent.f_g1_depth if self.f_g1_depth is None else self.f_g1_depth
+        depth = self.axis3_mill_depth
+        f_g1_plane = self.f_g1_plane
+        f_g1_depth = self.f_g1_depth
 
         # Save the initial Cutter correction in a variable
-        has_reversed = 0
+        has_reversed = False
 
         # If the Output Format is DXF do not perform more then one cut.
         if PostPro.vars.General["output_type"] == 'dxf':
@@ -267,8 +281,7 @@ class Shape(object):
         mom_depth = initial_mill_depth
 
         # Move the tool to the start.
-        exstr += self.stmove.geos[0].Write_GCode(parent=self.stmove.parent,
-                                                 PostPro=PostPro)
+        exstr += self.stMove.geos[0].Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
@@ -277,12 +290,12 @@ class Shape(object):
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
             # Calculate the starting point without tool compensation
             # and add the compensation
-            start, start_ang = self.get_st_en_points(0)
+            start, start_ang = self.get_start_end_points(True, True)
             exstr += PostPro.set_cut_cor(self.cut_cor, start)
 
             exstr += PostPro.chg_feed_rate(f_g1_plane)  # Added by Xavier because of code move (see above)
-            exstr += self.stmove.geos[1].Write_GCode(parent=self.stmove.parent, PostPro=PostPro)
-            exstr += self.stmove.geos[2].Write_GCode(parent=self.stmove.parent, PostPro=PostPro)
+            exstr += self.stMove.geos[1].Write_GCode(PostPro)
+            exstr += self.stMove.geos[2].Write_GCode(PostPro)
 
         exstr += PostPro.rap_pos_z(
             workpiece_top_Z + abs(safe_margin))  # Compute the safe margin from the initial mill depth
@@ -294,19 +307,19 @@ class Shape(object):
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
             # Calculate the starting point without tool compensation
             # and add the compensation
-            start, start_ang = self.get_st_en_points(0)
+            start, start_ang = self.get_start_end_points(True)
             exstr += PostPro.set_cut_cor(self.cut_cor, start)
 
-            exstr += self.stmove.geos[1].Write_GCode(parent=self.stmove.parent, PostPro=PostPro)
-            exstr += self.stmove.geos[2].Write_GCode(parent=self.stmove.parent, PostPro=PostPro)
+            exstr += self.stMove.geos[1].Write_GCode(PostPro)
+            exstr += self.stMove.geos[2].Write_GCode(PostPro)
 
         # Write the geometries for the first cut
         for geo in self.geos:
-            exstr += geo.Write_GCode(self.parent, PostPro)
+            exstr += geo.Write_GCode(PostPro)
 
         # Turning the cutter radius compensation
-        if (not (self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):
-            ende, en_angle = self.get_st_en_points(1)
+        if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
+            ende, en_angle = self.get_start_end_points(False, True)
             if self.cut_cor == 41:
                 pos_cut_out = ende.get_arc_point(en_angle - pi / 2, tool_rad)
             elif self.cut_cor == 42:
@@ -331,27 +344,27 @@ class Shape(object):
             if self.closed == 0:
                 self.reverse()
                 self.switch_cut_cor()
-                has_reversed = 1 - has_reversed  # switch the "reversed" state (in order to restore it at the end)
+                has_reversed = not has_reversed  # switch the "reversed" state (in order to restore it at the end)
 
             # If cutter correction is enabled
-            if ((not (self.cut_cor == 40)) & (self.closed == 0)) or (PostPro.vars.General["cancel_cc_for_depth"] == 1):
+            if self.cut_cor != 40 and not self.closed or PostPro.vars.General["cancel_cc_for_depth"]:
                 # Calculate the starting point without tool compensation
                 # and add the compensation
-                start, start_ang = self.get_st_en_points(0)
+                start, start_ang = self.get_start_end_points(True, True)
                 exstr += PostPro.set_cut_cor(self.cut_cor, start)
 
             for geo_nr in range(len(self.geos)):
-                exstr += self.geos[geo_nr].Write_GCode(self.parent, PostPro)
+                exstr += self.geos[geo_nr].Write_GCode(PostPro)
 
             # Calculate the contour values with cutter radius compensation and without
-            ende, en_angle = self.get_st_en_points(1)
+            ende, en_angle = self.get_start_end_points(False, True)
             if self.cut_cor == 41:
                 pos_cut_out = ende.get_arc_point(en_angle - pi / 2, tool_rad)
             elif self.cut_cor == 42:
                 pos_cut_out = ende.get_arc_point(en_angle + pi / 2, tool_rad)
 
             # Turning off the cutter radius compensation if needed
-            if (not (self.cut_cor == 40)) & (PostPro.vars.General["cancel_cc_for_depth"] == 1):
+            if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
                 exstr += PostPro.deactivate_cut_cor(pos_cut_out)
 
         # Do the tool retraction
@@ -360,13 +373,13 @@ class Shape(object):
         exstr += PostPro.rap_pos_z(safe_retract_depth)
 
         # If cutter radius compensation is turned on.
-        if (not (self.cut_cor == 40)) & (not (PostPro.vars.General["cancel_cc_for_depth"])):
+        if self.cut_cor != 40 and not PostPro.vars.General["cancel_cc_for_depth"]:
             # Calculate the contour values - with cutter radius compensation and without
-            ende, en_angle = self.get_st_en_points(1)
+            ende, en_angle = self.get_start_end_points(False, True)
             exstr += PostPro.deactivate_cut_cor(ende)
 
         # Initial value of direction restored if necessary
-        if has_reversed != 0:
+        if has_reversed:
             self.reverse()
             self.switch_cut_cor()
 
@@ -375,13 +388,11 @@ class Shape(object):
 
         return exstr
 
-    def Write_GCode_Drag_Knife(self, LayerContent=None, PostPro=None):
+    def Write_GCode_Drag_Knife(self, PostPro=None):
         """
         This method returns the string to be exported for this shape, including
         the defined start and end move of the shape. This function is used for
         Drag Knife cutting machine only.
-        @param LayerContent: This parameter includes the parent LayerContent
-        which includes tool and additional cutting parameters.
         @param PostPro: this is the Postprocessor class including the methods
         to export
         """
@@ -390,24 +401,25 @@ class Shape(object):
         exstr = ""
 
         # Create the Start_moves once again if something was changed.
-        self.stmove.make_start_moves()
+        # TODO make this redundant
+        self.stMove.make_start_moves()
 
         # Get the mill settings defined in the GUI
-        safe_retract_depth = LayerContent.axis3_retract
-        safe_margin = LayerContent.axis3_safe_margin
-        # If defined, choose the parameters from the Shape itself. Otherwise, choose the parameters from the parent Layer
-        workpiece_top_Z = LayerContent.axis3_start_mill_depth if self.axis3_start_mill_depth is None else self.axis3_start_mill_depth
-        f_g1_plane = LayerContent.f_g1_plane if self.f_g1_plane is None else self.f_g1_plane
-        f_g1_depth = LayerContent.f_g1_depth if self.f_g1_depth is None else self.f_g1_depth
+        safe_retract_depth = self.parentLayer.axis3_retract
+        safe_margin = self.parentLayer.axis3_safe_margin
+
+        workpiece_top_Z = self.axis3_start_mill_depth
+        f_g1_plane = self.f_g1_plane
+        f_g1_depth = self.f_g1_depth
 
         """
         Cutting in slices is not supported for Swivel Knife tool. All is cut at once.
         """
-        mom_depth = LayerContent.axis3_mill_depth if self.axis3_mill_depth is None else self.axis3_mill_depth
-        drag_depth = LayerContent.axis3_slice_depth if self.axis3_slice_depth is None else self.axis3_slice_depth
+        mom_depth = self.axis3_mill_depth
+        drag_depth = self.axis3_slice_depth
 
         # Move the tool to the start.
-        exstr += self.stmove.geos[0].Write_GCode(parent=self.stmove.parent, PostPro=PostPro)
+        exstr += self.stMove.geos[0].Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
@@ -418,8 +430,8 @@ class Shape(object):
         exstr += PostPro.chg_feed_rate(f_g1_depth)
 
         # Write the geometries for the first cut
-        if self.stmove.geos[1].type == "ArcGeo":
-            if self.stmove.geos[1].drag:
+        if self.stMove.geos[1].type == "ArcGeo":
+            if self.stMove.geos[1].drag:
                 exstr += PostPro.lin_pol_z(drag_depth)
                 drag = True
             else:
@@ -430,9 +442,9 @@ class Shape(object):
             drag = False
         exstr += PostPro.chg_feed_rate(f_g1_plane)
 
-        exstr += self.stmove.geos[1].Write_GCode(parent=self.stmove.parent, PostPro=PostPro)
+        exstr += self.stMove.geos[1].Write_GCode(PostPro)
 
-        for geo in self.stmove.geos[2:]:
+        for geo in self.stMove.geos[2:]:
             if geo.type == "ArcGeo":
                 if geo.drag:
                     exstr += PostPro.chg_feed_rate(f_g1_depth)
@@ -450,7 +462,7 @@ class Shape(object):
                 exstr += PostPro.chg_feed_rate(f_g1_plane)
                 drag = False
 
-            exstr += geo.Write_GCode(parent=self.stmove.parent, PostPro=PostPro)
+            exstr += geo.Write_GCode(PostPro)
 
         # Do the tool retraction
         exstr += PostPro.chg_feed_rate(f_g1_depth)

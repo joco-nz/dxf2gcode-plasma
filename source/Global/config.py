@@ -318,7 +318,7 @@ class MyConfig(QtCore.QObject):
         """Prints Variables"""
         print("Variables:")
         for k, v in self.var_dict['Variables'].items():
-            print(k, " = ", v)
+            print(k, "=", v)
 
 
 class DictDotLookup(object):

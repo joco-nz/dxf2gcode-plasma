@@ -29,7 +29,7 @@ import logging
 from math import degrees, radians
 from copy import copy, deepcopy
 
-from PyQt5.QtCore import Qt, QLocale, QTranslator, QCoreApplication
+from PyQt5.QtCore import Qt, QLocale, QTranslator, QCoreApplication, QFile
 from PyQt5.QtGui import QSurfaceFormat
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
@@ -46,6 +46,7 @@ from DxfImport.Import import ReadDXF
 from Gui.PopUpDialog import PopUpDialog
 from Gui.TreeHandling import TreeHandler
 from dxf2gcode_ui import Ui_MainWindow
+from PostPro.PostProcessor import MyPostProcessor
 from PostPro.TspOptimization import TspOptimization
 
 
@@ -68,6 +69,8 @@ class MainWindow(QMainWindow):
         self.glWidget = self.ui.canvas
 
         self.TreeHandler = TreeHandler(self.ui)
+
+        self.MyPostProcessor = MyPostProcessor()
 
         self.createActions()
         self.connectToolbarToConfig()
@@ -100,7 +103,7 @@ class MainWindow(QMainWindow):
         # Export
         self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
         self.ui.actionExportShapes.triggered.connect(self.exportShapes)
-        self.ui.actionOptimizeAndExportshapes.triggered.connect(self.optimizeAndExportShapes)
+        self.ui.actionOptimizeAndExportShapes.triggered.connect(self.optimizeAndExportShapes)
 
         # View
         self.ui.actionShowDisabledPaths.triggered.connect(self.setShowDisabledPaths)
@@ -116,7 +119,7 @@ class MainWindow(QMainWindow):
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)
         self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
         self.ui.actionSplitLineSegments.triggered.connect(self.reload)  # TODO no need to redo the importing
-        self.ui.actionAutomaticCutterCompensation.triggered.connect(self.reloadFile)
+        self.ui.actionAutomaticCutterCompensation.triggered.connect(self.reload)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
@@ -426,8 +429,7 @@ class MainWindow(QMainWindow):
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
-
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        self.glWidget.setCursor(Qt.WaitCursor)
 
         logger.debug(self.tr('Export the enabled shapes'))
 
@@ -436,7 +438,7 @@ class MainWindow(QMainWindow):
         self.updateExportRoute()
 
         logger.debug(self.tr("Sorted layers:"))
-        for i, layer in enumerate(self.LayerContents):
+        for i, layer in enumerate(self.layerContents):
             logger.debug("LayerContents[%i] = %s" % (i, layer))
 
         if not(g.config.vars.General['write_to_stdout']):
@@ -444,16 +446,14 @@ class MainWindow(QMainWindow):
             #Get the name of the File to export
             if saveas == None:
                 filename = self.showSaveDialog()
-                self.save_filename = str(filename[0].toUtf8()).decode("utf-8")
+                self.save_filename = filename[0]
             else:
                 filename = [None, None]
                 self.save_filename = saveas
 
             #If Cancel was pressed
             if not self.save_filename:
-
-                QtGui.QApplication.restoreOverrideCursor()
-
+                self.glWidget.unsetCursor()
                 return
 
             (beg, ende) = os.path.split(self.save_filename)
@@ -467,12 +467,12 @@ class MainWindow(QMainWindow):
                 if filename[1] == MyFormats:
                     pp_file_nr = i
             if fileExtension != self.MyPostProcessor.output_format[pp_file_nr]:
-                if not QtCore.QFile.exists(self.save_filename):
+                if not QFile.exists(self.save_filename):
                     self.save_filename = self.save_filename + self.MyPostProcessor.output_format[pp_file_nr]
 
             self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
-            self.save_filename = None
+            self.save_filename = ""
             self.MyPostProcessor.getPostProVars(0)
 
         """
@@ -480,11 +480,11 @@ class MainWindow(QMainWindow):
         is given in this variable too.
         """
 
-        self.MyPostProcessor.exportShapes(self.load_filename,
+        self.MyPostProcessor.exportShapes(self.filename,
                                           self.save_filename,
-                                          self.LayerContents)
+                                          self.layerContents)
 
-        QtGui.QApplication.restoreOverrideCursor()
+        self.glWidget.unsetCursor()
 
         if g.config.vars.General['write_to_stdout']:
             self.close()
@@ -508,32 +508,31 @@ class MainWindow(QMainWindow):
             format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
             MyFormats = MyFormats + name + format_
 
-        (beg, ende) = os.path.split(self.load_filename)
+        (beg, ende) = os.path.split(self.filename)
         (fileBaseName, fileExtension) = os.path.splitext(ende)
 
         default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
 
         selected_filter = self.MyPostProcessor.output_format[0]
-        filename = QtGui.QFileDialog.getSaveFileNameAndFilter(self,
-                    self.tr('Export to file'), default_name,
-                    MyFormats, selected_filter)
-
+        filename = QFileDialog.getSaveFileName(self,
+                                               self.tr('Export to file'), default_name,
+                                               MyFormats, selected_filter)
         logger.info(self.tr("File: %s selected") % filename[0])
 
         return filename
 
     def automaticCutterCompensation(self):
-        if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() == self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
+        if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() and self.ui.actionAutomatic_Cutter_Compensation.isChecked():
             for layerContent in self.LayerContents:
                 if layerContent.automaticCutterCompensationEnabled():
-                    newShapes = [];
+                    newShapes = []
                     for shape in layerContent.shapes:
-                        shape.make_papath()
+                        shape.make_papath()  # TODO
                     for shape in layerContent.shapes:
                         if shape.closed:
                             container = None
                             myBounds = shape.boundingRect()
-                            for otherShape in layerContent.shapes :
+                            for otherShape in layerContent.shapes:
                                 if shape != otherShape and otherShape.boundingRect().contains(myBounds):
                                     logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
                                     container = otherShape
@@ -546,9 +545,9 @@ class MainWindow(QMainWindow):
                         else:
                             newShapes.append(shape)
                     layerContent.shapes = newShapes
-                    logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
+                    logger.debug(self.tr("new order for layer %s:") % layerContent.LayerName)
                     for shape in layerContent.shapes:
-                        logger.debug(self.tr(">>Shape: %s") % (shape.nr))
+                        logger.debug(self.tr(">>Shape: %s") % shape.nr)
 
     def open(self):
         self.filename, _ = QFileDialog.getOpenFileName(self, 'Open File', '',
@@ -628,15 +627,16 @@ class MainWindow(QMainWindow):
         This function is called by the menu "File/Reload File" of the main toolbar.
         It reloads the previously loaded file (if any)
         """
-        logger.info(self.tr("Reloading file: %s") % self.filename)
-        self.load(self.filename)
+        if self.filename:
+            logger.info(self.tr("Reloading file: %s") % self.filename)
+            self.load(self.filename)
 
     def makeShapes(self, values, p0, pb, sca, rot):
         self.entityRoot = EntityContent(nr=0, name='Entities',
                                         parent=None,
                                         p0=p0, pb=pb, sca=sca, rot=rot)
-        del (self.layerContents[:])
-        del (self.shapes[:])
+        self.layerContents = []
+        self.shapes = []
 
         self.makeEntityShapes(values, self.entityRoot)
 

@@ -78,10 +78,9 @@ class CustomGCode(object):
         """
         return self.disabled
 
-    def Write_GCode(self, parent=None, PostPro=None):
+    def Write_GCode(self, PostPro=None):
         """
-        This method returns the string to be exported for this custom gcode, including
-        @param LayerContent: This parameter includes the parent LayerContent
+        This method returns the string to be exported for this custom gcode
         @param PostPro: this is the Postprocessor class including the methods to export
         """
         return self.gcode

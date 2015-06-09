@@ -66,9 +66,8 @@ class LineGeo(object):
 
     def make_abs_geo(self, parent=None):
         """
-        Generates the absolute geometry based on itself and the parent.
-        @param parent: The parent of the geometry (EntityContentClass)
-        @return: A new LineGeoClass will be returned.
+        Generates the absolute geometry based on itself and the parent. This
+        is done for rotating and scaling purposes
         """
         Ps = self.Ps.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
@@ -118,3 +117,14 @@ class LineGeo(object):
 
     def isHit(self, caller, xy, tol):
         return xy.distance2_to_line(self.abs_geo.Ps, self.abs_geo.Pe) <= tol**2
+
+    def Write_GCode(self, PostPro):
+        """
+        Writes the GCODE for a Line.
+        @param PostPro: The PostProcessor instance to be used
+        @return: Returns the string to be written to a file.
+        """
+        Ps = self.get_start_end_points(True)
+        Pe = self.get_start_end_points(False)
+
+        return PostPro.lin_pol_xy(Ps, Pe)

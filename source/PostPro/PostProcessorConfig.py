@@ -1,43 +1,40 @@
 ############################################################################
-#   
+#
 #   Copyright (C) 2008-2014
 #    Christian Kohlöffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
-#   
+#
 #   This file is part of DXF2GCODE.
-#   
+#
 #   DXF2GCODE is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#   
+#
 #   DXF2GCODE is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-#   
+#
 #   You should have received a copy of the GNU General Public License
 #   along with DXF2GCODE.  If not, see <http://www.gnu.org/licenses/>.
-#   
+#
 ############################################################################
 
 import os
-
-from Core.configobj import ConfigObj, flatten_errors
-from Core.validate import Validator
-
-#from dotdictlookup import DictDotLookup
-import time
-
-import Core.constants as c
-import Core.Globals as g
-from d2gexceptions import *
-
-from PyQt4 import QtCore, QtGui
-
 import logging
-logger = logging.getLogger("PostPro.PostProcessorConfig") 
+
+from PyQt5.QtCore import QCoreApplication
+
+from Global.configobj.configobj import ConfigObj, flatten_errors
+from Global.configobj.validate import Validator
+import Global.constants as c
+import Global.Globals as g
+from Global.d2gexceptions import *
+
+
+logger = logging.getLogger("PostPro.PostProcessorConfig")
 
 POSTPRO_VERSION = "4"
 """
@@ -46,10 +43,10 @@ version tag - increment this each time you edit CONFIG_SPEC
 compared to version number in config file so
 old versions are recognized and skipped
 """
-    
+
 POSTPRO_SPEC = str('''
 #  Section and variable names must be valid Python identifiers
-#      do not use whitespace in names 
+#      do not use whitespace in names
 
 # do not edit the following section name:
     [Version]
@@ -62,18 +59,18 @@ POSTPRO_SPEC = str('''
     output_format = string(default=".ngc")
     output_text = string(default="G-CODE for LinuxCNC")
     output_type = string(default="g-code")
-    
+
     abs_export = boolean(default=True)
     cancel_cc_for_depth = boolean(default=False)
     cc_outside_the_piece = boolean(default=True)
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
-    
+
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
     code_begin = string(default="G90 (Absolute programming) G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
     code_end = string(default="M2 (Program end)")
-    
+
     [Number_Format]
     pre_decimals = integer(default=4)
     post_decimals = integer(default=3)
@@ -81,12 +78,12 @@ POSTPRO_SPEC = str('''
     pre_decimal_zero_padding = boolean(default=False)
     post_decimal_zero_padding = boolean(default=True)
     signed_values = boolean(default=False)
-    
+
     [Line_Numbers]
     use_line_nrs = boolean(default=False)
     line_nrs_begin = integer(default=10)
     line_nrs_step = integer(default=10)
-    
+
     [Program]
     tool_change = string(default=T%tool_nr M6%nlS%speed%nl)
     feed_change = string(default=F%feed%nl)
@@ -103,13 +100,13 @@ POSTPRO_SPEC = str('''
     cutter_comp_right = string(default=G40%nlG42%nl)
     pre_shape_cut = string(default=M3 M8%nl)
     post_shape_cut = string(default=M9 M5%nl)
-    comment = string(default=%nl(%comment)%nl)              
+    comment = string(default=%nl(%comment)%nl)
 
-''').splitlines()  
+''').splitlines()
 """ format, type and default value specification of the global config file"""
 
 
-class MyPostProConfig(QtCore.QObject):
+class MyPostProConfig(object):
     """
     This class hosts all functions related to the PostProConfig File.
     """
@@ -120,30 +117,25 @@ class MyPostProConfig(QtCore.QObject):
         @param filename: The filename for the creation of a new config
         file and the filename of the file to read config from.
         """
-        QtCore.QObject.__init__(self)
-        
         self.folder = os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)
         self.filename = os.path.join(self.folder, filename)
-        
-        self.default_config = False # whether a new name was generated
+
+        self.default_config = False  # whether a new name was generated
         self.var_dict = dict()
         self.spec = ConfigObj(POSTPRO_SPEC, interpolation=False, list_values=False, _inspec=True)
 
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
-        @param: string_to_translate: a unicode string    
+        @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("MyPostProConfig",
-                                                    string_to_translate,
-                                                    None,
-                                                    QtGui.QApplication.UnicodeUTF8)) 
+        return QCoreApplication.translate("MyPostProConfig", string_to_translate, None)
 
     def load_config(self):
         """
-        This method tries to load the defined postprocessor file given in 
-        self.filename. If this fails it will create a new one 
+        This method tries to load the defined postprocessor file given in
+        self.filename. If this fails it will create a new one
         """
 
         try:
@@ -164,30 +156,30 @@ class MyPostProConfig(QtCore.QObject):
                 section_string = ', '.join(section_list)
                 if error == False:
                     error = self.tr('Missing value or section.')
-                g.logger.logger.error( section_string + ' = ' + error)       
+                g.logger.logger.error( section_string + ' = ' + error)
 
             if validate_errors:
-                raise BadConfigFileError, self.tr("syntax errors in postpro_config file")
-                
+                raise BadConfigFileError(self.tr("syntax errors in postpro_config file"))
+
             # check config file version against internal version
 
             if POSTPRO_VERSION:
                 fileversion = self.var_dict['Version']['config_version'] # this could raise KeyError
 
                 if fileversion != POSTPRO_VERSION:
-                    raise VersionMismatchError, (fileversion, POSTPRO_VERSION)
-          
-        except VersionMismatchError, values:
-            raise VersionMismatchError, (fileversion, POSTPRO_VERSION)
-                   
-        except Exception, inst:
-            logger.error(inst)               
+                    raise VersionMismatchError(fileversion, POSTPRO_VERSION)
+
+        except VersionMismatchError:
+            raise VersionMismatchError(fileversion, POSTPRO_VERSION)
+
+        except Exception as inst:
+            logger.error(inst)
             (base, ext) = os.path.splitext(self.filename)
             badfilename = base + c.BAD_CONFIG_EXTENSION
             logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
             try:
                 os.rename(self.filename, badfilename)
-            except OSError, e:
+            except OSError as e:
                 logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename, badfilename, e.strerror))
                 raise
             else:
@@ -200,48 +192,48 @@ class MyPostProConfig(QtCore.QObject):
             logger.debug(self.tr("read existing varspace '%s'") % (self.filename))
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
-        self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
-        self.vars = DictDotLookup(self.var_dict) 
+        self.var_dict.main.interpolation = False  # avoid ConfigObj getting too clever
+        self.vars = DictDotLookup(self.var_dict)
 
-    def make_settings_folder(self): 
+    def make_settings_folder(self):
         """
         This method creates the postprocessor settings folder if necessary
-        """ 
-        try: 
-            os.mkdir(self.folder) 
-        except OSError: 
-            pass        
+        """
+        try:
+            os.mkdir(self.folder)
+        except OSError:
+            pass
 
     def create_default_config(self):
         """
-        If no postprocessor config file exists this function is called 
+        If no postprocessor config file exists this function is called
         to generate the config file based on its specification.
         """
-        #check for existing setting folder or create one
+        # check for existing setting folder or create one
         self.make_settings_folder()
-        
+
         # derive config file with defaults from spec
         logger.debug(POSTPRO_SPEC)
-        
+
         self.var_dict = ConfigObj(configspec=POSTPRO_SPEC)
         _vdt = Validator()
         self.var_dict.validate(_vdt, copy=True)
         self.var_dict.filename = self.filename
         self.var_dict.write()
-        
-        
+
+
 #    def _save_varspace(self):
 #        self.var_dict.filename = self.filename
-#        self.var_dict.write()   
-#    
+#        self.var_dict.write()
+#
     def print_vars(self):
         """
         Print all the variables with their values
         """
-        print "Variables:"
+        print("Variables:")
         for k, v in self.var_dict['Variables'].items():
-            print k, " = ", v
-            
+            print(k, "=", v)
+
 
 class DictDotLookup(object):
     """
