@@ -96,7 +96,7 @@ class StMove(object):
             self.append(RapidPos(start_ein))
 
             # generate the Start Line and append it including the compensation.
-            start_line = LineGeo(Pg_ein, Pa_ein)
+            start_line = LineGeo(start_ein, Pa_ein)
             self.append(start_line)
 
             # generate the start rad. and append it.
@@ -118,7 +118,7 @@ class StMove(object):
             self.append(RapidPos(start_ein))
 
             # generate the Start Line and append it including the compensation.
-            start_line = LineGeo(Pg_ein, Pa_ein)
+            start_line = LineGeo(start_ein, Pa_ein)
             self.append(start_line)
 
             # generate the start rad. and append it.

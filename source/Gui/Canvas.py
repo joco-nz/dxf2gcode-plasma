@@ -396,13 +396,20 @@ class GLWidget(QOpenGLWidget):
 
     def plotAll(self, shapes):
         for shape in shapes:
-            shape.drawObject = self.makeShape(shape)
-            shape.drawArrowsDirection = self.makeDirArrows(shape)
-            shape.stMove = StMove(shape)
-            shape.drawStMove = self.makeStMove(shape.stMove)
+            self.paintShape(shape)
             self.objects.append(shape)
         self.drawWpZero()
         self.drawOrientationArrows()
+
+    def repaintShape(self, shape):
+        self.gl.glDeleteLists(shape.drawObject, 4)
+        self.paintShape(shape)
+
+    def paintShape(self, shape):
+        shape.drawObject = self.makeShape(shape)  # 1 object
+        shape.drawArrowsDirection = self.makeDirArrows(shape)  # 2 objects
+        shape.stMove = StMove(shape)
+        shape.drawStMove = self.makeStMove(shape.stMove)  # 1 object
 
     def makeShape(self, shape):
         genList = self.gl.glGenLists(1)
@@ -765,7 +772,9 @@ class MyDropDownMenu(QMenu):
         for shape in self.selectedItems:
             shape.reverse()
             logger.debug(self.tr('Switched Direction at Shape Nr: %i') % shape.nr)
+            self.canvas.repaintShape(shape)
         self.canvas.update()
+        g.window.TreeHandler.prepareExportOrderUpdate()
 
     def setNearestStPoint(self):
         xyForZ = {}
@@ -774,6 +783,7 @@ class MyDropDownMenu(QMenu):
             if z not in xyForZ:
                 xyForZ[z] = self.canvas.determineSelectedPosition(self.clicked, z, self.offset)
             shape.setNearestStPoint(xyForZ[z])
+            self.canvas.repaintShape(shape)
         self.canvas.update()
         g.window.TreeHandler.prepareExportOrderUpdate()
 
@@ -781,13 +791,19 @@ class MyDropDownMenu(QMenu):
         for shape in self.selectedItems:
             shape.cut_cor = 40
             logger.debug(self.tr('Changed Cutter Correction to None for shape: %i') % shape.nr)
+            self.canvas.repaintShape(shape)
+        self.canvas.update()
 
     def setLeftComp(self):
         for shape in self.selectedItems:
             shape.cut_cor = 41
             logger.debug(self.tr('Changed Cutter Correction to left for shape: %i') % shape.nr)
+            self.canvas.repaintShape(shape)
+        self.canvas.update()
 
     def setRightComp(self):
         for shape in self.selectedItems:
             shape.cut_cor = 42
             logger.debug(self.tr('Changed Cutter Correction to right for shape: %i') % shape.nr)
+            self.canvas.repaintShape(shape)
+        self.canvas.update()

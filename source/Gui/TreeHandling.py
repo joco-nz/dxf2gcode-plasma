@@ -86,7 +86,7 @@ class TreeHandler(QWidget):
         self.ui.toolDiameterComboBox.setCurrentIndex(0)
         self.toolUpdate(self.ui.toolDiameterComboBox.currentText())
 
-        self.ui.toolDiameterComboBox.activated.connect(self.toolUpdate)
+        self.ui.toolDiameterComboBox.currentTextChanged.connect(self.toolUpdate)
         self.ui.zRetractionArealLineEdit.returnPressed.connect(self.toolParameterzRetractionArealUpdate)
         self.ui.zSafetyMarginLineEdit.returnPressed.connect(self.toolParameterzSafetyMarginUpdate)
         self.ui.zInitialMillDepthLineEdit.returnPressed.connect(self.toolParameterzInitialMillDepthUpdate)
@@ -688,40 +688,44 @@ class TreeHandler(QWidget):
 
             self.ui.toolDiameterComboBox.setPalette(self.palette)
             self.ui.toolDiameterLabel.setText(str(round(new_diameter, 3)))
-            self.ui.toolDiameterLabel.setPalette(self.palette) #Restore color
+            self.ui.toolDiameterLabel.setPalette(self.palette) # Restore color
             self.ui.toolSpeedLabel.setText(str(round(new_speed, 1)))
-            self.ui.toolSpeedLabel.setPalette(self.palette) #Restore color
+            self.ui.toolSpeedLabel.setPalette(self.palette) # Restore color
             self.ui.startRadiusLabel.setText(str(round(new_start_radius, 3)))
-            self.ui.startRadiusLabel.setPalette(self.palette) #Restore color
+            self.ui.startRadiusLabel.setPalette(self.palette) # Restore color
 
-            #Get the new value and convert it to int
+            # Get the new value and convert it to int
             val = int(text)
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
                 element = model_index.model().itemFromIndex(model_index)
                 real_item = None
                 if element.data(SHAPE_OBJECT):
-                    real_item = element.data(SHAPE_OBJECT).parentLayer #Shape has no such property => update the parent layer
+                    real_item = element.data(SHAPE_OBJECT).parentLayer # Shape has no such property => update the parent layer
                 elif element and element.data(LAYER_OBJECT):
                     real_item = element.data(LAYER_OBJECT)
                 if real_item is not None:
-                    real_item.tool_nr = val
-                    real_item.tool_diameter = new_diameter
-                    real_item.speed = new_speed
-                    real_item.start_radius = new_start_radius
-                    self.tool_nr = real_item.tool_nr
-                    self.tool_diameter = new_diameter
-                    self.speed = new_speed
-                    self.start_radius = new_start_radius
+                    if real_item.tool_nr != val:
+                        real_item.tool_nr = val
+                        real_item.tool_diameter = new_diameter
+                        real_item.speed = new_speed
+                        real_item.start_radius = new_start_radius
+                        self.tool_nr = real_item.tool_nr
+                        self.tool_diameter = new_diameter
+                        self.speed = new_speed
+                        self.start_radius = new_start_radius
+                        for shape in real_item.shapes:
+                            self.ui.canvas.repaintShape(shape)
+            self.ui.canvas.update()
 
     def toolParameterzRetractionArealUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         """
-        self.ui.zRetractionArealLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zRetractionArealLineEdit.setPalette(self.palette) # Restore color
 
         # Get the new value and convert it to float
         val = float(self.ui.zRetractionArealLineEdit.text())
@@ -729,11 +733,11 @@ class TreeHandler(QWidget):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
             element = model_index.model().itemFromIndex(model_index)
             real_item = None
             if element.data(SHAPE_OBJECT):
-                real_item = element.data(SHAPE_OBJECT).parentLayer #Shape has no such property => update the parent layer
+                real_item = element.data(SHAPE_OBJECT).parentLayer # Shape has no such property => update the parent layer
             elif element and element.data(LAYER_OBJECT):
                 real_item = element.data(LAYER_OBJECT)
             if real_item is not None:
@@ -745,7 +749,7 @@ class TreeHandler(QWidget):
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         """
-        self.ui.zSafetyMarginLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zSafetyMarginLineEdit.setPalette(self.palette) # Restore color
 
         # Get the new value and convert it to float
         val = float(self.ui.zSafetyMarginLineEdit.text())
@@ -753,11 +757,11 @@ class TreeHandler(QWidget):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
             element = model_index.model().itemFromIndex(model_index)
             real_item = None
             if element.data(SHAPE_OBJECT):
-                real_item = element.data(SHAPE_OBJECT).parentLayer
+                real_item = element.data(SHAPE_OBJECT).parentLayer # Shape has no such property => update the parent layer
             elif element and element.data(LAYER_OBJECT):
                 real_item = element.data(LAYER_OBJECT)
             if real_item is not None:
@@ -769,47 +773,40 @@ class TreeHandler(QWidget):
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         """
-        self.ui.zInfeedDepthLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zInfeedDepthLineEdit.setPalette(self.palette) # Restore color
 
-        #Get the new value and convert it to float
+        # Get the new value and convert it to float
         val = float(self.ui.zInfeedDepthLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
             element = model_index.model().itemFromIndex(model_index)
-            real_item = None
-            if element.data(SHAPE_OBJECT):
-                real_item = element.data(SHAPE_OBJECT)
-            elif element and element.data(LAYER_OBJECT):
-                real_item = element.data(LAYER_OBJECT)
-            if not real_item is None:
+            real_item = element.data(SHAPE_OBJECT)
+            if real_item and real_item.axis3_slice_depth != val:
                 real_item.axis3_slice_depth = val
                 self.axis3_slice_depth = real_item.axis3_slice_depth
+                self.ui.canvas.repaintShape(real_item)
+        self.ui.canvas.update()
 
-    def toolParameterg1FeedXYUpdate(self, text):
+    def toolParameterg1FeedXYUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         """
-        self.ui.g1FeedXYLineEdit.setPalette(self.palette) #Restore color
+        self.ui.g1FeedXYLineEdit.setPalette(self.palette) # Restore color
 
-        #Get the new value and convert it to float
+        # Get the new value and convert it to float
         val = float(self.ui.g1FeedXYLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
             element = model_index.model().itemFromIndex(model_index)
-            real_item = None
-            if element.data(SHAPE_OBJECT):
-                real_item = element.data(SHAPE_OBJECT)
-            elif element.data(LAYER_OBJECT):
-                real_item = element.data(LAYER_OBJECT)
-
-            if real_item is not None:
+            real_item = element.data(SHAPE_OBJECT)
+            if real_item:
                 real_item.f_g1_plane = val
                 self.f_g1_plane = real_item.f_g1_plane
 
@@ -818,22 +815,18 @@ class TreeHandler(QWidget):
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         """
-        self.ui.g1FeedZLineEdit.setPalette(self.palette) #Restore color
+        self.ui.g1FeedZLineEdit.setPalette(self.palette) # Restore color
 
-        #Get the new value and convert it to float
+        # Get the new value and convert it to float
         val = float(self.ui.g1FeedZLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
             element = model_index.model().itemFromIndex(model_index)
-            real_item = None
-            if element.data(SHAPE_OBJECT):
-                real_item = element.data(SHAPE_OBJECT)
-            elif element and element.data(LAYER_OBJECT):
-                real_item = element.data(LAYER_OBJECT)
-            if real_item is not None:
+            real_item = element.data(SHAPE_OBJECT)
+            if real_item:
                 real_item.f_g1_depth = val
                 self.f_g1_depth = real_item.f_g1_depth
 
@@ -842,48 +835,44 @@ class TreeHandler(QWidget):
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         """
-        self.ui.zInitialMillDepthLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zInitialMillDepthLineEdit.setPalette(self.palette) # Restore color
 
-        #Get the new value and convert it to float
+        # Get the new value and convert it to float
         val = float(self.ui.zInitialMillDepthLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
             element = model_index.model().itemFromIndex(model_index)
-            real_item = None
-            if element.data(SHAPE_OBJECT):
-                real_item = element.data(SHAPE_OBJECT)
-            elif element and element.data(LAYER_OBJECT):
-                real_item = element.data(LAYER_OBJECT)
-            if real_item is not None:
+            real_item = element.data(SHAPE_OBJECT)
+            if real_item and real_item.axis3_start_mill_depth != val:
                 real_item.axis3_start_mill_depth = val
                 self.axis3_start_mill_depth = real_item.axis3_start_mill_depth
+                self.ui.canvas.repaintShape(real_item)
+        self.ui.canvas.update()
 
     def toolParameterzFinalMillDepthUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         """
-        self.ui.zFinalMillDepthLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zFinalMillDepthLineEdit.setPalette(self.palette) # Restore color
 
-        #Get the new value and convert it to float
+        # Get the new value and convert it to float
         val = float(self.ui.zFinalMillDepthLineEdit.text())
 
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            model_index = model_index.sibling(model_index.row(), 0) # get the first column of the selected row, since it's the only one that contains data
             element = model_index.model().itemFromIndex(model_index)
-            real_item = None
-            if element.data(SHAPE_OBJECT):
-                real_item = element.data(SHAPE_OBJECT)
-            elif element and element.data(LAYER_OBJECT):
-                real_item = element.data(LAYER_OBJECT)
-            if real_item is not None:
+            real_item = element.data(SHAPE_OBJECT)
+            if real_item and real_item.axis3_mill_depth != val:
                 real_item.axis3_mill_depth = val
                 self.axis3_mill_depth = real_item.axis3_mill_depth
+                self.ui.canvas.repaintShape(real_item)
+        self.ui.canvas.update()
 
     def actionOnSelectionChange(self, parent, selected, deselected):
         """
