@@ -200,14 +200,17 @@ class ArcGeo(object):
                 direction = -direction if self.abs_geo.ext >= 0 else direction
                 return self.abs_geo.Pe, Point(-direction.y, direction.x)
 
+    def get_point_from_start(self, i, segments):
+        ang = self.abs_geo.s_ang + i * self.abs_geo.ext / segments
+        return self.abs_geo.O.get_arc_point(ang, self.abs_geo.r)
+
     def make_path(self, caller, drawHorLine):
         segments = int(abs(degrees(self.abs_geo.ext)) // 3 + 1)
         Ps = self.abs_geo.O.get_arc_point(self.abs_geo.s_ang, self.abs_geo.r)
         self.topLeft = deepcopy(Ps)
         self.bottomRight = deepcopy(Ps)
         for i in range(1, segments + 1):
-            ang = self.abs_geo.s_ang + i * self.abs_geo.ext / segments
-            Pe = self.abs_geo.O.get_arc_point(ang, self.abs_geo.r)
+            Pe = self.get_point_from_start(i, segments)
             drawHorLine(Ps, Pe, caller.axis3_start_mill_depth)
             drawHorLine(Ps, Pe, caller.axis3_mill_depth)
             self.topLeft.detTopLeft(Pe)
@@ -219,8 +222,7 @@ class ArcGeo(object):
         segments = int(abs(degrees(self.abs_geo.ext)) // 3 + 1)
         Ps = self.abs_geo.O.get_arc_point(self.abs_geo.s_ang, self.abs_geo.r)
         for i in range(1, segments + 1):
-            ang = self.abs_geo.s_ang + i * self.abs_geo.ext / segments
-            Pe = self.abs_geo.O.get_arc_point(ang, self.abs_geo.r)
+            Pe = self.get_point_from_start(i, segments)
             if xy.distance2_to_line(Ps, Pe) <= tol2:
                 return True
             Ps = Pe

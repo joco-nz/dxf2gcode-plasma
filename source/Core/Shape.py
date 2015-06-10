@@ -128,28 +128,48 @@ class Shape(object):
 
     def AnalyseAndOptimize(self):
         logger.debug(self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
-        # Optimization for closed shapes
-        if self.closed:
-            # Start value for the first sum
-            start = self.geos[0].get_start_end_points(True)
-            summe = 0.0
-            for geo in self.geos:
-                if isinstance(geo, LineGeo):
-                    end = geo.get_start_end_points(False)
-                    summe += (start.x + end.x) * (end.y - start.y) / 2
-                    start = end
-                elif isinstance(geo, ArcGeo):
-                    segments = int((abs(degrees(geo.ext)) // 90) + 1)
-                    for i in range(segments):
-                        ang = geo.s_ang + (i + 1) * geo.ext / segments
-                        end = Point(geo.O.x + cos(ang) * abs(geo.r),
-                                    geo.O.y + sin(ang) * abs(geo.r))
-                        summe += (start.x + end.x) * (end.y - start.y) / 2
-                        start = end
+        # By calculating the area of the shape
 
-            if summe > 0.0:
-                self.reverse()
-                logger.debug(self.tr("Had to reverse the shape to be cw"))
+        start = self.geos[0].get_start_end_points(True)
+        summe = 0.0
+        for geo in self.geos:
+            if isinstance(geo, LineGeo):
+                end = geo.get_start_end_points(False)
+                summe += (start.x + end.x) * (end.y - start.y)
+                start = end
+            elif isinstance(geo, ArcGeo):
+                segments = 10
+                for i in range(1, segments + 1):
+                    end = geo.get_point_from_start(i, segments)
+                    summe += (end.x + start.x) * (end.y - start.y)
+                    start = end
+        if not self.closed:
+            # if shape is not closed... simply treat it as closed
+            end = self.geos[0].get_start_end_points(True)
+            summe += (end.x + start.x) * (end.y - start.y)
+
+        if summe == 0:  # inconclusive
+            logger.debug(self.tr("shoelace method cannot (directly be applied to this shape"))
+            # lets take it clock wise with relation to the workpiece zero
+
+            start = self.get_start_end_points(True)
+            # get the farthest end point with relation to the start
+            end = start
+            distance2 = 0
+            for geo in self.geos:
+                pos_end = geo.get_start_end_points(False)
+                pos_distance2 = (start - pos_end).length_squared()
+                if pos_distance2 > distance2:
+                    end = pos_end
+                    distance2 = pos_distance2
+            direction = start.to3D().cross_product(end.to3D()).z
+            if -1e-5 < direction < 1e-5:  # start and end are aligned wrt to wp zero
+                direction = start.length_squared() - end.length_squared()
+            summe = direction
+
+        if summe > 0.0:
+            self.reverse()
+            logger.debug(self.tr("Had to reverse the shape to be cw"))
 
     def setNearestStPoint(self, stPoint):
         if self.closed:
