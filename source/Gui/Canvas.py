@@ -603,7 +603,10 @@ class GLWidget(QOpenGLWidget):
         self.gl.glEnd()
 
     def makeRouteArrowHead(self, start, end):
-        direction = (end - start).unit_vector()
+        if end == start:
+            direction = Point3D(0, 0, 1)
+        else:
+            direction = (end - start).unit_vector()
         rx, ry, rz = self.getRotationVectors(Point3D(0, 0, 1), direction)
 
         head = self.gl.glGenLists(1)
