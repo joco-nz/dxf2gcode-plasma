@@ -522,32 +522,31 @@ class MainWindow(QMainWindow):
         return filename
 
     def automaticCutterCompensation(self):
-        if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() and self.ui.actionAutomatic_Cutter_Compensation.isChecked():
-            for layerContent in self.LayerContents:
+        if self.ui.actionAutomaticCutterCompensation.isEnabled() and\
+                self.ui.actionAutomaticCutterCompensation.isChecked():
+            for layerContent in self.layerContents:
                 if layerContent.automaticCutterCompensationEnabled():
-                    newShapes = []
-                    for shape in layerContent.shapes:
-                        shape.make_papath()  # TODO
-                    for shape in layerContent.shapes:
-                        if shape.closed:
-                            container = None
-                            myBounds = shape.boundingRect()
-                            for otherShape in layerContent.shapes:
-                                if shape != otherShape and otherShape.boundingRect().contains(myBounds):
-                                    logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
-                                    container = otherShape
-                            if container is None:
-                                shape.cut_cor = 41
-                                newShapes.append(shape)
-                            else:
-                                shape.cut_cor = 42
-                                newShapes.insert(layerContent.shapes.index(container), shape)
-                        else:
-                            newShapes.append(shape)
-                    layerContent.shapes = newShapes
-                    logger.debug(self.tr("new order for layer %s:") % layerContent.LayerName)
-                    for shape in layerContent.shapes:
-                        logger.debug(self.tr(">>Shape: %s") % shape.nr)
+                    left_compensation = True
+                    shapes_left = layerContent.shapes
+                    while len(shapes_left) > 0:
+                        shapes_left = [shape for shape in shapes_left
+                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, left_compensation)]
+                        left_compensation = not left_compensation
+        self.glWidget.update()
+
+    def ifNotContainedChangeCutCor(self, shape, shapes_left, left_compensation):
+        for otherShape in shapes_left:
+            if shape != otherShape:
+                if shape != otherShape and\
+                   otherShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < otherShape.bottomRight.x and\
+                   otherShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < otherShape.topLeft.y:
+                    return False
+        if left_compensation:
+            shape.cut_cor = 41
+        else:
+            shape.cut_cor = 42
+        self.glWidget.repaintShape(shape)
+        return True
 
     def open(self):
         self.filename, _ = QFileDialog.getOpenFileName(self, 'Open File', '',
@@ -619,6 +618,8 @@ class MainWindow(QMainWindow):
         self.glWidget.autoScale()
 
         self.enableToolbarButtons()
+
+        self.automaticCutterCompensation()
 
         self.glWidget.unsetCursor()
 
