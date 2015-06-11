@@ -27,6 +27,7 @@ from PyQt5.QtCore import QPoint, Qt, QCoreApplication
 from PyQt5.QtGui import QColor, QOpenGLVersionProfile
 from PyQt5.QtWidgets import QOpenGLWidget, QMenu
 
+from Core.LayerContent import Shapes
 from Core.Point import Point
 from Core.Point3D import Point3D
 from Core.StMove import StMove
@@ -40,7 +41,7 @@ class GLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
 
-        self.objects = []
+        self.objects = Shapes([])
         self.orientation = 0
         self.wpZero = 0
         self.routeArrows = []
@@ -76,9 +77,9 @@ class GLWidget(QOpenGLWidget):
         self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.25)
         self.colorEntryArrow = QColor.fromRgbF(0.0, 0.0, 1.0, 1.0)
         self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
-        self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
         self.colorRoute = QColor.fromRgbF(0.5, 0.0, 0.0, 1.0)
         self.colorStMove = QColor.fromRgbF(0.5, 0.0, 0.25, 1.0)
+        self.colorBreak = QColor.fromRgbF(1.0, 0.0, 1.0, 1.0)
 
         self.topLeft = Point()
         self.bottomRight = Point()
@@ -87,7 +88,7 @@ class GLWidget(QOpenGLWidget):
 
     def resetAll(self):
         self.gl.glDeleteLists(1, self.orientation)  # the orientation arrows are currently generated last
-        self.objects = []
+        self.objects = Shapes([])
         self.wpZero = 0
         self.orientation = 0
         self.delete_opt_paths()
@@ -314,24 +315,25 @@ class GLWidget(QOpenGLWidget):
         self.gl.glRotated(self.rotZ, 0.0, 0.0, 1.0)
         self.gl.glTranslated(self.posX, self.posY, self.posZ)
         self.gl.glScaled(self.scale, self.scale, self.scale)
-        for shape in self.objects:
-            if shape.selected:
-                if not shape.disabled:
-                    self.setColor(self.colorStMove)
-                    self.gl.glCallList(shape.drawStMove)
-                    self.setColor(self.colorSelect)
-                    self.gl.glCallList(shape.drawObject)
-                elif self.showDisabledPaths:
-                    self.setColor(self.colorSelectDisabled)
-                    self.gl.glCallList(shape.drawObject)
-        for shape in self.objects:
-            if not shape.selected:
-                if not shape.disabled:
+        for shape in self.objects.selected_iter():
+            if not shape.disabled:
+                self.setColor(self.colorStMove)
+                self.gl.glCallList(shape.drawStMove)
+                self.setColor(self.colorSelect)
+                self.gl.glCallList(shape.drawObject)
+            elif self.showDisabledPaths:
+                self.setColor(self.colorSelectDisabled)
+                self.gl.glCallList(shape.drawObject)
+        for shape in self.objects.not_selected_iter():
+            if not shape.disabled:
+                if shape.parentLayer.isBreakLayer():
+                    self.setColor(self.colorBreak)
+                else:
                     self.setColor(self.colorNormal)
-                    self.gl.glCallList(shape.drawObject)
-                elif self.showDisabledPaths:
-                    self.setColor(self.colorNormalDisabled)
-                    self.gl.glCallList(shape.drawObject)
+                self.gl.glCallList(shape.drawObject)
+            elif self.showDisabledPaths:
+                self.setColor(self.colorNormalDisabled)
+                self.gl.glCallList(shape.drawObject)
 
         # optimization route arrows
         self.setColor(self.colorRoute)

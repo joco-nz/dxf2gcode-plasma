@@ -34,10 +34,11 @@ from PyQt5.QtWidgets import QMessageBox
 import Global.constants as c
 import Global.Globals as g
 from Core.Point import Point
+from PostPro.PostProcessorConfig import MyPostProConfig
+from PostPro.Breaks import Breaks
+
 
 logger = logging.getLogger("PostPro.PostProcessor")
-
-from PostPro.PostProcessorConfig import MyPostProConfig
 
 
 class MyPostProcessor(object):
@@ -138,6 +139,7 @@ class MyPostProcessor(object):
         export parameters (e.g. mill depth) and the shapes to be exported. The
         shape order is also given in a list defined in LayerContent.
         """
+        self.breaks = Breaks(LayerContents)
         self.initialize_export_vars()
 
         exstr = self.write_gcode_be(load_filename)
@@ -149,7 +151,7 @@ class MyPostProcessor(object):
 
         previous_tool = None
         # Do the export for each LayerContent in LayerContents List
-        for LayerContent in LayerContents:
+        for LayerContent in LayerContents.non_break_layer_iter():
             logger.debug(self.tr("Beginning export of Layer Nr. %s, Name%s")
                          % (LayerContent.nr, LayerContent.name))
             logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")

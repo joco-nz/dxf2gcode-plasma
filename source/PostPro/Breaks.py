@@ -42,75 +42,62 @@ class Breaks(object):
     """
     def __init__(self, layerContents):
         self.layerContents = layerContents
-
-    def process(self):
         """
         Process layerContents: Each non-BREAKS: layers shapes are checked against all the shapes in all BREAKS: layers.
         If a shape is intersected twice by a break-shape, the shape will be broken.
         """
-        breakLayers = []
-        processLayers = []
-        for layerContent in self.layerContents:
-            if layerContent.isBreakLayer():
-                breakLayers.append(layerContent)
-            elif not layerContent.should_ignore():
-                processLayers.append(layerContent)
+        self.breakLayers = []
+        for layerContent in self.layerContents.break_layer_iter():
+            self.breakLayers.append(layerContent)
 
-        logger.debug("Found %d break layers and %d processing layers" % (len(breakLayers), len(processLayers)) )
-        if len(breakLayers) > 0 and len(processLayers) > 0:
-            self.doProcess(breakLayers, processLayers)
+        logger.debug("Found %d break layers" % len(self.breakLayers))
 
-    def doProcess(self, breakLayers, processLayers):
-        for layer in processLayers:
-            for shape in layer.shapes:
-                self.breakShape(shape, breakLayers)
-
-    def breakShape(self, shape, breakLayers):
+    def getNewGeos(self, shape):
         newGeos = []
         for geo in shape.geos:
             if isinstance(geo, LineGeo):
-                newGeos.extend(self.breakLineGeo(geo, breakLayers))
+                newGeos.extend(self.breakLineGeo(geo))
             elif isinstance(geo, ArcGeo):
-                newGeos.extend(self.breakArcGeo(geo, breakLayers))
+                newGeos.extend(self.breakArcGeo(geo))
             else:
                 newGeos.append(geo)
-        shape.geos = newGeos
+        return newGeos
 
-    def breakLineGeo(self, lineGeo, breakLayers):
+    def breakLineGeo(self, lineGeo):
         """
         Try to break passed lineGeo with any of the shapes on a break layers.
         Will break lineGeos recursively.
         @return: The list of geometries after breaking (lineGeo itself if no breaking happened)
         """
         newGeos = []
-        for breakLayer in breakLayers:
-            for breakShape in breakLayer.shapes:
+        for breakLayer in self.breakLayers:
+            for breakShape in breakLayer.shapes.not_disabled_iter():
                 intersections = self.intersectLineGeometry(lineGeo, breakShape)
                 if len(intersections) == 2:
                     (near, far) = self.classifyIntersections(lineGeo, intersections)
                     logger.debug("Line %s broken from (%f, %f) to (%f, %f)" % (lineGeo.to_short_string(), near.x, near.y, far.x, far.y))
-                    newGeos.extend(self.breakLineGeo(LineGeo(lineGeo.Ps, near), breakLayers))
-                    newGeos.append(BreakGeo(near, far, breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))
-                    newGeos.extend(self.breakLineGeo(LineGeo(far, lineGeo.Pe), breakLayers))
+                    newGeos.extend(self.breakLineGeo(LineGeo(lineGeo.Ps, near)))
+                    newGeos.append(BreakGeo(near, far, breakShape.axis3_mill_depth, breakShape.f_g1_plane, breakShape.f_g1_depth))
+                    newGeos.extend(self.breakLineGeo(LineGeo(far, lineGeo.Pe)))
                     return newGeos
         return [lineGeo]
 
-    def breakArcGeo(self, arcGeo, breakLayers):
+    def breakArcGeo(self, arcGeo):
         """
         Try to break passed arcGeo with any of the shapes on a break layers.
         Will break arcGeos recursively.
         @return: The list of geometries after breaking (arcGeo itself if no breaking happened)
         """
         newGeos = []
-        for breakLayer in breakLayers:
-            for breakShape in breakLayer.shapes:
+        for breakLayer in self.breakLayers:
+            for breakShape in breakLayer.shapes.not_disabled_iter():
                 intersections = self.intersectArcGeometry(arcGeo, breakShape)
                 if len(intersections) == 2:
                     (near, far) = self.classifyIntersections(arcGeo, intersections)
                     logger.debug("Arc %s broken from (%f, %f) to (%f, %f)" % (arcGeo.toShortString(), near.x, near.y, far.x, far.y))
-                    newGeos.extend(self.breakArcGeo(ArcGeo(Ps=arcGeo.Ps, Pe=near, O=arcGeo.O, r=arcGeo.r, s_ang=arcGeo.s_ang, direction=arcGeo.ext), breakLayers))
-                    newGeos.append(BreakGeo(near, far, breakLayer.axis3_mill_depth, breakLayer.f_g1_plane, breakLayer.f_g1_depth))
-                    newGeos.extend(self.breakArcGeo(ArcGeo(Ps=far, Pe=arcGeo.Pe, O=arcGeo.O, r=arcGeo.r, e_ang=arcGeo.e_ang, direction=arcGeo.ext), breakLayers))
+                    newGeos.extend(self.breakArcGeo(ArcGeo(Ps=arcGeo.Ps, Pe=near, O=arcGeo.O, r=arcGeo.r, s_ang=arcGeo.s_ang, direction=arcGeo.ext)))
+                    newGeos.append(BreakGeo(near, far, breakShape.axis3_mill_depth, breakShape.f_g1_plane, breakShape.f_g1_depth))
+                    newGeos.extend(self.breakArcGeo(ArcGeo(Ps=far, Pe=arcGeo.Pe, O=arcGeo.O, r=arcGeo.r, e_ang=arcGeo.e_ang, direction=arcGeo.ext)))
                     return newGeos
         return [arcGeo]
 

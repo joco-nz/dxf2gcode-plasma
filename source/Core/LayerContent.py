@@ -32,7 +32,7 @@ class LayerContent(object):
     def __init__(self, nr, name, shapes):
         self.nr = nr
         self.name = name
-        self.shapes = shapes
+        self.shapes = Shapes(shapes)
         self.exp_order = []  # used for shape order optimization, ... Only contains shapes
 
         # Use default tool 1 (always exists in config)
@@ -120,3 +120,50 @@ class LayerContent(object):
             # Disable shape by default, if it lives on an ignored layer
             for shape in self.shapes:
                 shape.setDisable(True)
+
+
+class Layers(list):
+    def __init__(self, *args):
+        list.__init__(self, *args)
+
+    # def __iter__(self):
+    def non_break_layer_iter(self):
+        for layer in list.__iter__(self):
+            if not layer.isBreakLayer():
+                yield layer
+        else:
+            raise StopIteration()
+
+    def break_layer_iter(self):
+        for layer in list.__iter__(self):
+            if layer.isBreakLayer():
+                yield layer
+        else:
+            raise StopIteration()
+
+
+class Shapes(list):
+    def __init__(self, *args):
+        list.__init__(self, *args)
+
+    # def __iter__(self):
+    def selected_iter(self):
+        for shape in list.__iter__(self):
+            if shape.selected:
+                yield shape
+        else:
+            raise StopIteration()
+
+    def not_selected_iter(self):
+        for shape in list.__iter__(self):
+            if not shape.selected:
+                yield shape
+        else:
+            raise StopIteration()
+
+    def not_disabled_iter(self):
+        for shape in list.__iter__(self):
+            if not shape.disabled:
+                yield shape
+        else:
+            raise StopIteration()

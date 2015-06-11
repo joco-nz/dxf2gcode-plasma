@@ -259,6 +259,7 @@ class Shape(object):
         if g.config.machine_type == 'drag_knife':
             return self.Write_GCode_Drag_Knife(PostPro)
 
+        newGeos = PostPro.breaks.getNewGeos(self)
         # initialisation of the string
         exstr = ""
 
@@ -325,7 +326,7 @@ class Shape(object):
             exstr += self.stMove.geos[2].Write_GCode(PostPro)
 
         # Write the geometries for the first cut
-        for geo in self.geos:
+        for geo in newGeos:
             exstr += geo.Write_GCode(PostPro)
 
         # Turning the cutter radius compensation
@@ -361,8 +362,8 @@ class Shape(object):
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
                 exstr += PostPro.set_cut_cor(self.cut_cor)
 
-            for geo_nr in range(len(self.geos)):
-                exstr += self.geos[geo_nr].Write_GCode(PostPro)
+            for geo in newGeos:
+                exstr += geo.Write_GCode(PostPro)
 
             # Turning off the cutter radius compensation if needed
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:

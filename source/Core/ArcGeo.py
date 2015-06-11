@@ -234,6 +234,9 @@ class ArcGeo(object):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
+        tmp_geo = self.abs_geo
+        if self.abs_geo is None:
+            self.abs_geo = self
         Ps, s_ang = self.get_start_end_points(True, True)
         Pe, e_ang = self.get_start_end_points(False, True)
 
@@ -251,5 +254,5 @@ class ArcGeo(object):
                 string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe)
             else:
                 string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ)
-
+        self.abs_geo = tmp_geo
         return string

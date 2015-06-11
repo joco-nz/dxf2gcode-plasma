@@ -34,7 +34,7 @@ from PyQt5.QtGui import QSurfaceFormat
 from PyQt5.QtWidgets import QMainWindow, QApplication, QFileDialog
 
 from Core.EntityContent import EntityContent
-from Core.LayerContent import LayerContent
+from Core.LayerContent import LayerContent, Layers, Shapes
 from Core.Shape import Shape
 from Core.LineGeo import LineGeo
 from Core.HoleGeo import HoleGeo
@@ -77,9 +77,9 @@ class MainWindow(QMainWindow):
 
         self.filename = ""
 
-        self.shapes = []
+        self.shapes = Shapes([])
         self.entityRoot = None
-        self.layerContents = []
+        self.layerContents = Layers([])
 
         self.cont_dx = 0.0
         self.cont_dy = 0.0
@@ -334,7 +334,7 @@ class MainWindow(QMainWindow):
         self.glWidget.delete_opt_paths()
 
         self.glWidget.addexproutest()
-        for LayerContent in self.layerContents:
+        for LayerContent in self.layerContents.non_break_layer_iter():
             if len(LayerContent.exp_order) > 0:
                 self.glWidget.addexproute(LayerContent.exp_order, LayerContent.nr)
         if len(self.glWidget.routeArrows) > 0:
@@ -358,7 +358,7 @@ class MainWindow(QMainWindow):
         self.TreeHandler.updateExportOrder()
         self.glWidget.addexproutest()
 
-        for LayerContent in self.layerContents:
+        for LayerContent in self.layerContents.non_break_layer_iter():
             # Initial values for the Lists to export.
             shapes_to_write = []
             shapes_fixed_order = []
@@ -438,7 +438,7 @@ class MainWindow(QMainWindow):
         self.updateExportRoute()
 
         logger.debug(self.tr("Sorted layers:"))
-        for i, layer in enumerate(self.layerContents):
+        for i, layer in enumerate(self.layerContents.non_break_layer_iter()):
             logger.debug("LayerContents[%i] = %s" % (i, layer))
 
         if not(g.config.vars.General['write_to_stdout']):
@@ -524,7 +524,7 @@ class MainWindow(QMainWindow):
     def automaticCutterCompensation(self):
         if self.ui.actionAutomaticCutterCompensation.isEnabled() and\
                 self.ui.actionAutomaticCutterCompensation.isChecked():
-            for layerContent in self.layerContents:
+            for layerContent in self.layerContents.non_break_layer_iter():
                 if layerContent.automaticCutterCompensationEnabled():
                     left_compensation = True
                     shapes_left = layerContent.shapes
@@ -636,8 +636,8 @@ class MainWindow(QMainWindow):
         self.entityRoot = EntityContent(nr=0, name='Entities',
                                         parent=None,
                                         p0=p0, pb=pb, sca=sca, rot=rot)
-        self.layerContents = []
-        self.shapes = []
+        self.layerContents = Layers([])
+        self.shapes = Shapes([])
 
         self.makeEntityShapes(values, self.entityRoot)
 

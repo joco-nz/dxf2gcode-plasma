@@ -124,7 +124,10 @@ class LineGeo(object):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
+        tmp_geo = self.abs_geo
+        if self.abs_geo is None:
+            self.abs_geo = self
         Ps = self.get_start_end_points(True)
         Pe = self.get_start_end_points(False)
-
+        self.abs_geo = tmp_geo
         return PostPro.lin_pol_xy(Ps, Pe)
