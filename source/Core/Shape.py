@@ -305,10 +305,7 @@ class Shape(object):
 
         # Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done outside the piece
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
-            # Calculate the starting point without tool compensation
-            # and add the compensation
-            start = self.get_start_end_points(True)
-            exstr += PostPro.set_cut_cor(self.cut_cor, start)
+            exstr += PostPro.set_cut_cor(self.cut_cor)
 
             exstr += PostPro.chg_feed_rate(f_g1_plane)
             exstr += self.stMove.geos[1].Write_GCode(PostPro)
@@ -322,10 +319,7 @@ class Shape(object):
 
         # Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done inside the piece
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
-            # Calculate the starting point without tool compensation
-            # and add the compensation
-            start = self.get_start_end_points(True)
-            exstr += PostPro.set_cut_cor(self.cut_cor, start)
+            exstr += PostPro.set_cut_cor(self.cut_cor)
 
             exstr += self.stMove.geos[1].Write_GCode(PostPro)
             exstr += self.stMove.geos[2].Write_GCode(PostPro)
@@ -336,12 +330,7 @@ class Shape(object):
 
         # Turning the cutter radius compensation
         if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
-            ende, en_angle = self.get_start_end_points(False, True)
-            if self.cut_cor == 41:
-                pos_cut_out = ende.get_arc_point(en_angle - pi / 2, tool_rad)
-            elif self.cut_cor == 42:
-                pos_cut_out = ende.get_arc_point(en_angle + pi / 2, tool_rad)
-            exstr += PostPro.deactivate_cut_cor(pos_cut_out)
+            exstr += PostPro.deactivate_cut_cor()
 
         # Numbers of loops
         snr = 0
@@ -366,28 +355,18 @@ class Shape(object):
                 # If cutter radius compensation is turned on. Turn it off - because some interpreters cannot handle
                 # a switch
                 if self.cut_cor != 40 and not PostPro.vars.General["cancel_cc_for_depth"]:
-                    # Calculate the contour values - with cutter radius compensation and without
-                    ende = self.get_start_end_points(False)
-                    exstr += PostPro.deactivate_cut_cor(ende)
+                    exstr += PostPro.deactivate_cut_cor()
 
             # If cutter correction is enabled
-            if self.cut_cor != 40 and not self.closed or PostPro.vars.General["cancel_cc_for_depth"]:
-                # Calculate the starting point without tool compensation
-                # and add the compensation
-                start = self.get_start_end_points(True)
-                exstr += PostPro.set_cut_cor(self.cut_cor, start)
+            if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
+                exstr += PostPro.set_cut_cor(self.cut_cor)
 
             for geo_nr in range(len(self.geos)):
                 exstr += self.geos[geo_nr].Write_GCode(PostPro)
 
             # Turning off the cutter radius compensation if needed
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
-                ende, en_angle = self.get_start_end_points(False, True)
-                if self.cut_cor == 41:
-                    pos_cut_out = ende.get_arc_point(en_angle - pi / 2, tool_rad)
-                elif self.cut_cor == 42:
-                    pos_cut_out = ende.get_arc_point(en_angle + pi / 2, tool_rad)
-                exstr += PostPro.deactivate_cut_cor(pos_cut_out)
+                exstr += PostPro.deactivate_cut_cor()
 
         # Do the tool retraction
         exstr += PostPro.chg_feed_rate(f_g1_depth)
@@ -396,9 +375,7 @@ class Shape(object):
 
         # If cutter radius compensation is turned on.
         if self.cut_cor != 40 and not PostPro.vars.General["cancel_cc_for_depth"]:
-            # Calculate the contour values - with cutter radius compensation and without
-            ende = self.get_start_end_points(False)
-            exstr += PostPro.deactivate_cut_cor(ende)
+            exstr += PostPro.deactivate_cut_cor()
 
         # Initial value of direction restored if necessary
         if has_reversed:

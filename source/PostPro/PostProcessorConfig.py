@@ -36,7 +36,7 @@ from Global.d2gexceptions import *
 
 logger = logging.getLogger("PostPro.PostProcessorConfig")
 
-POSTPRO_VERSION = "4"
+POSTPRO_VERSION = "5"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -50,11 +50,10 @@ POSTPRO_SPEC = str('''
 
 # do not edit the following section name:
     [Version]
-
     # do not edit the following value:
-    config_version = string(default="'''  + \
-    str(POSTPRO_VERSION) + '")\n' + \
-'''
+    config_version = string(default="'''  +
+    str(POSTPRO_VERSION) + '")\n' +
+    '''
     [General]
     output_format = string(default=".ngc")
     output_text = string(default="G-CODE for LinuxCNC")
@@ -68,13 +67,15 @@ POSTPRO_SPEC = str('''
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
-    code_begin = string(default="G90 (Absolute programming) G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
+    code_begin_prog_abs = string(default="G90 (Absolute programming)")
+    code_begin_prog_inc = string(default="G91 (Incremental programming)")
+    code_begin = string(default="G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
     code_end = string(default="M2 (Program end)")
 
     [Number_Format]
     pre_decimals = integer(default=4)
     post_decimals = integer(default=3)
-    decimal_seperator = string(default=".")
+    decimal_separator = string(default=".")
     pre_decimal_zero_padding = boolean(default=False)
     post_decimal_zero_padding = boolean(default=True)
     signed_values = boolean(default=False)
@@ -108,7 +109,7 @@ class MyPostProConfig(object):
     """
     This class hosts all functions related to the PostProConfig File.
     """
-    def __init__(self, filename = 'postpro_config' + c.CONFIG_EXTENSION):
+    def __init__(self, filename='postpro_config' + c.CONFIG_EXTENSION):
         """
         initialize the varspace of an existing plugin instance
         init_varspace() is a superclass method of plugin
@@ -144,7 +145,7 @@ class MyPostProConfig(object):
             validate_errors = flatten_errors(self.var_dict, result)
 
             if validate_errors:
-                g.logger.logger.error(self.tr("errors reading %s:") % (self.filename))
+                g.logger.logger.error(self.tr("errors reading %s:") % self.filename)
             for entry in validate_errors:
                 section_list, key, error = entry
                 if key is not None:
@@ -184,10 +185,10 @@ class MyPostProConfig(object):
                 logger.debug(self.tr("renamed bad varspace %s to '%s'") % (self.filename, badfilename))
                 self.create_default_config()
                 self.default_config = True
-                logger.debug(self.tr("created default varspace '%s'") % (self.filename))
+                logger.debug(self.tr("created default varspace '%s'") % self.filename)
         else:
             self.default_config = False
-            logger.debug(self.tr("read existing varspace '%s'") % (self.filename))
+            logger.debug(self.tr("read existing varspace '%s'") % self.filename)
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False  # avoid ConfigObj getting too clever

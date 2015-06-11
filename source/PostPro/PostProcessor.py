@@ -55,7 +55,6 @@ class MyPostProcessor(object):
         For the Save function it creates a list of all possible Postprocessor
         Config Files.
         """
-
         try:
             lfiles = sorted(os.listdir(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)))
             """
@@ -63,7 +62,6 @@ class MyPostProcessor(object):
             """
             # logger.debug(lfiles)
         except:
-
             # Create a Postprocessor File if none found in folder
             logger.debug(self.tr("created default varspace"))
             PostProConfig = MyPostProConfig()
@@ -122,7 +120,6 @@ class MyPostProcessor(object):
         @param file_index: The index of the file to read and write variables in
         self.vars.
         """
-
         PostProConfig = MyPostProConfig(filename=self.postprocessor_files[file_index])
         PostProConfig.load_config()
         self.vars = PostProConfig.vars
@@ -141,7 +138,6 @@ class MyPostProcessor(object):
         export parameters (e.g. mill depth) and the shapes to be exported. The
         shape order is also given in a list defined in LayerContent.
         """
-
         self.initialize_export_vars()
 
         exstr = self.write_gcode_be(load_filename)
@@ -185,9 +181,6 @@ class MyPostProcessor(object):
         # Write the end G-Code at the end
         exstr += self.write_gcode_en()
 
-        """
-        FIXME, Need to check this, don't know if it's correct here or not.
-        """
         exstr = self.make_line_numbers(exstr)
 
         # If the String shall be given to STDOUT
@@ -195,7 +188,6 @@ class MyPostProcessor(object):
             print(exstr)
             logger.info(self.tr("Export to STDOUT was successful"))
             # self.close
-
         else:
             # Export Data to file
             try:
@@ -214,7 +206,6 @@ class MyPostProcessor(object):
         This function is called to initialize all export variables. This will
         be done directly before the export starts.
         """
-
         # Initialization of the General Postprocessor parameters
         self.feed = 0
         self.speed = 0
@@ -223,17 +214,17 @@ class MyPostProcessor(object):
 
         self.abs_export = self.vars.General["abs_export"]
 
-        self.Pe = Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
-                         y=g.config.vars.Plane_Coordinates['axis2_start_end'])
+        self.Pe = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
+                        g.config.vars.Plane_Coordinates['axis2_start_end'])
 
-        self.Ps = Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
-                         y=g.config.vars.Plane_Coordinates['axis2_start_end'])
+        self.Ps = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
+                        g.config.vars.Plane_Coordinates['axis2_start_end'])
 
-        self.lPe = Point( x=g.config.vars.Plane_Coordinates['axis1_start_end'],
-                          y=g.config.vars.Plane_Coordinates['axis2_start_end'])
+        self.lPe = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
+                         g.config.vars.Plane_Coordinates['axis2_start_end'])
 
-        self.IJ = Point(x=0.0, y=0.0)
-        self.O = Point(x=0.0, y=0.0)
+        self.IJ = Point()
+        self.O = Point()
         self.r = 0.0
         self.s_ang = 0.0
         self.e_ang = 0.0
@@ -241,34 +232,34 @@ class MyPostProcessor(object):
         self.ze = g.config.vars.Depth_Coordinates['axis3_retract']
         self.lz = self.ze
 
-        self.keyvars = {"%feed":'self.iprint(self.feed)', \
-                        "%speed":'self.iprint(self.speed)', \
-                        "%tool_nr":'self.iprint(self.tool_nr)', \
-                        "%nl":'self.nlprint()', \
-                        "%XE":'self.fnprint(self.Pe.x)', \
-                        "%-XE":'self.fnprint(-self.Pe.x)', \
-                        "%XS":'self.fnprint(self.Ps.x)', \
-                        "%-XS":'self.fnprint(-self.Ps.x)', \
-                        "%YE":'self.fnprint(self.Pe.y*fac)', \
-                        "%-YE":'self.fnprint(-self.Pe.y*fac)', \
-                        "%YS":'self.fnprint(self.Ps.y*fac)', \
-                        "%-YS":'self.fnprint(-self.Ps.y*fac)', \
-                        "%ZE":'self.fnprint(self.ze)', \
-                        "%-ZE":'self.fnprint(-self.ze)', \
-                        "%I":'self.fnprint(self.IJ.x)', \
-                        "%-I":'self.fnprint(-self.IJ.x)', \
-                        "%J":'self.fnprint(self.IJ.y*fac)', \
-                        "%-J":'self.fnprint(-self.IJ.y*fac)', \
-                        "%XO":'self.fnprint(self.O.x)', \
-                        "%-XO":'self.fnprint(-self.O.x)', \
-                        "%YO":'self.fnprint(self.O.y*fac)', \
-                        "%-YO":'self.fnprint(-self.O.y*fac)', \
-                        "%R":'self.fnprint(self.r)', \
-                        "%AngS":'self.fnprint(degrees(self.s_ang))', \
-                        "%-AngS":'self.fnprint(degrees(-self.s_ang))', \
-                        "%AngE":'self.fnprint(degrees(self.e_ang))', \
-                        "%-AngE":'self.fnprint(degrees(-self.e_ang))', \
-                        "%comment":'self.sprint(self.comment)'}
+        self.keyvars = {"%feed": 'self.iprint(self.feed)',
+                        "%speed": 'self.iprint(self.speed)',
+                        "%tool_nr": 'self.iprint(self.tool_nr)',
+                        "%nl": 'self.nlprint()',
+                        "%XE": 'self.fnprint(self.Pe.x)',
+                        "%-XE": 'self.fnprint(-self.Pe.x)',
+                        "%XS": 'self.fnprint(self.Ps.x)',
+                        "%-XS": 'self.fnprint(-self.Ps.x)',
+                        "%YE": 'self.fnprint(self.Pe.y*fac)',
+                        "%-YE": 'self.fnprint(-self.Pe.y*fac)',
+                        "%YS": 'self.fnprint(self.Ps.y*fac)',
+                        "%-YS": 'self.fnprint(-self.Ps.y*fac)',
+                        "%ZE": 'self.fnprint(self.ze)',
+                        "%-ZE": 'self.fnprint(-self.ze)',
+                        "%I": 'self.fnprint(self.IJ.x)',
+                        "%-I": 'self.fnprint(-self.IJ.x)',
+                        "%J": 'self.fnprint(self.IJ.y*fac)',
+                        "%-J": 'self.fnprint(-self.IJ.y*fac)',
+                        "%XO": 'self.fnprint(self.O.x)',
+                        "%-XO": 'self.fnprint(-self.O.x)',
+                        "%YO": 'self.fnprint(self.O.y*fac)',
+                        "%-YO": 'self.fnprint(-self.O.y*fac)',
+                        "%R": 'self.fnprint(self.r)',
+                        "%AngS": 'self.fnprint(degrees(self.s_ang))',
+                        "%-AngS": 'self.fnprint(degrees(-self.s_ang))',
+                        "%AngE": 'self.fnprint(degrees(self.e_ang))',
+                        "%-AngE": 'self.fnprint(degrees(-self.e_ang))',
+                        "%comment": 'self.sprint(self.comment)'}
 
     def write_gcode_be(self, load_filename):
         """
@@ -296,6 +287,10 @@ class MyPostProcessor(object):
             exstr += ("%s" % self.vars.General["code_begin_units_in"])
         else:
             exstr += ("%s" % self.vars.General["code_begin_units_mm"])
+        if self.abs_export:
+            exstr += (" %s" % self.vars.General["code_begin_prog_abs"])
+        else:
+            exstr += (" %s" % self.vars.General["code_begin_prog_inc"])
         exstr += (" %s\n" % self.vars.General["code_begin"])
 
         return exstr
@@ -356,35 +351,21 @@ class MyPostProcessor(object):
             return self.make_print_str(self.vars.Program["feed_change"])
         return ""
 
-    def set_cut_cor(self, cut_cor, Pe):
+    def set_cut_cor(self, cut_cor):
         """
-        This function is called if Cutter Correction is enabled.
+        This function is called if Cutter Correction should be enabled.
         @param cut_cor = The new value of the cutter correction (41/42)
-        @param Pe = A PointClass which gives the Endpoint
         """
         self.cut_cor = cut_cor
-
-        if not self.abs_export:
-            self.Pe = Pe - self.lPe
-            self.lPe = Pe
-        else:
-            self.Pe = Pe
-
         if cut_cor == 41:
             return self.make_print_str(self.vars.Program["cutter_comp_left"])
         elif cut_cor == 42:
             return self.make_print_str(self.vars.Program["cutter_comp_right"])
 
-    def deactivate_cut_cor(self, Pe):
+    def deactivate_cut_cor(self):
         """
-        This function is called if Cutter Correction is disabled.
-        @param Pe = A PointClass which gives the Endpoint
+        This function is called if Cutter Correction should be disabled.
         """
-        if not self.abs_export:
-            self.Pe = Pe - self.lPe
-            self.lPe = Pe
-        else:
-            self.Pe = Pe
         return self.make_print_str(self.vars.Program["cutter_comp_off"])
 
     def lin_pol_arc(self, dir, Ps, Pe, s_ang, e_ang, R, O, IJ):
@@ -441,7 +422,6 @@ class MyPostProcessor(object):
         @param Pe: the value at which machine shall be positioned
         @return: Returns the string which shall be added.
         """
-
         if not self.abs_export:
             self.Pe = Pe - self.lPe
             self.lPe = Pe
@@ -512,7 +492,6 @@ class MyPostProcessor(object):
         @return: Returns the string with replaced keyvars (e.g. %Z is replaced
         by the real Z value in the defined Number Format.
         """
-
         if g.config.vars.General['machine_type']=='lathe':
             fac = 2
         else:
@@ -554,12 +533,9 @@ class MyPostProcessor(object):
         @param number: The number which shall be returned in a formatted string
         @return: The formatted string of the number.
         """
-
-        "You need to change Nr. Format here!!"
-
-        pre_dec  = self.vars.Number_Format["pre_decimals"]
+        pre_dec = self.vars.Number_Format["pre_decimals"]
         post_dec = self.vars.Number_Format["post_decimals"]
-        dec_sep  = self.vars.Number_Format["decimal_seperator"]
+        dec_sep = self.vars.Number_Format["decimal_separator"]
         pre_dec_z_pad = self.vars.Number_Format["pre_decimal_zero_padding"]
         post_dec_z_pad = self.vars.Number_Format["post_decimal_zero_padding"]
         signed_val = self.vars.Number_Format["signed_values"]
