@@ -127,6 +127,7 @@ class Shape(object):
         return self.send_to_TSP
 
     def AnalyseAndOptimize(self):
+        self.setNearestStPoint(Point())
         logger.debug(self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
         # By calculating the area of the shape
 
@@ -149,7 +150,7 @@ class Shape(object):
             summe += (end.x + start.x) * (end.y - start.y)
 
         if summe == 0:  # inconclusive
-            logger.debug(self.tr("shoelace method cannot (directly be applied to this shape"))
+            logger.debug(self.tr("Shoelace method cannot (directly) be applied to this shape"))
             # lets take it clock wise with relation to the workpiece zero
 
             start = self.get_start_end_points(True)
@@ -169,7 +170,7 @@ class Shape(object):
 
         if summe > 0.0:
             self.reverse()
-            logger.debug(self.tr("Had to reverse the shape to be cw"))
+            logger.debug(self.tr("Had to reverse the shape to be CW"))
 
     def setNearestStPoint(self, stPoint):
         if self.closed:
@@ -261,10 +262,6 @@ class Shape(object):
         # initialisation of the string
         exstr = ""
 
-        # Create the Start_moves once again if something was changed.
-        # TODO make this redundant
-        self.stMove.make_start_moves()
-
         # Calculate tool Radius.
         tool_rad = self.parentLayer.tool_diameter / 2
 
@@ -310,10 +307,10 @@ class Shape(object):
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
             # Calculate the starting point without tool compensation
             # and add the compensation
-            start, start_ang = self.get_start_end_points(True, True)
+            start = self.get_start_end_points(True)
             exstr += PostPro.set_cut_cor(self.cut_cor, start)
 
-            exstr += PostPro.chg_feed_rate(f_g1_plane)  # Added by Xavier because of code move (see above)
+            exstr += PostPro.chg_feed_rate(f_g1_plane)
             exstr += self.stMove.geos[1].Write_GCode(PostPro)
             exstr += self.stMove.geos[2].Write_GCode(PostPro)
 
@@ -327,7 +324,7 @@ class Shape(object):
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
             # Calculate the starting point without tool compensation
             # and add the compensation
-            start, start_ang = self.get_start_end_points(True)
+            start = self.get_start_end_points(True)
             exstr += PostPro.set_cut_cor(self.cut_cor, start)
 
             exstr += self.stMove.geos[1].Write_GCode(PostPro)
@@ -361,30 +358,35 @@ class Shape(object):
             exstr += PostPro.chg_feed_rate(f_g1_plane)
 
             # If it is not a closed contour
-            if self.closed == 0:
+            if not self.closed:
                 self.reverse()
                 self.switch_cut_cor()
                 has_reversed = not has_reversed  # switch the "reversed" state (in order to restore it at the end)
+
+                # If cutter radius compensation is turned on. Turn it off - because some interpreters cannot handle
+                # a switch
+                if self.cut_cor != 40 and not PostPro.vars.General["cancel_cc_for_depth"]:
+                    # Calculate the contour values - with cutter radius compensation and without
+                    ende = self.get_start_end_points(False)
+                    exstr += PostPro.deactivate_cut_cor(ende)
 
             # If cutter correction is enabled
             if self.cut_cor != 40 and not self.closed or PostPro.vars.General["cancel_cc_for_depth"]:
                 # Calculate the starting point without tool compensation
                 # and add the compensation
-                start, start_ang = self.get_start_end_points(True, True)
+                start = self.get_start_end_points(True)
                 exstr += PostPro.set_cut_cor(self.cut_cor, start)
 
             for geo_nr in range(len(self.geos)):
                 exstr += self.geos[geo_nr].Write_GCode(PostPro)
 
-            # Calculate the contour values with cutter radius compensation and without
-            ende, en_angle = self.get_start_end_points(False, True)
-            if self.cut_cor == 41:
-                pos_cut_out = ende.get_arc_point(en_angle - pi / 2, tool_rad)
-            elif self.cut_cor == 42:
-                pos_cut_out = ende.get_arc_point(en_angle + pi / 2, tool_rad)
-
             # Turning off the cutter radius compensation if needed
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
+                ende, en_angle = self.get_start_end_points(False, True)
+                if self.cut_cor == 41:
+                    pos_cut_out = ende.get_arc_point(en_angle - pi / 2, tool_rad)
+                elif self.cut_cor == 42:
+                    pos_cut_out = ende.get_arc_point(en_angle + pi / 2, tool_rad)
                 exstr += PostPro.deactivate_cut_cor(pos_cut_out)
 
         # Do the tool retraction
@@ -395,7 +397,7 @@ class Shape(object):
         # If cutter radius compensation is turned on.
         if self.cut_cor != 40 and not PostPro.vars.General["cancel_cc_for_depth"]:
             # Calculate the contour values - with cutter radius compensation and without
-            ende, en_angle = self.get_start_end_points(False, True)
+            ende = self.get_start_end_points(False)
             exstr += PostPro.deactivate_cut_cor(ende)
 
         # Initial value of direction restored if necessary
@@ -419,10 +421,6 @@ class Shape(object):
 
         # initialisation of the string
         exstr = ""
-
-        # Create the Start_moves once again if something was changed.
-        # TODO make this redundant
-        self.stMove.make_start_moves()
 
         # Get the mill settings defined in the GUI
         safe_retract_depth = self.parentLayer.axis3_retract

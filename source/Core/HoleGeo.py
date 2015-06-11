@@ -97,7 +97,7 @@ class HoleGeo(object):
 
     def isHit(self, caller, xy, tol):
         tol2 = tol**2
-        radius = caller.parentLayer.tool_diameter / 2
+        radius = caller.parentLayer.getToolRadius()
         segments = 30
         Ps = self.abs_geo.Ps.get_arc_point(0, radius)
         for i in range(1, segments + 1):

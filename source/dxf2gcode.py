@@ -713,7 +713,6 @@ class MainWindow(QMainWindow):
                 if len(tmp_shape.geos) > 0:
                     # All shapes have to be CW direction.
                     tmp_shape.AnalyseAndOptimize()
-                    tmp_shape.setNearestStPoint(Point())
 
                     self.shapes.append(tmp_shape)
                     self.addtoLayerContents(values, tmp_shape, ent_geo.Layer_Nr)

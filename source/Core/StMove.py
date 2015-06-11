@@ -70,10 +70,9 @@ class StMove(object):
 
         # Get the start rad. and the length of the line segment at begin.
         start_rad = self.shape.parentLayer.start_radius
-        start_ver = start_rad
 
         # Get tool radius based on tool diameter.
-        tool_rad = self.shape.parentLayer.tool_diameter / 2
+        tool_rad = self.shape.parentLayer.getToolRadius()
 
         # Calculate the starting point with and without compensation.
         start = self.start
@@ -89,7 +88,7 @@ class StMove(object):
             # Start Point of the Radius
             Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Pa_ein.get_arc_point(angle + pi/2, start_ver)
+            Pg_ein = Pa_ein.get_arc_point(angle + pi/2, start_rad)
 
             # Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
@@ -111,7 +110,7 @@ class StMove(object):
             # Start Point of the Radius
             Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Pa_ein.get_arc_point(angle - pi/2, start_ver)
+            Pg_ein = Pa_ein.get_arc_point(angle - pi/2, start_rad)
 
             # Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
@@ -127,7 +126,7 @@ class StMove(object):
             self.append(start_rad)
 
     def make_swivelknife_move(self):
-        offset = self.shape.parentLayer.tool_diameter / 2
+        offset = self.shape.parentLayer.getToolRadius()
         dragAngle = self.shape.dragAngle
 
         startnorm = offset*Point(1, 0)  # TODO make knife direction a config setting

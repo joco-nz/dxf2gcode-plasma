@@ -392,7 +392,7 @@ class MyPostProcessor(object):
         This function is called if an arc shall be cut.
         @param dir: The direction of the arc to cut, can be cw or ccw
         @param Ps: The Start Point of the the Arc
-        @param PE: The End Point of the Arc
+        @param Pe: The End Point of the Arc
         @param s_ang: The angle at which the Startpoint Starts
         @param e_ang: The angle at which the Endpoint Ends
         @param R: The Radius of the Arc
