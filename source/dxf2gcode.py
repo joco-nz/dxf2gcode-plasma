@@ -641,6 +641,8 @@ class MainWindow(QMainWindow):
 
         self.makeEntityShapes(values, self.entityRoot)
 
+        for layerContent in self.layerContents:
+            layerContent.overrideDefaults()
         self.layerContents.sort(key=lambda x: x.nr)
 
     def makeEntityShapes(self, values, parent):

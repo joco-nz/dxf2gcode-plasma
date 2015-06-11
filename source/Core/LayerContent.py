@@ -23,6 +23,8 @@
 #
 ############################################################################
 
+import re
+
 import Global.Globals as g
 
 
@@ -33,15 +35,15 @@ class LayerContent(object):
         self.shapes = shapes
         self.exp_order = []  # used for shape order optimization, ... Only contains shapes
 
-        # preset defaults
-        self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']
-        self.axis3_safe_margin = g.config.vars.Depth_Coordinates['axis3_safe_margin']
-
         # Use default tool 1 (always exists in config)
         self.tool_nr = 1
         self.tool_diameter = g.config.vars.Tool_Parameters['1']['diameter']
         self.speed = g.config.vars.Tool_Parameters['1']['speed']
         self.start_radius = g.config.vars.Tool_Parameters['1']['start_radius']
+
+        # preset defaults
+        self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']
+        self.axis3_safe_margin = g.config.vars.Depth_Coordinates['axis3_safe_margin']
 
     def __cmp__(self, other):
         return self.LayerNr == other.LayerNr
@@ -55,3 +57,66 @@ class LayerContent(object):
                "\nnr:     %i" % self.nr +\
                "\nname:   %s" % self.name +\
                "\nshapes: %s" % self.shapes
+
+    def should_ignore(self):
+        return self.name.startswith('IGNORE'+g.config.vars.Layer_Options['id_float_separator'])
+
+    def isBreakLayer(self):
+        return self.name.startswith('BREAKS'+g.config.vars.Layer_Options['id_float_separator'])
+
+    def isMillLayer(self):
+        return self.name.startswith('MILL'+g.config.vars.Layer_Options['id_float_separator'])
+
+    def isDrillLayer(self):
+        return self.name.startswith('DRILL'+g.config.vars.Layer_Options['id_float_separator'])
+
+    def isParameterizableLayer(self):
+        return self.isMillLayer() or self.isDrillLayer() or self.isBreakLayer()
+
+    def automaticCutterCompensationEnabled(self):
+        return not self.should_ignore() and not self.isDrillLayer()
+
+    def getToolRadius(self):
+        return self.tool_diameter / 2
+
+    def overrideDefaults(self):
+        # search for layer commands to override defaults
+        if self.isParameterizableLayer():
+            layer_commands = self.name.replace(",", ".")
+            lopts_re = re.compile("([a-zA-Z]+ *"+g.config.vars.Layer_Options['id_float_separator']+" *[\-\.0-9]+)")
+            # print lopts_re.findall(layer_commands)
+            for lc in lopts_re.findall(layer_commands):
+                name, value = lc.split(g.config.vars.Layer_Options['id_float_separator'])
+                name = name.strip()
+                # print '\"%s\" \"%s\"' %(name, value)
+                if name in g.config.vars.Layer_Options['tool_nr_identifiers']:
+                    self.tool_nr = float(value)
+                elif name in g.config.vars.Layer_Options['tool_diameter_identifiers']:
+                    self.tool_diameter = float(value)
+                elif name in g.config.vars.Layer_Options['spindle_speed_identifiers']:
+                    self.speed = float(value)
+                elif name in g.config.vars.Layer_Options['start_radius_identifiers']:
+                    self.start_radius = float(value)
+                elif name in g.config.vars.Layer_Options['retract_identifiers']:
+                    self.axis3_retract = float(value)
+                elif name in g.config.vars.Layer_Options['safe_margin_identifiers']:
+                    self.axis3_safe_margin = float(value)
+                elif name in g.config.vars.Layer_Options['start_mill_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.axis3_start_mill_depth = float(value)
+                elif name in g.config.vars.Layer_Options['slice_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.axis3_slice_depth = float(value)
+                elif name in g.config.vars.Layer_Options['mill_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.axis3_mill_depth = float(value)
+                elif name in g.config.vars.Layer_Options['f_g1_plane_identifiers']:
+                    for shape in self.shapes:
+                        shape.f_g1_plane = float(value)
+                elif name in g.config.vars.Layer_Options['f_g1_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.f_g1_depth = float(value)
+        if self.should_ignore():
+            # Disable shape by default, if it lives on an ignored layer
+            for shape in self.shapes:
+                shape.setDisable(True)
