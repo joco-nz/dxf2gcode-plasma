@@ -38,6 +38,26 @@ logger = logging.getLogger("Gui.Canvas")
 
 
 class GLWidget(QOpenGLWidget):
+    CAM_LEFT_X = -0.5
+    CAM_RIGHT_X = 0.5
+    CAM_BOTTOM_Y = 0.5
+    CAM_TOP_Y = -0.5
+    CAM_NEAR_Z = -14.0
+    CAM_FAR_Z = 14.0
+
+    COLOR_BACKGROUND = QColor.fromHsl(160, 0, 255, 255)
+    COLOR_NORMAL = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 1.0)
+    COLOR_SELECT = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 1.0)
+    COLOR_NORMAL_DISABLED = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 0.25)
+    COLOR_SELECT_DISABLED = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.25)
+    COLOR_ENTRY_ARROW = QColor.fromRgbF(0.0, 0.0, 1.0, 1.0)
+    COLOR_EXIT_ARROW = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
+    COLOR_ROUTE = QColor.fromRgbF(0.5, 0.0, 0.0, 1.0)
+    COLOR_STMOVE = QColor.fromRgbF(0.5, 0.0, 0.25, 1.0)
+    COLOR_BREAK = QColor.fromRgbF(1.0, 0.0, 1.0, 0.7)
+    COLOR_LEFT = QColor.fromHsl(134, 240, 130, 255)
+    COLOR_RIGHT = QColor.fromHsl(186, 240, 130, 255)
+
     def __init__(self, parent=None):
         super(GLWidget, self).__init__(parent)
 
@@ -62,24 +82,6 @@ class GLWidget(QOpenGLWidget):
         self.rotZ = 0.0
         self.scale = 1.0
         self.scaleCorr = 1.0
-
-        self.camLeftX = -0.5
-        self.camRightX = 0.5
-        self.camBottomY = 0.5
-        self.camTopY = -0.5
-        self.camNearZ = -14.0
-        self.camFarZ = 14.0
-
-        self.colorBackground = QColor.fromHsl(160, 0, 255, 255)
-        self.colorNormal = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 1.0)
-        self.colorSelect = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 1.0)
-        self.colorNormalDisabled = QColor.fromCmykF(1.0, 0.5, 0.0, 0.0, 0.25)
-        self.colorSelectDisabled = QColor.fromCmykF(0.0, 1.0, 0.9, 0.0, 0.25)
-        self.colorEntryArrow = QColor.fromRgbF(0.0, 0.0, 1.0, 1.0)
-        self.colorExitArrow = QColor.fromRgbF(0.0, 1.0, 0.0, 1.0)
-        self.colorRoute = QColor.fromRgbF(0.5, 0.0, 0.0, 1.0)
-        self.colorStMove = QColor.fromRgbF(0.5, 0.0, 0.25, 1.0)
-        self.colorBreak = QColor.fromRgbF(1.0, 0.0, 1.0, 1.0)
 
         self.topLeft = Point()
         self.bottomRight = Point()
@@ -292,7 +294,7 @@ class GLWidget(QOpenGLWidget):
         self.gl = self.context().versionFunctions(version)
         self.gl.initializeOpenGLFunctions()
 
-        self.setClearColor(self.colorBackground)
+        self.setClearColor(GLWidget.COLOR_BACKGROUND)
 
         # self.gl.glPolygonMode(self.gl.GL_FRONT_AND_BACK, self.gl.GL_LINE )
         self.gl.glShadeModel(self.gl.GL_SMOOTH)
@@ -317,26 +319,30 @@ class GLWidget(QOpenGLWidget):
         self.gl.glScaled(self.scale, self.scale, self.scale)
         for shape in self.objects.selected_iter():
             if not shape.disabled:
-                self.setColor(self.colorStMove)
+                self.setColor(GLWidget.COLOR_STMOVE)
                 self.gl.glCallList(shape.drawStMove)
-                self.setColor(self.colorSelect)
+                self.setColor(GLWidget.COLOR_SELECT)
                 self.gl.glCallList(shape.drawObject)
             elif self.showDisabledPaths:
-                self.setColor(self.colorSelectDisabled)
+                self.setColor(GLWidget.COLOR_SELECT_DISABLED)
                 self.gl.glCallList(shape.drawObject)
         for shape in self.objects.not_selected_iter():
             if not shape.disabled:
                 if shape.parentLayer.isBreakLayer():
-                    self.setColor(self.colorBreak)
+                    self.setColor(GLWidget.COLOR_BREAK)
+                elif shape.cut_cor == 41:
+                    self.setColor(GLWidget.COLOR_LEFT)
+                elif shape.cut_cor == 42:
+                    self.setColor(GLWidget.COLOR_RIGHT)
                 else:
-                    self.setColor(self.colorNormal)
+                    self.setColor(GLWidget.COLOR_NORMAL)
                 self.gl.glCallList(shape.drawObject)
             elif self.showDisabledPaths:
-                self.setColor(self.colorNormalDisabled)
+                self.setColor(GLWidget.COLOR_NORMAL_DISABLED)
                 self.gl.glCallList(shape.drawObject)
 
         # optimization route arrows
-        self.setColor(self.colorRoute)
+        self.setColor(GLWidget.COLOR_ROUTE)
         self.gl.glBegin(self.gl.GL_LINES)
         for route in self.routeArrows:
             start = route[0]
@@ -377,12 +383,14 @@ class GLWidget(QOpenGLWidget):
         self.gl.glLoadIdentity()
         if width >= height:
             scale_x = width / height
-            self.gl.glOrtho(self.camLeftX * scale_x, self.camRightX * scale_x, self.camBottomY, self.camTopY,
-                            self.camNearZ, self.camFarZ)
+            self.gl.glOrtho(GLWidget.CAM_LEFT_X * scale_x, GLWidget.CAM_RIGHT_X * scale_x,
+                            GLWidget.CAM_BOTTOM_Y, GLWidget.CAM_TOP_Y,
+                            GLWidget.CAM_NEAR_Z, GLWidget.CAM_FAR_Z)
         else:
             scale_y = height / width
-            self.gl.glOrtho(self.camLeftX, self.camRightX, self.camBottomY * scale_y, self.camTopY * scale_y,
-                            self.camNearZ, self.camFarZ)
+            self.gl.glOrtho(GLWidget.CAM_LEFT_X, GLWidget.CAM_RIGHT_X,
+                            GLWidget.CAM_BOTTOM_Y * scale_y, GLWidget.CAM_TOP_Y * scale_y,
+                            GLWidget.CAM_NEAR_Z, GLWidget.CAM_FAR_Z)
         self.scaleCorr = 400 / side
         self.gl.glMatrixMode(self.gl.GL_MODELVIEW)
 
@@ -577,13 +585,13 @@ class GLWidget(QOpenGLWidget):
 
         startArrow = self.gl.glGenLists(1)
         self.gl.glNewList(startArrow, self.gl.GL_COMPILE)
-        self.setColor(self.colorEntryArrow)
+        self.setColor(GLWidget.COLOR_ENTRY_ARROW)
         self.drawDirArrow(Point3D(), start_dir.to3D(), True)
         self.gl.glEndList()
 
         endArrow = self.gl.glGenLists(1)
         self.gl.glNewList(endArrow, self.gl.GL_COMPILE)
-        self.setColor(self.colorExitArrow)
+        self.setColor(GLWidget.COLOR_EXIT_ARROW)
         self.drawDirArrow(Point3D(), end_dir.to3D(), False)
         self.gl.glEndList()
 
@@ -649,11 +657,11 @@ class GLWidget(QOpenGLWidget):
         else:
             aspect_scale_x = 1
             aspect_scale_y = self.frameSize().height() / self.frameSize().width()
-        scaleX = (self.camRightX - self.camLeftX) * aspect_scale_x / (self.bottomRight.x - self.topLeft.x)
-        scaleY = (self.camBottomY - self.camTopY) * aspect_scale_y / (self.topLeft.y - self.bottomRight.y)
+        scaleX = (GLWidget.CAM_RIGHT_X - GLWidget.CAM_LEFT_X) * aspect_scale_x / (self.bottomRight.x - self.topLeft.x)
+        scaleY = (GLWidget.CAM_BOTTOM_Y - GLWidget.CAM_TOP_Y) * aspect_scale_y / (self.topLeft.y - self.bottomRight.y)
         self.scale = min(scaleX, scaleY) * 0.95
-        self.posX = self.camLeftX * 0.95 * aspect_scale_x - self.topLeft.x * self.scale
-        self.posY = -self.camTopY * 0.95 * aspect_scale_y + self.bottomRight.y * self.scale
+        self.posX = GLWidget.CAM_LEFT_X * 0.95 * aspect_scale_x - self.topLeft.x * self.scale
+        self.posY = -GLWidget.CAM_TOP_Y * 0.95 * aspect_scale_y + self.bottomRight.y * self.scale
         self.posZ = 0
         self.update()
 
