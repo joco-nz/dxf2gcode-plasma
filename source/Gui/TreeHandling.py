@@ -788,6 +788,7 @@ class TreeHandler(QWidget):
                 real_item.axis3_slice_depth = val
                 self.axis3_slice_depth = real_item.axis3_slice_depth
                 self.ui.canvas.repaintShape(real_item)
+        self.prepareExportOrderUpdate()
         self.ui.canvas.update()
 
     def toolParameterg1FeedXYUpdate(self):
@@ -850,6 +851,7 @@ class TreeHandler(QWidget):
                 real_item.axis3_start_mill_depth = val
                 self.axis3_start_mill_depth = real_item.axis3_start_mill_depth
                 self.ui.canvas.repaintShape(real_item)
+        self.prepareExportOrderUpdate()
         self.ui.canvas.update()
 
     def toolParameterzFinalMillDepthUpdate(self):
@@ -872,6 +874,7 @@ class TreeHandler(QWidget):
                 real_item.axis3_mill_depth = val
                 self.axis3_mill_depth = real_item.axis3_mill_depth
                 self.ui.canvas.repaintShape(real_item)
+        self.prepareExportOrderUpdate()
         self.ui.canvas.update()
 
     def actionOnSelectionChange(self, parent, selected, deselected):

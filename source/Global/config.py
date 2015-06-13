@@ -289,12 +289,12 @@ class MyConfig(QtCore.QObject):
             else:
                 self.default_config = False
                 # logger.debug(self.dir())
-                # logger.debug(self.tr("created default varspace '%s'") %(self.filename))
-                # logger.debug(self.tr("read existing varspace '%s'") %(self.filename))
+                # logger.debug(self.tr("created default varspace '%s'") % self.filename)
+                # logger.debug(self.tr("read existing varspace '%s'") % self.filename)
         else:
             self.create_default_config()
             self.default_config = True
-            logger.debug(self.tr("created default varspace '%s'") % (self.filename))
+            logger.debug(self.tr("created default varspace '%s'") % self.filename)
 
         self.var_dict.main.interpolation = False  # avoid ConfigObj getting too clever
 

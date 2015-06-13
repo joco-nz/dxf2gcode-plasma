@@ -72,7 +72,7 @@ class LoggerClass(object):
         window will be used. This Class needs a function "def write(self, charstr)
         {DEBUG, INFO, WARNING,  ERROR, CRITICAL}
         """
-        self.window_handler = logging.StreamHandler(stream=stream)
+        self.window_handler = logging.StreamHandler(stream)
         self.window_handler.setLevel(self._cvtlevel(g.config.vars.Logging['window_loglevel']))
 
         if g.config.vars.Logging['window_loglevel'] == 'INFO':

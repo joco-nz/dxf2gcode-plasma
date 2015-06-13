@@ -125,7 +125,7 @@ class GLWidget(QOpenGLWidget):
         for shape_nr in range(len(exp_order)):
             shape = self.objects[exp_order[shape_nr]]
             st = self.expprv
-            en, self.expprv = shape.get_start_end_points()
+            en, self.expprv = shape.get_start_end_points_physical()
             en = en.to3D(shape.axis3_start_mill_depth)
             self.expprv = self.expprv.to3D(shape.axis3_mill_depth)
 
@@ -362,7 +362,7 @@ class GLWidget(QOpenGLWidget):
         # direction arrows
         for shape in self.objects:
             if shape.selected and (not shape.disabled or self.showDisabledPaths):
-                start, end = shape.get_start_end_points()
+                start, end = shape.get_start_end_points_physical()
                 start = scaleArrow * start.to3D(shape.axis3_start_mill_depth)
                 end = scaleArrow * end.to3D(shape.axis3_mill_depth)
                 self.gl.glTranslated(start.x, -start.y, start.z)
@@ -581,7 +581,7 @@ class GLWidget(QOpenGLWidget):
         self.gl.glEnd()
 
     def makeDirArrows(self, shape):
-        (start, start_dir), (end, end_dir) = shape.get_start_end_points(None, False)
+        (start, start_dir), (end, end_dir) = shape.get_start_end_points_physical(None, False)
 
         startArrow = self.gl.glGenLists(1)
         self.gl.glNewList(startArrow, self.gl.GL_COMPILE)

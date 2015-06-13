@@ -28,6 +28,9 @@ import os
 import logging
 from math import degrees, radians
 from copy import copy, deepcopy
+import argparse
+import subprocess
+import tempfile
 
 from PyQt5.QtCore import Qt, QLocale, QTranslator, QCoreApplication, QFile
 from PyQt5.QtGui import QSurfaceFormat
@@ -38,11 +41,13 @@ from Core.LayerContent import LayerContent, Layers, Shapes
 from Core.Shape import Shape
 from Core.LineGeo import LineGeo
 from Core.HoleGeo import HoleGeo
+import Global.constants as c
 import Global.Globals as g
 from Global.config import MyConfig
 from Global.logger import LoggerClass
 from Core.Point import Point
 from DxfImport.Import import ReadDXF
+from Gui.AboutDialog import AboutDialog
 from Gui.PopUpDialog import PopUpDialog
 from Gui.TreeHandling import TreeHandler
 from dxf2gcode_ui import Ui_MainWindow
@@ -56,6 +61,10 @@ logger = logging.getLogger()
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 if os.path.islink(sys.argv[0]):
     g.folder = os.path.dirname(os.readlink(sys.argv[0]))
+
+if sys.version_info[0] != 3:
+    raise Exception("Currently only python3 is supported as interpreter for this version of DXF2GCODE\n"
+                    "Check out http://sourceforge.net/projects/dxf2gcode/ for any updates or different versions")
 
 
 class MainWindow(QMainWindow):
@@ -123,6 +132,9 @@ class MainWindow(QMainWindow):
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
+
+        # Help
+        self.ui.actionAbout.triggered.connect(self.about)
 
     def connectToolbarToConfig(self):
         # View
@@ -430,7 +442,7 @@ class MainWindow(QMainWindow):
 
         logger.debug(self.tr('Export the enabled shapes'))
 
-        #Get the export order from the QTreeView
+        # Get the export order from the QTreeView
         self.TreeHandler.updateExportOrder()
         self.updateExportRoute()
 
@@ -440,15 +452,15 @@ class MainWindow(QMainWindow):
 
         if not(g.config.vars.General['write_to_stdout']):
 
-            #Get the name of the File to export
-            if saveas == None:
+            # Get the name of the File to export
+            if not saveas:
                 filename = self.showSaveDialog()
                 self.save_filename = filename[0]
             else:
                 filename = [None, None]
                 self.save_filename = saveas
 
-            #If Cancel was pressed
+            # If Cancel was pressed
             if not self.save_filename:
                 self.glWidget.unsetCursor()
                 return
@@ -546,12 +558,14 @@ class MainWindow(QMainWindow):
         return True
 
     def open(self):
-        self.filename, _ = QFileDialog.getOpenFileName(self, 'Open File', '',
-                                                       # "All supported files (*.dxf *.ps *.pdf);;"
-                                                       "DXF files (*.dxf);;"
-                                                       # "PS files (*.ps);;"
-                                                       # "PDF files (*.pdf);;"
-                                                       "All types (*.*)")
+        self.filename, _ = QFileDialog.getOpenFileName(self,
+                                                       self.tr("Open file"),
+                                                       g.config.vars.Paths['import_dir'],
+                                                       self.tr("All supported files (*.dxf *.ps *.pdf);;"
+                                                               "DXF files (*.dxf);;"
+                                                               "PS files (*.ps);;"
+                                                               "PDF files (*.pdf);;"
+                                                               "All types (*.*)"))
 
         if self.filename:
             logger.info(self.tr("File: %s selected" % self.filename))
@@ -566,6 +580,21 @@ class MainWindow(QMainWindow):
         """
         self.glWidget.setCursor(Qt.WaitCursor)
         self.glWidget.resetAll()
+
+        (name, ext) = os.path.splitext(filename)
+
+        if (ext.lower() == ".ps") or (ext.lower() == ".pdf"):
+            logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
+
+            # Create temporary file which will be read by the program
+            filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
+
+            pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
+            pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
+            ps_filename = os.path.normcase(filename)
+            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % filename)]
+            logger.debug(cmd)
+            retcode = subprocess.call(cmd)
 
         logger.info(self.tr('Loading file: %s' % filename))
 
@@ -629,6 +658,35 @@ class MainWindow(QMainWindow):
             logger.info(self.tr("Reloading file: %s") % self.filename)
             self.load(self.filename)
 
+    def about(self):
+        """
+        This function is called by the menu "Help/About" of the main toolbar and
+        creates the About Window
+        """
+        message =\
+            self.tr("<html>"
+                    "<h2><center>You are using</center></h2>"
+                    "<body bgcolor="
+                    "<center><img src=':images/dxf2gcode_logo.png' border='1' color='white'></center></body>"
+                    "<h2>Version:</h2>"
+                    "<body>%s: %s<br>"
+                    "Last change: %s<br>"
+                    "Changed by: %s<br></body>"
+                    "<h2>Where to get help:</h2>"
+                    "For more information and updates, "
+                    "please visit "
+                    "<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a><br>"
+                    "For any questions on how to use dxf2gcode please use the "
+                    "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"
+                    "To log bugs, or request features please use the "
+                    "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"
+                    "<h2>License and copyright:</h2>"
+                    "<body>This program is written in Python and is published under the "
+                    "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
+                    "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
+
+        AboutDialog("About DXF2GCODE", message)
+
     def makeShapes(self, values, p0, pb, sca, rot):
         self.entityRoot = EntityContent(nr=0, name='Entities',
                                         parent=None,
@@ -642,7 +700,7 @@ class MainWindow(QMainWindow):
             layerContent.overrideDefaults()
         self.layerContents.sort(key=lambda x: x.nr)
 
-    def makeEntityShapes(self, values, parent):
+    def makeEntityShapes(self, values, parent, layerNr=-1):
         """
         Instance is called prior to plotting the shapes. It creates
         all shape classes which are plotted into the canvas.
@@ -686,7 +744,7 @@ class MainWindow(QMainWindow):
 
                 parent.append(newEntityContent)
 
-                self.makeEntityShapes(values, newEntityContent)
+                self.makeEntityShapes(values, newEntityContent, ent_geo.Layer_Nr)
 
             else:
                 # Loop for the number of geometries
@@ -712,7 +770,7 @@ class MainWindow(QMainWindow):
                     tmp_shape.AnalyseAndOptimize()
 
                     self.shapes.append(tmp_shape)
-                    self.addtoLayerContents(values, tmp_shape, ent_geo.Layer_Nr)
+                    self.addtoLayerContents(values, tmp_shape, layerNr if layerNr != -1 else ent_geo.Layer_Nr)
                     parent.append(tmp_shape)
 
     def append_geo_to_shape(self, shape, geo):
@@ -767,7 +825,7 @@ if __name__ == '__main__':
     Log.set_console_handler_loglevel()
     Log.add_file_logger()
 
-    #Get local language and install if available.
+    # Get local language and install if available.
     locale = QLocale.system().name()
     logger.debug("locale: %s" %locale)
     translator = QTranslator()
@@ -777,6 +835,35 @@ if __name__ == '__main__':
     window = MainWindow()
     g.window = window
     Log.add_window_logger(window.ui.messageBox)
-    window.show()
 
-    sys.exit(app.exec_())
+    # command line options
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("filename", nargs="?")
+
+#    parser.add_argument("-f", "--file", dest = "filename",
+#                        help = "read data from FILENAME")
+    parser.add_argument("-e", "--export", dest="export_filename",
+                        help="export data to FILENAME")
+    parser.add_argument("-q", "--quiet", action="store_true",
+                        dest="quiet", help="no GUI")
+#    parser.add_option("-v", "--verbose",
+#                      action = "store_true", dest = "verbose")
+    options = parser.parse_args()
+
+    # (options, args) = parser.parse_args()
+    logger.debug("Started with following options:\n%s" % parser)
+
+    if not options.quiet:
+        window.show()
+
+    if not(options.filename is None):
+        window.filename = options.filename
+        window.load(options.filename)
+
+    if not(options.export_filename is None):
+        window.exportShapes(None, options.export_filename)
+
+    if not options.quiet:
+        # It's exec_ because exec is a reserved word in Python
+        sys.exit(app.exec_())

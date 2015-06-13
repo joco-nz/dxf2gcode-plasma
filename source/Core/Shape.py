@@ -219,6 +219,29 @@ class Shape(object):
         geo.make_abs_geo(self.parentEntity)
         self.geos.append(geo)
 
+    def get_start_end_points_physical(self, start_point=None, angles=None):
+        """
+        With multiple slices end point could be start point.
+        e.g. useful for the optimal rout etc
+        """
+        if start_point:
+            return self.get_start_end_points(start_point, angles)
+        else:
+            max_slice = max(self.axis3_slice_depth, self.axis3_mill_depth - self.axis3_start_mill_depth)
+            end_should_be_start = (self.axis3_start_mill_depth - self.axis3_mill_depth) // max_slice % 2 == 0
+            if not end_should_be_start:
+                return self.get_start_end_points(start_point, angles)
+            else:
+                start_stuff = self.get_start_end_points(True, angles)
+                if angles is False:
+                    end_stuff = start_stuff[0], -start_stuff[1]
+                else:
+                    end_stuff = start_stuff
+                if start_point is None:
+                    return start_stuff, end_stuff
+                else:
+                    return end_stuff
+
     def get_start_end_points(self, start_point=None, angles=None):
         if start_point is None:
             return (self.geos[0].get_start_end_points(True, angles),
