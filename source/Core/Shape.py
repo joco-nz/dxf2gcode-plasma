@@ -65,6 +65,8 @@ class Shape(object):
         self.parentLayer = None
         self.geos = []
 
+        self.cw = True
+
         self.drawObject = 0
         self.drawArrowsDirection = 0
         self.drawStMove = 0
@@ -171,6 +173,7 @@ class Shape(object):
         if summe > 0.0:
             self.reverse()
             logger.debug(self.tr("Had to reverse the shape to be CW"))
+        self.cw = True
 
     def setNearestStPoint(self, stPoint):
         if self.closed:
@@ -198,6 +201,7 @@ class Shape(object):
         self.geos.reverse()
         for geo in self.geos:
             geo.reverse()
+        self.cw = not self.cw
 
     def switch_cut_cor(self):
         """

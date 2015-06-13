@@ -353,7 +353,7 @@ class MainWindow(QMainWindow):
         logger.debug(self.tr('Optimize order of enabled shapes per layer'))
         self.glWidget.delete_opt_paths()
 
-        #Get the export order from the QTreeView
+        # Get the export order from the QTreeView
         logger.debug(self.tr('Updating order according to TreeView'))
         self.TreeHandler.updateExportOrder()
         self.glWidget.addexproutest()
@@ -366,8 +366,7 @@ class MainWindow(QMainWindow):
 
             # Check all shapes of Layer which shall be exported and create List for it.
             logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
-                                 % (len(LayerContent.shapes),
-                                 len(LayerContent.exp_order)))
+                         % (len(LayerContent.shapes), len(LayerContent.exp_order)))
             logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
 
             for shape_nr in range(len(LayerContent.exp_order)):
@@ -399,9 +398,7 @@ class MainWindow(QMainWindow):
                     # Only show each 50th step.
                     if it_nr % 50 == 0:
                         TSPs.calc_next_iteration()
-                        new_exp_order = []
-                        for nr in TSPs.opt_route[1:len(TSPs.opt_route)]:
-                            new_exp_order.append(LayerContent.exp_order[nr])
+                        new_exp_order = [LayerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
 
                 logger.debug(self.tr("TSP done with result: %s") % TSPs)
 
@@ -523,25 +520,25 @@ class MainWindow(QMainWindow):
 
     def automaticCutterCompensation(self):
         if self.ui.actionAutomaticCutterCompensation.isEnabled() and\
-                self.ui.actionAutomaticCutterCompensation.isChecked():
+           self.ui.actionAutomaticCutterCompensation.isChecked():
             for layerContent in self.layerContents.non_break_layer_iter():
                 if layerContent.automaticCutterCompensationEnabled():
-                    left_compensation = True
+                    outside_compensation = True
                     shapes_left = layerContent.shapes
                     while len(shapes_left) > 0:
                         shapes_left = [shape for shape in shapes_left
-                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, left_compensation)]
-                        left_compensation = not left_compensation
+                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation)]
+                        outside_compensation = not outside_compensation
         self.glWidget.update()
 
-    def ifNotContainedChangeCutCor(self, shape, shapes_left, left_compensation):
+    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation):
         for otherShape in shapes_left:
             if shape != otherShape:
                 if shape != otherShape and\
                    otherShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < otherShape.bottomRight.x and\
                    otherShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < otherShape.topLeft.y:
                     return False
-        if left_compensation:
+        if outside_compensation == shape.cw:
             shape.cut_cor = 41
         else:
             shape.cut_cor = 42
