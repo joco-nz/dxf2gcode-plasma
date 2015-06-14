@@ -90,9 +90,9 @@ class ArcGeo(object):
 
         # Calculate start and end angles
         if self.s_ang is None:
-            self.s_ang = self.O.norm_angle(Ps)
+            self.s_ang = self.O.norm_angle(self.Ps)
         if self.e_ang is None:
-            self.e_ang = self.O.norm_angle(Pe)
+            self.e_ang = self.O.norm_angle(self.Pe)
 
         self.ext = self.dif_ang(self.Ps, self.Pe, direction)
 
@@ -180,6 +180,17 @@ class ArcGeo(object):
 
         return r
 
+    def update_start_end_points(self, start_point, value):
+        if start_point:
+            self.Ps = value
+            self.s_ang = self.O.norm_angle(self.Ps)
+        else:
+            self.Pe = value
+            self.e_ang = self.O.norm_angle(self.Pe)
+
+        self.ext = self.dif_ang(self.Ps, self.Pe, self.ext)
+        self.length = self.r * abs(self.ext)
+
     def get_start_end_points(self, start_point, angles=None):
         if start_point:
             if angles is None:
@@ -248,9 +259,9 @@ class ArcGeo(object):
         if r > PostPro.vars.General["max_arc_radius"]:
             string = PostPro.lin_pol_xy(Ps, Pe)
         else:
-            if self.ext > 0:
+            if self.abs_geo.ext > 0:
                 string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ)
-            elif self.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
+            elif self.abs_geo.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
                 string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe)
             else:
                 string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ)

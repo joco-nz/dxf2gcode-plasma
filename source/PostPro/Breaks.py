@@ -52,16 +52,17 @@ class Breaks(object):
 
         logger.debug("Found %d break layers" % len(self.breakLayers))
 
-    def getNewGeos(self, shape):
-        newGeos = []
-        for geo in shape.geos:
+    def getNewGeos(self, geos):
+        # TODO use intersect class and update_start_end_points
+        new_geos = []
+        for geo in geos:
             if isinstance(geo, LineGeo):
-                newGeos.extend(self.breakLineGeo(geo))
+                new_geos.extend(self.breakLineGeo(geo))
             elif isinstance(geo, ArcGeo):
-                newGeos.extend(self.breakArcGeo(geo))
+                new_geos.extend(self.breakArcGeo(geo))
             else:
-                newGeos.append(geo)
-        return newGeos
+                new_geos.append(geo)
+        return new_geos
 
     def breakLineGeo(self, lineGeo):
         """

@@ -78,7 +78,7 @@ class CustomGCode(object):
         """
         return self.disabled
 
-    def Write_GCode(self, PostPro=None):
+    def Write_GCode(self, PostPro):
         """
         This method returns the string to be exported for this custom gcode
         @param PostPro: this is the Postprocessor class including the methods to export

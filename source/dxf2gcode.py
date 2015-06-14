@@ -774,7 +774,7 @@ class MainWindow(QMainWindow):
                     parent.append(tmp_shape)
 
     def append_geo_to_shape(self, shape, geo):
-        if geo.length == 0:  # TODO adjust import for this
+        if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
             return
 
         if self.ui.actionSplitLineSegments.isChecked():

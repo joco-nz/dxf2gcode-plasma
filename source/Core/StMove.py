@@ -30,6 +30,7 @@ import Global.Globals as g
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
 from Core.Point import Point
+from Core.Intersect import Intersect
 
 
 logger = logging.getLogger('Gui.StMove')
@@ -66,6 +67,9 @@ class StMove(object):
 
         if g.config.machine_type == 'drag_knife':
             self.make_swivelknife_move()
+            return
+        elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+            self.make_own_cutter_compensation()
             return
 
         # Get the start rad. and the length of the line segment at begin.
@@ -127,7 +131,7 @@ class StMove(object):
 
     def make_swivelknife_move(self):
         offset = self.shape.parentLayer.getToolRadius()
-        dragAngle = self.shape.dragAngle
+        drag_angle = self.shape.drag_angle
 
         startnorm = offset*Point(1, 0)  # TODO make knife direction a config setting
         prvend, prvnorm = Point(), Point()
@@ -146,7 +150,7 @@ class StMove(object):
                 if not prvnorm == norm:
                     direction = prvnorm.to3D().cross_product(norm.to3D()).z
                     swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=direction)
-                    swivel.drag = dragAngle < abs(swivel.ext)
+                    swivel.drag = drag_angle < abs(swivel.ext)
                     self.append(swivel)
                 self.append(geo_b)
 
@@ -177,7 +181,7 @@ class StMove(object):
                 if prvnorm != norma:
                     direction = prvnorm.to3D().cross_product(norma.to3D()).z
                     swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=direction)
-                    swivel.drag = dragAngle < abs(swivel.ext)
+                    swivel.drag = drag_angle < abs(swivel.ext)
                     self.append(swivel)
                 prvend = geo_b.Pe
                 prvnorm = offset*norme
@@ -197,11 +201,106 @@ class StMove(object):
         self.geos.insert(0, RapidPos(self.geos[0].Ps))
         self.geos[0].make_abs_geo(self.shape.parentEntity)
 
+    def make_own_cutter_compensation(self):
+        toolwidth = self.shape.parentLayer.getToolRadius()
+
+        geos = []
+
+        direction = -1 if self.shape.cut_cor == 41 else 1
+
+        if self.shape.closed:
+            end, end_dir = self.shape.get_start_end_points(False, False)
+            end_proj = Point(direction * end_dir.y, -direction * end_dir.x)
+            prv_Pe = end + toolwidth * end_proj
+        else:
+            prv_Pe = None
+        for geo_nr, geo in enumerate(self.shape.geos):
+            start, start_dir = geo.get_start_end_points(True, False)
+            end, end_dir = geo.get_start_end_points(False, False)
+            start_proj = Point(direction * start_dir.y, -direction * start_dir.x)
+            end_proj = Point(direction * end_dir.y, -direction * end_dir.x)
+            Ps = start + toolwidth * start_proj
+            Pe = end + toolwidth * end_proj
+            if Ps == Pe:
+                continue
+            if prv_Pe:
+                r = geo.abs_geo.Ps.distance(Ps)
+                d = (prv_Pe - geo.abs_geo.Ps).to3D().cross_product((Ps - geo.abs_geo.Ps).to3D()).z
+                if direction * d > 0 and prv_Pe != Ps:
+                    geos.append(ArcGeo(Ps=prv_Pe, Pe=Ps, O=geo.abs_geo.Ps, r=r, direction=d))
+                    geos[-1].geo_nr = geo_nr
+                # else:
+                #     geos.append(LineGeo(Ps=prv_Pe, Pe=Ps))
+            if isinstance(geo, LineGeo):
+                geos.append(LineGeo(Ps, Pe))
+                geos[-1].geo_nr = geo_nr
+            elif isinstance(geo, ArcGeo):
+                O = geo.abs_geo.O
+                r = O.distance(Ps)
+                geos.append(ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=geo.abs_geo.ext))
+                geos[-1].geo_nr = geo_nr
+            # TODO other geos are not supported; disable them in gui for this option
+            # else:
+            #     geos.append(geo)
+            prv_Pe = Pe
+
+        tot_length = 0
+        for geo in geos:
+            tot_length += geo.length
+
+        reorder_shape = False
+        for start_geo_nr in range(len(geos)):
+            geos_adj = deepcopy(geos[start_geo_nr:]) + deepcopy(geos[:start_geo_nr])
+            new_geos = []
+            i = 0
+            while i in range(len(geos_adj)):
+                geo = geos_adj[i]
+                intersections = []
+                for j in range(i+1, len(geos_adj)):
+                    intersection = Intersect.get_intersection_point(geos_adj[j], geos_adj[i])
+                    if intersection and intersection != geos_adj[i].Ps:
+                        intersections.append([j, intersection])
+                if len(intersections) > 0:
+                    intersection = intersections[-1]
+                    change_end_of_geo = True
+                    if i == 0 and intersection[0] >= len(geos_adj)//2:
+                        geo.update_start_end_points(True, intersection[1])
+                        geos_adj[intersection[0]].update_start_end_points(False, intersection[1])
+                        if len(intersections) > 1:
+                            intersection = intersections[-2]
+                        else:
+                            change_end_of_geo = False
+                            i += 1
+                    if change_end_of_geo:
+                        geo.update_start_end_points(False, intersection[1])
+                        i = intersection[0]
+                        geos_adj[i].update_start_end_points(True, intersection[1])
+                else:
+                    i += 1
+                new_geos.append(geo)
+                if new_geos[0].Ps == new_geos[-1].Pe:
+                    break
+
+            new_length = 0
+            for geo in new_geos:
+                new_length += geo.length
+
+            if new_length > tot_length * 0.5:  # TODO make the 50% a config setting
+                self.append(RapidPos(new_geos[0].Ps))
+                for geo in new_geos:
+                    if geo.Ps != geo.Pe:
+                        self.append(geo)
+                reorder_shape = True
+                break
+        if reorder_shape:
+            self.shape.geos = self.shape.geos[geos[start_geo_nr].geo_nr:] + self.shape.geos[:geos[start_geo_nr].geo_nr]
+
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:
             drawVerLine(geo.get_start_end_points(True), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
             geo.make_path(self.shape, drawHorLine)
-        drawVerLine(geo.get_start_end_points(False), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
+        if len(self.geos) > 0:
+            drawVerLine(geo.get_start_end_points(False), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
 
 class RapidPos(Point):
     def __init__(self, point):
@@ -226,7 +325,7 @@ class RapidPos(Point):
     def make_path(self, caller, drawHorLine):
         pass
 
-    def Write_GCode(self, PostPro=None):
+    def Write_GCode(self, PostPro):
         """
         Writes the GCODE for a rapid position.
         @param PostPro: The PostProcessor instance to be used

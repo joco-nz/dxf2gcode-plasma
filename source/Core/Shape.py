@@ -88,7 +88,7 @@ class Shape(object):
         self.f_g1_plane = g.config.vars.Feed_Rates['f_g1_plane']
         self.f_g1_depth = g.config.vars.Feed_Rates['f_g1_depth']
         # Parameters for drag knife
-        self.dragAngle = g.config.vars.Drag_Knife_Options['dragAngle'] * pi / 180
+        self.drag_angle = g.config.vars.Drag_Knife_Options['drag_angle'] * pi / 180
 
     def __str__(self):
         """
@@ -275,18 +275,33 @@ class Shape(object):
                     return True
         return False
 
-    def Write_GCode(self, PostPro=None):
+    def Write_GCode_for_geo(self, geo, PostPro):
+        # Used to remove zero length geos. If not, arcs can become a full circle
+        post_dec = PostPro.vars.Number_Format["post_decimals"]
+        if round(geo.Ps.x, post_dec) != round(geo.Pe.x, post_dec) or\
+           round(geo.Ps.y, post_dec) != round(geo.Pe.y, post_dec):
+            return geo.Write_GCode(PostPro)
+        else:
+            return ""
+
+    def Write_GCode(self, PostPro):
         """
         This method returns the string to be exported for this shape, including
         the defined start and end move of the shape.
         @param PostPro: this is the Postprocessor class including the methods
         to export
         """
-
         if g.config.machine_type == 'drag_knife':
             return self.Write_GCode_Drag_Knife(PostPro)
+        else:
+            prv_cut_cor = self.cut_cor
+            if self.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+                self.cut_cor = 40
+                new_geos = self.stMove.geos[1:]
+            else:
+                new_geos = self.geos
 
-        newGeos = PostPro.breaks.getNewGeos(self)
+        new_geos = PostPro.breaks.getNewGeos(new_geos)
         # initialisation of the string
         exstr = ""
 
@@ -353,8 +368,8 @@ class Shape(object):
             exstr += self.stMove.geos[2].Write_GCode(PostPro)
 
         # Write the geometries for the first cut
-        for geo in newGeos:
-            exstr += geo.Write_GCode(PostPro)
+        for geo in new_geos:
+            exstr += self.Write_GCode_for_geo(geo, PostPro)
 
         # Turning the cutter radius compensation
         if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
@@ -389,8 +404,8 @@ class Shape(object):
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
                 exstr += PostPro.set_cut_cor(self.cut_cor)
 
-            for geo in newGeos:
-                exstr += geo.Write_GCode(PostPro)
+            for geo in new_geos:
+                exstr += self.Write_GCode_for_geo(geo, PostPro)
 
             # Turning off the cutter radius compensation if needed
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
@@ -410,12 +425,14 @@ class Shape(object):
             self.reverse()
             self.switch_cut_cor()
 
+        self.cut_cor = prv_cut_cor
+
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_post_shape_cut()
 
         return exstr
 
-    def Write_GCode_Drag_Knife(self, PostPro=None):
+    def Write_GCode_Drag_Knife(self, PostPro):
         """
         This method returns the string to be exported for this shape, including
         the defined start and end move of the shape. This function is used for
@@ -485,7 +502,7 @@ class Shape(object):
                 exstr += PostPro.chg_feed_rate(f_g1_plane)
                 drag = False
 
-            exstr += geo.Write_GCode(PostPro)
+            exstr += self.Write_GCode_for_geo(geo, PostPro)
 
         # Do the tool retraction
         exstr += PostPro.chg_feed_rate(f_g1_depth)
