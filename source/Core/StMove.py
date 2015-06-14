@@ -212,7 +212,7 @@ class StMove(object):
             prv_Pe = end + toolwidth * end_proj
         else:
             prv_Pe = None
-        for geo in self.shape.geos:
+        for geo_nr, geo in enumerate(self.shape.geos):
             start, start_dir = geo.get_start_end_points(True, False)
             end, end_dir = geo.get_start_end_points(False, False)
             start_proj = Point(start_dir.y, -start_dir.x)
@@ -226,49 +226,70 @@ class StMove(object):
                 d = -(Ps - geo.abs_geo.Ps).to3D().cross_product((prv_Pe - geo.abs_geo.Ps).to3D()).z
                 if d > 0 and prv_Pe != Ps:
                     geos.append(ArcGeo(Ps=prv_Pe, Pe=Ps, O=geo.abs_geo.Ps, r=r, direction=d))
+                    geos[-1].geo_nr = geo_nr
                 # else:
                 #     geos.append(LineGeo(Ps=prv_Pe, Pe=Ps))
             if isinstance(geo, LineGeo):
                 geos.append(LineGeo(Ps, Pe))
+                geos[-1].geo_nr = geo_nr
             elif isinstance(geo, ArcGeo):
                 O = geo.abs_geo.O
                 r = O.distance(Ps)
                 geos.append(ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=geo.abs_geo.ext))
-            else:
-                geos.append(geo)
+                geos[-1].geo_nr = geo_nr
+            # TODO other geos are not supported disable them in gui for this option
+            # else:
+            #     geos.append(geo)
             prv_Pe = Pe
 
-        new_geos = []
-        i = 0
-        while i in range(len(geos_adj)):
-            geo = geos_adj[i]
-            intersections = []
-            for j in range(i+1, len(geos_adj)):
-                intersection = get_intersection_point(geos_adj[j], geos_adj[i])
-                if intersection and intersection != geos_adj[i].Ps:
-                    intersections.append([j, intersection])
-            if len(intersections) > 0:
-                intersection = intersections[-1]
-                change_end_of_geo = True
-                if i == 0 and intersection[0] >= len(geos_adj)//2:
-                    geo.Ps = intersection[1]
-                    geos_adj[intersection[0]].Pe = intersection[1]
-                    if len(intersections) > 1:
-                        intersection = intersections[-2]
-                    else:
-                        change_end_of_geo = False
-                        i += 1
-                if change_end_of_geo:
-                    geo.Pe = intersection[1]
-                    i = intersection[0]
-                    geos_adj[i].Ps = intersection[1]
-            else:
-                i += 1
-            new_geos.append(geo)
-            if new_geos[0].Ps == new_geos[-1].Pe:
-                break
-        length = 
+        tot_length = 0
+        for geo in geos:
+            tot_length += geo.length
 
+        reorder_shape = False
+        for start_geo_nr in range(len(geos)):
+            geos_adj = deepcopy(geos[start_geo_nr:]) + deepcopy(geos[:start_geo_nr])
+            new_geos = []
+            i = 0
+            while i in range(len(geos_adj)):
+                geo = geos_adj[i]
+                intersections = []
+                for j in range(i+1, len(geos_adj)):
+                    intersection = get_intersection_point(geos_adj[j], geos_adj[i])
+                    if intersection and intersection != geos_adj[i].Ps:
+                        intersections.append([j, intersection])
+                if len(intersections) > 0:
+                    intersection = intersections[-1]
+                    change_end_of_geo = True
+                    if i == 0 and intersection[0] >= len(geos_adj)//2:
+                        geo.Ps = intersection[1]
+                        geos_adj[intersection[0]].Pe = intersection[1]
+                        if len(intersections) > 1:
+                            intersection = intersections[-2]
+                        else:
+                            change_end_of_geo = False
+                            i += 1
+                    if change_end_of_geo:
+                        geo.Pe = intersection[1]
+                        i = intersection[0]
+                        geos_adj[i].Ps = intersection[1]
+                else:
+                    i += 1
+                new_geos.append(geo)
+                if new_geos[0].Ps == new_geos[-1].Pe:
+                    break
+
+            new_length = 0
+            for geo in new_geos:
+                new_length += geo.length
+
+            if new_length > tot_length * 0.5:
+                for geo in new_geos:
+                    self.append(geo)
+                reorder_shape = True
+                break
+        if reorder_shape:
+            self.shape.geos = self.shape.geos[geos[start_geo_nr].geo_nr:] + self.shape.geos[:geos[start_geo_nr].geo_nr]
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:
