@@ -91,6 +91,13 @@ class LineGeo(object):
             return abs(2 * sqrt(abs(AEPA * (AEPA - AE) *
                                     (AEPA - AP) * (AEPA - EP))) / AE)
 
+    def update_start_end_points(self, start_point, value):
+        if start_point:
+            self.Ps = value
+        else:
+            self.Pe = value
+        self.length = self.Ps.distance(self.Pe)
+
     def get_start_end_points(self, start_point, angles=None):
         if start_point:
             if angles is None:

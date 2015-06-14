@@ -38,7 +38,7 @@ from Global.d2gexceptions import *
 
 logger = logging.getLogger("Global.Config")
 
-CONFIG_VERSION = "9.5"
+CONFIG_VERSION = "9.6"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -96,10 +96,15 @@ CONFIG_SPEC = str('''
     machine_type = option('milling', 'drag_knife', 'lathe', default = 'milling')
     tool_units = option('mm', 'in', default = 'mm')
 
+    [Cutter_Compensation]
+    # if done_by_machine is set to False DXF2GCODE will create a virtual path for G41 and G42 command. And output
+    # is set to G40; i.e. it will create the path that normally your machine will create with cutter compensation
+    done_by_machine = boolean(default = True)
+
     [Drag_Knife_Options]
-    # dragAngle: if larger than this angle (in degrees), tool retracts to dragDepth
+    # drag_angle: if larger than this angle (in degrees), tool retracts to dragDepth
     # the dragDepth is given by axis3_slice_depth
-    dragAngle = float(default = 20)
+    drag_angle = float(default = 20)
 
     [Route_Optimisation]
     default_TSP = boolean(default = False)
