@@ -308,19 +308,19 @@ class MyPostProcessor(QtCore.QObject):
         # In addition the text defined in the PostProcessor Config file is
         # added.
         if g.config.metric == 0:
-            exstr += ("%s" % self.vars.General["code_begin_units_in"])
+            exstr += "%s " % self.vars.General["code_begin_units_in"]
         else:
-            exstr += ("%s" % self.vars.General["code_begin_units_mm"])
-        exstr += (" %s\n" % self.vars.General["code_begin"])
+            exstr += "%s " % self.vars.General["code_begin_units_mm"]
+        exstr += "%s\n" % self.vars.General["code_begin"]
 
-        return exstr
+        return self.make_print_str(exstr)
 
     def write_gcode_en(self):
         """
         Return the text to be added at the end of the exported file.
         @return: The Function returns the string to be added.
         """
-        return self.vars.General["code_end"]
+        return self.make_print_str(self.vars.General["code_end"])
 
     def make_line_numbers(self, exstr):
         """
