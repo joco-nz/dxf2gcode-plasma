@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -24,24 +26,17 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
-from __future__ import division
 from math import sqrt, sin, cos, atan2
 
-import logging
-
-
-logger = logging.getLogger("Core.Point")
+from Core.Point3D import Point3D
 
 
 class Point(object):
-    __slots__ = ["x", "y", "z"]
-    # TODO z is currently only used to compute the cross product
+    __slots__ = ["x", "y"]
 
-    def __init__(self, x=0, y=0, z=0):
+    def __init__(self, x=0.0, y=0.0):
         self.x = x
         self.y = y
-        self.z = z
 
     def __str__(self):
         return 'X -> %6.3f  Y -> %6.3f' % (self.x, self.y)
@@ -75,49 +70,48 @@ class Point(object):
     def __rmul__(self, other):
         return Point(self.x * other, self.y * other)
 
-    def __div__(self, other):
-        # uses truediv; prevents the need to say in other classes future
-        return self / other
-
     def __truediv__(self, other):
         return Point(self.x / other, self.y / other)
 
-    def cross_product(self, other):
-        return Point(self.y * other.z - self.z * other.y,
-                     self.z * other.x - self.x * other.z,
-                     self.x * other.y - self.y * other.x)
+    def unit_vector(self):
+        return self / self.length()
 
-    def unit_vector(self, other=None):
-        """
-        Returns vector of length 1
-        """
-        abs_point = other - self
-        length = abs_point.distance()
-        return Point(abs_point.x / length, abs_point.y / length)
+    def length_squared(self):
+        return self.x**2 + self.y**2
 
-    def distance(self, other=None):
-        """
-        Returns distance between two given points
-        """
-        if other is None:
-            other = Point()
-        return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+    def length(self):
+        return sqrt(self.length_squared())
 
-    def norm_angle(self, other=None):
+    def distance(self, other):
+        return (self - other).length()
+
+    def distance2_to_line(self, Ps, Pe):
+        dLine = Pe - Ps
+
+        u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
+        if u > 1.0:
+            u = 1.0
+        elif u < 0.0:
+            u = 0.0
+
+        closest = Ps + u * dLine
+        diff = closest - self
+        return diff.length_squared()
+
+    def norm_angle(self, other):
         """
         Returns angle between two given points
         """
-        if other is None:
-            other = Point()
         return atan2(other.y - self.y, other.x - self.x)
 
     def within_tol(self, other, tol):
         """
         Are the two points within tolerance
         """
+        # TODO is this sufficient, or do we want to compare the distance
         return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) < tol)
 
-    def get_arc_point(self, ang=0, r=1):
+    def get_arc_point(self, ang=0.0, r=1.0):
         """
         Returns the Point on the arc defined by r and the given angle
         @param ang: The angle of the Point
@@ -153,20 +147,18 @@ class Point(object):
                 p1 = p1.rot_sca_abs(parent=parent.parent)
 
         elif parent is None and sca is None:
-            p0 = Point(0, 0)
-            pb = Point(0, 0)
-            sca = [1, 1, 1]
-            rot = 0
+            p0 = Point()
+            pb = Point()
+            sca = [1.0, 1.0, 1.0]
+            rot = 0.0
 
             pc = self - pb
-            rot = rot
             rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
             roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
             p1 = Point(rotx, roty) + p0
 
         else:
             pc = self - pb
-            rot = rot
             rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
             roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
             p1 = Point(rotx, roty) + p0
@@ -181,24 +173,13 @@ class Point(object):
 
         return p1
 
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into the defined canvas.
-        Arcs will be plotted as line segments.
-        @param papath: The painter path where the geometries shall be added
-        @param parent: The parent of the geometry (EntityContentClass)
-        """
-        point = self.rot_sca_abs(parent=parent)
-        logger.debug('Point: x: %0.2f, y: %0.2f' % (point.x, point.y))
-        papath.moveTo(point.x, -point.y)
+    def detTopLeft(self, point):
+        self.x = min(self.x, point.x)
+        self.y = max(self.y, point.y)
 
-    def Write_GCode(self, parent=None, PostPro=None):
-        """
-        This function is used for the export of a point.
-        @param parent: The parent of the point is a EntityContentClass, this
-        is used for rotating and scaling purposes
-        @return: The function returns the string which will be added to the
-        string for export.
-        """
-        point = self.rot_sca_abs(parent=parent)
-        return PostPro.rap_pos_xy(point)
+    def detBottomRight(self, point):
+        self.x = max(self.x, point.x)
+        self.y = min(self.y, point.y)
+
+    def to3D(self, z=0.0):
+        return Point3D(self.x, self.y, z)

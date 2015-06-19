@@ -26,11 +26,11 @@
 
 from math import pi
 
-import Core.Globals as g
+import Global.Globals as g
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
 from Core.Point import Point
-from Core.EntityContent import EntityContentClass
+from Core.EntityContent import EntityContent
 
 from Gui.Arrow import Arrow
 
@@ -87,6 +87,11 @@ class StMove(QtGui.QGraphicsLineItem):
         self.createccarrow()
         self.make_papath()
 
+    def append(self, geo):
+        # we don't want to additional scale / rotate the stmove geo
+        # so no geo.make_abs_geo(self.shape.parentEntity)
+        geo.make_abs_geo()
+        self.geos.append(geo)
 
     def contains_point(self, point):
         """
@@ -108,9 +113,8 @@ class StMove(QtGui.QGraphicsLineItem):
 
         #BaseEntitie created to add the StartMoves etc. This Entitie must not
         #be offset or rotated etc.
-        BaseEntitie = EntityContentClass(Nr= -1, Name='BaseEntitie',
+        BaseEntitie = EntityContent(nr= -1, name='BaseEntitie',
                                           parent=None,
-                                          children=[],
                                           p0=Point(x=0.0, y=0.0),
                                           pb=Point(x=0.0, y=0.0),
                                           sca=[1, 1, 1],
@@ -120,18 +124,18 @@ class StMove(QtGui.QGraphicsLineItem):
 
 
         #Get the start rad. and the length of the line segment at begin.
-        start_rad = self.shape.LayerContent.start_radius
+        start_rad = self.shape.shape.parentLayer.start_radius
         start_ver = start_rad
 
         #Get tool radius based on tool diameter.
-        tool_rad = self.shape.LayerContent.tool_diameter/2
+        tool_rad = self.shape.shape.parentLayer.tool_diameter/2
 
         #Calculate the starting point with and without compensation.
         start = self.startp
         angle = self.angle
 
-        if self.shape.cut_cor == 40:
-            self.geos.append(start)
+        if self.shape.shape.cut_cor == 40:
+            self.append(RapidPos(start))
 
         #Cutting Compensation Left
         elif self.shape.cut_cor == 41:
@@ -144,16 +148,16 @@ class StMove(QtGui.QGraphicsLineItem):
 
             #Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
-            self.geos.append(start_ein)
+            self.append(start_ein)
 
             #generate the Start Line and append it including the compensation.
             start_line = LineGeo(Pg_ein, Pa_ein)
-            self.geos.append(start_line)
+            self.append(start_line)
 
             #generate the start rad. and append it.
             start_rad = ArcGeo(Ps=Pa_ein, Pe=start, O=Oein,
                                r=start_rad + tool_rad, direction=1)
-            self.geos.append(start_rad)
+            self.append(start_rad)
 
         #Cutting Compensation Right
         elif self.shape.cut_cor == 42:
@@ -166,16 +170,16 @@ class StMove(QtGui.QGraphicsLineItem):
 
             #Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
-            self.geos.append(start_ein)
+            self.append(start_ein)
 
             #generate the Start Line and append it including the compensation.
             start_line = LineGeo(Pg_ein, Pa_ein)
-            self.geos.append(start_line)
+            self.append(start_line)
 
             #generate the start rad. and append it.
             start_rad = ArcGeo(Ps=Pa_ein, Pe=start, O=Oein,
                                r=start_rad + tool_rad, direction=0)
-            self.geos.append(start_rad)
+            self.append(start_rad)
 
     def make_swivelknife_move(self):
         """
@@ -184,7 +188,7 @@ class StMove(QtGui.QGraphicsLineItem):
         tool is used for this.
         """
         offset = self.shape.LayerContent.tool_diameter/2
-        dragAngle = self.shape.dragAngle
+        drag_angle = self.shape.dragAngle
 
         startnorm = offset*Point(1, 0, 0)  # TODO make knife direction a config setting
         prvend, prvnorm = Point(), Point()
@@ -206,9 +210,9 @@ class StMove(QtGui.QGraphicsLineItem):
                     geo_b.Pe += norm
                     if not prvnorm == norm:
                         swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=prvnorm.cross_product(norm).z)
-                        swivel.drag = dragAngle < abs(swivel.ext)
-                        self.geos.append(swivel)
-                    self.geos.append(geo_b)
+                        swivel.drag = drag_angle < abs(swivel.ext)
+                        self.append(swivel)
+                    self.append(geo_b)
 
                     prvend = geo_b.Pe
                     prvnorm = norm
@@ -236,23 +240,23 @@ class StMove(QtGui.QGraphicsLineItem):
                                      geo_b.Pe.y-(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
                 if prvnorm != norma:
                     swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=prvnorm.cross_product(norma).z)
-                    swivel.drag = dragAngle < abs(swivel.ext)
-                    self.geos.append(swivel)
+                    swivel.drag = drag_angle < abs(swivel.ext)
+                    self.append(swivel)
                 prvend = geo_b.Pe
                 prvnorm = offset*norme
                 if -pi < geo_b.ext < pi:
-                    self.geos.append(ArcGeo(Ps=geo_b.Ps, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=geo_b.ext))
+                    self.append(ArcGeo(Ps=geo_b.Ps, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=geo_b.ext))
                 else:
                     geo_b = ArcGeo(Ps=geo_b.Ps, Pe=geo_b.Pe, r=sqrt(geo_b.r**2+offset**2), direction=-geo_b.ext)
                     geo_b.ext = -geo_b.ext
-                    self.geos.append(geo_b)
+                    self.append(geo_b)
             # TODO support different geos, or disable them in the GUI
             # else:
-            #     self.geos.append(copy(geo))
+            #     self.append(copy(geo))
         if not prvnorm == startnorm:
-            self.geos.append(ArcGeo(Ps=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
+            self.append(ArcGeo(Ps=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
 
-        self.geos.insert(0, self.geos[0].Ps)
+        self.insert(0, RapidPos(self.geos[0].Ps))
 
     def updateCutCor(self, cutcor):
         """
@@ -289,7 +293,7 @@ class StMove(QtGui.QGraphicsLineItem):
         createccarrow()
         """
         length = 20
-        if self.shape.cut_cor == 40:
+        if self.shape.shape.cut_cor == 40:
             self.ccarrow = None
         elif self.shape.cut_cor == 41:
             self.ccarrow = Arrow(startp=self.startp,
@@ -336,8 +340,9 @@ class StMove(QtGui.QGraphicsLineItem):
         del(self.path)
         self.path = QtGui.QPainterPath()
 
+        drawHorLine = lambda st, en, z: self.path.lineTo(en.x, -en.y)
         for geo in self.geos:
-            geo.add2path(papath=self.path, parent=self.parent, layerContent=None)
+            geo.make_path(self.shape.shape, drawHorLine)
         self.show()
 
     def setSelected(self, flag=True):
@@ -395,4 +400,35 @@ class StMove(QtGui.QGraphicsLineItem):
         """
         return self.path.boundingRect()
 
+
+class RapidPos(Point):
+    def __init__(self, point):
+        Point.__init__(self, point.x, point.y)
+        self.abs_geo = None
+
+    def get_start_end_points(self, start_point, angles=None):
+        if angles is None:
+            return self.abs_geo
+        elif angles:
+            return self.abs_geo, 0
+        else:
+            return self.abs_geo, Point(0, -1) if start_point else Point(0, -1)
+
+    def make_abs_geo(self, parent=None):
+        """
+        Generates the absolute geometry based on itself and the parent. This
+        is done for rotating and scaling purposes
+        """
+        self.abs_geo = self.rot_sca_abs(parent=parent)
+
+    def make_path(self, caller, drawHorLine):
+        pass
+
+    def Write_GCode(self, PostPro):
+        """
+        Writes the GCODE for a rapid position.
+        @param PostPro: The PostProcessor instance to be used
+        @return: Returns the string to be written to a file.
+        """
+        return PostPro.rap_pos_xy(self.abs_geo)
 

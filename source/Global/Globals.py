@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -26,7 +28,6 @@
 Container for global variables accessible to all classes
 """
 
-from __future__ import absolute_import
 import os
 import sys
 import gettext

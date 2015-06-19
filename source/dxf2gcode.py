@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -49,11 +51,13 @@ from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
 
 from Core.Config import MyConfig
 from Core.Point import Point
-from Core.LayerContent import LayerContentClass
-from Core.EntityContent import EntityContentClass
-import Core.Globals as g
+from Core.LayerContent import LayerContent, Layers, Shapes
+from Core.EntityContent import EntityContent
+from Core.LineGeo import LineGeo
+from Core.HoleGeo import HoleGeo
+import Global.Globals as g
 import Core.constants as c
-from Core.Shape import ShapeClass
+from Core.Shape import Shape
 
 from PostPro.PostProcessor import MyPostProcessor
 from PostPro.Breaks import Breaks
@@ -102,9 +106,9 @@ class Main(QtGui.QMainWindow):
 
         self.TreeHandler = TreeHandler(self.ui)
 
-        self.shapes = []
-        self.LayerContents = []
-        self.EntitiesRoot = []
+        self.shapes = Shapes([])
+        self.layerContents = Layers([])
+        self.entityRoot = []
 
         self.filename = "" #loaded file name
 
@@ -274,7 +278,7 @@ class Main(QtGui.QMainWindow):
         self.TreeHandler.updateExportOrder()
         self.MyGraphicsScene.addexproutest()
 
-        for LayerContent in self.LayerContents:
+        for LayerContent in self.layerContents:
 
             #Initial values for the Lists to export.
             self.shapes_to_write = []
@@ -377,7 +381,7 @@ class Main(QtGui.QMainWindow):
         self.updateExportRoute()
 
         logger.debug(self.tr("Sorted layers:"))
-        for i, layer in enumerate(self.LayerContents):
+        for i, layer in enumerate(self.layerContents):
             logger.debug("LayerContents[%i] = %s" % (i, layer))
 
         if not(g.config.vars.General['write_to_stdout']):
@@ -423,7 +427,7 @@ class Main(QtGui.QMainWindow):
 
         self.MyPostProcessor.exportShapes(self.load_filename,
                                           self.save_filename,
-                                          self.LayerContents)
+                                          self.layerContents)
 
         QtGui.QApplication.restoreOverrideCursor()
 
@@ -444,7 +448,7 @@ class Main(QtGui.QMainWindow):
         self.MyGraphicsScene.resetexproutes()
 
         self.MyGraphicsScene.addexproutest()
-        for LayerContent in self.LayerContents:
+        for LayerContent in self.layerContents:
             if len(LayerContent.exp_order) > 0:
                 self.MyGraphicsScene.addexproute(LayerContent.exp_order, LayerContent.LayerNr)
         if LayerContent:
@@ -590,7 +594,7 @@ class Main(QtGui.QMainWindow):
             return
 
         self.cont_scale = float(ScaEntDialog.result[0])
-        self.EntitiesRoot.sca = self.cont_scale
+        self.entityRoot.sca = self.cont_scale
 
         self.reloadFile()
         #self.MyGraphicsView.update()
@@ -608,7 +612,7 @@ class Main(QtGui.QMainWindow):
             return
 
         self.rotate = radians(float(RotEntDialog.result[0]))
-        self.EntitiesRoot.rot = self.rotate
+        self.entityRoot.rot = self.rotate
 
         self.reloadFile()
         #self.MyGraphicsView.update()
@@ -636,14 +640,14 @@ class Main(QtGui.QMainWindow):
                         minx = r.left()
                     if r.bottom()  > maxy:
                         maxy = r.bottom()
-            self.cont_dx = self.EntitiesRoot.p0.x - minx
-            self.cont_dy = self.EntitiesRoot.p0.y + maxy
+            self.cont_dx = self.entityRoot.p0.x - minx
+            self.cont_dy = self.entityRoot.p0.y + maxy
         else:
             self.cont_dx = float(MoveWpzDialog.result[0])
             self.cont_dy = float(MoveWpzDialog.result[1])
 
-        self.EntitiesRoot.p0.x = self.cont_dx
-        self.EntitiesRoot.p0.y = self.cont_dy
+        self.entityRoot.p0.x = self.cont_dx
+        self.entityRoot.p0.y = self.cont_dy
 
         self.reloadFile()
         #self.MyGraphicsView.update()
@@ -786,17 +790,17 @@ class Main(QtGui.QMainWindow):
         self.automaticCutterCompensation()
 
         # Break insertion
-        Breaks(self.LayerContents).process()
+        Breaks(self.layerContents).process()
 
         #Populate the treeViews
-        self.TreeHandler.buildEntitiesTree(self.EntitiesRoot)
-        self.TreeHandler.buildLayerTree(self.LayerContents)
+        self.TreeHandler.buildEntitiesTree(self.entityRoot)
+        self.TreeHandler.buildLayerTree(self.layerContents)
 
         #Print the values
         self.MyGraphicsView.clearScene()
         self.MyGraphicsScene = MyGraphicsScene()
 
-        self.MyGraphicsScene.plotAll(self.shapes, self.EntitiesRoot)
+        self.MyGraphicsScene.plotAll(self.shapes, self.entityRoot)
         self.MyGraphicsView.setScene(self.MyGraphicsScene)
         self.setShow_wp_zero()
         self.setShow_path_directions()
@@ -810,101 +814,70 @@ class Main(QtGui.QMainWindow):
 
 
     def makeShapes(self, values, p0, pb, sca, rot):
-        """
-        Instance is called by the Main Window after the defined file is loaded.
-        It generates all ploting functionality. The parameters are generally
-        used to scale or offset the base geometry (by Menu in GUI).
+        self.entityRoot = EntityContent(nr=0, name='Entities',
+                                        parent=None,
+                                        p0=p0, pb=pb, sca=sca, rot=rot)
+        self.layerContents = Layers([])
+        self.shapes = Shapes([])
 
-        @param values: The loaded dxf values from the dxf_import.py file
-        @param p0: The Starting Point to plot (Default x=0 and y=0)
-        @param bp: The Base Point to insert the geometry and base for rotation
-        (Default is also x=0 and y=0)
-        @param sca: The scale of the basis function (default =1)
-        @param rot: The rotation of the geometries around base (default =0)
-        """
-        self.values = values
+        self.makeEntityShapes(values, self.entityRoot)
 
-        #Put back the contours
-        del(self.shapes[:])
-        del(self.LayerContents[:])
-        del(self.EntitiesRoot)
-        self.EntitiesRoot = EntityContentClass(Nr = 0, Name = 'Entities',
-                                                parent = None, children = [],
-                                                p0 = p0, pb = pb,
-                                                sca = sca, rot = rot)
+        for layerContent in self.layerContents:
+            layerContent.overrideDefaults()
+        self.layerContents.sort(key=lambda x: x.nr)
 
-        #Start mit () bedeutet zuweisen der Entities -1 = Standard
-        #Start with () means to assign the entities -1 = Default ???
-        self.makeEntitiesShapes(parent = self.EntitiesRoot)
-        self.LayerContents.sort()
-
-    def makeEntitiesShapes(self, parent = None, ent_nr = -1, layerNr=-1):
+    def makeEntityShapes(self, values, parent, layerNr=-1):
         """
         Instance is called prior to plotting the shapes. It creates
-        all shape classes which are later plotted into the graphics.
+        all shape classes which are plotted into the canvas.
 
-        @param parent: The parent of a shape is always an Entities. It may be root
+        @param parent: The parent of a shape is always an Entity. It may be the root
         or, if it is a Block, this is the Block.
-        @param ent_nr: The values given in self.values are sorted so
-        that 0 is the Root Entities and 1 is beginning with the first block.
-        This value gives the index of self.values to be used.
         """
-
-        if parent.Name == "Entities":
-            entities = self.values.entities
+        if parent.name == "Entities":
+            entities = values.entities
         else:
-            ent_nr = self.values.Get_Block_Nr(parent.Name)
-            entities = self.values.blocks.Entities[ent_nr]
+            ent_nr = values.Get_Block_Nr(parent.name)
+            entities = values.blocks.Entities[ent_nr]
 
-        #Zuweisen der Geometrien in die Variable geos & Konturen in cont
-        #Assigning the geometries in the variables geos & contours in cont
+        # Assigning the geometries in the variables geos & contours in cont
         ent_geos = entities.geo
 
-        #Loop for the number of contours
+        # Loop for the number of contours
         for cont in entities.cont:
-            #Abfrage falls es sich bei der Kontur um ein Insert eines Blocks handelt
-            #Query if it is in the contour of an insert of a block
+            # Query if it is in the contour of an insert or of a block
             if ent_geos[cont.order[0][0]].Typ == "Insert":
                 ent_geo = ent_geos[cont.order[0][0]]
 
-                #Zuweisen des Basispunkts f�r den Block
-                #Assign the base point for the block
-                new_ent_nr = self.values.Get_Block_Nr(ent_geo.BlockName)
-                new_entities = self.values.blocks.Entities[new_ent_nr]
+                # Assign the base point for the block
+                new_ent_nr = values.Get_Block_Nr(ent_geo.BlockName)
+                new_entities = values.blocks.Entities[new_ent_nr]
                 pb = new_entities.basep
 
-                #Skalierung usw. des Blocks zuweisen
-                #Scaling, etc. assign the block
+                # Scaling, etc. assign the block
                 p0 = ent_geos[cont.order[0][0]].Point
                 sca = ent_geos[cont.order[0][0]].Scale
                 rot = ent_geos[cont.order[0][0]].rot
 
+                # Creating the new Entitie Contents for the insert
+                newEntityContent = EntityContent(nr=0,
+                                                 name=ent_geo.BlockName,
+                                                 parent=parent,
+                                                 p0=p0,
+                                                 pb=pb,
+                                                 sca=sca,
+                                                 rot=rot)
 
-                #Erstellen des neuen Entitie Contents f�r das Insert
-                #Creating the new Entitie Contents for the insert
-                NewEntitieContent = EntityContentClass(Nr = 0,
-                                        Name = ent_geo.BlockName,
-                                        parent = parent, children = [],
-                                        p0 = p0,
-                                        pb = pb,
-                                        sca = sca,
-                                        rot = rot)
+                parent.append(newEntityContent)
 
-                parent.addchild(NewEntitieContent)
-
-                self.makeEntitiesShapes(parent = NewEntitieContent,
-                                        ent_nr = ent_nr,
-                                        layerNr = ent_geo.Layer_Nr)
+                self.makeEntityShapes(values, newEntityContent, ent_geo.Layer_Nr)
 
             else:
-                self.shapes.append(ShapeClass(len(self.shapes),
-                                              cont.closed,
-                                              40,
-                                              0.0,
-                                              parent,
-                                              []))
+                # Loop for the number of geometries
+                tmp_shape = Shape(len(self.shapes),
+                                  cont.closed,
+                                  parent)
 
-                #Loop for the number of geometries
                 for ent_geo_nr in range(len(cont.order)):
                     ent_geo = ent_geos[cont.order[ent_geo_nr][0]]
                     if cont.order[ent_geo_nr][1]:
@@ -912,71 +885,62 @@ class Main(QtGui.QMainWindow):
                         for geo in ent_geo.geo:
                             geo = copy(geo)
                             geo.reverse()
-                            self.appendshapes(geo)
+                            self.append_geo_to_shape(tmp_shape, geo)
                         ent_geo.geo.reverse()
                     else:
                         for geo in ent_geo.geo:
-                            self.appendshapes(copy(geo))
+                            self.append_geo_to_shape(tmp_shape, copy(geo))
 
-                #All shapes have to be CW direction.
-                self.shapes[-1].AnalyseAndOptimize()
-                self.shapes[-1].FindNearestStPoint()
+                if len(tmp_shape.geos) > 0:
+                    # All shapes have to be CW direction.
+                    tmp_shape.AnalyseAndOptimize()
 
-                #Connect the shapeSelectionChanged and enableDisableShape signals to our treeView, so that selections of the shapes are reflected on the treeView
-                self.shapes[-1].setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
-                self.shapes[-1].setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
+                    self.shapes.append(tmp_shape)
+                    self.addtoLayerContents(values, tmp_shape, layerNr if layerNr != -1 else ent_geo.Layer_Nr)
+                    parent.append(tmp_shape)
 
-                self.addtoLayerContents(self.shapes[-1], layerNr if layerNr != -1 else ent_geo.Layer_Nr)
-                parent.addchild(self.shapes[-1])
+    def append_geo_to_shape(self, shape, geo):
+        if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
+            return
 
-    def appendshapes(self, geo):
-        """
-        Documentation required
-        """
-        if self.ui.actionSplit_Edges.isChecked() == True:
-            if geo.type == 'LineGeo':
+        if self.ui.actionSplit_Edges.isChecked():
+            if isinstance(geo, LineGeo):
                 diff = (geo.Pe - geo.Ps) / 2.0
                 geo_b = deepcopy(geo)
                 geo_a = deepcopy(geo)
                 geo_b.Pe -= diff
                 geo_a.Ps += diff
-                self.shapes[-1].geos.append(geo_b)
-                self.shapes[-1].geos.append(geo_a)
+                shape.append(geo_b)
+                shape.append(geo_a)
             else:
-                self.shapes[-1].geos.append(geo)
+                shape.append(geo)
         else:
-            self.shapes[-1].geos.append(geo)
+            shape.append(geo)
 
-        if g.config.machine_type == 'drag_knife' and geo.type == 'HoleGeo':
-            self.shapes[-1].disabled = True
-            self.shapes[-1].allowedToChange = False
+        if isinstance(geo, HoleGeo):
+            shape.type = 'Hole'
+            shape.closed = 1  # TODO adjust import for holes?
+            if g.config.machine_type == 'drag_knife':
+                shape.disabled = True
+                shape.allowedToChange = False
 
-    def addtoLayerContents(self, shape, lay_nr):
-        """
-        Instance is called while the shapes are created. This gives the
-        structure which shape is laying on which layer. It also writes into the
-        shape the reference to the LayerContent Class.
-
-        @param shape: The shape to be appended of the shape
-        @param lay_nr: The Nr. of the layer
-        """
-
-        #Check if the layer already exists and add shape if it is.
-        for LayCon in self.LayerContents:
-            if LayCon.LayerNr == lay_nr:
+    def addtoLayerContents(self, values, shape, lay_nr):
+        # Check if the layer already exists and add shape if it is.
+        for LayCon in self.layerContents:
+            if LayCon.nr == lay_nr:
                 LayCon.shapes.append(shape)
-                shape.setSpecificLayerOptions(LayCon)
+                shape.parentLayer = LayCon
                 return
 
-        #If the Layer does not exist create a new one.
-        LayerName = self.values.layers[lay_nr].name
-        self.LayerContents.append(LayerContentClass(lay_nr, LayerName, [shape]))
-        shape.setSpecificLayerOptions(self.LayerContents[-1])
+        # If the Layer does not exist create a new one.
+        LayerName = values.layers[lay_nr].name
+        self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
+        shape.parentLayer = self.layerContents[-1]
 
 
     def automaticCutterCompensation(self):
         if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() == self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
-            for layerContent in self.LayerContents:
+            for layerContent in self.layerContents:
                 if layerContent.automaticCutterCompensationEnabled():
                     newShapes = [];
                     for shape in layerContent.shapes:
@@ -1074,6 +1038,8 @@ if __name__ == "__main__":
 
     if not options.quiet:
         window.show()
+
+    options.filename = "D:\\dxf2gcode-sourcecode\\DXF\\1.dxf"
 
     if not(options.filename is None):
         window.filename = options.filename.decode("cp1252")

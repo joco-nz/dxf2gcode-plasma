@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -27,6 +29,7 @@ from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
 from Core.ArcGeo import ArcGeo
 from Core.LineGeo import LineGeo
+
 
 class GeoentPolyline:
     def __init__(self, Nr=0, caller=None):

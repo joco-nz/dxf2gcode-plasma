@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -23,11 +25,11 @@
 #
 ############################################################################
 
-#from Canvas import Oval, Arc, Line
 from math import sin, cos, pi, ceil
 from Core.LineGeo import LineGeo
 from Core.ArcGeo import ArcGeo
 from Core.Point import Point
+
 
 class BiarcClass:
     """

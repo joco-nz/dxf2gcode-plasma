@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
-#   Copyright (C) 2008-2014
-#    Christian Kohl�ffel
+#   Copyright (C) 2008-2015
+#    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
@@ -23,11 +25,13 @@
 #
 ############################################################################
 
-import Core.Globals as g
+from copy import deepcopy, copy
+import logging
+
+from PyQt4 import QtGui, QtCore
 
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
-
 from DxfImport.GeoentArc import GeoentArc
 from DxfImport.GeoentCircle import GeoentCircle
 from DxfImport.GeoentInsert import GeoentInsert
@@ -37,14 +41,8 @@ from DxfImport.GeoentSpline import GeoentSpline
 from DxfImport.GeoentEllipse import GeoentEllipse
 from DxfImport.GeoentLwpolyline import GeoentLwPolyline
 from DxfImport.GeoentPoint import GeoentPoint
+import Global.Globals as g
 
-#from tkMessageBox import showwarning
-from PyQt4 import QtGui, QtCore
-
-from copy import deepcopy, copy
-from string import find, strip
-
-import logging
 logger = logging.getLogger("DxfImport.Import")
 
 
@@ -90,18 +88,15 @@ class ReadDXF(QtCore.QObject):
         logger.info(self.tr("Creating Contours of Entities"))
         self.entities.cont = self.Get_Contour(self.entities)
 
-
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("ReadDXF",
-                                                    string_to_translate,
-                                                    None,
-                                                    QtGui.QApplication.UnicodeUTF8))
-
+        return unicode(QtCore.QCoreApplication.translate('ReadDXF',
+                                                         string_to_translate,
+                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
 
     def Read_File(self, filename):
         """
@@ -118,20 +113,20 @@ class ReadDXF(QtCore.QObject):
         """
         Get_Unit() - Get unit of measure English (Imperial) or Metric from DXF file
         """
-        #Sets drawing units: 0 = English; 1 = Metric
+        # Set drawing units: 0 = English; 1 = Metric
         # Metric will be treated as being in millimeters
         # English as inches
 
-        metric = 1 # default: metric
+        metric = 1  # default: metric
         try:
             line = 0
-            while (find(str[line], "$MEASUREMENT") < 0):
+            while str[line].find("$MEASUREMENT") < 0:
                 line += 1
-            metric = int(strip(str[line + 2]))
-        except: # $MEASUREMENT not found or is incorrect
+            metric = int(str[line + 2].strip())
+        except:  # $MEASUREMENT not found or is incorrect
             pass
 
-        #Default drawing units for AutoCAD DesignCenter blocks:
+        # Default drawing units for AutoCAD DesignCenter blocks:
         # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
         # 5 = Centimeters; 6 = Meters; 7 = Kilometers; 8 = Microinches;
         # 9 = Mils (thous); 10 = Yards; 11 = Angstroms; 12 = Nanometers;
@@ -140,14 +135,14 @@ class ReadDXF(QtCore.QObject):
         # 19 = Light years; 20 = Parsecs
         try:
             line = 0
-            while (find(str[line], "$INSUNITS") < 0):
+            while str[line].find("$INSUNITS") < 0:
                 line += 1
             line += 2
-            if int(strip(str[line])) == 1:
+            if int(str[line].stip()) == 1:
                 metric = 0
-            elif int(strip(str[line])) == 4:
+            elif int(str[line].strip()) == 4:
                 metric = 1
-        except: # $INSUNITS not found or is incorrect
+        except:  # $INSUNITS not found or is incorrect
             pass
 
         return metric
@@ -167,28 +162,27 @@ class ReadDXF(QtCore.QObject):
                 g.config.vars.Tool_Parameters[tool]['start_radius'] *= scale
             g.config.tool_units_metric = g.config.metric
 
-    #Convert the uploaded file to line pairs (code & Value).
+    # Convert the uploaded file into line pairs (code & Value).
     def Get_Line_Pairs(self, string):
         line = 0
         line_pairs = dxflinepairsClass([])
 
-        #Start at the first SECTION
-        while (find(string[line], "SECTION") < 0):
+        # Start at the first SECTION
+        while string[line].find("SECTION") < 0:
             line += 1
         line -= 1
 
-        #Continue to the end if no error occurs. Otherwise abort with error
+        # Continue to the end if no error occurs. Otherwise abort with error
         try:
-            while line < len(string):
-                line_pairs.line_pair.append(dxflinepairClass(int(strip(string[line])), strip(string[line + 1])))
+            while line + 1 < len(string):
+                line_pairs.line_pair.append(dxflinepairClass(int(string[line].strip()), string[line + 1].strip()))
                 line += 2
 
-        except:
-            QtGui.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"),
-                self.tr("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file") % (line))
-
-            #showwarning("Warning reading linepairs", ("Failure reading line stopped at line %0.0f.\n Please check/correct line in dxf file" % (line)))
-            #g.logger.logger.info(("\n!Warning! Failure reading lines stopped at line %0.0f.\n Please check/correct line in dxf file\n " % (line)))
+        except ValueError:
+            message = self.tr('Reading stopped at line %i.\n "%s" is not a valid code (number) - please, check/correct dxf file')\
+                      % (line + 1, string[line].strip())
+            logger.warning(message)
+            QtGui.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"), message)
 
         line_pairs.nrs = len(line_pairs.line_pair)
         logger.debug(self.tr('Did read %i of linepairs from DXF ') % line_pairs.nrs)
@@ -234,13 +228,13 @@ class ReadDXF(QtCore.QObject):
         Read_Layers()
         """
         for sect_nr in range(len(section)):
-            if(find(section[sect_nr].name, "TABLES") == 0):
+            if section[sect_nr].name.find("TABLES") == 0:
                 tables_section = section[sect_nr]
                 break
 
         #If the DXF blocks has, read this???
         layers = []
-        if vars().has_key('tables_section'):
+        if 'tables_section' in vars():
             tables_section = section[sect_nr]
             start = tables_section.begin
 
@@ -263,13 +257,13 @@ class ReadDXF(QtCore.QObject):
         Get_Blocks_pos()
         """
         for sect_nr in range(len(section)):
-            if(find(section[sect_nr].name, "BLOCKS") == 0):
+            if section[sect_nr].name.find("BLOCKS") == 0:
                 blocks_section = section[sect_nr]
                 break
 
         #If the DXF blocks has, read this???
         blocks = []
-        if vars().has_key('blocks_section'):
+        if 'blocks_section' in vars():
             start = blocks_section.begin
             start = self.line_pairs.index_both(0, "BLOCK", blocks_section.begin, blocks_section.end)
             while (start != None):
@@ -329,7 +323,7 @@ class ReadDXF(QtCore.QObject):
         Read_Entities() - Read the entities geometries
         """
         for section_nr in range(len(sections)):
-            if (find(sections[section_nr - 1].name, "ENTITIES") == 0):
+            if sections[section_nr - 1].name.find("ENTITIES") == 0:
                 #g.logger.logger.info("Reading Entities", 1)
                 entities = EntitiesClass(0, 'Entities', [])
                 entities.geo = self.Get_Geo(sections[section_nr - 1].begin + 1,
@@ -422,7 +416,7 @@ class ReadDXF(QtCore.QObject):
         Get_Layer_Nr() - Find the number of geometry layers
         """
         for i in range(len(self.layers)):
-            if (find(self.layers[i].name, Layer_Name) == 0):
+            if self.layers[i].name.find(Layer_Name) == 0:
                 layer_nr = i
                 return layer_nr
         layer_nr = len(self.layers)
@@ -436,7 +430,7 @@ class ReadDXF(QtCore.QObject):
         """
         block_nr = -1
         for i in range(len(self.blocks.Entities)):
-            if (find(self.blocks.Entities[i].Name, Block_Name) == 0):
+            if self.blocks.Entities[i].Name.find(Block_Name) == 0:
                 block_nr = i
                 break
         return block_nr
@@ -616,7 +610,7 @@ class ReadDXF(QtCore.QObject):
                     cont[-1] = self.Get_Best_Contour(len(cont)-1, new_cont_neg+new_cont_pos, geo, points)
 
             else:
-                print 'FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!'
+                print('FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
             points = self.Remove_Used_Points(cont[-1], points)
 
@@ -770,7 +764,7 @@ class dxflinepairClass:
         return 'Code ->' + str(self.code) + '\nvalue ->' + self.value
 
 class dxflinepairsClass:
-    def __init__(self, line_pair=[]):
+    def __init__(self, line_pair):
         self.nrs = 0
         self.line_pair = line_pair
     def __str__(self):

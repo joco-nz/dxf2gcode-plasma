@@ -33,7 +33,7 @@ from PyQt4 import QtCore
 from Core.configobj import ConfigObj, flatten_errors
 from Core.validate import Validator
 import Core.constants as c
-import Core.Globals as g
+import Global.Globals as g
 from d2gexceptions import *
 
 
@@ -98,9 +98,9 @@ CONFIG_SPEC = str('''
     tool_units = option('mm', 'in', default = 'mm')
 
     [Drag_Knife_Options]
-    # dragAngle: if larger than this angle (in degrees), tool retracts to dragDepth
+    # drag_angle: if larger than this angle (in degrees), tool retracts to dragDepth
     # the dragDepth is given by axis3_slice_depth
-    dragAngle = float(default = 20)
+    drag_angle = float(default = 20)
 
     [Route_Optimisation]
     default_TSP = boolean(default = False)

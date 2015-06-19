@@ -34,7 +34,7 @@ from math import degrees
 from PyQt4 import QtGui, QtCore
 
 import Core.constants as c
-import Core.Globals as g
+import Global.Globals as g
 
 from Core.Point import Point
 #from d2gexceptions import *

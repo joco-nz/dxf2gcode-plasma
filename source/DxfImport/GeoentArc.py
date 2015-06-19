@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -23,18 +25,18 @@
 #
 ############################################################################
 
-from math import  sin, cos, radians, pi
-from PyQt4 import QtCore, QtGui
+from math import sin, cos, radians, pi
+from PyQt4 import QtCore
 
 from Core.Point import Point
 from DxfImport.Classes import PointsClass
-from Core.ArcGeo import  ArcGeo
+from Core.ArcGeo import ArcGeo
 
 import logging
 logger = logging.getLogger("DXFImport.GeoentArc")
 
 
-class GeoentArc(QtCore.QObject):
+class GeoentArc(object):
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Arc'
         self.Nr = Nr

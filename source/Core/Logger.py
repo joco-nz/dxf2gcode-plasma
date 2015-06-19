@@ -22,12 +22,14 @@
 #
 ############################################################################
 
+from __future__ import absolute_import
+from __future__ import division
 import sys
 import logging
 
 from PyQt4 import QtCore
 
-import Core.Globals as g
+import Global.Globals as g
 
 
 logger = logging.getLogger(__name__)

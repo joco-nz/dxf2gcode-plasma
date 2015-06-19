@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -24,7 +26,7 @@
 ############################################################################
 
 from math import  sin, cos, pi
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
@@ -33,7 +35,8 @@ from Core.ArcGeo import ArcGeo
 import logging
 logger = logging.getLogger("DXFImport.GeoentCircle")
 
-class GeoentCircle(QtCore.QObject):
+
+class GeoentCircle(object):
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Circle'
         self.Nr = Nr

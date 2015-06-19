@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
-#   Copyright (C) 2008-2014
+#   Copyright (C) 2008-2015
 #    Christian Kohlöffel
 #    Vinzenz Schulz
 #
@@ -23,7 +25,7 @@
 #
 ############################################################################
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 
 from Core.Point import Point
 from DxfImport.Classes import PointsClass
@@ -32,7 +34,8 @@ from Core.LineGeo import  LineGeo
 import logging
 logger = logging.getLogger("DXFImport.GeoentLine")
 
-class GeoentLine:
+
+class GeoentLine(object):
     def __init__(self, Nr=0, caller=None):
         self.Typ = 'Line'
         self.Nr = Nr
@@ -51,17 +54,15 @@ class GeoentLine:
               ("\nLayer Nr: %i" % self.Layer_Nr) + \
               str(self.geo[-1])
 
-
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("ReadDXF",
-                                                    string_to_translate,
-                                                    None,
-                                                    QtGui.QApplication.UnicodeUTF8))
+        return unicode(QtCore.QCoreApplication.translate("ReadDXF",
+                                                         string_to_translate,
+                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
 
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):

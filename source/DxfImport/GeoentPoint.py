@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
-#   Copyright (C) 2014-2014
+#   Copyright (C) 2014-2015
 #    Robert Lichtenberger
 #
 #   This file is part of DXF2GCODE.
@@ -22,15 +24,15 @@
 #
 ############################################################################
 
-from PyQt4 import QtGui
+from PyQt4 import QtCore
 
-from Core.HoleGeo import  HoleGeo
-from Core.LineGeo import  LineGeo
+from Core.HoleGeo import HoleGeo
 from Core.Point import Point
 from DxfImport.Classes import ContourClass
 
 import logging
 logger = logging.getLogger("DXFImport.GeoentPoint")
+
 
 class GeoentPoint:
     def __init__(self, Nr=0, caller=None):
@@ -58,11 +60,9 @@ class GeoentPoint:
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("ReadDXF",
-                                                    string_to_translate,
-                                                    None,
-                                                    QtGui.QApplication.UnicodeUTF8))
-
+        return unicode(QtCore.QCoreApplication.translate('ReadDXF',
+                                                         string_to_translate,
+                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         """

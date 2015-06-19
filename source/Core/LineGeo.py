@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -24,18 +26,11 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
 from math import sqrt
-import logging
-import copy
-
-from PyQt4 import QtCore
+from copy import deepcopy
 
 
-logger = logging.getLogger("Core.LineGeo")
-
-
-class LineGeo(QtCore.QObject):
+class LineGeo(object):
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
@@ -46,60 +41,42 @@ class LineGeo(QtCore.QObject):
         @param Ps: The Start Point of the line
         @param Pe: the End Point of the line
         """
-        QtCore.QObject.__init__(self)
-
-        self.type = "LineGeo"
         self.Ps = Ps
         self.Pe = Pe
         self.length = self.Ps.distance(self.Pe)
 
+        self.topLeft = None
+        self.bottomRight = None
+
+        self.abs_geo = None
+
     def __deepcopy__(self, memo):
-        return LineGeo(copy.deepcopy(self.Ps, memo),
-                       copy.deepcopy(self.Pe, memo))
+        return LineGeo(deepcopy(self.Ps, memo),
+                       deepcopy(self.Pe, memo))
 
     def __str__(self):
-        """
-        Standard method to print the object
-        @return: A string
-        """
         return "\nLineGeo" +\
                "\nPs:     %s" % self.Ps +\
                "\nPe:     %s" % self.Pe +\
                "\nlength: %0.5f" % self.length
 
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('LineGeo',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
-
     def to_short_string(self):
-        """
-        Method to print only start and end point of the line
-        @return: A string
-        """
-        return ("(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y));
+        return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
 
     def reverse(self):
-        """
-        Reverses the direction of the arc (switch direction).
-        """
         self.Ps, self.Pe = self.Pe, self.Ps
+        if self.abs_geo:
+            self.abs_geo.reverse()
 
     def make_abs_geo(self, parent=None):
         """
-        Generates the absolute geometry based on itself and the parent.
-        @param parent: The parent of the geometry (EntityContentClass)
-        @return: A new LineGeoClass will be returned.
+        Generates the absolute geometry based on itself and the parent. This
+        is done for rotating and scaling purposes
         """
         Ps = self.Ps.rot_sca_abs(parent=parent)
         Pe = self.Pe.rot_sca_abs(parent=parent)
 
-        return LineGeo(Ps=Ps, Pe=Pe)
+        self.abs_geo = LineGeo(Ps=Ps, Pe=Pe)
 
     def distance2point(self, point):
         """
@@ -107,52 +84,60 @@ class LineGeo(QtCore.QObject):
         @param point: The Point which shall be checked
         @return: returns the distance to the Line
         """
-        try:
+        # TODO to check if it can be replaced with distance2_to_line (of Point class)
+        if self.Ps == self.Pe:
+            return 1e10
+        else:
             AE = self.Ps.distance(self.Pe)
             AP = self.Ps.distance(point)
             EP = self.Pe.distance(point)
             AEPA = (AE + AP + EP) / 2
             return abs(2 * sqrt(abs(AEPA * (AEPA - AE) *
                                     (AEPA - AP) * (AEPA - EP))) / AE)
-        except:
-            return 1e10
 
-    def get_start_end_points(self, direction, parent=None):
-        """
-        Returns the start/end Point and its direction
-        @param direction: 0 to return start Point and 1 to return end Point
-        @return: a list of Point and angle
-        """
-        if not direction:
-            punkt = self.Ps.rot_sca_abs(parent=parent)
-            punkt_e = self.Pe.rot_sca_abs(parent=parent)
-            angle = punkt.norm_angle(punkt_e)
+    def update_start_end_points(self, start_point, value):
+        if start_point:
+            self.Ps = value
         else:
-            punkt_a = self.Ps.rot_sca_abs(parent=parent)
-            punkt = self.Pe.rot_sca_abs(parent=parent)
-            angle = punkt.norm_angle(punkt_a)
+            self.Pe = value
+        self.length = self.Ps.distance(self.Pe)
 
-        return punkt, angle
+    def get_start_end_points(self, start_point, angles=None):
+        if start_point:
+            if angles is None:
+                return self.abs_geo.Ps
+            elif angles:
+                return self.abs_geo.Ps, self.abs_geo.Ps.norm_angle(self.abs_geo.Pe)
+            else:
+                return self.abs_geo.Ps, (self.abs_geo.Pe - self.abs_geo.Ps).unit_vector()
+        else:
+            if angles is None:
+                return self.abs_geo.Pe
+            elif angles:
+                return self.abs_geo.Pe, self.abs_geo.Pe.norm_angle(self.abs_geo.Ps)
+            else:
+                return self.abs_geo.Pe, (self.abs_geo.Pe - self.abs_geo.Ps).unit_vector()
 
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into defined path for hit testing..
-        @param hitpath: The hitpath to add the geometrie
-        @param parent: The parent of the shape
-        @param tolerance: The tolerance to be added to geometrie for hit
-        testing.
-        """
-        abs_geo = self.make_abs_geo(parent)
-        papath.lineTo(abs_geo.Pe.x, -abs_geo.Pe.y)
+    def make_path(self, caller, drawHorLine):
+        drawHorLine(self.abs_geo.Ps, self.abs_geo.Pe)
+        self.topLeft = deepcopy(self.abs_geo.Ps)
+        self.bottomRight = deepcopy(self.abs_geo.Ps)
+        self.topLeft.detTopLeft(self.abs_geo.Pe)
+        self.bottomRight.detBottomRight(self.abs_geo.Pe)
 
-    def Write_GCode(self, parent=None, PostPro=None):
+    def isHit(self, caller, xy, tol):
+        return xy.distance2_to_line(self.abs_geo.Ps, self.abs_geo.Pe) <= tol**2
+
+    def Write_GCode(self, PostPro):
         """
         Writes the GCODE for a Line.
-        @param parent: This is the parent LayerContentClass
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        anf, anf_ang = self.get_start_end_points(0, parent)
-        ende, end_ang = self.get_start_end_points(1, parent)
-
-        return PostPro.lin_pol_xy(anf, ende)
+        tmp_geo = self.abs_geo
+        if self.abs_geo is None:
+            self.abs_geo = self
+        Ps = self.get_start_end_points(True)
+        Pe = self.get_start_end_points(False)
+        self.abs_geo = tmp_geo
+        return PostPro.lin_pol_xy(Ps, Pe)

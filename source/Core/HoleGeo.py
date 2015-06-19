@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
 #   Copyright (C) 2014-2015
 #    Robert Lichtenberger
+#    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
 #
@@ -22,17 +25,17 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
 import logging
-import copy
+from copy import deepcopy
+from math import pi
 
-from PyQt4 import QtCore
+from Core.Point import Point
 
 
 logger = logging.getLogger("Core.HoleGeo")
 
 
-class HoleGeo(QtCore.QObject):
+class HoleGeo(object):
     """
     HoleGeo represents drilling holes.
     """
@@ -40,13 +43,16 @@ class HoleGeo(QtCore.QObject):
         """
         Standard Method to initialise the HoleGeo
         """
-        QtCore.QObject.__init__(self)
-
-        self.type = "HoleGeo"
         self.Ps = Ps
+        self.length = -1
+
+        self.topLeft = None
+        self.bottomRight = None
+
+        self.abs_geo = None
 
     def __deepcopy__(self, memo):
-        return HoleGeo(copy.deepcopy(self.Ps, memo))
+        return HoleGeo(deepcopy(self.Ps, memo))
 
     def __str__(self):
         """
@@ -54,16 +60,6 @@ class HoleGeo(QtCore.QObject):
         @return: A string
         """
         return "\nHoleGeo at (%s) " % self.Ps
-
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('HoleGeo',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
 
     def reverse(self):
         """
@@ -73,39 +69,51 @@ class HoleGeo(QtCore.QObject):
 
     def make_abs_geo(self, parent=None):
         """
-        Generates the absolute geometry based on itself and the parent.
-        @param parent: The parent of the geometry (EntityContentClass)
-        @return: A new HoleGeoClass will be returned.
+        Generates the absolute geometry based on itself and the parent. This
+        is done for rotating and scaling purposes
         """
         Ps = self.Ps.rot_sca_abs(parent=parent)
 
-        return HoleGeo(Ps)
+        self.abs_geo = HoleGeo(Ps)
 
-    def get_start_end_points(self, direction, parent=None):
-        """
-        Returns the start/end Point and its direction
-        @param direction: 0 to return start Point and 1 to return end Point
-        @return: a list of Point and angle
-        """
-        return self.Ps.rot_sca_abs(parent=parent), 0
+    def get_start_end_points(self, start_point, angles=None):
+        if angles is None:
+            return self.abs_geo.Ps
+        elif angles:
+            return self.abs_geo.Ps, 0
+        else:
+            return self.abs_geo.Ps, Point(0, -1) if start_point else Point(0, -1)
 
-    def add2path(self, papath=None, parent=None, layerContent=None):
-        """
-        Plots the geometry of self into defined path for hit testing.
-        @param papath: The hitpath to add the geometrie
-        @param parent: The parent of the shape
-        testing.
-        """
-        abs_geo = self.make_abs_geo(parent)
-        radius = 2
-        if layerContent is not None:
-            radius = layerContent.getToolRadius()
-        papath.addRoundedRect(abs_geo.Ps.x - radius, -abs_geo.Ps.y - radius, 2*radius, 2*radius, radius, radius)
+    def make_path(self, caller, drawHorLine):
+        radius = caller.parentLayer.tool_diameter / 2
+        segments = 30
+        Ps = self.abs_geo.Ps.get_arc_point(0, radius)
+        self.topLeft = deepcopy(Ps)
+        self.bottomRight = deepcopy(Ps)
+        for i in range(1, segments + 1):
+            ang = i * 2 * pi / segments
+            Pe = self.abs_geo.Ps.get_arc_point(ang, radius)
+            drawHorLine(Ps, Pe)
+            self.topLeft.detTopLeft(Pe)
+            self.bottomRight.detBottomRight(Pe)
+            Ps = Pe
 
-    def Write_GCode(self, parent=None, PostPro=None):
+    def isHit(self, caller, xy, tol):
+        tol2 = tol**2
+        radius = caller.parentLayer.getToolRadius()
+        segments = 30
+        Ps = self.abs_geo.Ps.get_arc_point(0, radius)
+        for i in range(1, segments + 1):
+            ang = i * 2 * pi / segments
+            Pe = self.abs_geo.Ps.get_arc_point(ang, radius)
+            if xy.distance2_to_line(Ps, Pe) <= tol2:
+                return True
+            Ps = Pe
+        return False
+
+    def Write_GCode(self, PostPro):
         """
         Writes the GCODE for a Hole.
-        @param parent: This is the parent LayerContentClass
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """

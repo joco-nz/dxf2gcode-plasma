@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -23,14 +25,15 @@
 #
 ############################################################################
 
-import Core.Globals as g
 
 from DxfImport.SplineConvert import Spline2Arcs
 from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
+import Global.Globals as g
 
 import logging
 logger = logging.getLogger("DxfImport.GeoentSpline")
+
 
 class GeoentSpline:
     def __init__(self, Nr=0, caller=None):

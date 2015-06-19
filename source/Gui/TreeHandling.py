@@ -44,8 +44,10 @@ from PyQt4 import QtCore, QtGui
 from Gui.myTreeView import MyStandardItemModel
 from math import degrees
 
-import Core.Globals as g
+import Global.Globals as g
 
+from Core.Shape import Shape
+from Core.EntityContent import EntityContent
 from Core.CustomGCode import CustomGCodeClass
 
 import logging
@@ -242,7 +244,7 @@ class TreeHandler(QtGui.QWidget):
             icon.addPixmap(QtGui.QPixmap(":/images/layer.png"))
             checkbox_element = QtGui.QStandardItem(icon, "")
             checkbox_element.setData(QtCore.QVariant(layer), LAYER_OBJECT)  # store a ref in our treeView element
-            modele_element = QtGui.QStandardItem(layer.LayerName)
+            modele_element = QtGui.QStandardItem(layer.name)
             nbr_element = QtGui.QStandardItem()
             optimise_element = QtGui.QStandardItem()
             modele_root_element.appendRow([checkbox_element, modele_element, nbr_element, optimise_element])
@@ -370,13 +372,13 @@ class TreeHandler(QtGui.QWidget):
         containsChecked = False
         containsUnchecked = False
         item_col_0 = None
-        if element.type == "Entity":
+        if isinstance(element, EntityContent):
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/blocks.png"))
             item_col_0 = QtGui.QStandardItem(icon, "")  # will only display a checkbox + an icon that will never be disabled
             item_col_0.setData(QtCore.QVariant(element), ENTITY_OBJECT)  # store a ref in our treeView element
-            item_col_1 = QtGui.QStandardItem(element.Name)
-            item_col_2 = QtGui.QStandardItem(str(element.Nr))
+            item_col_1 = QtGui.QStandardItem(element.name)
+            item_col_2 = QtGui.QStandardItem(str(element.nr))
             item_col_3 = QtGui.QStandardItem(element.type)
             item_col_4 = QtGui.QStandardItem(str(element.p0))
             item_col_5 = QtGui.QStandardItem(str(element.sca))
@@ -390,7 +392,7 @@ class TreeHandler(QtGui.QWidget):
 
             flags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled
 
-        elif element.type == "Shape":
+        elif isinstance(element, Shape):
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
             item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
@@ -1070,7 +1072,7 @@ class TreeHandler(QtGui.QWidget):
                         if element.data(SHAPE_OBJECT).isValid():
                             real_item = element.data(SHAPE_OBJECT).toPyObject()
                             #update the tools parameters according to the selection
-                            self.displayToolParametersForItem(real_item.LayerContent, real_item)
+                            self.displayToolParametersForItem(real_item.parentLayer, real_item)
 
                             real_item.setSelected(True, True) #Select the shape on the canvas
                             #Update the other TreeViews

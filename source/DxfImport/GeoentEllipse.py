@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -23,16 +25,15 @@
 #
 ############################################################################
 
-import Core.Globals as g
-
 from math import sqrt, sin, cos, atan2, degrees, pi
 from Core.Point import Point
 from DxfImport.Classes import PointsClass, ContourClass
-from DxfImport.biarc import BiarcClass
+from DxfImport.Biarc import BiarcClass
+
+import Global.Globals as g
 
 
-
-class GeoentEllipse:
+class GeoentEllipse(object):
     """
     GeoentEllipse()
     """

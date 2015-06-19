@@ -28,7 +28,7 @@ from copy import copy
 from random import random, shuffle
 from math import floor, ceil
 
-import Core.Globals as g
+import Global.Globals as g
 
 from PyQt4 import QtCore, QtGui
 

@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -26,7 +28,7 @@
 from Core.Point import Point
 from Core.ArcGeo import ArcGeo
 from Core.LineGeo import  LineGeo
-from DxfImport.biarc import BiarcClass
+from DxfImport.Biarc import BiarcClass
 
 from math import atan2
 
@@ -93,9 +95,9 @@ class Spline2Arcs:
             #Wenn die L�nge mindestens 3 sind
             if len(NewCurve) >= 3:
                 #Steigende Spirale
-                if ((NewCurve[-3].type == "ArcGeo")
-                   and (NewCurve[-2].type == "ArcGeo")
-                   and (NewCurve[-1].type == "ArcGeo")):
+                if isinstance(NewCurve[-3], ArcGeo)\
+                   and isinstance(NewCurve[-2], ArcGeo)\
+                   and isinstance(NewCurve[-1], ArcGeo):
                     Pts.append(geo.Pe)
                     if (NewCurve[-3].r <= NewCurve[-2].r) \
                         and (NewCurve[-2].r <= NewCurve[-1].r) \
@@ -143,13 +145,13 @@ class Spline2Arcs:
         """
         calc_active_tolerance_inc()
         """
-        V0 = arc[0].Ps.unit_vector(arc[0].O)
-        Vb = Arc1.Ps.unit_vector(Arc1.O)
+        V0 = (arc[0].O - arc[0].Ps).unit_vector()
+        Vb = (Arc1.O - Arc1.Ps).unit_vector()
 
         t_ = (2 * arc[0].r * tau + pow(tau, 2)) / \
              (2 * (arc[0].r + (arc[0].r + tau) * V0 * Vb))
 
-        te = arc[0].r + t_ - (Arc0.Pe - (arc[0].O + (t_ * V0))).distance()
+        te = arc[0].r + t_ - (Arc0.Pe - (arc[0].O + (t_ * V0))).length()
 
         tm = arc[1].O.distance(Arc0.Pe) - abs(arc[1].r)
         if tm < 0.0:
@@ -169,13 +171,14 @@ class Spline2Arcs:
         """
         calc_active_tolerance_dec()
         """
-        V0 = arc[2].Ps.unit_vector(arc[2].O)
-        Vb = Arc1.Ps.unit_vector(Arc1.O)
+        # TODO why does it differ with calc_active_tolerance_inc
+        # V0 = (arc[2].O - arc[2].Ps).unit_vector()
+        # Vb = (Arc1.O - Arc1.Ps).unit_vector()
 
-        t_ = (2 * arc[2].r * tau + pow(tau, 2)) / \
-             (2 * (arc[2].r + (arc[2].r + tau) * V0 * Vb))
+        # t_ = (2 * arc[2].r * tau + pow(tau, 2)) / \
+        #      (2 * (arc[2].r + (arc[2].r + tau) * V0 * Vb))
 
-        te = arc[2].r + t_ - (Arc0.Pe - (arc[2].O + (t_ * V0))).distance()
+        # te = arc[2].r + t_ - (Arc0.Pe - (arc[2].O + (t_ * V0))).length()
         te = tau
 
         tm = -arc[1].O.distance(Arc0.Pe) + abs(arc[1].r)
@@ -197,8 +200,8 @@ class Spline2Arcs:
         """
 
         #Errechnen von tb
-        V0 = arc[0].Ps.unit_vector(arc[0].O)
-        V2 = arc[2].Pe.unit_vector(arc[2].O)
+        V0 = (arc[0].O - arc[0].Ps).unit_vector()
+        V2 = (arc[2].O - arc[2].Pe).unit_vector()
 
         #Errechnen der Hilfgr�ssen
         t0 = (arc[2].r - arc[0].r)
@@ -226,7 +229,7 @@ class Spline2Arcs:
         ra = arc[0].r + t
         Ob = arc[2].O - u * V2
         rb = arc[2].r - u
-        Vn = Ob.unit_vector(Oa)
+        Vn = (Oa - Ob).unit_vector()
         Pn = Oa + ra * Vn
 
         Arc0 = ArcGeo(Ps=arc[0].Ps, Pe=Pn, O=Oa, r=ra, direction=arc[0].ext)
@@ -248,8 +251,8 @@ class Spline2Arcs:
         fit_triac_by_dec_biarc()
         """
 
-        V0 = arc[2].Pe.unit_vector(arc[2].O)
-        V2 = arc[0].Ps.unit_vector(arc[0].O)
+        V0 = (arc[2].O - arc[2].Pe).unit_vector()
+        V2 = (arc[0].O - arc[0].Ps).unit_vector()
 
         #Errechnen der Hilfgr�ssen
         t0 = (arc[0].r - arc[2].r)
@@ -277,15 +280,15 @@ class Spline2Arcs:
         ra = arc[0].r - u
         Ob = arc[2].O + t * V0
         rb = arc[2].r + t
-        Vn = Oa.unit_vector(Ob)
+        Vn = (Ob - Oa).unit_vector()
         Pn = Ob + rb * Vn
 
         Arc0 = ArcGeo(Ps=arc[0].Ps, Pe=Pn, O=Oa, r=ra, \
-                    s_ang=Oa.norm_angle(arc[0].Ps), e_ang=Oa.norm_angle(Pn),
-                    direction=arc[0].ext)
+                      s_ang=Oa.norm_angle(arc[0].Ps), e_ang=Oa.norm_angle(Pn),
+                      direction=arc[0].ext)
         Arc1 = ArcGeo(Ps=Pn, Pe=arc[2].Pe, O=Ob, r=rb, \
-                    s_ang=Ob.norm_angle(Pn), e_ang=Ob.norm_angle(arc[2].Pe),
-                    direction=arc[2].ext)
+                      s_ang=Ob.norm_angle(Pn), e_ang=Ob.norm_angle(arc[2].Pe),
+                      direction=arc[2].ext)
 
         return Arc0, Arc1
 
@@ -319,7 +322,7 @@ class Spline2Arcs:
             anz = len(NewCurve)
             if anz >= 2:
                 #Wenn Geo eine Linie ist anh�ngen und �berpr�fen
-                if (NewCurve[-2].type == "LineGeo") and (NewCurve[-1].type == "LineGeo"):
+                if isinstance(NewCurve[-2], LineGeo) and isinstance(NewCurve[-1], LineGeo):
                     Pts.append(geo.Pe)
                     JointLine = LineGeo(NewCurve[-2].Ps, NewCurve[-1].Pe)
 
@@ -330,7 +333,7 @@ class Spline2Arcs:
                     #print res
 
                     #Wenn die Abweichung OK ist Vorheriges anh�ngen
-                    if (max(res) < self.epsilon):
+                    if max(res) < self.epsilon:
                         anz = len(NewCurve)
                         del NewCurve[anz - 2:anz]
                         NewCurve.append(JointLine)
@@ -461,7 +464,7 @@ class Spline2Arcs:
                     cur_step *= 0.7
             #print cur_step
             if step > 10000:
-                raise ValueError, "Iterations above 10000 reduce tolerance"
+                raise ValueError("Iterations above 10000 reduce tolerance")
 
         return BiarcCurve, PtsVec
 
@@ -546,7 +549,7 @@ class NURBSClass:
 
             for knt_spts in knt_vec:
                 if (len(knt_spts) > self.degree + 1):
-                    raise ValueError, "Same Knots Nr. bigger then degree+1"
+                    raise ValueError("Same Knots Nr. bigger then degree+1")
 
                 #�berpr�fen der Steigungdifferenz vor und nach dem Punkt wenn Mehrfachknoten
                 elif ((len(knt_spts) >= self.degree)
@@ -575,8 +578,8 @@ class NURBSClass:
 
             for same_ctlpt in ctlpt_vec:
                 if (len(same_ctlpt) > self.degree + 1):
-                    self.ignor.append([self.Knots[same_ctlpt[0] + self.degree / 2], \
-                                       self.Knots[same_ctlpt[-1] + self.degree / 2]])
+                    self.ignor.append([self.Knots[same_ctlpt[0] + self.degree // 2],
+                                       self.Knots[same_ctlpt[-1] + self.degree // 2]])
 
 #        raise ValueError, "Same Controlpoints Nr. bigger then degree+1"
 #            logger.debug("Same Controlpoints Nr. bigger then degree+2")
@@ -584,7 +587,7 @@ class NURBSClass:
             logger.debug("Ignoring u's between u: %s and u: %s" % (ignor[0], ignor[1]))
 
         if len(self.knt_m_change):
-            logger.debug("Non steady Angles between Knots: %s" % (self.knt_m_change))
+            logger.debug("Non steady Angles between Knots: %s" % self.knt_m_change)
 
 
     def calc_curve(self, n=0, cpts_nr=20):
@@ -676,11 +679,11 @@ class BSplineClass:
 
         #Eingangspr�fung, ober KnotenAnzahl usw. passt
         if  self.Knots_len < self.degree + 1:
-            raise ValueError, "degree greater than number of control points."
+            raise ValueError("degree greater than number of control points.")
         if self.Knots_len != (self.CPts_len + self.degree + 1):
             logger.error("shall be: %s" % (self.CPts_len + self.degree + 1))
             logger.error("is: %s" % self.Knots_len)
-            raise ValueError, "Knot/Control Point/degree number error."
+            raise ValueError("Knot/Control Point/degree number error.")
 
     def calc_curve(self, n=0, cpts_nr=20):
         """
@@ -755,24 +758,25 @@ class BSplineClass:
         #wert zwischen im Intervall von Knots[mid:mi+1] liegt)
         low = self.degree-1
         high = self.Knots_len
-        mid = (low + high) / 2
-        counter=1
-        while ((u < self.Knots[mid])or(u >= self.Knots[mid +1])):
-            counter=counter+1
+        mid = (low + high) // 2
+        counter = 1
+        while u < self.Knots[mid] or u >= self.Knots[mid + 1]:
+            counter += 1
 
-            if (u < self.Knots[mid]):
+            if u < self.Knots[mid]:
                 high = mid
             else:
                 low = mid
 
-            mid = ((low + high) / 2)
+            mid = (low + high) // 2
 
             if debug_on:
-                logger.debug("high: %s; low: %s; mid: %s" %(high,low,mid))
-                logger.debug("u: %s; self.Knots[mid]: %s; self.Knots[mid+1]: %s" %(u,self.Knots[mid],self.Knots[mid+1]))
+                logger.debug("high: %s; low: %s; mid: %s" % (high, low, mid))
+                logger.debug("u: %s; self.Knots[mid]: %s; self.Knots[mid+1]: %s" %
+                             (u, self.Knots[mid], self.Knots[mid + 1]))
 
             if counter > 100:
-                raise ValueError, "Iterations above 100 cannot find span"
+                raise ValueError("Iterations above 100 cannot find span")
         return mid
 
     def ders_basis_functions(self, span, u, n):

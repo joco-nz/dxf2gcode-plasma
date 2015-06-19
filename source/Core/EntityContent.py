@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
 #   Copyright (C) 2008-2015
 #    Christian Kohlöffel
 #    Vinzenz Schulz
+#    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
 #
@@ -23,59 +26,38 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
-import logging
 
-from PyQt4 import QtCore
-
-from Core.Point import Point
-
-
-logger = logging.getLogger("Core.EntityContent")
-
-
-class EntityContentClass(object):
-
-    def __init__(self, Nr=None, Name='', parent=None,
-                children=[], p0=Point(), pb=Point(),
-                sca=[1, 1, 1], rot=0.0):
-
+class EntityContent(object):
+    def __init__(self, nr, name, parent, p0, pb, sca, rot):
+        """
+        @param p0: The Starting Point to plot (Default x=0 and y=0)
+        @param bp: The Base Point to insert the geometry and base for rotation
+        (Default is also x=0 and y=0)
+        @param sca: The scale of the basis function (default =1)
+        @param rot: The rotation of the geometries around base (default =0)
+        """
         self.type = "Entity"
-        self.Nr = Nr
-        self.Name = Name
-        self.children = children
+        self.nr = nr
+        self.name = name
+        self.parent = parent
+        self.children = []
         self.p0 = p0
         self.pb = pb
         self.sca = sca
         self.rot = rot
-        self.parent = parent
 
     def __cmp__(self, other):
-        return cmp(self.EntNr, other.EntNr)
+        return self.nr == other.nr
 
     def __str__(self):
-        return "\nEntity" +\
-               "\nNr:       %i" % self.Nr +\
-               "\nName:     %s" % self.Name +\
+        return "\nEntityContent" +\
+               "\nnr :      %i" % self.nr +\
+               "\nname:     %s" % self.name +\
+               "\nchildren: %s" % self.children +\
                "\np0:       %s" % self.p0 +\
                "\npb:       %s" % self.pb +\
                "\nsca:      %s" % self.sca +\
-               "\nrot:      %s" % self.rot +\
-               "\nchildren: %s" % self.children
+               "\nrot:      %s" % self.rot
 
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('EntityContentClass',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
-
-    def addchild(self, child):
-        """
-        Add the contour of the Entities
-        """
+    def append(self, child):
         self.children.append(child)
-

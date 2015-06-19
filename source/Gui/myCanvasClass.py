@@ -40,8 +40,9 @@ from Gui.Arrow import Arrow
 from Gui.StMove import StMove
 from Gui.RouteText import RouteText
 #import math
-import Core.Globals as g
+import Global.Globals as g
 #import Core.constants as c
+from Core.Shape import Shape
 
 import logging
 logger = logging.getLogger("DxfImport.myCanvasClass")
@@ -512,12 +513,12 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param rot: The rotation of the geometries around base (default =0)
         """
 
-        self.shapes = shapes
+        self.shapes = []
         self.EntitiesRoot = EntitiesRoot
 
         del(self.wpzero)
 
-        self.plot_shapes()
+        self.plot_shapes(shapes)
         self.plot_wp_zero()
         self.update()
 
@@ -530,15 +531,17 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         self.wpzero = WpZero(QtCore.QPointF(0, 0))
         self.addItem(self.wpzero)
 
-    def plot_shapes(self):
+    def plot_shapes(self, shapes):
         """
         This function performs all plotting for the shapes. This may also
         get an instance of the shape later on.
         FIXME
         """
-        for shape in self.shapes:
-            self.addItem(shape)
-            self.plot_shape(shape)
+        for shape in shapes:
+            object = ShapeGUI(shape)
+            self.shapes.append(object)
+            self.addItem(object)
+            self.plot_shape(object)
         logger.debug(self.tr("Update GrapicsScene"))
 
     def plot_shape(self, shape):
@@ -715,3 +718,274 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             elif not(flag) and shape.isDisabled():
                 shape.hide()
 
+class ShapeGUI(QtGui.QGraphicsItem):
+    def __init__(self, shape):
+        QtGui.QGraphicsItem.__init__(self)
+        self.shape = shape
+
+        self.pen = QtGui.QPen(QtCore.Qt.black)
+        self.left_pen = QtGui.QPen(QtCore.Qt.darkCyan)
+        self.right_pen = QtGui.QPen(QtCore.Qt.darkMagenta)
+        self.sel_pen = QtGui.QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.MiterJoin)
+        self.sel_pen.setCosmetic(True)
+        self.dis_pen = QtGui.QPen(QtCore.Qt.gray, 1, QtCore.Qt.DotLine)
+        self.dis_pen.setCosmetic(True)
+        self.sel_dis_pen = QtGui.QPen(QtCore.Qt.blue, 1, QtCore.Qt.DashLine)
+        self.sel_dis_pen.setCosmetic(True)
+
+        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+        self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
+
+        self.type = "Shape"
+        self.selectionChangedCallback = None
+        self.enableDisableCallback = None
+
+    def contains_point(self, point):
+        """
+        Method to determine the minimal distance from the point to the shape
+        @param point: a QPointF
+        @return: minimal distance
+        """
+        min_distance = float(0x7fffffff)
+        ref_point = Point(point.x(), point.y())
+        t = 0.0
+        while t < 1.0:
+            per_point = self.path.pointAtPercent(t)
+            spline_point = Point(per_point.x(), per_point.y())
+            distance = ref_point.distance(spline_point)
+            if distance < min_distance:
+                min_distance = distance
+            t += 0.01
+        return min_distance
+
+    def __str__(self):
+        return self.shape.__str__()
+
+    def tr(self, string_to_translate):
+        return self.shape.tr(string_to_translate)
+
+    def setSelectionChangedCallback(self, callback):
+        """
+        Register a callback function in order to inform parents when the selection has changed.
+        Note: we can't use QT signals here because ShapeClass doesn't inherits from a QObject
+        @param callback: the function to be called, with the prototype callbackFunction(shape, select)
+        """
+        self.selectionChangedCallback = callback
+
+    def setEnableDisableCallback(self, callback):
+        """
+        Register a callback function in order to inform parents when a shape has been enabled or disabled.
+        Note: we can't use QT signals here because ShapeClass doesn't inherits from a QObject
+        @param callback: the function to be called, with the prototype callbackFunction(shape, enabled)
+        """
+        self.enableDisableCallback = callback
+
+    def setPen(self, pen):
+        """
+        Method to change the Pen of the outline of the object and update the
+        drawing
+        """
+        self.pen = pen
+        self.update(self.boundingRect())
+
+    def paint(self, painter, option, _widget):
+        """
+        Method will be triggered with each paint event. Possible to give
+        options
+        @param painter: Reference to std. painter
+        @param option: Possible options here
+        @param _widget: The widget which is painted on.
+        """
+        if self.isSelected() and not (self.isDisabled()):
+            painter.setPen(self.sel_pen)
+        elif not (self.isDisabled()):
+            if self.shape.cut_cor == 41:
+                painter.setPen(self.left_pen)
+            elif self.shape.cut_cor == 42:
+                painter.setPen(self.right_pen)
+            else:
+                painter.setPen(self.pen)
+        elif self.isSelected() and self.isDisabled():
+            painter.setPen(self.sel_dis_pen)
+        else:
+            painter.setPen(self.dis_pen)
+
+        painter.drawPath(self.path)
+
+    def boundingRect(self):
+        """
+        Required method for painting. Inherited by Painterpath
+        @return: Gives the Bounding Box
+        """
+        return self.path.boundingRect()
+
+    def shape(self):
+        """
+        Reimplemented function to select outline only.
+        @return: Returns the Outline only
+        """
+        painterStrock = QtGui.QPainterPathStroker()
+        painterStrock.setCurveThreshold(0.01)
+        painterStrock.setWidth(0)
+
+        stroke = painterStrock.createStroke(self.path)
+        return stroke
+
+    def mousePressEvent(self, event):
+        """
+        Right Mouse click shall have no function, Therefore pass only left
+        click event
+        @purpose: Change inherited mousePressEvent
+        @param event: Event Parameters passed to function
+        """
+        pass
+        # if event.button() == QtCore.Qt.LeftButton:
+        #     super(ShapeClass, self).mousePressEvent(event)
+
+    def setSelected(self, flag=True, blockSignals=False):
+        """
+        Override inherited function to turn off selection of Arrows.
+        @param flag: The flag to enable or disable Selection
+        """
+        self.starrow.setSelected(flag)
+        self.enarrow.setSelected(flag)
+        self.stmove.setSelected(flag)
+
+        super(Shape, self).setSelected(flag)
+
+        if self.selectionChangedCallback and not blockSignals:
+            self.selectionChangedCallback(self, flag)
+
+    def setDisable(self, flag=False, blockSignals=False):
+        """
+        New implemented function which is in parallel to show and hide.
+        @param flag: The flag to enable or disable Selection
+        """
+        self.disabled = flag
+        scene = self.scene()
+
+        if scene is not None:
+            if not scene.showDisabled and flag:
+                self.hide()
+                self.starrow.setSelected(False)
+                self.enarrow.setSelected(False)
+                self.stmove.setSelected(False)
+            else:
+                self.show()
+
+                self.update(self.boundingRect())
+                # Needed to refresh view when setDisabled() function is called from a TreeView event
+
+        if self.enableDisableCallback and not blockSignals:
+            self.enableDisableCallback(self, not flag)
+
+    def isDisabled(self):
+        """
+        Returns the state of self.Disabled
+        """
+        return self.shape.disabled
+
+    def setToolPathOptimized(self, flag=False):
+        """
+        @param flag: The flag to enable or disable tool path optimisation for this shape
+        """
+        self.shpe.send_to_TSP = flag
+
+    def isToolPathOptimized(self):
+        """
+        Returns the state of self.send_to_TSP
+        """
+        return self.shape.send_to_TSP
+
+    def FindNearestStPoint(self, StPoint=Point()):
+        self.shape.setNearestStPoint(StPoint)
+
+    def reverse(self):
+        self.shape.reverse()
+
+    def reverseGUI(self):
+        """
+        This function is called from the GUI if the GUI needs to be updated after
+        the reverse of the shape.
+        """
+        start, start_ang = self.get_st_en_points(0)
+        end, end_ang = self.get_st_en_points(1)
+
+        self.update(self.boundingRect())
+        self.enarrow.reverseshape(end, end_ang)
+        self.starrow.reverseshape(start, start_ang)
+        self.stmove.reverseshape(start, start_ang)
+
+    def switch_cut_cor(self):
+        """
+        Switches the cutter direction between 41 and 42.
+
+        G41 = Tool radius compensation left.
+        G42 = Tool radius compensation right
+        """
+        if self.shape.cut_cor == 41:
+            self.shape.cut_cor = 42
+        elif self.shape.cut_cor == 42:
+            self.shape.cut_cor = 41
+
+        self.updateCutCor()
+
+    def get_st_en_points(self, dir=None):
+        return self.shape.get_start_end_points(not dir, True)
+
+    def drawHorLine(self, start, end):
+        self.path.lineTo(end.x, -end.y)
+
+    def make_papath(self):
+        """
+        To be called if a Shape shall be printed to the canvas
+        """
+        start, start_ang = self.get_st_en_points()
+
+        self.path = QtGui.QPainterPath()
+
+        self.path.moveTo(start.x, -start.y)
+
+        logger.debug(self.tr("Adding shape to Scene Nr: %i") % self.shape.nr)
+
+        for geo in self.shape.geos:
+            geo.make_path(self.shape, self.drawHorLine)
+
+    def update_plot(self):
+        """
+        This function is called from the GUI if the GUI needs to be updated after
+        the reverse of the shape to.
+        """
+        # self.update(self.boundingRect())
+        start, start_ang = self.get_st_en_points(0)
+        self.starrow.updatepos(start, angle=start_ang)
+
+        end, end_ang = self.get_st_en_points(1)
+        self.enarrow.updatepos(end, angle=end_ang)
+
+        self.stmove.update_plot(start, angle=start_ang)
+
+    def updateCutCor(self):
+        """
+        This function is called to update the Cutter Correction and therefore
+        the  startmoves if smth. has changed or it shall be generated for
+        first time.
+        FIXME This shall be different for Just updating it or updating it for
+        plotting.
+        """
+        self.stmove.updateCutCor(self.cut_cor)
+
+    def updateCCplot(self):
+        """
+        This function is called to update the Cutter Correction Plot and therefore
+        the startmoves if something has changed or it shall be generated for
+        first time.
+        """
+        self.stmove.updateCCplot()
+
+
+    def Write_GCode(self, LayerContent=None, PostPro=None):
+        return self.shape.Write_GCode(PostPro)
+
+    def Write_GCode_Drag_Knife(self, LayerContent=None, PostPro=None):
+        return self.shape.Write_GCode_Drag_Knife(PostPro)

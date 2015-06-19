@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
+from __future__ import division
 
 ############################################################################
 #
@@ -25,132 +27,52 @@
 #
 ############################################################################
 
-from __future__ import absolute_import
 import re
-import logging
 
-from PyQt4 import QtCore
-
-import Core.Globals as g
+import Global.Globals as g
 
 
-logger = logging.getLogger("Core.LayerContent")
-
-
-class LayerContentClass(object):
-    """
-    The LayerContentClass is used for the shapes order, to export, to store
-    and to change the different export parameters (GUI). The LayerContent-
-    Classes for each Layer are stored in a list. This List Defines the
-    order for Layers to be exported.
-    """
-    def __init__(self, LayerNr=None, LayerName="", shapes=[]):
-        """
-        Initialization of the LayerContentClass. This is performed during the
-        shapes creation in the main dxf2gcode.py file.
-        @param LayerNr: This parameter is forwarded from the dxf import
-        @param LayerName: This parameter is forwarded from the dxf import
-        @param shapes: This is a list which includes all shapes on the layer.
-        """
-
-        # Define Short Name for config.vars
-        vars = g.config.vars
-
-        self.type = "Layer"
-        self.LayerNr = LayerNr
-        self.LayerName = LayerName
-        self.shapes = shapes
+class LayerContent(object):
+    def __init__(self, nr, name, shapes):
+        self.nr = nr
+        self.name = name
+        self.shapes = Shapes(shapes)
         self.exp_order = []  # used for shape order optimization, ... Only contains shapes
-        self.exp_order_complete = []  # used for outputing the GCODE; can contain shapes, custom gcode, ...
-
-        # preset defaults
-        self.axis3_slice_depth = vars.Depth_Coordinates['axis3_slice_depth']
-        self.axis3_start_mill_depth = vars.Depth_Coordinates['axis3_start_mill_depth']
-        self.axis3_mill_depth = vars.Depth_Coordinates['axis3_mill_depth']
-        self.axis3_retract = vars.Depth_Coordinates['axis3_retract']
-        self.axis3_safe_margin = vars.Depth_Coordinates['axis3_safe_margin']
-        self.f_g1_plane = vars.Feed_Rates['f_g1_plane']
-        self.f_g1_depth = vars.Feed_Rates['f_g1_depth']
 
         # Use default tool 1 (always exists in config)
         self.tool_nr = 1
-        self.tool_diameter = vars.Tool_Parameters['1']['diameter']
-        self.speed = vars.Tool_Parameters['1']['speed']
-        self.start_radius = vars.Tool_Parameters['1']['start_radius']
+        self.tool_diameter = g.config.vars.Tool_Parameters['1']['diameter']
+        self.speed = g.config.vars.Tool_Parameters['1']['speed']
+        self.start_radius = g.config.vars.Tool_Parameters['1']['start_radius']
 
-        # search for layer commands to override defaults
-        if self.isParameterizableLayer():
-            layer_commands = self.LayerName.replace(",", ".")
-            lopts_re = re.compile("([a-zA-Z]+ *"+vars.Layer_Options['id_float_separator']+" *[\-\.0-9]+)")
-            # print lopts_re.findall(layer_commands)
-            for lc in lopts_re.findall(layer_commands):
-                name, value = lc.split(vars.Layer_Options['id_float_separator'])
-                name = name.strip()
-                # print '\"%s\" \"%s\"' %(name, value)
-                if name in vars.Layer_Options['mill_depth_identifiers']:
-                    self.axis3_mill_depth = float(value)
-                elif name in vars.Layer_Options['slice_depth_identifiers']:
-                    self.axis3_slice_depth = float(value)
-                elif name in vars.Layer_Options['start_mill_depth_identifiers']:
-                    self.axis3_start_mill_depth = float(value)
-                elif name in vars.Layer_Options['retract_identifiers']:
-                    self.axis3_retract = float(value)
-                elif name in vars.Layer_Options['safe_margin_identifiers']:
-                    self.axis3_safe_margin = float(value)
-                elif name in vars.Layer_Options['f_g1_plane_identifiers']:
-                    self.f_g1_plane = float(value)
-                elif name in vars.Layer_Options['f_g1_depth_identifiers']:
-                    self.f_g1_depth = float(value)
-                elif name in vars.Layer_Options['tool_nr_identifiers']:
-                    self.tool_nr = float(value)
-                elif name in vars.Layer_Options['tool_diameter_identifiers']:
-                    self.tool_diameter = float(value)
-                elif name in vars.Layer_Options['spindle_speed_identifiers']:
-                    self.speed = float(value)
-                elif name in vars.Layer_Options['start_radius_identifiers']:
-                    self.start_radius = float(value)
+        # preset defaults
+        self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']
+        self.axis3_safe_margin = g.config.vars.Depth_Coordinates['axis3_safe_margin']
 
     def __cmp__(self, other):
-        """
-        This function just compares the LayerNr to sort the List of LayerContents
-        @param other: This is the 2nd of the LayerContentClass to be compared.
-        """
-        return cmp(self.LayerNr, other.LayerNr)
+        return self.LayerNr == other.LayerNr
 
     def __str__(self):
         """
         Standard method to print the object
         @return: A string
         """
-        return "\nLayer" +\
-               "\nLayerNr:        %i" % self.LayerNr +\
-               "\nLayerName:      %s" % self.LayerName +\
-               "\nshapes:         %s" % self.shapes +\
-               "\nexp_order:      %s" % self.exp_order +\
-               "\nexp_order_comp: %s" % self.exp_order_complete +\
-               "\ntool_nr:        %i" % self.tool_nr
-
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('LayerContentClass',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return "\nLayerContent" +\
+               "\nnr:     %i" % self.nr +\
+               "\nname:   %s" % self.name +\
+               "\nshapes: %s" % self.shapes
 
     def should_ignore(self):
-        return self.LayerName.startswith('IGNORE'+g.config.vars.Layer_Options['id_float_separator']) or self.isBreakLayer()
+        return self.name.startswith('IGNORE'+g.config.vars.Layer_Options['id_float_separator'])
 
     def isBreakLayer(self):
-        return self.LayerName.startswith('BREAKS'+g.config.vars.Layer_Options['id_float_separator'])
+        return self.name.startswith('BREAKS'+g.config.vars.Layer_Options['id_float_separator'])
 
     def isMillLayer(self):
-        return self.LayerName.startswith('MILL'+g.config.vars.Layer_Options['id_float_separator'])
+        return self.name.startswith('MILL'+g.config.vars.Layer_Options['id_float_separator'])
 
     def isDrillLayer(self):
-        return self.LayerName.startswith('DRILL'+g.config.vars.Layer_Options['id_float_separator'])
+        return self.name.startswith('DRILL'+g.config.vars.Layer_Options['id_float_separator'])
 
     def isParameterizableLayer(self):
         return self.isMillLayer() or self.isDrillLayer() or self.isBreakLayer()
@@ -160,3 +82,92 @@ class LayerContentClass(object):
 
     def getToolRadius(self):
         return self.tool_diameter / 2
+
+    def overrideDefaults(self):
+        # search for layer commands to override defaults
+        if self.isParameterizableLayer():
+            layer_commands = self.name.replace(",", ".")
+            lopts_re = re.compile("([a-zA-Z]+ *"+g.config.vars.Layer_Options['id_float_separator']+" *[\-\.0-9]+)")
+            # print lopts_re.findall(layer_commands)
+            for lc in lopts_re.findall(layer_commands):
+                name, value = lc.split(g.config.vars.Layer_Options['id_float_separator'])
+                name = name.strip()
+                # print '\"%s\" \"%s\"' %(name, value)
+                if name in g.config.vars.Layer_Options['tool_nr_identifiers']:
+                    self.tool_nr = float(value)
+                elif name in g.config.vars.Layer_Options['tool_diameter_identifiers']:
+                    self.tool_diameter = float(value)
+                elif name in g.config.vars.Layer_Options['spindle_speed_identifiers']:
+                    self.speed = float(value)
+                elif name in g.config.vars.Layer_Options['start_radius_identifiers']:
+                    self.start_radius = float(value)
+                elif name in g.config.vars.Layer_Options['retract_identifiers']:
+                    self.axis3_retract = float(value)
+                elif name in g.config.vars.Layer_Options['safe_margin_identifiers']:
+                    self.axis3_safe_margin = float(value)
+                elif name in g.config.vars.Layer_Options['start_mill_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.axis3_start_mill_depth = float(value)
+                elif name in g.config.vars.Layer_Options['slice_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.axis3_slice_depth = float(value)
+                elif name in g.config.vars.Layer_Options['mill_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.axis3_mill_depth = float(value)
+                elif name in g.config.vars.Layer_Options['f_g1_plane_identifiers']:
+                    for shape in self.shapes:
+                        shape.f_g1_plane = float(value)
+                elif name in g.config.vars.Layer_Options['f_g1_depth_identifiers']:
+                    for shape in self.shapes:
+                        shape.f_g1_depth = float(value)
+        if self.should_ignore():
+            # Disable shape by default, if it lives on an ignored layer
+            for shape in self.shapes:
+                shape.setDisable(True)
+
+
+class Layers(list):
+    def __init__(self, *args):
+        list.__init__(self, *args)
+
+    # def __iter__(self):
+    def non_break_layer_iter(self):
+        for layer in list.__iter__(self):
+            if not layer.isBreakLayer():
+                yield layer
+        else:
+            raise StopIteration()
+
+    def break_layer_iter(self):
+        for layer in list.__iter__(self):
+            if layer.isBreakLayer():
+                yield layer
+        else:
+            raise StopIteration()
+
+
+class Shapes(list):
+    def __init__(self, *args):
+        list.__init__(self, *args)
+
+    # def __iter__(self):
+    def selected_iter(self):
+        for shape in list.__iter__(self):
+            if shape.selected:
+                yield shape
+        else:
+            raise StopIteration()
+
+    def not_selected_iter(self):
+        for shape in list.__iter__(self):
+            if not shape.selected:
+                yield shape
+        else:
+            raise StopIteration()
+
+    def not_disabled_iter(self):
+        for shape in list.__iter__(self):
+            if not shape.disabled:
+                yield shape
+        else:
+            raise StopIteration()
