@@ -32,8 +32,7 @@ import globals.globals as g
 from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
 from core.point import Point
-from core.entitycontent import EntityContent
-from gui.arrow import Arrow
+from core.intersect import Intersect
 
 try:
     from PyQt4 import QtCore, QtGui
@@ -49,39 +48,26 @@ class StMove(QtGui.QGraphicsLineItem):
     also performs the Plotting and Export of this moves. It is linked
     to the shape of its parent
     """
-    def __init__(self, startp, angle,
-                 pencolor=QtCore.Qt.green,
-                 shape=None, parent=None):
-        """
-        Initialisation of the class.
-        @param startp: Startpoint of the shape where to add the move.
-        The coordinates are given in scaled coordinates.
-        @param angle: Angle of the Startmove to end with.
-        @param pencolor: Used only for plotting purposes
-        @param shape: Shape for which the start move is created
-        @param parent: parent EntityContentClass on which the
-        geometries are added.
-        """
-        self.sc = 1
+    def __init__(self, shape):
         super(StMove, self).__init__()
 
-        self.startp = startp
-        self.endp = startp
-        self.angle = angle
         self.shape = shape
-        self.parent = parent
-        self.allwaysshow = False
+
+        self.start, self.angle = self.shape.get_start_end_points(True, True)
+        self.end = self.start
+
         self.geos = []
+
+        self.allwaysshow = False
         self.path = QtGui.QPainterPath()
 
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
 
-        self.pen = QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
-                      QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen = QtGui.QPen(QtGui.QColor(50, 100, 255), 1, QtCore.Qt.SolidLine,
+                              QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.pen.setCosmetic(True)
 
         self.make_start_moves()
-        self.createccarrow()
         self.make_papath()
 
     def append(self, geo):
@@ -101,32 +87,23 @@ class StMove(QtGui.QGraphicsLineItem):
         This function called to create the start move. It will
         be generated based on the given values for start and angle.
         """
-        del(self.geos[:])
+        self.geos = []
 
         if g.config.machine_type == 'drag_knife':
             self.make_swivelknife_move()
             return
-
-        # BaseEntitie created to add the StartMoves etc. This Entitie must not
-        # be offset or rotated etc.
-        BaseEntitie = EntityContent(nr= -1, name='BaseEntitie',
-                                          parent=None,
-                                          p0=Point(x=0.0, y=0.0),
-                                          pb=Point(x=0.0, y=0.0),
-                                          sca=[1, 1, 1],
-                                          rot=0.0)
-
-        self.parent = BaseEntitie
+        elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+            self.make_own_cutter_compensation()
+            return
 
         # Get the start rad. and the length of the line segment at begin.
         start_rad = self.shape.parentLayer.start_radius
-        start_ver = start_rad
 
         # Get tool radius based on tool diameter.
-        tool_rad = self.shape.parentLayer.tool_diameter/2
+        tool_rad = self.shape.parentLayer.getToolRadius()
 
         # Calculate the starting point with and without compensation.
-        start = self.startp
+        start = self.start
         angle = self.angle
 
         if self.shape.cut_cor == 40:
@@ -139,14 +116,14 @@ class StMove(QtGui.QGraphicsLineItem):
             # Start Point of the Radius
             Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Pa_ein.get_arc_point(angle + pi/2, start_ver)
+            Pg_ein = Pa_ein.get_arc_point(angle + pi/2, start_rad)
 
             # Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
-            self.append(start_ein)
+            self.append(RapidPos(start_ein))
 
             # generate the Start Line and append it including the compensation.
-            start_line = LineGeo(Pg_ein, Pa_ein)
+            start_line = LineGeo(start_ein, Pa_ein)
             self.append(start_line)
 
             # generate the start rad. and append it.
@@ -161,17 +138,17 @@ class StMove(QtGui.QGraphicsLineItem):
             # Start Point of the Radius
             Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Pa_ein.get_arc_point(angle - pi/2, start_ver)
+            Pg_ein = Pa_ein.get_arc_point(angle - pi/2, start_rad)
 
             # Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
-            self.append(start_ein)
+            self.append(RapidPos(start_ein))
 
-            # Generate the Start Line and append it including the compensation.
-            start_line = LineGeo(Pg_ein, Pa_ein)
+            # generate the Start Line and append it including the compensation.
+            start_line = LineGeo(start_ein, Pa_ein)
             self.append(start_line)
 
-            # Generate the start rad. and append it.
+            # generate the start rad. and append it.
             start_rad = ArcGeo(Ps=Pa_ein, Pe=start, O=Oein,
                                r=start_rad + tool_rad, direction=0)
             self.append(start_rad)
@@ -182,39 +159,36 @@ class StMove(QtGui.QGraphicsLineItem):
         @param offset: knife tip distance from tool centerline. The radius of the
         tool is used for this.
         """
-        offset = self.shape.LayerContent.tool_diameter/2
-        drag_angle = self.shape.dragAngle
+        offset = self.shape.parentLayer.getToolRadius()
+        drag_angle = self.shape.drag_angle
 
-        startnorm = offset*Point(1, 0, 0)  # TODO make knife direction a config setting
+        startnorm = offset*Point(1, 0)  # TODO make knife direction a config setting
         prvend, prvnorm = Point(), Point()
-        first = 1
-
-        # Use The same parent as for the shape
-        self.parent = self.shape.parent
+        first = True
 
         for geo in self.shape.geos:
-            if geo.type == 'LineGeo':
-                geo_b = deepcopy(geo)
+            if isinstance(geo, LineGeo):
+                geo_b = deepcopy(geo.abs_geo)
                 if first:
-                    first = 0
+                    first = False
                     prvend = geo_b.Ps + startnorm
                     prvnorm = startnorm
-                if geo_b.Ps != geo_b.Pe:  # TODO this "fix" should be done during import
-                    norm = offset * geo_b.Ps.unit_vector(geo_b.Pe)
-                    geo_b.Ps += norm
-                    geo_b.Pe += norm
-                    if not prvnorm == norm:
-                        swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=prvnorm.cross_product(norm).z)
-                        swivel.drag = drag_angle < abs(swivel.ext)
-                        self.append(swivel)
-                    self.append(geo_b)
+                norm = offset * (geo_b.Pe - geo_b.Ps).unit_vector()
+                geo_b.Ps += norm
+                geo_b.Pe += norm
+                if not prvnorm == norm:
+                    direction = prvnorm.to3D().cross_product(norm.to3D()).z
+                    swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=direction)
+                    swivel.drag = drag_angle < abs(swivel.ext)
+                    self.append(swivel)
+                self.append(geo_b)
 
-                    prvend = geo_b.Pe
-                    prvnorm = norm
-            elif geo.type == 'ArcGeo':
-                geo_b = deepcopy(geo)
+                prvend = geo_b.Pe
+                prvnorm = norm
+            elif isinstance(geo, ArcGeo):
+                geo_b = deepcopy(geo.abs_geo)
                 if first:
-                    first = 0
+                    first = False
                     prvend = geo_b.Ps + startnorm
                     prvnorm = startnorm
                 if geo_b.ext > 0.0:
@@ -234,7 +208,8 @@ class StMove(QtGui.QGraphicsLineItem):
                     geo_b.Pe = Point(geo_b.Pe.x-offset/(sqrt(1+(norme.y/norme.x)**2)),
                                      geo_b.Pe.y-(offset*norme.y/norme.x)/(sqrt(1+(norme.y/norme.x)**2)))
                 if prvnorm != norma:
-                    swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=prvnorm.cross_product(norma).z)
+                    direction = prvnorm.to3D().cross_product(norma.to3D()).z
+                    swivel = ArcGeo(Ps=prvend, Pe=geo_b.Ps, r=offset, direction=direction)
                     swivel.drag = drag_angle < abs(swivel.ext)
                     self.append(swivel)
                 prvend = geo_b.Pe
@@ -249,81 +224,111 @@ class StMove(QtGui.QGraphicsLineItem):
             # else:
             #     self.append(copy(geo))
         if not prvnorm == startnorm:
-            self.append(ArcGeo(Ps=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=prvnorm.cross_product(startnorm).z))
+            direction = prvnorm.to3D().cross_product(startnorm.to3D()).z
+            self.append(ArcGeo(Ps=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=direction))
 
-        self.insert(0, RapidPos(self.geos[0].Ps))
+        self.geos.insert(0, RapidPos(self.geos[0].Ps))
 
-    def updateCutCor(self, cutcor):
-        """
-        This function is called to update the Cutter Correction, and therefore
-        the start moves, if something has changed or it needs generated for
-        first time.
-        """
-        logger.debug("Updating CutterCorrection of Selected shape")
+    def make_own_cutter_compensation(self):
+        toolwidth = self.shape.parentLayer.getToolRadius()
 
-        self.cutcor = cutcor
-        self.make_start_moves()
+        geos = []
 
-    def updateCCplot(self):
-        """
-        This function is called to update the Cutter Correction plotting, and
-        therefore the start moves, if something has changed or it needs
-        generated for first time.
-        """
-        logger.debug("Updating CutterCorrection of Selected shape plotting")
+        direction = -1 if self.shape.cut_cor == 41 else 1
 
-        if not(self.ccarrow is None):
-            logger.debug("Removing ccarrow from scene")
-            self.ccarrow.hide()
-            logger.debug("Parent Item: %s" %self.ccarrow.parentItem())
-            del(self.ccarrow)
-            self.ccarrow = None
-
-        self.createccarrow()
-        self.make_papath()
-        self.update()
-
-    def createccarrow(self):
-        """
-        createccarrow()
-        """
-        length = 20
-        if self.shape.cut_cor == 40:
-            self.ccarrow = None
-        elif self.shape.cut_cor == 41:
-            self.ccarrow = Arrow(startp=self.startp,
-                          length=length,
-                          angle=self.angle+pi/2,
-                          color=QtGui.QColor(200, 200, 255),
-                          pencolor=QtGui.QColor(200, 100, 255))
-            self.ccarrow.setParentItem(self)
+        if self.shape.closed:
+            end, end_dir = self.shape.get_start_end_points(False, False)
+            end_proj = Point(direction * end_dir.y, -direction * end_dir.x)
+            prv_Pe = end + toolwidth * end_proj
         else:
-            self.ccarrow = Arrow(startp=self.startp,
-                          length=length,
-                          angle=self.angle-pi/2,
-                          color=QtGui.QColor(200, 200, 255),
-                          pencolor=QtGui.QColor(200, 100, 255))
-            self.ccarrow.setParentItem(self)
+            prv_Pe = None
+        for geo_nr, geo in enumerate(self.shape.geos):
+            start, start_dir = geo.get_start_end_points(True, False)
+            end, end_dir = geo.get_start_end_points(False, False)
+            start_proj = Point(direction * start_dir.y, -direction * start_dir.x)
+            end_proj = Point(direction * end_dir.y, -direction * end_dir.x)
+            Ps = start + toolwidth * start_proj
+            Pe = end + toolwidth * end_proj
+            if Ps == Pe:
+                continue
+            if prv_Pe:
+                r = geo.abs_geo.Ps.distance(Ps)
+                d = (prv_Pe - geo.abs_geo.Ps).to3D().cross_product((Ps - geo.abs_geo.Ps).to3D()).z
+                if direction * d > 0 and prv_Pe != Ps:
+                    geos.append(ArcGeo(Ps=prv_Pe, Pe=Ps, O=geo.abs_geo.Ps, r=r, direction=d))
+                    geos[-1].geo_nr = geo_nr
+                # else:
+                #     geos.append(LineGeo(Ps=prv_Pe, Pe=Ps))
+            if isinstance(geo, LineGeo):
+                geos.append(LineGeo(Ps, Pe))
+                geos[-1].geo_nr = geo_nr
+            elif isinstance(geo, ArcGeo):
+                O = geo.abs_geo.O
+                r = O.distance(Ps)
+                geos.append(ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=geo.abs_geo.ext))
+                geos[-1].geo_nr = geo_nr
+            # TODO other geos are not supported; disable them in gui for this option
+            # else:
+            #     geos.append(geo)
+            prv_Pe = Pe
 
-    def update_plot(self, startp, angle):
-        """
-        Method is called after update of the Shapes Startpoint
-        @param startp: The new startpoint
-        @param angle: the new Angle of the Startpoint
-        """
-        self.startp = startp
-        self.endp = startp
-        self.angle = angle
+        tot_length = 0
+        for geo in geos:
+            tot_length += geo.length
 
-        if self.shape.cut_cor == 40:
-            self.ccarrow = None
-        elif self.shape.cut_cor == 41:
-            self.ccarrow.updatepos(startp, angle=angle+pi/2)
-        else:
-            self.ccarrow.updatepos(startp, angle=angle-pi/2)
+        reorder_shape = False
+        for start_geo_nr in range(len(geos)):
+            geos_adj = deepcopy(geos[start_geo_nr:]) + deepcopy(geos[:start_geo_nr])
+            new_geos = []
+            i = 0
+            while i in range(len(geos_adj)):
+                geo = geos_adj[i]
+                intersections = []
+                for j in range(i+1, len(geos_adj)):
+                    intersection = Intersect.get_intersection_point(geos_adj[j], geos_adj[i])
+                    if intersection and intersection != geos_adj[i].Ps:
+                        intersections.append([j, intersection])
+                if len(intersections) > 0:
+                    intersection = intersections[-1]
+                    change_end_of_geo = True
+                    if i == 0 and intersection[0] >= len(geos_adj)//2:
+                        geo.update_start_end_points(True, intersection[1])
+                        geos_adj[intersection[0]].update_start_end_points(False, intersection[1])
+                        if len(intersections) > 1:
+                            intersection = intersections[-2]
+                        else:
+                            change_end_of_geo = False
+                            i += 1
+                    if change_end_of_geo:
+                        geo.update_start_end_points(False, intersection[1])
+                        i = intersection[0]
+                        geos_adj[i].update_start_end_points(True, intersection[1])
+                else:
+                    i += 1
+                new_geos.append(geo)
+                if new_geos[0].Ps == new_geos[-1].Pe:
+                    break
 
-        self.make_start_moves()
-        self.make_papath()
+            new_length = 0
+            for geo in new_geos:
+                new_length += geo.length
+
+            if new_length > tot_length * 0.5:  # TODO make the 50% a config setting
+                self.append(RapidPos(new_geos[0].Ps))
+                for geo in new_geos:
+                    if geo.Ps != geo.Pe:
+                        self.append(geo)
+                reorder_shape = True
+                break
+        if reorder_shape:
+            self.shape.geos = self.shape.geos[geos[start_geo_nr].geo_nr:] + self.shape.geos[:geos[start_geo_nr].geo_nr]
+
+    def make_path(self, drawHorLine, drawVerLine):
+        for geo in self.geos:
+            drawVerLine(geo.get_start_end_points(True), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
+            geo.make_path(self.shape, drawHorLine)
+        if len(self.geos) > 0:
+            drawVerLine(geo.get_start_end_points(False), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
 
     def make_papath(self):
         """
@@ -354,17 +359,6 @@ class StMove(QtGui.QGraphicsLineItem):
 
         self.update(self.boundingRect())
 
-    def reverseshape(self, startp, angle):
-        """
-        Method is called when the shape direction is changed and therefore the
-        arrow gets new Point and direction
-        @param startp: The new startpoint
-        @param angle: The new angle of the arrow
-        """
-        self.startp = startp
-        self.angle = angle
-        self.update_plot(startp, angle)
-
     def setallwaysshow(self, flag=False):
         """
         If the directions shall be allwaysshown the parameter will be set and
@@ -382,7 +376,10 @@ class StMove(QtGui.QGraphicsLineItem):
 
     def paint(self, painter, option, widget=None):
         """
-        Method for painting the arrow.
+        Method will be triggered with each paint event. Possible to give options
+        @param painter: Reference to std. painter
+        @param option: Possible options here
+        @param widget: The widget which is painted on.
         """
         painter.setPen(self.pen)
         painter.drawPath(self.path)

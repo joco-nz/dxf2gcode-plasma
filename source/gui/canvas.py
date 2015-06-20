@@ -580,10 +580,11 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         length = 20
         end, end_ang = shape.get_st_en_points(1)
         arrow = Arrow(startp=end,
-                      length=length, angle=end_ang,
+                      length=length,
+                      angle=end_ang,
                       color=QtGui.QColor(0, 245, 100),
                       pencolor=QtGui.QColor(0, 180, 50),
-                      dir=1)
+                      startarrow=False)
         arrow.hide()
         return arrow
 
@@ -593,11 +594,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         window when the shape is selected
         @param shape: The shape for which the Move shall be created.
         """
-        start, start_ang = shape.get_st_en_points(0)
-        stmove = StMove(start,
-                        start_ang,
-                        QtGui.QColor(50, 100, 255),
-                        shape,self.EntitiesRoot)
+        stmove = StMove(shape)
         stmove.hide()
         return stmove
 
@@ -780,13 +777,12 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         self.pen = pen
         self.update(self.boundingRect())
 
-    def paint(self, painter, option, _widget):
+    def paint(self, painter, option, widget):
         """
-        Method will be triggered with each paint event. Possible to give
-        options
+        Method will be triggered with each paint event. Possible to give options
         @param painter: Reference to std. painter
         @param option: Possible options here
-        @param _widget: The widget which is painted on.
+        @param widget: The widget which is painted on.
         """
         if self.isSelected() and not (self.isDisabled()):
             painter.setPen(self.sel_pen)

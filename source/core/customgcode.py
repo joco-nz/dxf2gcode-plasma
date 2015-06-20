@@ -23,7 +23,7 @@
 ############################################################################
 
 
-class CustomGCodeClass(object):
+class CustomGCode(object):
     """
     This class contains a "custom gcode" object. Custom GCode objects are part
     of a layer (layercontent.py) and are used to insert custom GCode into the
@@ -32,7 +32,7 @@ class CustomGCodeClass(object):
 
     @purpose: store user defined GCode
     """
-    def __init__(self, name, nr, gcode=None, parent=None):
+    def __init__(self, name, nr, gcode, parentLayer):
         """
         Standard method to initialize the class
         @param name: the name of the GCode, as defined in the config file
@@ -42,9 +42,9 @@ class CustomGCodeClass(object):
         self.name = name
         self.nr = nr
         self.gcode = gcode
-        self.LayerContent = parent
+        self.parentLayer = parentLayer
         self.disabled = False
-        self.send_to_TSP = False # Never optimize path for CustomGCode
+        self.send_to_TSP = False  # Never optimize path for CustomGCode
 
     def __str__(self):
         """
@@ -69,7 +69,7 @@ class CustomGCodeClass(object):
         """
         return self.disabled
 
-    def Write_GCode(self, PostPro=None):
+    def Write_GCode(self, PostPro):
         """
         This method returns the string to be exported for this custom gcode
         @param PostPro: this is the Postprocessor class including the methods to export

@@ -58,10 +58,9 @@ class BreakGeo(LineGeo):
                "\nPe:     %s" % self.Pe +\
                "\nheight: %0.5f" % self.height
 
-    def Write_GCode(self, parent=None, PostPro=None):
+    def Write_GCode(self, PostPro):
         """
         Writes the GCODE for a Break.
-        @param parent: This is the parent LayerContentClass
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to file.
         """
@@ -69,14 +68,14 @@ class BreakGeo(LineGeo):
         oldFeed = PostPro.feed
         if self.height <= oldZ:
             return (
-                LineGeo.Write_GCode(self, parent, PostPro)
+                LineGeo.Write_GCode(self, PostPro)
             )
         else:
             return (
                 PostPro.chg_feed_rate(self.zfeed) +
                 PostPro.lin_pol_z(self.height) +
                 PostPro.chg_feed_rate(self.xyfeed) +
-                LineGeo.Write_GCode(self, parent, PostPro) +
+                LineGeo.Write_GCode(self, PostPro) +
                 PostPro.chg_feed_rate(self.zfeed) +
                 PostPro.lin_pol_z(oldZ) +
                 PostPro.chg_feed_rate(oldFeed)

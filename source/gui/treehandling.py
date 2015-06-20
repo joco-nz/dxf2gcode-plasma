@@ -47,7 +47,7 @@ import globals.globals as g
 
 from core.shape import Shape
 from core.entitycontent import EntityContent
-from core.customgcode import CustomGCodeClass
+from core.customgcode import CustomGCode
 from gui.treeview import MyStandardItemModel
 
 try:
@@ -1513,7 +1513,7 @@ class TreeHandler(QtGui.QWidget):
                 real_item_parent = current_item_parent.data(LAYER_OBJECT).toPyObject()
 
                 #creates a new CustomGCode instance
-                custom_gcode = CustomGCodeClass(action_name, len(real_item_parent.shapes), g_code, real_item_parent)
+                custom_gcode = CustomGCode(action_name, len(real_item_parent.shapes), g_code, real_item_parent)
 
                 #insert this new item at the end of the physical list
                 real_item_parent.shapes.append(custom_gcode)

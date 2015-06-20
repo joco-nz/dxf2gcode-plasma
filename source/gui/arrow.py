@@ -41,10 +41,10 @@ logger = logging.getLogger("Gui.Arrow")
 
 
 class Arrow(QtGui.QGraphicsLineItem):
-    def __init__(self, startp=Point(x=0.0, y=0.0), endp=None,
+    def __init__(self, startp=Point(), endp=None,
                  length=60.0, angle=50.0,
                  color=QtCore.Qt.red, pencolor=QtCore.Qt.green,
-                 dir=0):
+                 startarrow=True):
         """
         Initialisation of the class.
         """
@@ -56,7 +56,7 @@ class Arrow(QtGui.QGraphicsLineItem):
 
         self.length = length
         self.angle = angle
-        self.dir = dir
+        self.startarrow = startarrow
         self.allwaysshow = False
 
         self.arrowHead = QtGui.QPolygonF()
@@ -135,7 +135,7 @@ class Arrow(QtGui.QGraphicsLineItem):
             dx = cos(self.angle) * self.length / self.sc
             dy = sin(self.angle) * self.length / self.sc
 
-            endp = QtCore.QPointF(self.startp.x() + dx, self.startp.y() - dy)
+            endp = QtCore.QPointF(self.startp.x() - dx, self.startp.y() + dy)
         else:
             endp = QtCore.QPointF(self.endp.x, -self.endp.y)
 
@@ -153,22 +153,22 @@ class Arrow(QtGui.QGraphicsLineItem):
             if line.dy() >= 0:
                 angle = (pi * 2.0) - angle
 
-            if self.dir == 0:
-                arrowP1 = line.p1() + QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
-                                                     cos(angle + pi / 3.0) * arrowSize)
-                arrowP2 = line.p1() + QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
-                                                     cos(angle + pi - pi / 3.0) * arrowSize)
-                self.arrowHead.clear()
-                for Point in [line.p1(), arrowP1, arrowP2]:
-                    self.arrowHead.append(Point)
-
-            else:
+            if self.startarrow:
                 arrowP1 = line.p2() - QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
                                                      cos(angle + pi / 3.0) * arrowSize)
                 arrowP2 = line.p2() - QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
                                                      cos(angle + pi - pi / 3.0) * arrowSize)
                 self.arrowHead.clear()
                 for Point in [line.p2(), arrowP1, arrowP2]:
+                    self.arrowHead.append(Point)
+
+            else:
+                arrowP1 = line.p1() + QtCore.QPointF(sin(angle + pi / 3.0) * arrowSize,
+                                                     cos(angle + pi / 3.0) * arrowSize)
+                arrowP2 = line.p1() + QtCore.QPointF(sin(angle + pi - pi / 3.0) * arrowSize,
+                                                     cos(angle + pi - pi / 3.0) * arrowSize)
+                self.arrowHead.clear()
+                for Point in [line.p1(), arrowP1, arrowP2]:
                     self.arrowHead.append(Point)
 
             painter.drawLine(line)
