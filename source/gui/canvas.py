@@ -536,10 +536,9 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         FIXME
         """
         for shape in shapes:
-            object = ShapeGUI(shape)
-            self.shapes.append(object)
-            self.addItem(object)
-            self.plot_shape(object)
+            self.shapes.append(shape)
+            self.addItem(shape)
+            self.plot_shape(shape)
         logger.debug(self.tr("Update GrapicsScene"))
 
     def plot_shape(self, shape):
@@ -712,10 +711,10 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             elif not flag and shape.isDisabled():
                 shape.hide()
 
-class ShapeGUI(QtGui.QGraphicsItem):
-    def __init__(self, shape):
+class ShapeGUI(QtGui.QGraphicsItem, Shape):
+    def __init__(self, nr, closed, parentEntity):
         QtGui.QGraphicsItem.__init__(self)
-        self.shape = shape
+        Shape.__init__(self, nr, closed, parentEntity)
 
         self.pen = QtGui.QPen(QtCore.Qt.black)
         self.left_pen = QtGui.QPen(QtCore.Qt.darkCyan)
@@ -730,7 +729,6 @@ class ShapeGUI(QtGui.QGraphicsItem):
         self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
-        self.type = "Shape"
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
 
@@ -753,10 +751,10 @@ class ShapeGUI(QtGui.QGraphicsItem):
         return min_distance
 
     def __str__(self):
-        return self.shape.__str__()
+        return super(ShapeGUI, self).__str__()
 
     def tr(self, string_to_translate):
-        return self.shape.tr(string_to_translate)
+        return super(ShapeGUI, self).tr(string_to_translate)
 
     def setSelectionChangedCallback(self, callback):
         """
@@ -793,9 +791,9 @@ class ShapeGUI(QtGui.QGraphicsItem):
         if self.isSelected() and not (self.isDisabled()):
             painter.setPen(self.sel_pen)
         elif not (self.isDisabled()):
-            if self.shape.cut_cor == 41:
+            if self.cut_cor == 41:
                 painter.setPen(self.left_pen)
-            elif self.shape.cut_cor == 42:
+            elif self.cut_cor == 42:
                 painter.setPen(self.right_pen)
             else:
                 painter.setPen(self.pen)
@@ -845,7 +843,7 @@ class ShapeGUI(QtGui.QGraphicsItem):
         self.enarrow.setSelected(flag)
         self.stmove.setSelected(flag)
 
-        super(Shape, self).setSelected(flag)
+        super(ShapeGUI, self).setSelected(flag)
 
         if self.selectionChangedCallback and not blockSignals:
             self.selectionChangedCallback(self, flag)
@@ -873,29 +871,8 @@ class ShapeGUI(QtGui.QGraphicsItem):
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)
 
-    def isDisabled(self):
-        """
-        Returns the state of self.Disabled
-        """
-        return self.shape.disabled
-
-    def setToolPathOptimized(self, flag=False):
-        """
-        @param flag: The flag to enable or disable tool path optimisation for this shape
-        """
-        self.shpe.send_to_TSP = flag
-
-    def isToolPathOptimized(self):
-        """
-        Returns the state of self.send_to_TSP
-        """
-        return self.shape.send_to_TSP
-
     def FindNearestStPoint(self, StPoint=Point()):
-        self.shape.setNearestStPoint(StPoint)
-
-    def reverse(self):
-        self.shape.reverse()
+        self.setNearestStPoint(StPoint)
 
     def reverseGUI(self):
         """
@@ -917,15 +894,15 @@ class ShapeGUI(QtGui.QGraphicsItem):
         G41 = Tool radius compensation left.
         G42 = Tool radius compensation right
         """
-        if self.shape.cut_cor == 41:
-            self.shape.cut_cor = 42
-        elif self.shape.cut_cor == 42:
-            self.shape.cut_cor = 41
+        if self.cut_cor == 41:
+            self.cut_cor = 42
+        elif self.cut_cor == 42:
+            self.cut_cor = 41
 
         self.updateCutCor()
 
     def get_st_en_points(self, dir=None):
-        return self.shape.get_start_end_points(not dir, True)
+        return self.get_start_end_points(not dir, True)
 
     def drawHorLine(self, start, end):
         self.path.lineTo(end.x, -end.y)
@@ -940,9 +917,9 @@ class ShapeGUI(QtGui.QGraphicsItem):
 
         self.path.moveTo(start.x, -start.y)
 
-        logger.debug(self.tr("Adding shape to Scene Nr: %i") % self.shape.nr)
+        logger.debug(self.tr("Adding shape to Scene Nr: %i") % self.nr)
 
-        for geo in self.shape.geos:
+        for geo in self.geos:
             geo.make_path(self.shape, self.drawHorLine)
 
     def update_plot(self):
@@ -976,9 +953,3 @@ class ShapeGUI(QtGui.QGraphicsItem):
         first time.
         """
         self.stmove.updateCCplot()
-
-    def Write_GCode(self, LayerContent=None, PostPro=None):
-        return self.shape.Write_GCode(PostPro)
-
-    def Write_GCode_Drag_Knife(self, LayerContent=None, PostPro=None):
-        return self.shape.Write_GCode_Drag_Knife(PostPro)

@@ -49,8 +49,7 @@ class Shape(object):
     The Shape Class includes all plotting, GUI functionality and export functions
     related to the Shapes.
     """
-    def __init__(self, nr, closed,
-                 parentEntity):
+    def __init__(self, nr, closed, parentEntity):
         self.type = "Shape"
         self.nr = nr
         self.closed = closed

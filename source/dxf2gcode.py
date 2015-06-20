@@ -57,7 +57,8 @@ from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
 import globals.globals as g
 import globals.constants as c
-from core.shape import Shape
+from gui.canvas import ShapeGUI as Shape
+#from core.shape import Shape
 
 from postpro.postprocessor import MyPostProcessor
 from postpro.breaks import Breaks

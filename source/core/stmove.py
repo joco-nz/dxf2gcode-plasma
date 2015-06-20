@@ -119,17 +119,17 @@ class StMove(QtGui.QGraphicsLineItem):
         self.parent = BaseEntitie
 
         # Get the start rad. and the length of the line segment at begin.
-        start_rad = self.shape.shape.parentLayer.start_radius
+        start_rad = self.shape.parentLayer.start_radius
         start_ver = start_rad
 
         # Get tool radius based on tool diameter.
-        tool_rad = self.shape.shape.parentLayer.tool_diameter/2
+        tool_rad = self.shape.parentLayer.tool_diameter/2
 
         # Calculate the starting point with and without compensation.
         start = self.startp
         angle = self.angle
 
-        if self.shape.shape.cut_cor == 40:
+        if self.shape.cut_cor == 40:
             self.append(RapidPos(start))
 
         # Cutting Compensation Left
@@ -288,7 +288,7 @@ class StMove(QtGui.QGraphicsLineItem):
         createccarrow()
         """
         length = 20
-        if self.shape.shape.cut_cor == 40:
+        if self.shape.cut_cor == 40:
             self.ccarrow = None
         elif self.shape.cut_cor == 41:
             self.ccarrow = Arrow(startp=self.startp,
@@ -337,7 +337,7 @@ class StMove(QtGui.QGraphicsLineItem):
 
         drawHorLine = lambda st, en, z: self.path.lineTo(en.x, -en.y)
         for geo in self.geos:
-            geo.make_path(self.shape.shape, drawHorLine)
+            geo.make_path(self.shape, drawHorLine)
         self.show()
 
     def setSelected(self, flag=True):
