@@ -434,7 +434,7 @@ class Ui_MainWindow(object):
         self.MyGraphicsView.setContextMenuPolicy(QtCore.Qt.DefaultContextMenu)
         self.MyGraphicsView.setObjectName(_fromUtf8("MyGraphicsView"))
         self.verticalLayout.addWidget(self.splitter)
-        self.myMessageBox = myMessageBox(self.centralwidget)
+        self.myMessageBox = MessageBox(self.centralwidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Maximum)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -654,7 +654,7 @@ class Ui_MainWindow(object):
         self.actionDrag_Knife.setText(_translate("MainWindow", "Drag Knife", None))
         self.actionLathe.setText(_translate("MainWindow", "Lathe", None))
 
-from Gui.myCanvasClass import MyGraphicsView
-from Gui.myTreeView import MyTreeView
-from Gui.myMessageBox import myMessageBox
+from gui.canvas import MyGraphicsView
+from gui.treeview import MyTreeView
+from gui.messagebox import MessageBox
 import dxf2gcode_images_rc

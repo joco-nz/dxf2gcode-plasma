@@ -35,7 +35,7 @@ from math import degrees, radians
 
 import logging
 logger = logging.getLogger()
-from Core.Logger import LoggerClass
+from globals.logger import LoggerClass
 
 from copy import copy, deepcopy
 
@@ -49,27 +49,27 @@ from PyQt4 import QtGui, QtCore
 from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
 
 
-from Core.Config import MyConfig
-from Core.Point import Point
-from Core.LayerContent import LayerContent, Layers, Shapes
-from Core.EntityContent import EntityContent
-from Core.LineGeo import LineGeo
-from Core.HoleGeo import HoleGeo
-import Global.Globals as g
-import Core.constants as c
-from Core.Shape import Shape
+from globals.config import MyConfig
+from core.point import Point
+from core.layercontent import LayerContent, Layers, Shapes
+from core.entitycontent import EntityContent
+from core.linegeo import LineGeo
+from core.holegeo import HoleGeo
+import globals.globals as g
+import globals.constants as c
+from core.shape import Shape
 
-from PostPro.PostProcessor import MyPostProcessor
-from PostPro.Breaks import Breaks
+from postpro.postprocessor import MyPostProcessor
+from postpro.breaks import Breaks
 
-from DxfImport.Import import ReadDXF
+from dxfimport.importer import ReadDXF
 
-from Gui.myCanvasClass import MyGraphicsScene
-from Gui.TreeHandling import TreeHandler
-from Gui.Dialog import myDialog
-from Gui.AboutDialog import myAboutDialog
+from gui.canvas import MyGraphicsScene
+from gui.treehandling import TreeHandler
+from gui.popupdialog import PopUpDialog
+from gui.aboutdialog import AboutDialog
 
-from PostPro.TspOptimisation import TSPoptimize
+from postpro.tspoptimisation import TSPoptimize
 
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
@@ -100,7 +100,7 @@ class Main(QtGui.QMainWindow):
 
         self.MyGraphicsView = self.ui.MyGraphicsView
 
-        self.myMessageBox = self.ui.myMessageBox
+        self.MessageBox = self.ui.myMessageBox
 
         self.MyPostProcessor = MyPostProcessor()
 
@@ -516,7 +516,7 @@ class Main(QtGui.QMainWindow):
                 "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"\
                 "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
 
-        myAboutDialog(title = "About DXF2GCODE", message = message)
+        AboutDialog(title = "About DXF2GCODE", message = message)
 
     def setShow_wp_zero(self):
         """
@@ -570,7 +570,7 @@ class Main(QtGui.QMainWindow):
                g.config.fitting_tolerance)
 
         logger.debug(self.tr("set Tolerances"))
-        SetTolDialog = myDialog(title, label, value)
+        SetTolDialog = PopUpDialog(title, label, value)
 
         if SetTolDialog.result == None:
             return
@@ -588,7 +588,7 @@ class Main(QtGui.QMainWindow):
         title = self.tr('Scale Contour')
         label = [self.tr("Scale Contour by factor:")]
         value = [self.cont_scale]
-        ScaEntDialog = myDialog(title, label, value)
+        ScaEntDialog = PopUpDialog(title, label, value)
 
         if ScaEntDialog.result == None:
             return
@@ -606,7 +606,7 @@ class Main(QtGui.QMainWindow):
         title = self.tr('Rotate Contour')
         label = [self.tr("Rotate Contour by deg:")]
         value = [degrees(self.rotate)]
-        RotEntDialog = myDialog(title, label, value)
+        RotEntDialog = PopUpDialog(title, label, value)
 
         if RotEntDialog.result == None:
             return
@@ -625,7 +625,7 @@ class Main(QtGui.QMainWindow):
         label = ((self.tr("Offset %s axis by mm:") % g.config.vars.Axis_letters['ax1_letter']), \
                (self.tr("Offset %s axis by mm:") % g.config.vars.Axis_letters['ax2_letter']))
         value = (self.cont_dx, self.cont_dy)
-        MoveWpzDialog = myDialog(title, label, value, True)
+        MoveWpzDialog = PopUpDialog(title, label, value, True)
 
         if MoveWpzDialog.result == None:
             return
@@ -1011,10 +1011,7 @@ if __name__ == "__main__":
     g.window = window
 
     #shall be sent to. This Class needs a function "def write(self, charstr)
-    Log.add_window_logger(window.myMessageBox)
-
-
-
+    Log.add_window_logger(window.MessageBox)
 
     parser = argparse.ArgumentParser()
 
