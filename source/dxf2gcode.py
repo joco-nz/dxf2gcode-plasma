@@ -46,7 +46,7 @@ import argparse
 from PyQt4 import QtGui, QtCore
 
 # Import the compiled UI module
-from dxf2gcode_pyQt4_ui.dxf2gcode_pyQt4_ui import Ui_MainWindow
+from dxf2gcode_ui import Ui_MainWindow
 
 
 from globals.config import MyConfig
@@ -61,7 +61,6 @@ from gui.canvas import ShapeGUI as Shape
 #from core.shape import Shape
 
 from postpro.postprocessor import MyPostProcessor
-from postpro.breaks import Breaks
 
 from dxfimport.importer import ReadDXF
 
@@ -70,7 +69,7 @@ from gui.treehandling import TreeHandler
 from gui.popupdialog import PopUpDialog
 from gui.aboutdialog import AboutDialog
 
-from postpro.tspoptimisation import TSPoptimize
+from postpro.tspoptimisation import TspOptimization
 
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
@@ -78,7 +77,7 @@ if os.path.islink(sys.argv[0]):
     g.folder = os.path.dirname(os.readlink(sys.argv[0]))
 
 # Create a class for our main window
-class Main(QtGui.QMainWindow):
+class MainWindow(QtGui.QMainWindow):
     """Main Class"""
 
     def __init__(self, app):
@@ -87,56 +86,38 @@ class Main(QtGui.QMainWindow):
         Logger has been initialized. The Function loads the GUI, creates the
         used Classes and connects the actions to the GUI.
         """
-
         QtGui.QMainWindow.__init__(self)
 
-        # This is always the same
         self.app = app
 
         self.ui = Ui_MainWindow()
 
         self.ui.setupUi(self)
 
-        self.createActions()
-
-        self.MyGraphicsView = self.ui.MyGraphicsView
-
-        self.MessageBox = self.ui.myMessageBox
-
-        self.MyPostProcessor = MyPostProcessor()
+        self.Canvas = self.ui.canvas
 
         self.TreeHandler = TreeHandler(self.ui)
 
+        self.MyPostProcessor = MyPostProcessor()
+
+        self.createActions()
+        self.connectToolbarToConfig()
+
+        self.filename = ""
+
         self.shapes = Shapes([])
+        self.entityRoot = None
         self.layerContents = Layers([])
-        self.entityRoot = []
 
-        self.filename = "" #loaded file name
-
-        QtCore.QObject.connect(self.TreeHandler,
-                               QtCore.SIGNAL("exportOrderUpdated"),
-                               self.updateExportRoute)
-
-        if g.config.vars.General['show_disabled_paths']:
-            self.ui.actionShow_disabled_paths.setChecked(True)
-
-        if g.config.vars.General['live_update_export_route']:
-            self.ui.actionLive_update_export_route.setChecked(True)
-
-        if g.config.vars.General['default_SplitEdges']:
-            self.ui.actionSplit_Edges.setChecked(True)
-
-        if g.config.vars.General['default_AutomaticCutterCompensation']:
-            self.ui.actionAutomatic_Cutter_Compensation.setChecked(True)
-
-        self.updateMachineType()
-
-        self.readSettings()
+        self.cont_dx = 0.0
+        self.cont_dy = 0.0
+        self.cont_rotate = 0.0
+        self.cont_scale = 1.0
 
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
+        @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
         return unicode(QtCore.QCoreApplication.translate('Main',
@@ -149,33 +130,51 @@ class Main(QtGui.QMainWindow):
         @purpose: Links the callbacks to the actions in the menu
         """
 
-        self.ui.actionLoad_File.triggered.connect(self.showDialog)
-        self.ui.actionReload_File.triggered.connect(self.reloadFile)
+        # File
+        self.ui.actionOpen.triggered.connect(self.open)
+        self.ui.actionReload.triggered.connect(self.reload)
+        self.ui.actionClose.triggered.connect(self.close)
 
-        self.ui.actionExit.triggered.connect(self.close)
+        # Export
+        self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
+        self.ui.actionExportShapes.triggered.connect(self.exportShapes)
+        self.ui.actionOptimizeAndExportShapes.triggered.connect(self.optimizeAndExportShapes)
 
-        self.ui.actionOptimize_Shape.triggered.connect(self.optimize_TSP)
-        self.ui.actionExport_Shapes.triggered.connect(self.exportShapes)
-        self.ui.actionOptimize_and_Export_shapes.triggered.connect(self.optimizeAndExportShapes)
+        # View
+        self.ui.actionShowDisabledPaths.triggered.connect(self.setShowDisabledPaths)
+        self.ui.actionLiveUpdateExportRoute.triggered.connect(self.liveUpdateExportRoute)
+        self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
+        self.ui.actionAutoscale.triggered.connect(self.Canvas.autoscale)
+        #self.ui.actionTopView.triggered.connect(self.Canvas.topView)
+        #self.ui.actionIsometricView.triggered.connect(self.Canvas.isometricView)
 
-        self.ui.actionShow_WP_Zero.triggered.connect(self.setShow_wp_zero)
-        self.ui.actionShow_path_directions.triggered.connect(self.setShow_path_directions)
-        self.ui.actionShow_disabled_paths.triggered.connect(self.setShow_disabled_paths)
-        self.ui.actionLive_update_export_route.toggled.connect(self.setUpdate_export_route)
-        self.ui.actionAutoscale.triggered.connect(self.autoscale)
-        self.ui.actionDelete_G0_paths.triggered.connect(self.deleteG0paths)
-
+        # Options
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
-        self.ui.actionRotate_all.triggered.connect(self.CallRotateAll)
-        self.ui.actionScale_all.triggered.connect(self.CallScaleAll)
-        self.ui.actionMove_WP_zero.triggered.connect(self.CallMoveWpZero)
-        self.ui.actionSplit_Edges.triggered.connect(self.reloadFile)
-        self.ui.actionAutomatic_Cutter_Compensation.triggered.connect(self.reloadFile)
+        self.ui.actionRotateAll.triggered.connect(self.rotateAll)
+        self.ui.actionScaleAll.triggered.connect(self.scaleAll)
+        self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
+        self.ui.actionSplitLineSegments.triggered.connect(self.reload)  # TODO no need to redo the importing
+        self.ui.actionAutomaticCutterCompensation.triggered.connect(self.reload)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
-        self.ui.actionDrag_Knife.triggered.connect(self.setMachineTypeToDragKnife)
+        self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
 
+        # Help
         self.ui.actionAbout.triggered.connect(self.about)
+
+    def connectToolbarToConfig(self):
+        # View
+        if g.config.vars.General['show_disabled_paths']:
+            self.ui.actionShowDisabledPaths.setChecked(True)
+        if g.config.vars.General['live_update_export_route']:
+            self.ui.actionLiveUpdateExportRoute.setChecked(True)
+
+        # Options
+        if g.config.vars.General['split_line_segments']:
+            self.ui.actionSplitLineSegments.setChecked(True)
+        if g.config.vars.General['automatic_cutter_compensation']:
+            self.ui.actionAutomaticCutterCompensation.setChecked(True)
+        self.updateMachineType()
 
     def keyPressEvent(self, event):
         """
@@ -185,10 +184,10 @@ class Main(QtGui.QMainWindow):
         """
         if event.isAutoRepeat():
             return
-        if (event.key() == QtCore.Qt.Key_Shift):
-            self.MyGraphicsView.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
-        elif (event.key() == QtCore.Qt.Key_Control):
-            self.MyGraphicsView.selmode = 1
+        if event.key() == QtCore.Qt.Key_Control:
+            self.Canvas.selmode = 1
+        elif event.key() == QtCore.Qt.Key_Shift:
+            self.Canvas.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
 
     def keyReleaseEvent (self, event):
         """
@@ -196,174 +195,43 @@ class Main(QtGui.QMainWindow):
         @purpose: Changes to RubberBandDrag while Control released
         @param event:    Event Parameters passed to function
         """
-        if (event.key() == QtCore.Qt.Key_Shift):
-            self.MyGraphicsView.setDragMode(QtGui.QGraphicsView.NoDrag)
-            #self.setDragMode(QtGui.QGraphicsView.RubberBandDrag )
-        elif (event.key() == QtCore.Qt.Key_Control):
-            self.MyGraphicsView.selmode = 0
+        if event.key() == QtCore.Qt.Key_Shift:
+            self.Canvas.setDragMode(QtGui.QGraphicsView.NoDrag)
+        elif event.key() == QtCore.Qt.Key_Control:
+            self.Canvas.selmode = 0
 
-    def enableplotmenu(self, status = True):
-        """
-        Enable the Toolbar buttons.
-        @param status: Set True to enable, False to disable
-        """
+    def enableToolbarButtons(self, status=True):
+        # File
+        self.ui.actionReload.setEnabled(status)
 
-        self.ui.actionShow_WP_Zero.setEnabled(status)
-        self.ui.actionShow_path_directions.setEnabled(status)
-        self.ui.actionShow_disabled_paths.setEnabled(status)
-        self.ui.actionLive_update_export_route.setEnabled(status)
+        # Export
+        self.ui.actionOptimizePaths.setEnabled(status)
+        self.ui.actionExportShapes.setEnabled(status)
+        self.ui.actionOptimizeAndExportShapes.setEnabled(status)
+
+        # View
+        self.ui.actionShowDisabledPaths.setEnabled(status)
+        self.ui.actionLiveUpdateExportRoute.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
+        self.ui.actionTopView.setEnabled(status)
+        self.ui.actionIsometricView.setEnabled(status)
 
-        self.ui.actionScale_all.setEnabled(status)
-        self.ui.actionRotate_all.setEnabled(status)
-        self.ui.actionMove_WP_zero.setEnabled(status)
+        # Options
+        self.ui.actionTolerances.setEnabled(status)
+        self.ui.actionRotateAll.setEnabled(status)
+        self.ui.actionScaleAll.setEnabled(status)
+        self.ui.actionMoveWorkpieceZero.setEnabled(status)
 
-    def showDialog(self):
-        """
-        This function is called by the menu "File/Load File" of the main toolbar.
-        It creates the file selection dialog and calls the loadFile function to
-        load the selected file.
-        """
-
-        self.filename = QtGui.QFileDialog.getOpenFileName(self,
-                    self.tr("Open file"),
-                    g.config.vars.Paths['import_dir'], self.tr(\
-                    "All supported files (*.dxf *.ps *.pdf);;" \
-                    "DXF files (*.dxf);;"\
-                    "PS files (*.ps);;"\
-                    "PDF files (*.pdf);;"\
-                    "all files (*.*)"))
-
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-
-        #If there is something to load then call the load function callback
-        if not(self.filename == ""):
-            logger.info(self.tr("File: %s selected") % self.filename)
-            self.setWindowTitle(self.tr("DXF2GCODE - [%s]") % self.filename)
-            #Initialize the scale, rotate and move coordinates
-            self.cont_scale = 1.0
-            self.cont_dx = 0.0
-            self.cont_dy = 0.0
-            self.rotate = 0.0
-            self.filename = unicode(self.filename.toUtf8(), encoding="UTF-8")
-
-            self.loadFile(self.filename)
-
-        QtGui.QApplication.restoreOverrideCursor()
-
-    def reloadFile(self):
-        """
-        This function is called by the menu "File/Reload File" of the main toolbar.
-        It reloads the previously loaded file (if any)
-        """
-
-        logger.info(self.tr("Reloading file: %s") % self.filename)
-
-        #If there is something to load then call the load function callback
-        if not(self.filename == ""):
-            self.loadFile(self.filename)
-
-    def optimize_TSP(self):
-        """
-        Method is called to optimize the order of the shapes. This is performed
-        by solving the TSP Problem.
-        """
-
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-
-        logger.debug(self.tr('Optimize order of enabled shapes per layer'))
-        self.MyGraphicsScene.resetexproutes()
-
-        #Get the export order from the QTreeView
-        logger.debug(self.tr('Updating order according to TreeView'))
-        self.TreeHandler.updateExportOrder()
-        self.MyGraphicsScene.addexproutest()
-
-        for LayerContent in self.layerContents:
-
-            #Initial values for the Lists to export.
-            self.shapes_to_write = []
-            self.shapes_fixed_order = []
-            shapes_st_en_points = []
-
-            #Check all shapes of Layer which shall be exported and create List
-            #for it.
-            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
-                                 % (len(LayerContent.shapes),
-                                 len(LayerContent.exp_order)))
-            logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
-
-            for shape_nr in range(len(LayerContent.exp_order)):
-                if not(self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP):
-                    self.shapes_fixed_order.append(shape_nr)
-
-                self.shapes_to_write.append(shape_nr)
-                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_st_en_points())
-
-            #Perform Export only if the Number of shapes to export is bigger than 0
-            if len(self.shapes_to_write)>0:
-                        #Errechnen der Iterationen
-                        #Calculate the iterations
-                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'],
-                         len(self.shapes_to_write)*50)
-
-                #Adding the Start and End Points to the List.
-                x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
-                y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
-                start = Point(x = x_st, y = y_st)
-                ende = Point(x = x_st, y = y_st)
-                shapes_st_en_points.append([start, ende])
-
-                TSPs = []
-                TSPs.append(TSPoptimize(st_end_points = shapes_st_en_points,
-                                        order = self.shapes_fixed_order))
-                logger.info(self.tr("TSP start values initialised for Layer %s")
-                                    % LayerContent.LayerName)
-                logger.debug(self.tr("Shapes to write: %s")
-                                     % self.shapes_to_write)
-                logger.debug(self.tr("Fixed order: %s")
-                                     % self.shapes_fixed_order)
-
-                for it_nr in range(iter_):
-                    #Only show each 50th step.
-                    if (it_nr % 50) == 0:
-                        TSPs[-1].calc_next_iteration()
-                        new_exp_order = []
-                        for nr in TSPs[-1].opt_route[1:len(TSPs[-1].opt_route)]:
-                            new_exp_order.append(LayerContent.exp_order[nr])
-
-                logger.debug(self.tr("TSP done with result: %s") % TSPs[-1])
-
-                LayerContent.exp_order = new_exp_order
-
-                self.MyGraphicsScene.addexproute(LayerContent.exp_order,
-                                                 LayerContent.LayerNr)
-                logger.debug(self.tr("New Export Order after TSP: %s")
-                                     % new_exp_order)
-                self.app.processEvents()
-            else:
-                LayerContent.exp_order = []
-
-        if LayerContent:
-            self.ui.actionDelete_G0_paths.setEnabled(True)
-            self.MyGraphicsScene.addexprouteen()
-
-        #Update order in the treeView, according to path calculation done by the TSP
-        self.TreeHandler.updateTreeViewOrder()
-
-        QtGui.QApplication.restoreOverrideCursor()
-
-
-    def deleteG0paths(self):
+    def deleteG0Paths(self):
         """
         Deletes the optimisation paths from the scene.
         """
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
 
-        self.MyGraphicsScene.delete_opt_path()
-        self.ui.actionDelete_G0_paths.setEnabled(False)
+        self.MyGraphicsScene.delete_opt_paths()
+        self.ui.actionDeleteG0Paths.setEnabled(False)
 
-        QtGui.QApplication.restoreOverrideCursor()
+        self.Canvas.unsetCursor()
 
     def exportShapes(self, status=False, saveas=None):
         """
@@ -372,34 +240,31 @@ class Main(QtGui.QMainWindow):
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
-
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
 
         logger.debug(self.tr('Export the enabled shapes'))
 
-        #Get the export order from the QTreeView
+        # Get the export order from the QTreeView
         self.TreeHandler.updateExportOrder()
         self.updateExportRoute()
 
         logger.debug(self.tr("Sorted layers:"))
-        for i, layer in enumerate(self.layerContents):
+        for i, layer in enumerate(self.layerContents.non_break_layer_iter()):
             logger.debug("LayerContents[%i] = %s" % (i, layer))
 
         if not(g.config.vars.General['write_to_stdout']):
 
-            #Get the name of the File to export
-            if saveas == None:
+            # Get the name of the File to export
+            if not saveas:
                 filename = self.showSaveDialog()
                 self.save_filename = str(filename[0].toUtf8()).decode("utf-8")
             else:
                 filename = [None, None]
                 self.save_filename = saveas
 
-            #If Cancel was pressed
+            # If Cancel was pressed
             if not self.save_filename:
-
-                QtGui.QApplication.restoreOverrideCursor()
-
+                self.Canvas.unsetCursor()
                 return
 
             (beg, ende) = os.path.split(self.save_filename)
@@ -418,7 +283,7 @@ class Main(QtGui.QMainWindow):
 
             self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
-            self.save_filename = None
+            self.save_filename = ""
             self.MyPostProcessor.getPostProVars(0)
 
         """
@@ -426,11 +291,11 @@ class Main(QtGui.QMainWindow):
         is given in this variable too.
         """
 
-        self.MyPostProcessor.exportShapes(self.load_filename,
+        self.MyPostProcessor.exportShapes(self.filename,
                                           self.save_filename,
                                           self.layerContents)
 
-        QtGui.QApplication.restoreOverrideCursor()
+        self.Canvas.unsetCursor()
 
         if g.config.vars.General['write_to_stdout']:
             self.close()
@@ -439,23 +304,125 @@ class Main(QtGui.QMainWindow):
         """
         Optimize the tool path, then export the shapes
         """
-        self.optimize_TSP()
+        self.optimizeTSP()
         self.exportShapes()
 
     def updateExportRoute(self):
         """
         Update the drawing of the export route
         """
-        self.MyGraphicsScene.resetexproutes()
+        self.Canvas.delete_opt_paths()
 
-        self.MyGraphicsScene.addexproutest()
-        for LayerContent in self.layerContents:
+        self.Canvas.addexproutest()
+        for LayerContent in self.layerContents.non_break_layer_iter():
             if len(LayerContent.exp_order) > 0:
-                self.MyGraphicsScene.addexproute(LayerContent.exp_order, LayerContent.LayerNr)
-        if LayerContent:
-            self.ui.actionDelete_G0_paths.setEnabled(True)
+                self.Canvas.addexproute(LayerContent.exp_order, LayerContent.nr)
+        if len(self.Canvas.routeArrows) > 0:
+            self.ui.actionDeleteG0Paths.setEnabled(True)
+            self.Canvas.addexprouteen()
+
+    def optimizeTSP(self):
+        """
+        Method is called to optimize the order of the shapes. This is performed
+        by solving the TSP Problem.
+        """
+        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
+
+        logger.debug(self.tr('Optimize order of enabled shapes per layer'))
+        self.MyGraphicsScene.delete_opt_paths()
+
+        # Get the export order from the QTreeView
+        logger.debug(self.tr('Updating order according to TreeView'))
+        self.TreeHandler.updateExportOrder()
+        self.MyGraphicsScene.addexproutest()
+
+        for LayerContent in self.layerContents.non_break_layer_iter():
+            # Initial values for the Lists to export.
+            shapes_to_write = []
+            shapes_fixed_order = []
+            shapes_st_en_points = []
+
+            # Check all shapes of Layer which shall be exported and create List for it.
+            logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
+                         % (len(LayerContent.shapes), len(LayerContent.exp_order)))
+            logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
+
+            for shape_nr in range(len(LayerContent.exp_order)):
+                if not self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP:
+                    shapes_fixed_order.append(shape_nr)
+
+                shapes_to_write.append(shape_nr)
+                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
+
+            # Perform Export only if the Number of shapes to export is bigger than 0
+            if len(shapes_to_write) > 0:
+                # Errechnen der Iterationen
+                # Calculate the iterations
+                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'], len(shapes_to_write)*50)
+
+                # Adding the Start and End Points to the List.
+                x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
+                y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
+                start = Point(x_st, y_st)
+                ende = Point(x_st, y_st)
+                shapes_st_en_points.append([start, ende])
+
+                TSPs = TspOptimization(shapes_st_en_points, shapes_fixed_order)
+                logger.info(self.tr("TSP start values initialised for Layer %s") % LayerContent.name)
+                logger.debug(self.tr("Shapes to write: %s") % shapes_to_write)
+                logger.debug(self.tr("Fixed order: %s") % shapes_fixed_order)
+
+                for it_nr in range(iter_):
+                    # Only show each 50th step.
+                    if it_nr % 50 == 0:
+                        TSPs.calc_next_iteration()
+                        new_exp_order = [LayerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
+
+                logger.debug(self.tr("TSP done with result: %s") % TSPs)
+
+                LayerContent.exp_order = new_exp_order
+
+                self.MyGraphicsScene.addexproute(LayerContent.exp_order, LayerContent.nr)
+                logger.debug(self.tr("New Export Order after TSP: %s") % new_exp_order)
+                self.app.processEvents()
+            else:
+                LayerContent.exp_order = []
+
+        if len(self.Canvas.routeArrows) > 0:
+            self.ui.actionDeleteG0Paths.setEnabled(True)
             self.MyGraphicsScene.addexprouteen()
 
+        # Update order in the treeView, according to path calculation done by the TSP
+        self.TreeHandler.updateTreeViewOrder()
+
+        self.Canvas.unsetCursor()
+
+    def automaticCutterCompensation(self):
+        if self.ui.actionAutomaticCutterCompensation.isEnabled() and\
+           self.ui.actionAutomaticCutterCompensation.isChecked():
+            for layerContent in self.layerContents.non_break_layer_iter():
+                if layerContent.automaticCutterCompensationEnabled():
+                    outside_compensation = True
+                    shapes_left = layerContent.shapes
+                    while len(shapes_left) > 0:
+                        shapes_left = [shape for shape in shapes_left
+                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation)]
+                        outside_compensation = not outside_compensation
+        self.Canvas.update()
+
+    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation):
+        for otherShape in shapes_left:
+            if shape != otherShape:
+                if shape != otherShape and\
+                   otherShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < otherShape.bottomRight.x and\
+                   otherShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < otherShape.topLeft.y:
+                    return False
+        if outside_compensation == shape.cw:
+            shape.cut_cor = 41
+        else:
+            shape.cut_cor = 42
+        self.Canvas.repaintShape(shape)
+        return True
 
     def showSaveDialog(self):
         """
@@ -469,7 +436,7 @@ class Main(QtGui.QMainWindow):
             format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
             MyFormats = MyFormats + name + format_
 
-        (beg, ende) = os.path.split(self.load_filename)
+        (beg, ende) = os.path.split(self.filename)
         (fileBaseName, fileExtension) = os.path.splitext(ende)
 
         default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
@@ -483,166 +450,129 @@ class Main(QtGui.QMainWindow):
 
         return filename
 
-    def autoscale(self):
-        """
-        This function is called by the menu "Autoscale" of the main. Forwards the
-        call to MyGraphicsview.autoscale()
-        """
-        self.MyGraphicsView.autoscale()
-
     def about(self):
         """
         This function is called by the menu "Help/About" of the main toolbar and
         creates the About Window
         """
 
-        message = self.tr("<html>"\
-                "<h2><center>You are using</center></h2>"\
+        message = self.tr("<html>"
+                "<h2><center>You are using</center></h2>"
                 "<body bgcolor="\
-                "<center><img src=':images/dxf2gcode_logo.png' border='1' color='white'></center></body>"\
-                "<h2>Version:</h2>"\
-                "<body>%s: %s<br>"\
-                "Last change: %s<br>"\
-                "Changed by: %s<br></body>"\
-                "<h2>Where to get help:</h2>"\
-                "For more information and updates, "\
-                "please visit "\
-                "<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a><br>"\
-                "For any questions on how to use dxf2gcode please use the "\
-                "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"\
-                "To log bugs, or request features please use the "\
-                "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"\
-                "<h2>License and copyright:</h2>"\
-                "<body>This program is written in Python and is published under the "\
-                "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"\
+                "<center><img src=':images/dxf2gcode_logo.png' border='1' color='white'></center></body>"
+                "<h2>Version:</h2>"
+                "<body>%s: %s<br>"
+                "Last change: %s<br>"
+                "Changed by: %s<br></body>"
+                "<h2>Where to get help:</h2>"
+                "For more information and updates, "
+                "please visit "
+                "<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a><br>"
+                "For any questions on how to use dxf2gcode please use the "
+                "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"
+                "To log bugs, or request features please use the "
+                "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"
+                "<h2>License and copyright:</h2>"
+                "<body>This program is written in Python and is published under the "
+                "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
                 "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
 
-        AboutDialog(title = "About DXF2GCODE", message = message)
+        AboutDialog(title="About DXF2GCODE", message=message)
 
-    def setShow_wp_zero(self):
-        """
-        This function is called by the menu "Show WP Zero" of the
-        main and forwards the call to MyGraphicsView.setShow_wp_zero()
-        """
-        flag = self.ui.actionShow_WP_Zero.isChecked()
-        self.MyGraphicsView.setShow_wp_zero(flag)
-
-    def setShow_path_directions(self):
+    def setShowPathDirections(self):
         """
         This function is called by the menu "Show all path directions" of the
-        main and forwards the call to MyGraphicsView.setShow_path_direction()
+        main and forwards the call to Canvas.setShow_path_direction()
         """
-        flag = self.ui.actionShow_path_directions.isChecked()
-        self.MyGraphicsView.setShow_path_direction(flag)
+        flag = self.ui.actionShowPathDirections.isChecked()
+        self.Canvas.setShow_path_direction(flag)
 
-    def setShow_disabled_paths(self):
+    def setShowDisabledPaths(self):
         """
         This function is called by the menu "Show disabled paths" of the
-        main and forwards the call to MyGraphicsView.setShow_disabled_paths()
+        main and forwards the call to Canvas.setShow_disabled_paths()
         """
-        flag = self.ui.actionShow_disabled_paths.isChecked()
-        self.MyGraphicsView.setShow_disabled_paths(flag)
+        flag = self.ui.actionShowDisabledPaths.isChecked()
+        self.Canvas.setShow_disabled_paths(flag)
 
-    def setUpdate_export_route(self):
+    def liveUpdateExportRoute(self):
         """
         This function is called by the menu "Live update tool path" of the
         main and forwards the call to TreeHandler.setUpdateExportRoute()
         """
-        flag = self.ui.actionLive_update_export_route.isChecked()
-        if not flag:
-            #Remove any existing export route, since it won't be updated anymore
-            self.MyGraphicsScene.resetexproutes()
-
+        flag = self.ui.actionLiveUpdateExportRoute.isChecked()
         self.TreeHandler.setUpdateExportRoute(flag)
 
     def setTolerances(self):
-        """
-        This function is called when the Option=>Tolerances Menu is clicked.
-        """
-
         title = self.tr('Contour tolerances')
-        if g.config.metric == 0:
-            label = (self.tr("Tolerance for common points [in]:"), \
-                   self.tr("Tolerance for curve fitting [in]:"))
-        else:
-            label = (self.tr("Tolerance for common points [mm]:"), \
-                   self.tr("Tolerance for curve fitting [mm]:"))
-        value = (g.config.point_tolerance,
-               g.config.fitting_tolerance)
+        units = "[in]" if g.config.metric == 0 else "[mm]"
+        label = [self.tr("Tolerance for common points %s:") % units,
+                 self.tr("Tolerance for curve fitting %s:") % units]
+        value = [g.config.point_tolerance,
+                 g.config.fitting_tolerance]
 
         logger.debug(self.tr("set Tolerances"))
         SetTolDialog = PopUpDialog(title, label, value)
 
-        if SetTolDialog.result == None:
+        if SetTolDialog.result is None:
             return
 
         g.config.point_tolerance = float(SetTolDialog.result[0])
         g.config.fitting_tolerance = float(SetTolDialog.result[1])
 
-        self.reloadFile()
-        #self.MyGraphicsView.update()
+        self.reload()
 
-    def CallScaleAll(self):
-        """
-        This function is called when the Option=>Scale All Menu is clicked.
-        """
+    def scaleAll(self):
         title = self.tr('Scale Contour')
         label = [self.tr("Scale Contour by factor:")]
         value = [self.cont_scale]
         ScaEntDialog = PopUpDialog(title, label, value)
 
-        if ScaEntDialog.result == None:
+        if ScaEntDialog.result is None:
             return
 
         self.cont_scale = float(ScaEntDialog.result[0])
         self.entityRoot.sca = self.cont_scale
 
-        self.reloadFile()
-        #self.MyGraphicsView.update()
+        self.reload()
 
-    def CallRotateAll(self):
-        """
-        This function is called when the Option=>Rotate All Menu is clicked.
-        """
+    def rotateAll(self):
         title = self.tr('Rotate Contour')
-        label = [self.tr("Rotate Contour by deg:")]
-        value = [degrees(self.rotate)]
+        label = [self.tr("Rotate Contour by deg:")]  # TODO should we support radians for drawing unit non metric?
+        value = [degrees(self.cont_rotate)]
         RotEntDialog = PopUpDialog(title, label, value)
 
-        if RotEntDialog.result == None:
+        if RotEntDialog.result is None:
             return
 
-        self.rotate = radians(float(RotEntDialog.result[0]))
-        self.entityRoot.rot = self.rotate
+        self.cont_rotate = radians(float(RotEntDialog.result[0]))
+        self.entityRoot.rot = self.cont_rotate
 
-        self.reloadFile()
-        #self.MyGraphicsView.update()
+        self.reload()
 
-    def CallMoveWpZero(self):
+    def moveWorkpieceZero(self):
         """
         This function is called when the Option=>Move WP Zero Menu is clicked.
         """
         title = self.tr('Workpiece zero offset')
-        label = ((self.tr("Offset %s axis by mm:") % g.config.vars.Axis_letters['ax1_letter']), \
-               (self.tr("Offset %s axis by mm:") % g.config.vars.Axis_letters['ax2_letter']))
-        value = (self.cont_dx, self.cont_dy)
+        units = "[in]" if g.config.metric == 0 else "[mm]"
+        label = [self.tr("Offset %s axis %s:") % (g.config.vars.Axis_letters['ax1_letter'], units),
+                 self.tr("Offset %s axis %s:") % (g.config.vars.Axis_letters['ax2_letter'], units)]
+        value = [self.cont_dx, self.cont_dy]
         MoveWpzDialog = PopUpDialog(title, label, value, True)
 
-        if MoveWpzDialog.result == None:
+        if MoveWpzDialog.result is None:
             return
 
         if MoveWpzDialog.result == 'Auto':
             minx = sys.float_info.max
-            maxy = - sys.float_info.max
+            miny = sys.float_info.max
             for shape in self.shapes:
                 if not(shape.isDisabled()):
-                    r = shape.boundingRect()
-                    if r.left() < minx:
-                        minx = r.left()
-                    if r.bottom()  > maxy:
-                        maxy = r.bottom()
+                    minx = min(minx, shape.topLeft.x)
+                    miny = min(miny, shape.bottomRight.y)
             self.cont_dx = self.entityRoot.p0.x - minx
-            self.cont_dy = self.entityRoot.p0.y + maxy
+            self.cont_dy = self.entityRoot.p0.y - miny
         else:
             self.cont_dx = float(MoveWpzDialog.result[0])
             self.cont_dy = float(MoveWpzDialog.result[1])
@@ -650,102 +580,111 @@ class Main(QtGui.QMainWindow):
         self.entityRoot.p0.x = self.cont_dx
         self.entityRoot.p0.y = self.cont_dy
 
-        self.reloadFile()
-        #self.MyGraphicsView.update()
+        self.reload()
 
     def setMachineTypeToMilling(self):
-        """
-        This function is called by the menu when Machine Type -> Milling is clicked.
-        """
         g.config.machine_type = 'milling'
         self.updateMachineType()
-        self.reloadFile()
+        self.reload()
 
     def setMachineTypeToDragKnife(self):
-        """
-        This function is called by the menu when Machine Type -> Drag Knife is clicked.
-        """
         g.config.machine_type = 'drag_knife'
         self.updateMachineType()
-        self.reloadFile()
+        self.reload()
 
     def setMachineTypeToLathe(self):
-        """
-        This function is called by the menu when Machine Type -> Lathe is clicked.
-        """
         g.config.machine_type = 'lathe'
         self.updateMachineType()
-        self.reloadFile()
+        self.reload()
 
     def updateMachineType(self):
         if g.config.machine_type == 'milling':
-            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(True)
+            self.ui.actionAutomaticCutterCompensation.setEnabled(True)
             self.ui.actionMilling.setChecked(True)
-            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Infeed depth"))
         elif g.config.machine_type == 'lathe':
-            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
-            self.ui.actionDrag_Knife.setChecked(False)
+            self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(True)
             self.ui.label_9.setText(self.tr("No Z-Axis for lathe"))
         elif g.config.machine_type == "drag_knife":
-            # TODO: Update of Maschine Type Lathe required. Z-Axis not available
-            # But fields may be used for other purpose.
-            self.ui.actionAutomatic_Cutter_Compensation.setEnabled(False)
+            self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
-            self.ui.actionDrag_Knife.setChecked(True)
+            self.ui.actionDragKnife.setChecked(True)
             self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
 
+    def open(self):
+        """
+        This function is called by the menu "File/Load File" of the main toolbar.
+        It creates the file selection dialog and calls the load function to
+        load the selected file.
+        """
 
-    def loadFile(self, filename):
+        self.filename = QtGui.QFileDialog.getOpenFileName(self,
+                                                          self.tr("Open file"),
+                                                                  g.config.vars.Paths['import_dir'],
+                                                          self.tr("All supported files (*.dxf *.ps *.pdf);;"
+                                                                  "DXF files (*.dxf);;"
+                                                                  "PS files (*.ps);;"
+                                                                  "PDF files (*.pdf);;"
+                                                                  "All types (*.*)"))
+
+        #If there is something to load then call the load function callback
+        if self.filename:
+            self.filename = unicode(self.filename.toUtf8(), encoding="UTF-8")
+            logger.info(self.tr("File: %s selected" % self.filename))
+            self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
+
+            self.cont_dx = 0.0
+            self.cont_dy = 0.0
+            self.cont_rotate = 0.0
+            self.cont_scale = 1.0
+
+            self.load(self.filename)
+
+    def load(self, filename):
         """
         Loads the file given by filename.  Also calls the command to
         make the plot.
         @param filename: String containing filename which should be loaded
         """
+        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.Canvas.resetAll()
 
-        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-
-#        if isinstance(filename,QtCore.QString):
-#            filename =unicode(filename.toUtf8(), encoding="UTF-8")
-#        else:
-#            filename = unicode(filename, encoding='UTF-8')
-        self.load_filename = filename
         (name, ext) = os.path.splitext(filename)
 
-        if (ext.lower() == ".ps") or (ext.lower() == ".pdf"):
+        if ext.lower() == ".ps" or ext.lower() == ".pdf":
             logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
 
-            #Create temporary file which will be read by the program
+            # Create temporary file which will be read by the program
             filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
 
-            pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd'] #"C:\Program Files (x86)\pstoedit\pstoedit.exe"
-            pstoedit_opt = g.config.vars.Filters['pstoedit_opt'] #['-f','dxf','-mm']
-            ps_filename = os.path.normcase(self.load_filename)
-            cmd = [(('%s') % pstoedit_cmd)] + pstoedit_opt + [(('%s') % ps_filename), (('%s') % filename)]
+            pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
+            pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
+            ps_filename = os.path.normcase(self.filename)
+            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % filename)]
             logger.debug(cmd)
             retcode = subprocess.call(cmd)
 
-        #self.textbox.text.delete(7.0, END)
         logger.info(self.tr('Loading file: %s') % filename)
-        #logger.info("<a href=file:%s>%s</a>" % (filename, filename))
 
         values = ReadDXF(filename)
 
-        #Output the information in the text window
+        # Output the information in the text window
         logger.info(self.tr('Loaded layers: %s') % len(values.layers))
         logger.info(self.tr('Loaded blocks: %s') % len(values.blocks.Entities))
         for i in range(len(values.blocks.Entities)):
             layers = values.blocks.Entities[i].get_used_layers()
             logger.info(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s')\
-                                     % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))
+                        % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))
         layers = values.entities.get_used_layers()
         insert_nr = values.entities.get_insert_nr()
-        logger.info(self.tr('Loaded %i Entities geometries, reduced to %i Contours, used layers: %s, Number of inserts: %i') \
-                                 % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
+        logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i') \
+                    % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
 
         if g.config.metric == 0:
             logger.info("Drawing units: inches")
@@ -766,53 +705,40 @@ class Main(QtGui.QMainWindow):
             self.ui.unitLabel_8.setText("[mm/min]")
             self.ui.unitLabel_9.setText("[mm/min]")
 
-        self.makeShapesAndPlot(values)
+        self.makeShapes(values, Point(self.cont_dx, self.cont_dy), Point(),
+                        [self.cont_scale, self.cont_scale, self.cont_scale],
+                        self.cont_rotate)
 
-        #After all is plotted enable the Menu entities
-        self.enableplotmenu()
-        self.ui.actionDelete_G0_paths.setEnabled(False)
-
-        QtGui.QApplication.restoreOverrideCursor()
-
-    def makeShapesAndPlot(self, values):
-        """
-        Plots all data stored in the values parameter to the Canvas
-        @param values: Includes all values loaded from the dxf file
-        """
-
-        #Generate the Shapes
-        self.makeShapes(values,
-                        p0 = Point(x = self.cont_dx, y = self.cont_dy),
-                        pb = Point(x = 0.0, y = 0.0),
-                        sca = [self.cont_scale, self.cont_scale, self.cont_scale],
-                        rot = self.rotate)
-
-        # Automatic cutter compensation
-        self.automaticCutterCompensation()
-
-        # Break insertion
-        Breaks(self.layerContents).process()
-
-        #Populate the treeViews
+        # Populate the treeViews
         self.TreeHandler.buildEntitiesTree(self.entityRoot)
         self.TreeHandler.buildLayerTree(self.layerContents)
 
-        #Print the values
-        self.MyGraphicsView.clearScene()
+        # Paint the canvas
+        #self.Canvas.plotAll(self.shapes)
+
         self.MyGraphicsScene = MyGraphicsScene()
 
         self.MyGraphicsScene.plotAll(self.shapes, self.entityRoot)
-        self.MyGraphicsView.setScene(self.MyGraphicsScene)
-        self.setShow_wp_zero()
-        self.setShow_path_directions()
-        self.setShow_disabled_paths()
-        self.setUpdate_export_route()
-        self.MyGraphicsView.show()
-        self.MyGraphicsView.setFocus()
+        self.Canvas.setScene(self.MyGraphicsScene)
+        self.Canvas.autoscale()
+        self.Canvas.show()
+        self.Canvas.setFocus()
 
-        #Autoscale the Canvas
-        self.MyGraphicsView.autoscale()
+        # After all is plotted enable the Menu entities
+        self.enableToolbarButtons()
 
+        self.automaticCutterCompensation()
+
+        self.Canvas.unsetCursor()
+
+    def reload(self):
+        """
+        This function is called by the menu "File/Reload File" of the main toolbar.
+        It reloads the previously loaded file (if any)
+        """
+        if self.filename:
+            logger.info(self.tr("Reloading file: %s") % self.filename)
+            self.load(self.filename)
 
     def makeShapes(self, values, p0, pb, sca, rot):
         self.entityRoot = EntityContent(nr=0, name='Entities',
@@ -904,7 +830,7 @@ class Main(QtGui.QMainWindow):
         if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
             return
 
-        if self.ui.actionSplit_Edges.isChecked():
+        if self.ui.actionSplitLineSegments.isChecked():
             if isinstance(geo, LineGeo):
                 diff = (geo.Pe - geo.Ps) / 2.0
                 geo_b = deepcopy(geo)
@@ -938,35 +864,6 @@ class Main(QtGui.QMainWindow):
         self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
         shape.parentLayer = self.layerContents[-1]
 
-
-    def automaticCutterCompensation(self):
-        if self.ui.actionAutomatic_Cutter_Compensation.isEnabled() == self.ui.actionAutomatic_Cutter_Compensation.isChecked() == True:
-            for layerContent in self.layerContents:
-                if layerContent.automaticCutterCompensationEnabled():
-                    newShapes = [];
-                    for shape in layerContent.shapes:
-                        shape.make_papath()
-                    for shape in layerContent.shapes:
-                        if shape.closed:
-                            container = None
-                            myBounds = shape.boundingRect()
-                            for otherShape in layerContent.shapes :
-                                if shape != otherShape and otherShape.boundingRect().contains(myBounds):
-                                    logger.debug(self.tr("Shape: %s is contained in shape %s") % (shape.nr, otherShape.nr))
-                                    container = otherShape
-                            if container is None:
-                                shape.cut_cor = 41
-                                newShapes.append(shape)
-                            else:
-                                shape.cut_cor = 42
-                                newShapes.insert(layerContent.shapes.index(container), shape)
-                        else:
-                            newShapes.append(shape)
-                    layerContent.shapes = newShapes
-                    logger.debug(self.tr("new order for layer %s:") % (layerContent.LayerName))
-                    for shape in layerContent.shapes:
-                        logger.debug(self.tr(">>Shape: %s") % (shape.nr))
-
     def closeEvent(self, e):
         logger.debug(self.tr("exiting"))
         self.writeSettings()
@@ -992,47 +889,41 @@ if __name__ == "__main__":
     The main function which is executed after program start.
     """
     Log=LoggerClass(logger)
-    #Get local language and install if available.
-
 
     g.config = MyConfig()
-
     Log.set_console_handler_loglevel()
     Log.add_file_logger()
 
     app = QtGui.QApplication(sys.argv)
 
+    # Get local language and install if available.
     locale = QtCore.QLocale.system().name()
     logger.debug("locale: %s" %locale)
     translator = QtCore.QTranslator()
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
 
-    window = Main(app)
+    window = MainWindow(app)
     g.window = window
+    Log.add_window_logger(window.ui.messageBox)
 
-    #shall be sent to. This Class needs a function "def write(self, charstr)
-    Log.add_window_logger(window.MessageBox)
-
+    # command line options
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("filename",nargs="?")
+    parser.add_argument("filename", nargs="?")
 
 #    parser.add_argument("-f", "--file", dest = "filename",
-#                      help = "read data from FILENAME")
-    parser.add_argument("-e", "--export", dest = "export_filename",
-                      help = "export data to FILENAME")
-    parser.add_argument("-q", "--quiet", action = "store_true",
-                      dest = "quiet", help = "no GUI")
-
+#                        help = "read data from FILENAME")
+    parser.add_argument("-e", "--export", dest="export_filename",
+                        help="export data to FILENAME")
+    parser.add_argument("-q", "--quiet", action="store_true",
+                        dest="quiet", help="no GUI")
 #    parser.add_option("-v", "--verbose",
 #                      action = "store_true", dest = "verbose")
     options = parser.parse_args()
 
-    #(options, args) = parser.parse_args()
-    logger.debug("Started with following options \n%s" % (parser))
-
-
+    # (options, args) = parser.parse_args()
+    logger.debug("Started with following options:\n%s" % parser)
 
     if not options.quiet:
         window.show()
@@ -1040,14 +931,8 @@ if __name__ == "__main__":
     options.filename = "D:\\dxf2gcode-sourcecode\\DXF\\1.dxf"
 
     if not(options.filename is None):
-        window.filename = options.filename.decode("cp1252")
-        #Initialize the scale, rotate and move coordinates
-        window.cont_scale = 1.0
-        window.cont_dx = 0.0
-        window.cont_dy = 0.0
-        window.rotate = 0.0
-
-        window.loadFile(window.filename)
+        window.filename = options.filename.decode("utf-8")
+        window.load(window.filename)
 
     if not(options.export_filename is None):
         window.exportShapes(None, options.export_filename)

@@ -141,9 +141,6 @@ class MyGraphicsView(QtGui.QGraphicsView):
             scene = self.scene()
             if self.selmode == 0:
                 for item in scene.selectedItems():
-#                    item.starrow.setSelected(False)
-#                    item.stmove.setSelected(False)
-#                    item.enarrow.setSelected(False)
                     item.setSelected(False)
             # If the mouse button is pressed without movement of rubberband
             if self.rubberBand.isHidden():
@@ -163,19 +160,9 @@ class MyGraphicsView(QtGui.QGraphicsView):
                     if self.currentItems.isSelected():
                         self.currentItems.setSelected(False)
                     else:
-                        # print (self.currentItems.flags())
                         self.currentItems.setSelected(True)
-#                it = self.itemAt(event.pos())
-#                if it == None:
-#                    self.currentItems=[]
-#                else:
-#                    self.currentItems=[it]
-                # self.currentItems = [self.itemAt(event.pos())]
-                # logger.debug("No Rubberband")
-            # If movement is bigger and rubberband is enabled
             else:
                 rect = self.rubberBand.geometry()
-                # All items in the selection mode = QtCore.Qt.ContainsItemShape
                 self.currentItems = self.items(rect)
                 self.rubberBand.hide()
                 # logger.debug("Rubberband Selection")
@@ -259,12 +246,12 @@ class MyGraphicsView(QtGui.QGraphicsView):
         scene = self.scene()
         scene.setShow_disabled_paths(flag)
 
-    def clearScene(self):
+    def resetAll(self):
         """
         Deletes the existing GraphicsScene.
         """
         scene = self.scene()
-        del(scene)
+        del scene
 
 class MyDropDownMenu(QtGui.QMenu):
     """
@@ -315,7 +302,7 @@ class MyDropDownMenu(QtGui.QMenu):
         enableAction.triggered.connect(self.enableSelection)
 
         swdirectionAction.triggered.connect(self.switchDirection)
-        SetNxtStPAction.triggered.connect(self.setNearestStP)
+        SetNxtStPAction.triggered.connect(self.setNearestStPoint)
 
         if g.config.machine_type == 'drag_knife':
             pass
@@ -417,15 +404,14 @@ class MyDropDownMenu(QtGui.QMenu):
                 shape.updateCutCor()
                 shape.updateCCplot()
 
-    def setNearestStP(self):
+    def setNearestStPoint(self):
         """
         Search the nearest StartPoint to the clicked position of all selected
         shapes.
         """
-        shapes = self.MyGraphicsScene.selectedItems()
 
-        for shape in shapes:
-            shape.FindNearestStPoint(self.PlotPos)
+        for shape in self.MyGraphicsScene.selectedItems:
+            shape.setNearestStPoint(self.PlotPos)
             # self.MyGraphicsScene.plot_shape(shape)
             shape.update_plot()
 
@@ -562,7 +548,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         """
 
         length = 20
-        start, start_ang = shape.get_st_en_points(0)
+        start, start_ang = shape.get_start_end_points(True, True)
         arrow = Arrow(startp=start,
                       length=length,
                       angle=start_ang,
@@ -578,7 +564,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param shape: The shape for which the Arrow shall be created.
         """
         length = 20
-        end, end_ang = shape.get_st_en_points(1)
+        end, end_ang = shape.get_start_end_points(False, True)
         arrow = Arrow(startp=end,
                       length=length,
                       angle=end_ang,
@@ -635,7 +621,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         # Print the optimised route
         for shape_nr in range(len(exp_order)):
             st = self.expprv
-            en, self.expprv = self.shapes[exp_order[shape_nr]].get_st_en_points()
+            en, self.expprv = self.shapes[exp_order[shape_nr]].get_start_end_points(False, True)
 
 #            st=shapes_st_en_points[route[st_nr]][1]
 #            en=shapes_st_en_points[route[en_nr]][0]
@@ -867,16 +853,13 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)
 
-    def FindNearestStPoint(self, StPoint=Point()):
-        self.setNearestStPoint(StPoint)
-
     def reverseGUI(self):
         """
         This function is called from the GUI if the GUI needs to be updated after
         the reverse of the shape.
         """
-        start, start_ang = self.get_st_en_points(0)
-        end, end_ang = self.get_st_en_points(1)
+        start, start_ang = self.get_start_end_points(True, True)
+        end, end_ang = self.get_start_end_points(False, True)
 
         self.update(self.boundingRect())
         self.enarrow.reverseshape(end, end_ang)
@@ -897,9 +880,6 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
 
         self.updateCutCor()
 
-    def get_st_en_points(self, dir=None):
-        return self.get_start_end_points(not dir, True)
-
     def drawHorLine(self, start, end):
         self.path.lineTo(end.x, -end.y)
 
@@ -907,7 +887,7 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         """
         To be called if a Shape shall be printed to the canvas
         """
-        start, start_ang = self.get_st_en_points()
+        start, start_ang = self.get_start_end_points(True, True)
 
         self.path = QtGui.QPainterPath()
 
@@ -924,10 +904,10 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         the reverse of the shape to.
         """
         # self.update(self.boundingRect())
-        start, start_ang = self.get_st_en_points(0)
+        start, start_ang = self.get_start_end_points(True, True)
         self.starrow.updatepos(start, angle=start_ang)
 
-        end, end_ang = self.get_st_en_points(1)
+        end, end_ang = self.get_start_end_points(False, True)
         self.enarrow.updatepos(end, angle=end_ang)
 
         self.stmove.update_plot(start, angle=start_ang)

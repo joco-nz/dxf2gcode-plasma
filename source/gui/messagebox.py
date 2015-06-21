@@ -55,12 +55,13 @@ class MessageBox(QtGui.QTextBrowser):
         self.append("For more information and updates visit:")
         self.append("<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a>")
 
-    def write(self, charstr):
+    def write(self, string):
         """
         The function is called by the window logger to write
         the log message to the Messagebox
         @param charstr: The log message which will be written.
         """
-
-        self.append(charstr[0:-1])
-        self.verticalScrollBar().setValue(1e9)
+        stripped_string = string.strip()
+        if stripped_string:
+            self.append(stripped_string)
+            self.verticalScrollBar().setValue(1e9)

@@ -23,7 +23,7 @@
 ############################################################################
 
 """
-MyTreeView class is a subclass of QT QTreeView class.
+TreeView class is a subclass of QT QTreeView class.
 Subclass is done in order to:
 - implement a simple (ie not complex) drag & drop
 - get selection events
@@ -40,7 +40,7 @@ except ImportError:
     raise Exception("PyQt4 import error")
 
 
-class MyTreeView(QtGui.QTreeView):
+class TreeView(QtGui.QTreeView):
     """
     Subclassed QTreeView to match our needs.
     Implement a simple (ie not complex) drag & drop, get selection events
@@ -48,7 +48,7 @@ class MyTreeView(QtGui.QTreeView):
 
     def __init__(self, parent = None):
         """
-        Initialization of the MyTreeView class.
+        Initialization of the TreeView class.
         """
         QtGui.QTreeView.__init__(self, parent)
 
@@ -58,11 +58,10 @@ class MyTreeView(QtGui.QTreeView):
         self.keyPressEventcallback = None
         self.signals_blocked = False #Transmit events between classes
 
-        QtCore.QObject.connect(self,
-                               QtCore.SIGNAL("pressed( const QModelIndex )"),
-                               self.elementPressed)
+        self.pressed.connect(self.elementPressed)
 
-
+    def setExportOrderUpdateCallback(self, callback):
+        self.exportOrderUpdateCallback = callback
 
     def setSelectionCallback(self, callback):
         """
@@ -72,16 +71,12 @@ class MyTreeView(QtGui.QTreeView):
         """
         self.selectionChangedcallback = callback
 
-
-
     def setKeyPressEventCallback(self, callback):
         """
         Register a callback function called when a key is pressed on the TreeView
         @param callback: function with prototype : accepted functionName(key_code, item_index):
         """
         self.keyPressEventcallback = callback
-
-
 
     def dragEnterEvent(self, event):
         """
@@ -99,8 +94,6 @@ class MyTreeView(QtGui.QTreeView):
         self.dragged_element = True
         event.acceptProposedAction()
 
-
-
     def elementPressed(self, element_model_index):
         """
         This function is called when an element (Shape, ...) is pressed
@@ -112,8 +105,6 @@ class MyTreeView(QtGui.QTreeView):
         """
         #save the index of the clicked element...
         self.dragged_element_model_index = element_model_index
-
-
 
     def dropEvent(self, event):
         """
@@ -208,14 +199,11 @@ class MyTreeView(QtGui.QTreeView):
 
                 if not self.signals_blocked:
                     # Signal that the order of the TreeView has changed...
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
-                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+                    self.exportOrderUpdateCallback()
 
             self.dragged_element = False
         else:
             event.ignore()
-
-
 
     def moveUpCurrentItem(self):
         """
@@ -239,10 +227,7 @@ class MyTreeView(QtGui.QTreeView):
 
                 if not self.signals_blocked:
                     # Signal that the order of the TreeView has changed
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
-                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
-
-
+                    self.exportOrderUpdateCallback()
 
     def moveDownCurrentItem(self):
         """
@@ -265,11 +250,8 @@ class MyTreeView(QtGui.QTreeView):
                 self.setCurrentIndex(current_item.index())
 
                 if not self.signals_blocked:
-                    #Signal that order of the TreeView has changed...
-                    QtCore.QObject.emit(self, QtCore.SIGNAL("itemMoved"), self)
-                    #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
-
-
+                    # Signal that order of the TreeView has changed...
+                    self.exportOrderUpdateCallback()
 
     def blockSignals(self, block):
         """
@@ -294,8 +276,6 @@ class MyTreeView(QtGui.QTreeView):
 
         if self.selectionChangedcallback and not self.signals_blocked:
             self.selectionChangedcallback(self, selected, deselected)
-
-
 
     def keyPressEvent(self, keyEvent):
         """
@@ -324,8 +304,6 @@ class MyStandardItemModel(QtGui.QStandardItemModel):
         Initialization of the MyStandardItemModel class.
         """
         QtGui.QStandardItemModel.__init__(self, parent)
-
-
 
     def mimeData(self, indexes):
         """

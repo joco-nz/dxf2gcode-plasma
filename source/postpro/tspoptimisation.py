@@ -30,18 +30,16 @@ from math import floor, ceil
 
 import globals.globals as g
 
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtCore
 
 import logging
 logger = logging.getLogger("PostPro.TSP")
 
-class TSPoptimize(QtCore.QObject):
+class TspOptimization(object):
     """
     Optimize using the Travelling Salesman Problem (TSP) algorithim
     """
     def __init__(self, st_end_points=[], order=[]):
-        QtCore.QObject.__init__(self)
-
         self.shape_nrs = len(st_end_points)
         self.iterations = int(self.shape_nrs) * 10
         self.pop_nr = min(int(ceil(self.shape_nrs / 8.0) * 8.0),
@@ -158,11 +156,9 @@ class PopulationClass:
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("PopulationClass",
-                                                    string_to_translate,
-                                                    None,
-                                                    QtGui.QApplication.UnicodeUTF8))
-
+        return unicode(QtCore.QCoreApplication.translate("PopulationClass",
+                                                         string_to_translate,
+                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
 
     def random_begin(self, size):
         """
