@@ -805,7 +805,7 @@
         </layout>
        </widget>
       </widget>
-      <widget class="MyGraphicsView" name="canvas">
+      <widget class="Canvas" name="canvas">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
          <horstretch>7</horstretch>
@@ -1163,7 +1163,7 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>MyGraphicsView</class>
+   <class>Canvas</class>
    <extends>QGraphicsView</extends>
    <header>gui.canvas</header>
   </customwidget>

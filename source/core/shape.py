@@ -248,7 +248,7 @@ class Shape(object):
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:
-            drawVerLine(geo.get_start_end_points(True), self.axis3_start_mill_depth, self.axis3_mill_depth)
+            drawVerLine(geo.get_start_end_points(True))
 
             geo.make_path(self, drawHorLine)
 
@@ -260,7 +260,7 @@ class Shape(object):
                 self.bottomRight.detBottomRight(geo.bottomRight)
 
         if not self.closed:
-            drawVerLine(geo.get_start_end_points(False), self.axis3_start_mill_depth, self.axis3_mill_depth)
+            drawVerLine(geo.get_start_end_points(False))
 
     def isHit(self, xy, tol):
         if self.topLeft.x - tol <= xy.x <= self.bottomRight.x + tol\

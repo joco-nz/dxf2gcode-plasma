@@ -57,14 +57,14 @@ from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
 import globals.globals as g
 import globals.constants as c
-from gui.canvas import ShapeGUI as Shape
+from gui.canvas2d import ShapeGUI as Shape
 #from core.shape import Shape
 
 from postpro.postprocessor import MyPostProcessor
 
 from dxfimport.importer import ReadDXF
 
-from gui.canvas import MyGraphicsScene
+from gui.canvas2d import MyGraphicsScene
 from gui.treehandling import TreeHandler
 from gui.popupdialog import PopUpDialog
 from gui.aboutdialog import AboutDialog
@@ -185,7 +185,7 @@ class MainWindow(QtGui.QMainWindow):
         if event.isAutoRepeat():
             return
         if event.key() == QtCore.Qt.Key_Control:
-            self.Canvas.selmode = 1
+            self.Canvas.isMultiSelect = True
         elif event.key() == QtCore.Qt.Key_Shift:
             self.Canvas.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
 
@@ -198,7 +198,7 @@ class MainWindow(QtGui.QMainWindow):
         if event.key() == QtCore.Qt.Key_Shift:
             self.Canvas.setDragMode(QtGui.QGraphicsView.NoDrag)
         elif event.key() == QtCore.Qt.Key_Control:
-            self.Canvas.selmode = 0
+            self.Canvas.isMultiSelect = False
 
     def enableToolbarButtons(self, status=True):
         # File

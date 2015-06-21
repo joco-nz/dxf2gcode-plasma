@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'dxf2gcode.ui'
 #
-# Created: Sat Jun 20 23:16:23 2015
+# Created: Sun Jun 21 14:10:11 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -438,7 +438,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.addLayout(self.gridLayout)
         self.verticalLayout_5.addWidget(self.millSettingsFrame)
         self.mytabWidget.addTab(self.tab_2, _fromUtf8(""))
-        self.canvas = MyGraphicsView(self.splitter)
+        self.canvas = Canvas(self.splitter)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(7)
         sizePolicy.setVerticalStretch(0)
@@ -682,7 +682,7 @@ class Ui_MainWindow(object):
         self.actionIsometricView.setText(_translate("MainWindow", "Isometric View", None))
         self.actionIsometricView.setShortcut(_translate("MainWindow", "Ctrl+V, I", None))
 
-from gui.canvas import MyGraphicsView
+from gui.canvas import Canvas
 from gui.treeview import TreeView
 from gui.messagebox import MessageBox
 import dxf2gcode_images_rc
