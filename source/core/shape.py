@@ -60,10 +60,7 @@ class Shape(object):
 
         self.cw = True
 
-        self.drawObject = 0
-        self.drawArrowsDirection = 0
-        self.drawStMove = 0
-        self.stMove = None
+        self.stmove = None
 
         self.topLeft = None
         self.bottomRight = None
@@ -223,7 +220,10 @@ class Shape(object):
             return self.get_start_end_points(start_point, angles)
         else:
             max_slice = max(self.axis3_slice_depth, self.axis3_mill_depth - self.axis3_start_mill_depth)
-            end_should_be_start = (self.axis3_start_mill_depth - self.axis3_mill_depth) // max_slice % 2 == 0
+            if max_slice == 0:
+                end_should_be_start = True
+            else:
+                end_should_be_start = (self.axis3_start_mill_depth - self.axis3_mill_depth) // max_slice % 2 == 0
             if not end_should_be_start:
                 return self.get_start_end_points(start_point, angles)
             else:
@@ -336,7 +336,7 @@ class Shape(object):
         mom_depth = initial_mill_depth
 
         # Move the tool to the start.
-        exstr += self.stMove.geos[0].Write_GCode(PostPro)
+        exstr += self.stmove.geos[0].Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
@@ -346,8 +346,8 @@ class Shape(object):
             exstr += PostPro.set_cut_cor(self.cut_cor)
 
             exstr += PostPro.chg_feed_rate(f_g1_plane)
-            exstr += self.stMove.geos[1].Write_GCode(PostPro)
-            exstr += self.stMove.geos[2].Write_GCode(PostPro)
+            exstr += self.stmove.geos[1].Write_GCode(PostPro)
+            exstr += self.stmove.geos[2].Write_GCode(PostPro)
 
         exstr += PostPro.rap_pos_z(
             workpiece_top_Z + abs(safe_margin))  # Compute the safe margin from the initial mill depth
@@ -359,8 +359,8 @@ class Shape(object):
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
             exstr += PostPro.set_cut_cor(self.cut_cor)
 
-            exstr += self.stMove.geos[1].Write_GCode(PostPro)
-            exstr += self.stMove.geos[2].Write_GCode(PostPro)
+            exstr += self.stmove.geos[1].Write_GCode(PostPro)
+            exstr += self.stmove.geos[2].Write_GCode(PostPro)
 
         # Write the geometries for the first cut
         for geo in new_geos:
@@ -454,7 +454,7 @@ class Shape(object):
         drag_depth = self.axis3_slice_depth
 
         # Move the tool to the start.
-        exstr += self.stMove.geos[0].Write_GCode(PostPro)
+        exstr += self.stmove.geos[0].Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
@@ -465,8 +465,8 @@ class Shape(object):
         exstr += PostPro.chg_feed_rate(f_g1_depth)
 
         # Write the geometries for the first cut
-        if self.stMove.geos[1].type == "ArcGeo":
-            if self.stMove.geos[1].drag:
+        if self.stmove.geos[1].type == "ArcGeo":
+            if self.stmove.geos[1].drag:
                 exstr += PostPro.lin_pol_z(drag_depth)
                 drag = True
             else:
@@ -477,9 +477,9 @@ class Shape(object):
             drag = False
         exstr += PostPro.chg_feed_rate(f_g1_plane)
 
-        exstr += self.stMove.geos[1].Write_GCode(PostPro)
+        exstr += self.stmove.geos[1].Write_GCode(PostPro)
 
-        for geo in self.stMove.geos[2:]:
+        for geo in self.stmove.geos[2:]:
             if geo.type == "ArcGeo":
                 if geo.drag:
                     exstr += PostPro.chg_feed_rate(f_g1_depth)

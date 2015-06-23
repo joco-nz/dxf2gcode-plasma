@@ -60,19 +60,6 @@ class WpZero(QtGui.QGraphicsItem):
         """
         pass
 
-    def setallwaysshow(self, flag=False):
-        """
-        If the directions shall be allwaysshown the paramerter will
-        be set and all paths will be shown.
-        @param flag: The flag to enable or disable Selection
-        """
-        self.allwaysshow = flag
-        if flag is True:
-            self.show()
-        else:
-            self.hide()
-        self.update(self.boundingRect())
-
     def paint(self, painter, option, widget=None):
         """
         paint()
@@ -101,6 +88,5 @@ class WpZero(QtGui.QGraphicsItem):
         Override inherited function to enlarge selection of Arrow to include all
         @param flag: The flag to enable or disable Selection
         """
-        diameter = self.diameter / self.sc
         return QtCore.QRectF(-20, -20.0, 40.0, 40.0)
 

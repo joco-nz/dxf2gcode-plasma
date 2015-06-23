@@ -12,7 +12,7 @@ pyt = os.path.join(PYTHONPATH, "pythonw.exe")
 filepfad = os.path.realpath(os.path.dirname(sys.argv[0]))
 exemakepfad = filepfad
 file_ = "dxf2gcode"
-icon = "%s\\dxf2gcode_pyQt4_ui\\images\\DXF2GCODE-001.ico" % filepfad
+icon = "%s\\images\\DXF2GCODE-001.ico" % filepfad
 
 options = ("--noconsole --icon=%s" % (icon))
 print options

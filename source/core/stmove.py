@@ -24,6 +24,9 @@
 #
 ############################################################################
 
+from __future__ import absolute_import
+from __future__ import division
+
 from math import sin, cos, pi, sqrt
 from copy import deepcopy
 import logging
@@ -228,6 +231,7 @@ class StMove(QtGui.QGraphicsLineItem):
             self.append(ArcGeo(Ps=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=direction))
 
         self.geos.insert(0, RapidPos(self.geos[0].Ps))
+        self.geos[0].make_abs_geo()
 
     def make_own_cutter_compensation(self):
         toolwidth = self.shape.parentLayer.getToolRadius()
@@ -323,12 +327,14 @@ class StMove(QtGui.QGraphicsLineItem):
         if reorder_shape:
             self.shape.geos = self.shape.geos[geos[start_geo_nr].geo_nr:] + self.shape.geos[:geos[start_geo_nr].geo_nr]
 
+        if len(self.geos) == 0:
+            self.append(RapidPos(self.start))
+
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:
             drawVerLine(geo.get_start_end_points(True), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
             geo.make_path(self.shape, drawHorLine)
-        if len(self.geos) > 0:
-            drawVerLine(geo.get_start_end_points(False), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
+        drawVerLine(geo.get_start_end_points(False), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
 
     def make_papath(self):
         """
@@ -336,14 +342,13 @@ class StMove(QtGui.QGraphicsLineItem):
         @param canvas: The canvas to be printed in
         @param pospro: The color of the shape
         """
-        self.hide()
-        del(self.path)
+        start = self.geos[0].get_start_end_points(True)
         self.path = QtGui.QPainterPath()
+        self.path.moveTo(start.x, -start.y)
 
-        drawHorLine = lambda st, en, z: self.path.lineTo(en.x, -en.y)
+        drawHorLine = lambda st, en: self.path.lineTo(en.x, -en.y)
         for geo in self.geos:
             geo.make_path(self.shape, drawHorLine)
-        self.show()
 
     def setSelected(self, flag=True):
         """

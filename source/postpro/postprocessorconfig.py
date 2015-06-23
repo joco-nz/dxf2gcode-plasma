@@ -38,7 +38,7 @@ from PyQt4 import QtCore, QtGui
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig")
 
-POSTPRO_VERSION = "4"
+POSTPRO_VERSION = "5"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -52,11 +52,10 @@ POSTPRO_SPEC = str('''
 
 # do not edit the following section name:
     [Version]
-
     # do not edit the following value:
-    config_version = string(default="'''  + \
-    str(POSTPRO_VERSION) + '")\n' + \
-'''
+    config_version = string(default="'''  +
+    str(POSTPRO_VERSION) + '")\n' +
+    '''
     [General]
     output_format = string(default=".ngc")
     output_text = string(default="G-CODE for LinuxCNC")
@@ -70,13 +69,15 @@ POSTPRO_SPEC = str('''
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
-    code_begin = string(default="G90 (Absolute programming) G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
+    code_begin_prog_abs = string(default="G90 (Absolute programming)")
+    code_begin_prog_inc = string(default="G91 (Incremental programming)")
+    code_begin = string(default="G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
     code_end = string(default="M2 (Program end)")
 
     [Number_Format]
     pre_decimals = integer(default=4)
     post_decimals = integer(default=3)
-    decimal_seperator = string(default=".")
+    decimal_separator = string(default=".")
     pre_decimal_zero_padding = boolean(default=False)
     post_decimal_zero_padding = boolean(default=True)
     signed_values = boolean(default=False)
@@ -95,11 +96,9 @@ POSTPRO_SPEC = str('''
     lin_mov_depth = string(default= G1 Z%ZE%nl)
     arc_int_cw = string(default=G2 X%XE Y%YE I%I J%J%nl)
     arc_int_ccw = string(default=G3 X%XE Y%YE I%I J%J%nl)
-    cutter_comp_off = string(default=G40%nl) ''' + \
-# FIXME: adding G40 before each G41/G42 invokation is a dirty fix for open shapes when using tool compensation. we need to turn it off before turning it on in the opposite direction so the linuxCNC axis does not complain. Needs more elegant way to do that in the code.
-'''
-    cutter_comp_left = string(default=G40%nlG41%nl)
-    cutter_comp_right = string(default=G40%nlG42%nl)
+    cutter_comp_off = string(default=G40%nl)
+    cutter_comp_left = string(default=G41%nl)
+    cutter_comp_right = string(default=G42%nl)
     pre_shape_cut = string(default=M3 M8%nl)
     post_shape_cut = string(default=M9 M5%nl)
     comment = string(default=%nl(%comment)%nl)
@@ -108,23 +107,21 @@ POSTPRO_SPEC = str('''
 """ format, type and default value specification of the global config file"""
 
 
-class MyPostProConfig(QtCore.QObject):
+class MyPostProConfig(object):
     """
     This class hosts all functions related to the PostProConfig File.
     """
-    def __init__(self, filename = 'postpro_config' + c.CONFIG_EXTENSION):
+    def __init__(self, filename='postpro_config' + c.CONFIG_EXTENSION):
         """
         initialize the varspace of an existing plugin instance
         init_varspace() is a superclass method of plugin
         @param filename: The filename for the creation of a new config
         file and the filename of the file to read config from.
         """
-        QtCore.QObject.__init__(self)
-
         self.folder = os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)
         self.filename = os.path.join(self.folder, filename)
 
-        self.default_config = False # whether a new name was generated
+        self.default_config = False  # whether a new name was generated
         self.var_dict = dict()
         self.spec = ConfigObj(POSTPRO_SPEC, interpolation=False, list_values=False, _inspec=True)
 
@@ -136,8 +133,7 @@ class MyPostProConfig(QtCore.QObject):
         """
         return unicode(QtGui.QApplication.translate("MyPostProConfig",
                                                     string_to_translate,
-                                                    None,
-                                                    QtGui.QApplication.UnicodeUTF8))
+                                                    encoding=QtGui.QApplication.UnicodeUTF8))
 
     def load_config(self):
         """
@@ -153,7 +149,7 @@ class MyPostProConfig(QtCore.QObject):
             validate_errors = flatten_errors(self.var_dict, result)
 
             if validate_errors:
-                g.logger.logger.error(self.tr("errors reading %s:") % (self.filename))
+                g.logger.logger.error(self.tr("errors reading %s:") % self.filename)
             for entry in validate_errors:
                 section_list, key, error = entry
                 if key is not None:
@@ -166,7 +162,7 @@ class MyPostProConfig(QtCore.QObject):
                 g.logger.logger.error( section_string + ' = ' + error)
 
             if validate_errors:
-                raise BadConfigFileError, self.tr("syntax errors in postpro_config file")
+                raise BadConfigFileError(self.tr("syntax errors in postpro_config file"))
 
             # check config file version against internal version
 
@@ -174,32 +170,32 @@ class MyPostProConfig(QtCore.QObject):
                 fileversion = self.var_dict['Version']['config_version'] # this could raise KeyError
 
                 if fileversion != POSTPRO_VERSION:
-                    raise VersionMismatchError, (fileversion, POSTPRO_VERSION)
+                    raise VersionMismatchError(fileversion, POSTPRO_VERSION)
 
-        except VersionMismatchError, values:
-            raise VersionMismatchError, (fileversion, POSTPRO_VERSION)
+        except VersionMismatchError:
+            raise VersionMismatchError(fileversion, POSTPRO_VERSION)
 
-        except Exception, inst:
+        except Exception as inst:
             logger.error(inst)
             (base, ext) = os.path.splitext(self.filename)
             badfilename = base + c.BAD_CONFIG_EXTENSION
             logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
             try:
                 os.rename(self.filename, badfilename)
-            except OSError, e:
+            except OSError as e:
                 logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename, badfilename, e.strerror))
                 raise
             else:
                 logger.debug(self.tr("renamed bad varspace %s to '%s'") % (self.filename, badfilename))
                 self.create_default_config()
                 self.default_config = True
-                logger.debug(self.tr("created default varspace '%s'") % (self.filename))
+                logger.debug(self.tr("created default varspace '%s'") % self.filename)
         else:
             self.default_config = False
-            logger.debug(self.tr("read existing varspace '%s'") % (self.filename))
+            logger.debug(self.tr("read existing varspace '%s'") % self.filename)
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
-        self.var_dict.main.interpolation = False # avoid ConfigObj getting too clever
+        self.var_dict.main.interpolation = False  # avoid ConfigObj getting too clever
         self.vars = DictDotLookup(self.var_dict)
 
     def make_settings_folder(self):
@@ -216,7 +212,7 @@ class MyPostProConfig(QtCore.QObject):
         If no postprocessor config file exists this function is called
         to generate the config file based on its specification.
         """
-        #check for existing setting folder or create one
+        # check for existing setting folder or create one
         self.make_settings_folder()
 
         # derive config file with defaults from spec
@@ -237,9 +233,9 @@ class MyPostProConfig(QtCore.QObject):
         """
         Print all the variables with their values
         """
-        print "Variables:"
+        print("Variables:")
         for k, v in self.var_dict['Variables'].items():
-            print k, " = ", v
+            print(k, "=", v)
 
 
 class DictDotLookup(object):

@@ -94,7 +94,8 @@ class MainWindow(QtGui.QMainWindow):
 
         self.ui.setupUi(self)
 
-        self.Canvas = self.ui.canvas
+        self.canvas = self.ui.canvas
+        self.canvas_scene = None
 
         self.TreeHandler = TreeHandler(self.ui)
 
@@ -141,12 +142,13 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionOptimizeAndExportShapes.triggered.connect(self.optimizeAndExportShapes)
 
         # View
+        self.ui.actionShowPathDirections.triggered.connect(self.setShowPathDirections)
         self.ui.actionShowDisabledPaths.triggered.connect(self.setShowDisabledPaths)
         self.ui.actionLiveUpdateExportRoute.triggered.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
-        self.ui.actionAutoscale.triggered.connect(self.Canvas.autoscale)
-        #self.ui.actionTopView.triggered.connect(self.Canvas.topView)
-        #self.ui.actionIsometricView.triggered.connect(self.Canvas.isometricView)
+        self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
+        #self.ui.actionTopView.triggered.connect(self.canvas.topView)
+        #self.ui.actionIsometricView.triggered.connect(self.canvas.isometricView)
 
         # Options
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
@@ -185,9 +187,9 @@ class MainWindow(QtGui.QMainWindow):
         if event.isAutoRepeat():
             return
         if event.key() == QtCore.Qt.Key_Control:
-            self.Canvas.isMultiSelect = True
+            self.canvas.isMultiSelect = True
         elif event.key() == QtCore.Qt.Key_Shift:
-            self.Canvas.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+            self.canvas.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
 
     def keyReleaseEvent (self, event):
         """
@@ -196,9 +198,9 @@ class MainWindow(QtGui.QMainWindow):
         @param event:    Event Parameters passed to function
         """
         if event.key() == QtCore.Qt.Key_Shift:
-            self.Canvas.setDragMode(QtGui.QGraphicsView.NoDrag)
+            self.canvas.setDragMode(QtGui.QGraphicsView.NoDrag)
         elif event.key() == QtCore.Qt.Key_Control:
-            self.Canvas.isMultiSelect = False
+            self.canvas.isMultiSelect = False
 
     def enableToolbarButtons(self, status=True):
         # File
@@ -210,6 +212,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui.actionOptimizeAndExportShapes.setEnabled(status)
 
         # View
+        self.ui.actionShowPathDirections.setEnabled(status)
         self.ui.actionShowDisabledPaths.setEnabled(status)
         self.ui.actionLiveUpdateExportRoute.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
@@ -226,12 +229,12 @@ class MainWindow(QtGui.QMainWindow):
         """
         Deletes the optimisation paths from the scene.
         """
-        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.canvas.setCursor(QtCore.Qt.WaitCursor)
 
-        self.MyGraphicsScene.delete_opt_paths()
+        self.canvas_scene.delete_opt_paths()
         self.ui.actionDeleteG0Paths.setEnabled(False)
 
-        self.Canvas.unsetCursor()
+        self.canvas.unsetCursor()
 
     def exportShapes(self, status=False, saveas=None):
         """
@@ -240,7 +243,7 @@ class MainWindow(QtGui.QMainWindow):
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
-        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.canvas.setCursor(QtCore.Qt.WaitCursor)
 
         logger.debug(self.tr('Export the enabled shapes'))
 
@@ -264,7 +267,7 @@ class MainWindow(QtGui.QMainWindow):
 
             # If Cancel was pressed
             if not self.save_filename:
-                self.Canvas.unsetCursor()
+                self.canvas.unsetCursor()
                 return
 
             (beg, ende) = os.path.split(self.save_filename)
@@ -295,7 +298,7 @@ class MainWindow(QtGui.QMainWindow):
                                           self.save_filename,
                                           self.layerContents)
 
-        self.Canvas.unsetCursor()
+        self.canvas.unsetCursor()
 
         if g.config.vars.General['write_to_stdout']:
             self.close()
@@ -311,30 +314,30 @@ class MainWindow(QtGui.QMainWindow):
         """
         Update the drawing of the export route
         """
-        self.Canvas.delete_opt_paths()
+        self.canvas_scene.delete_opt_paths()
 
-        self.Canvas.addexproutest()
+        self.canvas_scene.addexproutest()
         for LayerContent in self.layerContents.non_break_layer_iter():
             if len(LayerContent.exp_order) > 0:
-                self.Canvas.addexproute(LayerContent.exp_order, LayerContent.nr)
-        if len(self.Canvas.routeArrows) > 0:
+                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
+        if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
-            self.Canvas.addexprouteen()
+            self.canvas_scene.addexprouteen()
 
     def optimizeTSP(self):
         """
         Method is called to optimize the order of the shapes. This is performed
         by solving the TSP Problem.
         """
-        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.canvas.setCursor(QtCore.Qt.WaitCursor)
 
         logger.debug(self.tr('Optimize order of enabled shapes per layer'))
-        self.MyGraphicsScene.delete_opt_paths()
+        self.canvas_scene.delete_opt_paths()
 
         # Get the export order from the QTreeView
         logger.debug(self.tr('Updating order according to TreeView'))
         self.TreeHandler.updateExportOrder()
-        self.MyGraphicsScene.addexproutest()
+        self.canvas_scene.addexproutest()
 
         for LayerContent in self.layerContents.non_break_layer_iter():
             # Initial values for the Lists to export.
@@ -382,20 +385,20 @@ class MainWindow(QtGui.QMainWindow):
 
                 LayerContent.exp_order = new_exp_order
 
-                self.MyGraphicsScene.addexproute(LayerContent.exp_order, LayerContent.nr)
+                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
                 logger.debug(self.tr("New Export Order after TSP: %s") % new_exp_order)
                 self.app.processEvents()
             else:
                 LayerContent.exp_order = []
 
-        if len(self.Canvas.routeArrows) > 0:
+        if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
-            self.MyGraphicsScene.addexprouteen()
+            self.canvas_scene.addexprouteen()
 
         # Update order in the treeView, according to path calculation done by the TSP
         self.TreeHandler.updateTreeViewOrder()
 
-        self.Canvas.unsetCursor()
+        self.canvas.unsetCursor()
 
     def automaticCutterCompensation(self):
         if self.ui.actionAutomaticCutterCompensation.isEnabled() and\
@@ -408,7 +411,7 @@ class MainWindow(QtGui.QMainWindow):
                         shapes_left = [shape for shape in shapes_left
                                        if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation)]
                         outside_compensation = not outside_compensation
-        self.Canvas.update()
+        self.canvas.update()
 
     def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation):
         for otherShape in shapes_left:
@@ -421,7 +424,7 @@ class MainWindow(QtGui.QMainWindow):
             shape.cut_cor = 41
         else:
             shape.cut_cor = 42
-        self.Canvas.repaintShape(shape)
+        self.canvas_scene.repaint_shape(shape)
         return True
 
     def showSaveDialog(self):
@@ -485,7 +488,7 @@ class MainWindow(QtGui.QMainWindow):
         main and forwards the call to Canvas.setShow_path_direction()
         """
         flag = self.ui.actionShowPathDirections.isChecked()
-        self.Canvas.setShow_path_direction(flag)
+        self.canvas.setShow_path_direction(flag)
 
     def setShowDisabledPaths(self):
         """
@@ -493,7 +496,7 @@ class MainWindow(QtGui.QMainWindow):
         main and forwards the call to Canvas.setShow_disabled_paths()
         """
         flag = self.ui.actionShowDisabledPaths.isChecked()
-        self.Canvas.setShow_disabled_paths(flag)
+        self.canvas_scene.setShow_disabled_paths(flag)
 
     def liveUpdateExportRoute(self):
         """
@@ -501,7 +504,7 @@ class MainWindow(QtGui.QMainWindow):
         main and forwards the call to TreeHandler.setUpdateExportRoute()
         """
         flag = self.ui.actionLiveUpdateExportRoute.isChecked()
-        self.TreeHandler.setUpdateExportRoute(flag)
+        self.TreeHandler.setLiveUpdateExportRoute(flag)
 
     def setTolerances(self):
         title = self.tr('Contour tolerances')
@@ -652,8 +655,8 @@ class MainWindow(QtGui.QMainWindow):
         make the plot.
         @param filename: String containing filename which should be loaded
         """
-        self.Canvas.setCursor(QtCore.Qt.WaitCursor)
-        self.Canvas.resetAll()
+        self.canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.canvas.resetAll()
 
         (name, ext) = os.path.splitext(filename)
 
@@ -714,22 +717,25 @@ class MainWindow(QtGui.QMainWindow):
         self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
-        #self.Canvas.plotAll(self.shapes)
+        #self.canvas.plotAll(self.shapes)
 
-        self.MyGraphicsScene = MyGraphicsScene()
+        self.canvas_scene = MyGraphicsScene()
 
-        self.MyGraphicsScene.plotAll(self.shapes, self.entityRoot)
-        self.Canvas.setScene(self.MyGraphicsScene)
-        self.Canvas.autoscale()
-        self.Canvas.show()
-        self.Canvas.setFocus()
+        self.canvas_scene.plotAll(self.shapes)
+        self.canvas.setScene(self.canvas_scene)
+        self.setShowPathDirections()
+        self.setShowDisabledPaths()
+        self.liveUpdateExportRoute()
+        self.canvas.show()
+        self.canvas.setFocus()
+        self.canvas.autoscale()
 
         # After all is plotted enable the Menu entities
         self.enableToolbarButtons()
 
         self.automaticCutterCompensation()
 
-        self.Canvas.unsetCursor()
+        self.canvas.unsetCursor()
 
     def reload(self):
         """
@@ -826,6 +832,11 @@ class MainWindow(QtGui.QMainWindow):
                     self.addtoLayerContents(values, tmp_shape, layerNr if layerNr != -1 else ent_geo.Layer_Nr)
                     parent.append(tmp_shape)
 
+                    # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
+                    #  so that selections of the shapes are reflected on the treeView
+                    tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
+                    tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
+
     def append_geo_to_shape(self, shape, geo):
         if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
             return
@@ -888,7 +899,7 @@ if __name__ == "__main__":
     """
     The main function which is executed after program start.
     """
-    Log=LoggerClass(logger)
+    Log = LoggerClass(logger)
 
     g.config = MyConfig()
     Log.set_console_handler_loglevel()

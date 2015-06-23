@@ -40,7 +40,7 @@ from core.stmove import StMove
 from gui.wpzero import WpZero
 from gui.arrow import Arrow
 from gui.routetext import RouteText
-from gui.canvas import CanvasBase
+from gui.canvas import CanvasBase, MyDropDownMenu
 
 import globals.globals as g
 
@@ -57,7 +57,6 @@ class MyGraphicsView(CanvasBase):
     This is the used Canvas to print the graphical interface of dxf2gcode.
     All GUI things should be performed in the View and plotting functions in
     the scene
-    @sideeffect: None
     """
 
     def __init__(self, parent=None):
@@ -95,7 +94,11 @@ class MyGraphicsView(CanvasBase):
         Create the contextmenu.
         @purpose: Links the new Class of ContextMenu to Graphicsview.
         """
-        menu = MyDropDownMenu(self, self.scene(), event.pos())
+        position = self.mapToGlobal(event.pos())
+        GVPos = self.mapToScene(event.pos())
+        real_pos = Point(GVPos.x(), -GVPos.y())
+
+        menu = MyDropDownMenu(self.scene(), position, real_pos)
 
     def wheelEvent(self, event):
         """
@@ -227,227 +230,12 @@ class MyGraphicsView(CanvasBase):
             shape.enarrow.setallwaysshow(flag)
             shape.stmove.setallwaysshow(flag)
 
-    def setShow_wp_zero(self, flag):
-        """
-        This function is called by the Main Window from the Menubar.
-        @param flag: This flag is true if all Path Direction shall be shown
-        """
-        scene = self.scene()
-        if flag is True:
-            scene.wpzero.show()
-        else:
-            scene.wpzero.hide()
-
-    def setShow_disabled_paths(self, flag):
-        """
-        This function is called by the Main Window from the Menubar.
-        @param flag: This flag is true if hidden paths shall be shown
-        """
-        scene = self.scene()
-        scene.setShow_disabled_paths(flag)
-
     def resetAll(self):
         """
         Deletes the existing GraphicsScene.
         """
         scene = self.scene()
         del scene
-
-class MyDropDownMenu(QtGui.QMenu):
-    """
-    class MyDropDownMenu
-    """
-    def __init__(self, MyGraphicsView, MyGraphicsScene, position):
-
-        QtGui.QMenu.__init__(self)
-
-        self.position = MyGraphicsView.mapToGlobal(position)
-        GVPos = MyGraphicsView.mapToScene(position)
-        self.PlotPos = Point(x=GVPos.x(), y=-GVPos.y())
-
-        self.MyGraphicsScene = MyGraphicsScene
-        self.MyGraphicsView = MyGraphicsView
-
-        if len(self.MyGraphicsScene.selectedItems()) == 0:
-            return
-
-        invertAction = self.addAction(self.tr("Invert Selection"))
-        disableAction = self.addAction(self.tr("Disable Selection"))
-        enableAction = self.addAction(self.tr("Enable Selection"))
-
-        self.addSeparator()
-
-        swdirectionAction = self.addAction(self.tr("Switch Direction"))
-        SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
-
-        if g.config.machine_type == 'drag_knife':
-            pass
-        else:
-            self.addSeparator()
-            submenu1 = QtGui.QMenu(self.tr('Cutter Compensation'), self)
-            self.noCompAction = submenu1.addAction(self.tr("G40 No Compensation"))
-            self.noCompAction.setCheckable(True)
-            self.leCompAction = submenu1.addAction(self.tr("G41 Left Compensation"))
-            self.leCompAction.setCheckable(True)
-            self.reCompAction = submenu1.addAction(self.tr("G42 Right Compensation"))
-            self.reCompAction.setCheckable(True)
-
-            logger.debug(self.tr("The selected shapes have the following direction: %i") % (self.calcMenuDir()))
-            self.checkMenuDir(self.calcMenuDir())
-
-            self.addMenu(submenu1)
-
-        invertAction.triggered.connect(self.invertSelection)
-        disableAction.triggered.connect(self.disableSelection)
-        enableAction.triggered.connect(self.enableSelection)
-
-        swdirectionAction.triggered.connect(self.switchDirection)
-        SetNxtStPAction.triggered.connect(self.setNearestStPoint)
-
-        if g.config.machine_type == 'drag_knife':
-            pass
-        else:
-            self.noCompAction.triggered.connect(self.setNoComp)
-            self.leCompAction.triggered.connect(self.setLeftComp)
-            self.reCompAction.triggered.connect(self.setRightComp)
-
-        self.exec_(self.position)
-
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return unicode(QtCore.QCoreApplication.translate('MyDropDownMenu',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
-
-    def calcMenuDir(self):
-        """
-        This method returns the direction of the selected items. If there are
-        different cutter directions in the selection 0 is returned, else
-        1 for Left and 2 for right.
-        """
-
-        items = self.MyGraphicsScene.selectedItems()
-        if len(items) == 0:
-            return 0
-
-        dir = items[0].cut_cor
-        for item in items:
-            if not(dir == item.cut_cor):
-                return 0
-
-        return dir-40
-
-    def checkMenuDir(self, dir):
-        """
-        This method checks the buttons in the Contextmenu for the direction of
-        the selected items.
-        @param dir: The direction of the items -1=different, 0=None, 1=left, 2=right
-        """
-        self.noCompAction.setChecked(False)
-        self.leCompAction.setChecked(False)
-        self.reCompAction.setChecked(False)
-
-        if dir == 0:
-            self.noCompAction.setChecked(True)
-        elif dir == 1:
-            self.leCompAction.setChecked(True)
-        elif dir == 2:
-            self.reCompAction.setChecked(True)
-
-    def invertSelection(self):
-        """
-        This function is called by the Contextmenu of the Graphicsview.
-        @purpose: Inverts the selection of all shapes.
-        """
-        # scene = self.scene()
-        for shape in self.MyGraphicsScene.shapes:
-            if shape.isSelected():
-                shape.setSelected(False)
-            else:
-                shape.setSelected(True)
-
-    def disableSelection(self):
-        """
-        Disable all shapes which are currently selected. Based on the view
-        options they are not shown, or showed in a different color
-        """
-        for shape in self.MyGraphicsScene.shapes:
-            if shape.isSelected() and shape.allowedToChange:
-                shape.setDisable(True)
-        self.MyGraphicsScene.update()
-
-    def enableSelection(self):
-        """
-        Enable all shapes which are currently selected. Based on the view
-        options they are not shown, or showed in a different color
-        """
-        for shape in self.MyGraphicsScene.shapes:
-            if shape.isSelected() and shape.allowedToChange:
-                shape.setDisable(False)
-        self.MyGraphicsScene.update()
-
-    def switchDirection(self):
-        """
-        Switch the Direction of all items. For example from CW direction to CCW
-        """
-        for shape in self.MyGraphicsScene.shapes:
-            if shape.isSelected():
-                shape.reverse()
-                shape.reverseGUI()
-
-                logger.debug(self.tr('Switched Direction at Shape Nr: %i') % shape.nr)
-
-                shape.updateCutCor()
-                shape.updateCCplot()
-
-    def setNearestStPoint(self):
-        """
-        Search the nearest StartPoint to the clicked position of all selected
-        shapes.
-        """
-
-        for shape in self.MyGraphicsScene.selectedItems:
-            shape.setNearestStPoint(self.PlotPos)
-            # self.MyGraphicsScene.plot_shape(shape)
-            shape.update_plot()
-
-    def setNoComp(self):
-        """
-        Sets the compensation to 40, which is none, for the selected shapes.
-        """
-        shapes = self.MyGraphicsScene.selectedItems()
-        for shape in shapes:
-            shape.cut_cor = 40
-            logger.debug(self.tr('Changed Cutter Correction to None Shape Nr: %i') % shape.nr)
-
-            shape.updateCutCor()
-            shape.updateCCplot()
-
-    def setLeftComp(self):
-        """
-        Sets the compensation to 41, which is Left, for the selected shapes.
-        """
-        shapes = self.MyGraphicsScene.selectedItems()
-        for shape in shapes:
-            shape.cut_cor = 41
-            logger.debug(self.tr('Changed Cutter Correction to left Shape Nr: %i') % shape.nr)
-            shape.updateCutCor()
-            shape.updateCCplot()
-
-    def setRightComp(self):
-        """
-        Sets the compensation to 42, which is Right, for the selected shapes.
-        """
-        shapes = self.MyGraphicsScene.selectedItems()
-        for shape in shapes:
-            shape.cut_cor = 42
-            logger.debug(self.tr('Changed Cutter Correction to right Shape Nr: %i') % shape.nr)
-            shape.updateCutCor()
-            shape.updateCCplot()
 
 class MyGraphicsScene(QtGui.QGraphicsScene):
     """
@@ -460,18 +248,13 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         QtGui.QGraphicsScene.__init__(self)
 
         self.shapes = []
-        self.wpzero = []
-#        self.LayerContents = []
+        self.wpzero = None
         self.routearrows = []
         self.routetext = []
         self.showDisabled = False
-        self.expprv = []
-        self.expcol = []
-#        self.EntitiesRoot = EntityContentClass(Nr=-1, Name='Base',
-#                                              parent=None, children=[],
-#                                              p0=Point(0,0), pb=Point(0,0),
-#                                              sca=1,rot=0)
-#        self.BaseEntities = EntityContentClass()
+        self.expprv = None
+        self.expcol = None
+        self.expnr = 0
 
     def tr(self, string_to_translate):
         """
@@ -483,51 +266,26 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                                                          string_to_translate,
                                                          encoding=QtCore.QCoreApplication.UnicodeUTF8))
 
-    def plotAll(self, shapes, EntitiesRoot):
+    def plotAll(self, shapes):
         """
         Instance is called by the Main Window after the defined file is loaded.
         It generates all ploting functionality. The parameters are generally
         used to scale or offset the base geometry (by Menu in GUI).
-
-        @param values: The loaded dxf values fro mthe dxf_import.py file
-        @param p0: The Starting Point to plot (Default x=0 and y=0)
-        @param bp: The Base Point to insert the geometry and base for rotation
-        (Default is also x=0 and y=0)
-        @param sca: The scale of the basis function (default =1)
-        @param rot: The rotation of the geometries around base (default =0)
-        """
-
-        self.shapes = []
-        self.EntitiesRoot = EntitiesRoot
-
-        del self.wpzero
-
-        self.plot_shapes(shapes)
-        self.plot_wp_zero()
-        self.update()
-
-    def plot_wp_zero(self):
-        """
-        This function is called while the drawing of all items is done. It plots
-        the WPZero to the Point x=0 and y=0. This item will be enabled or
-        disabled to be shown or not.
-        """
-        self.wpzero = WpZero(QtCore.QPointF(0, 0))
-        self.addItem(self.wpzero)
-
-    def plot_shapes(self, shapes):
-        """
-        This function performs all plotting for the shapes. This may also
-        get an instance of the shape later on.
-        FIXME
         """
         for shape in shapes:
-            self.shapes.append(shape)
+            self.paint_shape(shape)
             self.addItem(shape)
-            self.plot_shape(shape)
-        logger.debug(self.tr("Update GrapicsScene"))
+            self.shapes.append(shape)
+        self.draw_wp_zero()
+        self.update()
 
-    def plot_shape(self, shape):
+    def repaint_shape(self, shape):
+        shape.starrow.setParentItem(None)
+        shape.enarrow.setParentItem(None)
+        shape.stmove.setParentItem(None)
+        self.paint_shape(shape)
+
+    def paint_shape(self, shape):
         """
         Create all plotting related parts of one shape.
         @param shape: The shape to be plotted.
@@ -535,7 +293,6 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         start, start_ang = shape.get_start_end_points(True, True)
         shape.path = QtGui.QPainterPath()
         shape.path.moveTo(start.x, -start.y)
-        logger.debug(shape.tr("Adding shape to Scene Nr: %i") % shape.nr)
         drawHorLine = lambda start, end: shape.path.lineTo(end.x, -end.y)
         drawVerLine = lambda start: None  # Not used in 2D mode
         shape.make_path(drawHorLine, drawVerLine)
@@ -547,6 +304,15 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         shape.enarrow.setParentItem(shape)
         shape.stmove.setParentItem(shape)
 
+    def draw_wp_zero(self):
+        """
+        This function is called while the drawing of all items is done. It plots
+        the WPZero to the Point x=0 and y=0. This item will be enabled or
+        disabled to be shown or not.
+        """
+        self.wpzero = WpZero(QtCore.QPointF(0, 0))
+        self.addItem(self.wpzero)
+
     def createstarrow(self, shape):
         """
         This function creates the Arrows at the end point of a shape when the
@@ -555,13 +321,12 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         """
 
         length = 20
-        start, start_ang = shape.get_start_end_points(True, True)
+        start, start_ang = shape.get_start_end_points_physical(True, True)
         arrow = Arrow(startp=start,
                       length=length,
                       angle=start_ang,
                       color=QtGui.QColor(50, 200, 255),
                       pencolor=QtGui.QColor(50, 100, 255))
-        arrow.hide()
         return arrow
 
     def createenarrow(self, shape):
@@ -571,14 +336,13 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param shape: The shape for which the Arrow shall be created.
         """
         length = 20
-        end, end_ang = shape.get_start_end_points(False, True)
+        end, end_ang = shape.get_start_end_points_physical(False, True)
         arrow = Arrow(startp=end,
                       length=length,
                       angle=end_ang,
                       color=QtGui.QColor(0, 245, 100),
                       pencolor=QtGui.QColor(0, 180, 50),
                       startarrow=False)
-        arrow.hide()
         return arrow
 
     def createstmove(self, shape):
@@ -588,51 +352,33 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param shape: The shape for which the Move shall be created.
         """
         stmove = StMove(shape)
-        stmove.hide()
         return stmove
 
-    def resetexproutes(self):
+    def delete_opt_paths(self):
         """
-        This function resets all of the export route
+        This function deletes all the plotted export routes.
         """
-        self.delete_opt_path()
+        while self.routearrows:
+            item = self.routearrows.pop()
+            self.removeItem(item)
+
+        while self.routetext:
+            item = self.routetext.pop()
+            self.removeItem(item)
 
     def addexproutest(self):
-        """
-        This function initialises the Arrows of the export route order and
-        its numbers.
-        @param shapes_st_en_points: The start and end points of the shapes.
-        @param route: The order of the shapes to be plotted.
-        """
-
-        x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
-        y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
-        self.expprv = Point(x=x_st, y=y_st)
+        self.expprv = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
+                            g.config.vars.Plane_Coordinates['axis2_start_end'])
         self.expcol = QtCore.Qt.darkRed
 
     def addexproute(self, exp_order, layer_nr):
         """
-        This function initialises the Arrows of the export route order and
-        its numbers.
-        @param shapes_st_en_points: The start and end points of the shapes.
-        @param route: The order of the shapes to be plotted.
+        This function initialises the Arrows of the export route order and its numbers.
         """
-
-        x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
-        y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
-        start = Point(x=x_st, y=y_st)
-        ende = Point(x=x_st, y=y_st)
-
-        # shapes_st_en_points.append([start,ende])
-
-        # Print the optimised route
         for shape_nr in range(len(exp_order)):
+            shape = self.shapes[exp_order[shape_nr]]
             st = self.expprv
-            en, self.expprv = self.shapes[exp_order[shape_nr]].get_start_end_points(False, True)
-
-#            st=shapes_st_en_points[route[st_nr]][1]
-#            en=shapes_st_en_points[route[en_nr]][0]
-
+            en, self.expprv = shape.get_start_end_points_physical()
             self.routearrows.append(Arrow(startp=st,
                                           endp=en,
                                           color=self.expcol,
@@ -642,24 +388,15 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
 
             self.routetext.append(RouteText(text=("%s,%s" % (layer_nr, shape_nr+1)),
                                             startp=en))
-
             # self.routetext[-1].ItemIgnoresTransformations
 
-            self.addItem(self.routetext[-1])
             self.addItem(self.routearrows[-1])
+            self.addItem(self.routetext[-1])
 
     def addexprouteen(self):
-        """
-        This function initialises the Arrows of the export route order and
-        its numbers.
-        @param shapes_st_en_points: The start and end points of the shapes.
-        @param route: The order of the shapes to be plotted.
-        """
-
-        x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
-        y_st = g.config.vars.Plane_Coordinates['axis2_start_end']
         st = self.expprv
-        en = Point(x=x_st, y=y_st)
+        en = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
+                   g.config.vars.Plane_Coordinates['axis2_start_end'])
         self.expcol = QtCore.Qt.darkRed
 
         self.routearrows.append(Arrow(startp=st,
@@ -668,22 +405,6 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
                                       pencolor=self.expcol))
 
         self.addItem(self.routearrows[-1])
-
-    def delete_opt_path(self):
-        """
-        This function deletes all the plotted export routes.
-        """
-        while self.routearrows:
-            item = self.routearrows.pop()
-            item.hide()
-            # self.removeItem(item)
-            del item
-
-        while self.routetext:
-            item = self.routetext.pop()
-            item.hide()
-            # self.removeItem(item)
-            del item
 
     def setShow_disabled_paths(self, flag):
         """
@@ -721,6 +442,9 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
 
         self.selectionChangedCallback = None
         self.enableDisableCallback = None
+
+        self.starrow = None
+        self.enarrow = None
 
     def contains_point(self, point):
         """
@@ -812,17 +536,6 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         stroke = painterStrock.createStroke(self.path)
         return stroke
 
-    def mousePressEvent(self, event):
-        """
-        Right Mouse click shall have no function, Therefore pass only left
-        click event
-        @purpose: Change inherited mousePressEvent
-        @param event: Event Parameters passed to function
-        """
-        pass
-        # if event.button() == QtCore.Qt.LeftButton:
-        #     super(ShapeClass, self).mousePressEvent(event)
-
     def setSelected(self, flag=True, blockSignals=False):
         """
         Override inherited function to turn off selection of Arrows.
@@ -832,7 +545,8 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         self.enarrow.setSelected(flag)
         self.stmove.setSelected(flag)
 
-        super(ShapeGUI, self).setSelected(flag)
+        QtGui.QGraphicsItem.setSelected(self, flag)
+        Shape.setSelected(self, flag)
 
         if self.selectionChangedCallback and not blockSignals:
             self.selectionChangedCallback(self, flag)
@@ -842,7 +556,8 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         New implemented function which is in parallel to show and hide.
         @param flag: The flag to enable or disable Selection
         """
-        self.disabled = flag
+        # QtGui.QGraphicsItem.setDisable(self, flag)
+        Shape.setDisable(self, flag)
         scene = self.scene()
 
         if scene is not None:
@@ -859,62 +574,3 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
 
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)
-
-    def reverseGUI(self):
-        """
-        This function is called from the GUI if the GUI needs to be updated after
-        the reverse of the shape.
-        """
-        start, start_ang = self.get_start_end_points(True, True)
-        end, end_ang = self.get_start_end_points(False, True)
-
-        self.update(self.boundingRect())
-        self.enarrow.reverseshape(end, end_ang)
-        self.starrow.reverseshape(start, start_ang)
-        self.stmove.reverseshape(start, start_ang)
-
-    def switch_cut_cor(self):
-        """
-        Switches the cutter direction between 41 and 42.
-
-        G41 = Tool radius compensation left.
-        G42 = Tool radius compensation right
-        """
-        if self.cut_cor == 41:
-            self.cut_cor = 42
-        elif self.cut_cor == 42:
-            self.cut_cor = 41
-
-        self.updateCutCor()
-
-    def update_plot(self):
-        """
-        This function is called from the GUI if the GUI needs to be updated after
-        the reverse of the shape to.
-        """
-        # self.update(self.boundingRect())
-        start, start_ang = self.get_start_end_points(True, True)
-        self.starrow.updatepos(start, angle=start_ang)
-
-        end, end_ang = self.get_start_end_points(False, True)
-        self.enarrow.updatepos(end, angle=end_ang)
-
-        self.stmove.update_plot(start, angle=start_ang)
-
-    def updateCutCor(self):
-        """
-        This function is called to update the Cutter Correction and therefore
-        the  startmoves if smth. has changed or it shall be generated for
-        first time.
-        FIXME This shall be different for Just updating it or updating it for
-        plotting.
-        """
-        self.stmove.updateCutCor(self.cut_cor)
-
-    def updateCCplot(self):
-        """
-        This function is called to update the Cutter Correction Plot and therefore
-        the startmoves if something has changed or it shall be generated for
-        first time.
-        """
-        self.stmove.updateCCplot()

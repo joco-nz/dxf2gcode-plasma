@@ -286,8 +286,8 @@ class TreeView(QtGui.QTreeView):
         """
 
         if self.keyPressEventcallback and not self.signals_blocked:
-            if self.keyPressEventcallback(keyEvent.key(), self.currentIndex()) == False:
-                #key not accepted => send it back to the parent
+            if not self.keyPressEventcallback(keyEvent):
+                # key not accepted => send it back to the parent
                 QtGui.QTreeView.keyPressEvent(self, keyEvent)
         else:
             QtGui.QTreeView.keyPressEvent(self, keyEvent)

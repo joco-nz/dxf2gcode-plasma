@@ -35,10 +35,9 @@ It has the following functions:
 
 @purpose: display tree structure of the .dxf file, select,
           enable and set export order of the shapes
-@author: Xavier Izard
-@since:  2012.10.01
-@license: GPL
 """
+
+from __future__ import absolute_import
 
 from math import degrees
 import logging
@@ -52,21 +51,41 @@ from gui.treeview import MyStandardItemModel
 
 try:
     from PyQt4 import QtCore, QtGui
+    from PyQt4.QtGui import QAction, QMenu
+
+    isValid = lambda data: data.isValid()
+    toPyObject = lambda data: data.toPyObject()
 except ImportError:
     raise Exception("PyQt4 import error")
 
+'''
+Following two functions are needed for Python3+, since it no longer supports these functions as is
+'''
+def toInt(text):
+    try:
+        value = (int(text), True)
+    except ValueError:
+        value = (0, False)
+    return value
+
+def toFloat(text):
+    try:
+        value = (float(text), True)
+    except ValueError:
+        value = (0.0, False)
+    return value
+
 logger = logging.getLogger("Gui.TreeHandling")
 
-#defines some arbitrary types for the objects stored into the treeView.
-#These types will eg help us to find which kind of data is stored
-#in the element received from a click() event
-ENTITY_OBJECT = QtCore.Qt.UserRole + 1 #For storing refs to the entities elements (entities_list)
-LAYER_OBJECT = QtCore.Qt.UserRole + 2  #For storing refs to the layers elements (layers_list)
-SHAPE_OBJECT = QtCore.Qt.UserRole + 3  #For storing refs to the shape elements (entities_list & layers_list)
-CUSTOM_GCODE_OBJECT = QtCore.Qt.UserRole + 4  #For storing refs to the custom gcode elements (layers_list)
+# defines some arbitrary types for the objects stored into the treeView.
+# These types will eg help us to find which kind of data is stored
+# in the element received from a click() event
+ENTITY_OBJECT = QtCore.Qt.UserRole + 1  # For storing refs to the entities elements (entities_list)
+LAYER_OBJECT = QtCore.Qt.UserRole + 2  # For storing refs to the layers elements (layers_list)
+SHAPE_OBJECT = QtCore.Qt.UserRole + 3  # For storing refs to the shape elements (entities_list & layers_list)
+CUSTOM_GCODE_OBJECT = QtCore.Qt.UserRole + 4  # For storing refs to the custom gcode elements (layers_list)
 
-PATH_OPTIMISATION_COL = 3 #Column that corresponds to TSP enable checkbox
-
+PATH_OPTIMISATION_COL = 3  # Column that corresponds to TSP enable checkbox
 
 
 class TreeHandler(QtGui.QWidget):
@@ -82,125 +101,83 @@ class TreeHandler(QtGui.QWidget):
         QtGui.QWidget.__init__(self)
         self.ui = ui
 
-        #Used to store previous values in order to enable/disable text
+        # Used to store previous values in order to enable/disable text
         self.palette = self.ui.zRetractionArealLineEdit.palette()
         self.clearToolsParameters()
 
-        #Layers & Shapes TreeView
+        # Layers & Shapes TreeView
         self.layer_item_model = None
         self.layers_list = None
         self.auto_update_export_order = False
-        self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
+        self.ui.layersShapesTreeView.setExportOrderUpdateCallback(self.prepareExportOrderUpdate)
+        self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange)  # pass the callback function to the QTreeView
         self.ui.layersShapesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.layersShapesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.layersShapesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
-        QtCore.QObject.connect(self.ui.layersGoUpPushButton,
-                               QtCore.SIGNAL("clicked()"),
-                               self.ui.layersShapesTreeView.moveUpCurrentItem)
-        QtCore.QObject.connect(self.ui.layersGoDownPushButton,
-                               QtCore.SIGNAL("clicked()"),
-                               self.ui.layersShapesTreeView.moveDownCurrentItem)
+        self.ui.layersGoUpPushButton.clicked.connect(self.ui.layersShapesTreeView.moveUpCurrentItem)
+        self.ui.layersGoDownPushButton.clicked.connect(self.ui.layersShapesTreeView.moveDownCurrentItem)
 
-        #Load the tools from the config file to the tool selection combobox
+        # Load the tools from the config file to the tool selection combobox
         for tool in g.config.vars.Tool_Parameters:
             self.ui.toolDiameterComboBox.addItem(tool)
 
-        #Select the first tool in the list and update the tools diameter, ... accordingly
+        # Select the first tool in the list and update the tools diameter, ... accordingly
         self.ui.toolDiameterComboBox.setCurrentIndex(0)
-        self.toolUpdate(self.ui.toolDiameterComboBox.currentText())
+        self.toolUpdate()
 
-        QtCore.QObject.connect(self.ui.toolDiameterComboBox,
-                               QtCore.SIGNAL("activated(const QString &)"),
-                               self.toolUpdate)
-        QtCore.QObject.connect(self.ui.zRetractionArealLineEdit,
-                               QtCore.SIGNAL("textEdited(const QString &)"),
-                               self.toolParameterzRetractionArealUpdate)
-        QtCore.QObject.connect(self.ui.zSafetyMarginLineEdit,
-                               QtCore.SIGNAL("textEdited(const QString &)"),
-                               self.toolParameterzSafetyMarginUpdate)
-        QtCore.QObject.connect(self.ui.zInfeedDepthLineEdit,
-                               QtCore.SIGNAL("textEdited(const QString &)"),
-                               self.toolParameterzInfeedDepthUpdate)
-        QtCore.QObject.connect(self.ui.zInitialMillDepthLineEdit,
-                               QtCore.SIGNAL("textEdited(const QString &)"),
-                               self.toolParameterzInitialMillDepthUpdate)
-        QtCore.QObject.connect(self.ui.zFinalMillDepthLineEdit,
-                               QtCore.SIGNAL("textEdited(const QString &)"),
-                               self.toolParameterzFinalMillDepthUpdate)
-        QtCore.QObject.connect(self.ui.g1FeedXYLineEdit,
-                               QtCore.SIGNAL("textEdited(const QString &)"),
-                               self.toolParameterg1FeedXYUpdate)
-        QtCore.QObject.connect(self.ui.g1FeedZLineEdit,
-                               QtCore.SIGNAL("textEdited(const QString &)"),
-                               self.toolParameterg1FeedZUpdate)
+        self.ui.toolDiameterComboBox.currentIndexChanged.connect(self.toolUpdate)
+        self.ui.zRetractionArealLineEdit.editingFinished.connect(self.toolParameterzRetractionArealUpdate)
+        self.ui.zSafetyMarginLineEdit.editingFinished.connect(self.toolParameterzSafetyMarginUpdate)
+        self.ui.zInitialMillDepthLineEdit.editingFinished.connect(self.toolParameterzInitialMillDepthUpdate)
+        self.ui.zInfeedDepthLineEdit.editingFinished.connect(self.toolParameterzInfeedDepthUpdate)
+        self.ui.zFinalMillDepthLineEdit.editingFinished.connect(self.toolParameterzFinalMillDepthUpdate)
+        self.ui.g1FeedXYLineEdit.editingFinished.connect(self.toolParameterg1FeedXYUpdate)
+        self.ui.g1FeedZLineEdit.editingFinished.connect(self.toolParameterg1FeedZUpdate)
 
-        #Entities TreeView
+        # Entities TreeView
         self.entity_item_model = None
         self.entities_list = None
-        self.ui.entitiesTreeView.setSelectionCallback(self.actionOnSelectionChange) #pass the callback function to the QTreeView
+        self.ui.entitiesTreeView.setSelectionCallback(self.actionOnSelectionChange)  # pass the callback function to the QTreeView
         self.ui.entitiesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.entitiesTreeView.setSelectionMode(QtGui.QAbstractItemView.ExtendedSelection)
         self.ui.entitiesTreeView.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
 
-        QtCore.QObject.connect(self.ui.blocksCollapsePushButton,
-                               QtCore.SIGNAL("clicked()"),
-                               self.expandToDepth0)
-        QtCore.QObject.connect(self.ui.blocksExpandPushButton,
-                               QtCore.SIGNAL("clicked()"),
-                               self.ui.entitiesTreeView.expandAll)
+        self.ui.blocksCollapsePushButton.clicked.connect(self.expandToDepth0)
+        self.ui.blocksExpandPushButton.clicked.connect(self.ui.entitiesTreeView.expandAll)
 
-        #Build the contextual menu (mouse right click)
-        self.context_menu = QtGui.QMenu(self)
-
-        menu_action = self.context_menu.addAction("Unselect all")
-        menu_action.triggered.connect(self.ui.layersShapesTreeView.clearSelection)
-
-        menu_action = self.context_menu.addAction("Select all")
-        menu_action.triggered.connect(self.ui.layersShapesTreeView.selectAll)
-
+        # Build the contextual menu (mouse right click)
+        self.context_menu = QMenu(self)
+        self.context_menu.addAction(QAction("Select all", self, triggered=self.ui.layersShapesTreeView.selectAll))
+        self.context_menu.addAction(QAction("Deselect all", self, triggered=self.ui.layersShapesTreeView.clearSelection))
         self.context_menu.addSeparator()
-
-        menu_action = self.context_menu.addAction("Disable selection")
-        menu_action.triggered.connect(self.disableSelectedItems)
-
-        menu_action = self.context_menu.addAction("Enable selection")
-        menu_action.triggered.connect(self.enableSelectedItems)
-
+        self.context_menu.addAction(QAction("Enable selection", self, triggered=self.enableSelectedItems))
+        self.context_menu.addAction(QAction("Disable selection", self, triggered=self.disableSelectedItems))
         self.context_menu.addSeparator()
-
-        menu_action = self.context_menu.addAction("Don't opti. route for selection")
-        menu_action.triggered.connect(self.doNotOptimizeRouteForSelectedItems)
-
-        menu_action = self.context_menu.addAction("Optimize route for selection")
-        menu_action.triggered.connect(self.optimizeRouteForSelectedItems)
-
+        self.context_menu.addAction(QAction("Optimize route for selection", self, triggered=self.optimizeRouteForSelectedItems))
+        self.context_menu.addAction(QAction("Don't opti. route for selection", self, triggered=self.doNotOptimizeRouteForSelectedItems))
         self.context_menu.addSeparator()
+        self.context_menu.addAction(QAction("Remove custom GCode", self, triggered=self.removeCustomGCode))
 
-        menu_action = self.context_menu.addAction("Remove custom GCode")
-        menu_action.triggered.connect(self.removeCustomGCode)
-
-        sub_menu = QtGui.QMenu("Add custom GCode ...", self)
+        sub_menu = QMenu("Add custom GCode ...", self)
+        # Save the exact name of the action, as is defined in the config file. Later on we use it to identify the action
         for custom_action in g.config.vars.Custom_Actions:
             menu_action = sub_menu.addAction(QtCore.QString(custom_action).replace('_', ' '))
-            menu_action.setData(custom_action) #save the exact name of the action, as it is defined in the config file. We will use it later to identify the action
+            menu_action.setData(custom_action)
 
         self.context_menu.addMenu(sub_menu)
 
-        #Right click menu
+        # Right click menu
         self.ui.layersShapesTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
-        QtCore.QObject.connect(self.ui.layersShapesTreeView,
-                               QtCore.SIGNAL("customContextMenuRequested(const QPoint &)"),
-                               self.displayContextMenu)
+        self.ui.layersShapesTreeView.customContextMenuRequested.connect(self.displayContextMenu)
 
-        #Not used for now, so hide them
+        # Not used for now, so hide them
         self.ui.startAtXLabel.hide()
         self.ui.startAtYLabel.hide()
         self.ui.unitLabel_1.hide()
         self.ui.unitLabel_2.hide()
         self.ui.startAtXLineEdit.hide()
         self.ui.startAtYLineEdit.hide()
-
 
     def displayContextMenu(self, position):
         """
@@ -209,21 +186,17 @@ class TreeHandler(QtGui.QWidget):
         """
         selected_action = self.context_menu.exec_(self.ui.layersShapesTreeView.mapToGlobal(position))
 
-        if selected_action and selected_action.data().isValid():
-            #contextual menu selection concerns a custom gcode
+        if selected_action and isValid(selected_action.data()):
+            # contextual menu selection concerns a custom gcode
             custom_gcode_name = selected_action.data().toString()
 
             self.addCustomGCodeAfter(custom_gcode_name)
-
-
 
     def expandToDepth0(self):
         """
         Slot used to expand the entities treeView up to depth 0
         """
         self.ui.entitiesTreeView.expandToDepth(0)
-
-
 
     def buildLayerTree(self, layers_list):
         """
@@ -234,14 +207,14 @@ class TreeHandler(QtGui.QWidget):
         """
         self.layers_list = layers_list
         if self.layer_item_model:
-            self.layer_item_model.clear() #Remove any existing item_model
-        self.layer_item_model = MyStandardItemModel() #This is the model view (QStandardItemModel). it's the container for the data
+            self.layer_item_model.clear()  # Remove any existing item_model
+        self.layer_item_model = MyStandardItemModel()  # This is the container for the data (QStandardItemModel)
         self.layer_item_model.setSupportedDragActions(QtCore.Qt.MoveAction)
         self.layer_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"))
         self.layer_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"))
         self.layer_item_model.setHorizontalHeaderItem(2, QtGui.QStandardItem("Nr"))
         self.layer_item_model.setHorizontalHeaderItem(3, QtGui.QStandardItem("Optimal path"))
-        modele_root_element = self.layer_item_model.invisibleRootItem() #Root element of our tree
+        modele_root_element = self.layer_item_model.invisibleRootItem()  # Root element of our tree
 
         for layer in layers_list:
             icon = QtGui.QIcon()
@@ -289,15 +262,15 @@ class TreeHandler(QtGui.QWidget):
             optimise_element.setFlags(QtCore.Qt.ItemIsEnabled)
 
         # Signal to get events when a checkbox state changes (enable or disable shapes)
-        QtCore.QObject.connect(self.layer_item_model, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.on_itemChanged)
+        self.layer_item_model.itemChanged.connect(self.on_itemChanged)
 
-        self.ui.layersShapesTreeView.setModel(self.layer_item_model) #Affect our model to the GUI TreeView, in order to display it
+        self.ui.layersShapesTreeView.setModel(self.layer_item_model)  # Affect our model to the GUI TreeView, in order to display it
 
         self.ui.layersShapesTreeView.expandAll()
 
         self.ui.layersShapesTreeView.setDragDropMode(QtGui.QTreeView.InternalMove)
-        #self.ui.layersShapesTreeView.setDefaultDropAction(QtCore.Qt.MoveAction)
-        #self.ui.layersShapesTreeView.setDragDropOverwriteMode(True)
+        # self.ui.layersShapesTreeView.setDefaultDropAction(QtCore.Qt.MoveAction)
+        # self.ui.layersShapesTreeView.setDragDropOverwriteMode(True)
         self.ui.layersShapesTreeView.setDropIndicatorShown(True)
         self.ui.layersShapesTreeView.setAcceptDrops(True)
         self.ui.layersShapesTreeView.setDragEnabled(True)
@@ -316,7 +289,7 @@ class TreeHandler(QtGui.QWidget):
 
         self.entities_list = entities_list
         if self.entity_item_model:
-            self.entity_item_model.clear() #Remove any existing item_model
+            self.entity_item_model.clear()  # Remove any existing item_model
         self.entity_item_model = QtGui.QStandardItemModel()
         self.entity_item_model.setHorizontalHeaderItem(0, QtGui.QStandardItem("[en]"))
         self.entity_item_model.setHorizontalHeaderItem(1, QtGui.QStandardItem("Name"))
@@ -330,7 +303,7 @@ class TreeHandler(QtGui.QWidget):
         self.buildEntitiesSubTree(modele_root_element, entities_list)
 
         # Signal to get events when a checkbox state changes (enable or disable shapes)
-        QtCore.QObject.connect(self.entity_item_model, QtCore.SIGNAL("itemChanged(QStandardItem*)"), self.on_itemChanged)
+        self.entity_item_model.itemChanged.connect(self.on_itemChanged)
 
         self.ui.entitiesTreeView.setModel(self.entity_item_model)
 
@@ -386,7 +359,7 @@ class TreeHandler(QtGui.QWidget):
             item_col_3 = QtGui.QStandardItem("Entity")
             item_col_4 = QtGui.QStandardItem(str(element.p0))
             item_col_5 = QtGui.QStandardItem(str(element.sca))
-            item_col_6 = QtGui.QStandardItem(str(round(degrees(element.rot), 3))) #convert the angle into degrees with 3 digit after the decimal point
+            item_col_6 = QtGui.QStandardItem(str(round(degrees(element.rot), 3)))  # convert the angle into degrees with 3 digit after the decimal point
             elements_model.appendRow([item_col_0, item_col_1, item_col_2, item_col_3, item_col_4, item_col_5, item_col_6])
 
             for sub_element in element.children:
@@ -399,7 +372,7 @@ class TreeHandler(QtGui.QWidget):
         elif isinstance(element, Shape):
             icon = QtGui.QIcon()
             icon.addPixmap(QtGui.QPixmap(":/images/shape.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
-            item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
+            item_col_0 = QtGui.QStandardItem(icon, "")  # will only display a checkbox + an icon that will never be disabled
             item_col_0.setData(QtCore.QVariant(element), SHAPE_OBJECT)  # store a ref in our treeView element
             item_col_1 = QtGui.QStandardItem(element.type)
             item_col_2 = QtGui.QStandardItem(str(element.nr))
@@ -456,34 +429,29 @@ class TreeHandler(QtGui.QWidget):
             i -= 1
             layer_item_index = self.layer_item_model.index(i, 0)
 
-            if layer_item_index.data(LAYER_OBJECT).isValid():
-                real_layer = layer_item_index.data(LAYER_OBJECT).toPyObject()
-                self.layers_list.remove(real_layer)    #Remove the layer from its original position
-                self.layers_list.insert(0, real_layer) #and insert it at the beginning of the layer's list
+            if isValid(layer_item_index.data(LAYER_OBJECT)):
+                real_layer = toPyObject(layer_item_index.data(LAYER_OBJECT))
+                self.layers_list.remove(real_layer)  # Remove the layer from its original position
+                self.layers_list.insert(0, real_layer)  # and insert it at the beginning of the layer's list
 
-                real_layer.exp_order = [] #Clear the current export order
-                real_layer.exp_order_complete = [] #Clear the current export order
+                real_layer.exp_order = []  # Clear the current export order
+                real_layer.exp_order_complete = []  # Clear the current export order
 
-                #Assign the export order for the shapes of the layer "real_layer"
-                j = 0
-                while j < self.layer_item_model.rowCount(layer_item_index):
+                # Assign the export order for the shapes of the layer "real_layer"
+                for j in range(self.layer_item_model.rowCount(layer_item_index)):
                     shape_item_index = self.layer_item_model.index(j, 0, layer_item_index)
 
                     real_shape = None
-                    if shape_item_index.data(SHAPE_OBJECT).isValid():
-                        real_shape = shape_item_index.data(SHAPE_OBJECT).toPyObject()
+                    if isValid(shape_item_index.data(SHAPE_OBJECT)):
+                        real_shape = toPyObject(shape_item_index.data(SHAPE_OBJECT))
                         if real_shape.isDisabled() is False:
-                            real_layer.exp_order.append(real_shape.nr) #Create the export order list with the real and unique shapes numbers (eg [25, 22, 30, 4, 1, 5])
+                            real_layer.exp_order.append(real_shape.nr)  # Create the export order list with the real and unique shapes numbers (eg [25, 22, 30, 4, 1, 5])
 
-                    if shape_item_index.data(CUSTOM_GCODE_OBJECT).isValid():
-                        real_shape = shape_item_index.data(CUSTOM_GCODE_OBJECT).toPyObject()
+                    if isValid(shape_item_index.data(CUSTOM_GCODE_OBJECT)):
+                        real_shape = toPyObject(shape_item_index.data(CUSTOM_GCODE_OBJECT))
 
                     if real_shape and real_shape.isDisabled() is False:
-                        real_layer.exp_order_complete.append(real_layer.shapes.index(real_shape)) #Create the export order list with the shapes & custom gcode numbers (eg [5, 3, 2, 4, 0, 1])
-
-                    j += 1
-
-
+                        real_layer.exp_order_complete.append(real_layer.shapes.index(real_shape))  # Create the export order list with the shapes & custom gcode numbers (eg [5, 3, 2, 4, 0, 1])
 
     def updateTreeViewOrder(self):
         """
@@ -498,40 +466,34 @@ class TreeHandler(QtGui.QWidget):
             layer_item_index = self.layer_item_model.index(i, 0)
             layer_item = self.layer_item_model.itemFromIndex(layer_item_index)
 
-            if layer_item_index.data(LAYER_OBJECT).isValid():
-                real_layer = layer_item_index.data(LAYER_OBJECT).toPyObject()
+            if isValid(layer_item_index.data(LAYER_OBJECT)):
+                real_layer = toPyObject(layer_item_index.data(LAYER_OBJECT))
 
-                #for shape_nr in real_layer.exp_order[::-1]: #reverse order and prepend if we want to insert optimized shape before fixed shapes
+                # for shape_nr in real_layer.exp_order[::-1]:  # reverse order and prepend if we want to insert optimized shape before fixed shapes
                 for shape_nr in real_layer.exp_order:
-                    j = 0
-                    while j < self.layer_item_model.rowCount(layer_item_index):
+                    for j in range(self.layer_item_model.rowCount(layer_item_index)):
                         shape_item_index = self.layer_item_model.index(j, 0, layer_item_index)
 
-                        real_shape = None
-                        if shape_item_index.data(SHAPE_OBJECT).isValid():
-                            real_shape = shape_item_index.data(SHAPE_OBJECT).toPyObject()
+                        if isValid(shape_item_index.data(SHAPE_OBJECT)):
+                            real_shape = toPyObject(shape_item_index.data(SHAPE_OBJECT))
 
                             if real_shape and real_shape.nr == shape_nr and (real_shape.send_to_TSP or g.config.vars.Route_Optimisation['TSP_shape_order'] == 'CONSTRAIN_ORDER_ONLY'):
-                                #Shape number "shape_nr" found in the treeView and Shape is movable => moving it to its new position
+                                # Shape number "shape_nr" found in the treeView and Shape is movable => moving it to its new position
                                 item_to_be_moved = layer_item.takeRow(j)
                                 layer_item.appendRow(item_to_be_moved)
 
                                 break
-
-                        j += 1
-
 
     def columnsSelectDeselect(self, selection_model, item_index, select):
         """
         columnsSelectDeselect()
         """
         if select:
-            #Select the matching shape in the list.
+            # Select the matching shape in the list.
             selection_model.select(item_index, QtGui.QItemSelectionModel.Select | QtGui.QItemSelectionModel.Rows)
         else:
-            #Unselect the matching shape in the list.
+            # Unselect the matching shape in the list.
             selection_model.select(item_index, QtGui.QItemSelectionModel.Deselect | QtGui.QItemSelectionModel.Rows)
-
 
     def updateShapeSelection(self, shape, select):
         """
@@ -542,34 +504,31 @@ class TreeHandler(QtGui.QWidget):
         blocked when updating the selections in the treeViews
         options
         @param shape: the Shape whose selection has changed
-        @param selection: whether the Shape has been selected (True) or unselected (False)
+        @param selection: whether the Shape has been selected (True) or deselected (False)
         """
-
-        #Layer treeView
+        # Layer treeView
         item_index = self.findLayerItemIndexFromShape(shape)
-        selection_model = self.ui.layersShapesTreeView.selectionModel() #Get the selection model of the QTreeView
+        selection_model = self.ui.layersShapesTreeView.selectionModel()  # Get the selection model of the QTreeView
 
         if item_index:
-            #we found the matching index for the shape in our layers treeView model
-            self.ui.layersShapesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
+            # we found the matching index for the shape in our layers treeView model
+            self.ui.layersShapesTreeView.blockSignals(True)  # Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.layersShapesTreeView.blockSignals(False)
 
-        #Entities treeView
+        # Entities treeView
         item_index = self.findEntityItemIndexFromShape(shape)
-        selection_model = self.ui.entitiesTreeView.selectionModel() #Get the selection model of the QTreeView
+        selection_model = self.ui.entitiesTreeView.selectionModel()  # Get the selection model of the QTreeView
 
         if item_index:
-            #we found the matching index for the shape in our entities treeView model
-            self.ui.entitiesTreeView.blockSignals(True) #Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
+            # we found the matching index for the shape in our entities treeView model
+            self.ui.entitiesTreeView.blockSignals(True)  # Avoid signal loops (we dont want the treeView to re-emit selectionChanged signal)
             self.columnsSelectDeselect(selection_model, item_index, select)
             self.ui.entitiesTreeView.blockSignals(False)
 
-        #Update the tool parameters fields
+        # Update the tool parameters fields
         self.clearToolsParameters()
-        self.displayToolParametersForItem(shape.LayerContent, shape)
-
-
+        self.displayToolParametersForItem(shape.parentLayer, shape)
 
     def updateShapeEnabling(self, shape, enable):
         """
@@ -583,52 +542,49 @@ class TreeHandler(QtGui.QWidget):
         @param shape: the Shape whose enabling has changed
         @param enable: whether the Shape has been enabled (True) or disabled (False)
         """
-        #Layer treeView
+        # Layer treeView
         item_index = self.findLayerItemIndexFromShape(shape)
 
         if item_index:
-            #we found the matching index for the shape in our treeView model
+            # we found the matching index for the shape in our treeView model
             item = item_index.model().itemFromIndex(item_index)
 
-            self.layer_item_model.blockSignals(True) #Avoid signal loops (we dont want the treeView to emit itemChanged signal)
+            self.layer_item_model.blockSignals(True)  # Avoid signal loops (we dont want the treeView to emit itemChanged signal)
             if enable:
-                #Select the matching shape in the list
+                # Select the matching shape in the list
                 self.updateCheckboxOfItem(item, QtCore.Qt.Checked)
 
             else:
-                #Unselect the matching shape in the list
+                # deselect the matching shape in the list
                 self.updateCheckboxOfItem(item, QtCore.Qt.Unchecked)
 
             self.layer_item_model.blockSignals(False)
-            self.ui.layersShapesTreeView.update(item_index) #update the treeList drawing
-            self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index) #update the parents checkboxes
+            self.ui.layersShapesTreeView.update(item_index)  # update the treeList drawing
+            self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index)  # update the parents checkboxes
 
             if self.auto_update_export_order:
-                #update export order and thus export drawing
+                # update export order and thus export drawing
                 self.prepareExportOrderUpdate()
-
 
         #Entities treeView
         item_index = self.findEntityItemIndexFromShape(shape)
 
         if item_index:
-            #we found the matching index for the shape in our treeView model
+            # we found the matching index for the shape in our treeView model
             item = item_index.model().itemFromIndex(item_index)
 
-            self.entity_item_model.blockSignals(True) #Avoid signal loops (we dont want the treeView to emit itemChanged signal)
+            self.entity_item_model.blockSignals(True)  # Avoid signal loops (we dont want the treeView to emit itemChanged signal)
             if enable:
-                #Select the matching shape in the list
+                # Select the matching shape in the list
                 self.updateCheckboxOfItem(item, QtCore.Qt.Checked)
 
             else:
-                #Unselect the matching shape in the list
+                # deselect the matching shape in the list
                 self.updateCheckboxOfItem(item, QtCore.Qt.Unchecked)
 
             self.entity_item_model.blockSignals(False)
-            self.ui.entitiesTreeView.update(item_index) #update the treeList drawing
-            self.traverseParentsAndUpdateEnableDisable(self.entity_item_model, item_index) #update the parents checkboxes
-
-
+            self.ui.entitiesTreeView.update(item_index)  # update the treeList drawing
+            self.traverseParentsAndUpdateEnableDisable(self.entity_item_model, item_index)  # update the parents checkboxes
 
     def findLayerItemIndexFromShape(self, shape):
         """
@@ -663,14 +619,11 @@ class TreeHandler(QtGui.QWidget):
         @param shape: the real shape (ShapeClass instance)
         @return: the found item index
         """
-        found_item_index = None
-
-        i = 0
-        while i < item_model.rowCount(item_index):
+        for i in range(item_model.rowCount(item_index)):
             sub_item_index = item_model.index(i, 0, item_index)
 
-            if sub_item_index.data(SHAPE_OBJECT).isValid():
-                real_item = sub_item_index.data(SHAPE_OBJECT).toPyObject()
+            if isValid(sub_item_index.data(SHAPE_OBJECT)):
+                real_item = toPyObject(sub_item_index.data(SHAPE_OBJECT))
                 if shape == real_item:
                     return sub_item_index
 
@@ -679,13 +632,9 @@ class TreeHandler(QtGui.QWidget):
                 if found_item_index:
                     return found_item_index
 
-            i += 1
-
-
-
     def traverseChildrenAndSelect(self, item_model, item_index, itemSelection):
         """
-        This method is used internally to select/unselect all children
+        This method is used internally to select/deselect all children
         of a given entity (eg to select all the shapes of a given layer
         when the user has selected a layer)
         options
@@ -693,9 +642,7 @@ class TreeHandler(QtGui.QWidget):
         @param item_index: the initial model index (QModelIndex) in the tree (all children of this index are scanned)
         @param select: whether to select (True) or not (False)
         """
-
-        i = 0
-        while i < item_model.rowCount(item_index):
+        for i in range(item_model.rowCount(item_index)):
             sub_item_index = item_model.index(i, 0, item_index)
 
             if item_model.hasChildren(sub_item_index):
@@ -703,12 +650,9 @@ class TreeHandler(QtGui.QWidget):
 
             element = sub_item_index.model().itemFromIndex(sub_item_index)
             if element:
-                if element.data(SHAPE_OBJECT).isValid() or element.data(CUSTOM_GCODE_OBJECT).isValid():
-                    #only select Shapes or Custom GCode
+                if isValid(element.data(SHAPE_OBJECT)) or isValid(element.data(CUSTOM_GCODE_OBJECT)):
+                    # only select Shapes or Custom GCode
                     itemSelection.select(sub_item_index, sub_item_index)
-            i += 1
-
-
 
     def traverseChildrenAndEnableDisable(self, item_model, item_index, checked_state):
         """
@@ -746,8 +690,8 @@ class TreeHandler(QtGui.QWidget):
         has_checked = False
         item = None
         parent_item_index = None
-        i = 0
-        while i < item_model.rowCount(item_index.parent()):
+
+        for i in range(item_model.rowCount(item_index.parent())):
             parent_item_index = item_model.index(i, 0, item_index.parent())
 
             item = item_model.itemFromIndex(parent_item_index)
@@ -759,9 +703,7 @@ class TreeHandler(QtGui.QWidget):
                 else:
                     has_unchecked = True
 
-            i += 1
-
-        #Update the parent item according to its children
+        # Update the parent item according to its children
         if item and item.parent():
             parent_state = item.parent().checkState()
             if has_checked and has_unchecked or has_partially_checked:
@@ -773,253 +715,232 @@ class TreeHandler(QtGui.QWidget):
 
             self.updateCheckboxOfItem(item.parent(), parent_state)
 
-        #Handle the parent of the parent (recursive call)
-        if parent_item_index and parent_item_index.parent().isValid():
+        # Handle the parent of the parent (recursive call)
+        if isValid(parent_item_index.parent()):
             self.traverseParentsAndUpdateEnableDisable(item_model, parent_item_index.parent())
 
-
-
-    def toolUpdate(self, text):
+    def toolUpdate(self):
         """
         Slot that updates the tool's diameter, speed and start_radius
         when a new tool is selected
         @param text: the name of the newly selected tool
         """
-
-        if not text.isEmpty():
+        text = self.ui.toolDiameterComboBox.currentText()
+        if text:
             new_diameter = g.config.vars.Tool_Parameters[str(text)]['diameter']
             new_speed = g.config.vars.Tool_Parameters[str(text)]['speed']
             new_start_radius = g.config.vars.Tool_Parameters[str(text)]['start_radius']
 
             self.ui.toolDiameterComboBox.setPalette(self.palette)
             self.ui.toolDiameterLabel.setText(str(round(new_diameter, 3)))
-            self.ui.toolDiameterLabel.setPalette(self.palette) #Restore color
+            self.ui.toolDiameterLabel.setPalette(self.palette)  # Restore color
             self.ui.toolSpeedLabel.setText(str(round(new_speed, 1)))
-            self.ui.toolSpeedLabel.setPalette(self.palette) #Restore color
+            self.ui.toolSpeedLabel.setPalette(self.palette)  # Restore color
             self.ui.startRadiusLabel.setText(str(round(new_start_radius, 3)))
-            self.ui.startRadiusLabel.setPalette(self.palette) #Restore color
+            self.ui.startRadiusLabel.setPalette(self.palette)  # Restore color
 
-            #Get the new value and convert it to int
-            val = text.toInt()
+            # Get the new value and convert it to int
+            val = toInt(text)
             if val[1]:
                 selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
                 for model_index in selected_indexes_list:
-                    if model_index.isValid():
-                        model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                    if isValid(model_index):
+                        model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                         element = model_index.model().itemFromIndex(model_index)
                         real_item = None
-                        if element.data(SHAPE_OBJECT).isValid():
-                            real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent #Shape has no such property => update the parent layer
-                        elif element and element.data(LAYER_OBJECT).isValid():
-                            real_item = element.data(LAYER_OBJECT).toPyObject()
-                        if not real_item is None:
-                            real_item.tool_nr = val[0]
-                            real_item.tool_diameter = new_diameter
-                            real_item.speed = new_speed
-                            real_item.start_radius = new_start_radius
-                            self.tool_nr = real_item.tool_nr
-                            self.tool_diameter = new_diameter
-                            self.speed = new_speed
-                            self.start_radius = new_start_radius
+                        if isValid(element.data(SHAPE_OBJECT)):
+                            real_item = toPyObject(element.data(SHAPE_OBJECT)).parentLayer  # Shape has no such property => update the parent layer
+                        elif isValid(element.data(LAYER_OBJECT)):
+                            real_item = toPyObject(element.data(LAYER_OBJECT))
+                        if real_item is not None:
+                            if real_item.tool_nr != val[0]:
+                                real_item.tool_nr = val[0]
+                                real_item.tool_diameter = new_diameter
+                                real_item.speed = new_speed
+                                real_item.start_radius = new_start_radius
+                                self.tool_nr = real_item.tool_nr
+                                self.tool_diameter = new_diameter
+                                self.speed = new_speed
+                                self.start_radius = new_start_radius
+                                for shape in real_item.shapes:
+                                    g.window.canvas_scene.repaint_shape(shape)
+                if g.window:
+                    g.window.canvas_scene.update()
 
-
-
-    def toolParameterzRetractionArealUpdate(self, text):
+    def toolParameterzRetractionArealUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
-        self.ui.zRetractionArealLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zRetractionArealLineEdit.setPalette(self.palette)  # Restore color
 
-        #Get the new value and convert it to float
-        val = text.toFloat()
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.zRetractionArealLineEdit.text())
         if val[1]:
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
                     real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent #Shape has no such property => update the parent layer
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT)).parentLayer  # Shape has no such property => update the parent layer
+                    elif isValid(element.data(LAYER_OBJECT)):
+                        real_item = toPyObject(element.data(LAYER_OBJECT))
+                    if real_item is not None:
                         real_item.axis3_retract = val[0]
                         self.axis3_retract = real_item.axis3_retract
 
-
-
-    def toolParameterzSafetyMarginUpdate(self, text):
+    def toolParameterzSafetyMarginUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
-        self.ui.zSafetyMarginLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zSafetyMarginLineEdit.setPalette(self.palette)  # Restore color
 
-        #Get the new value and convert it to float
-        val = text.toFloat()
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.zSafetyMarginLineEdit.text())
         if val[1]:
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
                     real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject().LayerContent
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT)).parentLayer
+                    elif isValid(element.data(LAYER_OBJECT)):
+                        real_item = toPyObject(element.data(LAYER_OBJECT))
+                    if real_item is not None:
                         real_item.axis3_safe_margin = val[0]
                         self.axis3_safe_margin = real_item.axis3_safe_margin
 
-
-
-    def toolParameterzInfeedDepthUpdate(self, text):
+    def toolParameterzInfeedDepthUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
-        self.ui.zInfeedDepthLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zInfeedDepthLineEdit.setPalette(self.palette)  # Restore color
 
-        #Get the new value and convert it to float
-        val = text.toFloat()
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.zInfeedDepthLineEdit.text())
         if val[1]:
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
-                    real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject()
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
-                        real_item.axis3_slice_depth = val[0]
-                        self.axis3_slice_depth = real_item.axis3_slice_depth
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT))
+                        if real_item.axis3_slice_depth != val[0]:
+                            real_item.axis3_slice_depth = val[0]
+                            self.axis3_slice_depth = real_item.axis3_slice_depth
+                            g.window.canvas_scene.repaint_shape(real_item)
+            self.prepareExportOrderUpdate()
+            g.window.canvas_scene.update()
 
-
-
-    def toolParameterg1FeedXYUpdate(self, text):
+    def toolParameterg1FeedXYUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
-        self.ui.g1FeedXYLineEdit.setPalette(self.palette) #Restore color
+        self.ui.g1FeedXYLineEdit.setPalette(self.palette)  # Restore color
 
-        #Get the new value and convert it to float
-        val = text.toFloat()
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.g1FeedXYLineEdit.text())
         if val[1]:
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
-                    real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject()
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT))
                         real_item.f_g1_plane = val[0]
                         self.f_g1_plane = real_item.f_g1_plane
 
-
-
-    def toolParameterg1FeedZUpdate(self, text):
+    def toolParameterg1FeedZUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
-        self.ui.g1FeedZLineEdit.setPalette(self.palette) #Restore color
+        self.ui.g1FeedZLineEdit.setPalette(self.palette)  # Restore color
 
-        #Get the new value and convert it to float
-        val = text.toFloat()
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.g1FeedZLineEdit.text())
         if val[1]:
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
-                    real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject()
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT))
                         real_item.f_g1_depth = val[0]
                         self.f_g1_depth = real_item.f_g1_depth
 
-
-
-    def toolParameterzInitialMillDepthUpdate(self, text):
+    def toolParameterzInitialMillDepthUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
-        self.ui.zInitialMillDepthLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zInitialMillDepthLineEdit.setPalette(self.palette)  # Restore color
 
-        #Get the new value and convert it to float
-        val = text.toFloat()
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.zInitialMillDepthLineEdit.text())
         if val[1]:
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
-                    real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject()
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
-                        real_item.axis3_start_mill_depth = val[0]
-                        self.axis3_start_mill_depth = real_item.axis3_start_mill_depth
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT))
+                        if real_item.axis3_start_mill_depth != val[0]:
+                            real_item.axis3_start_mill_depth = val[0]
+                            self.axis3_start_mill_depth = real_item.axis3_start_mill_depth
+                            g.window.canvas_scene.repaint_shape(real_item)
+            self.prepareExportOrderUpdate()
+            g.window.canvas_scene.update()
 
-
-
-    def toolParameterzFinalMillDepthUpdate(self, text):
+    def toolParameterzFinalMillDepthUpdate(self):
         """
         Slot that updates the above tools parameter when the
         corresponding LineEdit changes
         @param text: the value of the LineEdit
         """
-        self.ui.zFinalMillDepthLineEdit.setPalette(self.palette) #Restore color
+        self.ui.zFinalMillDepthLineEdit.setPalette(self.palette)  # Restore color
 
-        #Get the new value and convert it to float
-        val = text.toFloat()
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.zFinalMillDepthLineEdit.text())
         if val[1]:
             selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
             for model_index in selected_indexes_list:
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
-                    real_item = None
-                    if element.data(SHAPE_OBJECT).isValid():
-                        real_item = element.data(SHAPE_OBJECT).toPyObject()
-                    elif element and element.data(LAYER_OBJECT).isValid():
-                        real_item = element.data(LAYER_OBJECT).toPyObject()
-                    if not real_item is None:
-                        real_item.axis3_mill_depth = val[0]
-                        self.axis3_mill_depth = real_item.axis3_mill_depth
-
-
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT))
+                        if real_item.axis3_mill_depth != val[0]:
+                            real_item.axis3_mill_depth = val[0]
+                            self.axis3_mill_depth = real_item.axis3_mill_depth
+                            g.window.canvas_scene.repaint_shape(real_item)
+            self.prepareExportOrderUpdate()
+            g.window.canvas_scene.update()
 
     def actionOnSelectionChange(self, parent, selected, deselected):
         """
@@ -1034,52 +955,51 @@ class TreeHandler(QtGui.QWidget):
         @param select: list of selected items in the treeView
         @param deselect: list of deselected items in the treeView
         """
-        self.clearToolsParameters() #disable tools parameters widgets, ...
+        self.clearToolsParameters()  # disable tools parameters widgets, ...
 
-        #Deselects all the shapes that are selected
+        # Deselects all the shapes that are selected
         itemLayerSelection = QtGui.QItemSelection()
         itemEntitySelection = QtGui.QItemSelection()
         for selection in deselected:
             for model_index in selection.indexes():
-                if model_index.isValid():
+                if isValid(model_index):
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
-                        if element.data(SHAPE_OBJECT).isValid():
-                            real_item = element.data(SHAPE_OBJECT).toPyObject()
-                            real_item.setSelected(False, True) #Deselect the shape on the canvas
-                            #Update the other TreeViews
+                        if isValid(element.data(SHAPE_OBJECT)):
+                            real_item = toPyObject(element.data(SHAPE_OBJECT))
+                            real_item.setSelected(False, True)  # Deselect the shape on the canvas
+                            # Update the other TreeViews
                             item_index = self.findEntityItemIndexFromShape(real_item)
                             if model_index.model() == self.layer_item_model and item_index:
                                 itemEntitySelection.select(item_index, item_index)
                             item_index = self.findLayerItemIndexFromShape(real_item)
                             if model_index.model() == self.entity_item_model and item_index:
                                 itemLayerSelection.select(item_index, item_index)
-                        elif element.data(LAYER_OBJECT).isValid():
+                        elif isValid(element.data(LAYER_OBJECT)):
                             itemLayerSelection.select(model_index, model_index)
-                        elif element.data(ENTITY_OBJECT).isValid():
+                        elif isValid(element.data(ENTITY_OBJECT)):
                             itemEntitySelection.select(model_index, model_index)
         selectionLayer = self.ui.layersShapesTreeView.selectionModel()
         selectionLayer.select(itemLayerSelection, QtGui.QItemSelectionModel.Deselect | QtGui.QItemSelectionModel.Rows)
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
         selectionEntity.select(itemEntitySelection, QtGui.QItemSelectionModel.Deselect | QtGui.QItemSelectionModel.Rows)
 
-
-        #Selects all the shapes that are selected
+        # Selects all the shapes that are selected
         itemLayerSelection = QtGui.QItemSelection()
         itemEntitySelection = QtGui.QItemSelection()
         for selection in selected:
             for model_index in selection.indexes():
-                if model_index.isValid():
-                    model_index = model_index.sibling(model_index.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
-                        if element.data(SHAPE_OBJECT).isValid():
-                            real_item = element.data(SHAPE_OBJECT).toPyObject()
-                            #update the tools parameters according to the selection
+                        if isValid(element.data(SHAPE_OBJECT)):
+                            real_item = toPyObject(element.data(SHAPE_OBJECT))
+                            # update the tools parameters according to the selection
                             self.displayToolParametersForItem(real_item.parentLayer, real_item)
 
-                            real_item.setSelected(True, True) #Select the shape on the canvas
-                            #Update the other TreeViews
+                            real_item.setSelected(True, True)  # Select the shape on the canvas
+                            # Update the other TreeViews
                             item_index = self.findEntityItemIndexFromShape(real_item)
                             if model_index.model() == self.layer_item_model and item_index:
                                 itemEntitySelection.select(item_index, item_index)
@@ -1087,21 +1007,21 @@ class TreeHandler(QtGui.QWidget):
                             if model_index.model() == self.entity_item_model and item_index:
                                 itemLayerSelection.select(item_index, item_index)
 
-                        #select all the children of a given layer when clicked
-                        elif element.data(LAYER_OBJECT).isValid():
-                            selection_model = self.ui.layersShapesTreeView.selectionModel() #Get the selection model of the QTreeView
-                            #Deselect the Layer in the list.
+                        # select all the children of a given layer when clicked
+                        elif isValid(element.data(LAYER_OBJECT)):
+                            selection_model = self.ui.layersShapesTreeView.selectionModel()  # Get the selection model of the QTreeView
+                            # Deselect the Layer in the list.
                             self.columnsSelectDeselect(selection_model, model_index, False)
                             self.traverseChildrenAndSelect(self.layer_item_model, model_index, itemLayerSelection)
 
-                            real_item = element.data(LAYER_OBJECT).toPyObject()
-                            #update the tools parameters according to the selection
+                            real_item = toPyObject(element.data(LAYER_OBJECT))
+                            # update the tools parameters according to the selection
                             self.displayToolParametersForItem(real_item)
 
-                        #select all the children of a given entity when clicked
-                        elif element.data(ENTITY_OBJECT).isValid():
-                            selection_model = self.ui.entitiesTreeView.selectionModel() #Get the selection model of the QTreeView
-                            #Deselect the Entities in the list.
+                        # select all the children of a given entity when clicked
+                        elif isValid(element.data(ENTITY_OBJECT)):
+                            selection_model = self.ui.entitiesTreeView.selectionModel()  # Get the selection model of the QTreeView
+                            # Deselect the Entities in the list.
                             self.columnsSelectDeselect(selection_model, model_index, False)
                             self.traverseChildrenAndSelect(self.entity_item_model, model_index, itemEntitySelection)
 
@@ -1110,6 +1030,8 @@ class TreeHandler(QtGui.QWidget):
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
         selectionEntity.select(itemEntitySelection, QtGui.QItemSelectionModel.Select | QtGui.QItemSelectionModel.Rows)
 
+        g.window.canvas_scene.update()
+
     def clearToolsParameters(self):
         """
         This function restore defaults for tools parameters widgets
@@ -1117,7 +1039,7 @@ class TreeHandler(QtGui.QWidget):
         """
         number_of_selected_items = len(self.ui.layersShapesTreeView.selectedIndexes())
 
-        if number_of_selected_items <= 2: #2 selections = 1 row of 2 columns
+        if number_of_selected_items <= 2:  # 2 selections = 1 row of 2 columns
             # 0 or 1 row are selected => clear some states
             self.tool_nr = None
             self.tool_diameter = None
@@ -1143,14 +1065,11 @@ class TreeHandler(QtGui.QWidget):
             self.ui.zInitialMillDepthLineEdit.setPalette(self.palette)
             self.ui.zFinalMillDepthLineEdit.setPalette(self.palette)
 
-
         if number_of_selected_items == 0:
             self.ui.millSettingsFrame.setEnabled(False)
 
         else:
             self.ui.millSettingsFrame.setEnabled(True)
-
-
 
     def displayToolParametersForItem(self, layer_item, shape_item = None):
         """
@@ -1159,13 +1078,15 @@ class TreeHandler(QtGui.QWidget):
         @param layer_item: layer instance as defined in LayerContent.py
         @param shape_item: shape instance as defined in Shape.py
         """
-        #Selects the tool for the selected layer
+        # Selects the tool for the selected layer
         self.ui.toolDiameterComboBox.setCurrentIndex(self.ui.toolDiameterComboBox.findText(str(layer_item.tool_nr)))
-        if not self.tool_nr is None and layer_item.tool_nr != self.tool_nr:
-            #Several different tools are currently selected => grey background for the combobox
+        if self.tool_nr is not None and layer_item.tool_nr != self.tool_nr:
+            # Several different tools are currently selected => grey background for the combobox
             palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Button, QtCore.Qt.gray)
             self.ui.toolDiameterComboBox.setPalette(palette)
+
+        # Layer options
         self.tool_nr = layer_item.tool_nr
 
         self.tool_diameter = self.updateAndColorizeWidget(self.ui.toolDiameterLabel,
@@ -1186,57 +1107,29 @@ class TreeHandler(QtGui.QWidget):
         self.axis3_safe_margin = self.updateAndColorizeWidget(self.ui.zSafetyMarginLineEdit,
                                                               self.axis3_safe_margin,
                                                               layer_item.axis3_safe_margin)
+        # Shape options
+        if shape_item is None:
+            shape_item = layer_item.shapes[0]
 
-        if shape_item and shape_item.axis3_slice_depth is not None:
-            #If Shape slice_depth is defined, then use it instead of the one of the layer
-            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
-                                                                  self.axis3_slice_depth,
-                                                                  shape_item.axis3_slice_depth)
-        else:
-            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
-                                                                  self.axis3_slice_depth,
-                                                                  layer_item.axis3_slice_depth)
+        self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
+                                                                   self.axis3_start_mill_depth,
+                                                                   shape_item.axis3_start_mill_depth)
 
-        if shape_item and shape_item.axis3_start_mill_depth is not None:
-            #If Shape initial mill_depth is defined, then use it instead of the one of the layer
-            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
-                                                                       self.axis3_start_mill_depth,
-                                                                       shape_item.axis3_start_mill_depth)
-        else:
-            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
-                                                                       self.axis3_start_mill_depth,
-                                                                       layer_item.axis3_start_mill_depth)
+        self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
+                                                              self.axis3_slice_depth,
+                                                              shape_item.axis3_slice_depth)
 
-        if shape_item and shape_item.axis3_mill_depth is not None:
-            #If Shape mill_depth is defined, then use it instead of the one of the layer
-            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
-                                                                 self.axis3_mill_depth,
-                                                                 shape_item.axis3_mill_depth)
-        else:
-            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
-                                                                 self.axis3_mill_depth,
-                                                                 layer_item.axis3_mill_depth)
+        self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
+                                                             self.axis3_mill_depth,
+                                                             shape_item.axis3_mill_depth)
 
-        if shape_item and shape_item.f_g1_plane is not None:
-            #If Shape XY speed is defined, then use it instead of the one of the layer
-            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
-                                                           self.f_g1_plane,
-                                                           shape_item.f_g1_plane)
-        else:
-            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
-                                                           self.f_g1_plane,
-                                                           layer_item.f_g1_plane)
+        self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+                                                       self.f_g1_plane,
+                                                       shape_item.f_g1_plane)
 
-        if shape_item and shape_item.f_g1_depth is not None:
-            #If Shape Z speed is defined, then use it instead of the one of the layer
-            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
-                                                           self.f_g1_depth,
-                                                           shape_item.f_g1_depth)
-        else:
-            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
-                                                           self.f_g1_depth,
-                                                           layer_item.f_g1_depth)
-
+        self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
+                                                       self.f_g1_depth,
+                                                       shape_item.f_g1_depth)
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """
@@ -1247,33 +1140,31 @@ class TreeHandler(QtGui.QWidget):
         @param previous_value: the value of the previously selected item
         @param value: the value (parameter) of the selected item
         """
-        widget.setText(str(round(value, 4))) #Round the value with at most 4 digits
+        widget.setText(str(round(value, 4)))  # Round the value with at most 4 digits
 
-        if previous_value != None and value != previous_value:
-            #Several different tools parameter are currently selected (eg: mill deph = -3 for the first selected item and -2 for the second) => grey color for the text
+        if previous_value and value != previous_value:
+            # Several different tools parameter are currently selected (eg: mill deph = -3 for the first selected item and -2 for the second) => grey color for the text
             palette = QtGui.QPalette()
             palette.setColor(QtGui.QPalette.Text, QtCore.Qt.gray)
             widget.setPalette(palette)
 
         return value
 
-
     def disableSelectedItems(self):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            if model_index.isValid():
+            if isValid(model_index):
                 model_index = model_index.sibling(model_index.row(), 0)
                 element = model_index.model().itemFromIndex(model_index)
                 if element.isEnabled():
                     element.setCheckState(QtCore.Qt.Unchecked)
 
-
     def enableSelectedItems(self):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            if model_index.isValid():
+            if isValid(model_index):
                 model_index = model_index.sibling(model_index.row(), 0)
                 element = model_index.model().itemFromIndex(model_index)
                 if element.isEnabled():
@@ -1283,7 +1174,7 @@ class TreeHandler(QtGui.QWidget):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            if model_index.isValid():
+            if isValid(model_index):
                 model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL)
                 element = model_index.model().itemFromIndex(model_index)
                 if element.isEnabled():
@@ -1293,13 +1184,13 @@ class TreeHandler(QtGui.QWidget):
         selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
 
         for model_index in selected_indexes_list:
-            if model_index.isValid():
+            if isValid(model_index):
                 model_index = model_index.sibling(model_index.row(), PATH_OPTIMISATION_COL)
                 element = model_index.model().itemFromIndex(model_index)
                 if element.isEnabled():
                     element.setCheckState(QtCore.Qt.Checked)
 
-    def actionOnKeyPress(self, key_code, item_index):
+    def actionOnKeyPress(self, event):
         """
         This function is a callback called from QTreeView class when a
         key is pressed on the treeView. If the key is the spacebar, and O, then
@@ -1308,8 +1199,8 @@ class TreeHandler(QtGui.QWidget):
         @param item_index: the item on which the keyPress event occurred
         """
 
-        #Enable/disable checkbox
-        if key_code == QtCore.Qt.Key_Space and item_index and item_index.isValid():
+        # Enable/disable checkbox
+        if event.key() == QtCore.Qt.Key_Space:
             for layer in self.layers_list:
                 for shape in layer.shapes:
                     if shape.isSelected():
@@ -1321,8 +1212,8 @@ class TreeHandler(QtGui.QWidget):
                             # Toggle checkbox
                             sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked)
 
-        #Optimize path checkbox
-        if key_code == QtCore.Qt.Key_O and item_index and item_index.isValid():
+        # Optimize path checkbox
+        elif event.key() == QtCore.Qt.Key_O:
             for layer in self.layers_list:
                 for shape in layer.shapes:
                     if shape.isSelected():
@@ -1333,7 +1224,9 @@ class TreeHandler(QtGui.QWidget):
                         if sub_item.isEnabled():
                             # Toggle checkbox
                             sub_item.setCheckState(QtCore.Qt.Unchecked if sub_item.checkState() == QtCore.Qt.Checked else QtCore.Qt.Checked)
-
+        else:
+            return False
+        return True
 
     def on_itemChanged(self, item):
         """
@@ -1344,32 +1237,32 @@ class TreeHandler(QtGui.QWidget):
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         """
         if item.column() == PATH_OPTIMISATION_COL:
-            #User has clicked on the Path Optimisation (TSP) checkbox => update the corresponding data into the shape
-            item_model_index = item.index().sibling(item.row(), 0) #get the first column of the selected row, since it's the only one that contains data
+            # User has clicked on the Path Optimisation (TSP) checkbox => update the corresponding data into the shape
+            item_model_index = item.index().sibling(item.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
             first_col_item = item_model_index.model().itemFromIndex(item_model_index)
-            if first_col_item and first_col_item.data(SHAPE_OBJECT).isValid():
-                #Set tool path optimisation for the matching shape
-                first_col_item.data(SHAPE_OBJECT).toPyObject().setToolPathOptimized(False if item.checkState() == QtCore.Qt.Unchecked else True)
+            if isValid(first_col_item.data(SHAPE_OBJECT)):
+                # Set tool path optimisation for the matching shape
+                toPyObject(first_col_item.data(SHAPE_OBJECT)).setToolPathOptimized(False if item.checkState() == QtCore.Qt.Unchecked else True)
 
-        elif item.data(SHAPE_OBJECT).isValid() or item.data(CUSTOM_GCODE_OBJECT).isValid():
+        elif isValid(item.data(SHAPE_OBJECT)) or isValid(item.data(CUSTOM_GCODE_OBJECT)):
             self.updateCheckboxOfItem(item, item.checkState())
             if self.auto_update_export_order:
-                #update export order and thus export drawing
+                # update export order and thus export drawing
                 self.prepareExportOrderUpdate()
 
-        elif item.data(LAYER_OBJECT).isValid():
-            #Checkbox concerns a Layer object => check/uncheck each sub-items (shapes)
+        elif isValid(item.data(LAYER_OBJECT)):
+            # Checkbox concerns a Layer object => check/uncheck each sub-items (shapes)
             self.traverseChildrenAndEnableDisable(self.layer_item_model, item.index(), item.checkState())
             if self.auto_update_export_order:
                 self.prepareExportOrderUpdate()
 
-        elif item.data(ENTITY_OBJECT).isValid():
-            #Checkbox concerns an Entity object => check/uncheck each sub-items (shapes and/or other entities)
+        elif isValid(item.data(ENTITY_OBJECT)):
+            # Checkbox concerns an Entity object => check/uncheck each sub-items (shapes and/or other entities)
             self.traverseChildrenAndEnableDisable(self.entity_item_model, item.index(), item.checkState())
             if self.auto_update_export_order:
                 self.prepareExportOrderUpdate()
 
-
+        g.window.canvas_scene.update()
 
     def updateCheckboxOfItem(self, item, check):
         """
@@ -1378,46 +1271,43 @@ class TreeHandler(QtGui.QWidget):
         @param item: item is the modified element. It can be a Shape, a Layer or an Entity
         @param check: the check state
         """
-        item.model().blockSignals(True) #Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
+        item.model().blockSignals(True)  # Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
         item.setCheckState(check)
         item.model().blockSignals(False)
 
-        if item.data(SHAPE_OBJECT).isValid():
-            #Checkbox concerns a shape object
-            real_item = item.data(SHAPE_OBJECT).toPyObject()
+        if isValid(item.data(SHAPE_OBJECT)):
+            # Checkbox concerns a shape object
+            real_item = toPyObject(item.data(SHAPE_OBJECT))
             real_item.setDisable(False if check == QtCore.Qt.Checked else True, True)
 
-            #Update the other TreeViews
+            # Update the other TreeViews
             item_index = self.findEntityItemIndexFromShape(real_item)
             if item_index:
                 if item.model() == self.layer_item_model:
-                    self.entity_item_model.blockSignals(True) #Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
+                    self.entity_item_model.blockSignals(True)  # Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
                     item_other_tree = self.entity_item_model.itemFromIndex(item_index)
                     item_other_tree.setCheckState(check)
                     self.enableDisableTreeRow(item_other_tree, check)
                     self.entity_item_model.blockSignals(False)
-                self.traverseParentsAndUpdateEnableDisable(self.entity_item_model, item_index) #Update parents checkboxes
+                self.traverseParentsAndUpdateEnableDisable(self.entity_item_model, item_index)  # Update parents checkboxes
 
             item_index = self.findLayerItemIndexFromShape(real_item)
             if item_index:
                 if item.model() == self.entity_item_model:
-                    self.layer_item_model.blockSignals(True) #Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
+                    self.layer_item_model.blockSignals(True)  # Avoid unnecessary signal loops (we don't want the treeView to emit itemChanged signal)
                     item_other_tree = self.layer_item_model.itemFromIndex(item_index)
                     item_other_tree.setCheckState(check)
                     self.enableDisableTreeRow(item_other_tree, check)
                     self.layer_item_model.blockSignals(False)
-                self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index) #Update parents checkboxes
+                self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item_index)  # Update parents checkboxes
 
-        if item.data(CUSTOM_GCODE_OBJECT).isValid():
-            #Checkbox concerns a custom gcode object
-            real_item = item.data(CUSTOM_GCODE_OBJECT).toPyObject()
+        if isValid(item.data(CUSTOM_GCODE_OBJECT)):
+            # Checkbox concerns a custom gcode object
+            real_item = toPyObject(item.data(CUSTOM_GCODE_OBJECT))
             real_item.setDisable(False if check == QtCore.Qt.Checked else True)
-            self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item.index()) #Update parents checkboxes
+            self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item.index())  # Update parents checkboxes
 
         self.enableDisableTreeRow(item, check)
-
-
-
 
     def enableDisableTreeRow(self, item, check):
         """
@@ -1427,20 +1317,17 @@ class TreeHandler(QtGui.QWidget):
         @param item: item is the modified element.
                      It can be a Shape, a Layer or an Entity
         """
-        current_tree_view = None
         if item.model() == self.layer_item_model:
             current_tree_view = self.ui.layersShapesTreeView
         else:
             current_tree_view = self.ui.entitiesTreeView
 
         item.model().blockSignals(True)
-        i = 0
-        row = 0
         if not item.parent():
-            row_item = item.model().invisibleRootItem() #parent is 0, so we need to get the root item of the tree as parent
+            row_item = item.model().invisibleRootItem()  # parent is 0, so we need to get the root item of the tree as parent
             i = item.columnCount()
         else:
-            row_item = item.parent() #we are on one of the column of the row => take the parent, so that we get the complete row
+            row_item = item.parent()  # we are on one of the column of the row => take the parent, so that we get the complete row
             i = row_item.columnCount()
         row = item.row()
         while i > 1:
@@ -1451,36 +1338,32 @@ class TreeHandler(QtGui.QWidget):
                 current_tree_view.update(column_item.index())
         item.model().blockSignals(False)
 
-        #Update the display (refresh the treeView for the given item)
+        # Update the display (refresh the treeView for the given item)
         current_tree_view.update(item.index())
-
-
 
     def removeCustomGCode(self):
         """
         Remove a custom GCode object from the treeView, just after the
         current item. Custom GCode are defined into the config file
         """
-        logger.debug(_('Removing custom GCode...'))
+        logger.debug('Removing custom GCode...')
         current_item_index = self.ui.layersShapesTreeView.currentIndex()
 
-        if current_item_index and current_item_index.isValid():
+        if isValid(current_item_index):
             remove_row = current_item_index.row()
 
-            #get the first column of the selected row, since it's the only one that contains data
+            # get the first column of the selected row, since it's the only one that contains data
             item_model_index = current_item_index.sibling(remove_row, 0)
             first_col_item = item_model_index.model().itemFromIndex(item_model_index)
-            if first_col_item and first_col_item.data(CUSTOM_GCODE_OBJECT).isValid():
-                #Item is a Custom GCode, so we can remove it
-                real_item = first_col_item.data(CUSTOM_GCODE_OBJECT).toPyObject()
-                real_item.LayerContent.shapes.remove(real_item)
+            if isValid(first_col_item.data(CUSTOM_GCODE_OBJECT)):
+                # Item is a Custom GCode, so we can remove it
+                real_item = toPyObject(first_col_item.data(CUSTOM_GCODE_OBJECT))
+                real_item.parentLayer.shapes.remove(real_item)
 
                 first_col_item.parent().removeRow(remove_row)
 
             else:
-                logger.warning(_('Only Custom GCode items are removable!'))
-
-
+                logger.warning('Only Custom GCode items are removable!')
 
     def addCustomGCodeAfter(self, action_name):
         """
@@ -1490,38 +1373,38 @@ class TreeHandler(QtGui.QWidget):
                             This name must match one of the subsection names
                             of [Custom_Actions] from the config file.
         """
-        logger.debug(_('Adding custom GCode "%s"') % (action_name))
+        logger.debug('Adding custom GCode "%s"' % action_name)
 
         g_code = "(No custom GCode defined)"
         if action_name and len(action_name) > 0:
             g_code = g.config.vars.Custom_Actions[str(action_name)].gcode
 
         current_item_index = self.ui.layersShapesTreeView.currentIndex()
-        if current_item_index and current_item_index.isValid():
-            push_row = current_item_index.row() + 1 #insert after the current row
+        if isValid(current_item_index):
+            push_row = current_item_index.row() + 1  # insert after the current row
             current_item = current_item_index.model().itemFromIndex(current_item_index)
             current_item_parent = current_item.parent()
 
             if not current_item_parent:
-                #parent is 0, so we are probably on a layer
-                #get the first column of the selected row, since it's the only one that contains data
+                # parent is 0, so we are probably on a layer
+                # get the first column of the selected row, since it's the only one that contains data
                 current_item_parent_index = current_item_index.sibling(current_item_index.row(), 0)
                 current_item_parent = current_item_parent_index.model().itemFromIndex(current_item_parent_index)
-                push_row = 0 #insert before any shape
+                push_row = 0  # insert before any shape
 
-            if current_item_parent.data(LAYER_OBJECT).isValid():
-                real_item_parent = current_item_parent.data(LAYER_OBJECT).toPyObject()
+            if isValid(current_item_parent.data(LAYER_OBJECT)):
+                real_item_parent = toPyObject(current_item_parent.data(LAYER_OBJECT))
 
-                #creates a new CustomGCode instance
+                # creates a new CustomGCode instance
                 custom_gcode = CustomGCode(action_name, len(real_item_parent.shapes), g_code, real_item_parent)
 
-                #insert this new item at the end of the physical list
+                # insert this new item at the end of the physical list
                 real_item_parent.shapes.append(custom_gcode)
 
                 icon = QtGui.QIcon()
-                icon.addPixmap(QtGui.QPixmap(":/images/pause.png"))
-                item_col_0 = QtGui.QStandardItem(icon, "") #will only display a checkbox + an icon that will never be disabled
-                item_col_0.setData(QtCore.QVariant(custom_gcode), CUSTOM_GCODE_OBJECT) #store a ref to the custom gcode in our treeView element
+                icon.addPixmap(QtGui.QPixmap(":/images/custom.png"))
+                item_col_0 = QtGui.QStandardItem(icon, "")  # will only display a checkbox + an icon that will never be disabled
+                item_col_0.setData(QtCore.QVariant(custom_gcode), CUSTOM_GCODE_OBJECT)  # store a ref to the custom gcode in our treeView element
                 item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
 
                 item_col_1 = QtGui.QStandardItem(custom_gcode.name)
@@ -1533,12 +1416,11 @@ class TreeHandler(QtGui.QWidget):
                 item_col_3 = QtGui.QStandardItem()
                 item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
 
-                #Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
+                # Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
                 item_col_0.setCheckState(QtCore.Qt.Checked)
 
                 current_item_parent.insertRow(push_row, [item_col_0, item_col_1, item_col_2, item_col_3])
                 self.ui.layersShapesTreeView.setCurrentIndex(current_item.index())
-
 
     def prepareExportOrderUpdate(self):
         """
@@ -1546,27 +1428,17 @@ class TreeHandler(QtGui.QWidget):
         called each time the shape order changes. It aims to update the drawing.
         """
         if self.auto_update_export_order:
-            #Update the exported shapes
+            # Update the exported shapes
             self.updateExportOrder()
 
-            #Emit the signal "exportOrderUpdated", so that the main can update tool path if he wants
-            QtCore.QObject.emit(self, QtCore.SIGNAL("exportOrderUpdated"), self) #We only pass python objects as parameters => definition without parentheses (PyQt_PyObject)
+            # Emit the signal "exportOrderUpdated", so that the main can update tool path if he wants
+            g.window.updateExportRoute()
 
-
-
-    def setUpdateExportRoute(self, live_update):
+    def setLiveUpdateExportRoute(self, live_update):
         """
         Set or unset the live update of export route.
         """
         self.auto_update_export_order = live_update
 
-        if live_update:
-            #Live update the export route drawing
-            QtCore.QObject.connect(self.ui.layersShapesTreeView, QtCore.SIGNAL("itemMoved"), self.prepareExportOrderUpdate)
+        if self.auto_update_export_order:
             self.prepareExportOrderUpdate()
-
-        else:
-            #Don't automatically update the export route drawing
-            QtCore.QObject.disconnect(self.ui.layersShapesTreeView, QtCore.SIGNAL("itemMoved"), self.prepareExportOrderUpdate)
-
-
