@@ -37,15 +37,19 @@ from core.arcgeo import ArcGeo
 from core.point import Point
 from core.intersect import Intersect
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
+    from PyQt5.QtGui import QPainterPath, QPen, QColor
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QGraphicsLineItem, QPainterPath, QGraphicsItem, QPen, QColor
+    from PyQt4 import QtCore
 
 logger = logging.getLogger('Gui.StMove')
 
 
-class StMove(QtGui.QGraphicsLineItem):
+class StMove(QGraphicsLineItem):
     """
     This Function generates the StartMove for each shape. It
     also performs the Plotting and Export of this moves. It is linked
@@ -62,12 +66,12 @@ class StMove(QtGui.QGraphicsLineItem):
         self.geos = []
 
         self.allwaysshow = False
-        self.path = QtGui.QPainterPath()
+        self.path = QPainterPath()
 
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
 
-        self.pen = QtGui.QPen(QtGui.QColor(50, 100, 255), 1, QtCore.Qt.SolidLine,
-                              QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen = QPen(QColor(50, 100, 255), 1, QtCore.Qt.SolidLine,
+                        QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.pen.setCosmetic(True)
 
         self.make_start_moves()
@@ -343,7 +347,7 @@ class StMove(QtGui.QGraphicsLineItem):
         @param pospro: The color of the shape
         """
         start = self.geos[0].get_start_end_points(True)
-        self.path = QtGui.QPainterPath()
+        self.path = QPainterPath()
         self.path.moveTo(start.x, -start.y)
 
         drawHorLine = lambda st, en: self.path.lineTo(en.x, -en.y)
@@ -362,8 +366,6 @@ class StMove(QtGui.QGraphicsLineItem):
         else:
             self.hide()
 
-        self.update(self.boundingRect())
-
     def setallwaysshow(self, flag=False):
         """
         If the directions shall be allwaysshown the parameter will be set and
@@ -377,7 +379,6 @@ class StMove(QtGui.QGraphicsLineItem):
             self.show()
         else:
             self.hide()
-        self.update(self.boundingRect())
 
     def paint(self, painter, option, widget=None):
         """

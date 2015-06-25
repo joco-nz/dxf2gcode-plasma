@@ -32,7 +32,7 @@ class BadConfigFileError(SyntaxError):
     syntax error in config file
     """
     def __init__(self, value):
-        print "bin hier"
+        print("bin hier")
         self.value = value
 
     def __str__(self):

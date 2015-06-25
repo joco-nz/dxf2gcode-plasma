@@ -30,7 +30,14 @@ import re
 from math import degrees
 import logging
 
-from PyQt4 import QtGui, QtCore
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QMessageBox
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QMessageBox
+    from PyQt4 import QtCore
 
 import globals.constants as c
 import globals.globals as g
@@ -100,9 +107,8 @@ class MyPostProcessor(object):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate("PostProcessor",
-                                                         string_to_translate,
-                                                         encoding=QtGui.QApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate("PostProcessor",
+                                                           string_to_translate))
 
     def get_output_vars(self):
         """
@@ -203,9 +209,9 @@ class MyPostProcessor(object):
                 f.close()
                 logger.info(self.tr("Export to FILE was successful"))
             except IOError:
-                QtGui.QMessageBox.warning(g.window,
-                                          self.tr("Warning during Export"),
-                                          self.tr("Cannot Save the File"))
+                QMessageBox.warning(g.window,
+                                    self.tr("Warning during Export"),
+                                    self.tr("Cannot Save the File"))
 
     def initialize_export_vars(self):
         """

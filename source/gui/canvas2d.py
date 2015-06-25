@@ -44,10 +44,16 @@ from gui.canvas import CanvasBase, MyDropDownMenu
 
 import globals.globals as g
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QGraphicsItem, QGraphicsView, QRubberBand, QGraphicsScene
+    from PyQt5.QtGui import QPainterPath, QPen, QColor, QPainterPathStroker
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QPainterPath, QGraphicsItem, QPen, QColor, QGraphicsView, QRubberBand,\
+        QGraphicsScene, QPainterPathStroker
+    from PyQt4 import QtCore
 
 logger = logging.getLogger("DxfImport.myCanvasClass")
 
@@ -68,16 +74,17 @@ class MyGraphicsView(CanvasBase):
         super(MyGraphicsView, self).__init__(parent)
         self.currentItem = None
 
-        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
-        self.setResizeAnchor(QtGui.QGraphicsView.AnchorViewCenter)
+        self.setTransformationAnchor(QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QGraphicsView.AnchorViewCenter)
 
-        # self.setDragMode(QtGui.QGraphicsView.RubberBandDrag )
-        self.setDragMode(QtGui.QGraphicsView.NoDrag)
+        # self.setDragMode(QGraphicsView.RubberBandDrag )
+        self.setDragMode(QGraphicsView.NoDrag)
 
         self.parent = parent
         self.mppos = None
 
-        self.rubberBand = QtGui.QRubberBand(QtGui.QRubberBand.Rectangle, self)
+        self.rubberBand = QRubberBand(QRubberBand.Rectangle, self)
+        self.prvRectRubberBand = QtCore.QRect()
 
     def tr(self, string_to_translate):
         """
@@ -85,9 +92,8 @@ class MyGraphicsView(CanvasBase):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('MyGraphicsView',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate('MyGraphicsView',
+                                                           string_to_translate))
 
     def contextMenuEvent(self, event):
         """
@@ -106,7 +112,11 @@ class MyGraphicsView(CanvasBase):
         @purpose: Scale by mouse wheel
         @param event: Event Parameters passed to function
         """
-        scale = (1000+event.delta())/1000.0
+        if c.PYQT5notPYQT4:
+            delta = event.angleDelta().y()
+        else:
+            delta = event.delta()
+        scale = (1000 + delta) / 1000.0
         self.scale(scale, scale)
 
     def mousePressEvent(self, event):
@@ -135,7 +145,7 @@ class MyGraphicsView(CanvasBase):
 
         if self.dragMode() == 1:
             # if (event.key() == QtCore.Qt.Key_Shift):
-            # self.setDragMode(QtGui.QGraphicsView.NoDrag)
+            # self.setDragMode(QGraphicsView.NoDrag)
             super(MyGraphicsView, self).mouseReleaseEvent(event)
 
         # Selection only enabled for left Button
@@ -199,8 +209,17 @@ class MyGraphicsView(CanvasBase):
             if Point.manhattanLength() > 3:
                 # print 'the mouse has moved more than 3 pixels since the oldPosition'
                 # print "Mouse Pointer is currently hovering at: ", event.pos()
+                rect = QtCore.QRect(self.mppos, event.pos())
+                '''
+                The following is needed because of PyQt5 doesn't like to switch from sign
+                 it will keep displaying last rectangle, i.e. you can end up will multiple rectangles
+                '''
+                if self.prvRectRubberBand.width() > 0 and not rect.width() > 0 or rect.width() == 0 or\
+                   self.prvRectRubberBand.height() > 0 and not rect.height() > 0 or rect.height() == 0:
+                    self.rubberBand.hide()
+                self.rubberBand.setGeometry(rect.normalized())
                 self.rubberBand.show()
-                self.rubberBand.setGeometry(QtCore.QRect(self.mppos, event.pos()).normalized())
+                self.prvRectRubberBand = rect
 
         scpoint = self.mapToScene(event.pos())
 
@@ -237,7 +256,7 @@ class MyGraphicsView(CanvasBase):
         scene = self.scene()
         del scene
 
-class MyGraphicsScene(QtGui.QGraphicsScene):
+class MyGraphicsScene(QGraphicsScene):
     """
     This is the Canvas used to print the graphical interface of dxf2gcode.
     The Scene is rendered into the previously defined mygraphicsView class.
@@ -245,7 +264,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
     @sideeffect: None
     """
     def __init__(self):
-        QtGui.QGraphicsScene.__init__(self)
+        QGraphicsScene.__init__(self)
 
         self.shapes = []
         self.wpzero = None
@@ -262,9 +281,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('MyGraphicsScene',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate('MyGraphicsScene',
+                                                           string_to_translate))
 
     def plotAll(self, shapes):
         """
@@ -291,7 +309,7 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         @param shape: The shape to be plotted.
         """
         start, start_ang = shape.get_start_end_points(True, True)
-        shape.path = QtGui.QPainterPath()
+        shape.path = QPainterPath()
         shape.path.moveTo(start.x, -start.y)
         drawHorLine = lambda start, end: shape.path.lineTo(end.x, -end.y)
         drawVerLine = lambda start: None  # Not used in 2D mode
@@ -325,8 +343,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         arrow = Arrow(startp=start,
                       length=length,
                       angle=start_ang,
-                      color=QtGui.QColor(50, 200, 255),
-                      pencolor=QtGui.QColor(50, 100, 255))
+                      color=QColor(50, 200, 255),
+                      pencolor=QColor(50, 100, 255))
         return arrow
 
     def createenarrow(self, shape):
@@ -340,8 +358,8 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         arrow = Arrow(startp=end,
                       length=length,
                       angle=end_ang,
-                      color=QtGui.QColor(0, 245, 100),
-                      pencolor=QtGui.QColor(0, 180, 50),
+                      color=QColor(0, 245, 100),
+                      pencolor=QColor(0, 180, 50),
                       startarrow=False)
         return arrow
 
@@ -358,13 +376,16 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
         """
         This function deletes all the plotted export routes.
         """
+        # removeItem might let it crash, hence we rely on the garbage collector
         while self.routearrows:
             item = self.routearrows.pop()
-            self.removeItem(item)
+            item.hide()
+            del item
 
         while self.routetext:
             item = self.routetext.pop()
-            self.removeItem(item)
+            item.hide()
+            del item
 
     def addexproutest(self):
         self.expprv = Point(g.config.vars.Plane_Coordinates['axis1_start_end'],
@@ -422,22 +443,25 @@ class MyGraphicsScene(QtGui.QGraphicsScene):
             elif not flag and shape.isDisabled():
                 shape.hide()
 
-class ShapeGUI(QtGui.QGraphicsItem, Shape):
+class ShapeGUI(QGraphicsItem, Shape):
     def __init__(self, nr, closed, parentEntity):
-        QtGui.QGraphicsItem.__init__(self)
+        QGraphicsItem.__init__(self)
         Shape.__init__(self, nr, closed, parentEntity)
 
-        self.pen = QtGui.QPen(QtCore.Qt.black)
-        self.left_pen = QtGui.QPen(QtCore.Qt.darkCyan)
-        self.right_pen = QtGui.QPen(QtCore.Qt.darkMagenta)
-        self.sel_pen = QtGui.QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.MiterJoin)
+        self.pen = QPen(QtCore.Qt.black, 1, QtCore.Qt.SolidLine)
+        self.pen.setCosmetic(True)
+        self.left_pen = QPen(QtCore.Qt.darkCyan, 1, QtCore.Qt.SolidLine)
+        self.left_pen.setCosmetic(True)
+        self.right_pen = QPen(QtCore.Qt.darkMagenta, 1, QtCore.Qt.SolidLine)
+        self.right_pen.setCosmetic(True)
+        self.sel_pen = QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.MiterJoin)
         self.sel_pen.setCosmetic(True)
-        self.dis_pen = QtGui.QPen(QtCore.Qt.gray, 1, QtCore.Qt.DotLine)
+        self.dis_pen = QPen(QtCore.Qt.gray, 1, QtCore.Qt.DotLine)
         self.dis_pen.setCosmetic(True)
-        self.sel_dis_pen = QtGui.QPen(QtCore.Qt.blue, 1, QtCore.Qt.DashLine)
+        self.sel_dis_pen = QPen(QtCore.Qt.blue, 1, QtCore.Qt.DashLine)
         self.sel_dis_pen.setCosmetic(True)
 
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, True)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
 
         self.selectionChangedCallback = None
@@ -492,7 +516,6 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         drawing
         """
         self.pen = pen
-        self.update(self.boundingRect())
 
     def paint(self, painter, option, widget):
         """
@@ -529,7 +552,7 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         Reimplemented function to select outline only.
         @return: Returns the Outline only
         """
-        painterStrock = QtGui.QPainterPathStroker()
+        painterStrock = QPainterPathStroker()
         painterStrock.setCurveThreshold(0.01)
         painterStrock.setWidth(0)
 
@@ -545,7 +568,7 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         self.enarrow.setSelected(flag)
         self.stmove.setSelected(flag)
 
-        QtGui.QGraphicsItem.setSelected(self, flag)
+        QGraphicsItem.setSelected(self, flag)
         Shape.setSelected(self, flag)
 
         if self.selectionChangedCallback and not blockSignals:
@@ -556,7 +579,7 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
         New implemented function which is in parallel to show and hide.
         @param flag: The flag to enable or disable Selection
         """
-        # QtGui.QGraphicsItem.setDisable(self, flag)
+        # QGraphicsItem.setDisable(self, flag)
         Shape.setDisable(self, flag)
         scene = self.scene()
 
@@ -568,9 +591,6 @@ class ShapeGUI(QtGui.QGraphicsItem, Shape):
                 self.stmove.setSelected(False)
             else:
                 self.show()
-
-                self.update(self.boundingRect())
-                # Needed to refresh view when setDisabled() function is called from a TreeView event
 
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)

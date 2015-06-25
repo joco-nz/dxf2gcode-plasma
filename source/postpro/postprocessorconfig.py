@@ -29,11 +29,15 @@ import os
 from globals.configobj.configobj import ConfigObj, flatten_errors
 from globals.configobj.validate import Validator
 
-import globals.constants as c
 import globals.globals as g
 from globals.d2gexceptions import *
 
-from PyQt4 import QtCore, QtGui
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5 import QtCore
+else:
+    from PyQt4 import QtCore
 
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig")
@@ -131,9 +135,8 @@ class MyPostProConfig(object):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtGui.QApplication.translate("MyPostProConfig",
-                                                    string_to_translate,
-                                                    encoding=QtGui.QApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate("MyPostProConfig",
+                                                           string_to_translate))
 
     def load_config(self):
         """

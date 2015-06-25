@@ -24,12 +24,20 @@
 #
 ############################################################################
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
+from __future__ import absolute_import
+from __future__ import division
 
-class WpZero(QtGui.QGraphicsItem):
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QGraphicsItem
+    from PyQt5.QtGui import QPen
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QGraphicsItem, QPen
+    from PyQt4 import QtCore
+
+
+class WpZero(QGraphicsItem):
     """
     class WpZero
     """
@@ -39,13 +47,12 @@ class WpZero(QtGui.QGraphicsItem):
 
         self.center = center
         self.allwaysshow = False
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.color = color
-        self.pen = QtGui.QPen(self.color, 1, QtCore.Qt.SolidLine,
-                  QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen = QPen(QtCore.Qt.darkGray, 1, QtCore.Qt.SolidLine)
         self.pen.setCosmetic(True)
 
-        self.diameter = 20.0
+        self.diameter = 23.0
 
     def contains_point(self, point):
         """
@@ -64,14 +71,15 @@ class WpZero(QtGui.QGraphicsItem):
         """
         paint()
         """
+        painter.setPen(self.pen)
         demat = painter.deviceTransform()
         self.sc = demat.m11()
 
         diameter1 = self.diameter / self.sc
-        diameter2 = (self.diameter-4) / self.sc
+        diameter2 = (self.diameter - 4) / self.sc
 
-        rectangle1 = QtCore.QRectF(-diameter1/2, -diameter1/2, diameter1, diameter1)
-        rectangle2 = QtCore.QRectF(-diameter2/2, -diameter2/2, diameter2, diameter2)
+        rectangle1 = QtCore.QRectF(-diameter1 / 2, -diameter1 / 2, diameter1, diameter1)
+        rectangle2 = QtCore.QRectF(-diameter2 / 2, -diameter2 / 2, diameter2, diameter2)
         startAngle1 = 90 * 16
         spanAngle = 90 * 16
         startAngle2 = 270 * 16
@@ -88,5 +96,5 @@ class WpZero(QtGui.QGraphicsItem):
         Override inherited function to enlarge selection of Arrow to include all
         @param flag: The flag to enable or disable Selection
         """
-        return QtCore.QRectF(-20, -20.0, 40.0, 40.0)
+        return QtCore.QRectF(-self.diameter / 2, -self.diameter / 2, self.diameter, self.diameter)
 

@@ -27,44 +27,47 @@ import logging
 
 from core.point import Point
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QGraphicsItem
+    from PyQt5.QtGui import QPainterPath, QPen, QColor, QFont
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QPainterPath, QGraphicsItem, QPen, QColor, QFont
+    from PyQt4 import QtCore
 
 logger = logging.getLogger("Gui.RouteText")
 
-class RouteText(QtGui.QGraphicsItem):
+class RouteText(QGraphicsItem):
     def __init__(self, text='S', startp=Point(x=0.0, y=0.0),):
         """
         Initialisation of the class.
         """
-        QtGui.QGraphicsItem.__init__(self)
+        QGraphicsItem.__init__(self)
 
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
+        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
 
         self.text = text
         self.sc = 1.0
         self.startp = QtCore.QPointF(startp.x, -startp.y)
 
-        pencolor = QtGui.QColor(0, 200, 255)
-        self.brush = QtGui.QColor(0, 100, 255)
+        pencolor = QColor(0, 200, 255)
+        self.brush = QColor(0, 100, 255)
 
-        self.pen = QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
-                     QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen = QPen(pencolor, 1, QtCore.Qt.SolidLine,
+                        QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.pen.setCosmetic(True)
 
-        self.path = QtGui.QPainterPath()
+        self.path = QPainterPath()
         self.path.addText(QtCore.QPointF(0, 0),
-                          QtGui.QFont("Arial", 10/self.sc),
+                          QFont("Arial", 10/self.sc),
                           self.text)
 
-    def updatepos(self, startp):
+    def contains_point(self, point):
         """
-        Method to update the position after optimisation of the shape.
+        WpZero cannot be selected. Return maximal distance
         """
-        self.prepareGeometryChange()
-        self.startp = QtCore.QPointF(startp.x, -startp.y)
+        return float(0x7fffffff)
 
     def paint(self, painter, option, widget=None):
         """

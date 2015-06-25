@@ -32,10 +32,12 @@ from core.point import Point
 from dxfimport.classes import PointsClass
 from core.arcgeo import ArcGeo
 
-try:
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5 import QtCore
+else:
     from PyQt4 import QtCore
-except ImportError:
-    raise Exception("PyQt4 import error")
 
 logger = logging.getLogger("DXFImport.GeoentArc")
 
@@ -65,9 +67,8 @@ class GeoentArc(object):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('ReadDXF',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate('ReadDXF',
+                                                           string_to_translate))
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
         """

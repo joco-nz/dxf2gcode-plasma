@@ -32,8 +32,16 @@ see http://code.activestate.com/recipes/65207/ for module const
 @purpose:  initialization of the global constants used within the other modules.
 """
 
-
 import logging
+
+'''
+By default we (should) want to run the PyQt5 version
+'''
+PYQT5notPYQT4 = True
+try:
+    import PyQt5
+except ImportError:
+    PYQT5notPYQT4 = False
 
 
 # Global Variables

@@ -14,12 +14,12 @@ exemakepfad = filepfad
 file_ = "dxf2gcode"
 icon = "%s\\images\\DXF2GCODE-001.ico" % filepfad
 
-options = ("--noconsole --icon=%s" % (icon))
-print options
+options = "--noconsole --icon=%s" % icon
+print(options)
 
-cmd = ("%s %s %s %s\\%s.py" % (pyt, pyinpfad, options, filepfad, file_))
-print cmd
-retcode = subprocess.call(cmd)
+cmd = "%s %s %s %s\\%s.py" % (pyt, pyinpfad, options, filepfad, file_)
+print(cmd)
+print(subprocess.call(cmd))
 
-print "\n!!!!!!!Do not forget the language folder!!!!!!"
-print "\nREADY"
+print("\n!!!!!!!Do not forget the language folder!!!!!!")
+print("\nREADY")

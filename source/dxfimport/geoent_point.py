@@ -35,7 +35,7 @@ class GeoentPoint:
         self.Nr = Nr
         self.Layer_Nr = 0
         self.geo = []
-        self.length = 0;
+        self.length = 0
 
         # Lesen der Geometrie
         # Read the geometry

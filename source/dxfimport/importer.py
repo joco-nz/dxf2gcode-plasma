@@ -44,10 +44,14 @@ from dxfimport.geoent_point import GeoentPoint
 
 import globals.globals as g
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QMessageBox
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QMessageBox
+    from PyQt4 import QtCore
 
 logger = logging.getLogger("DxfImport.Import")
 
@@ -99,9 +103,8 @@ class ReadDXF(QtCore.QObject):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('ReadDXF',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate('ReadDXF',
+                                                           string_to_translate))
 
     def Read_File(self, filename):
         """
@@ -187,7 +190,7 @@ class ReadDXF(QtCore.QObject):
             message = self.tr('Reading stopped at line %i.\n "%s" is not a valid code (number) - please, check/correct dxf file')\
                       % (line + 1, string[line].strip())
             logger.warning(message)
-            QtGui.QMessageBox.warning(g.window, self.tr("Warning reading linepairs"), message)
+            QMessageBox.warning(g.window, self.tr("Warning reading linepairs"), message)
 
         line_pairs.nrs = len(line_pairs.line_pair)
         logger.debug(self.tr('Did read %i of linepairs from DXF ') % line_pairs.nrs)
@@ -468,10 +471,10 @@ class ReadDXF(QtCore.QObject):
             warning = geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
 
         if warning:
-            QtGui.QMessageBox.warning(g.window, self.tr("Short Elements"),
-                                      self.tr("Length of some Elements too short!"
-                                      "\nLength must be greater than tolerance."
-                                      "\nSkipped Geometries"))
+            QMessageBox.warning(g.window, self.tr("Short Elements"),
+                                self.tr("Length of some Elements too short!"
+                                "\nLength must be greater than tolerance."
+                                "\nSkipped Geometries"))
 
         return points
 

@@ -34,13 +34,17 @@ Subclass is done in order to:
           enable and set export order of the shapes
 """
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QTreeView
+    from PyQt5.QtGui import QStandardItemModel
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QTreeView, QStandardItemModel
+    from PyQt4 import QtCore
 
 
-class TreeView(QtGui.QTreeView):
+class TreeView(QTreeView):
     """
     Subclassed QTreeView to match our needs.
     Implement a simple (ie not complex) drag & drop, get selection events
@@ -50,7 +54,7 @@ class TreeView(QtGui.QTreeView):
         """
         Initialization of the TreeView class.
         """
-        QtGui.QTreeView.__init__(self, parent)
+        QTreeView.__init__(self, parent)
 
         self.dragged_element = False #No item is currently dragged & dropped
         self.dragged_element_model_index = None
@@ -140,7 +144,7 @@ class TreeView(QtGui.QTreeView):
             relative_position = self.dropIndicatorPosition()
 
             #compute the new position of the layer or the shape
-            if drop_model_index.isValid() and relative_position != QtGui.QTreeView.OnViewport:
+            if drop_model_index.isValid() and relative_position != QTreeView.OnViewport:
                 #drop position is computable from a real element
                 drop_item = drop_model_index.model().itemFromIndex(drop_model_index)
 
@@ -149,12 +153,12 @@ class TreeView(QtGui.QTreeView):
                     #dragged element...
                     drag_row = self.dragged_element_model_index.row() #original row
                     #destination row (+1 if relative pos is below the drop element)...
-                    drop_row = drop_model_index.row() + (1 if relative_position == QtGui.QTreeView.BelowItem else 0)
+                    drop_row = drop_model_index.row() + (1 if relative_position == QTreeView.BelowItem else 0)
                     #print("\033[32;1mACCEPTED!\033[m\n")
 
                 elif (drag_item.parent() == drop_item or not drop_item.parent()\
                   and drag_item.parent() == drop_item.model().invisibleRootItem().child(drop_item.row(), 0))\
-                  and (relative_position == QtGui.QTreeView.BelowItem or relative_position == QtGui.QTreeView.OnItem):
+                  and (relative_position == QTreeView.BelowItem or relative_position == QTreeView.OnItem):
                     #we are on parent item (second test takes the first column
                     # of the drop_item's row. First column is where child are
                     # inserted, so we must compare with this col)
@@ -165,7 +169,7 @@ class TreeView(QtGui.QTreeView):
                     drop_row = 0
                     #print("\033[32;1mACCEPTED ON PARENT!\033[m\n")
                 elif (not drop_item.parent() and self.dragged_element_model_index.parent().sibling(self.dragged_element_model_index.parent().row()+1, 0) == drop_item.model().invisibleRootItem().child(drop_item.row(), 0).index())\
-                 and (relative_position == QtGui.QTreeView.AboveItem or relative_position == QtGui.QTreeView.OnItem):
+                 and (relative_position == QTreeView.AboveItem or relative_position == QTreeView.OnItem):
                     #we are on next parent item => insert at end of the dragged item's layer
                     # original row...
                     drag_row = self.dragged_element_model_index.row()
@@ -260,9 +264,7 @@ class TreeView(QtGui.QTreeView):
         @param block: whether to block signal (True) or not (False)
         """
         self.signals_blocked = block
-        QtGui.QTreeView.blockSignals(self, block)
-
-
+        QTreeView.blockSignals(self, block)
 
     def selectionChanged(self, selected, deselected):
         """
@@ -272,7 +274,7 @@ class TreeView(QtGui.QTreeView):
         @param deselected: list of deselected items
         print("\033[32;1mselectionChanged selected count = {0} ; deselected count = {1}\033[m".format(selected.count(), deselected.count()))
         """
-        QtGui.QTreeView.selectionChanged(self, selected, deselected)
+        QTreeView.selectionChanged(self, selected, deselected)
 
         if self.selectionChangedcallback and not self.signals_blocked:
             self.selectionChangedcallback(self, selected, deselected)
@@ -288,13 +290,13 @@ class TreeView(QtGui.QTreeView):
         if self.keyPressEventcallback and not self.signals_blocked:
             if not self.keyPressEventcallback(keyEvent):
                 # key not accepted => send it back to the parent
-                QtGui.QTreeView.keyPressEvent(self, keyEvent)
+                QTreeView.keyPressEvent(self, keyEvent)
         else:
-            QtGui.QTreeView.keyPressEvent(self, keyEvent)
+            QTreeView.keyPressEvent(self, keyEvent)
 
 
 
-class MyStandardItemModel(QtGui.QStandardItemModel):
+class MyStandardItemModel(QStandardItemModel):
     """
     Subclass QStandardItemModel to avoid error while using Drag & Drop
     """
@@ -303,7 +305,7 @@ class MyStandardItemModel(QtGui.QStandardItemModel):
         """
         Initialization of the MyStandardItemModel class.
         """
-        QtGui.QStandardItemModel.__init__(self, parent)
+        QStandardItemModel.__init__(self, parent)
 
     def mimeData(self, indexes):
         """

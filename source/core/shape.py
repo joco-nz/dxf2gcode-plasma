@@ -36,10 +36,12 @@ from core.point import Point
 from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
 
-try:
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5 import QtCore
+else:
     from PyQt4 import QtCore
-except ImportError:
-    raise Exception("PyQt4 import error")
 
 logger = logging.getLogger("Core.Shape")
 
@@ -49,7 +51,8 @@ class Shape(object):
     The Shape Class includes all plotting, GUI functionality and export functions
     related to the Shapes.
     """
-    def __init__(self, nr, closed, parentEntity):
+    # only need default arguments here because of the change of usage with super in QGraphicsItem
+    def __init__(self, nr=0, closed=True, parentEntity=None):
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -98,9 +101,8 @@ class Shape(object):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate("ShapeClass",
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate("ShapeClass",
+                                                           string_to_translate))
 
     def setSelected(self, flag=False):
         self.selected = flag

@@ -32,15 +32,19 @@ import logging
 
 from core.point import Point
 
-try:
-    from PyQt4 import QtCore, QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
+    from PyQt5.QtGui import QPen, QPolygonF
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QGraphicsLineItem, QGraphicsItem, QPen, QPolygonF
+    from PyQt4 import QtCore
 
 logger = logging.getLogger("Gui.Arrow")
 
 
-class Arrow(QtGui.QGraphicsLineItem):
+class Arrow(QGraphicsLineItem):
     def __init__(self, startp=Point(), endp=None,
                  length=60.0, angle=50.0,
                  color=QtCore.Qt.red, pencolor=QtCore.Qt.green,
@@ -59,14 +63,13 @@ class Arrow(QtGui.QGraphicsLineItem):
         self.startarrow = startarrow
         self.allwaysshow = False
 
-        self.arrowHead = QtGui.QPolygonF()
-        self.setFlag(QtGui.QGraphicsItem.ItemIsSelectable, False)
+        self.arrowHead = QPolygonF()
+        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.myColor = color
-        self.pen = QtGui.QPen(pencolor, 1, QtCore.Qt.SolidLine,
-                              QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
-        self.arrowSize = 8.0
-
+        self.pen = QPen(pencolor, 1, QtCore.Qt.SolidLine,
+                        QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
         self.pen.setCosmetic(True)
+        self.arrowSize = 8.0
 
     def contains_point(self, point):
         """
@@ -86,19 +89,6 @@ class Arrow(QtGui.QGraphicsLineItem):
         else:
             self.hide()
 
-        self.update(self.boundingRect())
-
-    def reverseshape(self, startp, angle):
-        """
-        Method is called when the shape direction is changed and
-        therefore the arrow gets new Point and direction
-        @param startp: The new startpoint
-        @param angle: The new angle of the arrow
-        """
-        self.startp = QtCore.QPointF(startp.x, -startp.y)
-        self.angle = angle
-        self.update(self.boundingRect())
-
     def setallwaysshow(self, flag=False):
         """
         If the directions shall be allwaysshown the parameter
@@ -112,16 +102,6 @@ class Arrow(QtGui.QGraphicsLineItem):
             self.show()
         else:
             self.hide()
-        self.update(self.boundingRect())
-
-    def updatepos(self, startp, endp=None, angle=None):
-        """
-        Method to update the position after optimisation of the shape.
-        """
-        self.prepareGeometryChange()
-        self.startp = QtCore.QPointF(startp.x, -startp.y)
-        self.endp = endp
-        self.angle = angle
 
     def paint(self, painter, option, widget=None):
         """
@@ -181,14 +161,14 @@ class Arrow(QtGui.QGraphicsLineItem):
         """
 
         # print("super: %s" % super(Arrow, self).boundingRect())
-        arrowSize = self.arrowSize * self.sc
-        extra = arrowSize / 2.0  # self.pen.width() +
+        arrowSize = self.arrowSize / self.sc
+        extra = arrowSize  # self.pen.width() +
 
         if self.endp is None:
-            dx = cos(self.angle) * self.length/self.sc
-            dy = sin(self.angle) * self.length/self.sc
+            dx = cos(self.angle) * self.length / self.sc
+            dy = sin(self.angle) * self.length / self.sc
 
-            endp = QtCore.QPointF(self.startp.x()+dx, self.startp.y()-dy)
+            endp = QtCore.QPointF(self.startp.x() - dx, self.startp.y() + dy)
         else:
             endp = QtCore.QPointF(self.endp.x, -self.endp.y)
 

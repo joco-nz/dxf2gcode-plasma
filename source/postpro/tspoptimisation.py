@@ -32,7 +32,12 @@ from math import floor, ceil
 
 import globals.globals as g
 
-from PyQt4 import QtCore
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5 import QtCore
+else:
+    from PyQt4 import QtCore
 
 import logging
 logger = logging.getLogger("PostPro.TSP")
@@ -164,9 +169,8 @@ class PopulationClass:
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate("PopulationClass",
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate("PopulationClass",
+                                                           string_to_translate))
 
     def random_begin(self, size):
         """

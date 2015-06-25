@@ -341,7 +341,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>⌀</string>
+                     <string>&#8960;</string>
                     </property>
                    </widget>
                   </item>

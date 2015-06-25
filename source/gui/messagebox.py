@@ -27,14 +27,13 @@ Special purpose canvas including all required plotting function etc.
 """
 
 import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QTextBrowser
+else:
+    from PyQt4.QtGui import QTextBrowser
 
-try:
-    from PyQt4 import QtGui
-except ImportError:
-    raise Exception("PyQt4 import error")
 
-
-class MessageBox(QtGui.QTextBrowser):
+class MessageBox(QTextBrowser):
     """
     The MessageBox Class performs the write functions in the Message Window.
     The previous defined MessageBox class is used as output (Within ui).

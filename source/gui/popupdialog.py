@@ -25,11 +25,14 @@
 
 import logging
 
-try:
-    from PyQt4 import QtCore
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton
+    from PyQt5.QtGui import QIcon, QPixmap
+    from PyQt5 import QtCore
+else:
     from PyQt4.QtGui import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QIcon, QPixmap
-except ImportError:
-    raise Exception("PyQt4 import error")
+    from PyQt4 import QtCore
 
 logger = logging.getLogger("Gui.PopUpDialog")
 

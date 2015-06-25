@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-""" 
-Generates the tr file based on the defined pyQt Project File
-""" 
+"""
+Generates the tr file based on the defined PyQt Project File
+"""
 
 import os, sys
 import subprocess
@@ -14,40 +14,43 @@ LREPATH = os.path.join(PYTHONPATH, "Lib\\site-packages\\PyQt4\\lrelease.exe")
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
 
-FILES = ("..\\dxf2gcode_pyQt4_ui\\dxf2gcode_pyQt4_ui.ui",
-         "..\\Core\\ArcGeo.py",
-         "..\\Core\\Config.py",
-         "..\\Core\\Logger.py",
-         "..\\Core\\Shape.py",
-         "..\\DXFImport\\Import.py",
-         "..\\Gui\\myCanvasClass.py",
-         "..\\PostPro\\PostProcessor.py",
-         "..\\PostPro\\PostProcessorConfig.py",
-         "..\\PostPro\\TspOptimisation.py",
-         "..\\dxf2gcode.py")
+FILES = ("..\\core\\arcgeo.py",
+         "..\\core\\shape.py",
+         "..\\dxfimport\\geoent_arc.py",
+         "..\\dxfimport\\geoent_circle.py",
+         "..\\dxfimport\\geoent_line.py",
+         "..\\dxfimport\\importer.py",
+         "..\\globals\\config.py",
+         "..\\gui\\canvas.py",
+         "..\\gui\\canvas2d.py",
+         "..\\postpro\\postprocessor.py",
+         "..\\postpro\\postprocessorconfig.py",
+         "..\\postpro\\tspoptimisation.py",
+         "..\\dxf2gcode.py",
+         "..\\dxf2gcode.ui"
+         )
 
 
 TSFILES = ("dxf2gcode_de_DE.ts",
-        "dxf2gcode_fr.ts")
-
+           "dxf2gcode_fr.ts")
 
 FILESSTR = ""
 for FILE in FILES:
     FILESSTR += ("%s\\i18n\\%s " % (FILEPATH, FILE))
-    
+
 TSFILESTR = ""
 for TSFILE in TSFILES:
     TSFILESTR += ("%s\\i18n\\%s " % (FILEPATH, TSFILE))
 
-OPTIONS = ("-ts")
+OPTIONS = "-ts"
 
-CMD1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
-print CMD1
-RETCODE = subprocess.call(CMD1, shell = True)
+cmd1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
+print(cmd1)
+print(subprocess.call(cmd1, shell = True))
 
-CMD2 = ("%s %s\n" % (LREPATH, TSFILESTR))
-print CMD2
-RETCODE = subprocess.call(CMD2, shell = True)
+cmd2 = ("%s %s\n" % (LREPATH, TSFILESTR))
+print(cmd2)
+print(subprocess.call(cmd2, shell = True))
 
-print "\nREADY"
+print("\nREADY")
 

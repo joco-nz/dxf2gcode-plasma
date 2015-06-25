@@ -103,12 +103,12 @@ class LoggerClass(object):
         """
         This function converts the given logging levels as they are:
         {DEBUG, INFO, WARNING,  ERROR, CRITICAL} to a conform format which is
-        required by the vunction e.g. logging.DEBUG
+        required by the function e.g. logging.DEBUG
         @param level: The String with the Level
         @return: Returns the converted string acc. to logging needs.
         """
         if isinstance(level, string_types):
-            return logging._levelNames[level]
+            return logging.getLevelName(level)
         else:
             return level
 

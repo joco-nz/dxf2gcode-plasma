@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'dxf2gcode.ui'
+# Form implementation generated from reading ui file 'c:\users\jeanpa~1\appdata\local\temp\tmp63xt_7'
 #
-# Created: Sun Jun 21 14:10:11 2015
+# Created: Thu Jun 25 09:26:03 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -685,4 +685,4 @@ class Ui_MainWindow(object):
 from gui.canvas import Canvas
 from gui.treeview import TreeView
 from gui.messagebox import MessageBox
-import dxf2gcode_images_rc
+import dxf2gcode_images4_rc

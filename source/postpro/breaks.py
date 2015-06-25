@@ -31,10 +31,11 @@ from core.arcgeo import ArcGeo
 from core.breakgeo import BreakGeo
 from core.point import Point
 
-try:
-    from PyQt4 import QtCore
-except ImportError:
-    raise Exception("PyQt4 import error")
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtCore import QLineF, QPointF
+else:
+    from PyQt4.QtCore import QLineF, QPointF
 
 logger = logging.getLogger("PostPro.Breaks")
 

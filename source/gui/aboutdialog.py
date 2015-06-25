@@ -23,14 +23,21 @@
 #
 ############################################################################
 
-from PyQt4 import QtGui, QtCore
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QDialog, QVBoxLayout, QGridLayout, QTextBrowser
+    from PyQt5.QtGui import QIcon, QPixmap
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QDialog, QVBoxLayout, QGridLayout, QIcon, QPixmap, QTextBrowser
+    from PyQt4 import QtCore
 
 import logging
 
 logger = logging.getLogger("Gui.AboutDialog")
 
 
-class AboutDialog(QtGui.QDialog):
+class AboutDialog(QDialog):
     def __init__(self, title="Test", message="Test Text"):
         super(AboutDialog, self).__init__()
 
@@ -44,15 +51,15 @@ class AboutDialog(QtGui.QDialog):
         initUI()
         """
 
-        vbox = QtGui.QVBoxLayout(self)
-        grid1 = QtGui.QGridLayout()
+        vbox = QVBoxLayout(self)
+        grid1 = QGridLayout()
         grid1.setSpacing(10)
 
-        self.text = QtGui.QTextBrowser()
+        self.text = QTextBrowser()
         self.text.setReadOnly(True)
         self.text.setOpenExternalLinks(True)
         self.text.append(self.message)
-        self.text.moveCursor(QtGui.QTextCursor.Start)
+        self.text.moveCursor(QTextCursor.Start)
         self.text.ensureCursorVisible()
 
         vbox.addWidget(self.text)
@@ -62,9 +69,9 @@ class AboutDialog(QtGui.QDialog):
         self.resize(550, 600)
         self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle(self.title)
-        iconWT = QtGui.QIcon()
-        iconWT.addPixmap(QtGui.QPixmap(":images/DXF2GCODE-001.ico"),
-                         QtGui.QIcon.Normal, QtGui.QIcon.Off)
-        self.setWindowIcon(QtGui.QIcon(iconWT))
+        iconWT = QIcon()
+        iconWT.addPixmap(QPixmap(":images/DXF2GCODE-001.ico"),
+                         QIcon.Normal, QIcon.Off)
+        self.setWindowIcon(QIcon(iconWT))
 
         self.exec_()

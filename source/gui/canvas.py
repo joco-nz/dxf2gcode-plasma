@@ -25,6 +25,14 @@
 
 from __future__ import absolute_import
 
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QGraphicsView, QMenu
+    from PyQt5 import QtCore
+else:
+    from PyQt4.QtGui import QGraphicsView, QMenu
+    from PyQt4 import QtCore
 
 """
 This Canvas function can be called as any class.
@@ -36,7 +44,6 @@ def Canvas(parent=None):
     return MyGraphicsView(parent)
 
 def CanvasObject():
-    from PyQt4.QtGui import QGraphicsView
     return QGraphicsView
 
 class CanvasBase(CanvasObject()):
@@ -44,9 +51,6 @@ class CanvasBase(CanvasObject()):
         super(CanvasBase, self).__init__(parent)
 
         self.isMultiSelect = False
-
-from PyQt4 import QtCore
-from PyQt4.QtGui import QMenu
 
 import logging
 
@@ -116,9 +120,8 @@ class MyDropDownMenu(QMenu):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('MyDropDownMenu',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate('MyDropDownMenu',
+                                                           string_to_translate))
 
     def calcMenuDir(self):
         """

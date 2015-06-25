@@ -1,7 +1,5 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import
-from __future__ import division
 
 ############################################################################
 #
@@ -26,58 +24,71 @@ from __future__ import division
 #
 ############################################################################
 
-# Import Qt modules
+from __future__ import absolute_import
+from __future__ import division
 
 import os
 import sys
 
 from math import degrees, radians
-
-import logging
-logger = logging.getLogger()
-from globals.logger import LoggerClass
-
 from copy import copy, deepcopy
-
+import logging
+import argparse
 import subprocess
 import tempfile
 
-import argparse
-from PyQt4 import QtGui, QtCore
-
-# Import the compiled UI module
-from dxf2gcode_ui import Ui_MainWindow
-
-
-from globals.config import MyConfig
 from core.point import Point
 from core.layercontent import LayerContent, Layers, Shapes
 from core.entitycontent import EntityContent
 from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
+from globals.config import MyConfig
 import globals.globals as g
-import globals.constants as c
-from gui.canvas2d import ShapeGUI as Shape
-#from core.shape import Shape
-
-from postpro.postprocessor import MyPostProcessor
-
-from dxfimport.importer import ReadDXF
+from globals.logger import LoggerClass
 
 from gui.canvas2d import MyGraphicsScene
 from gui.treehandling import TreeHandler
 from gui.popupdialog import PopUpDialog
 from gui.aboutdialog import AboutDialog
 
+from dxfimport.importer import ReadDXF
+
+from postpro.postprocessor import MyPostProcessor
 from postpro.tspoptimisation import TspOptimization
+
+from globals.six import text_type, PY2
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication
+    from PyQt5 import QtCore
+    from dxf2gcode_ui5 import Ui_MainWindow
+    getOpenFileName = QFileDialog.getOpenFileName
+    getSaveFileName = QFileDialog.getSaveFileName
+else:
+    from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication
+    from PyQt4 import QtCore
+    from dxf2gcode_ui4 import Ui_MainWindow
+    getOpenFileName = QFileDialog.getOpenFileNameAndFilter
+    getSaveFileName = QFileDialog.getSaveFileNameAndFilter
+from gui.canvas2d import ShapeGUI as Shape
+#from core.shape import Shape
+
+if PY2:
+    file_str = lambda filename: unicode(filename.toUtf8(), encoding="UTF-8")
+    str_decode = lambda filename: filename.decode("utf-8")
+else:
+    file_str = lambda filename: filename
+    str_decode = lambda filename: filename
+
+logger = logging.getLogger()
 
 # Get folder of the main instance and write into globals
 g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
 if os.path.islink(sys.argv[0]):
     g.folder = os.path.dirname(os.readlink(sys.argv[0]))
 
-# Create a class for our main window
-class MainWindow(QtGui.QMainWindow):
+
+class MainWindow(QMainWindow):
     """Main Class"""
 
     def __init__(self, app):
@@ -86,7 +97,7 @@ class MainWindow(QtGui.QMainWindow):
         Logger has been initialized. The Function loads the GUI, creates the
         used Classes and connects the actions to the GUI.
         """
-        QtGui.QMainWindow.__init__(self)
+        QMainWindow.__init__(self)
 
         self.app = app
 
@@ -121,9 +132,8 @@ class MainWindow(QtGui.QMainWindow):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('Main',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate('Main',
+                                                           string_to_translate))
 
     def createActions(self):
         """
@@ -189,16 +199,16 @@ class MainWindow(QtGui.QMainWindow):
         if event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = True
         elif event.key() == QtCore.Qt.Key_Shift:
-            self.canvas.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+            self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
 
-    def keyReleaseEvent (self, event):
+    def keyReleaseEvent(self, event):
         """
         Rewritten KeyReleaseEvent to get other behavior while Shift is pressed.
         @purpose: Changes to RubberBandDrag while Control released
         @param event:    Event Parameters passed to function
         """
         if event.key() == QtCore.Qt.Key_Shift:
-            self.canvas.setDragMode(QtGui.QGraphicsView.NoDrag)
+            self.canvas.setDragMode(QGraphicsView.NoDrag)
         elif event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = False
 
@@ -233,6 +243,7 @@ class MainWindow(QtGui.QMainWindow):
 
         self.canvas_scene.delete_opt_paths()
         self.ui.actionDeleteG0Paths.setEnabled(False)
+        self.canvas_scene.update()
 
         self.canvas.unsetCursor()
 
@@ -260,7 +271,7 @@ class MainWindow(QtGui.QMainWindow):
             # Get the name of the File to export
             if not saveas:
                 filename = self.showSaveDialog()
-                self.save_filename = str(filename[0].toUtf8()).decode("utf-8")
+                self.save_filename = file_str(filename[0])
             else:
                 filename = [None, None]
                 self.save_filename = saveas
@@ -323,6 +334,7 @@ class MainWindow(QtGui.QMainWindow):
         if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
             self.canvas_scene.addexprouteen()
+        self.canvas_scene.update()
 
     def optimizeTSP(self):
         """
@@ -411,7 +423,7 @@ class MainWindow(QtGui.QMainWindow):
                         shapes_left = [shape for shape in shapes_left
                                        if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation)]
                         outside_compensation = not outside_compensation
-        self.canvas.update()
+        self.canvas_scene.update()
 
     def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation):
         for otherShape in shapes_left:
@@ -445,9 +457,9 @@ class MainWindow(QtGui.QMainWindow):
         default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
 
         selected_filter = self.MyPostProcessor.output_format[0]
-        filename = QtGui.QFileDialog.getSaveFileNameAndFilter(self,
-                    self.tr('Export to file'), default_name,
-                    MyFormats, selected_filter)
+        filename = getSaveFileName(self,
+                                   self.tr('Export to file'), default_name,
+                                   MyFormats, selected_filter)
 
         logger.info(self.tr("File: %s selected") % filename[0])
 
@@ -497,6 +509,7 @@ class MainWindow(QtGui.QMainWindow):
         """
         flag = self.ui.actionShowDisabledPaths.isChecked()
         self.canvas_scene.setShow_disabled_paths(flag)
+        self.canvas_scene.update()
 
     def liveUpdateExportRoute(self):
         """
@@ -627,19 +640,19 @@ class MainWindow(QtGui.QMainWindow):
         load the selected file.
         """
 
-        self.filename = QtGui.QFileDialog.getOpenFileName(self,
-                                                          self.tr("Open file"),
-                                                                  g.config.vars.Paths['import_dir'],
-                                                          self.tr("All supported files (*.dxf *.ps *.pdf);;"
-                                                                  "DXF files (*.dxf);;"
-                                                                  "PS files (*.ps);;"
-                                                                  "PDF files (*.pdf);;"
-                                                                  "All types (*.*)"))
+        self.filename, _ = getOpenFileName(self,
+                                           self.tr("Open file"),
+                                                   g.config.vars.Paths['import_dir'],
+                                           self.tr("All supported files (*.dxf *.ps *.pdf);;"
+                                                   "DXF files (*.dxf);;"
+                                                   "PS files (*.ps);;"
+                                                   "PDF files (*.pdf);;"
+                                                   "All types (*.*)"))
 
         #If there is something to load then call the load function callback
         if self.filename:
-            self.filename = unicode(self.filename.toUtf8(), encoding="UTF-8")
-            logger.info(self.tr("File: %s selected" % self.filename))
+            self.filename = file_str(self.filename)
+            logger.info(self.tr("File: %s selected") % self.filename)
             self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
 
             self.cont_dx = 0.0
@@ -882,17 +895,17 @@ class MainWindow(QtGui.QMainWindow):
 
     def readSettings(self):
         settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
-        settings.beginGroup("MainWindow");
-        self.resize(settings.value("size", QtCore.QSize(800, 600)).toSize());
-        self.move(settings.value("pos", QtCore.QPoint(200, 200)).toPoint());
-        settings.endGroup();
+        settings.beginGroup("MainWindow")
+        self.resize(settings.value("size", QtCore.QSize(800, 600)).toSize())
+        self.move(settings.value("pos", QtCore.QPoint(200, 200)).toPoint())
+        settings.endGroup()
 
     def writeSettings(self):
         settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
-        settings.beginGroup("MainWindow");
-        settings.setValue("size", self.size());
-        settings.setValue("pos", self.pos());
-        settings.endGroup();
+        settings.beginGroup("MainWindow")
+        settings.setValue("size", self.size())
+        settings.setValue("pos", self.pos())
+        settings.endGroup()
 
 
 if __name__ == "__main__":
@@ -905,7 +918,7 @@ if __name__ == "__main__":
     Log.set_console_handler_loglevel()
     Log.add_file_logger()
 
-    app = QtGui.QApplication(sys.argv)
+    app = QApplication(sys.argv)
 
     # Get local language and install if available.
     locale = QtCore.QLocale.system().name()
@@ -942,7 +955,7 @@ if __name__ == "__main__":
     options.filename = "D:\\dxf2gcode-sourcecode\\DXF\\1.dxf"
 
     if not(options.filename is None):
-        window.filename = options.filename.decode("utf-8")
+        window.filename = str_decode(options.filename)
         window.load(window.filename)
 
     if not(options.export_filename is None):

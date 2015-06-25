@@ -31,14 +31,15 @@ import logging
 
 from globals.configobj.configobj import ConfigObj, flatten_errors
 from globals.configobj.validate import Validator
-import globals.constants as c
 import globals.globals as g
 from globals.d2gexceptions import *
 
-try:
+from globals.six import text_type
+import globals.constants as c
+if c.PYQT5notPYQT4:
+    from PyQt5 import QtCore
+else:
     from PyQt4 import QtCore
-except ImportError:
-    raise Exception("PyQt4 import error")
 
 logger = logging.getLogger("Core.Config")
 
@@ -234,9 +235,8 @@ class MyConfig(object):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return unicode(QtCore.QCoreApplication.translate('MyConfig',
-                                                         string_to_translate,
-                                                         encoding=QtCore.QCoreApplication.UnicodeUTF8))
+        return text_type(QtCore.QCoreApplication.translate('MyConfig',
+                                                           string_to_translate))
 
     def make_settings_folder(self):
         """Create settings folder if necessary"""
