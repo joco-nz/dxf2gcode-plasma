@@ -66,8 +66,7 @@ class Arrow(QGraphicsLineItem):
         self.arrowHead = QPolygonF()
         self.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.myColor = color
-        self.pen = QPen(pencolor, 1, QtCore.Qt.SolidLine,
-                        QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen = QPen(pencolor, 1, QtCore.Qt.SolidLine)
         self.pen.setCosmetic(True)
         self.arrowSize = 8.0
 

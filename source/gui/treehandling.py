@@ -985,7 +985,7 @@ class TreeHandler(QWidget):
                     if element:
                         if isValid(element.data(SHAPE_OBJECT)):
                             real_item = toPyObject(element.data(SHAPE_OBJECT)).shapeobj
-                            real_item.setSelected(False, True)  # Deselect the shape on the canvas
+                            real_item.setSelected(False)  # Deselect the shape on the canvas
                             # Update the other TreeViews
                             item_index = self.findEntityItemIndexFromShape(real_item)
                             if model_index.model() == self.layer_item_model and item_index:
@@ -1016,7 +1016,7 @@ class TreeHandler(QWidget):
                             # update the tools parameters according to the selection
                             self.displayToolParametersForItem(real_item.parentLayer, real_item)
 
-                            real_item.setSelected(True, True)  # Select the shape on the canvas
+                            real_item.setSelected(True)  # Select the shape on the canvas
                             # Update the other TreeViews
                             item_index = self.findEntityItemIndexFromShape(real_item)
                             if model_index.model() == self.layer_item_model and item_index:
@@ -1296,7 +1296,7 @@ class TreeHandler(QWidget):
         if isValid(item.data(SHAPE_OBJECT)):
             # Checkbox concerns a shape object
             real_item = toPyObject(item.data(SHAPE_OBJECT)).shapeobj
-            real_item.setDisable(False if check == QtCore.Qt.Checked else True, True)
+            real_item.setDisable(not check == QtCore.Qt.Checked)
 
             # Update the other TreeViews
             item_index = self.findEntityItemIndexFromShape(real_item)
@@ -1322,7 +1322,7 @@ class TreeHandler(QWidget):
         if isValid(item.data(CUSTOM_GCODE_OBJECT)):
             # Checkbox concerns a custom gcode object
             real_item = toPyObject(item.data(CUSTOM_GCODE_OBJECT))
-            real_item.setDisable(False if check == QtCore.Qt.Checked else True)
+            real_item.setDisable(not check == QtCore.Qt.Checked)
             self.traverseParentsAndUpdateEnableDisable(self.layer_item_model, item.index())  # Update parents checkboxes
 
         self.enableDisableTreeRow(item, check)

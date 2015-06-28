@@ -54,8 +54,7 @@ class RouteText(QGraphicsItem):
         pencolor = QColor(0, 200, 255)
         self.brush = QColor(0, 100, 255)
 
-        self.pen = QPen(pencolor, 1, QtCore.Qt.SolidLine,
-                        QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen = QPen(pencolor, 1, QtCore.Qt.SolidLine)
         self.pen.setCosmetic(True)
 
         self.path = QPainterPath()

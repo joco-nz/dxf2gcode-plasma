@@ -154,7 +154,7 @@ class MyGraphicsView(CanvasBase):
             scene = self.scene()
             if not self.isMultiSelect:
                 for item in scene.selectedItems():
-                    item.setSelected(False)
+                    item.setSelected(False, False)
             # If the mouse button is pressed without movement of rubberband
             if self.rubberBand.isHidden():
                 rect = QtCore.QRect(event.pos().x()-delta,
@@ -171,9 +171,9 @@ class MyGraphicsView(CanvasBase):
                         self.currentItems = item
                 if self.currentItems:
                     if self.currentItems.isSelected():
-                        self.currentItems.setSelected(False)
+                        self.currentItems.setSelected(False, False)
                     else:
-                        self.currentItems.setSelected(True)
+                        self.currentItems.setSelected(True, False)
             else:
                 rect = self.rubberBand.geometry()
                 self.currentItems = self.items(rect)
@@ -187,10 +187,10 @@ class MyGraphicsView(CanvasBase):
 
                 for item in self.currentItems:
                     if item.isSelected():
-                        item.setSelected(False)
+                        item.setSelected(False, False)
                     else:
                         # print (item.flags())
-                        item.setSelected(True)
+                        item.setSelected(True, False)
 
         else:
             pass
@@ -446,7 +446,7 @@ class MyGraphicsScene(QGraphicsScene):
 class ShapeGUI(QGraphicsItem, Shape):
     PEN_NORMAL = QPen(QtCore.Qt.black, 1, QtCore.Qt.SolidLine)
     PEN_NORMAL.setCosmetic(True)
-    PEN_SELECT = QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.MiterJoin)
+    PEN_SELECT = QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
     PEN_SELECT.setCosmetic(True)
     PEN_NORMAL_DISABLED = QPen(QtCore.Qt.gray, 1, QtCore.Qt.DotLine)
     PEN_NORMAL_DISABLED.setCosmetic(True)
@@ -563,7 +563,7 @@ class ShapeGUI(QGraphicsItem, Shape):
         stroke = painterStrock.createStroke(self.path)
         return stroke
 
-    def setSelected(self, flag=True, blockSignals=False):
+    def setSelected(self, flag=True, blockSignals=True):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection
@@ -578,7 +578,7 @@ class ShapeGUI(QGraphicsItem, Shape):
         if self.selectionChangedCallback and not blockSignals:
             self.selectionChangedCallback(self, flag)
 
-    def setDisable(self, flag=False, blockSignals=False):
+    def setDisable(self, flag=False, blockSignals=True):
         """
         New implemented function which is in parallel to show and hide.
         @param flag: The flag to enable or disable Selection
