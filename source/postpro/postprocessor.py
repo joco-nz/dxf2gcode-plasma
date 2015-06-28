@@ -30,7 +30,13 @@ import re
 from math import degrees
 import logging
 
-from globals.six import text_type
+import globals.globals as g
+
+from core.point import Point
+from postpro.postprocessorconfig import MyPostProConfig
+from postpro.breaks import Breaks
+
+from globals.six import text_type, PY2
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMessageBox
@@ -39,13 +45,10 @@ else:
     from PyQt4.QtGui import QMessageBox
     from PyQt4 import QtCore
 
-import globals.constants as c
-import globals.globals as g
-
-from core.point import Point
-from postpro.postprocessorconfig import MyPostProConfig
-from postpro.breaks import Breaks
-
+if PY2:
+    str_encode = lambda exstr: exstr.encode('utf-8')
+else:
+    str_encode = lambda exstr: exstr
 
 logger = logging.getLogger("PostPro.PostProcessor")
 
@@ -205,7 +208,7 @@ class MyPostProcessor(object):
             try:
                 # File open and write
                 f = open(save_filename, "w")
-                f.write(exstr.encode('utf8'))
+                f.write(str_encode(exstr))
                 f.close()
                 logger.info(self.tr("Export to FILE was successful"))
             except IOError:

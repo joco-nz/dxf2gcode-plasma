@@ -444,22 +444,24 @@ class MyGraphicsScene(QGraphicsScene):
                 shape.hide()
 
 class ShapeGUI(QGraphicsItem, Shape):
+    PEN_NORMAL = QPen(QtCore.Qt.black, 1, QtCore.Qt.SolidLine)
+    PEN_NORMAL.setCosmetic(True)
+    PEN_SELECT = QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.MiterJoin)
+    PEN_SELECT.setCosmetic(True)
+    PEN_NORMAL_DISABLED = QPen(QtCore.Qt.gray, 1, QtCore.Qt.DotLine)
+    PEN_NORMAL_DISABLED.setCosmetic(True)
+    PEN_SELECT_DISABLED = QPen(QtCore.Qt.blue, 1, QtCore.Qt.DashLine)
+    PEN_SELECT_DISABLED.setCosmetic(True)
+    PEN_BREAK = QPen(QtCore.Qt.magenta, 1, QtCore.Qt.SolidLine)
+    PEN_BREAK.setCosmetic(True)
+    PEN_LEFT = QPen(QtCore.Qt.darkCyan, 1, QtCore.Qt.SolidLine)
+    PEN_LEFT.setCosmetic(True)
+    PEN_RIGHT = QPen(QtCore.Qt.darkMagenta, 1, QtCore.Qt.SolidLine)
+    PEN_RIGHT.setCosmetic(True)
+
     def __init__(self, nr, closed, parentEntity):
         QGraphicsItem.__init__(self)
         Shape.__init__(self, nr, closed, parentEntity)
-
-        self.pen = QPen(QtCore.Qt.black, 1, QtCore.Qt.SolidLine)
-        self.pen.setCosmetic(True)
-        self.left_pen = QPen(QtCore.Qt.darkCyan, 1, QtCore.Qt.SolidLine)
-        self.left_pen.setCosmetic(True)
-        self.right_pen = QPen(QtCore.Qt.darkMagenta, 1, QtCore.Qt.SolidLine)
-        self.right_pen.setCosmetic(True)
-        self.sel_pen = QPen(QtCore.Qt.red, 2, QtCore.Qt.SolidLine, QtCore.Qt.RoundCap, QtCore.Qt.MiterJoin)
-        self.sel_pen.setCosmetic(True)
-        self.dis_pen = QPen(QtCore.Qt.gray, 1, QtCore.Qt.DotLine)
-        self.dis_pen.setCosmetic(True)
-        self.sel_dis_pen = QPen(QtCore.Qt.blue, 1, QtCore.Qt.DashLine)
-        self.sel_dis_pen.setCosmetic(True)
 
         self.setFlag(QGraphicsItem.ItemIsSelectable, True)
         self.setAcceptedMouseButtons(QtCore.Qt.NoButton)
@@ -524,19 +526,21 @@ class ShapeGUI(QGraphicsItem, Shape):
         @param option: Possible options here
         @param widget: The widget which is painted on.
         """
-        if self.isSelected() and not (self.isDisabled()):
-            painter.setPen(self.sel_pen)
-        elif not (self.isDisabled()):
-            if self.cut_cor == 41:
-                painter.setPen(self.left_pen)
+        if self.isSelected() and not self.isDisabled():
+            painter.setPen(ShapeGUI.PEN_SELECT)
+        elif not self.isDisabled():
+            if self.parentLayer.isBreakLayer():
+                painter.setPen(ShapeGUI.PEN_BREAK)
+            elif self.cut_cor == 41:
+                painter.setPen(ShapeGUI.PEN_LEFT)
             elif self.cut_cor == 42:
-                painter.setPen(self.right_pen)
+                painter.setPen(ShapeGUI.PEN_RIGHT)
             else:
-                painter.setPen(self.pen)
-        elif self.isSelected() and self.isDisabled():
-            painter.setPen(self.sel_dis_pen)
+                painter.setPen(ShapeGUI.PEN_NORMAL)
+        elif self.isSelected():
+            painter.setPen(ShapeGUI.PEN_SELECT_DISABLED)
         else:
-            painter.setPen(self.dis_pen)
+            painter.setPen(ShapeGUI.PEN_NORMAL_DISABLED)
 
         painter.drawPath(self.path)
 

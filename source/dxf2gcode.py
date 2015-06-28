@@ -74,7 +74,7 @@ from gui.canvas2d import ShapeGUI as Shape
 #from core.shape import Shape
 
 if PY2:
-    file_str = lambda filename: unicode(filename.toUtf8(), encoding="UTF-8")
+    file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
     str_decode = lambda filename: filename.decode("utf-8")
 else:
     file_str = lambda filename: filename
@@ -649,7 +649,7 @@ class MainWindow(QMainWindow):
                                                    "PDF files (*.pdf);;"
                                                    "All types (*.*)"))
 
-        #If there is something to load then call the load function callback
+        # If there is something to load then call the load function callback
         if self.filename:
             self.filename = file_str(self.filename)
             logger.info(self.tr("File: %s selected") % self.filename)
@@ -951,8 +951,6 @@ if __name__ == "__main__":
 
     if not options.quiet:
         window.show()
-
-    options.filename = "D:\\dxf2gcode-sourcecode\\DXF\\1.dxf"
 
     if not(options.filename is None):
         window.filename = str_decode(options.filename)
