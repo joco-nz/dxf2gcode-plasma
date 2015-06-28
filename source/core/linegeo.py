@@ -94,10 +94,15 @@ class LineGeo(object):
                                     (AEPA - AP) * (AEPA - EP))) / AE)
 
     def update_start_end_points(self, start_point, value):
+        prv_ang = self.Ps.norm_angle(self.Pe)
         if start_point:
             self.Ps = value
         else:
             self.Pe = value
+        if (prv_ang > 0) != (self.Ps.norm_angle(self.Pe) > 0):
+            # seems very unlikely that this is what you want - the direction changed
+            self.Ps, self.Pe = self.Pe, self.Ps
+
         self.length = self.Ps.distance(self.Pe)
 
     def get_start_end_points(self, start_point, angles=None):

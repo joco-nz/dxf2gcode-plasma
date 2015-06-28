@@ -202,6 +202,7 @@ class ArcGeo(object):
         return r
 
     def update_start_end_points(self, start_point, value):
+        prv_dir = self.ext
         if start_point:
             self.Ps = value
             self.s_ang = self.O.norm_angle(self.Ps)
@@ -210,6 +211,13 @@ class ArcGeo(object):
             self.e_ang = self.O.norm_angle(self.Pe)
 
         self.ext = self.dif_ang(self.Ps, self.Pe, self.ext)
+
+        if (self.ext > 0) != (prv_dir > 0) or (abs(prv_dir) > pi) != (abs(self.ext) > pi):
+            # seems very unlikely that this is what you want - the direction changed (too drastically)
+            self.Ps, self.Pe = self.Pe, self.Ps
+            self.s_ang, self.e_ang = self.e_ang, self.s_ang
+            self.ext = self.dif_ang(self.Ps, self.Pe, prv_dir)
+
         self.length = self.r * abs(self.ext)
 
     def get_start_end_points(self, start_point, angles=None):

@@ -27,7 +27,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from math import radians
+from math import radians, pi
 from copy import deepcopy
 import logging
 
@@ -277,9 +277,11 @@ class Shape(object):
 
     def Write_GCode_for_geo(self, geo, PostPro):
         # Used to remove zero length geos. If not, arcs can become a full circle
+        c_geo = geo.abs_geo if geo.abs_geo else geo
         post_dec = PostPro.vars.Number_Format["post_decimals"]
-        if round(geo.Ps.x, post_dec) != round(geo.Pe.x, post_dec) or\
-           round(geo.Ps.y, post_dec) != round(geo.Pe.y, post_dec):
+        if round(c_geo.Ps.x, post_dec) != round(c_geo.Pe.x, post_dec) or\
+           round(c_geo.Ps.y, post_dec) != round(c_geo.Pe.y, post_dec) or\
+           isinstance(c_geo, ArcGeo) and c_geo.length > 0.5 * 0.1 ** post_dec * pi:
             return geo.Write_GCode(PostPro)
         else:
             return ""
