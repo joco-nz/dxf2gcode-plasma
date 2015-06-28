@@ -47,12 +47,12 @@ import globals.globals as g
 from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsItem, QGraphicsView, QRubberBand, QGraphicsScene
+    from PyQt5.QtWidgets import QGraphicsItem, QGraphicsView, QRubberBand, QGraphicsScene, QGraphicsLineItem
     from PyQt5.QtGui import QPainterPath, QPen, QColor, QPainterPathStroker
     from PyQt5 import QtCore
 else:
     from PyQt4.QtGui import QPainterPath, QGraphicsItem, QPen, QColor, QGraphicsView, QRubberBand,\
-        QGraphicsScene, QPainterPathStroker
+        QGraphicsScene, QPainterPathStroker, QGraphicsLineItem
     from PyQt4 import QtCore
 
 logger = logging.getLogger("DxfImport.myCanvasClass")
@@ -236,7 +236,7 @@ class MyGraphicsView(CanvasBase):
         scene = self.scene()
         scext = scene.itemsBoundingRect()
         self.fitInView(scext, QtCore.Qt.KeepAspectRatio)
-        logger.debug(self.tr("Autoscaling to extend: %s") % (scext))
+        logger.debug(self.tr("Autoscaling to extend: %s") % scext)
 
     def setShow_path_direction(self, flag):
         """
@@ -302,6 +302,10 @@ class MyGraphicsScene(QGraphicsScene):
         shape.enarrow.setParentItem(None)
         shape.stmove.setParentItem(None)
         self.paint_shape(shape)
+        if not shape.isSelected():
+            shape.starrow.hide()
+            shape.enarrow.hide()
+            shape.stmove.hide()
 
     def paint_shape(self, shape):
         """
@@ -311,8 +315,8 @@ class MyGraphicsScene(QGraphicsScene):
         start, start_ang = shape.get_start_end_points(True, True)
         shape.path = QPainterPath()
         shape.path.moveTo(start.x, -start.y)
-        drawHorLine = lambda start, end: shape.path.lineTo(end.x, -end.y)
-        drawVerLine = lambda start: None  # Not used in 2D mode
+        drawHorLine = lambda caller, start, end: shape.path.lineTo(end.x, -end.y)
+        drawVerLine = lambda caller, start: None  # Not used in 2D mode
         shape.make_path(drawHorLine, drawVerLine)
 
         shape.starrow = self.createstarrow(shape)
@@ -369,7 +373,7 @@ class MyGraphicsScene(QGraphicsScene):
         window when the shape is selected
         @param shape: The shape for which the Move shall be created.
         """
-        stmove = StMove(shape)
+        stmove = StMoveGUI(shape)
         return stmove
 
     def delete_opt_paths(self):
@@ -472,6 +476,12 @@ class ShapeGUI(QGraphicsItem, Shape):
         self.starrow = None
         self.enarrow = None
 
+    def __str__(self):
+        return super(ShapeGUI, self).__str__()
+
+    def tr(self, string_to_translate):
+        return super(ShapeGUI, self).tr(string_to_translate)
+
     def contains_point(self, point):
         """
         Method to determine the minimal distance from the point to the shape
@@ -489,12 +499,6 @@ class ShapeGUI(QGraphicsItem, Shape):
                 min_distance = distance
             t += 0.01
         return min_distance
-
-    def __str__(self):
-        return super(ShapeGUI, self).__str__()
-
-    def tr(self, string_to_translate):
-        return super(ShapeGUI, self).tr(string_to_translate)
 
     def setSelectionChangedCallback(self, callback):
         """
@@ -598,3 +602,82 @@ class ShapeGUI(QGraphicsItem, Shape):
 
         if self.enableDisableCallback and not blockSignals:
             self.enableDisableCallback(self, not flag)
+
+
+class StMoveGUI(QGraphicsLineItem, StMove):
+
+    def __init__(self, shape):
+        QGraphicsLineItem.__init__(self)
+        StMove.__init__(self, shape)
+
+        self.allwaysshow = False
+        self.path = QPainterPath()
+
+        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
+
+        self.pen = QPen(QColor(50, 100, 255), 1, QtCore.Qt.SolidLine,
+                        QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
+        self.pen.setCosmetic(True)
+        self.make_papath()
+
+    def contains_point(self, point):
+        """
+        StMove cannot be selected. Return maximal distance
+        """
+        return float(0x7fffffff)
+
+    def make_papath(self):
+        """
+        To be called if a Shape shall be printed to the canvas
+        @param canvas: The canvas to be printed in
+        @param pospro: The color of the shape
+        """
+        start = self.geos[0].get_start_end_points(True)
+        self.path = QPainterPath()
+        self.path.moveTo(start.x, -start.y)
+        drawHorLine = lambda caller, start, end: self.path.lineTo(end.x, -end.y)
+        drawVerLine = lambda caller, start: None  # Not used in 2D mode
+        self.make_path(drawHorLine, drawVerLine)
+
+    def setSelected(self, flag=True):
+        """
+        Override inherited function to turn off selection of Arrows.
+        @param flag: The flag to enable or disable Selection
+        """
+        if self.allwaysshow:
+            pass
+        elif flag is True:
+            self.show()
+        else:
+            self.hide()
+
+    def setallwaysshow(self, flag=False):
+        """
+        If the directions shall be allwaysshown the parameter will be set and
+        all paths will be shown.
+        @param flag: The flag to enable or disable Selection
+        """
+        self.allwaysshow = flag
+        if flag is True:
+            self.show()
+        elif flag is True and self.isSelected():
+            self.show()
+        else:
+            self.hide()
+
+    def paint(self, painter, option, widget=None):
+        """
+        Method will be triggered with each paint event. Possible to give options
+        @param painter: Reference to std. painter
+        @param option: Possible options here
+        @param widget: The widget which is painted on.
+        """
+        painter.setPen(self.pen)
+        painter.drawPath(self.path)
+
+    def boundingRect(self):
+        """
+        Required method for painting. Inherited by Painterpath
+        @return: Gives the Bounding Box
+        """
+        return self.path.boundingRect()

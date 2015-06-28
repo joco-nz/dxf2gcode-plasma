@@ -43,6 +43,8 @@ try:
 except ImportError:
     PYQT5notPYQT4 = False
 
+# Our 3D mode is only possible with PyQt5 v5.4
+VIEW3D = True
 
 # Global Variables
 APPNAME = "DXF2GCODE"

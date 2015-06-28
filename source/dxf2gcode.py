@@ -60,6 +60,7 @@ from globals.six import text_type, PY2
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication
+    from PyQt5.QtGui import QSurfaceFormat
     from PyQt5 import QtCore
     from dxf2gcode_ui5 import Ui_MainWindow
     getOpenFileName = QFileDialog.getOpenFileName
@@ -70,8 +71,11 @@ else:
     from dxf2gcode_ui4 import Ui_MainWindow
     getOpenFileName = QFileDialog.getOpenFileNameAndFilter
     getSaveFileName = QFileDialog.getSaveFileNameAndFilter
-from gui.canvas2d import ShapeGUI as Shape
-#from core.shape import Shape
+
+if c.VIEW3D:
+    from core.shape import Shape
+else:
+    from gui.canvas2d import ShapeGUI as Shape
 
 if PY2:
     file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
@@ -106,7 +110,10 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.canvas = self.ui.canvas
-        self.canvas_scene = None
+        if c.VIEW3D:
+            self.canvas_scene = self.canvas
+        else:
+            self.canvas_scene = None
 
         self.TreeHandler = TreeHandler(self.ui)
 
@@ -157,8 +164,9 @@ class MainWindow(QMainWindow):
         self.ui.actionLiveUpdateExportRoute.triggered.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
-        #self.ui.actionTopView.triggered.connect(self.canvas.topView)
-        #self.ui.actionIsometricView.triggered.connect(self.canvas.isometricView)
+        if c.VIEW3D:
+            self.ui.actionTopView.triggered.connect(self.canvas.topView)
+            self.ui.actionIsometricView.triggered.connect(self.canvas.isometricView)
 
         # Options
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
@@ -199,7 +207,15 @@ class MainWindow(QMainWindow):
         if event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = True
         elif event.key() == QtCore.Qt.Key_Shift:
-            self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
+            if c.VIEW3D:
+                self.canvas.isPanning = True
+                self.canvas.setCursor(QtCore.Qt.OpenHandCursor)
+            else:
+                self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
+        elif event.key() == QtCore.Qt.Key_Alt:
+            if c.VIEW3D:
+                self.canvas.isRotating = True
+                self.canvas.setCursor(QtCore.Qt.PointingHandCursor)
 
     def keyReleaseEvent(self, event):
         """
@@ -207,10 +223,25 @@ class MainWindow(QMainWindow):
         @purpose: Changes to RubberBandDrag while Control released
         @param event:    Event Parameters passed to function
         """
-        if event.key() == QtCore.Qt.Key_Shift:
-            self.canvas.setDragMode(QGraphicsView.NoDrag)
-        elif event.key() == QtCore.Qt.Key_Control:
+        if event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = False
+        elif event.key() == QtCore.Qt.Key_Shift:
+            if c.VIEW3D:
+                self.canvas.isPanning = False
+                self.canvas.unsetCursor()
+            else:
+                self.canvas.setDragMode(QGraphicsView.NoDrag)
+        elif event.key() == QtCore.Qt.Key_Alt:
+            if c.VIEW3D:
+                self.canvas.isRotating = False
+                if -5 < self.canvas.rotX < 5 and\
+                   -5 < self.canvas.rotY < 5 and\
+                   -5 < self.canvas.rotZ < 5:
+                    self.canvas.rotX = 0
+                    self.canvas.rotY = 0
+                    self.canvas.rotZ = 0
+                    self.canvas.update()
+                self.canvas.unsetCursor()
 
     def enableToolbarButtons(self, status=True):
         # File
@@ -226,8 +257,9 @@ class MainWindow(QMainWindow):
         self.ui.actionShowDisabledPaths.setEnabled(status)
         self.ui.actionLiveUpdateExportRoute.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
-        self.ui.actionTopView.setEnabled(status)
-        self.ui.actionIsometricView.setEnabled(status)
+        if c.VIEW3D:
+            self.ui.actionTopView.setEnabled(status)
+            self.ui.actionIsometricView.setEnabled(status)
 
         # Options
         self.ui.actionTolerances.setEnabled(status)
@@ -409,6 +441,7 @@ class MainWindow(QMainWindow):
 
         # Update order in the treeView, according to path calculation done by the TSP
         self.TreeHandler.updateTreeViewOrder()
+        self.canvas_scene.update()
 
         self.canvas.unsetCursor()
 
@@ -730,17 +763,18 @@ class MainWindow(QMainWindow):
         self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
-        #self.canvas.plotAll(self.shapes)
-
-        self.canvas_scene = MyGraphicsScene()
+        if not c.VIEW3D:
+            self.canvas_scene = MyGraphicsScene()
 
         self.canvas_scene.plotAll(self.shapes)
-        self.canvas.setScene(self.canvas_scene)
-        self.setShowPathDirections()
-        self.setShowDisabledPaths()
-        self.liveUpdateExportRoute()
-        self.canvas.show()
-        self.canvas.setFocus()
+
+        if not c.VIEW3D:
+            self.canvas.setScene(self.canvas_scene)
+            self.setShowPathDirections()
+            self.setShowDisabledPaths()
+            self.liveUpdateExportRoute()
+            self.canvas.show()
+            self.canvas.setFocus()
         self.canvas.autoscale()
 
         # After all is plotted enable the Menu entities
@@ -845,10 +879,11 @@ class MainWindow(QMainWindow):
                     self.addtoLayerContents(values, tmp_shape, layerNr if layerNr != -1 else ent_geo.Layer_Nr)
                     parent.append(tmp_shape)
 
-                    # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
-                    #  so that selections of the shapes are reflected on the treeView
-                    tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
-                    tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
+                    if not c.VIEW3D:
+                        # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
+                        #  so that selections of the shapes are reflected on the treeView
+                        tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
+                        tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
 
     def append_geo_to_shape(self, shape, geo):
         if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
@@ -919,6 +954,12 @@ if __name__ == "__main__":
     Log.add_file_logger()
 
     app = QApplication(sys.argv)
+
+    if c.VIEW3D:
+        # multi-sampling has been introduced in PyQt5
+        fmt = QSurfaceFormat()
+        fmt.setSamples(4)
+        QSurfaceFormat.setDefaultFormat(fmt)
 
     # Get local language and install if available.
     locale = QtCore.QLocale.system().name()

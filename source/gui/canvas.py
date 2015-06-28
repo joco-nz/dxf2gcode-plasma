@@ -28,7 +28,7 @@ from __future__ import absolute_import
 from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsView, QMenu
+    from PyQt5.QtWidgets import QGraphicsView, QMenu, QOpenGLWidget
     from PyQt5 import QtCore
 else:
     from PyQt4.QtGui import QGraphicsView, QMenu
@@ -40,11 +40,18 @@ Since it will pretend to be, depending on the settings,
 to be the canvas3d or canvas2d class
 """
 def Canvas(parent=None):
-    from gui.canvas2d import MyGraphicsView
-    return MyGraphicsView(parent)
+    if c.VIEW3D:
+        from gui.canvas3d import GLWidget
+        return GLWidget(parent)
+    else:
+        from gui.canvas2d import MyGraphicsView
+        return MyGraphicsView(parent)
 
 def CanvasObject():
-    return QGraphicsView
+    if c.VIEW3D:
+        return QOpenGLWidget
+    else:
+        return QGraphicsView
 
 class CanvasBase(CanvasObject()):
     def __init__(self, parent=None):
@@ -60,10 +67,11 @@ logger = logging.getLogger("DxfImport.myCanvasClass")
 
 
 class MyDropDownMenu(QMenu):
-    def __init__(self, canvas_scene, position, clicked):
+    def __init__(self, canvas_scene, position, clicked, offset=None):
         QMenu.__init__(self)
 
         self.clicked = clicked
+        self.offset = offset
 
         self.canvas_scene = canvas_scene
 
@@ -200,8 +208,14 @@ class MyDropDownMenu(QMenu):
         """
         Search the nearest StartPoint to the clicked position of all selected shapes.
         """
+        xyForZ = {}
         for shape in self.selectedItems:
-            shape.setNearestStPoint(self.clicked)
+            clicked = self.clicked
+            if self.offset is not None:
+                z = shape.axis3_start_mill_depth
+                if z not in xyForZ:
+                    clicked = xyForZ[z] = self.canvas_scene.determineSelectedPosition(self.clicked, z, self.offset)
+            shape.setNearestStPoint(clicked)
             self.canvas_scene.repaint_shape(shape)
         self.canvas_scene.update()
         g.window.TreeHandler.prepareExportOrderUpdate()

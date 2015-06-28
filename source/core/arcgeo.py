@@ -243,7 +243,7 @@ class ArcGeo(object):
         self.bottomRight = deepcopy(Ps)
         for i in range(1, segments + 1):
             Pe = self.get_point_from_start(i, segments)
-            drawHorLine(Ps, Pe)
+            drawHorLine(caller, Ps, Pe)
             self.topLeft.detTopLeft(Pe)
             self.bottomRight.detBottomRight(Pe)
             Ps = Pe

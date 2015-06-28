@@ -49,14 +49,16 @@ else:
 logger = logging.getLogger('Gui.StMove')
 
 
-class StMove(QGraphicsLineItem):
+class StMove(object):
     """
     This Function generates the StartMove for each shape. It
     also performs the Plotting and Export of this moves. It is linked
     to the shape of its parent
     """
-    def __init__(self, shape):
-        super(StMove, self).__init__()
+    # only need default arguments here because of the change of usage with super in QGraphicsLineItem
+    def __init__(self, shape=None):
+        if shape is None:
+            return
 
         self.shape = shape
 
@@ -65,29 +67,13 @@ class StMove(QGraphicsLineItem):
 
         self.geos = []
 
-        self.allwaysshow = False
-        self.path = QPainterPath()
-
-        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
-
-        self.pen = QPen(QColor(50, 100, 255), 1, QtCore.Qt.SolidLine,
-                        QtCore.Qt.RoundCap, QtCore.Qt.RoundJoin)
-        self.pen.setCosmetic(True)
-
         self.make_start_moves()
-        self.make_papath()
 
     def append(self, geo):
         # we don't want to additional scale / rotate the stmove geo
         # so no geo.make_abs_geo(self.shape.parentEntity)
         geo.make_abs_geo()
         self.geos.append(geo)
-
-    def contains_point(self, point):
-        """
-        StMove cannot be selected. Return maximal distance
-        """
-        return float(0x7fffffff)
 
     def make_start_moves(self):
         """
@@ -336,66 +322,9 @@ class StMove(QGraphicsLineItem):
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:
-            drawVerLine(geo.get_start_end_points(True), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
+            drawVerLine(self.shape, geo.get_start_end_points(True))
             geo.make_path(self.shape, drawHorLine)
-        drawVerLine(geo.get_start_end_points(False), self.shape.axis3_start_mill_depth, self.shape.axis3_mill_depth)
-
-    def make_papath(self):
-        """
-        To be called if a Shape shall be printed to the canvas
-        @param canvas: The canvas to be printed in
-        @param pospro: The color of the shape
-        """
-        start = self.geos[0].get_start_end_points(True)
-        self.path = QPainterPath()
-        self.path.moveTo(start.x, -start.y)
-
-        drawHorLine = lambda st, en: self.path.lineTo(en.x, -en.y)
-        for geo in self.geos:
-            geo.make_path(self.shape, drawHorLine)
-
-    def setSelected(self, flag=True):
-        """
-        Override inherited function to turn off selection of Arrows.
-        @param flag: The flag to enable or disable Selection
-        """
-        if self.allwaysshow:
-            pass
-        elif flag is True:
-            self.show()
-        else:
-            self.hide()
-
-    def setallwaysshow(self, flag=False):
-        """
-        If the directions shall be allwaysshown the parameter will be set and
-        all paths will be shown.
-        @param flag: The flag to enable or disable Selection
-        """
-        self.allwaysshow = flag
-        if flag is True:
-            self.show()
-        elif flag is True and self.isSelected():
-            self.show()
-        else:
-            self.hide()
-
-    def paint(self, painter, option, widget=None):
-        """
-        Method will be triggered with each paint event. Possible to give options
-        @param painter: Reference to std. painter
-        @param option: Possible options here
-        @param widget: The widget which is painted on.
-        """
-        painter.setPen(self.pen)
-        painter.drawPath(self.path)
-
-    def boundingRect(self):
-        """
-        Required method for painting. Inherited by Painterpath
-        @return: Gives the Bounding Box
-        """
-        return self.path.boundingRect()
+        drawVerLine(self.shape, geo.get_start_end_points(False))
 
 
 class RapidPos(Point):

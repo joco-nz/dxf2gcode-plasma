@@ -117,7 +117,7 @@ class LineGeo(object):
                 return self.abs_geo.Pe, (self.abs_geo.Pe - self.abs_geo.Ps).unit_vector()
 
     def make_path(self, caller, drawHorLine):
-        drawHorLine(self.abs_geo.Ps, self.abs_geo.Pe)
+        drawHorLine(caller, self.abs_geo.Ps, self.abs_geo.Pe)
         self.topLeft = deepcopy(self.abs_geo.Ps)
         self.bottomRight = deepcopy(self.abs_geo.Ps)
         self.topLeft.detTopLeft(self.abs_geo.Pe)

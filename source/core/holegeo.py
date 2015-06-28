@@ -90,7 +90,7 @@ class HoleGeo(object):
         for i in range(1, segments + 1):
             ang = i * 2 * pi / segments
             Pe = self.abs_geo.Ps.get_arc_point(ang, radius)
-            drawHorLine(Ps, Pe)
+            drawHorLine(caller, Ps, Pe)
             self.topLeft.detTopLeft(Pe)
             self.bottomRight.detBottomRight(Pe)
             Ps = Pe

@@ -52,7 +52,10 @@ class Shape(object):
     related to the Shapes.
     """
     # only need default arguments here because of the change of usage with super in QGraphicsItem
-    def __init__(self, nr=0, closed=True, parentEntity=None):
+    def __init__(self, nr=-1, closed=True, parentEntity=None):
+        if nr == -1:
+            return
+
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -250,7 +253,7 @@ class Shape(object):
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos:
-            drawVerLine(geo.get_start_end_points(True))
+            drawVerLine(self, geo.get_start_end_points(True))
 
             geo.make_path(self, drawHorLine)
 
@@ -262,7 +265,7 @@ class Shape(object):
                 self.bottomRight.detBottomRight(geo.bottomRight)
 
         if not self.closed:
-            drawVerLine(geo.get_start_end_points(False))
+            drawVerLine(self, geo.get_start_end_points(False))
 
     def isHit(self, xy, tol):
         if self.topLeft.x - tol <= xy.x <= self.bottomRight.x + tol\
@@ -294,7 +297,7 @@ class Shape(object):
             prv_cut_cor = self.cut_cor
             if self.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
                 self.cut_cor = 40
-                new_geos = self.stMove.geos[1:]
+                new_geos = self.stmove.geos[1:]
             else:
                 new_geos = self.geos
 
