@@ -74,6 +74,9 @@ class Point(object):
     def __truediv__(self, other):
         return Point(self.x / other, self.y / other)
 
+    def eq(self, other, tol):
+        return abs(self.x - other.x) < tol and abs(self.y - other.y) < tol
+
     def unit_vector(self):
         return self / self.length()
 

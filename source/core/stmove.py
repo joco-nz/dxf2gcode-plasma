@@ -36,15 +36,7 @@ from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
 from core.point import Point
 from core.intersect import Intersect
-
-import globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsItem
-    from PyQt5.QtGui import QPainterPath, QPen, QColor
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QGraphicsLineItem, QPainterPath, QGraphicsItem, QPen, QColor
-    from PyQt4 import QtCore
+from core.shape import Geos
 
 logger = logging.getLogger('Gui.StMove')
 
@@ -65,7 +57,7 @@ class StMove(object):
         self.start, self.angle = self.shape.get_start_end_points(True, True)
         self.end = self.start
 
-        self.geos = []
+        self.geos = Geos([])
 
         self.make_start_moves()
 
@@ -80,7 +72,7 @@ class StMove(object):
         This function called to create the start move. It will
         be generated based on the given values for start and angle.
         """
-        self.geos = []
+        self.geos = Geos([])
 
         if g.config.machine_type == 'drag_knife':
             self.make_swivelknife_move()
@@ -159,9 +151,9 @@ class StMove(object):
         prvend, prvnorm = Point(), Point()
         first = True
 
-        for geo in self.shape.geos:
+        for geo in self.shape.geos.abs_iter():
             if isinstance(geo, LineGeo):
-                geo_b = deepcopy(geo.abs_geo)
+                geo_b = deepcopy(geo)
                 if first:
                     first = False
                     prvend = geo_b.Ps + startnorm
@@ -179,7 +171,7 @@ class StMove(object):
                 prvend = geo_b.Pe
                 prvnorm = norm
             elif isinstance(geo, ArcGeo):
-                geo_b = deepcopy(geo.abs_geo)
+                geo_b = deepcopy(geo)
                 if first:
                     first = False
                     prvend = geo_b.Ps + startnorm
@@ -220,13 +212,13 @@ class StMove(object):
             direction = prvnorm.to3D().cross_product(startnorm.to3D()).z
             self.append(ArcGeo(Ps=prvend, Pe=prvend-prvnorm+startnorm, r=offset, direction=direction))
 
-        self.geos.insert(0, RapidPos(self.geos[0].Ps))
+        self.geos.insert(0, RapidPos(self.geos.abs_el(0).Ps))
         self.geos[0].make_abs_geo()
 
     def make_own_cutter_compensation(self):
         toolwidth = self.shape.parentLayer.getToolRadius()
 
-        geos = []
+        geos = Geos([])
 
         direction = -1 if self.shape.cut_cor == 41 else 1
 
@@ -236,7 +228,7 @@ class StMove(object):
             prv_Pe = end + toolwidth * end_proj
         else:
             prv_Pe = None
-        for geo_nr, geo in enumerate(self.shape.geos):
+        for geo_nr, geo in enumerate(self.shape.geos.abs_iter()):
             start, start_dir = geo.get_start_end_points(True, False)
             end, end_dir = geo.get_start_end_points(False, False)
             start_proj = Point(direction * start_dir.y, -direction * start_dir.x)
@@ -246,10 +238,10 @@ class StMove(object):
             if Ps == Pe:
                 continue
             if prv_Pe:
-                r = geo.abs_geo.Ps.distance(Ps)
-                d = (prv_Pe - geo.abs_geo.Ps).to3D().cross_product((Ps - geo.abs_geo.Ps).to3D()).z
+                r = geo.Ps.distance(Ps)
+                d = (prv_Pe - geo.Ps).to3D().cross_product((Ps - geo.Ps).to3D()).z
                 if direction * d > 0 and prv_Pe != Ps:
-                    geos.append(ArcGeo(Ps=prv_Pe, Pe=Ps, O=geo.abs_geo.Ps, r=r, direction=d))
+                    geos.append(ArcGeo(Ps=prv_Pe, Pe=Ps, O=geo.Ps, r=r, direction=d))
                     geos[-1].geo_nr = geo_nr
                 # else:
                 #     geos.append(LineGeo(Ps=prv_Pe, Pe=Ps))
@@ -257,9 +249,9 @@ class StMove(object):
                 geos.append(LineGeo(Ps, Pe))
                 geos[-1].geo_nr = geo_nr
             elif isinstance(geo, ArcGeo):
-                O = geo.abs_geo.O
+                O = geo.O
                 r = O.distance(Ps)
-                geos.append(ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=geo.abs_geo.ext))
+                geos.append(ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=geo.ext))
                 geos[-1].geo_nr = geo_nr
             # TODO other geos are not supported; disable them in gui for this option
             # else:
@@ -267,13 +259,15 @@ class StMove(object):
             prv_Pe = Pe
 
         tot_length = 0
-        for geo in geos:
+        for geo in geos.abs_iter():
             tot_length += geo.length
 
         reorder_shape = False
         for start_geo_nr in range(len(geos)):
-            geos_adj = deepcopy(geos[start_geo_nr:]) + deepcopy(geos[:start_geo_nr])
-            new_geos = []
+            # if shape is not closed we may only remove shapes from the start
+            last_geo_nr = start_geo_nr if self.shape.closed else 0
+            geos_adj = deepcopy(geos[start_geo_nr:]) + deepcopy(geos[:last_geo_nr])
+            new_geos = Geos([])
             i = 0
             while i in range(len(geos_adj)):
                 geo = geos_adj[i]
@@ -299,6 +293,8 @@ class StMove(object):
                         geos_adj[i].update_start_end_points(True, intersection[1])
                 else:
                     i += 1
+                if len(new_geos) > 0 and not new_geos[-1].Pe.eq(geo.Ps, g.config.fitting_tolerance):
+                     break  # geo is disconnected
                 new_geos.append(geo)
                 if new_geos[0].Ps == new_geos[-1].Pe:
                     break
@@ -307,21 +303,25 @@ class StMove(object):
             for geo in new_geos:
                 new_length += geo.length
 
-            if new_length > tot_length * 0.5:  # TODO make the 50% a config setting
+            if tot_length * g.config.vars.Cutter_Compensation['min_length_considered']\
+                    <= new_length <= tot_length * g.config.vars.Cutter_Compensation['max_length_considered'] and\
+               (not g.config.vars.Cutter_Compensation['direction_maintained'] or
+                    not self.shape.closed or self.shape.isDirectionOfGeosCCW(new_geos) != self.shape.cw):
                 self.append(RapidPos(new_geos[0].Ps))
                 for geo in new_geos:
                     if geo.Ps != geo.Pe:
                         self.append(geo)
                 reorder_shape = True
                 break
-        if reorder_shape:
-            self.shape.geos = self.shape.geos[geos[start_geo_nr].geo_nr:] + self.shape.geos[:geos[start_geo_nr].geo_nr]
+        if reorder_shape and self.shape.closed:
+            # we do not reorder the original shape if it's not closed
+            self.shape.geos = Geos(self.shape.geos[geos[start_geo_nr].geo_nr:] + self.shape.geos[:geos[start_geo_nr].geo_nr])
 
         if len(self.geos) == 0:
             self.append(RapidPos(self.start))
 
     def make_path(self, drawHorLine, drawVerLine):
-        for geo in self.geos:
+        for geo in self.geos.abs_iter():
             drawVerLine(self.shape, geo.get_start_end_points(True))
             geo.make_path(self.shape, drawHorLine)
         drawVerLine(self.shape, geo.get_start_end_points(False))
@@ -334,18 +334,18 @@ class RapidPos(Point):
 
     def get_start_end_points(self, start_point, angles=None):
         if angles is None:
-            return self.abs_geo
+            return self
         elif angles:
-            return self.abs_geo, 0
+            return self, 0
         else:
-            return self.abs_geo, Point(0, -1) if start_point else Point(0, -1)
+            return self, Point(0, -1) if start_point else Point(0, -1)
 
     def make_abs_geo(self, parent=None):
         """
         Generates the absolute geometry based on itself and the parent. This
         is done for rotating and scaling purposes
         """
-        self.abs_geo = self.rot_sca_abs(parent=parent)
+        self.abs_geo = RapidPos(self.rot_sca_abs(parent=parent))
 
     def make_path(self, caller, drawHorLine):
         pass
@@ -356,5 +356,5 @@ class RapidPos(Point):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        return PostPro.rap_pos_xy(self.abs_geo)
+        return PostPro.rap_pos_xy(self)
 

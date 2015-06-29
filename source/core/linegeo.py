@@ -24,7 +24,9 @@
 #
 ############################################################################
 
-from math import sqrt
+from __future__ import division
+
+from math import sqrt, pi
 from copy import deepcopy
 
 
@@ -99,8 +101,10 @@ class LineGeo(object):
             self.Ps = value
         else:
             self.Pe = value
-        if (prv_ang > 0) != (self.Ps.norm_angle(self.Pe) > 0):
-            # seems very unlikely that this is what you want - the direction changed
+        new_ang = self.Ps.norm_angle(self.Pe)
+
+        if 2 * abs(((prv_ang - new_ang) + pi) % (2 * pi) - pi) >= pi:
+            # seems very unlikely that this is what you want - the direction changed (too drastically)
             self.Ps, self.Pe = self.Pe, self.Ps
 
         self.length = self.Ps.distance(self.Pe)
@@ -108,28 +112,28 @@ class LineGeo(object):
     def get_start_end_points(self, start_point, angles=None):
         if start_point:
             if angles is None:
-                return self.abs_geo.Ps
+                return self.Ps
             elif angles:
-                return self.abs_geo.Ps, self.abs_geo.Ps.norm_angle(self.abs_geo.Pe)
+                return self.Ps, self.Ps.norm_angle(self.Pe)
             else:
-                return self.abs_geo.Ps, (self.abs_geo.Pe - self.abs_geo.Ps).unit_vector()
+                return self.Ps, (self.Pe - self.Ps).unit_vector()
         else:
             if angles is None:
-                return self.abs_geo.Pe
+                return self.Pe
             elif angles:
-                return self.abs_geo.Pe, self.abs_geo.Pe.norm_angle(self.abs_geo.Ps)
+                return self.Pe, self.Pe.norm_angle(self.Ps)
             else:
-                return self.abs_geo.Pe, (self.abs_geo.Pe - self.abs_geo.Ps).unit_vector()
+                return self.Pe, (self.Pe - self.Ps).unit_vector()
 
     def make_path(self, caller, drawHorLine):
-        drawHorLine(caller, self.abs_geo.Ps, self.abs_geo.Pe)
-        self.topLeft = deepcopy(self.abs_geo.Ps)
-        self.bottomRight = deepcopy(self.abs_geo.Ps)
-        self.topLeft.detTopLeft(self.abs_geo.Pe)
-        self.bottomRight.detBottomRight(self.abs_geo.Pe)
+        drawHorLine(caller, self.Ps, self.Pe)
+        self.topLeft = deepcopy(self.Ps)
+        self.bottomRight = deepcopy(self.Ps)
+        self.topLeft.detTopLeft(self.Pe)
+        self.bottomRight.detBottomRight(self.Pe)
 
     def isHit(self, caller, xy, tol):
-        return xy.distance2_to_line(self.abs_geo.Ps, self.abs_geo.Pe) <= tol**2
+        return xy.distance2_to_line(self.Ps, self.Pe) <= tol**2
 
     def Write_GCode(self, PostPro):
         """
@@ -137,10 +141,6 @@ class LineGeo(object):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        tmp_geo = self.abs_geo
-        if self.abs_geo is None:
-            self.abs_geo = self
         Ps = self.get_start_end_points(True)
         Pe = self.get_start_end_points(False)
-        self.abs_geo = tmp_geo
         return PostPro.lin_pol_xy(Ps, Pe)

@@ -168,10 +168,6 @@ class GLWidget(CanvasBase):
             self.setCursor(Qt.ClosedHandCursor)
         elif event.button() == Qt.LeftButton:
             clicked, offset, tol = self.getClickedDetails(event)
-
-            print('clicked', clicked)
-            print(self.determineSelectedPosition(clicked, 0, offset))
-
             xyForZ = {}
             for shape in self.shapes:
                 hit = False
@@ -424,9 +420,9 @@ class GLWidget(CanvasBase):
 
     def paint_shape(self, shape):
         shape.drawObject = self.makeShape(shape)  # 1 object
-        shape.drawArrowsDirection = self.makeDirArrows(shape)  # 2 objects
         shape.stmove = StMove(shape)
         shape.drawStMove = self.makeStMove(shape.stmove)  # 1 object
+        shape.drawArrowsDirection = self.makeDirArrows(shape)  # 2 objects
 
     def makeShape(self, shape):
         genList = self.gl.glGenLists(1)

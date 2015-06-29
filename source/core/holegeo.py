@@ -75,21 +75,21 @@ class HoleGeo(object):
 
     def get_start_end_points(self, start_point, angles=None):
         if angles is None:
-            return self.abs_geo.Ps
+            return self.Ps
         elif angles:
-            return self.abs_geo.Ps, 0
+            return self.Ps, 0
         else:
-            return self.abs_geo.Ps, Point(0, -1) if start_point else Point(0, -1)
+            return self.Ps, Point(0, -1) if start_point else Point(0, -1)
 
     def make_path(self, caller, drawHorLine):
         radius = caller.parentLayer.tool_diameter / 2
         segments = 30
-        Ps = self.abs_geo.Ps.get_arc_point(0, radius)
+        Ps = self.Ps.get_arc_point(0, radius)
         self.topLeft = deepcopy(Ps)
         self.bottomRight = deepcopy(Ps)
         for i in range(1, segments + 1):
             ang = i * 2 * pi / segments
-            Pe = self.abs_geo.Ps.get_arc_point(ang, radius)
+            Pe = self.Ps.get_arc_point(ang, radius)
             drawHorLine(caller, Ps, Pe)
             self.topLeft.detTopLeft(Pe)
             self.bottomRight.detBottomRight(Pe)
@@ -99,10 +99,10 @@ class HoleGeo(object):
         tol2 = tol**2
         radius = caller.parentLayer.getToolRadius()
         segments = 30
-        Ps = self.abs_geo.Ps.get_arc_point(0, radius)
+        Ps = self.Ps.get_arc_point(0, radius)
         for i in range(1, segments + 1):
             ang = i * 2 * pi / segments
-            Pe = self.abs_geo.Ps.get_arc_point(ang, radius)
+            Pe = self.Ps.get_arc_point(ang, radius)
             if xy.distance2_to_line(Ps, Pe) <= tol2:
                 return True
             Ps = Pe

@@ -30,6 +30,7 @@ from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
 from core.breakgeo import BreakGeo
 from core.point import Point
+from core.shape import Geos
 
 import globals.constants as c
 if c.PYQT5notPYQT4:
@@ -59,8 +60,8 @@ class Breaks(object):
 
     def getNewGeos(self, geos):
         # TODO use intersect class and update_start_end_points
-        new_geos = []
-        for geo in geos:
+        new_geos = Geos([])
+        for geo in geos.abs_iter():
             if isinstance(geo, LineGeo):
                 new_geos.extend(self.breakLineGeo(geo))
             elif isinstance(geo, ArcGeo):
@@ -75,7 +76,7 @@ class Breaks(object):
         Will break lineGeos recursively.
         @return: The list of geometries after breaking (lineGeo itself if no breaking happened)
         """
-        newGeos = []
+        newGeos = Geos([])
         for breakLayer in self.breakLayers:
             for breakShape in breakLayer.shapes.not_disabled_iter():
                 intersections = self.intersectLineGeometry(lineGeo, breakShape)
@@ -94,7 +95,7 @@ class Breaks(object):
         Will break arcGeos recursively.
         @return: The list of geometries after breaking (arcGeo itself if no breaking happened)
         """
-        newGeos = []
+        newGeos = Geos([])
         for breakLayer in self.breakLayers:
             for breakShape in breakLayer.shapes.not_disabled_iter():
                 intersections = self.intersectArcGeometry(arcGeo, breakShape)
@@ -114,7 +115,7 @@ class Breaks(object):
         # TODO geos should be abs
         intersections = []
         line = QLineF(lineGeo.Ps.x, lineGeo.Ps.y, lineGeo.Pe.x, lineGeo.Pe.y)
-        for breakGeo in breakShape.geos:
+        for breakGeo in breakShape.geos.abs_iter():
             if isinstance(breakGeo, LineGeo):
                 breakLine = QLineF(breakGeo.Ps.x, breakGeo.Ps.y, breakGeo.Pe.x, breakGeo.Pe.y)
                 intersection = QPointF(0, 0)  # values do not matter
@@ -130,7 +131,7 @@ class Breaks(object):
         """
         # TODO geos should be abs
         intersections = []
-        for breakGeo in breakShape.geos:
+        for breakGeo in breakShape.geos.abs_iter():
             if isinstance(breakGeo, LineGeo):
                 dxy = breakGeo.Pe - breakGeo.Ps
                 a = dxy.x**2 + dxy.y**2

@@ -298,14 +298,18 @@ class MyGraphicsScene(QGraphicsScene):
         self.update()
 
     def repaint_shape(self, shape):
-        shape.starrow.setParentItem(None)
-        shape.enarrow.setParentItem(None)
-        shape.stmove.setParentItem(None)
+        # setParentItem(None) might let it crash, hence we rely on the garbage collector
+        shape.stmove.hide()
+        shape.starrow.hide()
+        shape.enarrow.hide()
+        del shape.stmove
+        del shape.starrow
+        del shape.enarrow
         self.paint_shape(shape)
         if not shape.isSelected():
+            shape.stmove.hide()
             shape.starrow.hide()
             shape.enarrow.hide()
-            shape.stmove.hide()
 
     def paint_shape(self, shape):
         """
@@ -319,12 +323,12 @@ class MyGraphicsScene(QGraphicsScene):
         drawVerLine = lambda caller, start: None  # Not used in 2D mode
         shape.make_path(drawHorLine, drawVerLine)
 
+        shape.stmove = self.createstmove(shape)
         shape.starrow = self.createstarrow(shape)
         shape.enarrow = self.createenarrow(shape)
-        shape.stmove = self.createstmove(shape)
+        shape.stmove.setParentItem(shape)
         shape.starrow.setParentItem(shape)
         shape.enarrow.setParentItem(shape)
-        shape.stmove.setParentItem(shape)
 
     def draw_wp_zero(self):
         """
@@ -632,7 +636,7 @@ class StMoveGUI(QGraphicsLineItem, StMove):
         @param canvas: The canvas to be printed in
         @param pospro: The color of the shape
         """
-        start = self.geos[0].get_start_end_points(True)
+        start = self.geos.abs_el(0).get_start_end_points(True)
         self.path = QPainterPath()
         self.path.moveTo(start.x, -start.y)
         drawHorLine = lambda caller, start, end: self.path.lineTo(end.x, -end.y)

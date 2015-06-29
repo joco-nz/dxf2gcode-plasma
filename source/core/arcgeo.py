@@ -212,7 +212,7 @@ class ArcGeo(object):
 
         self.ext = self.dif_ang(self.Ps, self.Pe, self.ext)
 
-        if (self.ext > 0) != (prv_dir > 0) or (abs(prv_dir) > pi) != (abs(self.ext) > pi):
+        if 2 * abs(((prv_dir - self.ext) + pi) % (2 * pi) - pi) >= pi:
             # seems very unlikely that this is what you want - the direction changed (too drastically)
             self.Ps, self.Pe = self.Pe, self.Ps
             self.s_ang, self.e_ang = self.e_ang, self.s_ang
@@ -223,30 +223,30 @@ class ArcGeo(object):
     def get_start_end_points(self, start_point, angles=None):
         if start_point:
             if angles is None:
-                return self.abs_geo.Ps
+                return self.Ps
             elif angles:
-                return self.abs_geo.Ps, self.abs_geo.s_ang + pi/2 * self.abs_geo.ext / abs(self.abs_geo.ext)
+                return self.Ps, self.s_ang + pi/2 * self.ext / abs(self.ext)
             else:
-                direction = (self.abs_geo.O - self.abs_geo.Ps).unit_vector()
-                direction = -direction if self.abs_geo.ext >= 0 else direction
-                return self.abs_geo.Ps, Point(-direction.y, direction.x)
+                direction = (self.O - self.Ps).unit_vector()
+                direction = -direction if self.ext >= 0 else direction
+                return self.Ps, Point(-direction.y, direction.x)
         else:
             if angles is None:
-                return self.abs_geo.Pe
+                return self.Pe
             elif angles:
-                return self.abs_geo.Pe, self.abs_geo.e_ang - pi/2 * self.abs_geo.ext / abs(self.abs_geo.ext)
+                return self.Pe, self.e_ang - pi/2 * self.ext / abs(self.ext)
             else:
-                direction = (self.abs_geo.O - self.abs_geo.Pe).unit_vector()
-                direction = -direction if self.abs_geo.ext >= 0 else direction
-                return self.abs_geo.Pe, Point(-direction.y, direction.x)
+                direction = (self.O - self.Pe).unit_vector()
+                direction = -direction if self.ext >= 0 else direction
+                return self.Pe, Point(-direction.y, direction.x)
 
     def get_point_from_start(self, i, segments):
-        ang = self.abs_geo.s_ang + i * self.abs_geo.ext / segments
-        return self.abs_geo.O.get_arc_point(ang, self.abs_geo.r)
+        ang = self.s_ang + i * self.ext / segments
+        return self.O.get_arc_point(ang, self.r)
 
     def make_path(self, caller, drawHorLine):
-        segments = int(abs(degrees(self.abs_geo.ext)) // 3 + 1)
-        Ps = self.abs_geo.O.get_arc_point(self.abs_geo.s_ang, self.abs_geo.r)
+        segments = int(abs(degrees(self.ext)) // 3 + 1)
+        Ps = self.O.get_arc_point(self.s_ang, self.r)
         self.topLeft = deepcopy(Ps)
         self.bottomRight = deepcopy(Ps)
         for i in range(1, segments + 1):
@@ -258,8 +258,8 @@ class ArcGeo(object):
 
     def isHit(self, caller, xy, tol):
         tol2 = tol**2
-        segments = int(abs(degrees(self.abs_geo.ext)) // 3 + 1)
-        Ps = self.abs_geo.O.get_arc_point(self.abs_geo.s_ang, self.abs_geo.r)
+        segments = int(abs(degrees(self.ext)) // 3 + 1)
+        Ps = self.O.get_arc_point(self.s_ang, self.r)
         for i in range(1, segments + 1):
             Pe = self.get_point_from_start(i, segments)
             if xy.distance2_to_line(Ps, Pe) <= tol2:
@@ -273,25 +273,21 @@ class ArcGeo(object):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        tmp_geo = self.abs_geo
-        if self.abs_geo is None:
-            self.abs_geo = self
         Ps, s_ang = self.get_start_end_points(True, True)
         Pe, e_ang = self.get_start_end_points(False, True)
 
-        O = self.abs_geo.O
-        r = self.abs_geo.r
+        O = self.O
+        r = self.r
         IJ = O - Ps
 
         # If the radius of the element is bigger than the max, radius export the element as an line.
         if r > PostPro.vars.General["max_arc_radius"]:
             string = PostPro.lin_pol_xy(Ps, Pe)
         else:
-            if self.abs_geo.ext > 0:
+            if self.ext > 0:
                 string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ)
-            elif self.abs_geo.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
+            elif self.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
                 string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe)
             else:
                 string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ)
-        self.abs_geo = tmp_geo
         return string

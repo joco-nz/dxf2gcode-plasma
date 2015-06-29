@@ -43,7 +43,7 @@ else:
 
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "9.6"
+CONFIG_VERSION = "9.7"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -93,18 +93,28 @@ CONFIG_SPEC = str('''
     f_g1_depth = float(default = 150)
 
     [General]
+    mode3d = boolean(default = False)
     write_to_stdout = boolean(default = False)
     show_disabled_paths = boolean(default = True)
     live_update_export_route = boolean(default = False)
     split_line_segments = boolean(default = False)
     automatic_cutter_compensation = boolean(default = False)
-    machine_type = option('milling', 'drag_knife', 'lathe', default = 'milling')
+    # machine types supported: milling; lathe; drag_knife
+    machine_type = option('milling', 'lathe', 'drag_knife', default = 'milling')
+    # The unit used for all values in this file
     tool_units = option('mm', 'in', default = 'mm')
 
     [Cutter_Compensation]
     # if done_by_machine is set to False DXF2GCODE will create a virtual path for G41 and G42 command. And output
     # is set to G40; i.e. it will create the path that normally your machine will create with cutter compensation
     done_by_machine = boolean(default = True)
+    # The percentage below denotes the minimal / maximal path of the cutter offset path that should be met such
+    # that the current starting point can be considered as a good starting point. Otherwise it moves the starting
+    # point to the next closest point and tries it again.
+    min_length_considered = float(default = 0.60)
+    max_length_considered = float(default = 1.40)
+    # If the direction is not maintained of current shape it moves the starting point and tries it again
+    direction_maintained = boolean(default = True)
 
     [Drag_Knife_Options]
     # drag_angle: if larger than this angle (in degrees), tool retracts to dragDepth
@@ -127,6 +137,8 @@ CONFIG_SPEC = str('''
     point_tolerance = float(default = 0.001)
     spline_check = integer(default = 3)
     fitting_tolerance = float(default = 0.001)
+    # insert elements (which are part of a block) to layer where the block is inserted
+    insert_at_block_layer = boolean(default = False)
 
     [Layer_Options]
     id_float_separator = string(default = ":")
@@ -218,6 +230,8 @@ class MyConfig(object):
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.vars = DictDotLookup(self.var_dict)
 
+        self.mode3d = self.vars.General['mode3d']
+
         self.machine_type = self.vars.General['machine_type']
         self.fitting_tolerance = self.vars.Import_Parameters['fitting_tolerance']
         self.point_tolerance = self.vars.Import_Parameters['point_tolerance']
@@ -267,7 +281,7 @@ class MyConfig(object):
                     section_string = ', '.join(section_list)
                     if not error:
                         error = self.tr('Missing value or section.')
-                    logger.error( section_string + ' = ' + error)
+                    logger.error(section_string + ' = ' + error)
 
                 if validate_errors:
                     raise BadConfigFileError("syntax errors in config file")

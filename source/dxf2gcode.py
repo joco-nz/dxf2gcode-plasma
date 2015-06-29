@@ -46,7 +46,6 @@ from globals.config import MyConfig
 import globals.globals as g
 from globals.logger import LoggerClass
 
-from gui.canvas2d import MyGraphicsScene
 from gui.treehandling import TreeHandler
 from gui.popupdialog import PopUpDialog
 from gui.aboutdialog import AboutDialog
@@ -62,20 +61,13 @@ if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication
     from PyQt5.QtGui import QSurfaceFormat
     from PyQt5 import QtCore
-    from dxf2gcode_ui5 import Ui_MainWindow
     getOpenFileName = QFileDialog.getOpenFileName
     getSaveFileName = QFileDialog.getSaveFileName
 else:
     from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication
     from PyQt4 import QtCore
-    from dxf2gcode_ui4 import Ui_MainWindow
     getOpenFileName = QFileDialog.getOpenFileNameAndFilter
     getSaveFileName = QFileDialog.getSaveFileNameAndFilter
-
-if c.VIEW3D:
-    from core.shape import Shape
-else:
-    from gui.canvas2d import ShapeGUI as Shape
 
 if PY2:
     file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
@@ -110,7 +102,7 @@ class MainWindow(QMainWindow):
         self.ui.setupUi(self)
 
         self.canvas = self.ui.canvas
-        if c.VIEW3D:
+        if g.config.mode3d:
             self.canvas_scene = self.canvas
         else:
             self.canvas_scene = None
@@ -164,7 +156,7 @@ class MainWindow(QMainWindow):
         self.ui.actionLiveUpdateExportRoute.triggered.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
-        if c.VIEW3D:
+        if g.config.mode3d:
             self.ui.actionTopView.triggered.connect(self.canvas.topView)
             self.ui.actionIsometricView.triggered.connect(self.canvas.isometricView)
 
@@ -207,13 +199,13 @@ class MainWindow(QMainWindow):
         if event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = True
         elif event.key() == QtCore.Qt.Key_Shift:
-            if c.VIEW3D:
+            if g.config.mode3d:
                 self.canvas.isPanning = True
                 self.canvas.setCursor(QtCore.Qt.OpenHandCursor)
             else:
                 self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
         elif event.key() == QtCore.Qt.Key_Alt:
-            if c.VIEW3D:
+            if g.config.mode3d:
                 self.canvas.isRotating = True
                 self.canvas.setCursor(QtCore.Qt.PointingHandCursor)
 
@@ -226,13 +218,13 @@ class MainWindow(QMainWindow):
         if event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = False
         elif event.key() == QtCore.Qt.Key_Shift:
-            if c.VIEW3D:
+            if g.config.mode3d:
                 self.canvas.isPanning = False
                 self.canvas.unsetCursor()
             else:
                 self.canvas.setDragMode(QGraphicsView.NoDrag)
         elif event.key() == QtCore.Qt.Key_Alt:
-            if c.VIEW3D:
+            if g.config.mode3d:
                 self.canvas.isRotating = False
                 if -5 < self.canvas.rotX < 5 and\
                    -5 < self.canvas.rotY < 5 and\
@@ -257,7 +249,7 @@ class MainWindow(QMainWindow):
         self.ui.actionShowDisabledPaths.setEnabled(status)
         self.ui.actionLiveUpdateExportRoute.setEnabled(status)
         self.ui.actionAutoscale.setEnabled(status)
-        if c.VIEW3D:
+        if g.config.mode3d:
             self.ui.actionTopView.setEnabled(status)
             self.ui.actionIsometricView.setEnabled(status)
 
@@ -298,7 +290,7 @@ class MainWindow(QMainWindow):
         for i, layer in enumerate(self.layerContents.non_break_layer_iter()):
             logger.debug("LayerContents[%i] = %s" % (i, layer))
 
-        if not(g.config.vars.General['write_to_stdout']):
+        if not g.config.vars.General['write_to_stdout']:
 
             # Get the name of the File to export
             if not saveas:
@@ -617,7 +609,7 @@ class MainWindow(QMainWindow):
             minx = sys.float_info.max
             miny = sys.float_info.max
             for shape in self.shapes:
-                if not(shape.isDisabled()):
+                if not shape.isDisabled():
                     minx = min(minx, shape.topLeft.x)
                     miny = min(miny, shape.bottomRight.y)
             self.cont_dx = self.entityRoot.p0.x - minx
@@ -763,12 +755,12 @@ class MainWindow(QMainWindow):
         self.TreeHandler.buildLayerTree(self.layerContents)
 
         # Paint the canvas
-        if not c.VIEW3D:
+        if not g.config.mode3d:
             self.canvas_scene = MyGraphicsScene()
 
         self.canvas_scene.plotAll(self.shapes)
 
-        if not c.VIEW3D:
+        if not g.config.mode3d:
             self.canvas.setScene(self.canvas_scene)
             self.setShowPathDirections()
             self.setShowDisabledPaths()
@@ -876,10 +868,13 @@ class MainWindow(QMainWindow):
                     tmp_shape.AnalyseAndOptimize()
 
                     self.shapes.append(tmp_shape)
-                    self.addtoLayerContents(values, tmp_shape, layerNr if layerNr != -1 else ent_geo.Layer_Nr)
+                    if g.config.vars.Import_Parameters['insert_at_block_layer'] and layerNr != -1:
+                        self.addtoLayerContents(values, tmp_shape, layerNr)
+                    else:
+                        self.addtoLayerContents(values, tmp_shape, ent_geo.Layer_Nr)
                     parent.append(tmp_shape)
 
-                    if not c.VIEW3D:
+                    if not g.config.mode3d:
                         # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
                         #  so that selections of the shapes are reflected on the treeView
                         tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
@@ -955,12 +950,6 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
 
-    if c.VIEW3D:
-        # multi-sampling has been introduced in PyQt5
-        fmt = QSurfaceFormat()
-        fmt.setSamples(4)
-        QSurfaceFormat.setDefaultFormat(fmt)
-
     # Get local language and install if available.
     locale = QtCore.QLocale.system().name()
     logger.debug("locale: %s" %locale)
@@ -968,6 +957,20 @@ if __name__ == "__main__":
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
 
+    # Delay imports - needs to be done after logger and config initialization; and before the main window
+    if c.PYQT5notPYQT4:
+        from dxf2gcode_ui5 import Ui_MainWindow
+    else:
+        from dxf2gcode_ui4 import Ui_MainWindow
+    if g.config.mode3d:
+        from core.shape import Shape
+        # multi-sampling has been introduced in PyQt5
+        fmt = QSurfaceFormat()
+        fmt.setSamples(4)
+        QSurfaceFormat.setDefaultFormat(fmt)
+    else:
+        from gui.canvas2d import MyGraphicsScene
+        from gui.canvas2d import ShapeGUI as Shape
     window = MainWindow(app)
     g.window = window
     Log.add_window_logger(window.ui.messageBox)
@@ -993,11 +996,11 @@ if __name__ == "__main__":
     if not options.quiet:
         window.show()
 
-    if not(options.filename is None):
+    if options.filename is not None:
         window.filename = str_decode(options.filename)
         window.load(window.filename)
 
-    if not(options.export_filename is None):
+    if options.export_filename is not None:
         window.exportShapes(None, options.export_filename)
 
     if not options.quiet:

@@ -25,6 +25,10 @@
 
 from __future__ import absolute_import
 
+import logging
+
+import globals.globals as g
+
 from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
@@ -34,13 +38,15 @@ else:
     from PyQt4.QtGui import QGraphicsView, QMenu
     from PyQt4 import QtCore
 
+logger = logging.getLogger("DxfImport.myCanvasClass")
+
 """
 This Canvas function can be called as any class.
 Since it will pretend to be, depending on the settings,
 to be the canvas3d or canvas2d class
 """
 def Canvas(parent=None):
-    if c.VIEW3D:
+    if g.config.mode3d:
         from gui.canvas3d import GLWidget
         return GLWidget(parent)
     else:
@@ -48,7 +54,13 @@ def Canvas(parent=None):
         return MyGraphicsView(parent)
 
 def CanvasObject():
-    if c.VIEW3D:
+    if g.config.mode3d:
+        QtVersion = QtCore.QT_VERSION_STR.split(".")
+        if not (int(QtVersion[0]) >= 5 and int(QtVersion[1]) >= 4):
+            raise Exception("For the 3d mode you need a PyQt version that includes a Qt version of at least 5.4.\n"
+                            "Set mode3d to False in the config file, or update your PyQt version.\n"
+                            "Current version found: PyQt%s (which includes Qt%s)"
+                            % (QtCore.PYQT_VERSION_STR, QtCore.QT_VERSION_STR))
         return QOpenGLWidget
     else:
         return QGraphicsView
@@ -58,12 +70,6 @@ class CanvasBase(CanvasObject()):
         super(CanvasBase, self).__init__(parent)
 
         self.isMultiSelect = False
-
-import logging
-
-import globals.globals as g
-
-logger = logging.getLogger("DxfImport.myCanvasClass")
 
 
 class MyDropDownMenu(QMenu):

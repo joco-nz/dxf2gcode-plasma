@@ -62,7 +62,7 @@ class Shape(object):
         self.cut_cor = 40
         self.parentEntity = parentEntity
         self.parentLayer = None
-        self.geos = []
+        self.geos = Geos([])
 
         self.cw = True
 
@@ -125,14 +125,11 @@ class Shape(object):
     def isToolPathOptimized(self):
         return self.send_to_TSP
 
-    def AnalyseAndOptimize(self):
-        self.setNearestStPoint(Point())
-        logger.debug(self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
+    def isDirectionOfGeosCCW(self, geos):
         # By calculating the area of the shape
-
-        start = self.geos[0].get_start_end_points(True)
+        start = geos.abs_el(0).get_start_end_points(True)
         summe = 0.0
-        for geo in self.geos:
+        for geo in geos.abs_iter():
             if isinstance(geo, LineGeo):
                 end = geo.get_start_end_points(False)
                 summe += (start.x + end.x) * (end.y - start.y)
@@ -145,18 +142,18 @@ class Shape(object):
                     start = end
         if not self.closed:
             # if shape is not closed... simply treat it as closed
-            end = self.geos[0].get_start_end_points(True)
+            end = geos.abs_el(0).get_start_end_points(True)
             summe += (end.x + start.x) * (end.y - start.y)
 
         if summe == 0:  # inconclusive
             logger.debug(self.tr("Shoelace method cannot (directly) be applied to this shape"))
             # lets take it clock wise with relation to the workpiece zero
 
-            start = self.get_start_end_points(True)
+            start = geos.abs_el(0).get_start_end_points(True)
             # get the farthest end point with relation to the start
             end = start
             distance2 = 0
-            for geo in self.geos:
+            for geo in geos.abs_iter():
                 pos_end = geo.get_start_end_points(False)
                 pos_distance2 = (start - pos_end).length_squared()
                 if pos_distance2 > distance2:
@@ -166,8 +163,13 @@ class Shape(object):
             if -1e-5 < direction < 1e-5:  # start and end are aligned wrt to wp zero
                 direction = start.length_squared() - end.length_squared()
             summe = direction
+        return summe > 0.0
 
-        if summe > 0.0:
+    def AnalyseAndOptimize(self):
+        self.setNearestStPoint(Point())
+        logger.debug(self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
+
+        if self.isDirectionOfGeosCCW(self.geos):
             self.reverse()
             logger.debug(self.tr("Had to reverse the shape to be CW"))
         self.cw = True
@@ -176,27 +178,22 @@ class Shape(object):
         if self.closed:
             logger.debug(self.tr("Clicked Point: %s" % stPoint))
             start = self.get_start_end_points(True)
-            min_distance = start.distance(stPoint)
-
             logger.debug(self.tr("Old Start Point: %s" % start))
 
-            min_geo_nr = 0
-            for geo_nr in range(1, len(self.geos)):
-                start = self.geos[geo_nr].get_start_end_points(True)
-
-                if start.distance(stPoint) < min_distance:
-                    min_distance = start.distance(stPoint)
-                    min_geo_nr = geo_nr
+            min_geo_nr, _ = min(enumerate(self.geos.abs_iter()),
+                                key=lambda geo: geo[1].get_start_end_points(True).distance(stPoint))
 
             # Overwrite the geometries in changed order.
-            self.geos = self.geos[min_geo_nr:] + self.geos[:min_geo_nr]
+            self.geos = Geos(self.geos[min_geo_nr:] + self.geos[:min_geo_nr])
 
             start = self.get_start_end_points(True)
             logger.debug(self.tr("New Start Point: %s" % start))
 
-    def reverse(self):
-        self.geos.reverse()
-        for geo in self.geos:
+    def reverse(self, geos=None):
+        if not geos:
+            geos = self.geos
+        geos.reverse()
+        for geo in geos:
             geo.reverse()
         self.cw = not self.cw
 
@@ -244,15 +241,15 @@ class Shape(object):
 
     def get_start_end_points(self, start_point=None, angles=None):
         if start_point is None:
-            return (self.geos[0].get_start_end_points(True, angles),
-                    self.geos[-1].get_start_end_points(False, angles))
+            return (self.geos.abs_el(0).get_start_end_points(True, angles),
+                    self.geos.abs_el(-1).get_start_end_points(False, angles))
         elif start_point:
-            return self.geos[0].get_start_end_points(True, angles)
+            return self.geos.abs_el(0).get_start_end_points(True, angles)
         else:
-            return self.geos[-1].get_start_end_points(False, angles)
+            return self.geos.abs_el(-1).get_start_end_points(False, angles)
 
     def make_path(self, drawHorLine, drawVerLine):
-        for geo in self.geos:
+        for geo in self.geos.abs_iter():
             drawVerLine(self, geo.get_start_end_points(True))
 
             geo.make_path(self, drawHorLine)
@@ -270,18 +267,17 @@ class Shape(object):
     def isHit(self, xy, tol):
         if self.topLeft.x - tol <= xy.x <= self.bottomRight.x + tol\
                 and self.bottomRight.y - tol <= xy.y <= self.topLeft.y + tol:
-            for geo in self.geos:
+            for geo in self.geos.abs_iter():
                 if geo.isHit(self, xy, tol):
                     return True
         return False
 
     def Write_GCode_for_geo(self, geo, PostPro):
         # Used to remove zero length geos. If not, arcs can become a full circle
-        c_geo = geo.abs_geo if geo.abs_geo else geo
         post_dec = PostPro.vars.Number_Format["post_decimals"]
-        if round(c_geo.Ps.x, post_dec) != round(c_geo.Pe.x, post_dec) or\
-           round(c_geo.Ps.y, post_dec) != round(c_geo.Pe.y, post_dec) or\
-           isinstance(c_geo, ArcGeo) and c_geo.length > 0.5 * 0.1 ** post_dec * pi:
+        if round(geo.Ps.x, post_dec) != round(geo.Pe.x, post_dec) or\
+           round(geo.Ps.y, post_dec) != round(geo.Pe.y, post_dec) or\
+           isinstance(geo, ArcGeo) and geo.length > 0.5 * 0.1 ** post_dec * pi:
             return geo.Write_GCode(PostPro)
         else:
             return ""
@@ -295,20 +291,17 @@ class Shape(object):
         """
         if g.config.machine_type == 'drag_knife':
             return self.Write_GCode_Drag_Knife(PostPro)
+
+        prv_cut_cor = self.cut_cor
+        if self.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+            self.cut_cor = 40
+            new_geos = Geos(self.stmove.geos[1:])
         else:
-            prv_cut_cor = self.cut_cor
-            if self.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
-                self.cut_cor = 40
-                new_geos = self.stmove.geos[1:]
-            else:
-                new_geos = self.geos
+            new_geos = self.geos
 
         new_geos = PostPro.breaks.getNewGeos(new_geos)
         # initialisation of the string
         exstr = ""
-
-        # Calculate tool Radius.
-        tool_rad = self.parentLayer.tool_diameter / 2
 
         # Get the mill settings defined in the GUI
         safe_retract_depth = self.parentLayer.axis3_retract
@@ -343,7 +336,7 @@ class Shape(object):
         mom_depth = initial_mill_depth
 
         # Move the tool to the start.
-        exstr += self.stmove.geos[0].Write_GCode(PostPro)
+        exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
@@ -353,8 +346,8 @@ class Shape(object):
             exstr += PostPro.set_cut_cor(self.cut_cor)
 
             exstr += PostPro.chg_feed_rate(f_g1_plane)
-            exstr += self.stmove.geos[1].Write_GCode(PostPro)
-            exstr += self.stmove.geos[2].Write_GCode(PostPro)
+            exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
+            exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
 
         exstr += PostPro.rap_pos_z(
             workpiece_top_Z + abs(safe_margin))  # Compute the safe margin from the initial mill depth
@@ -366,11 +359,11 @@ class Shape(object):
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
             exstr += PostPro.set_cut_cor(self.cut_cor)
 
-            exstr += self.stmove.geos[1].Write_GCode(PostPro)
-            exstr += self.stmove.geos[2].Write_GCode(PostPro)
+            exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
+            exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
 
         # Write the geometries for the first cut
-        for geo in new_geos:
+        for geo in new_geos.abs_iter():
             exstr += self.Write_GCode_for_geo(geo, PostPro)
 
         # Turning the cutter radius compensation
@@ -393,7 +386,7 @@ class Shape(object):
 
             # If it is not a closed contour
             if not self.closed:
-                self.reverse()
+                self.reverse(new_geos)
                 self.switch_cut_cor()
                 has_reversed = not has_reversed  # switch the "reversed" state (in order to restore it at the end)
 
@@ -406,7 +399,7 @@ class Shape(object):
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
                 exstr += PostPro.set_cut_cor(self.cut_cor)
 
-            for geo in new_geos:
+            for geo in new_geos.abs_iter():
                 exstr += self.Write_GCode_for_geo(geo, PostPro)
 
             # Turning off the cutter radius compensation if needed
@@ -424,7 +417,7 @@ class Shape(object):
 
         # Initial value of direction restored if necessary
         if has_reversed:
-            self.reverse()
+            self.reverse(new_geos)
             self.switch_cut_cor()
 
         self.cut_cor = prv_cut_cor
@@ -461,7 +454,7 @@ class Shape(object):
         drag_depth = self.axis3_slice_depth
 
         # Move the tool to the start.
-        exstr += self.stmove.geos[0].Write_GCode(PostPro)
+        exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
@@ -472,8 +465,8 @@ class Shape(object):
         exstr += PostPro.chg_feed_rate(f_g1_depth)
 
         # Write the geometries for the first cut
-        if self.stmove.geos[1].type == "ArcGeo":
-            if self.stmove.geos[1].drag:
+        if isinstance(self.stmove.geos.abs_el(1), ArcGeo):
+            if self.stmove.geos.abs_el(1).drag:
                 exstr += PostPro.lin_pol_z(drag_depth)
                 drag = True
             else:
@@ -484,10 +477,10 @@ class Shape(object):
             drag = False
         exstr += PostPro.chg_feed_rate(f_g1_plane)
 
-        exstr += self.stmove.geos[1].Write_GCode(PostPro)
+        exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
 
-        for geo in self.stmove.geos[2:]:
-            if geo.type == "ArcGeo":
+        for geo in Geos(self.stmove.geos[2:]).abs_iter():
+            if isinstance(geo, ArcGeo):
                 if geo.drag:
                     exstr += PostPro.chg_feed_rate(f_g1_depth)
                     exstr += PostPro.lin_pol_z(drag_depth)
@@ -515,3 +508,17 @@ class Shape(object):
         exstr += PostPro.write_post_shape_cut()
 
         return exstr
+
+
+class Geos(list):
+    def __init__(self, *args):
+        list.__init__(self, *args)
+
+    def abs_iter(self):
+        for geo in list.__iter__(self):
+            yield geo.abs_geo if geo.abs_geo else geo
+        else:
+            raise StopIteration()
+
+    def abs_el(self, element):
+        return self[element].abs_geo if self[element].abs_geo else self[element]
