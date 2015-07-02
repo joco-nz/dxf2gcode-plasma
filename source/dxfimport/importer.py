@@ -128,7 +128,7 @@ class ReadDXF(QtCore.QObject):
         metric = 1  # default: metric
         try:
             line = 0
-            while str[line].find("$MEASUREMENT") < 0:
+            while not str[line].startswith("$MEASUREMENT"):
                 line += 1
             metric = int(str[line + 2].strip())
         except:  # $MEASUREMENT not found or is incorrect
@@ -143,7 +143,7 @@ class ReadDXF(QtCore.QObject):
         # 19 = Light years; 20 = Parsecs
         try:
             line = 0
-            while str[line].find("$INSUNITS") < 0:
+            while not str[line].startswith("$INSUNITS"):
                 line += 1
             line += 2
             if int(str[line].stip()) == 1:
@@ -176,7 +176,7 @@ class ReadDXF(QtCore.QObject):
         line_pairs = dxflinepairsClass([])
 
         # Start at the first SECTION
-        while string[line].find("SECTION") < 0:
+        while not string[line].startswith("SECTION"):
             line += 1
         line -= 1
 
@@ -236,7 +236,7 @@ class ReadDXF(QtCore.QObject):
         Read_Layers()
         """
         for sect_nr in range(len(section)):
-            if section[sect_nr].name.find("TABLES") == 0:
+            if section[sect_nr].name.startswith("TABLES"):
                 # tables_section = section[sect_nr]
                 break
 
@@ -265,7 +265,7 @@ class ReadDXF(QtCore.QObject):
         Get_Blocks_pos()
         """
         for sect_nr in range(len(section)):
-            if section[sect_nr].name.find("BLOCKS") == 0:
+            if section[sect_nr].name.startswith("BLOCKS"):
                 blocks_section = section[sect_nr]
                 break
 
@@ -331,7 +331,7 @@ class ReadDXF(QtCore.QObject):
         Read_Entities() - Read the entities geometries
         """
         for section_nr in range(len(sections)):
-            if sections[section_nr - 1].name.find("ENTITIES") == 0:
+            if sections[section_nr - 1].name.startswith("ENTITIES"):
                 # g.logger.logger.info("Reading Entities", 1)
                 entities = EntitiesClass(0, 'Entities', [])
                 entities.geo = self.Get_Geo(sections[section_nr - 1].begin + 1,
@@ -424,7 +424,7 @@ class ReadDXF(QtCore.QObject):
         Get_Layer_Nr() - Find the number of geometry layers
         """
         for i in range(len(self.layers)):
-            if self.layers[i].name.find(Layer_Name) == 0:
+            if self.layers[i].name == Layer_Name:
                 layer_nr = i
                 return layer_nr
         layer_nr = len(self.layers)
@@ -438,7 +438,7 @@ class ReadDXF(QtCore.QObject):
         """
         block_nr = -1
         for i in range(len(self.blocks.Entities)):
-            if self.blocks.Entities[i].Name.find(Block_Name) == 0:
+            if self.blocks.Entities[i].Name == Block_Name:
                 block_nr = i
                 break
         return block_nr
