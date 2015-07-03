@@ -42,12 +42,11 @@ class WpZero(QGraphicsItem):
     class WpZero
     """
     def __init__(self, center, color=QtCore.Qt.gray):
-        self.sc = 1
+        self.sc = None
         super(WpZero, self).__init__()
 
         self.center = center
         self.allwaysshow = False
-        self.setFlag(QGraphicsItem.ItemIsSelectable, False)
         self.color = color
         self.pen = QPen(QtCore.Qt.darkGray, 1, QtCore.Qt.SolidLine)
         self.pen.setCosmetic(True)
@@ -96,5 +95,8 @@ class WpZero(QGraphicsItem):
         Override inherited function to enlarge selection of Arrow to include all
         @param flag: The flag to enable or disable Selection
         """
-        return QtCore.QRectF(-self.diameter / 2, -self.diameter / 2, self.diameter, self.diameter)
+        if not self.sc:  # since this function is called before paint; and scale is unknown
+            return QtCore.QRectF(0, 0, 1e-9, 1e-9)
 
+        diameter = self.diameter / self.sc
+        return QtCore.QRectF(-diameter / 2, -diameter / 2, diameter, diameter)

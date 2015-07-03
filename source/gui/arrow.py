@@ -52,7 +52,7 @@ class Arrow(QGraphicsLineItem):
         """
         Initialisation of the class.
         """
-        self.sc = 1
+        self.sc = None
         super(Arrow, self).__init__()
 
         self.startp = QtCore.QPointF(startp.x, -startp.y)
@@ -158,8 +158,9 @@ class Arrow(QGraphicsLineItem):
         Override inherited function to enlarge selection of Arrow to include all
         @param flag: The flag to enable or disable Selection
         """
+        if not self.sc:  # since this function is called before paint; and scale is unknown
+            return QtCore.QRectF(self.startp.x(), self.startp.y(), 1e-9, 1e-9)
 
-        # print("super: %s" % super(Arrow, self).boundingRect())
         arrowSize = self.arrowSize / self.sc
         extra = arrowSize  # self.pen.width() +
 

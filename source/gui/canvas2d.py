@@ -234,7 +234,9 @@ class MyGraphicsView(CanvasBase):
         Automatically zooms to the full extend of the current GraphicsScene
         """
         scene = self.scene()
-        scext = scene.itemsBoundingRect()
+        width = scene.bottomRight.x - scene.topLeft.x
+        height = scene.topLeft.y - scene.bottomRight.y
+        scext = QtCore.QRectF(scene.topLeft.x, -scene.topLeft.y, width * 1.05, height * 1.05)
         self.fitInView(scext, QtCore.Qt.KeepAspectRatio)
         logger.debug(self.tr("Autoscaling to extend: %s") % scext)
 
@@ -274,6 +276,9 @@ class MyGraphicsScene(QGraphicsScene):
         self.expprv = None
         self.expcol = None
         self.expnr = 0
+
+        self.topLeft = Point()
+        self.bottomRight = Point()
 
     def tr(self, string_to_translate):
         """
@@ -322,6 +327,9 @@ class MyGraphicsScene(QGraphicsScene):
         drawHorLine = lambda caller, start, end: shape.path.lineTo(end.x, -end.y)
         drawVerLine = lambda caller, start: None  # Not used in 2D mode
         shape.make_path(drawHorLine, drawVerLine)
+
+        self.topLeft.detTopLeft(shape.topLeft)
+        self.bottomRight.detBottomRight(shape.bottomRight)
 
         shape.stmove = self.createstmove(shape)
         shape.starrow = self.createstarrow(shape)

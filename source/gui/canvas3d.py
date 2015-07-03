@@ -665,8 +665,10 @@ class GLWidget(CanvasBase):
         scaleX = (GLWidget.CAM_RIGHT_X - GLWidget.CAM_LEFT_X) * aspect_scale_x / (self.bottomRight.x - self.topLeft.x)
         scaleY = (GLWidget.CAM_BOTTOM_Y - GLWidget.CAM_TOP_Y) * aspect_scale_y / (self.topLeft.y - self.bottomRight.y)
         self.scale = min(scaleX, scaleY) * 0.95
-        self.posX = GLWidget.CAM_LEFT_X * 0.95 * aspect_scale_x - self.topLeft.x * self.scale
-        self.posY = -GLWidget.CAM_TOP_Y * 0.95 * aspect_scale_y + self.bottomRight.y * self.scale
+        self.posX = ((GLWidget.CAM_LEFT_X + GLWidget.CAM_RIGHT_X) * 0.95 * aspect_scale_x
+                     - (self.topLeft.x + self.bottomRight.x) * self.scale) / 2
+        self.posY = -((GLWidget.CAM_TOP_Y + GLWidget.CAM_BOTTOM_Y) * 0.95 * aspect_scale_y
+                      - (self.topLeft.y + self.bottomRight.y) * self.scale) / 2
         self.posZ = 0
         self.update()
 
