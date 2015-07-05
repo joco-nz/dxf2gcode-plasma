@@ -26,10 +26,10 @@
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QDialog, QVBoxLayout, QGridLayout, QTextBrowser
-    from PyQt5.QtGui import QIcon, QPixmap
+    from PyQt5.QtGui import QIcon, QPixmap, QTextCursor
     from PyQt5 import QtCore
 else:
-    from PyQt4.QtGui import QDialog, QVBoxLayout, QGridLayout, QIcon, QPixmap, QTextBrowser
+    from PyQt4.QtGui import QDialog, QVBoxLayout, QGridLayout, QIcon, QPixmap, QTextBrowser, QTextCursor
     from PyQt4 import QtCore
 
 import logging

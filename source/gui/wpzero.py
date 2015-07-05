@@ -59,10 +59,9 @@ class WpZero(QGraphicsItem):
         """
         return float(0x7fffffff)
 
-    def setSelected(self, flag=True):
+    def setSelected(self, *args):
         """
-        Override inherited function to turn off selection of Arrows.
-        @param flag: The flag to enable or disable Selection
+        Override inherited function - with possibility to be called with multiple arguments
         """
         pass
 

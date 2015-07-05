@@ -293,8 +293,9 @@ class StMove(object):
                         geos_adj[i].update_start_end_points(True, intersection[1])
                 else:
                     i += 1
-                if len(new_geos) > 0 and not new_geos[-1].Pe.eq(geo.Ps, g.config.fitting_tolerance):
-                     break  # geo is disconnected
+                # TODO
+                # if len(new_geos) > 0 and not new_geos[-1].Pe.eq(geo.Ps, g.config.fitting_tolerance):
+                #     break  # geo is disconnected
                 new_geos.append(geo)
                 if new_geos[0].Ps == new_geos[-1].Pe:
                     break
@@ -357,4 +358,3 @@ class RapidPos(Point):
         @return: Returns the string to be written to a file.
         """
         return PostPro.rap_pos_xy(self)
-
