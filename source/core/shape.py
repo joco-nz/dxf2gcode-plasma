@@ -264,6 +264,23 @@ class Shape(object):
         if not self.closed:
             drawVerLine(self, geo.get_start_end_points(False))
 
+    def make_shape_ccw(self):
+        """ 
+        This method is called after the shape has been generated before it gets
+        plotted to change all shape direction to a CW shape.
+        """
+
+        if not(self.closed):
+            return
+
+        # Optimization for closed shapes
+        # Start value for the first sum
+
+        if self.isDirectionOfGeosCCW(self.geos):
+            self.reverse()
+            logger.debug(self.tr("Had to reverse the shape to be CW"))
+        self.cw = True
+    
     def isHit(self, xy, tol):
         if self.topLeft.x - tol <= xy.x <= self.bottomRight.x + tol\
                 and self.bottomRight.y - tol <= xy.y <= self.topLeft.y + tol:
@@ -509,7 +526,48 @@ class Shape(object):
 
         return exstr
 
+    def join_colinear_lines(self):
+        """
+        This function is called to search for colinear connected lines an joins 
+        them if there are any
+        """
+        # Do only if more then 2 geometies
+        if len(self.geos) < 2:
+            return
 
+        new_geos = [self.geos[0]]
+        for i in range(1, len(self.geos)):
+            geo1 = new_geos[-1]
+            geo2 = self.geos[i]
+
+           
+            
+            if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
+                # Remove first geometry and add result of joined geometries. Required
+                # Cause the join will give back the last 2 geometries.
+                new_geos.pop()
+                new_geos += geo1.join_colinear_line(geo2)
+            elif isinstance(geo1, ArcGeo) or isinstance(geo2, ArcGeo):
+                new_geos += [geo2]
+
+            # If start end End Point are the same remove geometry
+            if new_geos[-1].Pa == new_geos[-1].Pe:
+                new_geos.pop()
+
+
+        # For closed polylines check if the first and last items are colinear
+        if self.closed:
+            geo1 = new_geos[-1]
+            geo2 = new_geos[0]
+            if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
+                joined_geos = geo1.join_colinear_line(geo2)
+
+                # If they are joind replace firste item by joined and remove last one
+                if len(joined_geos) == 1:
+                    new_geos[0] = joined_geos[0]
+                    new_geos.pop()
+
+        self.geos = new_geos
 class Geos(list):
     def __init__(self, *args):
         list.__init__(self, *args)
