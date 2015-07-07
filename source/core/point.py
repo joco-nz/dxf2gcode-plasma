@@ -31,6 +31,9 @@ from math import sqrt, sin, cos, atan2
 
 from core.point3d import Point3D
 
+import logging
+logger = logging.getLogger("core.point")
+
 eps=-1e-12
 
 class Point(object):

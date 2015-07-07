@@ -29,7 +29,7 @@ from __future__ import division
 
 from math import sqrt, sin, cos, pi, degrees
 from copy import deepcopy
-import logging
+
 
 from core.point import Point
 import globals.globals as g
@@ -41,7 +41,8 @@ if c.PYQT5notPYQT4:
 else:
     from PyQt4 import QtCore
 
-logger = logging.getLogger("Core.ArcGeo")
+import logging
+logger = logging.getLogger("core.arcGeo")
 
 
 class ArcGeo(object):
