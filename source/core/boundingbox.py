@@ -35,6 +35,8 @@ from core.point import Point
 import logging
 logger = logging.getLogger("core.boundingbox")
 
+eps=-1e-12
+
 class BoundingBox:
     """ 
     Bounding Box Class. This is the standard class which provides all std. 

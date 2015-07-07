@@ -29,6 +29,9 @@ from __future__ import division
 from math import sqrt, pi
 from copy import deepcopy
 
+from core.point import Point
+from core.boundingbox import BoundingBox
+
 class LineGeo(object):
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and

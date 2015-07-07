@@ -27,11 +27,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from math import sqrt, sin, cos, pi, degrees
+from math import sqrt, sin, cos, pi, degrees, ceil, floor
 from copy import deepcopy
 
 
 from core.point import Point
+from core.boundingbox import BoundingBox
 import globals.globals as g
 
 from globals.six import text_type
