@@ -3,7 +3,7 @@
 ############################################################################
 #
 #   Copyright (C) 2008-2015
-#    Christian Kohlöffel
+#    Christian Kohlï¿½ffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
 #
@@ -40,12 +40,12 @@ class BoundingBox:
     Bounding Box Class. This is the standard class which provides all std. 
     Bounding Box methods.
     """
-    def __init__(self, Pa=Point(0, 0), Pe=Point(0, 0), hdl=[]):
+    def __init__(self, Ps=Point(0, 0), Pe=Point(0, 0), hdl=[]):
         """ 
         Standard method to initialize the class
         """
 
-        self.Pa = Pa
+        self.Ps = Ps
         self.Pe = Pe
 
 
@@ -54,7 +54,7 @@ class BoundingBox:
         Standard method to print the object
         @return: A string
         """
-        s = ("\nPa : %s" % (self.Pa)) + \
+        s = ("\nPa : %s" % (self.Ps)) + \
            ("\nPe : %s" % (self.Pe))
         return s
 
@@ -65,15 +65,15 @@ class BoundingBox:
         @return: Returns the joined Bounding Box Class
         """
 
-        if type(self.Pa) == type(None) or type(self.Pe) == type(None):
-            return BoundingBox(deepcopy(other.Pa), deepcopy(other.Pe))
+        if type(self.Ps) == type(None) or type(self.Pe) == type(None):
+            return BoundingBox(deepcopy(other.Ps), deepcopy(other.Pe))
 
-        xmin = min(self.Pa.x, other.Pa.x)
+        xmin = min(self.Ps.x, other.Ps.x)
         xmax = max(self.Pe.x, other.Pe.x)
-        ymin = min(self.Pa.y, other.Pa.y)
+        ymin = min(self.Ps.y, other.Ps.y)
         ymax = max(self.Pe.y, other.Pe.y)
 
-        return BoundingBox(Pa=Point(xmin, ymin), Pe=Point(xmax, ymax))
+        return BoundingBox(Ps=Point(xmin, ymin), Pe=Point(xmax, ymax))
 
     def hasintersection(self, other=None, tol=eps):
         """
@@ -84,10 +84,10 @@ class BoundingBox:
         if isinstance(other, Point):
             return self.pointisinBB(other, tol)
         elif isinstance(other, BoundingBox):
-            x_inter_pos = (self.Pe.x + tol > other.Pa.x) and \
-            (self.Pa.x - tol < other.Pe.x)
-            y_inter_pos = (self.Pe.y + tol > other.Pa.y) and \
-            (self.Pa.y - tol < other.Pe.y)
+            x_inter_pos = (self.Pe.x + tol > other.Ps.x) and \
+            (self.Ps.x - tol < other.Pe.x)
+            y_inter_pos = (self.Pe.y + tol > other.Ps.y) and \
+            (self.Ps.y - tol < other.Pe.y)
 
             return x_inter_pos and y_inter_pos
         else:
@@ -100,7 +100,7 @@ class BoundingBox:
         @return: Returns true or false
         """
         x_inter_pos = (self.Pe.x + tol > Point.x) and \
-        (self.Pa.x - tol < Point.x)
+        (self.Ps.x - tol < Point.x)
         y_inter_pos = (self.Pe.y + tol > Point.y) and \
-        (self.Pa.y - tol < Point.y)
+        (self.Ps.y - tol < Point.y)
         return x_inter_pos and y_inter_pos
