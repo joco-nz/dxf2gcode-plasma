@@ -61,14 +61,8 @@ class LineGeo(object):
         Standard method to print the object
         @return: A string
         """
-        return "\nLineGeo" +\
-               "\nPs:     %s" % self.Ps +\
-               "\nPe:     %s" % self.Pe +\
-               "\nlength: %0.5f" % self.length
-               
-
-        #return ("\nLineGeo(Ps=Point(x=%s ,y=%s),\n" % (self.Ps.x, self.Ps.y)) + \
-        #       ("Pe=Point(x=%s, y=%s))" % (self.Pe.x, self.Pe.y))
+        return ("\nLineGeo(Ps=Point(x=%s ,y=%s),\n" % (self.Ps.x, self.Ps.y)) + \
+               ("Pe=Point(x=%s, y=%s))" % (self.Pe.x, self.Pe.y))
 
     def calc_bounding_box(self):
         """
