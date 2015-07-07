@@ -423,16 +423,19 @@ class Point(object):
         @param Pto: The other point 
         @return: Returns the Unit vector
         """
-        diffVec = Pto - self
-        l = diffVec.distance()
-        return Point(diffVec.x / l * r, diffVec.y / l * r)
+        if Pto is None: 
+            return self / self.length()
+        else:
+            diffVec = Pto - self
+            l = diffVec.distance()
+            return Point(diffVec.x / l * r, diffVec.y / l * r)
 
-#     def within_tol(self, other, tol):
-#         """
-#         Are the two points within tolerance
-#         """
-#         # TODO is this sufficient, or do we want to compare the distance
-#         return abs(self.x - other.x) <= tol and abs(self.y - other.y) < tol
+    def within_tol(self, other, tol):
+        """
+        Are the two points within tolerance
+        """
+        # TODO is this sufficient, or do we want to compare the distance
+        return abs(self.x - other.x) <= tol and abs(self.y - other.y) < tol
     
     def plot2plot(self, plot, format='xr'):
         plot.plot([self.x], [self.y], format)
