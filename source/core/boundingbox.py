@@ -54,7 +54,7 @@ class BoundingBox:
         Standard method to print the object
         @return: A string
         """
-        s = ("\nPa : %s" % (self.Ps)) + \
+        s = ("\nPs : %s" % (self.Ps)) + \
            ("\nPe : %s" % (self.Pe))
         return s
 
