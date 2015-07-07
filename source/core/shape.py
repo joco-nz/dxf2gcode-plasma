@@ -551,7 +551,7 @@ class Shape(object):
                 new_geos += [geo2]
 
             # If start end End Point are the same remove geometry
-            if new_geos[-1].Pa == new_geos[-1].Pe:
+            if new_geos[-1].Ps == new_geos[-1].Pe:
                 new_geos.pop()
 
 
