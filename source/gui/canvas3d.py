@@ -75,8 +75,6 @@ class GLWidget(CanvasBase):
         self.isMultiSelect = False
         self._lastPos = QPoint()
 
-        self.showDisabledPaths = True
-
         self.posX = 0.0
         self.posY = 0.0
         self.posZ = 0.0
@@ -85,6 +83,9 @@ class GLWidget(CanvasBase):
         self.rotZ = 0.0
         self.scale = 1.0
         self.scaleCorr = 1.0
+
+        self.showPathDirections = False
+        self.showDisabledPaths = False
 
         self.topLeft = Point()
         self.bottomRight = Point()
@@ -340,6 +341,9 @@ class GLWidget(CanvasBase):
                 else:
                     self.setColor(GLWidget.COLOR_NORMAL)
                 self.gl.glCallList(shape.drawObject)
+                if self.showPathDirections:
+                    self.setColor(GLWidget.COLOR_STMOVE)
+                    self.gl.glCallList(shape.drawStMove)
             elif self.showDisabledPaths:
                 self.setColor(GLWidget.COLOR_NORMAL_DISABLED)
                 self.gl.glCallList(shape.drawObject)
@@ -364,7 +368,8 @@ class GLWidget(CanvasBase):
 
         # direction arrows
         for shape in self.shapes:
-            if shape.selected and (not shape.disabled or self.showDisabledPaths):
+            if shape.selected and (not shape.disabled or self.showDisabledPaths) or\
+               self.showPathDirections and not shape.disabled:
                 start, end = shape.get_start_end_points_physical()
                 start = scaleArrow * start.to3D(shape.axis3_start_mill_depth)
                 end = scaleArrow * end.to3D(shape.axis3_mill_depth)
@@ -653,6 +658,12 @@ class GLWidget(CanvasBase):
             xy2 = Point().get_arc_point(ang, r).to3D(zBottom)
             self.gl.glVertex3f(xy2 * rx + origin.x, -xy2 * ry - origin.y, xy2 * rz + origin.z)
         self.gl.glEnd()
+
+    def setShowPathDirections(self, flag):
+        self.showPathDirections = flag
+
+    def setShowDisabledPaths(self, flag=True):
+        self.showDisabledPaths = flag
 
     def autoscale(self):
         # TODO currently only works correctly when object is not rotated

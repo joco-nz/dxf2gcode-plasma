@@ -240,7 +240,7 @@ class MyGraphicsView(CanvasBase):
         self.fitInView(scext, QtCore.Qt.KeepAspectRatio)
         logger.debug(self.tr("Autoscaling to extend: %s") % scext)
 
-    def setShow_path_direction(self, flag):
+    def setShowPathDirections(self, flag):
         """
         This function is called by the Main Window from the Menubar.
         @param flag: This flag is true if all Path Direction shall be shown
@@ -272,10 +272,11 @@ class MyGraphicsScene(QGraphicsScene):
         self.wpzero = None
         self.routearrows = []
         self.routetext = []
-        self.showDisabled = False
         self.expprv = None
         self.expcol = None
         self.expnr = 0
+
+        self.showDisabledPaths = False
 
         self.topLeft = Point()
         self.bottomRight = Point()
@@ -443,7 +444,7 @@ class MyGraphicsScene(QGraphicsScene):
 
         self.addItem(self.routearrows[-1])
 
-    def setShow_disabled_paths(self, flag):
+    def setShowDisabledPaths(self, flag):
         """
         This function is called by the Main Menu and is passed from Main to
         MyGraphicsView to the Scene. It performs the showing or hiding
@@ -451,7 +452,7 @@ class MyGraphicsScene(QGraphicsScene):
 
         @param flag: This flag is true if hidden paths shall be shown
         """
-        self.showDisabled = flag
+        self.showDisabledPaths = flag
 
         for shape in self.shapes:
             if flag and shape.isDisabled():
@@ -604,7 +605,7 @@ class ShapeGUI(QGraphicsItem, Shape):
         scene = self.scene()
 
         if scene is not None:
-            if not scene.showDisabled and flag:
+            if not scene.showDisabledPaths and flag:
                 self.hide()
                 self.starrow.setSelected(False)
                 self.enarrow.setSelected(False)

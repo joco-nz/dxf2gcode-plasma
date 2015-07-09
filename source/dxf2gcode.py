@@ -525,7 +525,8 @@ class MainWindow(QMainWindow):
         main and forwards the call to Canvas.setShow_path_direction()
         """
         flag = self.ui.actionShowPathDirections.isChecked()
-        self.canvas.setShow_path_direction(flag)
+        self.canvas.setShowPathDirections(flag)
+        self.canvas_scene.update()
 
     def setShowDisabledPaths(self):
         """
@@ -533,7 +534,7 @@ class MainWindow(QMainWindow):
         main and forwards the call to Canvas.setShow_disabled_paths()
         """
         flag = self.ui.actionShowDisabledPaths.isChecked()
-        self.canvas_scene.setShow_disabled_paths(flag)
+        self.canvas_scene.setShowDisabledPaths(flag)
         self.canvas_scene.update()
 
     def liveUpdateExportRoute(self):
@@ -757,14 +758,14 @@ class MainWindow(QMainWindow):
         # Paint the canvas
         if not g.config.mode3d:
             self.canvas_scene = MyGraphicsScene()
+            self.canvas.setScene(self.canvas_scene)
 
         self.canvas_scene.plotAll(self.shapes)
+        self.setShowPathDirections()
+        self.setShowDisabledPaths()
+        self.liveUpdateExportRoute()
 
         if not g.config.mode3d:
-            self.canvas.setScene(self.canvas_scene)
-            self.setShowPathDirections()
-            self.setShowDisabledPaths()
-            self.liveUpdateExportRoute()
             self.canvas.show()
             self.canvas.setFocus()
         self.canvas.autoscale()
