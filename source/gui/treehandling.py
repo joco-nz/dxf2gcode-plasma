@@ -205,7 +205,7 @@ class TreeHandler(QWidget):
 
         if selected_action and isValid(selected_action.data()):
             # contextual menu selection concerns a custom gcode
-            custom_gcode_name = selected_action.data().toString()
+            custom_gcode_name = toPyObject(selected_action.data())
 
             self.addCustomGCodeAfter(custom_gcode_name)
 
