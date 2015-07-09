@@ -861,6 +861,8 @@
     <addaction name="actionOpen"/>
     <addaction name="actionReload"/>
     <addaction name="separator"/>
+    <addaction name="actionSaveProjectAs"/>
+    <addaction name="separator"/>
     <addaction name="actionClose"/>
    </widget>
    <widget class="QMenu" name="menuExport">
@@ -1158,6 +1160,17 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+V, I</string>
+   </property>
+  </action>
+  <action name="actionSaveProjectAs">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save Project As...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
   </action>
  </widget>

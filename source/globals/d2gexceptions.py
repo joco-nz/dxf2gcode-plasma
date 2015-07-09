@@ -49,7 +49,7 @@ class VersionMismatchError(Exception):
 
     def __str__(self):
         return repr('config file versions do not match - internal: %s,'
-                    ' config file %s, delete existing file to resolve issue'
+                    ' config file: %s - delete existing file to resolve issue'
                     % (self.CONFIG_VERSION, self.fileversion))
 
 

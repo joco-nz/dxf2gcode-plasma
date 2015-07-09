@@ -54,4 +54,7 @@ try:
 finally:
     os.remove(tmp_ui_filename)
 
+print("\n!!!!!!!Do not commit the updated ...rc.py files to the repository if the .qrc files did not change,\n"
+      " i.e. if you did not make any changes with relation to the images\n"
+      " - the updated .pys are not important especially with PyQt5; it makes too many unnecessary changes!!!!!!")
 print("\nREADY")
