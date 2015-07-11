@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'c:\users\jeanpa~1\appdata\local\temp\tmp63xt_7'
+# Form implementation generated from reading ui file 'c:\users\jeanpa~1\appdata\local\temp\tmpfhirkv'
 #
-# Created: Thu Jun 25 09:26:03 2015
+# Created: Sun Jul 05 00:47:03 2015
 #      by: PyQt4 UI code generator 4.11.3
 #
 # WARNING! All changes made in this file will be lost!
@@ -553,8 +553,13 @@ class Ui_MainWindow(object):
         self.actionIsometricView = QtGui.QAction(MainWindow)
         self.actionIsometricView.setEnabled(False)
         self.actionIsometricView.setObjectName(_fromUtf8("actionIsometricView"))
+        self.actionSaveProjectAs = QtGui.QAction(MainWindow)
+        self.actionSaveProjectAs.setEnabled(False)
+        self.actionSaveProjectAs.setObjectName(_fromUtf8("actionSaveProjectAs"))
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionReload)
+        self.menuFile.addSeparator()
+        self.menuFile.addAction(self.actionSaveProjectAs)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionClose)
         self.menuExport.addAction(self.actionOptimizePaths)
@@ -681,6 +686,8 @@ class Ui_MainWindow(object):
         self.actionTopView.setShortcut(_translate("MainWindow", "Ctrl+V, T", None))
         self.actionIsometricView.setText(_translate("MainWindow", "Isometric View", None))
         self.actionIsometricView.setShortcut(_translate("MainWindow", "Ctrl+V, I", None))
+        self.actionSaveProjectAs.setText(_translate("MainWindow", "Save Project As...", None))
+        self.actionSaveProjectAs.setShortcut(_translate("MainWindow", "Ctrl+S", None))
 
 from gui.canvas import Canvas
 from gui.treeview import TreeView

@@ -64,9 +64,14 @@ class RouteText(QGraphicsItem):
 
     def contains_point(self, point):
         """
-        WpZero cannot be selected. Return maximal distance
+        Text cannot be selected. Return maximal distance
         """
         return float(0x7fffffff)
+
+    def setSelected(self, *args):
+        """
+        Override inherited function - with possibility to be called with multiple arguments
+        """
 
     def paint(self, painter, option, widget=None):
         """

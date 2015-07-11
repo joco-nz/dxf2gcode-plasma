@@ -42,6 +42,7 @@ from core.layercontent import LayerContent, Layers, Shapes
 from core.entitycontent import EntityContent
 from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
+from core.project import Project
 from globals.config import MyConfig
 import globals.globals as g
 from globals.logger import LoggerClass
@@ -58,22 +59,24 @@ from postpro.tspoptimisation import TspOptimization
 from globals.six import text_type, PY2
 import globals.constants as c
 if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication
+    from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt5.QtGui import QSurfaceFormat
     from PyQt5 import QtCore
     getOpenFileName = QFileDialog.getOpenFileName
     getSaveFileName = QFileDialog.getSaveFileName
 else:
-    from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication
+    from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt4 import QtCore
     getOpenFileName = QFileDialog.getOpenFileNameAndFilter
     getSaveFileName = QFileDialog.getSaveFileNameAndFilter
 
 if PY2:
     file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
+    str_encode = lambda exstr: exstr.encode('utf-8')
     str_decode = lambda filename: filename.decode("utf-8")
 else:
     file_str = lambda filename: filename
+    str_encode = lambda exstr: exstr
     str_decode = lambda filename: filename
 
 logger = logging.getLogger()
@@ -110,6 +113,7 @@ class MainWindow(QMainWindow):
         self.TreeHandler = TreeHandler(self.ui)
 
         self.MyPostProcessor = MyPostProcessor()
+        self.d2g = Project(self)
 
         self.createActions()
         self.connectToolbarToConfig()
@@ -143,6 +147,7 @@ class MainWindow(QMainWindow):
         # File
         self.ui.actionOpen.triggered.connect(self.open)
         self.ui.actionReload.triggered.connect(self.reload)
+        self.ui.actionSaveProjectAs.triggered.connect(self.saveProject)
         self.ui.actionClose.triggered.connect(self.close)
 
         # Export
@@ -176,16 +181,12 @@ class MainWindow(QMainWindow):
 
     def connectToolbarToConfig(self):
         # View
-        if g.config.vars.General['show_disabled_paths']:
-            self.ui.actionShowDisabledPaths.setChecked(True)
-        if g.config.vars.General['live_update_export_route']:
-            self.ui.actionLiveUpdateExportRoute.setChecked(True)
+        self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
+        self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
 
         # Options
-        if g.config.vars.General['split_line_segments']:
-            self.ui.actionSplitLineSegments.setChecked(True)
-        if g.config.vars.General['automatic_cutter_compensation']:
-            self.ui.actionAutomaticCutterCompensation.setChecked(True)
+        self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
+        self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
         self.updateMachineType()
 
     def keyPressEvent(self, event):
@@ -238,6 +239,7 @@ class MainWindow(QMainWindow):
     def enableToolbarButtons(self, status=True):
         # File
         self.ui.actionReload.setEnabled(status)
+        self.ui.actionSaveProjectAs.setEnabled(status)
 
         # Export
         self.ui.actionOptimizePaths.setEnabled(status)
@@ -294,18 +296,23 @@ class MainWindow(QMainWindow):
 
             # Get the name of the File to export
             if not saveas:
-                filename = self.showSaveDialog()
-                self.save_filename = file_str(filename[0])
+                MyFormats = ""
+                for i in range(len(self.MyPostProcessor.output_format)):
+                    name = "%s " % (self.MyPostProcessor.output_text[i])
+                    format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
+                    MyFormats = MyFormats + name + format_
+                filename = self.showSaveDialog(self.tr('Export to file'), MyFormats)
+                save_filename = file_str(filename[0])
             else:
                 filename = [None, None]
-                self.save_filename = saveas
+                save_filename = saveas
 
             # If Cancel was pressed
-            if not self.save_filename:
+            if not save_filename:
                 self.canvas.unsetCursor()
                 return
 
-            (beg, ende) = os.path.split(self.save_filename)
+            (beg, ende) = os.path.split(save_filename)
             (fileBaseName, fileExtension) = os.path.splitext(ende)
 
             pp_file_nr = 0
@@ -316,12 +323,12 @@ class MainWindow(QMainWindow):
                 if filename[1] == MyFormats:
                     pp_file_nr = i
             if fileExtension != self.MyPostProcessor.output_format[pp_file_nr]:
-                if not QtCore.QFile.exists(self.save_filename):
-                    self.save_filename = self.save_filename + self.MyPostProcessor.output_format[pp_file_nr]
+                if not QtCore.QFile.exists(save_filename):
+                    save_filename += self.MyPostProcessor.output_format[pp_file_nr]
 
             self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
-            self.save_filename = ""
+            save_filename = ""
             self.MyPostProcessor.getPostProVars(0)
 
         """
@@ -330,7 +337,7 @@ class MainWindow(QMainWindow):
         """
 
         self.MyPostProcessor.exportShapes(self.filename,
-                                          self.save_filename,
+                                          save_filename,
                                           self.layerContents)
 
         self.canvas.unsetCursor()
@@ -464,17 +471,12 @@ class MainWindow(QMainWindow):
         self.canvas_scene.repaint_shape(shape)
         return True
 
-    def showSaveDialog(self):
+    def showSaveDialog(self, title, MyFormats):
         """
         This function is called by the menu "Export/Export Shapes" of the main toolbar.
         It creates the selection dialog for the exporter
         @return: Returns the filename of the selected file.
         """
-        MyFormats = ""
-        for i in range(len(self.MyPostProcessor.output_format)):
-            name = "%s " % (self.MyPostProcessor.output_text[i])
-            format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
-            MyFormats = MyFormats + name + format_
 
         (beg, ende) = os.path.split(self.filename)
         (fileBaseName, fileExtension) = os.path.splitext(ende)
@@ -483,7 +485,7 @@ class MainWindow(QMainWindow):
 
         selected_filter = self.MyPostProcessor.output_format[0]
         filename = getSaveFileName(self,
-                                   self.tr('Export to file'), default_name,
+                                   title, default_name,
                                    MyFormats, selected_filter)
 
         logger.info(self.tr("File: %s selected") % filename[0])
@@ -525,7 +527,8 @@ class MainWindow(QMainWindow):
         main and forwards the call to Canvas.setShow_path_direction()
         """
         flag = self.ui.actionShowPathDirections.isChecked()
-        self.canvas.setShow_path_direction(flag)
+        self.canvas.setShowPathDirections(flag)
+        self.canvas_scene.update()
 
     def setShowDisabledPaths(self):
         """
@@ -533,7 +536,7 @@ class MainWindow(QMainWindow):
         main and forwards the call to Canvas.setShow_disabled_paths()
         """
         flag = self.ui.actionShowDisabledPaths.isChecked()
-        self.canvas_scene.setShow_disabled_paths(flag)
+        self.canvas_scene.setShowDisabledPaths(flag)
         self.canvas_scene.update()
 
     def liveUpdateExportRoute(self):
@@ -667,53 +670,58 @@ class MainWindow(QMainWindow):
 
         self.filename, _ = getOpenFileName(self,
                                            self.tr("Open file"),
-                                                   g.config.vars.Paths['import_dir'],
-                                           self.tr("All supported files (*.dxf *.ps *.pdf);;"
+                                           g.config.vars.Paths['import_dir'],
+                                           self.tr("All supported files (*.dxf *.ps *.pdf *%s);;"
                                                    "DXF files (*.dxf);;"
                                                    "PS files (*.ps);;"
                                                    "PDF files (*.pdf);;"
-                                                   "All types (*.*)"))
+                                                   "Project files (*%s);;"
+                                                   "All types (*.*)") % (c.PROJECT_EXTENSION, c.PROJECT_EXTENSION))
 
         # If there is something to load then call the load function callback
         if self.filename:
             self.filename = file_str(self.filename)
             logger.info(self.tr("File: %s selected") % self.filename)
-            self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
 
             self.cont_dx = 0.0
             self.cont_dy = 0.0
             self.cont_rotate = 0.0
             self.cont_scale = 1.0
 
-            self.load(self.filename)
+            self.load()
 
-    def load(self, filename):
+    def load(self, plot=True):
         """
         Loads the file given by filename.  Also calls the command to
         make the plot.
         @param filename: String containing filename which should be loaded
         """
         self.canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
         self.canvas.resetAll()
 
-        (name, ext) = os.path.splitext(filename)
+        (name, ext) = os.path.splitext(self.filename)
+
+        if ext.lower() == c.PROJECT_EXTENSION:
+            self.loadProject(self.filename)
+            return
 
         if ext.lower() == ".ps" or ext.lower() == ".pdf":
             logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
 
             # Create temporary file which will be read by the program
-            filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
+            self.filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
 
             pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
             pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
             ps_filename = os.path.normcase(self.filename)
-            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % filename)]
+            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % self.filename)]
             logger.debug(cmd)
             retcode = subprocess.call(cmd)
 
-        logger.info(self.tr('Loading file: %s') % filename)
+        logger.info(self.tr('Loading file: %s') % self.filename)
 
-        values = ReadDXF(filename)
+        values = ReadDXF(self.filename)
 
         # Output the information in the text window
         logger.info(self.tr('Loaded layers: %s') % len(values.layers))
@@ -749,7 +757,10 @@ class MainWindow(QMainWindow):
         self.makeShapes(values, Point(self.cont_dx, self.cont_dy), Point(),
                         [self.cont_scale, self.cont_scale, self.cont_scale],
                         self.cont_rotate)
+        if plot:
+            self.plot()
 
+    def plot(self):
         # Populate the treeViews
         self.TreeHandler.buildEntitiesTree(self.entityRoot)
         self.TreeHandler.buildLayerTree(self.layerContents)
@@ -757,14 +768,14 @@ class MainWindow(QMainWindow):
         # Paint the canvas
         if not g.config.mode3d:
             self.canvas_scene = MyGraphicsScene()
+            self.canvas.setScene(self.canvas_scene)
 
         self.canvas_scene.plotAll(self.shapes)
+        self.setShowPathDirections()
+        self.setShowDisabledPaths()
+        self.liveUpdateExportRoute()
 
         if not g.config.mode3d:
-            self.canvas.setScene(self.canvas_scene)
-            self.setShowPathDirections()
-            self.setShowDisabledPaths()
-            self.liveUpdateExportRoute()
             self.canvas.show()
             self.canvas.setFocus()
         self.canvas.autoscale()
@@ -783,7 +794,7 @@ class MainWindow(QMainWindow):
         """
         if self.filename:
             logger.info(self.tr("Reloading file: %s") % self.filename)
-            self.load(self.filename)
+            self.load()
 
     def makeShapes(self, values, p0, pb, sca, rot):
         self.entityRoot = EntityContent(nr=0, name='Entities',
@@ -918,6 +929,46 @@ class MainWindow(QMainWindow):
         self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
         shape.parentLayer = self.layerContents[-1]
 
+    def loadProject(self, filename):
+        """
+        Load all variables from file
+        """
+        # since Py3 has no longer execfile -  we need to open it manually
+        file_ = open(filename, 'r')
+        str_ = file_.read()
+        file_.close()
+        self.d2g.load(str_)
+
+    def saveProject(self):
+        """
+        Save all variables to file
+        """
+        prj_filename = self.showSaveDialog(self.tr('Save project to file'), "Project files (*%s)" % c.PROJECT_EXTENSION)
+        save_prj_filename = file_str(prj_filename[0])
+
+        # If Cancel was pressed
+        if not save_prj_filename:
+            return
+
+        (beg, ende) = os.path.split(save_prj_filename)
+        (fileBaseName, fileExtension) = os.path.splitext(ende)
+
+        if fileExtension != c.PROJECT_EXTENSION:
+            if not QtCore.QFile.exists(save_prj_filename):
+                save_prj_filename += c.PROJECT_EXTENSION
+
+        pyCode = self.d2g.export()
+        try:
+            # File open and write
+            f = open(save_prj_filename, "w")
+            f.write(str_encode(pyCode))
+            f.close()
+            logger.info(self.tr("Save project to FILE was successful"))
+        except IOError:
+            QMessageBox.warning(g.window,
+                                self.tr("Warning during Save Project As"),
+                                self.tr("Cannot Save the File"))
+
     def closeEvent(self, e):
         logger.debug(self.tr("exiting"))
         self.writeSettings()
@@ -998,7 +1049,7 @@ if __name__ == "__main__":
 
     if options.filename is not None:
         window.filename = str_decode(options.filename)
-        window.load(window.filename)
+        window.load()
 
     if options.export_filename is not None:
         window.exportShapes(None, options.export_filename)

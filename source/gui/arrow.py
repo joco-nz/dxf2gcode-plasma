@@ -76,7 +76,7 @@ class Arrow(QGraphicsLineItem):
         """
         return float(0x7fffffff)
 
-    def setSelected(self, flag=True):
+    def setSelected(self, flag=True, blockSignals=True):
         """
         Override inherited function to turn off selection of Arrows.
         @param flag: The flag to enable or disable Selection

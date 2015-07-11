@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\JEANPA~1\AppData\Local\Temp\tmpbhobvskk'
+# Form implementation generated from reading ui file 'C:\Users\JEANPA~1\AppData\Local\Temp\tmpzvnoz3w7'
 #
 # Created by: PyQt5 UI code generator 5.4.1
 #
@@ -538,8 +538,13 @@ class Ui_MainWindow(object):
         self.actionIsometricView = QtWidgets.QAction(MainWindow)
         self.actionIsometricView.setEnabled(False)
         self.actionIsometricView.setObjectName("actionIsometricView")
+        self.actionSaveProjectAs = QtWidgets.QAction(MainWindow)
+        self.actionSaveProjectAs.setEnabled(False)
+        self.actionSaveProjectAs.setObjectName("actionSaveProjectAs")
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionReload)
+        self.menuFile.addSeparator()
+        self.menuFile.addAction(self.actionSaveProjectAs)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionClose)
         self.menuExport.addAction(self.actionOptimizePaths)
@@ -667,8 +672,10 @@ class Ui_MainWindow(object):
         self.actionTopView.setShortcut(_translate("MainWindow", "Ctrl+V, T"))
         self.actionIsometricView.setText(_translate("MainWindow", "Isometric View"))
         self.actionIsometricView.setShortcut(_translate("MainWindow", "Ctrl+V, I"))
+        self.actionSaveProjectAs.setText(_translate("MainWindow", "Save Project As..."))
+        self.actionSaveProjectAs.setShortcut(_translate("MainWindow", "Ctrl+S"))
 
-from gui.messagebox import MessageBox
 from gui.canvas import Canvas
 from gui.treeview import TreeView
+from gui.messagebox import MessageBox
 import dxf2gcode_images5_rc

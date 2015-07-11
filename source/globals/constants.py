@@ -53,6 +53,7 @@ AUTHOR   = u"$Author$"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
+PROJECT_EXTENSION = '.d2g'
 
 # Rename unreadable config/varspace files to .bad
 BAD_CONFIG_EXTENSION = '.bad'

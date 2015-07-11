@@ -219,7 +219,7 @@ class Shape(object):
         With multiple slices end point could be start point.
         e.g. useful for the optimal rout etc
         """
-        if start_point:
+        if start_point or self.closed:
             return self.get_start_end_points(start_point, angles)
         else:
             max_slice = max(self.axis3_slice_depth, self.axis3_mill_depth - self.axis3_start_mill_depth)
