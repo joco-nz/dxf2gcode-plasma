@@ -31,6 +31,13 @@ from copy import deepcopy
 
 from core.point import Point
 from core.boundingbox import BoundingBox
+#from core.arcgeo import ArcGeo
+
+import logging
+logger = logging.getLogger("core.linegeo")
+
+eps= 1e-12
+
 
 class LineGeo(object):
     """
@@ -156,6 +163,8 @@ class LineGeo(object):
         @param other: the instance of the 2nd geometry element.
         @return: The distance between the two geometries 
         """
+        from core.arcgeo import ArcGeo
+        
         if isinstance(other, LineGeo):
             return self.distance_l_l(other)
         elif isinstance(other, Point):
@@ -257,10 +266,16 @@ class LineGeo(object):
             # logger.debug(v.dotProd(v))
             # logger.debug(d.dotProd(d))
             # logger.debug(v.dotProd(v) - (t*t)/d.dotProd(d))
-            if abs(v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
+            #logger.debug(d.dotProd(d))
+            #logger.debug(v.dotProd(v) - (t * t) / d.dotProd(d))
+            #logger.debug(eps)
+            #logger.debug((v.dotProd(v) - (t * t) / d.dotProd(d))< eps)
+            #logger.debug(((v.dotProd(v) - (t * t) / d.dotProd(d))< eps))
+            
+            if (v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
                 return 0.0
-
-            return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d));
+            else:
+                return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d));
 
     def find_inter_point(self, other, type='TIP'):
         """
@@ -271,6 +286,8 @@ class LineGeo(object):
         Intersection which is in Ray (of Line)
         @return: a list of intersection points. 
         """
+        from arcgeo import ArcGeo
+        
         if isinstance(other, LineGeo):
             inter = self.find_inter_point_l_l(other, type)
             return inter
@@ -391,6 +408,8 @@ class LineGeo(object):
         @param other: The Line to be nearest to
         @return: The point which is the nearest to other
         """
+        from core.arcgeo import ArcGeo
+        
         if isinstance(other, LineGeo):
             return self.get_nearest_point_l_l(other)
         elif isinstance(other, ArcGeo):
@@ -533,6 +552,8 @@ class LineGeo(object):
         # logger.debug("self.BB: %s \nother.BB: %s")
         # logger.debug(self.BB.hasintersection(other.BB))
         # We need to test Point first cause it has no BB
+        from arcgeo import ArcGeo
+        
         if isinstance(other, Point):
             return self.intersect_l_p(other)
         elif not(self.BB.hasintersection(other.BB)):

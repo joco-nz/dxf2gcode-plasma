@@ -52,17 +52,19 @@ class Shape(object):
     related to the Shapes.
     """
     # only need default arguments here because of the change of usage with super in QGraphicsItem
-    def __init__(self, nr=-1, closed=True, parentEntity=None):
+    def __init__(self, nr=-1, closed=True, parentEntity=None, geos=[]):
         if nr == -1:
             return
 
+
+        logger.debug("Init Shape")
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
         self.cut_cor = 40
         self.parentEntity = parentEntity
         self.parentLayer = None
-        self.geos = Geos([])
+        self.geos = Geos(geos)
 
         self.cw = True
 
@@ -91,11 +93,10 @@ class Shape(object):
         Standard method to print the object
         @return: A string
         """
-        return "\ntype:        %s" % self.type +\
-               "\nnr:          %i" % self.nr +\
-               "\nclosed:      %i" % self.closed +\
-               "\ncut_cor:     %s" % self.cut_cor +\
-               "\nlen(geos):   %i" % len(self.geos) +\
+        
+        logger.debug(self.closed)
+        return "\nnr:          %i" % self.nr +\
+               "\nclosed:      %s" % self.closed +\
                "\ngeos:        %s" % self.geos
 
     def tr(self, string_to_translate):

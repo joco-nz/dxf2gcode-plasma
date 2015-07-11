@@ -622,6 +622,7 @@ class StMoveGUI(QGraphicsLineItem, StMove):
         QGraphicsLineItem.__init__(self)
         StMove.__init__(self, shape)
 
+
         self.allwaysshow = False
         self.path = QPainterPath()
 
@@ -644,9 +645,10 @@ class StMoveGUI(QGraphicsLineItem, StMove):
         @param canvas: The canvas to be printed in
         @param pospro: The color of the shape
         """
-        start = self.geos.abs_el(0).get_start_end_points(True)
         self.path = QPainterPath()
-        self.path.moveTo(start.x, -start.y)
+        if len(self.geos):
+            start = self.geos.abs_el(0).get_start_end_points(True)
+            self.path.moveTo(start.x, -start.y)
         drawHorLine = lambda caller, start, end: self.path.lineTo(end.x, -end.y)
         drawVerLine = lambda caller, start: None  # Not used in 2D mode
         self.make_path(drawHorLine, drawVerLine)

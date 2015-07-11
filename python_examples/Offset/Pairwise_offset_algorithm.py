@@ -2702,6 +2702,16 @@ class ExampleClass:
         IP3 = L1.find_inter_point(L4)
         IP4 = L1.find_inter_point(L5)
         
+        
+        Arc1= ArcGeo(Ps=Point(x=39.0221179632 ,y=5.55663167698), 
+               Pe=Point(x=39.0221179632, y=9.44336832302),
+               O=Point(x=38.4037734968, y=7.5),
+               s_ang=-1.26274354577,e_ang=1.26274354577,
+               r=1.96062992126, 
+               ext=2.52548709154), bw_rawoff_seg: 
+        L1= LineGeo(Ps=Point(x=-10.0119371519 ,y=-9.96248323701),
+                Pe=Point(x=38.9982436595, y=5.63166520297))
+        
         Arc1 = ArcGeo(Pa=Point(x=-10 , y=29),
                Pe=Point(x=10, y=29),
                O=Point(x=0, y=29),

@@ -32,6 +32,7 @@ from copy import deepcopy
 
 
 from core.point import Point
+#from core.linegeo import LineGeo
 from core.boundingbox import BoundingBox
 import globals.globals as g
 
@@ -43,9 +44,9 @@ else:
     from PyQt4 import QtCore
 
 import logging
-logger = logging.getLogger("core.arcGeo")
+logger = logging.getLogger("core.arcgeo")
 
-eps=-1e-12
+eps=1e-12
 
 class ArcGeo(object):
     """
@@ -250,6 +251,8 @@ class ArcGeo(object):
         @param other: the instance of the 2nd geometry element.
         @return: The distance between the two geometries 
         """
+        from core.linegeo import LineGeo
+        
         if isinstance(other, LineGeo):
             return other.distance_l_a(self)
         elif isinstance(other, Point):
@@ -312,6 +315,8 @@ class ArcGeo(object):
         @param type: Can be "TIP" for True Intersection Point or "Ray" for 
         Intersection which is in Ray (of Line)        @return: a list of intersection points. 
         """
+        from core.linegeo import LineGeo
+        
         if isinstance(other, LineGeo):
             IPoints = other.find_inter_point_l_a(self, type)
             return IPoints
@@ -436,6 +441,8 @@ class ArcGeo(object):
         @param other: The Line to be nearest to
         @return: The point which is the nearest to other
         """
+        from core.linegeo import LineGeo
+        
         if isinstance(other, LineGeo):
             return other.get_nearest_point_l_a(self, ret="arc")
         elif isinstance(other, ArcGeo):
@@ -599,6 +606,8 @@ class ArcGeo(object):
         # logger.debug("self.BB: %s \nother.BB: %s")
 
         # We need to test Point first cause it has no BB
+        from core.linegeo import LineGeo
+        
         if isinstance(other, Point):
             return self.intersect_a_p(other)
         elif not(self.BB.hasintersection(other.BB)):

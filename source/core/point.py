@@ -34,10 +34,10 @@ from core.point3d import Point3D
 import logging
 logger = logging.getLogger("core.point")
 
-eps=-1e-12
+eps=1e-12
 
 class Point(object):
-    __slots__ = ["x", "y"]
+    #__slots__ = ["x", "y"]
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
@@ -206,6 +206,9 @@ class Point(object):
 
     def distance(self, other=None):
         """Returns distance between two given points"""
+        from core.linegeo import LineGeo
+        from core.arcgeo import ArcGeo
+        
         if type(other) == type(None):
             other = Point(x=0.0, y=0.0)
         if isinstance(other, Point):
