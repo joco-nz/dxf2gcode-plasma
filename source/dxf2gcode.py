@@ -120,9 +120,11 @@ class MainWindow(QMainWindow):
 
         self.filename = ""
 
+        self.valuesDXF = None
         self.shapes = Shapes([])
         self.entityRoot = None
         self.layerContents = Layers([])
+        self.newNumber = 1
 
         self.cont_dx = 0.0
         self.cont_dy = 0.0
@@ -179,10 +181,11 @@ class MainWindow(QMainWindow):
         # Help
         self.ui.actionAbout.triggered.connect(self.about)
 
-    def connectToolbarToConfig(self):
+    def connectToolbarToConfig(self, project=False):
         # View
-        self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
-        self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
+        if not project:
+            self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
+            self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
 
         # Options
         self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
@@ -564,7 +567,7 @@ class MainWindow(QMainWindow):
         g.config.point_tolerance = float(SetTolDialog.result[0])
         g.config.fitting_tolerance = float(SetTolDialog.result[1])
 
-        self.reload()
+        self.reload()  # set tolerances requires a complete reload
 
     def scaleAll(self):
         title = self.tr('Scale Contour')
@@ -578,7 +581,7 @@ class MainWindow(QMainWindow):
         self.cont_scale = float(ScaEntDialog.result[0])
         self.entityRoot.sca = self.cont_scale
 
-        self.reload()
+        self.d2g.reload()
 
     def rotateAll(self):
         title = self.tr('Rotate Contour')
@@ -592,7 +595,7 @@ class MainWindow(QMainWindow):
         self.cont_rotate = radians(float(RotEntDialog.result[0]))
         self.entityRoot.rot = self.cont_rotate
 
-        self.reload()
+        self.d2g.reload()
 
     def moveWorkpieceZero(self):
         """
@@ -624,22 +627,22 @@ class MainWindow(QMainWindow):
         self.entityRoot.p0.x = self.cont_dx
         self.entityRoot.p0.y = self.cont_dy
 
-        self.reload()
+        self.d2g.reload()
 
     def setMachineTypeToMilling(self):
         g.config.machine_type = 'milling'
         self.updateMachineType()
-        self.reload()
+        self.d2g.reload()
 
     def setMachineTypeToDragKnife(self):
         g.config.machine_type = 'drag_knife'
         self.updateMachineType()
-        self.reload()
+        self.d2g.reload()
 
     def setMachineTypeToLathe(self):
         g.config.machine_type = 'lathe'
         self.updateMachineType()
-        self.reload()
+        self.d2g.reload()
 
     def updateMachineType(self):
         if g.config.machine_type == 'milling':
@@ -668,8 +671,20 @@ class MainWindow(QMainWindow):
         load the selected file.
         """
 
+        self.OpenFileDialog(self.tr("Open file"))
+
+        # If there is something to load then call the load function callback
+        if self.filename:
+            self.cont_dx = 0.0
+            self.cont_dy = 0.0
+            self.cont_rotate = 0.0
+            self.cont_scale = 1.0
+
+            self.load()
+
+    def OpenFileDialog(self, title):
         self.filename, _ = getOpenFileName(self,
-                                           self.tr("Open file"),
+                                           title,
                                            g.config.vars.Paths['import_dir'],
                                            self.tr("All supported files (*.dxf *.ps *.pdf *%s);;"
                                                    "DXF files (*.dxf);;"
@@ -683,19 +698,18 @@ class MainWindow(QMainWindow):
             self.filename = file_str(self.filename)
             logger.info(self.tr("File: %s selected") % self.filename)
 
-            self.cont_dx = 0.0
-            self.cont_dy = 0.0
-            self.cont_rotate = 0.0
-            self.cont_scale = 1.0
-
-            self.load()
-
     def load(self, plot=True):
         """
-        Loads the file given by filename.  Also calls the command to
+        Loads the file given by self.filename.  Also calls the command to
         make the plot.
-        @param filename: String containing filename which should be loaded
+        @param plot: if it should plot
         """
+        if not QtCore.QFile.exists(self.filename):
+            logger.info(self.tr("Cannot locate file: %s") % self.filename)
+            self.OpenFileDialog(self.tr("Manually open file: %s") % self.filename)
+            if not self.filename:
+                return False  # cancelled
+
         self.canvas.setCursor(QtCore.Qt.WaitCursor)
         self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
         self.canvas.resetAll()
@@ -704,7 +718,7 @@ class MainWindow(QMainWindow):
 
         if ext.lower() == c.PROJECT_EXTENSION:
             self.loadProject(self.filename)
-            return
+            return True  # kill this load operation - we opened a new one
 
         if ext.lower() == ".ps" or ext.lower() == ".pdf":
             logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
@@ -721,19 +735,19 @@ class MainWindow(QMainWindow):
 
         logger.info(self.tr('Loading file: %s') % self.filename)
 
-        values = ReadDXF(self.filename)
+        self.valuesDXF = ReadDXF(self.filename)
 
         # Output the information in the text window
-        logger.info(self.tr('Loaded layers: %s') % len(values.layers))
-        logger.info(self.tr('Loaded blocks: %s') % len(values.blocks.Entities))
-        for i in range(len(values.blocks.Entities)):
-            layers = values.blocks.Entities[i].get_used_layers()
-            logger.info(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s')\
-                        % (i, len(values.blocks.Entities[i].geo), len(values.blocks.Entities[i].cont), layers))
-        layers = values.entities.get_used_layers()
-        insert_nr = values.entities.get_insert_nr()
-        logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i') \
-                    % (len(values.entities.geo), len(values.entities.cont), layers, insert_nr))
+        logger.info(self.tr('Loaded layers: %s') % len(self.valuesDXF.layers))
+        logger.info(self.tr('Loaded blocks: %s') % len(self.valuesDXF.blocks.Entities))
+        for i in range(len(self.valuesDXF.blocks.Entities)):
+            layers = self.valuesDXF.blocks.Entities[i].get_used_layers()
+            logger.info(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s')
+                        % (i, len(self.valuesDXF.blocks.Entities[i].geo), len(self.valuesDXF.blocks.Entities[i].cont), layers))
+        layers = self.valuesDXF.entities.get_used_layers()
+        insert_nr = self.valuesDXF.entities.get_insert_nr()
+        logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i')
+                    % (len(self.valuesDXF.entities.geo), len(self.valuesDXF.entities.cont), layers, insert_nr))
 
         if g.config.metric == 0:
             logger.info("Drawing units: inches")
@@ -754,11 +768,10 @@ class MainWindow(QMainWindow):
             self.ui.unitLabel_8.setText("[mm/min]")
             self.ui.unitLabel_9.setText("[mm/min]")
 
-        self.makeShapes(values, Point(self.cont_dx, self.cont_dy), Point(),
-                        [self.cont_scale, self.cont_scale, self.cont_scale],
-                        self.cont_rotate)
+        self.makeShapes()
         if plot:
             self.plot()
+        return True
 
     def plot(self):
         # Populate the treeViews
@@ -796,20 +809,21 @@ class MainWindow(QMainWindow):
             logger.info(self.tr("Reloading file: %s") % self.filename)
             self.load()
 
-    def makeShapes(self, values, p0, pb, sca, rot):
-        self.entityRoot = EntityContent(nr=0, name='Entities',
-                                        parent=None,
-                                        p0=p0, pb=pb, sca=sca, rot=rot)
+    def makeShapes(self):
+        self.entityRoot = EntityContent(nr=0, name='Entities', parent=None,
+                                        p0=Point(self.cont_dx, self.cont_dy), pb=Point(),
+                                        sca=[self.cont_scale, self.cont_scale, self.cont_scale], rot=self.cont_rotate)
         self.layerContents = Layers([])
         self.shapes = Shapes([])
 
-        self.makeEntityShapes(values, self.entityRoot)
+        self.makeEntityShapes(self.entityRoot)
 
         for layerContent in self.layerContents:
             layerContent.overrideDefaults()
         self.layerContents.sort(key=lambda x: x.nr)
+        self.newNumber = len(self.shapes)
 
-    def makeEntityShapes(self, values, parent, layerNr=-1):
+    def makeEntityShapes(self, parent, layerNr=-1):
         """
         Instance is called prior to plotting the shapes. It creates
         all shape classes which are plotted into the canvas.
@@ -818,10 +832,10 @@ class MainWindow(QMainWindow):
         or, if it is a Block, this is the Block.
         """
         if parent.name == "Entities":
-            entities = values.entities
+            entities = self.valuesDXF.entities
         else:
-            ent_nr = values.Get_Block_Nr(parent.name)
-            entities = values.blocks.Entities[ent_nr]
+            ent_nr = self.valuesDXF.Get_Block_Nr(parent.name)
+            entities = self.valuesDXF.blocks.Entities[ent_nr]
 
         # Assigning the geometries in the variables geos & contours in cont
         ent_geos = entities.geo
@@ -833,8 +847,8 @@ class MainWindow(QMainWindow):
                 ent_geo = ent_geos[cont.order[0][0]]
 
                 # Assign the base point for the block
-                new_ent_nr = values.Get_Block_Nr(ent_geo.BlockName)
-                new_entities = values.blocks.Entities[new_ent_nr]
+                new_ent_nr = self.valuesDXF.Get_Block_Nr(ent_geo.BlockName)
+                new_entities = self.valuesDXF.blocks.Entities[new_ent_nr]
                 pb = new_entities.basep
 
                 # Scaling, etc. assign the block
@@ -853,7 +867,7 @@ class MainWindow(QMainWindow):
 
                 parent.append(newEntityContent)
 
-                self.makeEntityShapes(values, newEntityContent, ent_geo.Layer_Nr)
+                self.makeEntityShapes(newEntityContent, ent_geo.Layer_Nr)
 
             else:
                 # Loop for the number of geometries
@@ -880,9 +894,9 @@ class MainWindow(QMainWindow):
 
                     self.shapes.append(tmp_shape)
                     if g.config.vars.Import_Parameters['insert_at_block_layer'] and layerNr != -1:
-                        self.addtoLayerContents(values, tmp_shape, layerNr)
+                        self.addtoLayerContents(tmp_shape, layerNr)
                     else:
-                        self.addtoLayerContents(values, tmp_shape, ent_geo.Layer_Nr)
+                        self.addtoLayerContents(tmp_shape, ent_geo.Layer_Nr)
                     parent.append(tmp_shape)
 
                     if not g.config.mode3d:
@@ -916,7 +930,7 @@ class MainWindow(QMainWindow):
                 shape.disabled = True
                 shape.allowedToChange = False
 
-    def addtoLayerContents(self, values, shape, lay_nr):
+    def addtoLayerContents(self, shape, lay_nr):
         # Check if the layer already exists and add shape if it is.
         for LayCon in self.layerContents:
             if LayCon.nr == lay_nr:
@@ -925,7 +939,7 @@ class MainWindow(QMainWindow):
                 return
 
         # If the Layer does not exist create a new one.
-        LayerName = values.layers[lay_nr].name
+        LayerName = self.valuesDXF.layers[lay_nr].name
         self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
         shape.parentLayer = self.layerContents[-1]
 

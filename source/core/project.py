@@ -29,6 +29,8 @@ import hashlib
 import re
 
 from core.point import Point
+from core.customgcode import CustomGCode
+from core.layercontent import Layers, Shapes
 from globals.d2gexceptions import VersionMismatchError
 import globals.globals as g
 
@@ -43,7 +45,7 @@ logger = logging.getLogger("Core.Project")
 
 class Project(object):
     header = "# +~+~+~ DXF2GCODE project file V%s ~+~+~+"
-    version = 1.0
+    version = 1.1
 
     def __init__(self, parent):
         self.parent = parent
@@ -60,7 +62,6 @@ class Project(object):
         self.machine_type = None
 
         self.layers = None
-        self.shapes = None
 
     def tr(self, string_to_translate):
         """
@@ -76,13 +77,45 @@ class Project(object):
         if not shape.cw:
             reversed = True
             shape.reverse()
-        geos = [str(geo) for geo in shape.geos.abs_iter()]
+        geos = [str(geo) for geo in shape.geos]
         if reversed:
             shape.reverse()
         return hashlib.sha1(''.join(sorted(geos)).encode('utf-8')).hexdigest()
 
     def export(self):
-        # TODO Custom GCode actions still to be added, and order of shapes
+        self.parent.TreeHandler.updateExportOrder(True)
+        layers = []
+        for layer in self.parent.layerContents:
+            shapes = []
+            for nr in layer.exp_order_complete:
+                shape = layer.shapes[nr]
+                if isinstance(shape, CustomGCode):
+                    shapes.append({'gcode': shape.gcode,
+                                   'name': shape.name,
+                                   'disabled': shape.disabled})
+                else:
+                    stpoint = shape.get_start_end_points(True)
+                    shapes.append({'hash_': self.get_hash(shape),
+                                   'cut_cor': shape.cut_cor,
+                                   'cw': shape.cw,
+                                   'send_to_TSP': shape.send_to_TSP,
+                                   'disabled': shape.disabled,
+                                   'start_mill_depth': shape.axis3_start_mill_depth,
+                                   'slice_depth': shape.axis3_slice_depth,
+                                   'mill_depth': shape.axis3_mill_depth,
+                                   'f_g1_plane': shape.f_g1_plane,
+                                   'f_g1_depth': shape.f_g1_depth,
+                                   'start_x': stpoint.x,
+                                   'start_y': stpoint.y})
+            layers.append({'name': layer.name,
+                           'tool_nr': layer.tool_nr,
+                           'diameter': layer.tool_diameter,
+                           'speed': layer.speed,
+                           'start_radius': layer.start_radius,
+                           'retract': layer.axis3_retract,
+                           'safe_margin': layer.axis3_safe_margin,
+                           'shapes': shapes})
+
         pyCode = Project.header % str(Project.version) + '''
 d2g.file = "''' + self.parent.filename + '''"
 d2g.point_tol = ''' + str(g.config.point_tolerance) + '''
@@ -94,34 +127,7 @@ d2g.wpzero_y = ''' + str(self.parent.cont_dy) + '''
 d2g.split_lines = ''' + str(g.config.vars.General['split_line_segments']) + '''
 d2g.aut_cut_com = ''' + str(g.config.vars.General['automatic_cutter_compensation']) + '''
 d2g.machine_type = "''' + g.config.machine_type + '''"
-d2g.layers = ''' + str({layer.name: {'tool_nr': layer.tool_nr,
-                                     'diameter': layer.tool_diameter,
-                                     'speed': layer.speed,
-                                     'start_radius': layer.start_radius,
-                                     'retract': layer.axis3_retract,
-                                     'safe_margin': layer.axis3_safe_margin} for layer in self.parent.layerContents})
-
-        shapes = {}
-        for shape in self.parent.shapes:
-            stpoint = shape.get_start_end_points(True)
-            hash_ = self.get_hash(shape)
-            if hash_ in shapes:
-                logger.warning(self.tr("Shape %s clashes with an appearing identical shape") % shape.nr)
-                continue  # no point in overriding the shape parameters. Since we don't know with which shape
-                #  it clashes, this is more informative - this shape might not get the parameters which you expected.
-            shapes[hash_] = {'cut_cor': shape.cut_cor,
-                             'cw': shape.cw,
-                             'send_to_TSP': shape.send_to_TSP,
-                             'disabled': shape.disabled,
-                             'start_mill_depth': shape.axis3_start_mill_depth,
-                             'slice_depth': shape.axis3_slice_depth,
-                             'mill_depth': shape.axis3_mill_depth,
-                             'f_g1_plane': shape.f_g1_plane,
-                             'f_g1_depth': shape.f_g1_depth,
-                             'start_x': stpoint.x,
-                             'start_y': stpoint.y}
-
-        pyCode += '\nd2g.shapes = ' + str(shapes)
+d2g.layers = ''' + str(layers)
         return pyCode
 
     def load(self, content):
@@ -144,12 +150,17 @@ d2g.layers = ''' + str({layer.name: {'tool_nr': layer.tool_nr,
         g.config.vars.General['automatic_cutter_compensation'] = self.aut_cut_com
         g.config.machine_type = self.machine_type
 
-        self.parent.connectToolbarToConfig()
-        self.parent.load(False)
+        self.parent.connectToolbarToConfig(True)
+        if not self.parent.load(False):
+            self.parent.canvas.unsetCursor()
+            return
 
-        for layer in self.parent.layerContents:
-            if layer.name in self.layers:
-                parent_layer = self.layers[layer.name]
+        name_layers = {layer.name: layer for layer in self.parent.layerContents}
+
+        layers = []
+        for parent_layer in self.layers:
+            if parent_layer['name'] in name_layers:
+                layer = name_layers[parent_layer['name']]
                 layer.tool_nr = parent_layer['tool_nr']
                 layer.tool_diameter = parent_layer['diameter']
                 layer.speed = parent_layer['speed']
@@ -158,21 +169,42 @@ d2g.layers = ''' + str({layer.name: {'tool_nr': layer.tool_nr,
                 layer.axis3_retract = parent_layer['retract']
                 layer.axis3_safe_margin = parent_layer['safe_margin']
 
-        for shape in self.parent.shapes:
-            hash_ = self.get_hash(shape)
-            if hash_ in self.shapes:
-                parent_shape = self.shapes[hash_]
-                shape.cut_cor = parent_shape['cut_cor']
-                shape.send_to_TSP = parent_shape['send_to_TSP']
-                shape.disabled = parent_shape['disabled']
-                shape.axis3_start_mill_depth = parent_shape['start_mill_depth']
-                shape.axis3_slice_depth = parent_shape['slice_depth']
-                shape.axis3_mill_depth = parent_shape['mill_depth']
-                shape.f_g1_plane = parent_shape['f_g1_plane']
-                shape.f_g1_depth = parent_shape['f_g1_depth']
+                hash_shapes = {self.get_hash(shape): shape for shape in layer.shapes}
 
-                if parent_shape['cw'] != shape.cw:
-                    shape.reverse()
-                shape.setNearestStPoint(Point(parent_shape['start_x'], parent_shape['start_y']))
+                shapes = []
+                for parent_shape in parent_layer['shapes']:
+                    if 'gcode' in parent_shape:
+                        shape = CustomGCode(parent_shape['name'], self.parent.newNumber, parent_shape['gcode'], layer)
+                        self.parent.newNumber += 1
+                        shape.disabled = parent_shape['disabled']
+                        shapes.append(shape)
+                    elif parent_shape['hash_'] in hash_shapes:
+                        shape = hash_shapes[parent_shape['hash_']]
+                        shape.cut_cor = parent_shape['cut_cor']
+                        shape.send_to_TSP = parent_shape['send_to_TSP']
+                        shape.disabled = parent_shape['disabled']
+                        shape.axis3_start_mill_depth = parent_shape['start_mill_depth']
+                        shape.axis3_slice_depth = parent_shape['slice_depth']
+                        shape.axis3_mill_depth = parent_shape['mill_depth']
+                        shape.f_g1_plane = parent_shape['f_g1_plane']
+                        shape.f_g1_depth = parent_shape['f_g1_depth']
 
+                        if parent_shape['cw'] != shape.cw:
+                            shape.reverse()
+                        shape.setNearestStPoint(Point(parent_shape['start_x'], parent_shape['start_y']))
+                        shapes.append(shape)
+                shapes.extend(set(layer.shapes) - set(shapes))  # add "new" shapes to the end
+                layer.shapes = Shapes(shapes)  # overwrite original
+
+                layers.append(layer)
+
+        layers.extend(set(self.parent.layerContents) - set(layers))  # add "new" layers to the end
+        self.parent.layerContents = Layers(layers)  # overwrite original
         self.parent.plot()
+
+    def reload(self):
+        self.parent.canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.parent.canvas.resetAll()
+        pyCode = self.export()
+        self.parent.makeShapes()
+        self.load(pyCode)

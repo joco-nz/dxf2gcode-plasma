@@ -248,26 +248,10 @@ class TreeHandler(QWidget):
             containsChecked = False
             containsUnchecked = False
             for shape in layer.shapes:
-                icon = QIcon()
-                icon.addPixmap(QPixmap(":/images/shape.png"))
-                item_col_0 = QStandardItem(icon, "")
-                item_col_0.setData(QVariantShape(shape), SHAPE_OBJECT)  # store a ref in our treeView element
-                item_col_1 = QStandardItem(shape.type)
-                item_col_2 = QStandardItem(str(shape.nr))
-                item_col_3 = QStandardItem()
-                parent_item.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
-
-                # Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
-                item_col_0.setCheckState(QtCore.Qt.Unchecked if shape.isDisabled() else QtCore.Qt.Checked)
-                item_col_3.setCheckState(QtCore.Qt.Checked if shape.isToolPathOptimized() else QtCore.Qt.Unchecked)
-
-                flags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsDropEnabled | QtCore.Qt.ItemIsSelectable
-                if shape.allowedToChange:
-                    flags |= QtCore.Qt.ItemIsEnabled
-                item_col_0.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
-                item_col_1.setFlags(flags)
-                item_col_2.setFlags(flags)
-                item_col_3.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
+                if isinstance(shape, CustomGCode):
+                    self.AddCustomGCodeRowLayer(shape, parent_item)
+                else:
+                    self.AddShapeRowLayer(shape, parent_item)
                 if shape.isDisabled():
                     containsUnchecked = True
                 else:
@@ -295,6 +279,50 @@ class TreeHandler(QWidget):
 
         for i in range(4):
             self.ui.layersShapesTreeView.resizeColumnToContents(i)
+
+    def AddShapeRowLayer(self, shape, parent_item):
+        icon = QIcon()
+        icon.addPixmap(QPixmap(":/images/shape.png"))
+        item_col_0 = QStandardItem(icon, "")
+        item_col_0.setData(QVariantShape(shape), SHAPE_OBJECT)  # store a ref in our treeView element
+        item_col_1 = QStandardItem(shape.type)
+        item_col_2 = QStandardItem(str(shape.nr))
+        item_col_3 = QStandardItem()
+        parent_item.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
+
+        # Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
+        item_col_0.setCheckState(QtCore.Qt.Unchecked if shape.isDisabled() else QtCore.Qt.Checked)
+        item_col_3.setCheckState(QtCore.Qt.Checked if shape.isToolPathOptimized() else QtCore.Qt.Unchecked)
+
+        flags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsSelectable
+        if shape.allowedToChange:
+            flags |= QtCore.Qt.ItemIsEnabled
+        item_col_0.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
+        item_col_1.setFlags(flags)
+        item_col_2.setFlags(flags)
+        item_col_3.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
+
+    def AddCustomGCodeRowLayer(self, custom_gcode, parent_item, push_row=None):
+        icon = QIcon()
+        icon.addPixmap(QPixmap(":/images/custom.png"))
+        item_col_0 = QStandardItem(icon, "")  # will only display a checkbox + an icon that will never be disabled
+        item_col_0.setData(QtCore.QVariant(custom_gcode), CUSTOM_GCODE_OBJECT)  # store a ref to the custom gcode in our treeView element
+        item_col_1 = QStandardItem(custom_gcode.name)
+        item_col_2 = QStandardItem(str(custom_gcode.nr))
+        item_col_3 = QStandardItem()
+        if push_row:
+            parent_item.insertRow(push_row, [item_col_0, item_col_1, item_col_2, item_col_3])
+        else:
+            parent_item.appendRow([item_col_0, item_col_1, item_col_2, item_col_3])
+
+        # Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
+        item_col_0.setCheckState(QtCore.Qt.Unchecked if custom_gcode.isDisabled() else QtCore.Qt.Checked)
+
+        flags = QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled
+        item_col_0.setFlags(flags | QtCore.Qt.ItemIsUserCheckable)
+        item_col_1.setFlags(flags)
+        item_col_2.setFlags(flags)
+        item_col_3.setFlags(flags)
 
     def buildEntitiesTree(self, entities_list):
         """
@@ -429,7 +457,7 @@ class TreeHandler(QWidget):
         else:
             return QtCore.Qt.Unchecked
 
-    def updateExportOrder(self):
+    def updateExportOrder(self, includeDisableds=False):
         """
         Update the layers_list order to reflect the TreeView order.
         This function must be called before generating the GCode
@@ -462,13 +490,13 @@ class TreeHandler(QWidget):
                     real_shape = None
                     if isValid(shape_item_index.data(SHAPE_OBJECT)):
                         real_shape = toPyObject(shape_item_index.data(SHAPE_OBJECT)).shapeobj
-                        if real_shape.isDisabled() is False:
+                        if not real_shape.isDisabled() or includeDisableds:
                             real_layer.exp_order.append(real_shape.nr)  # Create the export order list with the real and unique shapes numbers (eg [25, 22, 30, 4, 1, 5])
 
                     if isValid(shape_item_index.data(CUSTOM_GCODE_OBJECT)):
                         real_shape = toPyObject(shape_item_index.data(CUSTOM_GCODE_OBJECT))
 
-                    if real_shape and real_shape.isDisabled() is False:
+                    if real_shape and (not real_shape.isDisabled() or includeDisableds):
                         real_layer.exp_order_complete.append(real_layer.shapes.index(real_shape))  # Create the export order list with the shapes & custom gcode numbers (eg [5, 3, 2, 4, 0, 1])
 
     def updateTreeViewOrder(self):
@@ -1414,30 +1442,13 @@ class TreeHandler(QWidget):
                 real_item_parent = toPyObject(current_item_parent.data(LAYER_OBJECT))
 
                 # creates a new CustomGCode instance
-                custom_gcode = CustomGCode(action_name, len(real_item_parent.shapes), g_code, real_item_parent)
+                custom_gcode = CustomGCode(action_name, g.window.newNumber, g_code, real_item_parent)
+                g.window.newNumber += 1
 
                 # insert this new item at the end of the physical list
                 real_item_parent.shapes.append(custom_gcode)
 
-                icon = QIcon()
-                icon.addPixmap(QPixmap(":/images/custom.png"))
-                item_col_0 = QStandardItem(icon, "")  # will only display a checkbox + an icon that will never be disabled
-                item_col_0.setData(QtCore.QVariant(custom_gcode), CUSTOM_GCODE_OBJECT)  # store a ref to the custom gcode in our treeView element
-                item_col_0.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsUserCheckable | QtCore.Qt.ItemIsSelectable)
-
-                item_col_1 = QStandardItem(custom_gcode.name)
-                item_col_1.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-
-                item_col_2 = QStandardItem(str(custom_gcode.nr))
-                item_col_2.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-
-                item_col_3 = QStandardItem()
-                item_col_3.setFlags(QtCore.Qt.ItemIsDragEnabled | QtCore.Qt.ItemIsEnabled | QtCore.Qt.ItemIsSelectable)
-
-                # Deal with the checkboxes (shape enabled or disabled / send shape to TSP optimizer)
-                item_col_0.setCheckState(QtCore.Qt.Checked)
-
-                current_item_parent.insertRow(push_row, [item_col_0, item_col_1, item_col_2, item_col_3])
+                self.AddCustomGCodeRowLayer(custom_gcode, current_item_parent, push_row)
                 self.ui.layersShapesTreeView.setCurrentIndex(current_item.index())
 
     def prepareExportOrderUpdate(self):
