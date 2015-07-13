@@ -3,7 +3,7 @@
 ############################################################################
 #
 #   Copyright (C) 2010-2014
-#    Christian Kohl�ffel
+#    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
@@ -23,8 +23,11 @@
 #
 ############################################################################
 
+from __future__ import absolute_import
+
 import logging
 
+from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton
@@ -39,7 +42,7 @@ logger = logging.getLogger("Gui.PopUpDialog")
 
 class PopUpDialog(QDialog):
 
-    def __init__(self, title="Test", label=('Value1'), value=(1.0), haveAuto=False):
+    def __init__(self, title="Test", label='Value1', value=1.0, haveAuto=False):
         super(PopUpDialog, self).__init__()
 
         logger.debug(title)
@@ -56,6 +59,15 @@ class PopUpDialog(QDialog):
             raise Exception("Number of labels different to number of values")
 
         self.initUI(haveAuto)
+
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return text_type(QtCore.QCoreApplication.translate('PopUpDialog',
+                                                           string_to_translate))
 
     def initUI(self, haveAuto):
 
@@ -84,9 +96,9 @@ class PopUpDialog(QDialog):
         grid2 = QGridLayout()
         grid2.setSpacing(5)
 
-        autoButton = QPushButton("Auto")
-        okButton = QPushButton("OK")
-        cancelButton = QPushButton("Cancel")
+        autoButton = QPushButton(self.tr("Auto"))
+        okButton = QPushButton(self.tr("OK"))
+        cancelButton = QPushButton(self.tr("Cancel"))
 
         autoButton.clicked.connect(self.cbAuto)
         okButton.clicked.connect(self.cbOK)

@@ -193,7 +193,7 @@ class ReadDXF(QtCore.QObject):
             QMessageBox.warning(g.window, self.tr("Warning reading linepairs"), message)
 
         line_pairs.nrs = len(line_pairs.line_pair)
-        logger.debug(self.tr('Did read %i of linepairs from DXF ') % line_pairs.nrs)
+        logger.debug(self.tr('Did read %i of linepairs from DXF') % line_pairs.nrs)
         return line_pairs
 
     # Search the sections in the DXF file to recognize Blocke.

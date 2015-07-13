@@ -437,7 +437,7 @@
                  </sizepolicy>
                 </property>
                 <property name="toolTip">
-                 <string>Milling will start at Z = &quot;Worpiece top Z&quot; - &quot;Z infeed depth&quot;</string>
+                 <string>Milling will start at Z = &quot;Workpiece top Z&quot; - &quot;Z infeed depth&quot;</string>
                 </property>
                </widget>
               </item>
@@ -946,7 +946,7 @@
      <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
    </property>
    <property name="text">
-    <string>Quit</string>
+    <string>Exit</string>
    </property>
    <property name="statusTip">
     <string>Exit DXF2GCODE and close window</string>

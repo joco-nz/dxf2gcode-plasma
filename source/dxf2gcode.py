@@ -137,7 +137,7 @@ class MainWindow(QMainWindow):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('Main',
+        return text_type(QtCore.QCoreApplication.translate('MainWindow',
                                                            string_to_translate))
 
     def createActions(self):
@@ -552,9 +552,9 @@ class MainWindow(QMainWindow):
 
     def setTolerances(self):
         title = self.tr('Contour tolerances')
-        units = "[in]" if g.config.metric == 0 else "[mm]"
-        label = [self.tr("Tolerance for common points %s:") % units,
-                 self.tr("Tolerance for curve fitting %s:") % units]
+        units = "in" if g.config.metric == 0 else "mm"
+        label = [self.tr("Tolerance for common points [%s]:") % units,
+                 self.tr("Tolerance for curve fitting [%s]:") % units]
         value = [g.config.point_tolerance,
                  g.config.fitting_tolerance]
 
@@ -984,7 +984,7 @@ class MainWindow(QMainWindow):
                                 self.tr("Cannot Save the File"))
 
     def closeEvent(self, e):
-        logger.debug(self.tr("exiting"))
+        logger.debug(self.tr("Closing"))
         self.writeSettings()
         e.accept()
 
