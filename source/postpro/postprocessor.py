@@ -274,6 +274,8 @@ class MyPostProcessor(object):
                         "%-AngS": 'self.fnprint(degrees(-self.s_ang))',
                         "%AngE": 'self.fnprint(degrees(self.e_ang))',
                         "%-AngE": 'self.fnprint(degrees(-self.e_ang))',
+                        "%ext": 'self.fnprint(degrees(self.ext))',
+                        "%-ext": 'self.fnprint(degrees(-self.ext))',
                         "%comment": 'self.sprint(self.comment)'}
 
     def write_gcode_be(self, load_filename):
