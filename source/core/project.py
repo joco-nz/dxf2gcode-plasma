@@ -43,6 +43,12 @@ else:
 
 logger = logging.getLogger("Core.Project")
 
+def execute(self, content):
+    # hack to use exec with local variables, for sure; To prevent the following error
+    # SyntaxError: unqualified exec is not allowed in function 'load' it contains a nested function with free variables
+    # this error is a Python 2.7 compiler bug (http://bugs.python.org/issue21591) - might occur in the earlier versions
+    exec(content, {'d2g': self})
+
 class Project(object):
     header = "# +~+~+~ DXF2GCODE project file V%s ~+~+~+"
     version = 1.1
@@ -124,13 +130,13 @@ d2g.scale = ''' + str(self.parent.cont_scale) + '''
 d2g.rot = ''' + str(self.parent.cont_rotate) + '''
 d2g.wpzero_x = ''' + str(self.parent.cont_dx) + '''
 d2g.wpzero_y = ''' + str(self.parent.cont_dy) + '''
-d2g.split_lines = ''' + str(g.config.vars.General['split_line_segments']) + '''
-d2g.aut_cut_com = ''' + str(g.config.vars.General['automatic_cutter_compensation']) + '''
+d2g.split_lines = ''' + str(self.parent.ui.actionSplitLineSegments.isChecked()) + '''
+d2g.aut_cut_com = ''' + str(self.parent.ui.actionAutomaticCutterCompensation.isChecked()) + '''
 d2g.machine_type = "''' + g.config.machine_type + '''"
 d2g.layers = ''' + str(layers)
         return pyCode
 
-    def load(self, content):
+    def load(self, content, compleet=True):
         match = re.match(Project.header.replace('+', '\+') % r'(\d+\.\d+)', content)
         if not match:
             raise Exception('Incorrect project file')
@@ -138,24 +144,28 @@ d2g.layers = ''' + str(layers)
         if version != Project.version:
             raise VersionMismatchError(match.group(), Project.version)
 
-        exec(content, globals(), {'d2g': self})
-        self.parent.filename = self.file
-        g.config.point_tolerance = self.point_tol
-        g.config.fitting_tolerance = self.fitting_tol
-        self.parent.cont_scale = self.scale
-        self.parent.cont_rotate = self.rot
-        self.parent.cont_dx = self.wpzero_x
-        self.parent.cont_dy = self.wpzero_y
-        g.config.vars.General['split_line_segments'] = self.split_lines
-        g.config.vars.General['automatic_cutter_compensation'] = self.aut_cut_com
-        g.config.machine_type = self.machine_type
+        execute(self, content)
 
-        self.parent.connectToolbarToConfig(True)
-        if not self.parent.load(False):
-            self.parent.canvas.unsetCursor()
-            return
+        if compleet:
+            self.parent.filename = self.file
+            g.config.point_tolerance = self.point_tol
+            g.config.fitting_tolerance = self.fitting_tol
+            self.parent.cont_scale = self.scale
+            self.parent.cont_rotate = self.rot
+            self.parent.cont_dx = self.wpzero_x
+            self.parent.cont_dy = self.wpzero_y
+            g.config.vars.General['split_line_segments'] = self.split_lines
+            g.config.vars.General['automatic_cutter_compensation'] = self.aut_cut_com
+            g.config.machine_type = self.machine_type
 
-        name_layers = {layer.name: layer for layer in self.parent.layerContents}
+            self.parent.connectToolbarToConfig(True)
+            if not self.parent.load(False):
+                self.parent.canvas.unsetCursor()
+                return
+
+        name_layers = dict((layer.name, layer) for layer in self.parent.layerContents)
+        # dict comprehensions are supported since Py2.7
+        # name_layers = {layer.name: layer for layer in self.parent.layerContents}
 
         layers = []
         for parent_layer in self.layers:
@@ -169,7 +179,9 @@ d2g.layers = ''' + str(layers)
                 layer.axis3_retract = parent_layer['retract']
                 layer.axis3_safe_margin = parent_layer['safe_margin']
 
-                hash_shapes = {self.get_hash(shape): shape for shape in layer.shapes}
+                hash_shapes = dict((self.get_hash(shape), shape) for shape in layer.shapes)
+                # dict comprehensions are supported since Py2.7
+                # hash_shapes = {self.get_hash(shape): shape for shape in layer.shapes}
 
                 shapes = []
                 for parent_shape in parent_layer['shapes']:
@@ -202,9 +214,13 @@ d2g.layers = ''' + str(layers)
         self.parent.layerContents = Layers(layers)  # overwrite original
         self.parent.plot()
 
-    def reload(self):
-        self.parent.canvas.setCursor(QtCore.Qt.WaitCursor)
-        self.parent.canvas.resetAll()
-        pyCode = self.export()
-        self.parent.makeShapes()
-        self.load(pyCode)
+    def reload(self, compleet=True):
+        if self.parent.filename:
+            self.parent.canvas.setCursor(QtCore.Qt.WaitCursor)
+            self.parent.canvas.resetAll()
+            pyCode = self.export()
+            self.parent.makeShapes()
+            self.load(pyCode, compleet)
+
+    def small_reload(self):
+        self.reload(False)

@@ -131,6 +131,8 @@ class MainWindow(QMainWindow):
         self.cont_rotate = 0.0
         self.cont_scale = 1.0
 
+        # self.readSettings()
+
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
@@ -172,8 +174,8 @@ class MainWindow(QMainWindow):
         self.ui.actionRotateAll.triggered.connect(self.rotateAll)
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)
         self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
-        self.ui.actionSplitLineSegments.triggered.connect(self.reload)  # TODO no need to redo the importing
-        self.ui.actionAutomaticCutterCompensation.triggered.connect(self.reload)
+        self.ui.actionSplitLineSegments.triggered.connect(self.d2g.small_reload)
+        self.ui.actionAutomaticCutterCompensation.triggered.connect(self.d2g.small_reload)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
@@ -567,7 +569,7 @@ class MainWindow(QMainWindow):
         g.config.point_tolerance = float(SetTolDialog.result[0])
         g.config.fitting_tolerance = float(SetTolDialog.result[1])
 
-        self.reload()  # set tolerances requires a complete reload
+        self.d2g.reload()  # set tolerances requires a complete reload
 
     def scaleAll(self):
         title = self.tr('Scale Contour')
@@ -581,7 +583,7 @@ class MainWindow(QMainWindow):
         self.cont_scale = float(ScaEntDialog.result[0])
         self.entityRoot.sca = self.cont_scale
 
-        self.d2g.reload()
+        self.d2g.small_reload()
 
     def rotateAll(self):
         title = self.tr('Rotate Contour')
@@ -595,7 +597,7 @@ class MainWindow(QMainWindow):
         self.cont_rotate = radians(float(RotEntDialog.result[0]))
         self.entityRoot.rot = self.cont_rotate
 
-        self.d2g.reload()
+        self.d2g.small_reload()
 
     def moveWorkpieceZero(self):
         """
@@ -627,22 +629,22 @@ class MainWindow(QMainWindow):
         self.entityRoot.p0.x = self.cont_dx
         self.entityRoot.p0.y = self.cont_dy
 
-        self.d2g.reload()
+        self.d2g.small_reload()
 
     def setMachineTypeToMilling(self):
         g.config.machine_type = 'milling'
         self.updateMachineType()
-        self.d2g.reload()
+        self.d2g.small_reload()
 
     def setMachineTypeToDragKnife(self):
         g.config.machine_type = 'drag_knife'
         self.updateMachineType()
-        self.d2g.reload()
+        self.d2g.small_reload()
 
     def setMachineTypeToLathe(self):
         g.config.machine_type = 'lathe'
         self.updateMachineType()
-        self.d2g.reload()
+        self.d2g.small_reload()
 
     def updateMachineType(self):
         if g.config.machine_type == 'milling':
@@ -985,7 +987,7 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, e):
         logger.debug(self.tr("Closing"))
-        self.writeSettings()
+        # self.writeSettings()
         e.accept()
 
     def readSettings(self):
