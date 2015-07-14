@@ -165,7 +165,7 @@ class MyPostProcessor(object):
         previous_tool = None
         # Do the export for each LayerContent in LayerContents List
         for LayerContent in LayerContents.non_break_layer_iter():
-            logger.debug(self.tr("Beginning export of Layer Nr. %s, Name%s")
+            logger.debug(self.tr("Beginning export of Layer Nr. %s, Name %s")
                          % (LayerContent.nr, LayerContent.name))
             logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
                          % (len(LayerContent.shapes), len(LayerContent.exp_order_complete)))
@@ -181,7 +181,7 @@ class MyPostProcessor(object):
 
                 for shape_nr in LayerContent.exp_order_complete:
                     shape = LayerContent.shapes[shape_nr]
-                    logger.debug(self.tr("Beginning export of  Shape Nr: %s") % shape.nr)
+                    logger.debug(self.tr("Beginning export of Shape Nr: %s") % shape.nr)
 
                     exstr += self.commentprint("* SHAPE Nr: %i *" % shape.nr)
 

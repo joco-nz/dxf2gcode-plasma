@@ -181,7 +181,7 @@ CONFIG_SPEC = str('''
 
     [Custom_Actions]
     [[custom_gcode]]
-    gcode = string(default = '"""(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)"""')
+    gcode = string(default = '"""(change subsection name and insert your custom GCode here. Use triple quotes to place the code on several lines)"""')
 
     [[__many__]]
     gcode = string(default = "(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")

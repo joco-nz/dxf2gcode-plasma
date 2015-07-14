@@ -23,6 +23,7 @@ FILES = ("..\\core\\arcgeo.py",
          "..\\globals\\config.py",
          "..\\gui\\canvas.py",
          "..\\gui\\canvas2d.py",
+         "..\\gui\\popupdialog.py",
          "..\\postpro\\postprocessor.py",
          "..\\postpro\\postprocessorconfig.py",
          "..\\postpro\\tspoptimisation.py",
@@ -46,11 +47,11 @@ OPTIONS = "-ts"
 
 cmd1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
 print(cmd1)
-print(subprocess.call(cmd1, shell = True))
+print(subprocess.call(cmd1, shell=True))
 
 cmd2 = ("%s %s\n" % (LREPATH, TSFILESTR))
 print(cmd2)
-print(subprocess.call(cmd2, shell = True))
+print(subprocess.call(cmd2, shell=True))
 
 print("\nREADY")
 
