@@ -417,8 +417,8 @@ class MyGraphicsScene(QGraphicsScene):
             shape = self.shapes[exp_order[shape_nr]]
             st = self.expprv
             en, self.expprv = shape.get_start_end_points_physical()
-            self.routearrows.append(Arrow(startp=st,
-                                          endp=en,
+            self.routearrows.append(Arrow(startp=en,
+                                          endp=st,
                                           color=self.expcol,
                                           pencolor=self.expcol))
 
@@ -437,8 +437,8 @@ class MyGraphicsScene(QGraphicsScene):
                    g.config.vars.Plane_Coordinates['axis2_start_end'])
         self.expcol = QtCore.Qt.darkRed
 
-        self.routearrows.append(Arrow(startp=st,
-                                      endp=en,
+        self.routearrows.append(Arrow(startp=en,
+                                      endp=st,
                                       color=self.expcol,
                                       pencolor=self.expcol))
 
