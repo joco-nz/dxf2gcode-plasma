@@ -839,11 +839,11 @@ class ArcGeo(object):
             string = PostPro.lin_pol_xy(Ps, Pe)
         else:
             if self.ext > 0:
-                string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ)
+                string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ,self.ext)
             elif self.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
-                string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe)
+                string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe,self.ext)
             else:
-                string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ)
+                string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ,self.ext)
         return string
 
 

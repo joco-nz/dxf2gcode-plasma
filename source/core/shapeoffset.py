@@ -210,47 +210,63 @@ class offShapeClass(Shape):
                     geo1.start_normal = geo1.Ps.get_normal_vector(geo1.Pe)
                     geo1.end_normal = geo1.Ps.get_normal_vector(geo1.Pe)
                 else:
-                    geo1.start_normal = geo1.Ps.unit_vector(geo1.O, r=1)
-                    geo1.end_normal = geo1.Pe.unit_vector(geo1.O, r=1)
-                
+                    geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r = 1)
+                    geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r = 1)
+                    if geo1.ext < 0:
+                        geo1.start_normal = geo1.start_normal * -1
+                        geo1.end_normal = geo1.end_normal * -1
+
             if isinstance(geo2, LineGeo):
                 geo2.start_normal = geo2.Ps.get_normal_vector(geo2.Pe)
                 geo2.end_normal = geo2.Ps.get_normal_vector(geo2.Pe)
             elif isinstance(geo2, ArcGeo):
-                geo2.start_normal = geo2.Ps.unit_vector(geo2.O, r=1)
-                geo2.end_normal = geo2.Pe.unit_vector(geo2.O, r=1)
-                
+                geo2.start_normal = geo2.O.unit_vector(geo2.Ps, r = 1)
+                geo2.end_normal = geo2.O.unit_vector(geo2.Pe, r = 1)
+                if geo2.ext < 0:
+                        geo2.start_normal = geo2.start_normal * -1
+                        geo2.end_normal = geo2.end_normal * -1
+
             # logger.debug("geo1: %s, geo2: %s" % (geo1, geo2))
             # logger.debug("geo1.end_normal: %s, geo2.start_normal: %s" % (geo1.end_normal, geo2.start_normal))
 
             # If it is a reflex vertex add a reflex segemnt (single point)
 
             # Add a Reflex Point if radius becomes below zero.
-            
+
 #             if isinstance(geo2, ArcGeo):
 #                 logger.debug(geo2)
 #                 geo2_off = self.make_rawoff_seg(geo2)
 #                 logger.debug(geo2_off)
-#                 
-            if ((isinstance(geo2, ArcGeo)) and 
-                ((self.offtype == "out" and geo2.ext > 0) or 
+#
+            if ((isinstance(geo2, ArcGeo)) and
+                ((self.offtype == "out" and geo2.ext > 0) or
                  (self.offtype == "in" and geo2.ext < 0)) and
                 ((geo2.r - abs(self.offset)) <= 0.0)):
-                               
+
                 newgeo2 = ConvexPoint(geo2.O.x, geo2.O.y)
                 newgeo2.start_normal = geo2.start_normal
                 newgeo2.end_normal = geo2.end_normal
                 geo2 = newgeo2
-                    
+
+#             logger.debug(geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
+#                              geo1.Pe + geo1.end_normal +
+#                              geo2.start_normal))
+#             logger.debug(geo1)
+#             logger.debug(geo2)
+#             logger.debug(geo1.end_normal)
+#             logger.debug(geo2.start_normal)
             if (((geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                              geo1.Pe + geo1.end_normal + 
-                              geo2.start_normal) == 1) and  
+                              geo1.Pe + geo1.end_normal +
+                              geo2.start_normal) == 1) and
                  self.offtype == "in") or
                 (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                             geo1.Pe + geo1.end_normal + 
-                             geo2.start_normal) == -1 and 
-                 self.offtype == "out")):
-                
+                             geo1.Pe + geo1.end_normal +
+                             geo2.start_normal) == -1 and
+                 self.offtype == "out") or
+                 (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
+                             geo1.Pe + geo1.end_normal +
+                             geo2.start_normal) == 0)):
+
                 # logger.debug("reflex")
 
                 geo1.Pe.start_normal = geo1.end_normal
@@ -509,6 +525,9 @@ class offShapeClass(Shape):
         """
         if backward > forward:
             pop_range = self.segments[backward + 1:len(self.segments)] 
+            pop_range += self.segments[0:forward]
+        elif backward<0:
+            pop_range = self.segments[len(self.segments)+backward + 1:len(self.segments)] 
             pop_range += self.segments[0:forward]
         else:
             pop_range = self.segments[backward + 1:forward]

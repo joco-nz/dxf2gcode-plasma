@@ -29,8 +29,10 @@ from __future__ import division
 
 from math import sqrt, sin, cos, atan2
 
+
 from core.point3d import Point3D
 
+import numbers
 import logging
 logger = logging.getLogger("core.point")
 
@@ -58,22 +60,22 @@ class Point(object):
         else:
             return False
 
-    def __cmp__(self, other):
-        """
-        Implementaion of comparing of two point
-        @param other: The other point for the compare
-        @return: 1 if self is bigger, -1 if smaller, 0 if the same
-        """
-        if self.x < other.x:
-            return -1
-        elif self.x > other.x:
-            return 1
-        elif self.x == other.x and self.y < other.y:
-            return -1
-        elif self.x == other.x and self.y > other.y:
-            return 1
-        else:
-            return 0
+#     def __cmp__(self, other):
+#         """
+#         Implementaion of comparing of two point
+#         @param other: The other point for the compare
+#         @return: 1 if self is bigger, -1 if smaller, 0 if the same
+#         """
+#         if self.x < other.x:
+#             return -1
+#         elif self.x > other.x:
+#             return 1
+#         elif self.x == other.x and self.y < other.y:
+#             return -1
+#         elif self.x == other.x and self.y > other.y:
+#             return 1
+#         else:
+#             return 0
 
     def __ne__(self, other):
         """
@@ -97,6 +99,24 @@ class Point(object):
         @return: Returns a new Point 
         """
         return Point(self.x + other.x, self.y + other.y)
+    
+
+    def __lt__(self,other):
+        """
+        Implementaion of less then comparision
+        @param other: The other point for the compare
+        @return: 1 if self is bigger, -1 if smaller, 0 if the same
+        """
+        if self.x < other.x:
+            return True
+        elif self.x > other.x:
+            return False
+        elif self.x == other.x and self.y < other.y:
+            return True
+        elif self.x == other.x and self.y > other.y:
+            return False
+        else:
+            return 0
 
     def __sub__(self, other):
         """
@@ -133,7 +153,7 @@ class Point(object):
         if isinstance(other, list):
             # Scale the points
             return Point(x=self.x * other[0], y=self.y * other[1])
-        elif isinstance(other, (int, float, long, complex)):
+        elif isinstance(other, numbers.Number):
             return Point(x=self.x * other, y=self.y * other)
         elif isinstance(other, Point):
             # Calculate Scalar (dot) Product

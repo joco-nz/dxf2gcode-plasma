@@ -243,6 +243,7 @@ class MyPostProcessor(object):
         self.r = 0.0
         self.s_ang = 0.0
         self.e_ang = 0.0
+        self.ext = 0.0
 
         self.ze = g.config.vars.Depth_Coordinates['axis3_retract']
         self.lz = self.ze
@@ -385,7 +386,7 @@ class MyPostProcessor(object):
         """
         return self.make_print_str(self.vars.Program["cutter_comp_off"])
 
-    def lin_pol_arc(self, dir, Ps, Pe, s_ang, e_ang, R, O, IJ):
+    def lin_pol_arc(self, dir, Ps, Pe, s_ang, e_ang, R, O, IJ, ext):
         """
         This function is called if an arc shall be cut.
         @param dir: The direction of the arc to cut, can be cw or ccw
@@ -405,6 +406,8 @@ class MyPostProcessor(object):
 
         self.Ps = Ps
         self.r = R
+        
+        self.ext = ext
 
         if not self.abs_export:
             self.Pe = Pe - self.lPe

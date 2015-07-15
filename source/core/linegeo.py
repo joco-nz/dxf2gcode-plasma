@@ -286,7 +286,7 @@ class LineGeo(object):
         Intersection which is in Ray (of Line)
         @return: a list of intersection points. 
         """
-        from arcgeo import ArcGeo
+        from core.arcgeo import ArcGeo
         
         if isinstance(other, LineGeo):
             inter = self.find_inter_point_l_l(other, type)
@@ -552,7 +552,7 @@ class LineGeo(object):
         # logger.debug("self.BB: %s \nother.BB: %s")
         # logger.debug(self.BB.hasintersection(other.BB))
         # We need to test Point first cause it has no BB
-        from arcgeo import ArcGeo
+        from core.arcgeo import ArcGeo
         
         if isinstance(other, Point):
             return self.intersect_l_p(other)

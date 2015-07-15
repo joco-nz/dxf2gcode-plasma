@@ -492,7 +492,7 @@ class MainWindow(QMainWindow):
                                    MyFormats, selected_filter)
 
         logger.info(self.tr("File: %s selected") % filename[0])
-
+        logger.info("<a href='%s'>%s</a>" %(filename[0],filename[0]))
         return filename
 
     def about(self):
