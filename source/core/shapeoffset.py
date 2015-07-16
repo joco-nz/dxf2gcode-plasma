@@ -262,16 +262,18 @@ class offShapeClass(Shape):
                 (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
                              geo1.Pe + geo1.end_normal +
                              geo2.start_normal) == -1 and
-                 self.offtype == "out") or
-                 (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                             geo1.Pe + geo1.end_normal +
-                             geo2.start_normal) == 0)):
+                 self.offtype == "out")):
 
                 # logger.debug("reflex")
 
                 geo1.Pe.start_normal = geo1.end_normal
                 geo1.Pe.end_normal = geo2.start_normal
                 self.segments += [geo1.Pe, geo2]
+
+            elif (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
+                             geo1.Pe + geo1.end_normal +
+                             geo2.start_normal) == 0):
+                self.segments += [geo2]
 
 
             # Add the linear segment which is a line connecting 2 vertices
@@ -428,6 +430,8 @@ class offShapeClass(Shape):
 
             if isinstance(segment1, ConvexPoint):
                 forward += 1
+                if forward >= len(self.segments):
+                    forward = 0
                 segment1 = self.segments[forward]
                 # logger.debug("Forward ConvexPoint")
             if isinstance(segment2, ConvexPoint):

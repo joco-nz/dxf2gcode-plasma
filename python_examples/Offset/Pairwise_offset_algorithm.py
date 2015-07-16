@@ -1816,6 +1816,7 @@ class offShapeClass(ShapeClass):
         self.join_colinear_lines()
 
         self.make_segment_types()
+        logger.debug(self.geos)
         logger.debug(self.segments)
         nextConvexPoint = [e for e in self.segments if isinstance(e, ConvexPoint)]
         # logger.debug(nextConvexPoint)
@@ -1978,13 +1979,14 @@ class offShapeClass(ShapeClass):
                 newgeo2.end_normal = geo2.end_normal
                 geo2 = newgeo2
 
+            logger.debug(geo1)
+            logger.debug(geo2)
             logger.debug(geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
                              geo1.Pe + geo1.end_normal +
                              geo2.start_normal))
-            logger.debug(geo1)
-            logger.debug(geo2)
-            logger.debug(geo1.end_normal)
-            logger.debug(geo2.start_normal)
+
+#             logger.debug(geo1.end_normal)
+#             logger.debug(geo2.start_normal)
             if (((geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
                               geo1.Pe + geo1.end_normal +
                               geo2.start_normal) == 1) and
@@ -1992,16 +1994,18 @@ class offShapeClass(ShapeClass):
                 (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
                              geo1.Pe + geo1.end_normal +
                              geo2.start_normal) == -1 and
-                 self.offtype == "out") or
-                 (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                             geo1.Pe + geo1.end_normal +
-                             geo2.start_normal) == 0)):
+                 self.offtype == "out")):
 
                 # logger.debug("reflex")
 
                 geo1.Pe.start_normal = geo1.end_normal
                 geo1.Pe.end_normal = geo2.start_normal
                 self.segments += [geo1.Pe, geo2]
+
+            elif (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
+                             geo1.Pe + geo1.end_normal +
+                             geo2.start_normal) == 0):
+                self.segments += [geo2]
 
 
             # Add the linear segment which is a line connecting 2 vertices
@@ -2158,6 +2162,8 @@ class offShapeClass(ShapeClass):
 
             if isinstance(segment1, ConvexPoint):
                 forward += 1
+                if forward >= len(self.segments):
+                    forward = 0
                 segment1 = self.segments[forward]
                 # logger.debug("Forward ConvexPoint")
             if isinstance(segment2, ConvexPoint):
