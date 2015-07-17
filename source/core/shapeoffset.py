@@ -57,10 +57,14 @@ class offShapeClass(Shape):
         also contain arcs. These will be reflected by multiple lines in order 
         to easy calclations.
         """
+        geos = []
+        for geo in parent.geos:
+            geo.make_abs_geo(parent.parentEntity)
+            geos.append(geo.abs_geo)
 
         super(offShapeClass, self).__init__(nr=parent.nr,
                                             closed=parent.closed,
-                                            geos=deepcopy(parent.geos))
+                                            geos = geos)
 
         
         self.offset = offset
