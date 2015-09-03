@@ -64,18 +64,18 @@ if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
     getOpenFileName = QFileDialog.getOpenFileName
     getSaveFileName = QFileDialog.getSaveFileName
+    file_str = lambda filename: filename
 else:
     from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt4 import QtCore
     getOpenFileName = QFileDialog.getOpenFileNameAndFilter
     getSaveFileName = QFileDialog.getSaveFileNameAndFilter
+    file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
 
 if PY2:
-    file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
     str_encode = lambda exstr: exstr.encode('utf-8')
     str_decode = lambda filename: filename.decode("utf-8")
 else:
-    file_str = lambda filename: filename
     str_encode = lambda exstr: exstr
     str_decode = lambda filename: filename
 
