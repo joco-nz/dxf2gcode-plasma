@@ -32,7 +32,7 @@ import globals.globals as g
 from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsView, QMenu, QOpenGLWidget
+    from PyQt5.QtWidgets import QGraphicsView, QMenu
     from PyQt5 import QtCore
 else:
     from PyQt4.QtGui import QGraphicsView, QMenu
@@ -61,6 +61,7 @@ def CanvasObject():
                             "Set mode3d to False in the config file, or update your PyQt version.\n"
                             "Current version found: PyQt%s (which includes Qt%s)"
                             % (QtCore.PYQT_VERSION_STR, QtCore.QT_VERSION_STR))
+        from PyQt5.QtWidgets import QOpenGLWidget
         return QOpenGLWidget
     else:
         return QGraphicsView
