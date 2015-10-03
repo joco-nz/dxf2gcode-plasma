@@ -399,11 +399,11 @@ class MainWindow(QMainWindow):
             logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
 
             for shape_nr in range(len(LayerContent.exp_order)):
-                if not LayerContent.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP:
+                if not self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP:
                     shapes_fixed_order.append(shape_nr)
 
                 shapes_to_write.append(shape_nr)
-                shapes_st_en_points.append(LayerContent.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
+                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
 
             # Perform Export only if the Number of shapes to export is bigger than 0
             if len(shapes_to_write) > 0:
@@ -733,7 +733,16 @@ class MainWindow(QMainWindow):
             ps_filename = os.path.normcase(self.filename)
             cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % self.filename)]
             logger.debug(cmd)
-            retcode = subprocess.call(cmd)
+            try:
+                subprocess.call(cmd)
+            except FileNotFoundError as e:
+                logger.error(e.strerror)
+                self.canvas.unsetCursor()
+                QMessageBox.critical(self,
+                                     "ERROR",
+                                     self.tr("Please make sure you have installed pstoedit, and configured it in the config file."))
+                return True
+            subprocess.check_output()  # If the return code was non-zero it raises a subprocess.CalledProcessError.
 
         logger.info(self.tr('Loading file: %s') % self.filename)
 

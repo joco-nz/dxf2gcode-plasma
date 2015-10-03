@@ -35,6 +35,7 @@ import globals.globals as g
 from core.point import Point
 from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
+from core.holegeo import HoleGeo
 
 from globals.six import text_type
 import globals.constants as c
@@ -275,7 +276,8 @@ class Shape(object):
     def Write_GCode_for_geo(self, geo, PostPro):
         # Used to remove zero length geos. If not, arcs can become a full circle
         post_dec = PostPro.vars.Number_Format["post_decimals"]
-        if round(geo.Ps.x, post_dec) != round(geo.Pe.x, post_dec) or\
+        if isinstance(geo, HoleGeo) or\
+           round(geo.Ps.x, post_dec) != round(geo.Pe.x, post_dec) or\
            round(geo.Ps.y, post_dec) != round(geo.Pe.y, post_dec) or\
            isinstance(geo, ArcGeo) and geo.length > 0.5 * 0.1 ** post_dec * pi:
             return geo.Write_GCode(PostPro)
