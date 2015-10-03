@@ -524,7 +524,7 @@ class MainWindow(QMainWindow):
                 "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
                 "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
 
-        AboutDialog(title="About DXF2GCODE", message=message)
+        AboutDialog(title=self.tr("About DXF2GCODE"), message=message)
 
     def setShowPathDirections(self):
         """
@@ -761,23 +761,20 @@ class MainWindow(QMainWindow):
                     % (len(self.valuesDXF.entities.geo), len(self.valuesDXF.entities.cont), layers, insert_nr))
 
         if g.config.metric == 0:
-            logger.info("Drawing units: inches")
-            self.ui.unitLabel_3.setText("[in]")
-            self.ui.unitLabel_4.setText("[in]")
-            self.ui.unitLabel_5.setText("[in]")
-            self.ui.unitLabel_6.setText("[in]")
-            self.ui.unitLabel_7.setText("[in]")
-            self.ui.unitLabel_8.setText("[IPM]")
-            self.ui.unitLabel_9.setText("[IPM]")
+            logger.info(self.tr("Drawing units: inches"))
+            distance = self.tr("[in]")
+            speed = self.tr("[IPM]")
         else:
-            logger.info("Drawing units: millimeters")
-            self.ui.unitLabel_3.setText("[mm]")
-            self.ui.unitLabel_4.setText("[mm]")
-            self.ui.unitLabel_5.setText("[mm]")
-            self.ui.unitLabel_6.setText("[mm]")
-            self.ui.unitLabel_7.setText("[mm]")
-            self.ui.unitLabel_8.setText("[mm/min]")
-            self.ui.unitLabel_9.setText("[mm/min]")
+            logger.info(self.tr("Drawing units: millimeters"))
+            distance = self.tr("[mm]")
+            speed = self.tr("[mm/min]")
+        self.ui.unitLabel_3.setText(distance)
+        self.ui.unitLabel_4.setText(distance)
+        self.ui.unitLabel_5.setText(distance)
+        self.ui.unitLabel_6.setText(distance)
+        self.ui.unitLabel_7.setText(distance)
+        self.ui.unitLabel_8.setText(speed)
+        self.ui.unitLabel_9.setText(speed)
 
         self.makeShapes()
         if plot:

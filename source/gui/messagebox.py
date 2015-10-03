@@ -49,9 +49,9 @@ class MessageBox(QTextBrowser):
         super(MessageBox, self).__init__()
         self.setOpenExternalLinks(True)
 
-        self.append("You are using DXF2GCODE")
-        self.append("Version %s (%s)" % (c.VERSION, c.DATE))
-        self.append("For more information and updates visit:")
+        self.append(self.tr("You are using DXF2GCODE"))
+        self.append(self.tr("Version %s (%s)") % (c.VERSION, c.DATE))
+        self.append(self.tr("For more information and updates visit:"))
         self.append("<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a>")
 
     def write(self, string):

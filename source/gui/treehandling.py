@@ -228,10 +228,10 @@ class TreeHandler(QWidget):
         self.layer_item_model = MyStandardItemModel()  # This is the container for the data (QStandardItemModel)
         if not c.PYQT5notPYQT4:
             self.layer_item_model.setSupportedDragActions(QtCore.Qt.MoveAction)
-        self.layer_item_model.setHorizontalHeaderItem(0, QStandardItem("[en]"))
-        self.layer_item_model.setHorizontalHeaderItem(1, QStandardItem("Name"))
-        self.layer_item_model.setHorizontalHeaderItem(2, QStandardItem("Nr"))
-        self.layer_item_model.setHorizontalHeaderItem(3, QStandardItem("Optimal path"))
+        self.layer_item_model.setHorizontalHeaderItem(0, QStandardItem(self.tr("[en]")))
+        self.layer_item_model.setHorizontalHeaderItem(1, QStandardItem(self.tr("Name")))
+        self.layer_item_model.setHorizontalHeaderItem(2, QStandardItem(self.tr("Nr")))
+        self.layer_item_model.setHorizontalHeaderItem(3, QStandardItem(self.tr("Optimal path")))
         modele_root_element = self.layer_item_model.invisibleRootItem()  # Root element of our tree
 
         for layer in layers_list:
@@ -337,13 +337,13 @@ class TreeHandler(QWidget):
         if self.entity_item_model:
             self.entity_item_model.clear()  # Remove any existing item_model
         self.entity_item_model = QStandardItemModel()
-        self.entity_item_model.setHorizontalHeaderItem(0, QStandardItem("[en]"))
-        self.entity_item_model.setHorizontalHeaderItem(1, QStandardItem("Name"))
-        self.entity_item_model.setHorizontalHeaderItem(2, QStandardItem("Nr"))
-        self.entity_item_model.setHorizontalHeaderItem(3, QStandardItem("Type"))
-        self.entity_item_model.setHorizontalHeaderItem(4, QStandardItem("Base point"))
-        self.entity_item_model.setHorizontalHeaderItem(5, QStandardItem("Scale"))
-        self.entity_item_model.setHorizontalHeaderItem(6, QStandardItem("Rotation"))
+        self.entity_item_model.setHorizontalHeaderItem(0, QStandardItem(self.tr("[en]")))
+        self.entity_item_model.setHorizontalHeaderItem(1, QStandardItem(self.tr("Name")))
+        self.entity_item_model.setHorizontalHeaderItem(2, QStandardItem(self.tr("Nr")))
+        self.entity_item_model.setHorizontalHeaderItem(3, QStandardItem(self.tr("Type")))
+        self.entity_item_model.setHorizontalHeaderItem(4, QStandardItem(self.tr("Base point")))
+        self.entity_item_model.setHorizontalHeaderItem(5, QStandardItem(self.tr("Scale")))
+        self.entity_item_model.setHorizontalHeaderItem(6, QStandardItem(self.tr("Rotation")))
         modele_root_element = self.entity_item_model.invisibleRootItem()
 
         self.buildEntitiesSubTree(modele_root_element, entities_list)

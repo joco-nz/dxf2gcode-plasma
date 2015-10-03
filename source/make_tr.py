@@ -23,7 +23,9 @@ FILES = ("..\\core\\arcgeo.py",
          "..\\globals\\config.py",
          "..\\gui\\canvas.py",
          "..\\gui\\canvas2d.py",
+         "..\\gui\\messagebox.py",
          "..\\gui\\popupdialog.py",
+         "..\\gui\\treehandling.py",
          "..\\postpro\\postprocessor.py",
          "..\\postpro\\postprocessorconfig.py",
          "..\\postpro\\tspoptimisation.py",
@@ -33,7 +35,8 @@ FILES = ("..\\core\\arcgeo.py",
 
 
 TSFILES = ("dxf2gcode_de_DE.ts",
-           "dxf2gcode_fr.ts")
+           "dxf2gcode_fr.ts",
+	   "dxf2gcode_ru.ts")
 
 FILESSTR = ""
 for FILE in FILES:

@@ -35,167 +35,167 @@
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="dxf2gcode.py" line="677"/>
+        <location filename="dxf2gcode.py" line="679"/>
         <source>Open file</source>
         <translation>Ouvrir fichier</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="689"/>
+        <location filename="dxf2gcode.py" line="691"/>
         <source>All supported files (*.dxf *.ps *.pdf *%s);;DXF files (*.dxf);;PS files (*.ps);;PDF files (*.pdf);;Project files (*%s);;All types (*.*)</source>
         <translation>Fichiers acceptés (*.dxf *.ps *.pdf *%s);;Fichiers DXF (*.dxf);;Fichiers PS (*.ps);;Fichiers PDF (*.pdf);;Project files (*%s);;Tout les fichiers (*.*)</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="702"/>
+        <location filename="dxf2gcode.py" line="704"/>
         <source>File: %s selected</source>
         <translation>Fichier: %s sélectionné</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="812"/>
+        <location filename="dxf2gcode.py" line="820"/>
         <source>Reloading file: %s</source>
         <translation>Rechargement fichier: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="383"/>
+        <location filename="dxf2gcode.py" line="385"/>
         <source>Optimize order of enabled shapes per layer</source>
         <translation>Optimisation ordre des formes activées par calques</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="387"/>
+        <location filename="dxf2gcode.py" line="389"/>
         <source>Updating order according to TreeView</source>
         <translation>Adaptation ordre pour TreeView</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="398"/>
+        <location filename="dxf2gcode.py" line="400"/>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
         <translation>Nb. de formes %s; Nb. de formes sur parcours %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="400"/>
+        <location filename="dxf2gcode.py" line="402"/>
         <source>Export Order for start: %s</source>
         <translation>Exporter ordre pour départ: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="423"/>
+        <location filename="dxf2gcode.py" line="425"/>
         <source>TSP start values initialised for Layer %s</source>
         <translation>TSP valeurs de départ initialisées pour calque %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="424"/>
+        <location filename="dxf2gcode.py" line="426"/>
         <source>Shapes to write: %s</source>
         <translation>Formes à engendrer: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="425"/>
+        <location filename="dxf2gcode.py" line="427"/>
         <source>Fixed order: %s</source>
         <translation>Ordre figé: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="433"/>
+        <location filename="dxf2gcode.py" line="435"/>
         <source>TSP done with result: %s</source>
         <translation>TSP fait avec résultat: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="438"/>
+        <location filename="dxf2gcode.py" line="440"/>
         <source>New Export Order after TSP: %s</source>
         <translation>Nouvel ordre d&apos;exportation après TSP: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="289"/>
+        <location filename="dxf2gcode.py" line="291"/>
         <source>Export the enabled shapes</source>
         <translation>Exporter formes activées</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="295"/>
+        <location filename="dxf2gcode.py" line="297"/>
         <source>Sorted layers:</source>
         <translation>Calques triés:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="309"/>
+        <location filename="dxf2gcode.py" line="311"/>
         <source>Export to file</source>
         <translation>Exporter vers fichier</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="564"/>
+        <location filename="dxf2gcode.py" line="566"/>
         <source>set Tolerances</source>
         <translation>Réglages tolérances</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="727"/>
+        <location filename="dxf2gcode.py" line="729"/>
         <source>Sending Postscript/PDF to pstoedit</source>
         <translation>Envoi Postscript/PDF vers pstoedit</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="744"/>
+        <location filename="dxf2gcode.py" line="755"/>
         <source>Loaded layers: %s</source>
         <translation>Calques chargés: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="745"/>
+        <location filename="dxf2gcode.py" line="756"/>
         <source>Loaded blocks: %s</source>
         <translation>Blocs chargés: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="557"/>
+        <location filename="dxf2gcode.py" line="559"/>
         <source>Contour tolerances</source>
         <translation>Tolérances</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="559"/>
+        <location filename="dxf2gcode.py" line="561"/>
         <source>Tolerance for common points [%s]:</source>
         <translation>Tolérances points [%s]:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="560"/>
+        <location filename="dxf2gcode.py" line="562"/>
         <source>Tolerance for curve fitting [%s]:</source>
         <translation>Tolérances courbes [%s]:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="576"/>
+        <location filename="dxf2gcode.py" line="578"/>
         <source>Scale Contour</source>
         <translation>Agrandire/réduire tout</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="577"/>
+        <location filename="dxf2gcode.py" line="579"/>
         <source>Scale Contour by factor:</source>
         <translation>Agrandire/réduire par coefficient:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="590"/>
+        <location filename="dxf2gcode.py" line="592"/>
         <source>Rotate Contour</source>
         <translation>Pivoter tout</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="591"/>
+        <location filename="dxf2gcode.py" line="593"/>
         <source>Rotate Contour by deg:</source>
         <translation>Pivoter tout par degré:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="607"/>
+        <location filename="dxf2gcode.py" line="609"/>
         <source>Workpiece zero offset</source>
         <translation>Decalage origine du brut</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="610"/>
+        <location filename="dxf2gcode.py" line="612"/>
         <source>Offset %s axis %s:</source>
         <translation>Décalage axe %s en %s:</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="739"/>
+        <location filename="dxf2gcode.py" line="750"/>
         <source>Loading file: %s</source>
         <translation>Chargement fichier: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="748"/>
+        <location filename="dxf2gcode.py" line="759"/>
         <source>Block %i includes %i Geometries, reduced to %i Contours, used layers: %s</source>
         <translation>Bloc %i inclus %i éléments Géométriques, réduit à %i Contours, calques utilisés: %s</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="752"/>
+        <location filename="dxf2gcode.py" line="763"/>
         <source>Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i</source>
         <translation>Chargé %i Entités géométriques; réduit à %i Contours; calques utilisés: %s; nombre d&apos;inserts: %i</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="990"/>
+        <location filename="dxf2gcode.py" line="998"/>
         <source>Closing</source>
         <translation>Sortie</translation>
     </message>
@@ -205,22 +205,22 @@
         <translation>Prof. passe Z</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="668"/>
+        <location filename="dxf2gcode.py" line="670"/>
         <source>Z Drag depth</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="526"/>
+        <location filename="dxf2gcode.py" line="528"/>
         <source>&lt;html&gt;&lt;h2&gt;&lt;center&gt;You are using&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;:images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Last change: %s&lt;br&gt;Changed by: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Where to get help:&lt;/h2&gt;For more information and updates, please visit &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/&apos;&gt;http://sourceforge.net/projects/dxf2gcode/&lt;/a&gt;&lt;br&gt;For any questions on how to use dxf2gcode please use the &lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;mailing list&lt;/a&gt;&lt;br&gt;To log bugs, or request features please use the &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/tickets/&apos;&gt;issue tracking system&lt;/a&gt;&lt;br&gt;&lt;h2&gt;License and copyright:&lt;/h2&gt;&lt;body&gt;This program is written in Python and is published under the &lt;a href=&apos;http://www.gnu.org/licenses/&apos;&gt;GNU GPLv3 license.&lt;/a&gt;&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</source>
         <translation>&lt;html&gt;&lt;h2&gt;&lt;center&gt;Vous utilisez&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;:images/dxf2gcode_logo.png; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Dernière modification: %s&lt;br&gt;Modifié par: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Ou trouver de l&apos;aide:&lt;/h2&gt;Pour plus d&apos;informationds et mises à jour, aller sur &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/&apos;&gt;http://sourceforge.net/projects/dxf2gcode/&lt;/a&gt;&lt;br&gt;Pour toute questions sur l&apos;utilisation de dxf2gcode aller voir &lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;mailing list&lt;/a&gt;&lt;br&gt;Pour rapporter un bug ou toute autre demande se rendre sur &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/tickets/&apos;&gt;issue tracking system&lt;/a&gt;&lt;br&gt;&lt;h2&gt;Licence et copyright:&lt;/h2&gt;&lt;body&gt;Ce programme est écrit en Python et est publié sous &lt;a href=&apos;http://www.gnu.org/licenses/&apos;&gt;GNU GPLv3 license.&lt;/a&gt;&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="662"/>
+        <location filename="dxf2gcode.py" line="664"/>
         <source>No Z-Axis for lathe</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="985"/>
+        <location filename="dxf2gcode.py" line="993"/>
         <source>Cannot Save the File</source>
         <translation>Fichier ne pouvant être sauvegardé</translation>
     </message>
@@ -510,27 +510,27 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="711"/>
+        <location filename="dxf2gcode.py" line="713"/>
         <source>Cannot locate file: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="712"/>
+        <location filename="dxf2gcode.py" line="714"/>
         <source>Manually open file: %s</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="963"/>
+        <location filename="dxf2gcode.py" line="971"/>
         <source>Save project to file</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="983"/>
+        <location filename="dxf2gcode.py" line="991"/>
         <source>Save project to FILE was successful</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="dxf2gcode.py" line="985"/>
+        <location filename="dxf2gcode.py" line="993"/>
         <source>Warning during Save Project As</source>
         <translation type="unfinished"></translation>
     </message>
@@ -569,6 +569,64 @@
         <source>Ctrl+S</source>
         <translation>Ctrl+S</translation>
     </message>
+    <message>
+        <location filename="dxf2gcode.py" line="530"/>
+        <source>About DXF2GCODE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="744"/>
+        <source>Please make sure you have installed pstoedit, and configured it in the config file.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="767"/>
+        <source>Drawing units: inches</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="768"/>
+        <source>[in]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="769"/>
+        <source>[IPM]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="771"/>
+        <source>Drawing units: millimeters</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="772"/>
+        <source>[mm]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="dxf2gcode.py" line="773"/>
+        <source>[mm/min]</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>MessageBox</name>
+    <message>
+        <location filename="messagebox.py" line="52"/>
+        <source>You are using DXF2GCODE</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="messagebox.py" line="53"/>
+        <source>Version %s (%s)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="messagebox.py" line="54"/>
+        <source>For more information and updates visit:</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MyConfig</name>
@@ -606,72 +664,72 @@
 <context>
     <name>MyDropDownMenu</name>
     <message>
-        <location filename="canvas.py" line="89"/>
+        <location filename="canvas.py" line="90"/>
         <source>Invert Selection</source>
         <translation>Inverser Sélection</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="90"/>
+        <location filename="canvas.py" line="91"/>
         <source>Disable Selection</source>
         <translation>Desactiver Sélection</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="91"/>
+        <location filename="canvas.py" line="92"/>
         <source>Enable Selection</source>
         <translation>Activer Sélection</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="95"/>
+        <location filename="canvas.py" line="96"/>
         <source>Switch Direction</source>
         <translation>Inverser Direction</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="96"/>
+        <location filename="canvas.py" line="97"/>
         <source>Set Nearest StartPoint</source>
         <translation>Créer point entrée à proximité</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="102"/>
+        <location filename="canvas.py" line="103"/>
         <source>Cutter Compensation</source>
         <translation>Compensation outil</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="103"/>
+        <location filename="canvas.py" line="104"/>
         <source>G40 No Compensation</source>
         <translation>G40 Pas de compensation</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="105"/>
+        <location filename="canvas.py" line="106"/>
         <source>G41 Left Compensation</source>
         <translation>G41 Compensation à Gauche</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="107"/>
+        <location filename="canvas.py" line="108"/>
         <source>G42 Right Compensation</source>
         <translation>G42 Compensation à Droite</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="110"/>
+        <location filename="canvas.py" line="111"/>
         <source>The selected shapes have the following direction: %i</source>
         <translation>Les formes sélectionnées ont la direction suivante: %i</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="208"/>
+        <location filename="canvas.py" line="209"/>
         <source>Switched Direction at Shape Nr: %i</source>
         <translation>Direction inversée à la forme N°: %i</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="235"/>
+        <location filename="canvas.py" line="236"/>
         <source>Changed Cutter Correction to None for shape: %i</source>
         <translation>Compensation outil Forme N°: %i Annulée</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="245"/>
+        <location filename="canvas.py" line="246"/>
         <source>Changed Cutter Correction to left for shape: %i</source>
         <translation>Compensation outil à gauche Forme N°: %i Validée</translation>
     </message>
     <message>
-        <location filename="canvas.py" line="255"/>
+        <location filename="canvas.py" line="256"/>
         <source>Changed Cutter Correction to right for shape: %i</source>
         <translation>Compensation outil à droite Forme N°: %i Validée</translation>
     </message>
@@ -865,43 +923,86 @@ La longueur doit être supérieure à la tolérance</translation>
 <context>
     <name>Shape</name>
     <message>
-        <location filename="shape.py" line="170"/>
+        <location filename="shape.py" line="171"/>
         <source>Analysing the shape for CW direction Nr: %s</source>
         <translation>Analyse de forme pour CW direction N°: %s</translation>
     </message>
     <message>
-        <location filename="shape.py" line="174"/>
+        <location filename="shape.py" line="175"/>
         <source>Had to reverse the shape to be CW</source>
         <translation>Obligation d&apos;inverser la forme pour etre CW</translation>
     </message>
     <message>
-        <location filename="shape.py" line="179"/>
+        <location filename="shape.py" line="180"/>
         <source>Clicked Point: %s</source>
         <translation>Point selectionné: %s</translation>
     </message>
     <message>
-        <location filename="shape.py" line="181"/>
+        <location filename="shape.py" line="182"/>
         <source>Old Start Point: %s</source>
         <translation>Ancien point de départ: %s</translation>
     </message>
     <message>
-        <location filename="shape.py" line="190"/>
+        <location filename="shape.py" line="191"/>
         <source>New Start Point: %s</source>
         <translation>Nouveau point de départ: %s</translation>
     </message>
     <message>
-        <location filename="shape.py" line="328"/>
+        <location filename="shape.py" line="330"/>
         <source>ERROR: Z infeed depth is null!</source>
         <translation>ERREUR: Profondeur de passe Z nulle!</translation>
     </message>
     <message>
-        <location filename="shape.py" line="331"/>
+        <location filename="shape.py" line="333"/>
         <source>WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth.</source>
         <translation>ATTENTION: profondeur d&apos;usinage initiale (%i) inférieure à la profondeur d&apos;usinage totale (%i). Utilisation de cette dernière.</translation>
     </message>
     <message>
-        <location filename="shape.py" line="149"/>
+        <location filename="shape.py" line="150"/>
         <source>Shoelace method cannot (directly) be applied to this shape</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>TreeHandler</name>
+    <message>
+        <location filename="treehandling.py" line="340"/>
+        <source>[en]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="treehandling.py" line="341"/>
+        <source>Name</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="treehandling.py" line="342"/>
+        <source>Nr</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="treehandling.py" line="234"/>
+        <source>Optimal path</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="treehandling.py" line="343"/>
+        <source>Type</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="treehandling.py" line="344"/>
+        <source>Base point</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="treehandling.py" line="345"/>
+        <source>Scale</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="treehandling.py" line="346"/>
+        <source>Rotation</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
