@@ -26,8 +26,9 @@ from __future__ import division
 from math import pi, cos, sin, radians
 import logging
 
+from globals.six import text_type
 from PyQt5.QtCore import QPoint, Qt, QCoreApplication
-from PyQt5.QtGui import QColor, QOpenGLVersionProfile
+from PyQt5.QtGui import QColor
 
 from core.layercontent import Shapes
 from core.point import Point
@@ -39,6 +40,11 @@ from gui.canvas import CanvasBase, MyDropDownMenu
 
 logger = logging.getLogger("Gui.Canvas")
 
+try:
+    from OpenGL import GL
+except ImportError:
+    raise Exception("For the 3d mode you need PyOpenGL.\n"
+                    "Set mode3d to False in the config file, or install PyOpenGL to run it in 3d.")
 
 class GLWidget(CanvasBase):
     CAM_LEFT_X = -0.5
@@ -92,11 +98,21 @@ class GLWidget(CanvasBase):
 
         self.tol = 0
 
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return text_type(QCoreApplication.translate('GLWidget',
+                                                    string_to_translate))
+
     def resetAll(self):
-        self.gl.glDeleteLists(1, self.orientation)  # the orientation arrows are currently generated last
+        # the wpzero is currently generated "last"
+        if self.wpZero > 0:
+            GL.glDeleteLists(self.orientation + 1, self.wpZero - self.orientation)
         self.shapes = Shapes([])
         self.wpZero = 0
-        self.orientation = 0
         self.delete_opt_paths()
 
         self.posX = 0.0
@@ -114,7 +130,7 @@ class GLWidget(CanvasBase):
 
     def delete_opt_paths(self):
         if len(self.routearrows) > 0:
-            self.gl.glDeleteLists(self.routearrows[0][2], len(self.routearrows))
+            GL.glDeleteLists(self.routearrows[0][2], len(self.routearrows))
             self.routearrows = []
 
     def addexproutest(self):
@@ -293,43 +309,45 @@ class GLWidget(CanvasBase):
         return vx, vy, vz
 
     def initializeGL(self):
-        version = QOpenGLVersionProfile()
-        version.setVersion(2, 0)
-        self.gl = self.context().versionFunctions(version)
-        self.gl.initializeOpenGLFunctions()
-
+        logger.debug(self.tr("Using OpenGL version: %s") % GL.glGetString(GL.GL_VERSION).decode("utf-8"))
         self.setClearColor(GLWidget.COLOR_BACKGROUND)
 
-        # self.gl.glPolygonMode(self.gl.GL_FRONT_AND_BACK, self.gl.GL_LINE )
-        self.gl.glShadeModel(self.gl.GL_SMOOTH)
-        self.gl.glEnable(self.gl.GL_DEPTH_TEST)
-        self.gl.glEnable(self.gl.GL_CULL_FACE)
-        # self.gl.glEnable(self.gl.GL_LIGHTING)
-        # self.gl.glEnable(self.gl.GL_LIGHT0)
-        self.gl.glEnable(self.gl.GL_MULTISAMPLE)
-        self.gl.glEnable(self.gl.GL_BLEND)
-        self.gl.glBlendFunc(self.gl.GL_SRC_ALPHA, self.gl.GL_ONE_MINUS_SRC_ALPHA)
-        # self.gl.glLightfv(self.gl.GL_LIGHT0, self.gl.GL_POSITION, (0.5, 5.0, 7.0, 1.0))
-        # self.gl.glEnable(self.gl.GL_NORMALIZE)
+        GL.glEnable(GL.GL_MULTISAMPLE)
+
+        GL.glEnable(GL.GL_POLYGON_SMOOTH)
+        GL.glHint(GL.GL_POLYGON_SMOOTH_HINT, GL.GL_NICEST)
+        # GL.glPolygonMode(GL.GL_FRONT_AND_BACK, GL.GL_LINE)
+        GL.glShadeModel(GL.GL_SMOOTH)
+
+        GL.glEnable(GL.GL_DEPTH_TEST)
+        GL.glEnable(GL.GL_CULL_FACE)
+        # GL.glEnable(GL.GL_LIGHTING)
+        # GL.glEnable(GL.GL_LIGHT0)
+        GL.glEnable(GL.GL_BLEND)
+        GL.glBlendFunc(GL.GL_SRC_ALPHA, GL.GL_ONE_MINUS_SRC_ALPHA)
+        # GL.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, (0.5, 5.0, 7.0, 1.0))
+        # GL.glEnable(GL.GL_NORMALIZE)
+
+        self.drawOrientationArrows()
 
     def paintGL(self):
         # The last transformation you specify takes place first.
-        self.gl.glClear(self.gl.GL_COLOR_BUFFER_BIT | self.gl.GL_DEPTH_BUFFER_BIT)
-        self.gl.glLoadIdentity()
-        self.gl.glRotatef(self.rotX, 1.0, 0.0, 0.0)
-        self.gl.glRotatef(self.rotY, 0.0, 1.0, 0.0)
-        self.gl.glRotatef(self.rotZ, 0.0, 0.0, 1.0)
-        self.gl.glTranslatef(self.posX, self.posY, self.posZ)
-        self.gl.glScalef(self.scale, self.scale, self.scale)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT | GL.GL_DEPTH_BUFFER_BIT)
+        GL.glLoadIdentity()
+        GL.glRotatef(self.rotX, 1.0, 0.0, 0.0)
+        GL.glRotatef(self.rotY, 0.0, 1.0, 0.0)
+        GL.glRotatef(self.rotZ, 0.0, 0.0, 1.0)
+        GL.glTranslatef(self.posX, self.posY, self.posZ)
+        GL.glScalef(self.scale, self.scale, self.scale)
         for shape in self.shapes.selected_iter():
             if not shape.disabled:
                 self.setColor(GLWidget.COLOR_STMOVE)
-                self.gl.glCallList(shape.drawStMove)
+                GL.glCallList(shape.drawStMove)
                 self.setColor(GLWidget.COLOR_SELECT)
-                self.gl.glCallList(shape.drawObject)
+                GL.glCallList(shape.drawObject)
             elif self.showDisabledPaths:
                 self.setColor(GLWidget.COLOR_SELECT_DISABLED)
-                self.gl.glCallList(shape.drawObject)
+                GL.glCallList(shape.drawObject)
         for shape in self.shapes.not_selected_iter():
             if not shape.disabled:
                 if shape.parentLayer.isBreakLayer():
@@ -340,31 +358,31 @@ class GLWidget(CanvasBase):
                     self.setColor(GLWidget.COLOR_RIGHT)
                 else:
                     self.setColor(GLWidget.COLOR_NORMAL)
-                self.gl.glCallList(shape.drawObject)
+                GL.glCallList(shape.drawObject)
                 if self.showPathDirections:
                     self.setColor(GLWidget.COLOR_STMOVE)
-                    self.gl.glCallList(shape.drawStMove)
+                    GL.glCallList(shape.drawStMove)
             elif self.showDisabledPaths:
                 self.setColor(GLWidget.COLOR_NORMAL_DISABLED)
-                self.gl.glCallList(shape.drawObject)
+                GL.glCallList(shape.drawObject)
 
         # optimization route arrows
         self.setColor(GLWidget.COLOR_ROUTE)
-        self.gl.glBegin(self.gl.GL_LINES)
+        GL.glBegin(GL.GL_LINES)
         for route in self.routearrows:
             start = route[0]
             end = route[1]
-            self.gl.glVertex3f(start.x, -start.y, start.z)
-            self.gl.glVertex3f(end.x, -end.y, end.z)
-        self.gl.glEnd()
+            GL.glVertex3f(start.x, -start.y, start.z)
+            GL.glVertex3f(end.x, -end.y, end.z)
+        GL.glEnd()
 
-        self.gl.glScalef(self.scaleCorr / self.scale, self.scaleCorr / self.scale, self.scaleCorr / self.scale)
+        GL.glScalef(self.scaleCorr / self.scale, self.scaleCorr / self.scale, self.scaleCorr / self.scale)
         scaleArrow = self.scale / self.scaleCorr
         for route in self.routearrows:
             end = scaleArrow * route[1]
-            self.gl.glTranslatef(end.x, -end.y, end.z)
-            self.gl.glCallList(route[2])
-            self.gl.glTranslatef(-end.x, end.y, -end.z)
+            GL.glTranslatef(end.x, -end.y, end.z)
+            GL.glCallList(route[2])
+            GL.glTranslatef(-end.x, end.y, -end.z)
 
         # direction arrows
         for shape in self.shapes:
@@ -373,54 +391,54 @@ class GLWidget(CanvasBase):
                 start, end = shape.get_start_end_points_physical()
                 start = scaleArrow * start.to3D(shape.axis3_start_mill_depth)
                 end = scaleArrow * end.to3D(shape.axis3_mill_depth)
-                self.gl.glTranslatef(start.x, -start.y, start.z)
-                self.gl.glCallList(shape.drawArrowsDirection[0])
-                self.gl.glTranslatef(-start.x, start.y, -start.z)
-                self.gl.glTranslatef(end.x, -end.y, end.z)
-                self.gl.glCallList(shape.drawArrowsDirection[1])
-                self.gl.glTranslatef(-end.x, end.y, -end.z)
+                GL.glTranslatef(start.x, -start.y, start.z)
+                GL.glCallList(shape.drawArrowsDirection[0])
+                GL.glTranslatef(-start.x, start.y, -start.z)
+                GL.glTranslatef(end.x, -end.y, end.z)
+                GL.glCallList(shape.drawArrowsDirection[1])
+                GL.glTranslatef(-end.x, end.y, -end.z)
 
-        self.gl.glCallList(self.wpZero)
-        self.gl.glTranslatef(-self.posX / self.scaleCorr, -self.posY / self.scaleCorr, -self.posZ / self.scaleCorr)
-        self.gl.glCallList(self.orientation)
+        if self.wpZero > 0:
+            GL.glCallList(self.wpZero)
+        GL.glTranslatef(-self.posX / self.scaleCorr, -self.posY / self.scaleCorr, -self.posZ / self.scaleCorr)
+        GL.glCallList(self.orientation)
 
     def resizeGL(self, width, height):
-        self.gl.glViewport(0, 0, width, height)
+        GL.glViewport(0, 0, width, height)
         side = min(width, height)
-        self.gl.glMatrixMode(self.gl.GL_PROJECTION)
-        self.gl.glLoadIdentity()
+        GL.glMatrixMode(GL.GL_PROJECTION)
+        GL.glLoadIdentity()
         if width >= height:
             scale_x = width / height
-            self.gl.glOrtho(GLWidget.CAM_LEFT_X * scale_x, GLWidget.CAM_RIGHT_X * scale_x,
+            GL.glOrtho(GLWidget.CAM_LEFT_X * scale_x, GLWidget.CAM_RIGHT_X * scale_x,
                             GLWidget.CAM_BOTTOM_Y, GLWidget.CAM_TOP_Y,
                             GLWidget.CAM_NEAR_Z, GLWidget.CAM_FAR_Z)
         else:
             scale_y = height / width
-            self.gl.glOrtho(GLWidget.CAM_LEFT_X, GLWidget.CAM_RIGHT_X,
+            GL.glOrtho(GLWidget.CAM_LEFT_X, GLWidget.CAM_RIGHT_X,
                             GLWidget.CAM_BOTTOM_Y * scale_y, GLWidget.CAM_TOP_Y * scale_y,
                             GLWidget.CAM_NEAR_Z, GLWidget.CAM_FAR_Z)
         self.scaleCorr = 400 / side
-        self.gl.glMatrixMode(self.gl.GL_MODELVIEW)
+        GL.glMatrixMode(GL.GL_MODELVIEW)
 
     def setClearColor(self, c):
-        self.gl.glClearColor(c.redF(), c.greenF(), c.blueF(), c.alphaF())
+        GL.glClearColor(c.redF(), c.greenF(), c.blueF(), c.alphaF())
 
     def setColor(self, c):
         self.setColorRGBA(c.redF(), c.greenF(), c.blueF(), c.alphaF())
 
     def setColorRGBA(self, r, g, b, a):
-        # self.gl.glMaterialfv(self.gl.GL_FRONT, self.gl.GL_DIFFUSE, (r, g, b, a))
-        self.gl.glColor4f(r, g, b, a)
+        # GL.glMaterialfv(GL.GL_FRONT, GL.GL_DIFFUSE, (r, g, b, a))
+        GL.glColor4f(r, g, b, a)
 
     def plotAll(self, shapes):
         for shape in shapes:
             self.paint_shape(shape)
             self.shapes.append(shape)
         self.drawWpZero()
-        self.drawOrientationArrows()
 
     def repaint_shape(self, shape):
-        self.gl.glDeleteLists(shape.drawObject, 4)
+        GL.glDeleteLists(shape.drawObject, 4)
         self.paint_shape(shape)
 
     def paint_shape(self, shape):
@@ -430,14 +448,14 @@ class GLWidget(CanvasBase):
         shape.drawArrowsDirection = self.makeDirArrows(shape)  # 2 objects
 
     def makeShape(self, shape):
-        genList = self.gl.glGenLists(1)
-        self.gl.glNewList(genList, self.gl.GL_COMPILE)
+        genList = GL.glGenLists(1)
+        GL.glNewList(genList, GL.GL_COMPILE)
 
-        self.gl.glBegin(self.gl.GL_LINES)
+        GL.glBegin(GL.GL_LINES)
         shape.make_path(self.drawHorLine, self.drawVerLine)
-        self.gl.glEnd()
+        GL.glEnd()
 
-        self.gl.glEndList()
+        GL.glEndList()
 
         self.topLeft.detTopLeft(shape.topLeft)
         self.bottomRight.detBottomRight(shape.bottomRight)
@@ -445,26 +463,26 @@ class GLWidget(CanvasBase):
         return genList
 
     def makeStMove(self, stmove):
-        genList = self.gl.glGenLists(1)
-        self.gl.glNewList(genList, self.gl.GL_COMPILE)
+        genList = GL.glGenLists(1)
+        GL.glNewList(genList, GL.GL_COMPILE)
 
-        self.gl.glBegin(self.gl.GL_LINES)
+        GL.glBegin(GL.GL_LINES)
         stmove.make_path(self.drawHorLine, self.drawVerLine)
-        self.gl.glEnd()
+        GL.glEnd()
 
-        self.gl.glEndList()
+        GL.glEndList()
 
         return genList
 
     def drawHorLine(self, caller, Ps, Pe):
-        self.gl.glVertex3f(Ps.x, -Ps.y, caller.axis3_start_mill_depth)
-        self.gl.glVertex3f(Pe.x, -Pe.y, caller.axis3_start_mill_depth)
-        self.gl.glVertex3f(Ps.x, -Ps.y, caller.axis3_mill_depth)
-        self.gl.glVertex3f(Pe.x, -Pe.y, caller.axis3_mill_depth)
+        GL.glVertex3f(Ps.x, -Ps.y, caller.axis3_start_mill_depth)
+        GL.glVertex3f(Pe.x, -Pe.y, caller.axis3_start_mill_depth)
+        GL.glVertex3f(Ps.x, -Ps.y, caller.axis3_mill_depth)
+        GL.glVertex3f(Pe.x, -Pe.y, caller.axis3_mill_depth)
 
     def drawVerLine(self, caller, Ps):
-        self.gl.glVertex3f(Ps.x, -Ps.y, caller.axis3_start_mill_depth)
-        self.gl.glVertex3f(Ps.x, -Ps.y, caller.axis3_mill_depth)
+        GL.glVertex3f(Ps.x, -Ps.y, caller.axis3_start_mill_depth)
+        GL.glVertex3f(Ps.x, -Ps.y, caller.axis3_mill_depth)
 
     def drawOrientationArrows(self):
 
@@ -475,66 +493,66 @@ class GLWidget(CanvasBase):
         zBottom = -0.03
         segments = 20
 
-        arrow = self.gl.glGenLists(1)
-        self.gl.glNewList(arrow, self.gl.GL_COMPILE)
+        arrow = GL.glGenLists(1)
+        GL.glNewList(arrow, GL.GL_COMPILE)
 
         self.drawCone(Point(), rCone, zTop, zMiddle, segments)
         self.drawSolidCircle(Point(), rCone, zMiddle, segments)
         self.drawCylinder(Point(), rCylinder, zMiddle, zBottom, segments)
         self.drawSolidCircle(Point(), rCylinder, zBottom, segments)
 
-        self.gl.glEndList()
+        GL.glEndList()
 
-        self.orientation = self.gl.glGenLists(1)
-        self.gl.glNewList(self.orientation, self.gl.GL_COMPILE)
+        self.orientation = GL.glGenLists(1)
+        GL.glNewList(self.orientation, GL.GL_COMPILE)
 
         self.setColorRGBA(0.0, 0.0, 1.0, 0.5)
-        self.gl.glCallList(arrow)
+        GL.glCallList(arrow)
 
-        self.gl.glRotatef(90, 0, 1, 0)
+        GL.glRotatef(90, 0, 1, 0)
         self.setColorRGBA(1.0, 0.0, 0.0, 0.5)
-        self.gl.glCallList(arrow)
+        GL.glCallList(arrow)
 
-        self.gl.glRotatef(90, 1, 0, 0)
+        GL.glRotatef(90, 1, 0, 0)
         self.setColorRGBA(0.0, 1.0, 0.0, 0.5)
-        self.gl.glCallList(arrow)
+        GL.glCallList(arrow)
 
-        self.gl.glEndList()
+        GL.glEndList()
 
     def drawWpZero(self):
 
         r = 0.02
         segments = 20  # must be a multiple of 4
 
-        self.wpZero = self.gl.glGenLists(1)
-        self.gl.glNewList(self.wpZero, self.gl.GL_COMPILE)
+        self.wpZero = GL.glGenLists(1)
+        GL.glNewList(self.wpZero, GL.GL_COMPILE)
 
         self.setColorRGBA(0.2, 0.2, 0.2, 0.7)
         self.drawSphere(r, segments, segments // 4, segments, segments // 4)
 
-        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
-        self.gl.glVertex3f(0, 0, 0)
+        GL.glBegin(GL.GL_TRIANGLE_FAN)
+        GL.glVertex3f(0, 0, 0)
         for i in range(segments // 4 + 1):
             ang = -i * 2 * pi / segments
             xy2 = Point().get_arc_point(ang, r)
-            # self.gl.glNormal3f(0, -1, 0)
-            self.gl.glVertex3f(xy2.x, 0, xy2.y)
+            # GL.glNormal3f(0, -1, 0)
+            GL.glVertex3f(xy2.x, 0, xy2.y)
         for i in range(segments // 4 + 1):
             ang = -i * 2 * pi / segments
             xy2 = Point().get_arc_point(ang, r)
-            # self.gl.glNormal3f(-1, 0, 0)
-            self.gl.glVertex3f(0, -xy2.y, -xy2.x)
+            # GL.glNormal3f(-1, 0, 0)
+            GL.glVertex3f(0, -xy2.y, -xy2.x)
         for i in range(segments // 4 + 1):
             ang = -i * 2 * pi / segments
             xy2 = Point().get_arc_point(ang, r)
-            # self.gl.glNormal3f(0, 0, 1)
-            self.gl.glVertex3f(-xy2.y, xy2.x, 0)
-        self.gl.glEnd()
+            # GL.glNormal3f(0, 0, 1)
+            GL.glVertex3f(-xy2.y, xy2.x, 0)
+        GL.glEnd()
 
         self.setColorRGBA(0.6, 0.6, 0.6, 0.5)
         self.drawSphere(r * 1.25, segments, segments, segments, segments)
 
-        self.gl.glEndList()
+        GL.glEndList()
 
     def drawSphere(self, r, lats, mlats, longs, mlongs):
         lats //= 2
@@ -546,64 +564,64 @@ class GLWidget(CanvasBase):
             lat1 = pi * (-0.5 + (i + 1) / lats)
             z1 = r * sin(lat1)
             zr1 = r * cos(lat1)
-            self.gl.glBegin(self.gl.GL_QUAD_STRIP)
+            GL.glBegin(GL.GL_QUAD_STRIP)
             for j in range(mlongs + 1):
                 lng = 2 * pi * j / longs
                 x = cos(lng)
                 y = sin(lng)
 
-                self.gl.glNormal3f(x * zr0, y * zr0, z0)
-                self.gl.glVertex3f(x * zr0, y * zr0, z0)
-                self.gl.glNormal3f(x * zr1, y * zr1, z1)
-                self.gl.glVertex3f(x * zr1, y * zr1, z1)
-            self.gl.glEnd()
+                GL.glNormal3f(x * zr0, y * zr0, z0)
+                GL.glVertex3f(x * zr0, y * zr0, z0)
+                GL.glNormal3f(x * zr1, y * zr1, z1)
+                GL.glVertex3f(x * zr1, y * zr1, z1)
+            GL.glEnd()
 
     def drawSolidCircle(self, origin, r, z, segments):
-        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
-        # self.gl.glNormal3f(0, 0, -1)
-        self.gl.glVertex3f(origin.x, -origin.y, z)
+        GL.glBegin(GL.GL_TRIANGLE_FAN)
+        # GL.glNormal3f(0, 0, -1)
+        GL.glVertex3f(origin.x, -origin.y, z)
         for i in range(segments + 1):
             ang = -i * 2 * pi / segments
             xy2 = origin.get_arc_point(ang, r)
-            self.gl.glVertex3f(xy2.x, -xy2.y, z)
-        self.gl.glEnd()
+            GL.glVertex3f(xy2.x, -xy2.y, z)
+        GL.glEnd()
 
     def drawCone(self, origin, r, zTop, zBottom, segments):
-        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
-        self.gl.glVertex3f(origin.x, -origin.y, zTop)
+        GL.glBegin(GL.GL_TRIANGLE_FAN)
+        GL.glVertex3f(origin.x, -origin.y, zTop)
         for i in range(segments + 1):
             ang = i * 2 * pi / segments
             xy2 = origin.get_arc_point(ang, r)
 
-            # self.gl.glNormal3f(xy2.x, -xy2.y, zBottom)
-            self.gl.glVertex3f(xy2.x, -xy2.y, zBottom)
-        self.gl.glEnd()
+            # GL.glNormal3f(xy2.x, -xy2.y, zBottom)
+            GL.glVertex3f(xy2.x, -xy2.y, zBottom)
+        GL.glEnd()
 
     def drawCylinder(self, origin, r, zTop, zBottom, segments):
-        self.gl.glBegin(self.gl.GL_QUAD_STRIP)
+        GL.glBegin(GL.GL_QUAD_STRIP)
         for i in range(segments + 1):
             ang = i * 2 * pi / segments
             xy = origin.get_arc_point(ang, r)
 
-            # self.gl.glNormal3f(xy.x, -xy.y, 0)
-            self.gl.glVertex3f(xy.x, -xy.y, zTop)
-            self.gl.glVertex3f(xy.x, -xy.y, zBottom)
-        self.gl.glEnd()
+            # GL.glNormal3f(xy.x, -xy.y, 0)
+            GL.glVertex3f(xy.x, -xy.y, zTop)
+            GL.glVertex3f(xy.x, -xy.y, zBottom)
+        GL.glEnd()
 
     def makeDirArrows(self, shape):
         (start, start_dir), (end, end_dir) = shape.get_start_end_points_physical(None, False)
 
-        startArrow = self.gl.glGenLists(1)
-        self.gl.glNewList(startArrow, self.gl.GL_COMPILE)
+        startArrow = GL.glGenLists(1)
+        GL.glNewList(startArrow, GL.GL_COMPILE)
         self.setColor(GLWidget.COLOR_ENTRY_ARROW)
         self.drawDirArrow(Point3D(), start_dir.to3D(), True)
-        self.gl.glEndList()
+        GL.glEndList()
 
-        endArrow = self.gl.glGenLists(1)
-        self.gl.glNewList(endArrow, self.gl.GL_COMPILE)
+        endArrow = GL.glGenLists(1)
+        GL.glNewList(endArrow, GL.GL_COMPILE)
         self.setColor(GLWidget.COLOR_EXIT_ARROW)
         self.drawDirArrow(Point3D(), end_dir.to3D(), False)
-        self.gl.glEndList()
+        GL.glEndList()
 
         return startArrow, endArrow
 
@@ -615,12 +633,12 @@ class GLWidget(CanvasBase):
 
         self.drawArrowHead(origin, rx, ry, rz, offset)
 
-        self.gl.glBegin(self.gl.GL_LINES)
+        GL.glBegin(GL.GL_LINES)
         zeroMiddle = Point3D(0, 0, zMiddle)
-        self.gl.glVertex3f(zeroMiddle * rx + origin.x, -zeroMiddle * ry - origin.y, zeroMiddle * rz + origin.z)
+        GL.glVertex3f(zeroMiddle * rx + origin.x, -zeroMiddle * ry - origin.y, zeroMiddle * rz + origin.z)
         zeroBottom = Point3D(0, 0, zBottom)
-        self.gl.glVertex3f(zeroBottom * rx + origin.x, -zeroBottom * ry - origin.y, zeroBottom * rz + origin.z)
-        self.gl.glEnd()
+        GL.glVertex3f(zeroBottom * rx + origin.x, -zeroBottom * ry - origin.y, zeroBottom * rz + origin.z)
+        GL.glEnd()
 
     def makeRouteArrowHead(self, start, end):
         if end == start:
@@ -629,10 +647,10 @@ class GLWidget(CanvasBase):
             direction = (end - start).unit_vector()
         rx, ry, rz = self.getRotationVectors(Point3D(0, 0, 1), direction)
 
-        head = self.gl.glGenLists(1)
-        self.gl.glNewList(head, self.gl.GL_COMPILE)
+        head = GL.glGenLists(1)
+        GL.glNewList(head, GL.GL_COMPILE)
         self.drawArrowHead(Point3D(), rx, ry, rz, 0)
-        self.gl.glEndList()
+        GL.glEndList()
         return head
 
     def drawArrowHead(self, origin, rx, ry, rz, offset):
@@ -641,23 +659,23 @@ class GLWidget(CanvasBase):
         zTop = 0 + offset
         zBottom = -0.02 + offset
 
-        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
+        GL.glBegin(GL.GL_TRIANGLE_FAN)
         zeroTop = Point3D(0, 0, zTop)
-        self.gl.glVertex3f(zeroTop * rx + origin.x, -zeroTop * ry - origin.y, zeroTop * rz + origin.z)
+        GL.glVertex3f(zeroTop * rx + origin.x, -zeroTop * ry - origin.y, zeroTop * rz + origin.z)
         for i in range(segments + 1):
             ang = i * 2 * pi / segments
             xy2 = Point().get_arc_point(ang, r).to3D(zBottom)
-            self.gl.glVertex3f(xy2 * rx + origin.x, -xy2 * ry - origin.y, xy2 * rz + origin.z)
-        self.gl.glEnd()
+            GL.glVertex3f(xy2 * rx + origin.x, -xy2 * ry - origin.y, xy2 * rz + origin.z)
+        GL.glEnd()
 
-        self.gl.glBegin(self.gl.GL_TRIANGLE_FAN)
+        GL.glBegin(GL.GL_TRIANGLE_FAN)
         zeroBottom = Point3D(0, 0, zBottom)
-        self.gl.glVertex3f(zeroBottom * rx + origin.x, -zeroBottom * ry - origin.y, zeroBottom * rz + origin.z)
+        GL.glVertex3f(zeroBottom * rx + origin.x, -zeroBottom * ry - origin.y, zeroBottom * rz + origin.z)
         for i in range(segments + 1):
             ang = -i * 2 * pi / segments
             xy2 = Point().get_arc_point(ang, r).to3D(zBottom)
-            self.gl.glVertex3f(xy2 * rx + origin.x, -xy2 * ry - origin.y, xy2 * rz + origin.z)
-        self.gl.glEnd()
+            GL.glVertex3f(xy2 * rx + origin.x, -xy2 * ry - origin.y, xy2 * rz + origin.z)
+        GL.glEnd()
 
     def setShowPathDirections(self, flag):
         self.showPathDirections = flag

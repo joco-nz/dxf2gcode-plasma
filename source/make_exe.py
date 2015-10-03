@@ -8,7 +8,7 @@ import subprocess
 PYTHONPATH = os.path.split(sys.executable)[0]
 pyinpfad = os.path.join(PYTHONPATH, "Scripts\\pyinstaller-script.py")
 
-pyt = os.path.join(PYTHONPATH, "pythonw.exe")
+pyt = os.path.join(PYTHONPATH, "python.exe")
 filepfad = os.path.realpath(os.path.dirname(sys.argv[0]))
 exemakepfad = filepfad
 file_ = "dxf2gcode"
