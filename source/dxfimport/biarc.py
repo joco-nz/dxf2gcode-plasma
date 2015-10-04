@@ -64,10 +64,10 @@ class BiarcClass(object):
         # Calculate the angle, length and shape
         norm_angle, self.l = self.calc_normal(self.Ps, self.Pb)
 
-        alpha, beta, self.theta, self.shape = self.calc_diff_angles(norm_angle, \
-                                                              self.tan_a, \
-                                                              self.tan_b, \
-                                                              min_alpha)
+        alpha, beta, self.theta, self.shape = self.calc_diff_angles(norm_angle,
+                                                                    self.tan_a,
+                                                                    self.tan_b,
+                                                                    min_alpha)
 
         if self.l < min_len:
             self.shape = "Zero"
@@ -75,23 +75,22 @@ class BiarcClass(object):
         elif self.shape == "LineGeo":
             # Erstellen der Geometrie
             # Create the geometry
-            self.shape = "LineGeo"
             self.geos.append(LineGeo(self.Ps, self.Pb))
         else:
             # Berechnen der Radien, Mittelpunkte, Zwichenpunkt
             # Calculate the radii, midpoints Zwichenpunkt
             r1, r2 = self.calc_r1_r2(self.l, alpha, beta, self.theta)
 
-            if (abs(r1) > max_r)or(abs(r2) > max_r):
+            if abs(r1) > max_r or abs(r2) > max_r:
                 # Erstellen der Geometrie
                 # Create the geometry
                 self.shape = "LineGeo"
                 self.geos.append(LineGeo(self.Ps, self.Pb))
                 return
 
-            elif (abs(r1) < min_r)or(abs(r2) < min_r):
-                self.shape = "Zero"
-                return
+#             elif abs(r1) < min_r or abs(r2) < min_r:
+#                 self.shape = "Zero"
+#                 return
 
             O1, O2, k = self.calc_O1_O2_k(r1, r2, self.tan_a, self.theta)
 
