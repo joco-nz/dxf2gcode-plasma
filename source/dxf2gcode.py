@@ -270,13 +270,14 @@ class MainWindow(QMainWindow):
         """
         Deletes the optimisation paths from the scene.
         """
-        self.canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.setCursor(QtCore.Qt.WaitCursor)
+        self.app.processEvents()
 
         self.canvas_scene.delete_opt_paths()
         self.ui.actionDeleteG0Paths.setEnabled(False)
         self.canvas_scene.update()
 
-        self.canvas.unsetCursor()
+        self.unsetCursor()
 
     def exportShapes(self, status=False, saveas=None):
         """
@@ -285,7 +286,8 @@ class MainWindow(QMainWindow):
         possible to select multiple postprocessor files, which are located
         in the folder.
         """
-        self.canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.setCursor(QtCore.Qt.WaitCursor)
+        self.app.processEvents()
 
         logger.debug(self.tr('Export the enabled shapes'))
 
@@ -314,7 +316,7 @@ class MainWindow(QMainWindow):
 
             # If Cancel was pressed
             if not save_filename:
-                self.canvas.unsetCursor()
+                self.unsetCursor()
                 return
 
             (beg, ende) = os.path.split(save_filename)
@@ -345,7 +347,7 @@ class MainWindow(QMainWindow):
                                           save_filename,
                                           self.layerContents)
 
-        self.canvas.unsetCursor()
+        self.unsetCursor()
 
         if g.config.vars.General['write_to_stdout']:
             self.close()
@@ -377,7 +379,8 @@ class MainWindow(QMainWindow):
         Method is called to optimize the order of the shapes. This is performed
         by solving the TSP Problem.
         """
-        self.canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.setCursor(QtCore.Qt.WaitCursor)
+        self.app.processEvents()
 
         logger.debug(self.tr('Optimize order of enabled shapes per layer'))
         self.canvas_scene.delete_opt_paths()
@@ -447,7 +450,7 @@ class MainWindow(QMainWindow):
         self.TreeHandler.updateTreeViewOrder()
         self.canvas_scene.update()
 
-        self.canvas.unsetCursor()
+        self.unsetCursor()
 
     def automaticCutterCompensation(self):
         if self.ui.actionAutomaticCutterCompensation.isEnabled() and\
@@ -712,9 +715,10 @@ class MainWindow(QMainWindow):
             if not self.filename:
                 return False  # cancelled
 
-        self.canvas.setCursor(QtCore.Qt.WaitCursor)
+        self.setCursor(QtCore.Qt.WaitCursor)
         self.setWindowTitle("DXF2GCODE - [%s]" % self.filename)
         self.canvas.resetAll()
+        self.app.processEvents()
 
         (name, ext) = os.path.splitext(self.filename)
 
@@ -737,7 +741,7 @@ class MainWindow(QMainWindow):
                 subprocess.call(cmd)
             except FileNotFoundError as e:
                 logger.error(e.strerror)
-                self.canvas.unsetCursor()
+                self.unsetCursor()
                 QMessageBox.critical(self,
                                      "ERROR",
                                      self.tr("Please make sure you have installed pstoedit, and configured it in the config file."))
@@ -806,7 +810,7 @@ class MainWindow(QMainWindow):
 
         self.automaticCutterCompensation()
 
-        self.canvas.unsetCursor()
+        self.unsetCursor()
 
     def reload(self):
         """

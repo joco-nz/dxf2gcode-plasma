@@ -6,7 +6,7 @@ import shutil
 from cx_Freeze import setup, Executable
 
 
-version = "3.10.2015"
+version = "4.10.2015"
 
 base = 'Console'
 if sys.platform == 'win32':
@@ -55,7 +55,7 @@ executables = [
 
 setup(name='DXF2GCODE',
       version=version,
-      description='PySide port of the opengl/hellogl example from Qt v4.x',
+      description='Converting 2D drawings to CNC machine compatible G-Code.',
       options=options,
       executables=executables
       )

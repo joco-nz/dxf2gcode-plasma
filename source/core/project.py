@@ -160,7 +160,7 @@ d2g.layers = ''' + str(layers)
 
             self.parent.connectToolbarToConfig(True)
             if not self.parent.load(False):
-                self.parent.canvas.unsetCursor()
+                self.parent.unsetCursor()
                 return
 
         name_layers = dict((layer.name, layer) for layer in self.parent.layerContents)
@@ -216,8 +216,9 @@ d2g.layers = ''' + str(layers)
 
     def reload(self, compleet=True):
         if self.parent.filename:
-            self.parent.canvas.setCursor(QtCore.Qt.WaitCursor)
+            self.parent.setCursor(QtCore.Qt.WaitCursor)
             self.parent.canvas.resetAll()
+            self.parent.app.processEvents()
             pyCode = self.export()
             self.parent.makeShapes()
             self.load(pyCode, compleet)
