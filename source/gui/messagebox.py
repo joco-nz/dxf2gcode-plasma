@@ -26,12 +26,14 @@
 Special purpose canvas including all required plotting function etc.
 """
 
+from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QTextBrowser
+    from PyQt5 import QtCore
 else:
     from PyQt4.QtGui import QTextBrowser
-
+    from PyQt4 import QtCore
 
 class MessageBox(QTextBrowser):
     """
@@ -53,6 +55,15 @@ class MessageBox(QTextBrowser):
         self.append(self.tr("Version %s (%s)") % (c.VERSION, c.DATE))
         self.append(self.tr("For more information and updates visit:"))
         self.append("<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a>")
+
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return text_type(QtCore.QCoreApplication.translate('MessageBox',
+                                                           string_to_translate))
 
     def write(self, string):
         """

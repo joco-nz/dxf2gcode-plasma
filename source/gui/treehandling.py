@@ -49,7 +49,7 @@ from core.entitycontent import EntityContent
 from core.customgcode import CustomGCode
 from gui.treeview import MyStandardItemModel
 
-
+from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QAction, QMenu, QWidget, QAbstractItemView, QTreeView
@@ -195,6 +195,15 @@ class TreeHandler(QWidget):
         self.ui.unitLabel_2.hide()
         self.ui.startAtXLineEdit.hide()
         self.ui.startAtYLineEdit.hide()
+
+    def tr(self, string_to_translate):
+        """
+        Translate a string using the QCoreApplication translation framework
+        @param: string_to_translate: a unicode string
+        @return: the translated unicode string if it was possible to translate
+        """
+        return text_type(QtCore.QCoreApplication.translate('TreeHandler',
+                                                           string_to_translate))
 
     def displayContextMenu(self, position):
         """

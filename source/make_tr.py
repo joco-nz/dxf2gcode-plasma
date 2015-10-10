@@ -15,6 +15,7 @@ LREPATH = os.path.join(PYTHONPATH, "Lib\\site-packages\\PyQt4\\lrelease.exe")
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
 
 FILES = ("..\\core\\arcgeo.py",
+         "..\\core\\project.py",
          "..\\core\\shape.py",
          "..\\dxfimport\\geoent_arc.py",
          "..\\dxfimport\\geoent_circle.py",
@@ -23,6 +24,7 @@ FILES = ("..\\core\\arcgeo.py",
          "..\\globals\\config.py",
          "..\\gui\\canvas.py",
          "..\\gui\\canvas2d.py",
+         "..\\gui\\canvas3d.py",
          "..\\gui\\messagebox.py",
          "..\\gui\\popupdialog.py",
          "..\\gui\\treehandling.py",
@@ -36,7 +38,7 @@ FILES = ("..\\core\\arcgeo.py",
 
 TSFILES = ("dxf2gcode_de_DE.ts",
            "dxf2gcode_fr.ts",
-	   "dxf2gcode_ru.ts")
+           "dxf2gcode_ru.ts")
 
 FILESSTR = ""
 for FILE in FILES:

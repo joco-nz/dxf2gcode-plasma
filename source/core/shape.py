@@ -105,7 +105,7 @@ class Shape(object):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate("ShapeClass",
+        return text_type(QtCore.QCoreApplication.translate("Shape",
                                                            string_to_translate))
 
     def setSelected(self, flag=False):
