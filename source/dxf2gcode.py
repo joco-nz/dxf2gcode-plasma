@@ -457,27 +457,33 @@ class MainWindow(QMainWindow):
            self.ui.actionAutomaticCutterCompensation.isChecked():
             for layerContent in self.layerContents.non_break_layer_iter():
                 if layerContent.automaticCutterCompensationEnabled():
+                    new_shapes = []
                     outside_compensation = True
                     shapes_left = layerContent.shapes
                     while len(shapes_left) > 0:
                         shapes_left = [shape for shape in shapes_left
-                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation)]
+                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation, new_shapes)]
                         outside_compensation = not outside_compensation
+                    layerContent.shapes = list(reversed(new_shapes))
+        self.TreeHandler.updateTreeViewOrder()
         self.canvas_scene.update()
 
-    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation):
+    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation, new_shapes):
         for otherShape in shapes_left:
-            if shape != otherShape:
-                if shape != otherShape and\
-                   otherShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < otherShape.bottomRight.x and\
-                   otherShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < otherShape.topLeft.y:
-                    return False
+            if self.isShapeContained(shape, otherShape):
+                return False
         if outside_compensation == shape.cw:
             shape.cut_cor = 41
         else:
             shape.cut_cor = 42
         self.canvas_scene.repaint_shape(shape)
+        new_shapes.append(shape)
         return True
+
+    def isShapeContained(self, shape, outerShape):
+        return shape != outerShape and\
+            outerShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < outerShape.bottomRight.x and\
+            outerShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < outerShape.topLeft.y
 
     def showSaveDialog(self, title, MyFormats):
         """
@@ -783,6 +789,8 @@ class MainWindow(QMainWindow):
         self.makeShapes()
         if plot:
             self.plot()
+        self.TreeHandler.buildEntitiesTree(self.entityRoot)
+        self.TreeHandler.buildLayerTree(self.layerContents)
         return True
 
     def plot(self):
