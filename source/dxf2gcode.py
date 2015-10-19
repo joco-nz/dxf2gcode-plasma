@@ -40,6 +40,7 @@ import tempfile
 from core.point import Point
 from core.layercontent import LayerContent, Layers, Shapes
 from core.entitycontent import EntityContent
+from core.customgcode import CustomGCode
 from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
 from core.project import Project
@@ -457,31 +458,32 @@ class MainWindow(QMainWindow):
            self.ui.actionAutomaticCutterCompensation.isChecked():
             for layerContent in self.layerContents.non_break_layer_iter():
                 if layerContent.automaticCutterCompensationEnabled():
-                    new_shapes = []
+                    new_exp_order = []
                     outside_compensation = True
                     shapes_left = layerContent.shapes
                     while len(shapes_left) > 0:
                         shapes_left = [shape for shape in shapes_left
-                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation, new_shapes)]
+                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation, new_exp_order)]
                         outside_compensation = not outside_compensation
-                    layerContent.shapes = list(reversed(new_shapes))
+                    layerContent.exp_order = list(reversed(new_exp_order))
         self.TreeHandler.updateTreeViewOrder()
         self.canvas_scene.update()
 
-    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation, new_shapes):
-        for otherShape in shapes_left:
-            if self.isShapeContained(shape, otherShape):
-                return False
-        if outside_compensation == shape.cw:
-            shape.cut_cor = 41
-        else:
-            shape.cut_cor = 42
-        self.canvas_scene.repaint_shape(shape)
-        new_shapes.append(shape)
+    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation, new_exp_order):
+        if not isinstance(shape, CustomGCode):
+            for outerShape in shapes_left:
+                if self.isShapeContained(shape, outerShape):
+                    return False
+            if outside_compensation == shape.cw:
+                shape.cut_cor = 41
+            else:
+                shape.cut_cor = 42
+            self.canvas_scene.repaint_shape(shape)
+        new_exp_order.append(shape.nr)
         return True
 
     def isShapeContained(self, shape, outerShape):
-        return shape != outerShape and\
+        return shape != outerShape and not isinstance(outerShape, CustomGCode) and\
             outerShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < outerShape.bottomRight.x and\
             outerShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < outerShape.topLeft.y
 
@@ -789,8 +791,6 @@ class MainWindow(QMainWindow):
         self.makeShapes()
         if plot:
             self.plot()
-        self.TreeHandler.buildEntitiesTree(self.entityRoot)
-        self.TreeHandler.buildLayerTree(self.layerContents)
         return True
 
     def plot(self):
