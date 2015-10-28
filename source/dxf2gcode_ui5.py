@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'C:\Users\JEANPA~1\AppData\Local\Temp\tmpzvnoz3w7'
+# Form implementation generated from reading ui file '/tmp/tmpH4oJD5'
 #
-# Created by: PyQt5 UI code generator 5.4.1
+# Created by: PyQt5 UI code generator 5.5
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -19,8 +19,8 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setSpacing(6)
         self.verticalLayout.setContentsMargins(-1, -1, -1, 2)
+        self.verticalLayout.setSpacing(6)
         self.verticalLayout.setObjectName("verticalLayout")
         self.splitter = QtWidgets.QSplitter(self.centralwidget)
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -81,8 +81,8 @@ class Ui_MainWindow(object):
         self.tab_2 = QtWidgets.QWidget()
         self.tab_2.setObjectName("tab_2")
         self.verticalLayout_5 = QtWidgets.QVBoxLayout(self.tab_2)
-        self.verticalLayout_5.setSpacing(1)
         self.verticalLayout_5.setContentsMargins(5, 5, 5, 5)
+        self.verticalLayout_5.setSpacing(1)
         self.verticalLayout_5.setObjectName("verticalLayout_5")
         self.horizontalLayout_4 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_4.setSpacing(1)
@@ -148,8 +148,8 @@ class Ui_MainWindow(object):
         self.millSettingsFrame.setLineWidth(0)
         self.millSettingsFrame.setObjectName("millSettingsFrame")
         self.verticalLayout_4 = QtWidgets.QVBoxLayout(self.millSettingsFrame)
-        self.verticalLayout_4.setSpacing(0)
         self.verticalLayout_4.setContentsMargins(2, 2, 2, 2)
+        self.verticalLayout_4.setSpacing(0)
         self.verticalLayout_4.setObjectName("verticalLayout_4")
         self.horizontalLayout_3 = QtWidgets.QHBoxLayout()
         self.horizontalLayout_3.setSpacing(2)
@@ -238,8 +238,8 @@ class Ui_MainWindow(object):
         self.zInitialMillDepthLineEdit.setObjectName("zInitialMillDepthLineEdit")
         self.gridLayout.addWidget(self.zInitialMillDepthLineEdit, 4, 1, 1, 1)
         self.horizontalLayout_13 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_13.setSpacing(2)
         self.horizontalLayout_13.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_13.setSpacing(2)
         self.horizontalLayout_13.setObjectName("horizontalLayout_13")
         self.label_7 = QtWidgets.QLabel(self.millSettingsFrame)
         self.label_7.setWordWrap(True)
@@ -252,8 +252,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_13.addWidget(self.unitLabel_8)
         self.gridLayout.addLayout(self.horizontalLayout_13, 7, 0, 1, 1)
         self.horizontalLayout_12 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_12.setSpacing(2)
         self.horizontalLayout_12.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_12.setSpacing(2)
         self.horizontalLayout_12.setObjectName("horizontalLayout_12")
         self.label_8 = QtWidgets.QLabel(self.millSettingsFrame)
         self.label_8.setObjectName("label_8")
@@ -273,8 +273,8 @@ class Ui_MainWindow(object):
         self.zInfeedDepthLineEdit.setObjectName("zInfeedDepthLineEdit")
         self.gridLayout.addWidget(self.zInfeedDepthLineEdit, 5, 1, 1, 1)
         self.horizontalLayout_11 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_11.setSpacing(2)
         self.horizontalLayout_11.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_11.setSpacing(2)
         self.horizontalLayout_11.setObjectName("horizontalLayout_11")
         self.label_9 = QtWidgets.QLabel(self.millSettingsFrame)
         self.label_9.setObjectName("label_9")
@@ -302,8 +302,8 @@ class Ui_MainWindow(object):
         self.zFinalMillDepthLineEdit.setObjectName("zFinalMillDepthLineEdit")
         self.gridLayout.addWidget(self.zFinalMillDepthLineEdit, 6, 1, 1, 1)
         self.horizontalLayout_9 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_9.setSpacing(2)
         self.horizontalLayout_9.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_9.setSpacing(2)
         self.horizontalLayout_9.setObjectName("horizontalLayout_9")
         self.label_5 = QtWidgets.QLabel(self.millSettingsFrame)
         self.label_5.setObjectName("label_5")
@@ -323,8 +323,8 @@ class Ui_MainWindow(object):
         self.zRetractionArealLineEdit.setObjectName("zRetractionArealLineEdit")
         self.gridLayout.addWidget(self.zRetractionArealLineEdit, 2, 1, 1, 1)
         self.horizontalLayout_8 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_8.setSpacing(2)
         self.horizontalLayout_8.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_8.setSpacing(2)
         self.horizontalLayout_8.setObjectName("horizontalLayout_8")
         self.label_6 = QtWidgets.QLabel(self.millSettingsFrame)
         self.label_6.setObjectName("label_6")
@@ -336,8 +336,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_8.addWidget(self.unitLabel_3)
         self.gridLayout.addLayout(self.horizontalLayout_8, 2, 0, 1, 1)
         self.horizontalLayout_10 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_10.setSpacing(2)
         self.horizontalLayout_10.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_10.setSpacing(2)
         self.horizontalLayout_10.setObjectName("horizontalLayout_10")
         self.label_14 = QtWidgets.QLabel(self.millSettingsFrame)
         self.label_14.setObjectName("label_14")
@@ -357,8 +357,8 @@ class Ui_MainWindow(object):
         self.g1FeedZLineEdit.setObjectName("g1FeedZLineEdit")
         self.gridLayout.addWidget(self.g1FeedZLineEdit, 8, 1, 1, 1)
         self.horizontalLayout_6 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_6.setSpacing(2)
         self.horizontalLayout_6.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_6.setSpacing(2)
         self.horizontalLayout_6.setObjectName("horizontalLayout_6")
         self.startAtXLabel = QtWidgets.QLabel(self.millSettingsFrame)
         self.startAtXLabel.setObjectName("startAtXLabel")
@@ -386,8 +386,8 @@ class Ui_MainWindow(object):
         self.g1FeedXYLineEdit.setObjectName("g1FeedXYLineEdit")
         self.gridLayout.addWidget(self.g1FeedXYLineEdit, 7, 1, 1, 1)
         self.horizontalLayout_14 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_14.setSpacing(2)
         self.horizontalLayout_14.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_14.setSpacing(2)
         self.horizontalLayout_14.setObjectName("horizontalLayout_14")
         self.label_10 = QtWidgets.QLabel(self.millSettingsFrame)
         self.label_10.setWordWrap(True)
@@ -400,8 +400,8 @@ class Ui_MainWindow(object):
         self.horizontalLayout_14.addWidget(self.unitLabel_9)
         self.gridLayout.addLayout(self.horizontalLayout_14, 8, 0, 1, 1)
         self.horizontalLayout_7 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_7.setSpacing(2)
         self.horizontalLayout_7.setContentsMargins(0, -1, 0, -1)
+        self.horizontalLayout_7.setSpacing(2)
         self.horizontalLayout_7.setObjectName("horizontalLayout_7")
         self.startAtYLabel = QtWidgets.QLabel(self.millSettingsFrame)
         self.startAtYLabel.setObjectName("startAtYLabel")
@@ -487,6 +487,8 @@ class Ui_MainWindow(object):
         self.actionDeleteG0Paths = QtWidgets.QAction(MainWindow)
         self.actionDeleteG0Paths.setEnabled(False)
         self.actionDeleteG0Paths.setObjectName("actionDeleteG0Paths")
+        self.actionConfiguration = QtWidgets.QAction(MainWindow)
+        self.actionConfiguration.setObjectName("actionConfiguration")
         self.actionTolerances = QtWidgets.QAction(MainWindow)
         self.actionTolerances.setObjectName("actionTolerances")
         self.actionScaleAll = QtWidgets.QAction(MainWindow)
@@ -562,6 +564,8 @@ class Ui_MainWindow(object):
         self.menuMachine_Type.addAction(self.actionMilling)
         self.menuMachine_Type.addAction(self.actionLathe)
         self.menuMachine_Type.addAction(self.actionDragKnife)
+        self.menuTolerances.addAction(self.actionConfiguration)
+        self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionTolerances)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionScaleAll)
@@ -648,6 +652,8 @@ class Ui_MainWindow(object):
         self.actionAutoscale.setText(_translate("MainWindow", "Autoscale"))
         self.actionAutoscale.setShortcut(_translate("MainWindow", "Ctrl+V, A"))
         self.actionDeleteG0Paths.setText(_translate("MainWindow", "Delete G0 Paths"))
+        self.actionConfiguration.setText(_translate("MainWindow", "Configuration..."))
+        self.actionConfiguration.setShortcut(_translate("MainWindow", "Ctrl+Shift+C"))
         self.actionTolerances.setText(_translate("MainWindow", "Tolerances"))
         self.actionScaleAll.setText(_translate("MainWindow", "Scale All"))
         self.actionRotateAll.setText(_translate("MainWindow", "Rotate All"))
@@ -676,6 +682,6 @@ class Ui_MainWindow(object):
         self.actionSaveProjectAs.setShortcut(_translate("MainWindow", "Ctrl+S"))
 
 from gui.canvas import Canvas
-from gui.treeview import TreeView
 from gui.messagebox import MessageBox
+from gui.treeview import TreeView
 import dxf2gcode_images5_rc

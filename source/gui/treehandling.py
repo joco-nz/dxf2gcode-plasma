@@ -176,13 +176,13 @@ class TreeHandler(QWidget):
         self.context_menu.addSeparator()
         self.context_menu.addAction(QAction("Remove custom GCode", self, triggered=self.removeCustomGCode))
 
-        sub_menu = QMenu("Add custom GCode ...", self)
+        self.sub_menu = QMenu("Add custom GCode ...", self)
         # Save the exact name of the action, as is defined in the config file. Later on we use it to identify the action
         for custom_action in g.config.vars.Custom_Actions:
-            menu_action = sub_menu.addAction(custom_action.replace('_', ' '))
+            menu_action = self.sub_menu.addAction(custom_action.replace('_', ' '))
             menu_action.setData(custom_action)
 
-        self.context_menu.addMenu(sub_menu)
+        self.context_menu.addMenu(self.sub_menu)
 
         # Right click menu
         self.ui.layersShapesTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -204,6 +204,82 @@ class TreeHandler(QWidget):
         """
         return text_type(QtCore.QCoreApplication.translate('TreeHandler',
                                                            string_to_translate))
+
+    def updateConfiguration(self):
+        """
+        This function should be called each time the configuration changes. It updates tools and custom actions in the treeView
+        If a tool or a custom action disapear from the configuration, it is removed from the treeview
+        """
+        # Load the tools from the config file to the tool selection combobox
+        #self.ui.layersShapesTreeView.clearSelection()
+        self.ui.toolDiameterComboBox.blockSignals(True)
+        default_tool = 1 # Tool 1 normally always exists
+        current_tool = self.ui.toolDiameterComboBox.currentText()
+        self.ui.toolDiameterComboBox.clear()
+        for tool in g.config.vars.Tool_Parameters:
+            self.ui.toolDiameterComboBox.addItem(tool)
+        self.ui.toolDiameterComboBox.blockSignals(False)
+
+        # Load the custom gcode names from the config file
+        self.sub_menu.clear()
+        for custom_action in g.config.vars.Custom_Actions:
+            menu_action = self.sub_menu.addAction(custom_action.replace('_', ' '))
+            menu_action.setData(custom_action)
+
+        # update the items (if a tool or a custion_action disapeared from config file, we need to remove it in the treeview too)
+        i = self.layer_item_model.rowCount(QtCore.QModelIndex())
+        while i > 0:
+            i -= 1
+            layer_item_index = self.layer_item_model.index(i, 0)
+
+            if isValid(layer_item_index.data(LAYER_OBJECT)):
+                real_layer = toPyObject(layer_item_index.data(LAYER_OBJECT))
+
+                update_drawing = False
+                if real_layer is not None and str(real_layer.tool_nr) not in g.config.vars.Tool_Parameters:
+                    # The tool used for this layer doesn't exist anymore, we are going to replace it with the first tool
+                    logger.warning("Tool {0} used for \"{1}\" layer doesn't exist anymore in the configuration ; using tool {2} instead".format(real_layer.tool_nr, real_layer.name, default_tool))
+                    # Update the layer's tool and repaint
+                    real_layer.tool_nr = default_tool # Tool 1 normally always exists
+                    update_drawing = True
+
+                if real_layer is not None\
+                    and (real_layer.tool_diameter != g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['diameter']\
+                      or real_layer.speed != g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['speed']\
+                      or real_layer.start_radius != g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['start_radius']):
+                    # The tool used for this layer exists, but its definition has changed, we need to update the layer
+                    logger.warning("Tool {0} used for \"{1}\" layer has changed, updating layer's data".format(real_layer.tool_nr, real_layer.name))
+                    real_layer.tool_diameter = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['diameter']
+                    real_layer.speed = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['speed']
+                    real_layer.start_radius = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['start_radius']
+                    update_drawing = True
+                    
+                if update_drawing:
+                    for shape in real_layer.shapes:
+                        g.window.canvas_scene.repaint_shape(shape)
+                    if g.window:
+                        g.window.canvas_scene.update()
+
+                # Assign the export order for the shapes of the layer "real_layer"
+                for j in range(self.layer_item_model.rowCount(layer_item_index)):
+                    shape_item_index = self.layer_item_model.index(j, 0, layer_item_index)
+
+                    if isValid(shape_item_index.data(CUSTOM_GCODE_OBJECT)):
+                        real_custom_action = toPyObject(shape_item_index.data(CUSTOM_GCODE_OBJECT))
+                        if real_custom_action is not None and real_custom_action.name not in g.config.vars.Custom_Actions:
+                            logger.warning("Custom action \"{0}\" used for \"{1}\" layer doesn't exist anymore in the configuration, removing it".format(real_custom_action.name, real_layer.name))
+                            self.removeCustomGCode(shape_item_index)
+
+        # Reselect the previous tool and update the tool display for the _selected_ layers
+        tool_index = self.ui.toolDiameterComboBox.findText(current_tool)
+        logger.debug("reselecting tool : " + current_tool)
+        if tool_index >= 0:
+            self.ui.toolDiameterComboBox.setCurrentIndex(tool_index)
+        else:
+            tool_index = self.ui.toolDiameterComboBox.findText(default_tool)
+            self.ui.toolDiameterComboBox.setCurrentIndex(tool_index)
+        self.toolUpdate()
+
 
     def displayContextMenu(self, position):
         """
@@ -1396,13 +1472,16 @@ class TreeHandler(QWidget):
         # Update the display (refresh the treeView for the given item)
         current_tree_view.update(item.index())
 
-    def removeCustomGCode(self):
+    def removeCustomGCode(self, shape_item_index = None):
         """
         Remove a custom GCode object from the treeView, just after the
         current item. Custom GCode are defined into the config file
         """
         logger.debug('Removing custom GCode...')
-        current_item_index = self.ui.layersShapesTreeView.currentIndex()
+        current_item_index = shape_item_index
+        if current_item_index is None:
+            # No parameter passed => we use current item
+            current_item_index = self.ui.layersShapesTreeView.currentIndex()
 
         if isValid(current_item_index):
             remove_row = current_item_index.row()

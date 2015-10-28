@@ -47,6 +47,7 @@ from globals.config import MyConfig
 import globals.globals as g
 from globals.logger import LoggerClass
 
+from gui.configwindow import ConfigWindow
 from gui.treehandling import TreeHandler
 from gui.popupdialog import PopUpDialog
 from gui.aboutdialog import AboutDialog
@@ -90,6 +91,10 @@ if os.path.islink(sys.argv[0]):
 class MainWindow(QMainWindow):
     """Main Class"""
 
+    #Define a QT signal that is emitted when the configuration changes.
+    #Connect to this signal if you need to know when the configuration has changed.
+    configuration_changed = QtCore.pyqtSignal()
+
     def __init__(self, app):
         """
         Initialization of the Main window. This is directly called after the
@@ -97,6 +102,10 @@ class MainWindow(QMainWindow):
         used Classes and connects the actions to the GUI.
         """
         QMainWindow.__init__(self)
+
+        #Build the configuration window
+        self.config_window = ConfigWindow(g.config.makeConfigWindgets(), g.config.var_dict, g.config.var_dict.configspec, self)
+        self.config_window.finished.connect(self.updateConfiguration)
 
         self.app = app
 
@@ -111,6 +120,7 @@ class MainWindow(QMainWindow):
             self.canvas_scene = None
 
         self.TreeHandler = TreeHandler(self.ui)
+        self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
 
         self.MyPostProcessor = MyPostProcessor()
         self.d2g = Project(self)
@@ -161,8 +171,8 @@ class MainWindow(QMainWindow):
 
         # View
         self.ui.actionShowPathDirections.triggered.connect(self.setShowPathDirections)
-        self.ui.actionShowDisabledPaths.triggered.connect(self.setShowDisabledPaths)
-        self.ui.actionLiveUpdateExportRoute.triggered.connect(self.liveUpdateExportRoute)
+        self.ui.actionShowDisabledPaths.toggled.connect(self.setShowDisabledPaths) #We need toggled (and not triggered), otherwise the signal is not emitted when state is changed programmatically
+        self.ui.actionLiveUpdateExportRoute.toggled.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
         if g.config.mode3d:
@@ -170,12 +180,13 @@ class MainWindow(QMainWindow):
             self.ui.actionIsometricView.triggered.connect(self.canvas.isometricView)
 
         # Options
+        self.ui.actionConfiguration.triggered.connect(self.config_window.show)
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
         self.ui.actionRotateAll.triggered.connect(self.rotateAll)
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)
         self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
-        self.ui.actionSplitLineSegments.triggered.connect(self.d2g.small_reload)
-        self.ui.actionAutomaticCutterCompensation.triggered.connect(self.d2g.small_reload)
+        self.ui.actionSplitLineSegments.toggled.connect(self.d2g.small_reload)
+        self.ui.actionAutomaticCutterCompensation.toggled.connect(self.d2g.small_reload)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
@@ -186,12 +197,20 @@ class MainWindow(QMainWindow):
     def connectToolbarToConfig(self, project=False):
         # View
         if not project:
+            self.ui.actionShowDisabledPaths.blockSignals(True) #Don't emit any signal when changing state of the menu entries
             self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
+            self.ui.actionShowDisabledPaths.blockSignals(False)
+            self.ui.actionLiveUpdateExportRoute.blockSignals(True)
             self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
+            self.ui.actionLiveUpdateExportRoute.blockSignals(False)
 
         # Options
+        self.ui.actionSplitLineSegments.blockSignals(True)
         self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
+        self.ui.actionSplitLineSegments.blockSignals(False)
+        self.ui.actionAutomaticCutterCompensation.blockSignals(True)
         self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
+        self.ui.actionAutomaticCutterCompensation.blockSignals(False)
         self.updateMachineType()
 
     def keyPressEvent(self, event):
@@ -955,6 +974,24 @@ class MainWindow(QMainWindow):
         self.layerContents.append(LayerContent(lay_nr, LayerName, [shape]))
         shape.parentLayer = self.layerContents[-1]
 
+    def updateConfiguration(self, result):
+        """
+        Some modification occured in the configuration window, we need to save these changes into the config file.
+        Once done, the signal configuration_changed is emitted, so that anyone interested in this information can connect to this signal.
+        """
+        if result == ConfigWindow.Applied or result == ConfigWindow.Accepted:
+            g.config._save_varspace() #Write the configuration into the config file (config.cfg)
+            g.config.update_config() #Rebuild the readonly configuration structure
+
+            # Assign changes to the menus (if no change occured, nothing happens / otherwise QT emits a signal for the menu entry that has changed)
+            self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
+            self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
+            self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
+            self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
+
+            # Inform about the changes into the configuration
+            self.configuration_changed.emit()
+
     def loadProject(self, filename):
         """
         Load all variables from file
@@ -1033,6 +1070,11 @@ if __name__ == "__main__":
     translator = QtCore.QTranslator()
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
+
+    # If string version_mismatch isn't empty, we popup an error and exit
+    if g.config.version_mismatch:
+        error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', g.config.version_mismatch);
+        sys.exit(error_message.exec_())
 
     # Delay imports - needs to be done after logger and config initialization; and before the main window
     if c.PYQT5notPYQT4:

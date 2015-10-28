@@ -507,7 +507,7 @@ class MyPostProcessor(object):
         @return: Returns the string with replaced keyvars (e.g. %Z is replaced
         by the real Z value in the defined Number Format.
         """
-        if g.config.vars.General['machine_type']=='lathe':
+        if g.config.machine_type=='lathe':
             fac = 2
         else:
             fac = 1
