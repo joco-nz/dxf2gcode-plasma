@@ -29,100 +29,322 @@ from __future__ import division
 
 from math import sqrt, sin, cos, atan2
 
+
 from core.point3d import Point3D
 
+import numbers
+import logging
+logger = logging.getLogger("core.point")
+
+eps=1e-12
 
 class Point(object):
-    __slots__ = ["x", "y"]
-
-    def __init__(self, x=0.0, y=0.0):
+    #__slots__ = ["x", "y"]
+    def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
 
     def __str__(self):
-        return 'X -> %6.3f  Y -> %6.3f' % (self.x, self.y)
+        return ('X ->%6.3f  Y ->%6.3f' % (self.x, self.y))
+        # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
 
     def __eq__(self, other):
-        return (-1e-12 < self.x - other.x < 1e-12) and (-1e-12 < self.y - other.y < 1e-12)
+        """
+        Implementaion of is equal of two point, for all other instances it will
+        return False
+        @param other: The other point for the compare
+        @return: True for the same points within tolerance
+        """
+        if isinstance(other, Point):
+            return (-eps < self.x - other.x < eps) and (-eps < self.y - other.y < eps)
+        else:
+            return False
+
+#     def __cmp__(self, other):
+#         """
+#         Implementaion of comparing of two point
+#         @param other: The other point for the compare
+#         @return: 1 if self is bigger, -1 if smaller, 0 if the same
+#         """
+#         if self.x < other.x:
+#             return -1
+#         elif self.x > other.x:
+#             return 1
+#         elif self.x == other.x and self.y < other.y:
+#             return -1
+#         elif self.x == other.x and self.y > other.y:
+#             return 1
+#         else:
+#             return 0
 
     def __ne__(self, other):
+        """
+        Implementation of not equal
+        @param other:; The other point
+        @return: negative cmp result.
+        """
         return not self == other
 
     def __neg__(self):
+        """
+        Implemnetaion of Point negation
+        @return: Returns a new Point which is negated 
+        """
         return -1.0 * self
-
-    def __add__(self, other):
+  
+    def __add__(self, other):  # add to another Point
+        """
+        Implemnetaion of Point addition
+        @param other: The other Point which shall be added
+        @return: Returns a new Point 
+        """
         return Point(self.x + other.x, self.y + other.y)
+    
 
-    def __radd__(self, other):
-        return Point(self.x + other, self.y + other)
+    def __lt__(self,other):
+        """
+        Implementaion of less then comparision
+        @param other: The other point for the compare
+        @return: 1 if self is bigger, -1 if smaller, 0 if the same
+        """
+        if self.x < other.x:
+            return True
+        elif self.x > other.x:
+            return False
+        elif self.x == other.x and self.y < other.y:
+            return True
+        elif self.x == other.x and self.y > other.y:
+            return False
+        else:
+            return 0
 
     def __sub__(self, other):
+        """
+        Implemnetaion of Point subtraction
+        @param other: The other Point which shall be subtracted
+        @return: Returns a new Point 
+        """
         return self + -other
 
-    def __mul__(self, other):
-        if isinstance(other, list):
-            # Scale the points
-            return Point(self.x * other[0], self.y * other[1])
-        else:
-            # Calculate Scalar (dot) Product
-            return self.x * other.x + self.y * other.y
+    def __radd__(self, other):
+        """
+        Implementation of the add for a real value
+        @param other: The real value to be added
+        @return: Return the new Point
+        """
+        return Point(self.x + other, self.y + other)
 
     def __rmul__(self, other):
-        return Point(self.x * other, self.y * other)
+        """
+        Multiplication by a real value
+        @param other: The real value to be multiplied by
+        @return: The new poinnt
+        """
+        
+        return Point(other * self.x, other * self.y)
 
+    def __mul__(self, other):
+        """
+        The function which is called if the object is multiplied with another
+        object. Dependent on the object type different operations are performed
+        @param other: The element which is used for the multiplication
+        @return: Returns the result dependent on object type
+        """
+        if isinstance(other, list):
+            # Scale the points
+            return Point(x=self.x * other[0], y=self.y * other[1])
+        elif isinstance(other, numbers.Number):
+            return Point(x=self.x * other, y=self.y * other)
+        elif isinstance(other, Point):
+            # Calculate Scalar (dot) Product
+            return self.x * other.x + self.y * other.y
+        else:
+            logger.warning("Unsupported type: %s" % type(other))
+            
     def __truediv__(self, other):
-        return Point(self.x / other, self.y / other)
+        return Point(x=self.x / other, y=self.y / other)
 
-    def eq(self, other, tol):
-        return abs(self.x - other.x) < tol and abs(self.y - other.y) < tol
+    def tr(self, message):
+        return message
 
-    def unit_vector(self):
-        return self / self.length()
+    def between(self, B, C):
+        """
+        is c between a and b?     // Reference: O' Rourke p. 32
+        @param B: a second point
+        @param C: a third point
+        @return: If C is between those points
+        """
+        if (self.ccw(B, C) != 0):
+            return False
+        if (self.x == B.x) and (self.y == B.y):
+            return (self.x == C.x) and (self.y == C.y)
 
-    def length_squared(self):
-        return self.x**2 + self.y**2
+        elif (self.x != B.x):
+            # ab not vertical
+            return ((self.x <= C.x) and (C.x <= B.x)) or ((self.x >= C.x) and (C.x >= B.x))
+
+        else:
+            # ab not horizontal
+            return ((self.y <= C.y) and (C.y <= B.y)) or ((self.y >= C.y) and (C.y >= B.y))
+
+    def ccw(self, B, C):
+        """
+        This functions gives the Direction in which the three points are located.
+        @param B: a second point
+        @param C: a third point
+        @return: If the slope of the line AB is less than the slope of the line
+        AC then the three points are listed in a counterclockwise order 
+        """
+        # return (C.y-self.y)*(B.x-self.x) > (B.y-self.y)*(C.x-self.x)
+
+
+        area2 = (B.x - self.x) * (C.y - self.y) - (C.x - self.x) * (B.y - self.y)
+        # logger.debug(area2)
+        if (area2 < -eps):
+            return -1
+        elif area2 > eps:
+            return +1
+        else:
+            return  0
+
+    def cross_product(self, other):
+        """
+        Returns the cross Product of two points
+        @param P1: The first Point
+        @param P2: The 2nd Point
+        @return: dot Product of the points.
+        """
+        return Point(self.y * other.z - self.z * other.y, self.z * other.x - self.x * other.z, self.x * other.y - self.y * other.x)
+
+    def detTopLeft(self, point):
+        self.x = min(self.x, point.x)
+        self.y = max(self.y, point.y)
+
+    def detBottomRight(self, point):
+        self.x = max(self.x, point.x)
+        self.y = min(self.y, point.y)
+
+    def distance(self, other=None):
+        """Returns distance between two given points"""
+        from core.linegeo import LineGeo
+        from core.arcgeo import ArcGeo
+        
+        if type(other) == type(None):
+            other = Point(x=0.0, y=0.0)
+        if isinstance(other, Point):
+            return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+        elif isinstance(other, LineGeo):
+            return other.distance(self)
+        elif isinstance(other, ArcGeo):
+            return other.distance(self)
+        else:
+            logger.error("unsupported instance: %s" % type(other))
+            
+            
+        #     def distance(self, other):
+        #         return (self - other).length()
+        # 
+        #     def distance2_to_line(self, Ps, Pe):
+        #         dLine = Pe - Ps
+        # 
+        #         u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
+        #         if u > 1.0:
+        #             u = 1.0
+        #         elif u < 0.0:
+        #             u = 0.0
+        # 
+        #         closest = Ps + u * dLine
+        #         diff = closest - self
+        #         return diff.length_squared()
+
+    def dotProd(self, P2):
+        """
+        Returns the dotProduct of two points
+        @param self: The first Point
+        @param other: The 2nd Point
+        @return: dot Product of the points.
+        """
+        return (self.x * P2.x) + (self.y * P2.y)
+    
+#     def eq(self, other, tol):
+#         return abs(self.x - other.x) < tol and abs(self.y - other.y) < tol
+
+    def get_arc_point(self, ang=0, r=1):
+        """ 
+        Returns the Point on the arc defined by r and the given angle, self is 
+        Center of the arc
+        @param ang: The angle of the Point
+        @param radius: The radius from the given Point
+        @return: A Point at given radius and angle from Point self
+        """
+        return Point(x=self.x + cos(ang) * r, \
+                     y=self.y + sin(ang) * r)
+
+    def get_normal_vector(self, other, r=1):
+        """
+        This function return the Normal to a vector defined by self and other
+        @param: The second point
+        @param r: The length of the normal (-length for other direction)
+        @return: Returns the Normal Vector
+        """
+        unit_vector = self.unit_vector(other)
+        return Point(x=unit_vector.y * r, y=-unit_vector.x * r)
+
+    def get_nearest_point(self, points):
+        """ 
+        If there are more then 1 intersection points then use the nearest one to
+        be the intersection Point.
+        @param points: A list of points to be checked for nearest
+        @return: Returns the nearest Point
+        """
+        if len(points) == 1:
+            Point = points[0]
+        else:
+            mindis = points[0].distance(self)
+            Point = points[0]
+            for i in range(1, len(points)):
+                curdis = points[i].distance(self)
+                if curdis < mindis:
+                    mindis = curdis
+                    Point = points[i]
+
+        return Point
+
+    def get_arc_direction(self, Pe, O):
+        """ 
+        Calculate the arc direction given from the 3 Point. Pa (self), Pe, O
+        @param Pe: End Point
+        @param O: The center of the arc
+        @return: Returns the direction (+ or - pi/2)
+        """
+        a1 = self.norm_angle(Pe)
+        a2 = Pe.norm_angle(O)
+        direction = a2 - a1
+
+        if direction > pi:
+            direction = direction - 2 * pi
+        elif direction < -pi:
+            direction = direction + 2 * pi
+
+        # print ('The Direction is: %s' %direction)
+
+        return direction
+
+    def isintol(self, other, tol=eps):
+        """Are the two points within 'tol' tolerance?"""
+        return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) <= tol)
 
     def length(self):
         return sqrt(self.length_squared())
 
-    def distance(self, other):
-        return (self - other).length()
+    def length_squared(self):
+        return self.x**2 + self.y**2
 
-    def distance2_to_line(self, Ps, Pe):
-        dLine = Pe - Ps
-
-        u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
-        if u > 1.0:
-            u = 1.0
-        elif u < 0.0:
-            u = 0.0
-
-        closest = Ps + u * dLine
-        diff = closest - self
-        return diff.length_squared()
-
-    def norm_angle(self, other):
-        """
-        Returns angle between two given points
-        """
+    def norm_angle(self, other=None):
+        """Returns angle between two given points"""
+        if type(other) == type(None):
+            other = Point(x=0.0, y=0.0)
         return atan2(other.y - self.y, other.x - self.x)
-
-    def within_tol(self, other, tol):
-        """
-        Are the two points within tolerance
-        """
-        # TODO is this sufficient, or do we want to compare the distance
-        return abs(self.x - other.x) <= tol and abs(self.y - other.y) < tol
-
-    def get_arc_point(self, ang=0.0, r=1.0):
-        """
-        Returns the Point on the arc defined by r and the given angle
-        @param ang: The angle of the Point
-        @param r: The radius from the given Point
-        @return: A Point at given radius and angle from Point self
-        """
-        return Point(self.x + cos(ang) * r, self.y + sin(ang) * r)
 
     def rot_sca_abs(self, sca=None, p0=None, pb=None, rot=None, parent=None):
         """
@@ -177,13 +399,66 @@ class Point(object):
 
         return p1
 
-    def detTopLeft(self, point):
-        self.x = min(self.x, point.x)
-        self.y = max(self.y, point.y)
-
-    def detBottomRight(self, point):
-        self.x = max(self.x, point.x)
-        self.y = min(self.y, point.y)
-
     def to3D(self, z=0.0):
         return Point3D(self.x, self.y, z)
+    
+    def transform_to_Norm_Coord(self, other, alpha):
+        xt = other.x + self.x * cos(alpha) + self.y * sin(alpha)
+        yt = other.y + self.x * sin(alpha) + self.y * cos(alpha)
+        return Point(x=xt, y=yt)
+
+    def triangle_height(self, other1, other2):
+        """
+        Calculate height of triangle given lengths of the sides
+        @param other1: Point 1 for triangle
+        @param other2: Point 2 for triangel
+        """
+        # The 3 lengths of the triangle to calculate
+        a = self.distance(other1)
+        b = other1.distance(other2)
+        c = self.distance(other2)
+        return sqrt(pow(b, 2) - pow((pow(c, 2) + pow(b, 2) - pow(a, 2)) / (2 * c), 2))
+
+    def trim(self, Point, dir=1, rev_norm=False):
+        """
+        This instance is used to trim the geometry at the given point. The point 
+        can be a point on the offset geometry a perpendicular point on line will
+        be used for trimming.
+        @param Point: The point / perpendicular point for new Geometry
+        @param dir: The direction in which the geometry will be kept (1  means the
+        being will be trimmed)
+        """
+        if not(hasattr(self, "end_normal")):
+            return self
+        new_normal = self.unit_vector(Point)
+        if rev_norm:
+            new_normal = -new_normal
+        if dir == 1:
+            self.start_normal = new_normal
+            return self
+        else:
+            self.end_normal = new_normal
+            return self
+
+    def unit_vector(self, Pto=None, r=1):
+        """
+        Returns vector of length 1 with similar direction as input
+        @param Pto: The other point 
+        @return: Returns the Unit vector
+        """
+        if Pto is None: 
+            return self / self.length()
+        else:
+            diffVec = Pto - self
+            l = diffVec.distance()
+            return Point(diffVec.x / l * r, diffVec.y / l * r)
+
+    def within_tol(self, other, tol):
+        """
+        Are the two points within tolerance
+        """
+        # TODO is this sufficient, or do we want to compare the distance
+        return abs(self.x - other.x) <= tol and abs(self.y - other.y) < tol
+    
+    def plot2plot(self, plot, format='xr'):
+        plot.plot([self.x], [self.y], format)

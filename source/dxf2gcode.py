@@ -505,7 +505,7 @@ class MainWindow(QMainWindow):
                                    MyFormats, selected_filter)
 
         logger.info(self.tr("File: %s selected") % filename[0])
-
+        logger.info("<a href='%s'>%s</a>" %(filename[0],filename[0]))
         return filename
 
     def about(self):
@@ -892,7 +892,7 @@ class MainWindow(QMainWindow):
             else:
                 # Loop for the number of geometries
                 tmp_shape = Shape(len(self.shapes),
-                                  cont.closed,
+                                  (True if cont.closed else False),
                                   parent)
 
                 for ent_geo_nr in range(len(cont.order)):
@@ -945,7 +945,7 @@ class MainWindow(QMainWindow):
 
         if isinstance(geo, HoleGeo):
             shape.type = 'Hole'
-            shape.closed = 1  # TODO adjust import for holes?
+            shape.closed = True  # TODO adjust import for holes?
             if g.config.machine_type == 'drag_knife':
                 shape.disabled = True
                 shape.allowedToChange = False
