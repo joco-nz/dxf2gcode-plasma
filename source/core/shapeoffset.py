@@ -4,7 +4,7 @@
 ############################################################################
 #
 #   Copyright (C) 2008-2015
-#    Christian Kohl�ffel
+#    Christian Kohlöffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
 #
@@ -94,7 +94,7 @@ class offShapeClass(Shape):
                 break
  
  
-            if backward == 0 and forward == (len(self.segments) - 1):
+            if backward == 0 and forward == (len(self.segments) - 1) and self.closed:
                 self.segments = []
                 break
  
@@ -104,10 +104,6 @@ class offShapeClass(Shape):
  
             # Intersect the two segements
             iPoint = fw_rawoff_seg.find_inter_point(bw_rawoff_seg)
- 
-            
- 
- 
  
             if iPoint is None:
                 logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %(fw_rawoff_seg,bw_rawoff_seg))
@@ -295,7 +291,8 @@ class offShapeClass(Shape):
             else:
                 # logger.debug("convex")
                 self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
-        self.segments_plot = deepcopy(self.segments)
+        # logger.debug("Self.segments: %s" % self.segments)
+        # self.segments_plot = deepcopy(self.segments)
 
     def interfering_full(self, segment1, dir, segment2):
         """
