@@ -196,14 +196,25 @@ class offShapeClass(Shape):
         type definition.        
         """
         # Do only if more then 2 geometies
-        if len(self.geos) < 2:
-            return
+#         if len(self.geos) < 2:
+#             return
 
         # Start with first Vertex if the line is closed
         if self.closed:
             start = 0
         else:
             start = 1
+            geo1 = self.geos[0]
+            if isinstance(geo1, LineGeo):
+                geo1.start_normal = geo1.Ps.get_normal_vector(geo1.Pe)
+                geo1.end_normal = geo1.Ps.get_normal_vector(geo1.Pe)
+            else:
+                geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r = 1)
+                geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r = 1)
+                if geo1.ext < 0:
+                    geo1.start_normal = geo1.start_normal * -1
+                    geo1.end_normal = geo1.end_normal * -1
+            self.segments += [geo1]
 
         for i in range(start, len(self.geos)):
             geo1 = self.geos[i - 1]
