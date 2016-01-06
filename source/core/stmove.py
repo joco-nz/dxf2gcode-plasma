@@ -224,7 +224,7 @@ class StMove(object):
 
         self.geos = Geos([])
 
-        offtype = "in"  if self.shape.cut_cor == 41 else "out"
+        offtype = "in"  if self.shape.cut_cor == 42 else "out"
 
         offshape = offShapeClass(parent=self.shape, offset=toolwidth, offtype=offtype)
 
