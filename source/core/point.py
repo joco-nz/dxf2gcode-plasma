@@ -37,8 +37,8 @@ import logging
 logger = logging.getLogger("core.point")
 
 class Point(object):
-    __slots__ = ["x", "y"]
-    eps=1e-12
+    # __slots__ = ["x", "y"]
+
 
     def __init__(self, x=0, y=0):
         self.x = x
@@ -226,24 +226,36 @@ class Point(object):
 
     def distance(self, other=None):
         """Returns distance between two given points"""
-        if other is None:
-            return 0
-        if not isinstance(other, Point):
+        from core.linegeo import LineGeo
+        from core.arcgeo import ArcGeo
+        
+        if type(other) == type(None):
+            other = Point(x=0.0, y=0.0)
+        if isinstance(other, Point):
+            return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
+        elif isinstance(other, LineGeo):
             return other.distance(self)
-        return (self - other).length()
-
-    def distance2_to_line(self, Ps, Pe):
-        dLine = Pe - Ps
-
-        u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
-        if u > 1.0:
-            u = 1.0
-        elif u < 0.0:
-            u = 0.0
-
-        closest = Ps + u * dLine
-        diff = closest - self
-        return diff.length_squared()
+        elif isinstance(other, ArcGeo):
+            return other.distance(self)
+        else:
+            logger.error("unsupported instance: %s" % type(other))
+            
+            
+        #     def distance(self, other):
+        #         return (self - other).length()
+        # 
+        #     def distance2_to_line(self, Ps, Pe):
+        #         dLine = Pe - Ps
+        # 
+        #         u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
+        #         if u > 1.0:
+        #             u = 1.0
+        #         elif u < 0.0:
+        #             u = 0.0
+        # 
+        #         closest = Ps + u * dLine
+        #         diff = closest - self
+        #         return diff.length_squared()
 
     def dotProd(self, P2):
         """
@@ -294,6 +306,30 @@ class Point(object):
                     Point = points[i]
 
         return Point
+
+    def get_arc_direction(self, Pe, O):
+        """ 
+        Calculate the arc direction given from the 3 Point. Pa (self), Pe, O
+        @param Pe: End Point
+        @param O: The center of the arc
+        @return: Returns the direction (+ or - pi/2)
+        """
+        a1 = self.norm_angle(Pe)
+        a2 = Pe.norm_angle(O)
+        direction = a2 - a1
+
+        if direction > pi:
+            direction = direction - 2 * pi
+        elif direction < -pi:
+            direction = direction + 2 * pi
+
+        # print ('The Direction is: %s' %direction)
+
+        return direction
+
+    def isintol(self, other, tol=eps):
+        """Are the two points within 'tol' tolerance?"""
+        return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) <= tol)
 
     def length(self):
         return sqrt(self.length_squared())

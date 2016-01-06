@@ -82,8 +82,7 @@ class StMove(object):
             self.make_swivelknife_move()
             return
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
-            #self.make_own_cutter_compensation_JP()
-            self.make_own_cutter_compensation_CK()
+            self.make_own_cutter_compensation()
             return
 
         # Get the start rad. and the length of the line segment at begin.
@@ -220,113 +219,7 @@ class StMove(object):
         self.geos.insert(0, RapidPos(self.geos.abs_el(0).Ps))
         self.geos[0].make_abs_geo()
 
-    def make_own_cutter_compensation_JP(self):
-        toolwidth = self.shape.parentLayer.getToolRadius()
-
-        geos = Geos([])
-
-        direction = -1 if self.shape.cut_cor == 41 else 1
-
-        if self.shape.closed:
-            end, end_dir = self.shape.get_start_end_points(False, False)
-            end_proj = Point(direction * end_dir.y, -direction * end_dir.x)
-            prv_Pe = end + toolwidth * end_proj
-        else:
-            prv_Pe = None
-        for geo_nr, geo in enumerate(self.shape.geos.abs_iter()):
-            start, start_dir = geo.get_start_end_points(True, False)
-            end, end_dir = geo.get_start_end_points(False, False)
-            start_proj = Point(direction * start_dir.y, -direction * start_dir.x)
-            end_proj = Point(direction * end_dir.y, -direction * end_dir.x)
-            Ps = start + toolwidth * start_proj
-            Pe = end + toolwidth * end_proj
-            if Ps == Pe:
-                continue
-            if prv_Pe:
-                r = geo.Ps.distance(Ps)
-                d = (prv_Pe - geo.Ps).to3D().cross_product((Ps - geo.Ps).to3D()).z
-                if direction * d > 0 and prv_Pe != Ps:
-                    geos.append(ArcGeo(Ps=prv_Pe, Pe=Ps, O=geo.Ps, r=r, direction=d))
-                    geos[-1].geo_nr = geo_nr
-                # else:
-                #     geos.append(LineGeo(Ps=prv_Pe, Pe=Ps))
-            if isinstance(geo, LineGeo):
-                geos.append(LineGeo(Ps, Pe))
-                geos[-1].geo_nr = geo_nr
-            elif isinstance(geo, ArcGeo):
-                O = geo.O
-                r = O.distance(Ps)
-                geos.append(ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=geo.ext))
-                geos[-1].geo_nr = geo_nr
-            # TODO other geos are not supported; disable them in gui for this option
-            # else:
-            #     geos.append(geo)
-            prv_Pe = Pe
-
-        tot_length = 0
-        for geo in geos.abs_iter():
-            tot_length += geo.length
-
-        reorder_shape = False
-        for start_geo_nr in range(len(geos)):
-            # if shape is not closed we may only remove shapes from the start
-            last_geo_nr = start_geo_nr if self.shape.closed else 0
-            geos_adj = deepcopy(geos[start_geo_nr:]) + deepcopy(geos[:last_geo_nr])
-            new_geos = Geos([])
-            i = 0
-            while i in range(len(geos_adj)):
-                geo = geos_adj[i]
-                intersections = []
-                for j in range(i+1, len(geos_adj)):
-                    intersection = Intersect.get_intersection_point(geos_adj[j], geos_adj[i])
-                    if intersection and intersection != geos_adj[i].Ps:
-                        intersections.append([j, intersection])
-                if len(intersections) > 0:
-                    intersection = intersections[-1]
-                    change_end_of_geo = True
-                    if i == 0 and intersection[0] >= len(geos_adj)//2:
-                        geo.update_start_end_points(True, intersection[1])
-                        geos_adj[intersection[0]].update_start_end_points(False, intersection[1])
-                        if len(intersections) > 1:
-                            intersection = intersections[-2]
-                        else:
-                            change_end_of_geo = False
-                            i += 1
-                    if change_end_of_geo:
-                        geo.update_start_end_points(False, intersection[1])
-                        i = intersection[0]
-                        geos_adj[i].update_start_end_points(True, intersection[1])
-                else:
-                    i += 1
-                # TODO
-                # if len(new_geos) > 0 and not new_geos[-1].Pe.within_tol(geo.Ps, g.config.fitting_tolerance):
-                #     break  # geo is disconnected
-                new_geos.append(geo)
-                if new_geos[0].Ps == new_geos[-1].Pe:
-                    break
-
-            new_length = 0
-            for geo in new_geos:
-                new_length += geo.length
-
-            if tot_length * g.config.vars.Cutter_Compensation['min_length_considered']\
-                    <= new_length <= tot_length * g.config.vars.Cutter_Compensation['max_length_considered'] and\
-               (not g.config.vars.Cutter_Compensation['direction_maintained'] or
-                    not self.shape.closed or self.shape.isDirectionOfGeosCCW(new_geos) != self.shape.cw):
-                self.append(RapidPos(new_geos[0].Ps))
-                for geo in new_geos:
-                    if geo.Ps != geo.Pe:
-                        self.append(geo)
-                reorder_shape = True
-                break
-        if reorder_shape and self.shape.closed:
-            # we do not reorder the original shape if it's not closed
-            self.shape.geos = Geos(self.shape.geos[geos[start_geo_nr].geo_nr:] + self.shape.geos[:geos[start_geo_nr].geo_nr])
-
-        if len(self.geos) == 0:
-            self.append(RapidPos(self.start))
-
-    def make_own_cutter_compensation_CK(self):
+    def make_own_cutter_compensation(self):
         toolwidth = self.shape.parentLayer.getToolRadius()
 
         self.geos = Geos([])
