@@ -131,7 +131,7 @@ class ArcGeo(object):
                       deepcopy(self.ext, memo))
 
     def __str__(self):
-        """ 
+        """
         Standard method to print the object
         @return: A string
         """
@@ -189,70 +189,45 @@ class ArcGeo(object):
             Ps.x = min(self.Ps.x, self.Pe.x)
 
         # If the negative Y is crossed
-        if not(self.wrap(s_ang - 1.5 * pi, 0) >= 
+        if not(self.wrap(s_ang - 1.5 * pi, 0) >=
                 self.wrap(e_ang - 1.5 * pi, 1)):
             Ps.y = min(self.Ps.y, self.Pe.y)
 
         self.BB = BoundingBox(Ps=Ps, Pe=Pe)
 
-    def dif_ang(self, P1, P2, direction, tol=eps):
+    def dif_ang(self, Ps, Pe, direction):
         """
-        Calculated the angle of extend based on the 3 given points. Center Point,
-        P1 and P2.
-        @param P1: the start Point of the arc 
-        @param P2: the end Point of the arc
+        Calculated the angle between Pe and Ps with respect to the origin
+        @param Ps: the start Point of the arc
+        @param Pe: the end Point of the arc
         @param direction: the direction of the arc
-        @return: Returns the angle between -2* pi and 2 *pi for the arc extend
+        @return: Returns the angle between -2* pi and 2 *pi for the arc,
+        0 excluded - we got a complete circle
         """
-        # FIXME Das koennte Probleme geben bei einem reelen Kreis
-#        if P1.isintol(P2,tol):
-#            return 0.0
-        sa = self.O.norm_angle(P1)
-        ea = self.O.norm_angle(P2)
+        dif_ang = (self.O.norm_angle(Pe) - self.O.norm_angle(Ps)) % (-2 * pi)
 
-        if(direction > 0.0):  # GU
-            dif_ang = (ea - sa) % (-2 * pi)
-            dif_ang -= floor(dif_ang / (2 * pi)) * (2 * pi)
-        else:
-            dif_ang = (ea - sa) % (-2 * pi)
-            dif_ang += ceil(dif_ang / (2 * pi)) * (2 * pi)
+        if direction > 0:
+            dif_ang += 2 * pi
+        elif dif_ang == 0:
+            dif_ang = -2 * pi
 
         return dif_ang
-    
-    
-            #     def dif_ang(self, Ps, Pe, direction):
-            #         """
-            #         Calculated the angle between Pe and Ps with respect to the origin
-            #         @param Ps: the start Point of the arc
-            #         @param Pe: the end Point of the arc
-            #         @param direction: the direction of the arc
-            #         @return: Returns the angle between -2* pi and 2 *pi for the arc,
-            #         0 excluded - we got a complete circle
-            #         """
-            #         dif_ang = (self.O.norm_angle(Pe) - self.O.norm_angle(Ps)) % (-2 * pi)
-            # 
-            #         if direction > 0:
-            #             dif_ang += 2 * pi
-            #         elif dif_ang == 0:
-            #             dif_ang = -2 * pi
-            # 
-            #         return dif_ang
 
     def distance(self, other):
         """
         Find the distance between 2 geometry elements. Possible is LineGeo
         and ArcGeo
         @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries 
+        @return: The distance between the two geometries
         """
         """
         Find the distance between 2 geometry elements. Possible is Point, LineGeo
         and ArcGeo
         @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries 
+        @return: The distance between the two geometries
         """
         from core.linegeo import LineGeo
-        
+
         if isinstance(other, LineGeo):
             return other.distance_l_a(self)
         elif isinstance(other, Point):
@@ -266,7 +241,7 @@ class ArcGeo(object):
         """
         Find the distance between two arcs
         @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries 
+        @return: The distance between the two geometries
         """
         # logger.error('Unsupported function')
         Pself = self.get_nearest_point(other)
@@ -277,7 +252,7 @@ class ArcGeo(object):
         """
         Find the distance between a arc and a point
         @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries 
+        @return: The distance between the two geometries
         """
         # The Pont is outside of the Arc
         if self.O.distance(other) > self.r:
@@ -312,11 +287,11 @@ class ArcGeo(object):
         Find the intersection between 2 geometry elements. Possible is CCLineGeo
         and ArcGeo
         @param other: the instance of the 2nd geometry element.
-        @param type: Can be "TIP" for True Intersection Point or "Ray" for 
-        Intersection which is in Ray (of Line)        @return: a list of intersection points. 
+        @param type: Can be "TIP" for True Intersection Point or "Ray" for
+        Intersection which is in Ray (of Line)        @return: a list of intersection points.
         """
         from core.linegeo import LineGeo
-        
+
         if isinstance(other, LineGeo):
             IPoints = other.find_inter_point_l_a(self, type)
             return IPoints
@@ -330,9 +305,9 @@ class ArcGeo(object):
         Find the intersection between 2 ArcGeo elements. There can be only one
         intersection between 2 lines.
         @param other: the instance of the 2nd geometry element.
-        @param type: Can be "TIP" for True Intersection Point or "Ray" for 
-        Intersection which is in Ray (of Line)        
-        @return: a list of intersection points. 
+        @param type: Can be "TIP" for True Intersection Point or "Ray" for
+        Intersection which is in Ray (of Line)
+        @return: a list of intersection points.
         @todo: FIXME: The type of the intersection is not implemented up to now
         """
         O_dis = self.O.distance(other.O)
@@ -358,7 +333,7 @@ class ArcGeo(object):
         # The following algorithm was found on :
         # http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
 
-        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) * 
+        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) *
                   (pow(O_dis, 2) - pow(other.r - self.r, 2)))
 
         # If the Line is a tangent the root is 0.0.
@@ -414,27 +389,6 @@ class ArcGeo(object):
         else:
             logger.error("We should not be here")
 
-    def get_arc_direction(self, newO):
-        """ 
-        Calculate the arc direction given from the Arc and O of the new Arc.
-        @param O: The center of the arc
-        @return: Returns the direction (+ or - pi/2)
-        @todo: FIXME: The type of the intersection is not implemented up to now
-        """
-
-        a1 = self.e_ang - pi / 2 * self.ext / abs(self.ext)
-        a2 = self.Pe.norm_angle(newO)
-        direction = a2 - a1
-
-        if direction > pi:
-            direction = direction - 2 * pi
-        elif direction < -pi:
-            direction = direction + 2 * pi
-
-        # print ('Die Direction ist: %s' %direction)
-
-        return direction
-
     def get_nearest_point(self, other):
         """
         Get the nearest point on the arc to another geometry.
@@ -442,7 +396,7 @@ class ArcGeo(object):
         @return: The point which is the nearest to other
         """
         from core.linegeo import LineGeo
-        
+
         if isinstance(other, LineGeo):
             return other.get_nearest_point_l_a(self, ret="arc")
         elif isinstance(other, ArcGeo):
@@ -574,7 +528,7 @@ class ArcGeo(object):
     def get_point_from_start(self, i, segments):
         ang = self.s_ang + i * self.ext / segments
         return self.O.get_arc_point(ang, self.r)
-    
+
     def get_start_end_points(self, start_point, angles=None):
         if start_point:
             if angles is None:
@@ -607,7 +561,7 @@ class ArcGeo(object):
 
         # We need to test Point first cause it has no BB
         from core.linegeo import LineGeo
-        
+
         if isinstance(other, Point):
             return self.intersect_a_p(other)
         elif not(self.BB.hasintersection(other.BB)):
@@ -651,8 +605,8 @@ class ArcGeo(object):
             if xy.distance2_to_line(Ps, Pe) <= tol2:
                 return True
             Ps = Pe
-        return False  
-      
+        return False
+
     def make_abs_geo(self, parent=None):
         """
         Generates the absolute geometry based on itself and the parent. This
@@ -669,7 +623,7 @@ class ArcGeo(object):
             direction *= -1
 
         self.abs_geo = ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=direction)
-    
+
     def make_path(self, caller, drawHorLine):
         segments = int(abs(degrees(self.ext)) // 3 + 1)
         Ps = self.O.get_arc_point(self.s_ang, self.r)
@@ -685,14 +639,14 @@ class ArcGeo(object):
     def PointAng_withinArc(self, Point):
         """
         Check if the angle defined by Point is within the span of the arc.
-        @param Point: The Point which angle to be checked 
+        @param Point: The Point which angle to be checked
         @return: True or False
         """
         v = self.dif_ang(self.Ps, Point, self.ext) / self.ext
         return v >= 0.0 and v <= 1.0
 
     def reverse(self):
-        """ 
+        """
         Reverses the direction of the arc (switch direction).
         """
         self.Ps, self.Pe = self.Pe, self.Ps
@@ -716,7 +670,7 @@ class ArcGeo(object):
             r = self.scaled_r(r, parent.parent)
 
         return r
-    
+
     def split_into_2geos(self, ipoint=Point()):
         """
         Splits the given geometry into 2 geometries. The
@@ -736,7 +690,7 @@ class ArcGeo(object):
 
     def toShortString(self):
         return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
-    
+
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
@@ -745,10 +699,10 @@ class ArcGeo(object):
         """
         return text_type(QtCore.QCoreApplication.translate('ArcGeo',
                                                            string_to_translate))
-    
+
     def trim(self, Point, dir=1, rev_norm=False):
         """
-        This instance is used to trim the geometry at the given point. The point 
+        This instance is used to trim the geometry at the given point. The point
         can be a point on the offset geometry a perpendicular point on line will
         be used for trimming.
         @param Point: The point / perpendicular point for new Geometry
@@ -760,16 +714,16 @@ class ArcGeo(object):
         # logger.debug("I'm getting trimmed: %s, %s, %s, %s" % (self, Point, dir, rev_norm))
         newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r=self.r)
         new_normal = newPoint.unit_vector(self.O, r=1)
-        
+
         # logger.debug(newPoint)
         [Arc1, Arc2] = self.split_into_2geos(newPoint)
-         
+
         if dir == -1:
             new_arc = Arc1
             if hasattr(self, "end_normal"):
                 # new_arc.end_normal = self.end_normal
                 # new_arc.start_normal = new_normal
-                
+
                 new_arc.end_normal = new_normal
                 new_arc.start_normal = self.start_normal
             # logger.debug(new_arc)
@@ -779,13 +733,13 @@ class ArcGeo(object):
             if hasattr(self, "end_normal"):
                 # new_arc.end_normal = new_normal
                 # new_arc.start_normal = self.start_normal
-                
+
                 new_arc.end_normal = self.end_normal
                 new_arc.start_normal = new_normal
             # logger.debug(new_arc)
             return new_arc
         # return self
-        
+
     def update_start_end_points(self, start_point, value):
         prv_dir = self.ext
         if start_point:
@@ -804,7 +758,7 @@ class ArcGeo(object):
             self.ext = self.dif_ang(self.Ps, self.Pe, prv_dir)
 
         self.length = self.r * abs(self.ext)
-        
+
     def wrap(self, angle, isend=0):
         """
         Wrapes the given angle into a range between 0 and 2pi

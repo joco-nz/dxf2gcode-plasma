@@ -299,7 +299,7 @@ class StMove(object):
                 else:
                     i += 1
                 # TODO
-                # if len(new_geos) > 0 and not new_geos[-1].Pe.eq(geo.Ps, g.config.fitting_tolerance):
+                # if len(new_geos) > 0 and not new_geos[-1].Pe.within_tol(geo.Ps, g.config.fitting_tolerance):
                 #     break  # geo is disconnected
                 new_geos.append(geo)
                 if new_geos[0].Ps == new_geos[-1].Pe:
@@ -325,7 +325,7 @@ class StMove(object):
 
         if len(self.geos) == 0:
             self.append(RapidPos(self.start))
-            
+
     def make_own_cutter_compensation_CK(self):
         toolwidth = self.shape.parentLayer.getToolRadius()
 
@@ -334,7 +334,7 @@ class StMove(object):
         offtype = "in"  if self.shape.cut_cor == 41 else "out"
 
         offshape = offShapeClass(parent=self.shape, offset=toolwidth, offtype=offtype)
-    
+
         self.geos+=offshape.rawoff
 
     def make_path(self, drawHorLine, drawVerLine):

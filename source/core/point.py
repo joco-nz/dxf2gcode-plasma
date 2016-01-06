@@ -36,10 +36,10 @@ import numbers
 import logging
 logger = logging.getLogger("core.point")
 
-eps=1e-12
-
 class Point(object):
-    #__slots__ = ["x", "y"]
+    __slots__ = ["x", "y"]
+    eps=1e-12
+
     def __init__(self, x=0, y=0):
         self.x = x
         self.y = y
@@ -56,7 +56,7 @@ class Point(object):
         @return: True for the same points within tolerance
         """
         if isinstance(other, Point):
-            return (-eps < self.x - other.x < eps) and (-eps < self.y - other.y < eps)
+            return (-Point.eps < self.x - other.x < Point.eps) and (-Point.eps < self.y - other.y < Point.eps)
         else:
             return False
 
@@ -88,18 +88,25 @@ class Point(object):
     def __neg__(self):
         """
         Implemnetaion of Point negation
-        @return: Returns a new Point which is negated 
+        @return: Returns a new Point which is negated
         """
         return -1.0 * self
-  
+
     def __add__(self, other):  # add to another Point
         """
         Implemnetaion of Point addition
         @param other: The other Point which shall be added
-        @return: Returns a new Point 
+        @return: Returns a new Point
         """
         return Point(self.x + other.x, self.y + other.y)
-    
+
+    def __radd__(self, other):
+        """
+        Implementation of the add for a real value
+        @param other: The real value to be added
+        @return: Return the new Point
+        """
+        return Point(self.x + other, self.y + other)
 
     def __lt__(self,other):
         """
@@ -122,17 +129,9 @@ class Point(object):
         """
         Implemnetaion of Point subtraction
         @param other: The other Point which shall be subtracted
-        @return: Returns a new Point 
+        @return: Returns a new Point
         """
         return self + -other
-
-    def __radd__(self, other):
-        """
-        Implementation of the add for a real value
-        @param other: The real value to be added
-        @return: Return the new Point
-        """
-        return Point(self.x + other, self.y + other)
 
     def __rmul__(self, other):
         """
@@ -140,7 +139,7 @@ class Point(object):
         @param other: The real value to be multiplied by
         @return: The new poinnt
         """
-        
+
         return Point(other * self.x, other * self.y)
 
     def __mul__(self, other):
@@ -160,7 +159,7 @@ class Point(object):
             return self.x * other.x + self.y * other.y
         else:
             logger.warning("Unsupported type: %s" % type(other))
-            
+
     def __truediv__(self, other):
         return Point(x=self.x / other, y=self.y / other)
 
@@ -174,12 +173,12 @@ class Point(object):
         @param C: a third point
         @return: If C is between those points
         """
-        if (self.ccw(B, C) != 0):
+        if self.ccw(B, C) != 0:
             return False
         if (self.x == B.x) and (self.y == B.y):
             return (self.x == C.x) and (self.y == C.y)
 
-        elif (self.x != B.x):
+        elif self.x != B.x:
             # ab not vertical
             return ((self.x <= C.x) and (C.x <= B.x)) or ((self.x >= C.x) and (C.x >= B.x))
 
@@ -193,19 +192,18 @@ class Point(object):
         @param B: a second point
         @param C: a third point
         @return: If the slope of the line AB is less than the slope of the line
-        AC then the three points are listed in a counterclockwise order 
+        AC then the three points are listed in a counterclockwise order
         """
         # return (C.y-self.y)*(B.x-self.x) > (B.y-self.y)*(C.x-self.x)
 
-
         area2 = (B.x - self.x) * (C.y - self.y) - (C.x - self.x) * (B.y - self.y)
         # logger.debug(area2)
-        if (area2 < -eps):
+        if area2 < -Point.eps:
             return -1
-        elif area2 > eps:
+        elif area2 > Point.eps:
             return +1
         else:
-            return  0
+            return 0
 
     def cross_product(self, other):
         """
@@ -214,7 +212,9 @@ class Point(object):
         @param P2: The 2nd Point
         @return: dot Product of the points.
         """
-        return Point(self.y * other.z - self.z * other.y, self.z * other.x - self.x * other.z, self.x * other.y - self.y * other.x)
+        return Point(self.y * other.z - self.z * other.y,
+                     self.z * other.x - self.x * other.z,
+                     self.x * other.y - self.y * other.x)
 
     def detTopLeft(self, point):
         self.x = min(self.x, point.x)
@@ -226,36 +226,24 @@ class Point(object):
 
     def distance(self, other=None):
         """Returns distance between two given points"""
-        from core.linegeo import LineGeo
-        from core.arcgeo import ArcGeo
-        
-        if type(other) == type(None):
-            other = Point(x=0.0, y=0.0)
-        if isinstance(other, Point):
-            return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
-        elif isinstance(other, LineGeo):
+        if other is None:
+            return 0
+        if not isinstance(other, Point):
             return other.distance(self)
-        elif isinstance(other, ArcGeo):
-            return other.distance(self)
-        else:
-            logger.error("unsupported instance: %s" % type(other))
-            
-            
-        #     def distance(self, other):
-        #         return (self - other).length()
-        # 
-        #     def distance2_to_line(self, Ps, Pe):
-        #         dLine = Pe - Ps
-        # 
-        #         u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
-        #         if u > 1.0:
-        #             u = 1.0
-        #         elif u < 0.0:
-        #             u = 0.0
-        # 
-        #         closest = Ps + u * dLine
-        #         diff = closest - self
-        #         return diff.length_squared()
+        return (self - other).length()
+
+    def distance2_to_line(self, Ps, Pe):
+        dLine = Pe - Ps
+
+        u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
+        if u > 1.0:
+            u = 1.0
+        elif u < 0.0:
+            u = 0.0
+
+        closest = Ps + u * dLine
+        diff = closest - self
+        return diff.length_squared()
 
     def dotProd(self, P2):
         """
@@ -265,13 +253,10 @@ class Point(object):
         @return: dot Product of the points.
         """
         return (self.x * P2.x) + (self.y * P2.y)
-    
-#     def eq(self, other, tol):
-#         return abs(self.x - other.x) < tol and abs(self.y - other.y) < tol
 
     def get_arc_point(self, ang=0, r=1):
-        """ 
-        Returns the Point on the arc defined by r and the given angle, self is 
+        """
+        Returns the Point on the arc defined by r and the given angle, self is
         Center of the arc
         @param ang: The angle of the Point
         @param radius: The radius from the given Point
@@ -291,7 +276,7 @@ class Point(object):
         return Point(x=unit_vector.y * r, y=-unit_vector.x * r)
 
     def get_nearest_point(self, points):
-        """ 
+        """
         If there are more then 1 intersection points then use the nearest one to
         be the intersection Point.
         @param points: A list of points to be checked for nearest
@@ -309,30 +294,6 @@ class Point(object):
                     Point = points[i]
 
         return Point
-
-    def get_arc_direction(self, Pe, O):
-        """ 
-        Calculate the arc direction given from the 3 Point. Pa (self), Pe, O
-        @param Pe: End Point
-        @param O: The center of the arc
-        @return: Returns the direction (+ or - pi/2)
-        """
-        a1 = self.norm_angle(Pe)
-        a2 = Pe.norm_angle(O)
-        direction = a2 - a1
-
-        if direction > pi:
-            direction = direction - 2 * pi
-        elif direction < -pi:
-            direction = direction + 2 * pi
-
-        # print ('The Direction is: %s' %direction)
-
-        return direction
-
-    def isintol(self, other, tol=eps):
-        """Are the two points within 'tol' tolerance?"""
-        return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) <= tol)
 
     def length(self):
         return sqrt(self.length_squared())
@@ -401,7 +362,7 @@ class Point(object):
 
     def to3D(self, z=0.0):
         return Point3D(self.x, self.y, z)
-    
+
     def transform_to_Norm_Coord(self, other, alpha):
         xt = other.x + self.x * cos(alpha) + self.y * sin(alpha)
         yt = other.y + self.x * sin(alpha) + self.y * cos(alpha)
@@ -421,7 +382,7 @@ class Point(object):
 
     def trim(self, Point, dir=1, rev_norm=False):
         """
-        This instance is used to trim the geometry at the given point. The point 
+        This instance is used to trim the geometry at the given point. The point
         can be a point on the offset geometry a perpendicular point on line will
         be used for trimming.
         @param Point: The point / perpendicular point for new Geometry
@@ -443,10 +404,10 @@ class Point(object):
     def unit_vector(self, Pto=None, r=1):
         """
         Returns vector of length 1 with similar direction as input
-        @param Pto: The other point 
+        @param Pto: The other point
         @return: Returns the Unit vector
         """
-        if Pto is None: 
+        if Pto is None:
             return self / self.length()
         else:
             diffVec = Pto - self
@@ -459,6 +420,6 @@ class Point(object):
         """
         # TODO is this sufficient, or do we want to compare the distance
         return abs(self.x - other.x) <= tol and abs(self.y - other.y) < tol
-    
+
     def plot2plot(self, plot, format='xr'):
         plot.plot([self.x], [self.y], format)
