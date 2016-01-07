@@ -195,27 +195,21 @@ class ArcGeo(object):
 
         self.BB = BoundingBox(Ps=Ps, Pe=Pe)
 
-    def dif_ang(self, P1, P2, direction, tol=eps):
+    def dif_ang(self, Ps, Pe, direction):
         """
-        Calculated the angle of extend based on the 3 given points. Center Point,
-        P1 and P2.
-        @param P1: the start Point of the arc 
-        @param P2: the end Point of the arc
+        Calculated the angle between Pe and Ps with respect to the origin
+        @param Ps: the start Point of the arc
+        @param Pe: the end Point of the arc
         @param direction: the direction of the arc
-        @return: Returns the angle between -2* pi and 2 *pi for the arc extend
+        @return: Returns the angle between -2* pi and 2 *pi for the arc,
+        0 excluded - we got a complete circle
         """
-        # FIXME Das koennte Probleme geben bei einem reelen Kreis
-#        if P1.isintol(P2,tol):
-#            return 0.0
-        sa = self.O.norm_angle(P1)
-        ea = self.O.norm_angle(P2)
+        dif_ang = (self.O.norm_angle(Pe) - self.O.norm_angle(Ps)) % (-2 * pi)
 
-        if(direction > 0.0):  # GU
-            dif_ang = (ea - sa) % (-2 * pi)
-            dif_ang -= floor(dif_ang / (2 * pi)) * (2 * pi)
-        else:
-            dif_ang = (ea - sa) % (-2 * pi)
-            dif_ang += ceil(dif_ang / (2 * pi)) * (2 * pi)
+        if direction > 0:
+            dif_ang += 2 * pi
+        elif dif_ang == 0:
+            dif_ang = -2 * pi
 
         return dif_ang
 
@@ -394,27 +388,6 @@ class ArcGeo(object):
                 return [Pi1, Pi2]
         else:
             logger.error("We should not be here")
-
-    def get_arc_direction(self, newO):
-        """ 
-        Calculate the arc direction given from the Arc and O of the new Arc.
-        @param O: The center of the arc
-        @return: Returns the direction (+ or - pi/2)
-        @todo: FIXME: The type of the intersection is not implemented up to now
-        """
-
-        a1 = self.e_ang - pi / 2 * self.ext / abs(self.ext)
-        a2 = self.Pe.norm_angle(newO)
-        direction = a2 - a1
-
-        if direction > pi:
-            direction = direction - 2 * pi
-        elif direction < -pi:
-            direction = direction + 2 * pi
-
-        # print ('Die Direction ist: %s' %direction)
-
-        return direction
 
     def get_nearest_point(self, other):
         """
@@ -669,6 +642,9 @@ class ArcGeo(object):
         @param Point: The Point which angle to be checked
         @return: True or False
         """
+        if self.ext == 0.0:
+            return False
+
         v = self.dif_ang(self.Ps, Point, self.ext) / self.ext
         return v >= 0.0 and v <= 1.0
 

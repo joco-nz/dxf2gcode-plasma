@@ -84,10 +84,11 @@ class offShapeClass(Shape):
         while len(nextConvexPoint):  # [self.convex_vertex[-1]]:
             convex_vertex_nr = self.segments.index(nextConvexPoint[0])
             # logger.debug(len(self.segments))
-            # logger.debug("convex_vertex_nr: %s" % convex_vertex_nr)
+            logger.debug("convex_vertex: %s" % nextConvexPoint[0])
+            logger.debug("convex_vertex_nr: %s" % convex_vertex_nr)
                  
             forward, backward = self.PairWiseInterferenceDetection(convex_vertex_nr + 1, convex_vertex_nr - 1)
-            # logger.debug("forward: %s, backward: %s" % (forward, backward))
+            logger.debug("forward: %s, backward: %s" % (forward, backward))
  
             if forward is None:
                 return
@@ -107,11 +108,13 @@ class offShapeClass(Shape):
  
             if iPoint is None:
                 logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %(fw_rawoff_seg,bw_rawoff_seg))
-            # logger.debug("forward: %s, backward: %s, iPoint: %s =====================================" %(forward,backward,iPoint))
+                logger.debug("forward: %s, backward: %s, iPoint: %s =====================================" % (forward, backward, iPoint))
+                logger.debug(fw_rawoff_seg)
+                logger.debug(bw_rawoff_seg)
                 logger.error("No intersection found?!")
-                raise Exception("No intersection found?!")
-                # logger.debug(fw_rawoff_seg)
-                # logger.debug(bw_rawoff_seg)
+                self.segments = []
+                # raise Exception("No intersection found?!")
+
                 
                 break
  
