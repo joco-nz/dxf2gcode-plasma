@@ -43,7 +43,7 @@ else:
 
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "9.7"
+CONFIG_VERSION = "9.8"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -108,13 +108,7 @@ CONFIG_SPEC = str('''
     # if done_by_machine is set to False DXF2GCODE will create a virtual path for G41 and G42 command. And output
     # is set to G40; i.e. it will create the path that normally your machine will create with cutter compensation
     done_by_machine = boolean(default = True)
-    # The percentage below denotes the minimal / maximal path of the cutter offset path that should be met such
-    # that the current starting point can be considered as a good starting point. Otherwise it moves the starting
-    # point to the next closest point and tries it again.
-    min_length_considered = float(default = 0.60)
-    max_length_considered = float(default = 1.40)
-    # If the direction is not maintained of current shape it moves the starting point and tries it again
-    direction_maintained = boolean(default = True)
+
 
     [Drag_Knife_Options]
     # drag_angle: if larger than this angle (in degrees), tool retracts to dragDepth
