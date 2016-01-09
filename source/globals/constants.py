@@ -47,9 +47,9 @@ except ImportError:
 APPNAME = "DXF2GCODE"
 VERSION = "PyQt%i Beta" % (5 if PYQT5notPYQT4 else 4)
 
-DATE     =  "$Date$"
-REVISION =  "$Revision$"
-AUTHOR   = u"$Author$"
+DATE     =  "$Date: Sat Oct 10 10:12:02 2015 +0200 $"
+REVISION =  "$Revision: e7338546f0111e3ff476d00736c6ee51cae62639 $"
+AUTHOR   = u"$Author: Jean-Paul Schouwstra <jp1357@gmail.com> $"
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'

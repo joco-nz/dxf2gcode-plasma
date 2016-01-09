@@ -573,9 +573,9 @@ class Ui_MainWindow(object):
         self.actionSaveProjectAs = QtGui.QAction(MainWindow)
         self.actionSaveProjectAs.setEnabled(False)
         self.actionSaveProjectAs.setObjectName(_fromUtf8("actionSaveProjectAs"))
-        self.action2x_laser = QtGui.QAction(MainWindow)
-        self.action2x_laser.setCheckable(True)
-        self.action2x_laser.setObjectName(_fromUtf8("action2x_laser"))
+        self.actionLaser_Cutter = QtGui.QAction(MainWindow)
+        self.actionLaser_Cutter.setCheckable(True)
+        self.actionLaser_Cutter.setObjectName(_fromUtf8("actionLaser_Cutter"))
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addAction(self.actionReload)
         self.menuFile.addSeparator()
@@ -597,7 +597,7 @@ class Ui_MainWindow(object):
         self.menuMachine_Type.addAction(self.actionMilling)
         self.menuMachine_Type.addAction(self.actionLathe)
         self.menuMachine_Type.addAction(self.actionDragKnife)
-        self.menuMachine_Type.addAction(self.action2x_laser)
+        self.menuMachine_Type.addAction(self.actionLaser_Cutter)
         self.menuTolerances.addAction(self.actionTolerances)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionScaleAll)
@@ -713,7 +713,7 @@ class Ui_MainWindow(object):
         self.actionIsometricView.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+V, I", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSaveProjectAs.setText(QtGui.QApplication.translate("MainWindow", "Save Project As...", None, QtGui.QApplication.UnicodeUTF8))
         self.actionSaveProjectAs.setShortcut(QtGui.QApplication.translate("MainWindow", "Ctrl+S", None, QtGui.QApplication.UnicodeUTF8))
-        self.action2x_laser.setText(QtGui.QApplication.translate("MainWindow", "2x_laser", None, QtGui.QApplication.UnicodeUTF8))
+        self.actionLaser_Cutter.setText(QtGui.QApplication.translate("MainWindow", "Laser Cutter", None, QtGui.QApplication.UnicodeUTF8))
 
 from gui.canvas import Canvas
 from gui.treeview import TreeView

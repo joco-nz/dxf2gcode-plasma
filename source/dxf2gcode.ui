@@ -934,7 +934,7 @@
      <addaction name="actionMilling"/>
      <addaction name="actionLathe"/>
      <addaction name="actionDragKnife"/>
-     <addaction name="action2x_laser"/>
+     <addaction name="actionLaser_Cutter"/>
     </widget>
     <addaction name="actionTolerances"/>
     <addaction name="separator"/>
@@ -1204,12 +1204,12 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="action2x_laser">
+  <action name="actionLaser_Cutter">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>2x_laser</string>
+    <string>Laser Cutter</string>
    </property>
   </action>
  </widget>

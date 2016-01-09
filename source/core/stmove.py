@@ -29,20 +29,16 @@ from __future__ import division
 
 from math import sin, cos, pi, sqrt
 from copy import deepcopy
-
+import logging
 
 import globals.globals as g
-
 from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
 from core.point import Point
 from core.intersect import Intersect
 from core.shape import Geos
-from core.shape import Shape
-from core.shapeoffset import *
 
-import logging
-logger = logging.getLogger('core.stmove')
+logger = logging.getLogger('Gui.StMove')
 
 
 class StMove(object):
@@ -82,8 +78,7 @@ class StMove(object):
             self.make_swivelknife_move()
             return
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
-            #self.make_own_cutter_compensation_JP()
-            self.make_own_cutter_compensation_CK()
+            self.make_own_cutter_compensation()
             return
 
         # Get the start rad. and the length of the line segment at begin.
@@ -104,20 +99,20 @@ class StMove(object):
             # Center of the Starting Radius.
             Oein = start.get_arc_point(angle + pi/2, start_rad + tool_rad)
             # Start Point of the Radius
-            Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Ps_ein.get_arc_point(angle + pi/2, start_rad)
+            Pg_ein = Pa_ein.get_arc_point(angle + pi/2, start_rad)
 
             # Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
             self.append(RapidPos(start_ein))
 
             # generate the Start Line and append it including the compensation.
-            start_line = LineGeo(start_ein, Ps_ein)
+            start_line = LineGeo(start_ein, Pa_ein)
             self.append(start_line)
 
             # generate the start rad. and append it.
-            start_rad = ArcGeo(Ps=Ps_ein, Pe=start, O=Oein,
+            start_rad = ArcGeo(Ps=Pa_ein, Pe=start, O=Oein,
                                r=start_rad + tool_rad, direction=1)
             self.append(start_rad)
 
@@ -126,20 +121,20 @@ class StMove(object):
             # Center of the Starting Radius.
             Oein = start.get_arc_point(angle - pi/2, start_rad + tool_rad)
             # Start Point of the Radius
-            Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            Pa_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Ps_ein.get_arc_point(angle - pi/2, start_rad)
+            Pg_ein = Pa_ein.get_arc_point(angle - pi/2, start_rad)
 
             # Get the dive point for the starting contour and append it.
             start_ein = Pg_ein.get_arc_point(angle, tool_rad)
             self.append(RapidPos(start_ein))
 
             # generate the Start Line and append it including the compensation.
-            start_line = LineGeo(start_ein, Ps_ein)
+            start_line = LineGeo(start_ein, Pa_ein)
             self.append(start_line)
 
             # generate the start rad. and append it.
-            start_rad = ArcGeo(Ps=Ps_ein, Pe=start, O=Oein,
+            start_rad = ArcGeo(Ps=Pa_ein, Pe=start, O=Oein,
                                r=start_rad + tool_rad, direction=0)
             self.append(start_rad)
 
@@ -220,7 +215,7 @@ class StMove(object):
         self.geos.insert(0, RapidPos(self.geos.abs_el(0).Ps))
         self.geos[0].make_abs_geo()
 
-    def make_own_cutter_compensation_JP(self):
+    def make_own_cutter_compensation(self):
         toolwidth = self.shape.parentLayer.getToolRadius()
 
         geos = Geos([])
@@ -299,7 +294,7 @@ class StMove(object):
                 else:
                     i += 1
                 # TODO
-                # if len(new_geos) > 0 and not new_geos[-1].Pe.within_tol(geo.Ps, g.config.fitting_tolerance):
+                # if len(new_geos) > 0 and not new_geos[-1].Pe.eq(geo.Ps, g.config.fitting_tolerance):
                 #     break  # geo is disconnected
                 new_geos.append(geo)
                 if new_geos[0].Ps == new_geos[-1].Pe:
@@ -326,23 +321,11 @@ class StMove(object):
         if len(self.geos) == 0:
             self.append(RapidPos(self.start))
 
-    def make_own_cutter_compensation_CK(self):
-        toolwidth = self.shape.parentLayer.getToolRadius()
-
-        self.geos = Geos([])
-
-        offtype = "in"  if self.shape.cut_cor == 41 else "out"
-
-        offshape = offShapeClass(parent=self.shape, offset=toolwidth, offtype=offtype)
-
-        self.geos+=offshape.rawoff
-
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos.abs_iter():
             drawVerLine(self.shape, geo.get_start_end_points(True))
             geo.make_path(self.shape, drawHorLine)
-        if len(self.geos):
-            drawVerLine(self.shape, geo.get_start_end_points(False))
+        drawVerLine(self.shape, geo.get_start_end_points(False))
 
 
 class RapidPos(Point):
@@ -375,6 +358,3 @@ class RapidPos(Point):
         @return: Returns the string to be written to a file.
         """
         return PostPro.rap_pos_xy(self)
-
-
-
