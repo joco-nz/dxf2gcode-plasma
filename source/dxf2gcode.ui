@@ -1204,12 +1204,12 @@
     <string>Ctrl+S</string>
    </property>
   </action>
-  <action name="actionLaser_Cutter">
+  <action name="action2x_laser">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Laser Cutter</string>
+    <string>2x_laser</string>
    </property>
   </action>
  </widget>
