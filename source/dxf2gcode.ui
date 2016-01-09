@@ -934,7 +934,7 @@
      <addaction name="actionMilling"/>
      <addaction name="actionLathe"/>
      <addaction name="actionDragKnife"/>
-     <addaction name="actionLaser_Cutter"/>
+     <addaction name="action2x_laser"/>
     </widget>
     <addaction name="actionTolerances"/>
     <addaction name="separator"/>
