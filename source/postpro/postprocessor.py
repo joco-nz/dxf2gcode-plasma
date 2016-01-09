@@ -225,6 +225,8 @@ class MyPostProcessor(object):
         self.feed = 0
         self.speed = 0
         self.tool_nr = 1
+        self.laser_power = 20.0
+        self.laser_pulses_per_mm = 20
         self.comment = ""
 
         self.abs_export = self.vars.General["abs_export"]
@@ -243,7 +245,6 @@ class MyPostProcessor(object):
         self.r = 0.0
         self.s_ang = 0.0
         self.e_ang = 0.0
-        self.ext = 0.0
 
         self.ze = g.config.vars.Depth_Coordinates['axis3_retract']
         self.lz = self.ze
@@ -251,6 +252,8 @@ class MyPostProcessor(object):
         self.keyvars = {"%feed": 'self.iprint(self.feed)',
                         "%speed": 'self.iprint(self.speed)',
                         "%tool_nr": 'self.iprint(self.tool_nr)',
+                        "%laser_power": 'self.fprint(self.laser_power)',
+                        "%laser_pulses_per_mm": 'self.iprint(self.laser_pulses_per_mm)',
                         "%nl": 'self.nlprint()',
                         "%XE": 'self.fnprint(self.Pe.x)',
                         "%-XE": 'self.fnprint(-self.Pe.x)',
@@ -275,8 +278,6 @@ class MyPostProcessor(object):
                         "%-AngS": 'self.fnprint(degrees(-self.s_ang))',
                         "%AngE": 'self.fnprint(degrees(self.e_ang))',
                         "%-AngE": 'self.fnprint(degrees(-self.e_ang))',
-                        "%ext": 'self.fnprint(degrees(self.ext))',
-                        "%-ext": 'self.fnprint(degrees(-self.ext))',
                         "%comment": 'self.sprint(self.comment)'}
 
     def write_gcode_be(self, load_filename):
@@ -347,6 +348,33 @@ class MyPostProcessor(object):
 
         return exstr
 
+    def chg_laser_power(self, power_level):
+        """
+        This Method is called to change the laser power level
+        for laser cutters.
+        @param power_level: (0 - 100) output power of the laser in percent
+        """
+        if float(power_level) > 100.0:
+            self.laser_power = 100.0
+        elif float(power_level) < 0.0:
+            self.laser_power = 0.0
+        else:
+            self.laser_power = power_level/100.0
+        return self.make_print_str(self.vars.Program["laser_power_change"])
+
+    def chg_laser_pulses_per_mm(self, laser_pulses_per_mm):
+        """
+        This Method is called to change the laser pulses-per-mm level
+        for laser cutters.
+        @param pulses_per_mm: positive integer. (High-speed cuts will
+        merge pulses
+        """
+        if int(laser_pulses_per_mm) < 0:
+            self.laser_pulses_per_mm = 0
+        else:
+            self.laser_pulses_per_mm = laser_pulses_per_mm
+        return self.make_print_str(self.vars.Program["laser_pulses_per_mm_change"])
+
     def chg_tool(self, tool_nr, speed):
         """
         This Method is called to change the tool.  It can change the tool or
@@ -386,7 +414,7 @@ class MyPostProcessor(object):
         """
         return self.make_print_str(self.vars.Program["cutter_comp_off"])
 
-    def lin_pol_arc(self, dir, Ps, Pe, s_ang, e_ang, R, O, IJ, ext):
+    def lin_pol_arc(self, dir, Ps, Pe, s_ang, e_ang, R, O, IJ):
         """
         This function is called if an arc shall be cut.
         @param dir: The direction of the arc to cut, can be cw or ccw
@@ -406,8 +434,6 @@ class MyPostProcessor(object):
 
         self.Ps = Ps
         self.r = R
-        
-        self.ext = ext
 
         if not self.abs_export:
             self.Pe = Pe - self.lPe
@@ -530,6 +556,14 @@ class MyPostProcessor(object):
         @return: The integer formatted as a string.
         """
         return '%i' % integer
+
+    def fprint(self, floating_point_num):
+        """
+        This method returns a float formatted as a string
+        @param float: The integer value to convert to a string
+        @return: The float formatted as a string.
+        """
+        return '%f' % floating_point_num
 
     def sprint(self, string):
         """

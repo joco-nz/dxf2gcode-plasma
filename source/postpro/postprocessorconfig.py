@@ -106,6 +106,8 @@ POSTPRO_SPEC = str('''
     pre_shape_cut = string(default=M3 M8%nl)
     post_shape_cut = string(default=M9 M5%nl)
     comment = string(default=%nl(%comment)%nl)
+    laser_power_change = string(default=M68 E0 Q%laser_power%nl)
+    laser_pulses_per_mm_change = string(default=S%laser_pulses_per_mm%nl)
 
 ''').splitlines()
 """ format, type and default value specification of the global config file"""
@@ -152,7 +154,7 @@ class MyPostProConfig(object):
             validate_errors = flatten_errors(self.var_dict, result)
 
             if validate_errors:
-                logger.error(self.tr("errors reading %s:") % self.filename)
+                g.logger.logger.error(self.tr("errors reading %s:") % self.filename)
             for entry in validate_errors:
                 section_list, key, error = entry
                 if key is not None:
@@ -162,7 +164,7 @@ class MyPostProConfig(object):
                 section_string = ', '.join(section_list)
                 if error == False:
                     error = self.tr('Missing value or section.')
-                logger.error(section_string + ' = ' + error)
+                g.logger.logger.error( section_string + ' = ' + error)
 
             if validate_errors:
                 raise BadConfigFileError(self.tr("syntax errors in postpro_config file"))
@@ -179,7 +181,7 @@ class MyPostProConfig(object):
             raise VersionMismatchError(fileversion, POSTPRO_VERSION)
 
         except Exception as inst:
-            #logger.error(inst)
+            logger.error(inst)
             (base, ext) = os.path.splitext(self.filename)
             badfilename = base + c.BAD_CONFIG_EXTENSION
             logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))

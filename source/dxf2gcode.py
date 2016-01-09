@@ -40,7 +40,6 @@ import tempfile
 from core.point import Point
 from core.layercontent import LayerContent, Layers, Shapes
 from core.entitycontent import EntityContent
-from core.customgcode import CustomGCode
 from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
 from core.project import Project
@@ -180,6 +179,7 @@ class MainWindow(QMainWindow):
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
+        self.ui.actionLaser_Cutter.triggered.connect(self.setMachineTypeToLaserCutter)
 
         # Help
         self.ui.actionAbout.triggered.connect(self.about)
@@ -458,34 +458,27 @@ class MainWindow(QMainWindow):
            self.ui.actionAutomaticCutterCompensation.isChecked():
             for layerContent in self.layerContents.non_break_layer_iter():
                 if layerContent.automaticCutterCompensationEnabled():
-                    new_exp_order = []
                     outside_compensation = True
                     shapes_left = layerContent.shapes
                     while len(shapes_left) > 0:
                         shapes_left = [shape for shape in shapes_left
-                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation, new_exp_order)]
+                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation)]
                         outside_compensation = not outside_compensation
-                    layerContent.exp_order = list(reversed(new_exp_order))
-        self.TreeHandler.updateTreeViewOrder()
         self.canvas_scene.update()
 
-    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation, new_exp_order):
-        if not isinstance(shape, CustomGCode):
-            for outerShape in shapes_left:
-                if self.isShapeContained(shape, outerShape):
+    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation):
+        for otherShape in shapes_left:
+            if shape != otherShape:
+                if shape != otherShape and\
+                   otherShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < otherShape.bottomRight.x and\
+                   otherShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < otherShape.topLeft.y:
                     return False
-            if outside_compensation == shape.cw:
-                shape.cut_cor = 41
-            else:
-                shape.cut_cor = 42
-            self.canvas_scene.repaint_shape(shape)
-        new_exp_order.append(shape.nr)
+        if outside_compensation == shape.cw:
+            shape.cut_cor = 41
+        else:
+            shape.cut_cor = 42
+        self.canvas_scene.repaint_shape(shape)
         return True
-
-    def isShapeContained(self, shape, outerShape):
-        return shape != outerShape and not isinstance(outerShape, CustomGCode) and\
-            outerShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < outerShape.bottomRight.x and\
-            outerShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < outerShape.topLeft.y
 
     def showSaveDialog(self, title, MyFormats):
         """
@@ -505,7 +498,7 @@ class MainWindow(QMainWindow):
                                    MyFormats, selected_filter)
 
         logger.info(self.tr("File: %s selected") % filename[0])
-        logger.info("<a href='%s'>%s</a>" %(filename[0],filename[0]))
+
         return filename
 
     def about(self):
@@ -657,25 +650,53 @@ class MainWindow(QMainWindow):
         self.updateMachineType()
         self.d2g.small_reload()
 
+    def setMachineTypeToLaserCutter(self):
+        g.config.machine_type = 'laser_cutter'
+        self.updateMachineType()
+        self.d2g.small_reload()
+
     def updateMachineType(self):
         if g.config.machine_type == 'milling':
             self.ui.actionAutomaticCutterCompensation.setEnabled(True)
             self.ui.actionMilling.setChecked(True)
             self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(False)
+            self.ui.actionLaser_Cutter.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Infeed depth"))
+            self.ui.label_15.setText(self.tr("Not Available"))
+            self.ui.label_16.setText(self.tr("Not Available"))
         elif g.config.machine_type == 'lathe':
             self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
             self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(True)
+            self.ui.actionLaser_Cutter.setChecked(False)
             self.ui.label_9.setText(self.tr("No Z-Axis for lathe"))
+            self.ui.label_15.setText(self.tr("Not Available"))
+            self.ui.label_16.setText(self.tr("Not Available"))
         elif g.config.machine_type == "drag_knife":
             self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
             self.ui.actionDragKnife.setChecked(True)
             self.ui.actionLathe.setChecked(False)
+            self.ui.actionLaser_Cutter.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
+            self.ui.label_15.setText(self.tr("Not Available"))
+            self.ui.label_16.setText(self.tr("Not Available"))
+        if g.config.machine_type == 'laser_cutter':
+            self.ui.actionAutomaticCutterCompensation.setEnabled(True)
+            self.ui.actionMilling.setChecked(False)
+            self.ui.actionDragKnife.setChecked(False)
+            self.ui.actionLathe.setChecked(False)
+            self.ui.actionLaser_Cutter.setChecked(True)
+            self.ui.label_15.setText(self.tr("Laser Power"))
+            self.ui.label_16.setText(self.tr("Laser Pulses Per mm"))
+            self.ui.label_10.setText(self.tr("Not Available"))
+            self.ui.label_9.setText(self.tr("Not Available"))
+            self.ui.label_8.setText(self.tr("Not Available"))
+            self.ui.label_6.setText(self.tr("Not Available"))
+            self.ui.label_5.setText(self.tr("Not Available"))
+            self.ui.label_14.setText(self.tr("Not Available"))
 
     def open(self):
         """
@@ -892,7 +913,7 @@ class MainWindow(QMainWindow):
             else:
                 # Loop for the number of geometries
                 tmp_shape = Shape(len(self.shapes),
-                                  (True if cont.closed else False),
+                                  cont.closed,
                                   parent)
 
                 for ent_geo_nr in range(len(cont.order)):
@@ -945,7 +966,7 @@ class MainWindow(QMainWindow):
 
         if isinstance(geo, HoleGeo):
             shape.type = 'Hole'
-            shape.closed = True  # TODO adjust import for holes?
+            shape.closed = 1  # TODO adjust import for holes?
             if g.config.machine_type == 'drag_knife':
                 shape.disabled = True
                 shape.allowedToChange = False
