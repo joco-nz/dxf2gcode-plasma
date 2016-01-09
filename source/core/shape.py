@@ -88,6 +88,9 @@ class Shape(object):
         self.f_g1_depth = g.config.vars.Feed_Rates['f_g1_depth']
         # Parameters for drag knife
         self.drag_angle = radians(g.config.vars.Drag_Knife_Options['drag_angle'])
+        # Parameters for laser cutter
+        self.laser_power = g.config.vars.Laser_Cutter_Options['laser_power']
+        self.laser_pulses_per_mm = g.config.vars.Laser_Cutter_Options['laser_pulses_per_mm']
 
     def __str__(self):
         """
@@ -311,6 +314,8 @@ class Shape(object):
         """
         if g.config.machine_type == 'drag_knife':
             return self.Write_GCode_Drag_Knife(PostPro)
+        elif g.config.machine_type == 'laser_cutter':
+            return self.Write_GCode_Laser_Cutter(PostPro)
 
         prv_cut_cor = self.cut_cor
         if self.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
@@ -571,6 +576,84 @@ class Shape(object):
                     new_geos.pop()
 
         self.geos = new_geos
+
+    def Write_GCode_Laser_Cutter(self, PostPro):
+        """
+        This method returns the string to be exported for this shape, including
+        the defined start and end move of the shape.
+        @param PostPro: this is the Postprocessor class including the methods
+        to export
+        """
+
+        # Save prior machine state.
+        prv_cut_cor = self.cut_cor
+        if self.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+            new_geos = Geos(self.stmove.geos[1:])
+        else:
+            new_geos = self.geos
+
+        new_geos = PostPro.breaks.getNewGeos(new_geos)
+
+        # Initialize string to hold all the GCode.
+        exstr = ""
+
+        laser_disable_depth = 0
+        laser_enable_depth = -0.01
+
+        # Save the initial Cutter correction in a variable
+        has_reversed = False
+
+        # Move the tool to the start.
+        exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
+        exstr += PostPro.rap_pos_z(laser_disable_depth)
+
+        # Add string to be added before the shape will be cut.
+        exstr += PostPro.write_pre_shape_cut()
+
+        # Enable Laser by Restore Z to (non-negative value) 0
+        exstr += PostPro.rap_pos_z(laser_enable_depth)
+
+        # Set the feed rate.
+        exstr += PostPro.chg_feed_rate(self.f_g1_plane)
+
+        if self.cut_cor != 40 and g.config.vars.Cutter_Compensation["done_by_machine"]:
+            # Enable Cutter Compensation at the start of all shapes.
+            exstr += PostPro.set_cut_cor(self.cut_cor)
+
+            # Apply Lead-In move for all shapes.
+            exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
+            exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
+
+        # Set the desired laser power.
+        exstr += PostPro.chg_laser_power(self.laser_power)
+
+        # Set the desired laser pulses per mm.
+        exstr += PostPro.chg_laser_pulses_per_mm(self.laser_pulses_per_mm)
+
+        # Write the geometries for the cut.
+        for geo in new_geos.abs_iter():
+            exstr += self.Write_GCode_for_geo(geo, PostPro)
+
+        # Turn off the cutter radius compensation if enabled.
+        if self.cut_cor != 40 and g.config.vars.Cutter_Compensation["done_by_machine"]:
+            exstr += PostPro.deactivate_cut_cor()
+
+        # Disable Laser by Restore Z to (non-negative value) 0
+        exstr += PostPro.rap_pos_z(laser_disable_depth)
+
+        # Initial value of direction restored if necessary
+        if has_reversed:
+            self.reverse(new_geos)
+            self.switch_cut_cor()
+
+        self.cut_cor = prv_cut_cor
+
+        # Add string to be added after cutting all shapes..
+        exstr += PostPro.write_post_shape_cut()
+
+        return exstr
+
+
 class Geos(list):
     def __init__(self, *args):
         list.__init__(self, *args)

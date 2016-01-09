@@ -99,8 +99,8 @@ CONFIG_SPEC = str('''
     live_update_export_route = boolean(default = False)
     split_line_segments = boolean(default = False)
     automatic_cutter_compensation = boolean(default = False)
-    # machine types supported: milling; lathe; drag_knife
-    machine_type = option('milling', 'lathe', 'drag_knife', default = 'milling')
+    # machine types supported: milling; lathe; drag_knife; laser_cutter
+    machine_type = option('milling', 'lathe', 'drag_knife', 'laser_cutter', default = 'milling')
     # The unit used for all values in this file
     tool_units = option('mm', 'in', default = 'mm')
 
@@ -120,6 +120,12 @@ CONFIG_SPEC = str('''
     # drag_angle: if larger than this angle (in degrees), tool retracts to dragDepth
     # the dragDepth is given by axis3_slice_depth
     drag_angle = float(default = 20)
+
+    [Laser_Cutter_Options]
+    # laser_power: a value from 0 to 100 that indicates the percent of the tube's laser power
+    laser_power = float(default = 20)
+    # laser_pulses_per_mm: laser pulses per mm
+    laser_pulses_per_mm = integer(default = 20)
 
     [Route_Optimisation]
     default_TSP = boolean(default = False)
