@@ -327,7 +327,7 @@ class Spline2Arcs:
                     # �berpr�fung der Abweichung
                     res = []
                     for Point in Pts:
-                        res.append(JointLine.distance2point(Point))
+                        res.append(JointLine.distance(Point))
                     # print res
 
                     # Wenn die Abweichung OK ist Vorheriges anh�ngen

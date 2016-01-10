@@ -40,6 +40,7 @@ import tempfile
 from core.point import Point
 from core.layercontent import LayerContent, Layers, Shapes
 from core.entitycontent import EntityContent
+from core.customgcode import CustomGCode
 from core.linegeo import LineGeo
 from core.holegeo import HoleGeo
 from core.project import Project
@@ -476,27 +477,34 @@ class MainWindow(QMainWindow):
            self.ui.actionAutomaticCutterCompensation.isChecked():
             for layerContent in self.layerContents.non_break_layer_iter():
                 if layerContent.automaticCutterCompensationEnabled():
+                    new_exp_order = []
                     outside_compensation = True
                     shapes_left = layerContent.shapes
                     while len(shapes_left) > 0:
                         shapes_left = [shape for shape in shapes_left
-                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation)]
+                                       if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation, new_exp_order)]
                         outside_compensation = not outside_compensation
+                    layerContent.exp_order = list(reversed(new_exp_order))
+        self.TreeHandler.updateTreeViewOrder()
         self.canvas_scene.update()
 
-    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation):
-        for otherShape in shapes_left:
-            if shape != otherShape:
-                if shape != otherShape and\
-                   otherShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < otherShape.bottomRight.x and\
-                   otherShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < otherShape.topLeft.y:
+    def ifNotContainedChangeCutCor(self, shape, shapes_left, outside_compensation, new_exp_order):
+        if not isinstance(shape, CustomGCode):
+            for outerShape in shapes_left:
+                if self.isShapeContained(shape, outerShape):
                     return False
-        if outside_compensation == shape.cw:
-            shape.cut_cor = 41
-        else:
-            shape.cut_cor = 42
-        self.canvas_scene.repaint_shape(shape)
+            if outside_compensation == shape.cw:
+                shape.cut_cor = 41
+            else:
+                shape.cut_cor = 42
+            self.canvas_scene.repaint_shape(shape)
+        new_exp_order.append(shape.nr)
         return True
+
+    def isShapeContained(self, shape, outerShape):
+        return shape != outerShape and not isinstance(outerShape, CustomGCode) and\
+            outerShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < outerShape.bottomRight.x and\
+            outerShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < outerShape.topLeft.y
 
     def showSaveDialog(self, title, MyFormats):
         """
@@ -516,7 +524,7 @@ class MainWindow(QMainWindow):
                                    MyFormats, selected_filter)
 
         logger.info(self.tr("File: %s selected") % filename[0])
-
+        logger.info("<a href='%s'>%s</a>" %(filename[0],filename[0]))
         return filename
 
     def about(self):
@@ -903,7 +911,7 @@ class MainWindow(QMainWindow):
             else:
                 # Loop for the number of geometries
                 tmp_shape = Shape(len(self.shapes),
-                                  cont.closed,
+                                  (True if cont.closed else False),
                                   parent)
 
                 for ent_geo_nr in range(len(cont.order)):
@@ -956,7 +964,7 @@ class MainWindow(QMainWindow):
 
         if isinstance(geo, HoleGeo):
             shape.type = 'Hole'
-            shape.closed = 1  # TODO adjust import for holes?
+            shape.closed = True  # TODO adjust import for holes?
             if g.config.machine_type == 'drag_knife':
                 shape.disabled = True
                 shape.allowedToChange = False

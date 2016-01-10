@@ -152,7 +152,7 @@ class MyPostProConfig(object):
             validate_errors = flatten_errors(self.var_dict, result)
 
             if validate_errors:
-                g.logger.logger.error(self.tr("errors reading %s:") % self.filename)
+                logger.error(self.tr("errors reading %s:") % self.filename)
             for entry in validate_errors:
                 section_list, key, error = entry
                 if key is not None:
@@ -162,7 +162,7 @@ class MyPostProConfig(object):
                 section_string = ', '.join(section_list)
                 if error == False:
                     error = self.tr('Missing value or section.')
-                g.logger.logger.error( section_string + ' = ' + error)
+                logger.error(section_string + ' = ' + error)
 
             if validate_errors:
                 raise BadConfigFileError(self.tr("syntax errors in postpro_config file"))
@@ -179,7 +179,7 @@ class MyPostProConfig(object):
             raise VersionMismatchError(fileversion, POSTPRO_VERSION)
 
         except Exception as inst:
-            logger.error(inst)
+            #logger.error(inst)
             (base, ext) = os.path.splitext(self.filename)
             badfilename = base + c.BAD_CONFIG_EXTENSION
             logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
