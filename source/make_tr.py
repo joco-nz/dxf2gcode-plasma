@@ -8,31 +8,39 @@ Generates the tr file based on the defined PyQt Project File
 import os, sys
 import subprocess
 
-PYTHONPATH = os.path.split(sys.executable)[0]
-PLYPATH = os.path.join(PYTHONPATH, "Lib\\site-packages\\PyQt4\\pylupdate4.exe")
-LREPATH = os.path.join(PYTHONPATH, "Lib\\site-packages\\PyQt4\\lrelease.exe")
+if "linux" in sys.platform.lower() or "unix" in sys.platform.lower():
+    #On Linux, the executable are normaly on the PATH (just install lib64-qt4-devel and python-qt4-devel)
+    PLYPATH = "pylupdate4"
+    LREPATH = "lrelease"
+    print("Using Linux platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
+else:
+    PYTHONPATH = os.path.split(sys.executable)[0]
+    PLYPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt4/pylupdate4.exe")
+    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt4/lrelease.exe")
+    print("Using Windows platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
 
-FILES = ("..\\core\\arcgeo.py",
-         "..\\core\\project.py",
-         "..\\core\\shape.py",
-         "..\\dxfimport\\geoent_arc.py",
-         "..\\dxfimport\\geoent_circle.py",
-         "..\\dxfimport\\geoent_line.py",
-         "..\\dxfimport\\importer.py",
-         "..\\globals\\config.py",
-         "..\\gui\\canvas.py",
-         "..\\gui\\canvas2d.py",
-         "..\\gui\\canvas3d.py",
-         "..\\gui\\messagebox.py",
-         "..\\gui\\popupdialog.py",
-         "..\\gui\\treehandling.py",
-         "..\\postpro\\postprocessor.py",
-         "..\\postpro\\postprocessorconfig.py",
-         "..\\postpro\\tspoptimisation.py",
-         "..\\dxf2gcode.py",
-         "..\\dxf2gcode.ui"
+FILES = ("../core/arcgeo.py",
+         "../core/project.py",
+         "../core/shape.py",
+         "../dxfimport/geoent_arc.py",
+         "../dxfimport/geoent_circle.py",
+         "../dxfimport/geoent_line.py",
+         "../dxfimport/importer.py",
+         "../globals/config.py",
+         "../gui/canvas.py",
+         "../gui/canvas2d.py",
+         "../gui/canvas3d.py",
+         "../gui/configwindow.py",
+         "../gui/messagebox.py",
+         "../gui/popupdialog.py",
+         "../gui/treehandling.py",
+         "../postpro/postprocessor.py",
+         "../postpro/postprocessorconfig.py",
+         "../postpro/tspoptimisation.py",
+         "../dxf2gcode.py",
+         "../dxf2gcode.ui"
          )
 
 
@@ -42,11 +50,11 @@ TSFILES = ("dxf2gcode_de_DE.ts",
 
 FILESSTR = ""
 for FILE in FILES:
-    FILESSTR += ("%s\\i18n\\%s " % (FILEPATH, FILE))
+    FILESSTR += ("%s/i18n/%s " % (FILEPATH, FILE))
 
 TSFILESTR = ""
 for TSFILE in TSFILES:
-    TSFILESTR += ("%s\\i18n\\%s " % (FILEPATH, TSFILE))
+    TSFILESTR += ("%s/i18n/%s " % (FILEPATH, TSFILE))
 
 OPTIONS = "-ts"
 
