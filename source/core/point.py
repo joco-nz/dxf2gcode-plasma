@@ -37,7 +37,7 @@ import logging
 logger = logging.getLogger("core.point")
 
 class Point(object):
-    __slots__ = ["x", "y"]
+    # __slots__ = ["x", "y"]  # TODO: currently not possible because of cutter compensation stuff located in here
     eps=1e-12
 
     def __init__(self, x=0, y=0):
@@ -45,7 +45,7 @@ class Point(object):
         self.y = y
 
     def __str__(self):
-        return ('X ->%6.3f  Y ->%6.3f' % (self.x, self.y))
+        return 'X ->%6.3f  Y ->%6.3f' % (self.x, self.y)
         # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
 
     def __eq__(self, other):
