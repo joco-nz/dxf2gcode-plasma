@@ -32,6 +32,7 @@ from PyQt5.QtGui import QColor
 
 from core.layercontent import Shapes
 from core.point import Point
+from core.boundingbox import BoundingBox
 from core.point3d import Point3D
 from core.stmove import StMove
 import globals.globals as g
@@ -93,8 +94,7 @@ class GLWidget(CanvasBase):
         self.showPathDirections = False
         self.showDisabledPaths = False
 
-        self.topLeft = Point()
-        self.bottomRight = Point()
+        self.BB = BoundingBox()
 
         self.tol = 0
 
@@ -123,8 +123,7 @@ class GLWidget(CanvasBase):
         self.rotZ = 0.0
         self.scale = 1.0
 
-        self.topLeft = Point()
-        self.bottomRight = Point()
+        self.BB = BoundingBox()
 
         self.update()
 
@@ -457,8 +456,8 @@ class GLWidget(CanvasBase):
 
         GL.glEndList()
 
-        self.topLeft.detTopLeft(shape.topLeft)
-        self.bottomRight.detBottomRight(shape.bottomRight)
+        self.BB = self.BB.joinBB(shape.BB)
+
 
         return genList
 
@@ -691,13 +690,13 @@ class GLWidget(CanvasBase):
         else:
             aspect_scale_x = 1
             aspect_scale_y = self.frameSize().height() / self.frameSize().width()
-        scaleX = (GLWidget.CAM_RIGHT_X - GLWidget.CAM_LEFT_X) * aspect_scale_x / (self.bottomRight.x - self.topLeft.x)
-        scaleY = (GLWidget.CAM_BOTTOM_Y - GLWidget.CAM_TOP_Y) * aspect_scale_y / (self.topLeft.y - self.bottomRight.y)
+        scaleX = (GLWidget.CAM_RIGHT_X - GLWidget.CAM_LEFT_X) * aspect_scale_x / (self.BB.Pe.x - self.BB.Ps.x)
+        scaleY = (GLWidget.CAM_BOTTOM_Y - GLWidget.CAM_TOP_Y) * aspect_scale_y / (self.BB.Pe.y - self.BB.Ps.y)
         self.scale = min(scaleX, scaleY) * 0.95
         self.posX = ((GLWidget.CAM_LEFT_X + GLWidget.CAM_RIGHT_X) * 0.95 * aspect_scale_x
-                     - (self.topLeft.x + self.bottomRight.x) * self.scale) / 2
+                     - (self.BB.Ps.x + self.BB.Pe.x) * self.scale) / 2
         self.posY = -((GLWidget.CAM_TOP_Y + GLWidget.CAM_BOTTOM_Y) * 0.95 * aspect_scale_y
-                      - (self.topLeft.y + self.bottomRight.y) * self.scale) / 2
+                      - (self.BB.Pe.y + self.BB.Ps.y) * self.scale) / 2
         self.posZ = 0
         self.update()
 

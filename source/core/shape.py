@@ -71,9 +71,6 @@ class Shape(object):
 
         self.stmove = None
 
-        self.topLeft = None
-        self.bottomRight = None
-
         self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
 
         self.selected = False
@@ -251,21 +248,25 @@ class Shape(object):
             return self.geos.abs_el(-1).get_start_end_points(False, angles)
 
     def make_path(self, drawHorLine, drawVerLine):
+
         for geo in self.geos.abs_iter():
             drawVerLine(self, geo.get_start_end_points(True))
 
             geo.make_path(self, drawHorLine)
 
-            if self.topLeft is None:
-                self.topLeft = deepcopy(geo.topLeft)
-                self.bottomRight = deepcopy(geo.bottomRight)
-            else:
-                self.topLeft.detTopLeft(geo.topLeft)
-                self.bottomRight.detBottomRight(geo.bottomRight)
-
         if not self.closed:
             drawVerLine(self, geo.get_start_end_points(False))
+            
+        self.calc_bounding_box()
 
+    def calc_bounding_box(self):
+        """
+        Calculated the BoundingBox of the geometry and saves it into self.BB
+        """
+        self.BB = self.geos.abs_el(0).BB
+        for geo in self.geos.abs_iter():
+            self.BB = self.BB.joinBB(geo.BB)
+        
     def make_shape_ccw(self):
         """ 
         This method is called after the shape has been generated before it gets
@@ -284,8 +285,8 @@ class Shape(object):
         self.cw = True
     
     def isHit(self, xy, tol):
-        if self.topLeft.x - tol <= xy.x <= self.bottomRight.x + tol\
-                and self.bottomRight.y - tol <= xy.y <= self.topLeft.y + tol:
+        if self.BB.Ps.x - tol <= xy.x <= self.BB.Pe.x + tol\
+                and self.BB.Ps.y - tol <= xy.y <= self.BB.Pe.y + tol:
             for geo in self.geos.abs_iter():
                 if geo.isHit(self, xy, tol):
                     return True

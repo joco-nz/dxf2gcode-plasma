@@ -67,7 +67,7 @@ class ArcGeo(object):
         @param e_ang: the End Angle of the arc
         @param direction: The arc direction where 1 is in positive direction
         """
-        self.type = "ArcGeo"
+
         self.Ps = Ps
         self.Pe = Pe
         self.O = O
@@ -116,8 +116,6 @@ class ArcGeo(object):
 
         self.calc_bounding_box()
 
-        self.topLeft = None
-        self.bottomRight = None
 
         self.abs_geo = None
 
@@ -627,13 +625,10 @@ class ArcGeo(object):
     def make_path(self, caller, drawHorLine):
         segments = int(abs(degrees(self.ext)) // 3 + 1)
         Ps = self.O.get_arc_point(self.s_ang, self.r)
-        self.topLeft = deepcopy(Ps)
-        self.bottomRight = deepcopy(Ps)
+
         for i in range(1, segments + 1):
             Pe = self.get_point_from_start(i, segments)
             drawHorLine(caller, Ps, Pe)
-            self.topLeft.detTopLeft(Pe)
-            self.bottomRight.detBottomRight(Pe)
             Ps = Pe
 
     def PointAng_withinArc(self, Point):

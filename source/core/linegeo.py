@@ -54,11 +54,7 @@ class LineGeo(object):
         self.Pe = Pe
         self.length = self.Ps.distance(self.Pe)
         
-        self.inters = []
         self.calc_bounding_box()
-
-        self.topLeft = None
-        self.bottomRight = None
 
         self.abs_geo = None
 
@@ -638,10 +634,6 @@ class LineGeo(object):
 
     def make_path(self, caller, drawHorLine):
         drawHorLine(caller, self.Ps, self.Pe)
-        self.topLeft = deepcopy(self.Ps)
-        self.bottomRight = deepcopy(self.Ps)
-        self.topLeft.detTopLeft(self.Pe)
-        self.bottomRight.detBottomRight(self.Pe)
         
     def perpedicular_on_line(self, other):
         """

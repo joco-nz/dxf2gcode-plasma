@@ -95,6 +95,16 @@ class BoundingBox:
         else:
             logger.warning("Unsupported Instance: %s" % other.type)
 
+    def iscontained(self, other):
+        """
+        Checks if self Bounding Box is contained in Boundingbox of other
+        @param other: The 2nd Bounding Box
+        @return: Returns true or false
+        """
+        return  other.Ps.x < self.Ps.x and self.Pe.x < other.Pe.x and\
+            other.Ps.y < self.Ps.y and self.Pe.y < other.Pe.y
+
+
     def pointisinBB(self, Point=Point(), tol=eps):
         """
         Checks if the Point is within the bounding box
