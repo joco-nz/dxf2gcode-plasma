@@ -41,6 +41,8 @@ from core.shape import Shape
 
 logger = logging.getLogger('core.shapeoffset')
 
+eps = 1e-9
+
 class offShapeClass(Shape):
     """
     This Class is used to generate The fofset aof a shape according to:
@@ -147,9 +149,9 @@ class offShapeClass(Shape):
 
         self.geos = Geos([])
         for geo in parent.geos:
-            if isinstance(geo2, LineGeo):
+            if isinstance(geo, LineGeo):
                 self.geos.append(OffLineGeo().abscopy(geo, parent))
-            elif isinstance(Geo, ArcGeo):
+            elif isinstance(geo, ArcGeo):
                 self.geos.append(OffArcGeo().abscopy(geo, parent))
             else:
                 logger.error("Should not be here")
