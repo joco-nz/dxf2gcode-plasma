@@ -38,6 +38,9 @@ class Point3D(object):
     def __str__(self):
         return 'X -> %6.3f  Y -> %6.3f   Z -> %6.3f' % (self.x, self.y, self.z)
 
+    def save_v1(self):
+        return 'X -> %6.3f  Y -> %6.3f   Z -> %6.3f' % (self.x, self.y, self.z)
+
     def __eq__(self, other):
         return (-1e-12 < self.x - other.x < 1e-12) and\
                (-1e-12 < self.y - other.y < 1e-12) and\

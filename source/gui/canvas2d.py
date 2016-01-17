@@ -622,7 +622,6 @@ class StMoveGUI(QGraphicsLineItem, StMove):
         QGraphicsLineItem.__init__(self)
         StMove.__init__(self, shape)
 
-
         self.allwaysshow = False
         self.path = QPainterPath()
 

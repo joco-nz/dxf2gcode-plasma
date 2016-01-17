@@ -140,6 +140,13 @@ class ArcGeo(object):
                ("r=%s, \n" % self.r) + \
                ("ext=%s)" % self.ext)
 
+    def save_v1(self):
+        return "\nArcGeo" +\
+               "\nPs:  %s; s_ang: %0.5f" % (self.Ps.save_v1(), self.s_ang) +\
+               "\nPe:  %s; e_ang: %0.5f" % (self.Pe.save_v1(), self.e_ang) +\
+               "\nO:   %s; r: %0.3f" % (self.O.save_v1(), self.r) +\
+               "\next: %0.5f; length: %0.5f" % (self.ext, self.length)
+
     def angle_between(self, min_ang, max_ang, angle):
         """
         Returns if the angle is in the range between 2 other angles

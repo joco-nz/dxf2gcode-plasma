@@ -56,6 +56,9 @@ class HoleGeo(object):
         """
         return "\nHoleGeo at (%s) " % self.Ps
 
+    def save_v1(self):
+        return "\nHoleGeo at (%s) " % self.Ps.save_v1()
+
     def calc_bounding_box(self, radius = 1):
         """
         Calculated the BoundingBox of the geometry and saves it into self.BB

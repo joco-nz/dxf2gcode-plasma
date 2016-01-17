@@ -49,6 +49,9 @@ class Point(object):
         return 'X ->%6.3f  Y ->%6.3f' % (self.x, self.y)
         # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
 
+    def save_v1(self):
+        return 'X -> %6.3f  Y -> %6.3f' % (self.x, self.y)
+
     def __eq__(self, other):
         """
         Implementaion of is equal of two point, for all other instances it will
