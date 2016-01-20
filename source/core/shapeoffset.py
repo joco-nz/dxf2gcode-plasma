@@ -41,6 +41,8 @@ from core.shape import Shape
 
 logger = logging.getLogger('core.shapeoffset')
 
+eps = 1e-9
+
 class offShapeClass(Shape):
     """
     This Class is used to generate The fofset aof a shape according to:
@@ -57,25 +59,21 @@ class offShapeClass(Shape):
         also contain arcs. These will be reflected by multiple lines in order 
         to easy calclations.
         """
-        geos = []
-        for geo in parent.geos:
-            geo.make_abs_geo(parent.parentEntity)
-            geos.append(geo.abs_geo)
+
 
         super(offShapeClass, self).__init__(nr=parent.nr,
                                             closed=parent.closed,
-                                            geos = geos)
+                                            geos = [])
 
-        
         self.offset = offset
         self.offtype = offtype
         self.segments = []
         self.rawoff = []
 
-        self.make_shape_ccw()
-        self.join_colinear_lines()
+        self.geos_preprocessing(parent)
 
         self.make_segment_types()
+
         nextConvexPoint = [e for e in self.segments if isinstance(e, ConvexPoint)]
         # logger.debug(nextConvexPoint)
         # nextConvexPoint=[nextConvexPoint[31]]
@@ -84,6 +82,7 @@ class offShapeClass(Shape):
         while len(nextConvexPoint):  # [self.convex_vertex[-1]]:
             convex_vertex_nr = self.segments.index(nextConvexPoint[0])
             # logger.debug(len(self.segments))
+            # logger.debug("convex_vertex: %s" % nextConvexPoint[0])
             # logger.debug("convex_vertex_nr: %s" % convex_vertex_nr)
                  
             forward, backward = self.PairWiseInterferenceDetection(convex_vertex_nr + 1, convex_vertex_nr - 1)
@@ -107,11 +106,13 @@ class offShapeClass(Shape):
  
             if iPoint is None:
                 logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %(fw_rawoff_seg,bw_rawoff_seg))
-            # logger.debug("forward: %s, backward: %s, iPoint: %s =====================================" %(forward,backward,iPoint))
+                logger.debug("forward: %s, backward: %s, iPoint: %s =====================================" % (forward, backward, iPoint))
+                logger.debug(fw_rawoff_seg)
+                logger.debug(bw_rawoff_seg)
                 logger.error("No intersection found?!")
-                raise Exception("No intersection found?!")
-                # logger.debug(fw_rawoff_seg)
-                # logger.debug(bw_rawoff_seg)
+                self.segments = []
+                # raise Exception("No intersection found?!")
+
                 
                 break
  
@@ -140,48 +141,26 @@ class offShapeClass(Shape):
                "\nsegments:    %s" % self.segments +\
                "\nrawoff       %s" % self.rawoff
 
-    def make_rawoff_seg(self, seg):
+    def geos_preprocessing(self, parent):
         """
-        This function returns the rawoffset of a segement. A line for a line and
-        a circle for a reflex segement.
-        @param segment_nr: The nr of the segement for which the rawoffset
-        segement shall be generated
-        @ return: Returns the rawoffsetsegement of the  defined segment 
+        Do all the preprocessing required in order to have working offset algorithm.
+        @param parent: The parent shape including the geometries to be offsetted.
         """
 
-        # seg=self.segments[segment_nr]
-
-        if self.offtype == "out":
-            offset = -abs(self.offset)
-        else:
-            offset = abs(self.offset)
-
-        # if segement 1 is inverted change End Point
-        if isinstance(seg, LineGeo):
-            Ps = seg.Ps + seg.start_normal * offset
-            Pe = seg.Pe + seg.end_normal * offset
-            return LineGeo(Ps, Pe)
-
-        elif isinstance(seg, Point):
-            Ps = seg + seg.start_normal * offset
-            Pe = seg + seg.end_normal * offset
-
-            return ArcGeo(Ps=Ps, Pe=Pe, O=deepcopy(seg), r=self.offset, direction=offset)
-        elif isinstance(seg, ArcGeo):
-            Ps = seg.Ps + seg.start_normal * offset
-            Pe = seg.Pe + seg.end_normal * offset
-
-            if seg.ext > 0:
-                return ArcGeo(Ps=Ps, Pe=Pe, O=seg.O, r=seg.r + offset, direction=seg.ext)
+        self.geos = Geos([])
+        for geo in parent.geos:
+            if isinstance(geo, LineGeo):
+                self.geos.append(OffLineGeo().abscopy(geo, parent))
+            elif isinstance(geo, ArcGeo):
+                self.geos.append(OffArcGeo().abscopy(geo, parent))
             else:
-                return ArcGeo(Ps=Ps, Pe=Pe, O=seg.O, r=seg.r - offset, direction=seg.ext)
+                logger.error("Should not be here")
 
-        elif isinstance(seg, ConvexPoint):
-            Ps = seg + seg.start_normal * offset
-            Pe = seg + seg.end_normal * offset
-            return ArcGeo(Ps=Ps, Pe=Pe, O=deepcopy(seg), r=self.offset, direction=offset)
-        else:
-            logger.error("Unsupportet Object type: %s" % type(seg))
+
+        logger.debug(self.geos)
+
+        self.make_shape_ccw()
+        self.join_colinear_lines()
 
     def make_segment_types(self):
         """
@@ -294,6 +273,50 @@ class offShapeClass(Shape):
         # logger.debug("Self.segments: %s" % self.segments)
         # self.segments_plot = deepcopy(self.segments)
 
+
+    def make_rawoff_seg(self, seg):
+        """
+        This function returns the rawoffset of a segement. A line for a line and
+        a circle for a reflex segement.
+        @param segment_nr: The nr of the segement for which the rawoffset
+        segement shall be generated
+        @ return: Returns the rawoffsetsegement of the  defined segment 
+        """
+
+        # seg=self.segments[segment_nr]
+
+        if self.offtype == "out":
+            offset = -abs(self.offset)
+        else:
+            offset = abs(self.offset)
+
+        # if segement 1 is inverted change End Point
+        if isinstance(seg, OffLineGeo):
+            Ps = seg.Ps + seg.start_normal * offset
+            Pe = seg.Pe + seg.end_normal * offset
+            return OffLineGeo(Ps, Pe)
+
+        elif isinstance(seg, OffPoint):
+            Ps = seg + seg.start_normal * offset
+            Pe = seg + seg.end_normal * offset
+
+            return OffArcGeo(Ps = Ps, Pe = Pe, O = deepcopy(seg), r = self.offset, direction = offset)
+        elif isinstance(seg, OffArcGeo):
+            Ps = seg.Ps + seg.start_normal * offset
+            Pe = seg.Pe + seg.end_normal * offset
+
+            if seg.ext > 0:
+                return OffArcGeo(Ps = Ps, Pe = Pe, O = seg.O, r = seg.r + offset, direction = seg.ext)
+            else:
+                return OffArcGeo(Ps = Ps, Pe = Pe, O = seg.O, r = seg.r - offset, direction = seg.ext)
+
+        elif isinstance(seg, ConvexPoint):
+            Ps = seg + seg.start_normal * offset
+            Pe = seg + seg.end_normal * offset
+            return OffArcGeo(Ps = Ps, Pe = Pe, O = deepcopy(seg), r = self.offset, direction = offset)
+        else:
+            logger.error("Unsupportet Object type: %s" % type(seg))
+
     def interfering_full(self, segment1, dir, segment2):
         """
         Check if the Endpoint (dependent on dir) of segment 1 is interfering with 
@@ -305,17 +328,17 @@ class offShapeClass(Shape):
         """
 
         # if segement 1 is inverted change End Point
-        if isinstance(segment1, LineGeo) and dir == 1:
+        if isinstance(segment1, OffLineGeo) and dir == 1:
             Pe = segment1.Pe
-        elif isinstance(segment1, LineGeo) and dir == -1:
+        elif isinstance(segment1, OffLineGeo) and dir == -1:
             Pe = segment1.Ps
         elif isinstance(segment1, ConvexPoint):
             return False
-        elif isinstance(segment1, Point):
+        elif isinstance(segment1, OffPoint):
             Pe = segment1
-        elif isinstance(segment1, ArcGeo) and dir == 1:
+        elif isinstance(segment1, OffArcGeo) and dir == 1:
             Pe = segment1.Pe
-        elif isinstance(segment1, ArcGeo) and dir == -1:
+        elif isinstance(segment1, OffArcGeo) and dir == -1:
             Pe = segment1.Ps
         else:
             logger.error("Unsupportet Object type: %s" % type(segment1))
@@ -329,21 +352,21 @@ class offShapeClass(Shape):
 
         if dir == 1:
             distance = segment2.distance(Pe + segment1.end_normal * offset)
-            self.interferingshapes += [LineGeo(Pe, Pe + segment1.end_normal * offset),
-                                     segment2,
-                                     ArcGeo(O=Pe + segment1.end_normal * offset,
-                                            Ps=Pe, Pe=Pe ,
-                                            s_ang=0, e_ang=2 * pi, r=self.offset)]
+#             self.interferingshapes += [OffLineGeo(Pe, Pe + segment1.end_normal * offset),
+#                                      segment2,
+#                                      OffArcGeo(O=Pe + segment1.end_normal * offset,
+#                                             Ps=Pe, Pe=Pe ,
+#                                             s_ang=0, e_ang=2 * pi, r=self.offset)]
         else:
             # logger.debug(Pe)
             # logger.debug(segment1)
             # logger.debug(segment1.start_normal)
             distance = segment2.distance(Pe + segment1.start_normal * offset)
-            self.interferingshapes += [LineGeo(Pe, Pe + segment1.start_normal * offset),
-                                     segment2,
-                                     ArcGeo(O=Pe + segment1.start_normal * offset,
-                                            Ps=Pe, Pe=Pe,
-                                            s_ang=0, e_ang=2 * pi, r=self.offset)]
+#             self.interferingshapes += [OffLineGeo(Pe, Pe + segment1.start_normal * offset),
+#                                      segment2,
+#                                      OffArcGeo(O=Pe + segment1.start_normal * offset,
+#                                             Ps=Pe, Pe=Pe,
+#                                             s_ang=0, e_ang=2 * pi, r=self.offset)]
 
         # logger.debug("Full distance: %s" % distance)
 
@@ -366,7 +389,7 @@ class offShapeClass(Shape):
             return False
         else:
             offGeo = self.make_rawoff_seg(segment1)
-            self.interferingshapes += [offGeo]
+#             self.interferingshapes += [offGeo]
         
         # if we cut outside reverse the offset
         if self.offtype == "out":
@@ -451,9 +474,9 @@ class offShapeClass(Shape):
                 segment2 = self.segments[backward]
                 # logger.debug("Backward ConvexPoint")
 
-            # logger.debug("Checking: forward: %s, backward: %s" %(forward, backward))
+            # logger.debug("Checking: forward: %s, backward: %s" % (forward, backward))
             [L1_status, L2_status] = self.Interfering_relation(segment1, segment2)
-            # logger.debug("Start Status: L1_status: %s,L2_status: %s" %(L1_status,L2_status))
+            # logger.debug("Start Status: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
 
             """
             The reverse interfering segment is replaced  by the first 
@@ -859,10 +882,87 @@ class SweepElement:
                ('\nadd:       %s ' % self.add) + \
                ('\nremove:    %s ' % self.remove)
                
-class ConvexPoint(Point):
-    def __init__(self, x=0, y=0):
+class OffArcGeo(ArcGeo):
+        """
+        Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
+        clean as possible.
+        """
+    
+        def __init__(self, Ps=None, Pe=None, O=None, r=1,
+                 s_ang=None, e_ang=None, direction=1, drag=False):
+            """
+            Standard Method to initialize the ArcGeo. Not all of the parameters are
+            required to fully define a arc. e.g. Ps and Pe may be given or s_ang and
+            e_ang
+            @param Ps: The Start Point of the arc
+            @param Pe: the End Point of the arc
+            @param O: The center of the arc
+            @param r: The radius of the arc
+            @param s_ang: The Start Angle of the arc
+            @param e_ang: the End Angle of the arc
+            @param direction: The arc direction where 1 is in positive direction
+            """
+    
+            ArcGeo.__init__(self, Ps=Ps, Pe=Pe, O=O, r=r,
+                     s_ang=s_ang, e_ang=e_ang, direction=direction, drag=drag)
+
+        def abscopy(self, geo = None, parent = None):
+            """
+            Generates the absolute geometry based on the given geometry and the parent. This
+            is done for rotating and scaling purposes
+            @param geo: The parent geometry which is used as an input
+            @param parent: The parent of the geo which should be an Entitiy.
+            """
+            self.Ps = geo.Ps.rot_sca_abs(parent = parent)
+            self.Pe = geo.Pe.rot_sca_abs(parent = parent)
+            self.O = geo.O.rot_sca_abs(parent = parent)
+            self.r = geo.scaled_r(self.r, parent)
+
+            direction = 1 if geo.ext > 0.0 else -1
+
+            if parent is not None and parent.sca[0] * parent.sca[1] < 0.0:
+                direction *= -1
+
+            # self.abs_geo = OffArcGeo(Ps = Ps, Pe = Pe, O = O, r = r, direction = direction)
+
+class OffLineGeo(LineGeo):
+    
+    """
+    Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
+    clean as possible.
+    """
+    def __init__(self, Ps, Pe):
+        """
+        Standard Method to initialize the LineGeo.
+        @param Ps: The Start Point of the line
+        @param Pe: the End Point of the line
+        """
+        LineGeo.__init__(self, Ps=Ps, Pe=Pe)
+
+    def abscopy(self, geo = None, parent = None):
+        """
+        Generates the absolute geometry copy of the inputed geo based on the parent. This
+        is done for rotating and scaling purposes. In addidtion this is a "deepcopy" of the 
+        provided geo.
+        @param geo: The geometry which shall be copied into new inherited class (absolut)
+        @param parent: The parent Entitie of the geo if there is one
+        """
+        self.Ps = geo.Ps.rot_sca_abs(parent = parent)
+        self.Pe = geo.Pe.rot_sca_abs(parent = parent)
+
+
+class OffPoint(Point):
+    """
+    Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
+    clean as possible.
+    """
+    def __init__(self, x = 0, y = 0):
         self.x = x
         self.y = y
 
-
-        Point.__init__(self, x=x, y=y)
+class ConvexPoint(OffPoint):
+    """
+    Inherited Class of OffPoint required to identify Convex Points in the Offset algorithm..
+    """
+    def __init__(self, x = 0, y = 0):
+        OffPoint.__init__(self, x = x, y = y)

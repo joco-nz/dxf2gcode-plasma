@@ -453,7 +453,16 @@ class ReadDXF(QtCore.QObject):
         points = self.Find_Common_Points(points)
         # points = self.Remove_Redundant_Geos(points)
 
-        cont = self.Search_Contours(entities.geo, points, cont)
+        found_cont = self.Search_Contours(entities.geo, points)
+
+#         for check_cont in found_cont:
+#             logger.debug("Correcting Contour inaccuracies if found")
+#             for geo_nr in range(1, len(check_cont.order)):
+#                 geo1 = check_cont.order[geo_nr - 1]
+#                 geo2 = check_cont_order[geo_nr]
+#                 logger.debug(geo[geo_nr])
+
+        cont += found_cont
 
         return cont
 
@@ -576,11 +585,12 @@ class ReadDXF(QtCore.QObject):
 #                    break
 #        return points
 
-    def Search_Contours(self, geo=None, all_points=None, cont=None):
+    def Search_Contours(self, geo = None, all_points = None):
         """
         Search_Contours() - Find the best continuous contours
         """
 
+        found_contours = []
         points = deepcopy(all_points)
 
         while len(points) > 0:
@@ -589,15 +599,15 @@ class ReadDXF(QtCore.QObject):
             # If nothing found then count up the contour
             if len(points[0].be_cp) == 0 and len(points[0].en_cp) == 0:
                 # print '\nGibt Nix'
-                cont.append(ContourClass(len(cont), 0, [[points[0].point_nr, 0]], 0))
+                found_contours.append(ContourClass(len(found_contours), 0, [[points[0].point_nr, 0]], 0))
             elif len(points[0].be_cp) == 0 and len(points[0].en_cp) > 0:
                 # print '\nGibt was R�ckw�rts (Anfang in neg dir)'
                 new_cont_pos = self.Search_Paths(0, [], points[0].point_nr, 0, points)
-                cont.append(self.Get_Best_Contour(len(cont), new_cont_pos, geo, points))
+                found_contours.append(self.Get_Best_Contour(len(found_contours), new_cont_pos, geo, points))
             elif len(points[0].be_cp) > 0 and len(points[0].en_cp) == 0:
                 # print '\nGibt was Vorw�rt (Ende in pos dir)'
                 new_cont_neg = self.Search_Paths(0, [], points[0].point_nr, 1, points)
-                cont.append(self.Get_Best_Contour(len(cont), new_cont_neg, geo, points))
+                found_contours.append(self.Get_Best_Contour(len(found_contours), new_cont_neg, geo, points))
             elif len(points[0].be_cp) > 0 and len(points[0].en_cp) > 0:
                 # print '\nGibt was in beiden Richtungen'
                 # Suchen der m�glichen Pfade
@@ -605,25 +615,25 @@ class ReadDXF(QtCore.QObject):
                 new_cont_pos = self.Search_Paths(0, [], points[0].point_nr, 1, points)
                 # Bestimmen des besten Pfades und �bergabe in cont
                 # Determine the best path and Xbergabe in cont ???
-                cont.append(self.Get_Best_Contour(len(cont), new_cont_pos, geo, points))
+                found_contours.append(self.Get_Best_Contour(len(found_contours), new_cont_pos, geo, points))
                 # points = self.Remove_Used_Points(cont[-1], points)
 
                 # Falls der Pfad nicht durch den ersten Punkt geschlossen ist
                 # If the path is not closed by the first point
-                if cont[-1].closed == 0:
+                if found_contours[-1].closed == 0:
                     # print '\nPfad nicht durch den ersten Punkt geschlossen'
-                    cont[-1].reverse()
+                    found_contours[-1].reverse()
                     # print ("Neue Kontur umgedrejt %s" % cont[-1])
-                    new_cont_neg = self.Search_Paths(0, [cont[-1]], points[0].point_nr, 0, points)
-                    cont[-1] = self.Get_Best_Contour(len(cont)-1, new_cont_neg+new_cont_pos, geo, points)
+                    new_cont_neg = self.Search_Paths(0, [found_contours[-1]], points[0].point_nr, 0, points)
+                    found_contours[-1] = self.Get_Best_Contour(len(found_contours) - 1, new_cont_neg + new_cont_pos, geo, points)
 
             else:
                 print('FEHLER !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
 
-            points = self.Remove_Used_Points(cont[-1], points)
+            points = self.Remove_Used_Points(found_contours[-1], points)
 
-            cont[-1] = self.Contours_Points2Geo(cont[-1], all_points)
-        return cont
+            found_contours[-1] = self.Contours_Points2Geo(found_contours[-1], all_points)
+        return found_contours
 
     def Search_Paths(self, c_nr=None, c=None, p_nr=None, dir=None, points=None):
         """
@@ -800,7 +810,7 @@ class dxflinepairsClass:
         return None
 
     #Sucht nach Code Angaben in den Line Pairs code & value
-    #optional mit start und endwert f�r die Suche
+    # optional mit start und endwert f�r die Suche
     #Search for information in the Line Pairs (both code & value)
     #Optional start and end values for the search
     def index_code(self, code=0, start=0, stop= -1):

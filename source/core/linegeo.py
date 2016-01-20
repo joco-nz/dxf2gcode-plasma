@@ -53,12 +53,8 @@ class LineGeo(object):
         self.Ps = Ps
         self.Pe = Pe
         self.length = self.Ps.distance(self.Pe)
-        
-        self.inters = []
-        self.calc_bounding_box()
 
-        self.topLeft = None
-        self.bottomRight = None
+        self.calc_bounding_box()
 
         self.abs_geo = None
 
@@ -67,12 +63,18 @@ class LineGeo(object):
                        deepcopy(self.Pe, memo))
 
     def __str__(self):
-        """ 
+        """
         Standard method to print the object
         @return: A string
         """
         return ("\nLineGeo(Ps=Point(x=%s ,y=%s),\n" % (self.Ps.x, self.Ps.y)) + \
                ("Pe=Point(x=%s, y=%s))" % (self.Pe.x, self.Pe.y))
+
+    def save_v1(self):
+        return "\nLineGeo" +\
+               "\nPs:     %s" % self.Ps.save_v1() +\
+               "\nPe:     %s" % self.Pe.save_v1() +\
+               "\nlength: %0.5f" % self.length
 
     def calc_bounding_box(self):
         """
@@ -82,7 +84,7 @@ class LineGeo(object):
         Pe = Point(x=max(self.Ps.x, self.Pe.x), y=max(self.Ps.y, self.Pe.y))
 
         self.BB = BoundingBox(Ps=Ps, Pe=Pe)
-        
+
     def colinear(self, other):
         """
         Check if two lines with same point self.Pe==other.Ps are colinear. For Point
@@ -161,10 +163,10 @@ class LineGeo(object):
         Find the distance between 2 geometry elements. Possible is CCLineGeo
         and ArcGeo
         @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries 
+        @return: The distance between the two geometries
         """
         from core.arcgeo import ArcGeo
-        
+
         if isinstance(other, LineGeo):
             return self.distance_l_l(other)
         elif isinstance(other, Point):
@@ -176,9 +178,9 @@ class LineGeo(object):
 
     def distance_l_l(self, other):
         """
-        Find the distance between 2 ccLineGeo elements. 
+        Find the distance between 2 ccLineGeo elements.
         @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries 
+        @return: The distance between the two geometries
         """
 
         if self.intersect(other):
@@ -191,9 +193,9 @@ class LineGeo(object):
 
     def distance_l_a(self, other):
         """
-        Find the distance between 2 ccLineGeo elements. 
+        Find the distance between 2 ccLineGeo elements.
         @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries 
+        @return: The distance between the two geometries
         """
 
         if self.intersect(other):
@@ -237,8 +239,8 @@ class LineGeo(object):
 
     def distance_l_p(self, Point):
         """
-        Find the shortest distance between CCLineGeo and Point elements.  
-        Algorithm acc. to 
+        Find the shortest distance between CCLineGeo and Point elements.
+        Algorithm acc. to
         http://notejot.com/2008/09/distance-from-Point-to-line-segment-in-2d/
         http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm
         @param Point: the Point
@@ -271,7 +273,7 @@ class LineGeo(object):
             #logger.debug(eps)
             #logger.debug((v.dotProd(v) - (t * t) / d.dotProd(d))< eps)
             #logger.debug(((v.dotProd(v) - (t * t) / d.dotProd(d))< eps))
-            
+
             if (v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
                 return 0.0
             else:
@@ -282,12 +284,12 @@ class LineGeo(object):
         Find the intersection between 2 Geo elements. There can be only one
         intersection between 2 lines. Returns also FIP which lay on the ray.
         @param other: the instance of the 2nd geometry element.
-        @param type: Can be "TIP" for True Intersection Point or "Ray" for 
+        @param type: Can be "TIP" for True Intersection Point or "Ray" for
         Intersection which is in Ray (of Line)
-        @return: a list of intersection points. 
+        @return: a list of intersection points.
         """
         from core.arcgeo import ArcGeo
-        
+
         if isinstance(other, LineGeo):
             inter = self.find_inter_point_l_l(other, type)
             return inter
@@ -302,9 +304,9 @@ class LineGeo(object):
         Find the intersection between 2 LineGeo elements. There can be only one
         intersection between 2 lines. Returns also FIP which lay on the ray.
         @param other: the instance of the 2nd geometry element.
-        @param type: Can be "TIP" for True Intersection Point or "Ray" for 
+        @param type: Can be "TIP" for True Intersection Point or "Ray" for
         Intersection which is in Ray (of Line)
-        @return: a list of intersection points. 
+        @return: a list of intersection points.
         """
 
         if self.colinear(other):
@@ -344,14 +346,14 @@ class LineGeo(object):
 
     def find_inter_point_l_a(self, Arc, type="TIP"):
         """
-        Find the intersection between 2 Geo elements. The intersection 
-        between a Line and a Arc is checked here. This function is also used 
+        Find the intersection between 2 Geo elements. The intersection
+        between a Line and a Arc is checked here. This function is also used
         in the Arc Class to check Arc -> Line Intersection (the other way around)
         @param Arc: the instance of the 2nd geometry element.
-        @param type: Can be "TIP" for True Intersection Point or "Ray" for 
+        @param type: Can be "TIP" for True Intersection Point or "Ray" for
         Intersection which is in Ray (of Line)
         @return: a list of intersection points.
-        @todo: FIXME: The type of the intersection is not implemented up to now 
+        @todo: FIXME: The type of the intersection is not implemented up to now
         """
 
         Ldx = self.Pe.x - self.Ps.x
@@ -409,7 +411,7 @@ class LineGeo(object):
         @return: The point which is the nearest to other
         """
         from core.arcgeo import ArcGeo
-        
+
         if isinstance(other, LineGeo):
             return self.get_nearest_point_l_l(other)
         elif isinstance(other, ArcGeo):
@@ -540,7 +542,7 @@ class LineGeo(object):
                 return self.Pe, self.Pe.norm_angle(self.Ps)
             else:
                 return self.Pe, (self.Pe - self.Ps).unit_vector()
-    
+
     def intersect(self, other):
         """
         Check if there is an intersection of two geometry elements
@@ -553,7 +555,7 @@ class LineGeo(object):
         # logger.debug(self.BB.hasintersection(other.BB))
         # We need to test Point first cause it has no BB
         from core.arcgeo import ArcGeo
-        
+
         if isinstance(other, Point):
             return self.intersect_l_p(other)
         elif not(self.BB.hasintersection(other.BB)):
@@ -602,18 +604,18 @@ class LineGeo(object):
 
     def isHit(self, caller, xy, tol):
         return xy.distance2_to_line(self.Ps, self.Pe) <= tol**2
-    
+
     def within(self, p, q, r):
         "Return true iff q is between p and r (inclusive)."
         return p <= q <= r or r <= q <= p
 
     def join_colinear_line(self, other):
         """
-        Check if the two lines are colinear connected or inside of each other, in 
+        Check if the two lines are colinear connected or inside of each other, in
         this case these lines will be joined to one common line, otherwise return
         both lines
         @param other: a second line
-        @return: Return one or two lines 
+        @return: Return one or two lines
         """
         if self.colinearconnected(other)or self.colinearoverlapping(other):
             if self.Ps < self.Pe:
@@ -638,11 +640,7 @@ class LineGeo(object):
 
     def make_path(self, caller, drawHorLine):
         drawHorLine(caller, self.Ps, self.Pe)
-        self.topLeft = deepcopy(self.Ps)
-        self.bottomRight = deepcopy(self.Ps)
-        self.topLeft.detTopLeft(self.Pe)
-        self.bottomRight.detBottomRight(self.Pe)
-        
+
     def perpedicular_on_line(self, other):
         """
         This function calculates the perpendicular point on a line (or ray of line)
@@ -661,7 +659,7 @@ class LineGeo(object):
                      y=(unit_vector.y * lam) + self.Ps.y)
 
     def reverse(self):
-        """ 
+        """
         Reverses the direction of the arc (switch direction).
         """
         self.Ps, self.Pe = self.Pe, self.Ps
@@ -681,7 +679,7 @@ class LineGeo(object):
         elif self.intersect(ipoint):
             Li1 = LineGeo(Ps=self.Ps, Pe=ipoint)
             Li2 = LineGeo(Ps=ipoint, Pe=self.Pe)
-            return [Li1, Li2]        
+            return [Li1, Li2]
         else:
             return [self]
 
@@ -690,7 +688,7 @@ class LineGeo(object):
 
     def trim(self, Point, dir=1, rev_norm=False):
         """
-        This instance is used to trim the geometry at the given point. The point 
+        This instance is used to trim the geometry at the given point. The point
         can be a point on the offset geometry a perpendicular point on line will
         be used for trimming.
         @param Point: The point / perpendicular point for new Geometry
@@ -708,7 +706,7 @@ class LineGeo(object):
             new_line.end_normal = self.end_normal
             new_line.start_normal = self.start_normal
             return new_line
-        
+
     def update_start_end_points(self, start_point, value):
         prv_ang = self.Ps.norm_angle(self.Pe)
         if start_point:
@@ -734,7 +732,7 @@ class LineGeo(object):
         return PostPro.lin_pol_xy(Ps, Pe)
 
 
- 
+
 
 
 

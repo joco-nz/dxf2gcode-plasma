@@ -30,6 +30,7 @@ from copy import deepcopy
 from math import pi
 
 from core.point import Point
+from core.boundingbox import BoundingBox
 
 
 class HoleGeo(object):
@@ -43,9 +44,6 @@ class HoleGeo(object):
         self.Ps = Ps
         self.length = -1
 
-        self.topLeft = None
-        self.bottomRight = None
-
         self.abs_geo = None
 
     def __deepcopy__(self, memo):
@@ -57,6 +55,20 @@ class HoleGeo(object):
         @return: A string
         """
         return "\nHoleGeo at (%s) " % self.Ps
+
+    def save_v1(self):
+        return "\nHoleGeo at (%s) " % self.Ps.save_v1()
+
+    def calc_bounding_box(self, radius = 1):
+        """
+        Calculated the BoundingBox of the geometry and saves it into self.BB
+        @param radius: The Radius of the HoleGeo to be used for BoundingBox
+        """
+
+        Ps = Point(x = self.Ps.x - radius, y = self.Ps.y - radius)
+        Pe = Point(x = self.Ps.x + radius, y = self.Ps.y + radius)
+
+        self.BB = BoundingBox(Ps = Ps, Pe = Pe)
 
     def reverse(self):
         """
@@ -82,17 +94,18 @@ class HoleGeo(object):
             return self.Ps, Point(0, -1) if start_point else Point(0, -1)
 
     def make_path(self, caller, drawHorLine):
+
+
         radius = caller.parentLayer.tool_diameter / 2
+        self.calc_bounding_box(radius = radius)
+
         segments = 30
         Ps = self.Ps.get_arc_point(0, radius)
-        self.topLeft = deepcopy(Ps)
-        self.bottomRight = deepcopy(Ps)
+
         for i in range(1, segments + 1):
             ang = i * 2 * pi / segments
             Pe = self.Ps.get_arc_point(ang, radius)
             drawHorLine(caller, Ps, Pe)
-            self.topLeft.detTopLeft(Pe)
-            self.bottomRight.detBottomRight(Pe)
             Ps = Pe
 
     def isHit(self, caller, xy, tol):
