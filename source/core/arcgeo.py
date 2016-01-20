@@ -67,7 +67,7 @@ class ArcGeo(object):
         @param e_ang: the End Angle of the arc
         @param direction: The arc direction where 1 is in positive direction
         """
-        self.type = "ArcGeo"
+
         self.Ps = Ps
         self.Pe = Pe
         self.O = O
@@ -116,8 +116,6 @@ class ArcGeo(object):
 
         self.calc_bounding_box()
 
-        self.topLeft = None
-        self.bottomRight = None
 
         self.abs_geo = None
 
@@ -141,6 +139,13 @@ class ArcGeo(object):
                ("s_ang=%s,e_ang=%s,\n" % (self.s_ang, self.e_ang)) + \
                ("r=%s, \n" % self.r) + \
                ("ext=%s)" % self.ext)
+
+    def save_v1(self):
+        return "\nArcGeo" +\
+               "\nPs:  %s; s_ang: %0.5f" % (self.Ps.save_v1(), self.s_ang) +\
+               "\nPe:  %s; e_ang: %0.5f" % (self.Pe.save_v1(), self.e_ang) +\
+               "\nO:   %s; r: %0.3f" % (self.O.save_v1(), self.r) +\
+               "\next: %0.5f; length: %0.5f" % (self.ext, self.length)
 
     def angle_between(self, min_ang, max_ang, angle):
         """
@@ -627,13 +632,10 @@ class ArcGeo(object):
     def make_path(self, caller, drawHorLine):
         segments = int(abs(degrees(self.ext)) // 3 + 1)
         Ps = self.O.get_arc_point(self.s_ang, self.r)
-        self.topLeft = deepcopy(Ps)
-        self.bottomRight = deepcopy(Ps)
+
         for i in range(1, segments + 1):
             Pe = self.get_point_from_start(i, segments)
             drawHorLine(caller, Ps, Pe)
-            self.topLeft.detTopLeft(Pe)
-            self.bottomRight.detBottomRight(Pe)
             Ps = Pe
 
     def PointAng_withinArc(self, Point):
@@ -642,6 +644,9 @@ class ArcGeo(object):
         @param Point: The Point which angle to be checked
         @return: True or False
         """
+        if self.ext == 0.0:
+            return False
+
         v = self.dif_ang(self.Ps, Point, self.ext) / self.ext
         return v >= 0.0 and v <= 1.0
 

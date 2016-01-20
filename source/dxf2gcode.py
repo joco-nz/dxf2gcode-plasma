@@ -502,9 +502,9 @@ class MainWindow(QMainWindow):
         return True
 
     def isShapeContained(self, shape, outerShape):
-        return shape != outerShape and not isinstance(outerShape, CustomGCode) and\
-            outerShape.topLeft.x < shape.topLeft.x and shape.bottomRight.x < outerShape.bottomRight.x and\
-            outerShape.bottomRight.y < shape.bottomRight.y and shape.topLeft.y < outerShape.topLeft.y
+        return shape != outerShape and not \
+            isinstance(outerShape, CustomGCode) and\
+            shape.BB.iscontained(outerShape.BB)
 
     def showSaveDialog(self, title, MyFormats):
         """
@@ -648,8 +648,8 @@ class MainWindow(QMainWindow):
             miny = sys.float_info.max
             for shape in self.shapes:
                 if not shape.isDisabled():
-                    minx = min(minx, shape.topLeft.x)
-                    miny = min(miny, shape.bottomRight.y)
+                    minx = min(minx, shape.BB.Ps.x)
+                    miny = min(miny, shape.BB.Ps.y)
             self.cont_dx = self.entityRoot.p0.x - minx
             self.cont_dy = self.entityRoot.p0.y - miny
         else:

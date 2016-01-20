@@ -58,6 +58,16 @@ class BreakGeo(LineGeo):
                "\nPe:     %s" % self.Pe +\
                "\nheight: %0.5f" % self.height
 
+    def save_v1(self):
+        """
+        Standard method to print the object
+        @return: A string
+        """
+        return "\nBreakGeo" +\
+               "\nPs:     %s" % self.Ps.save_v1() +\
+               "\nPe:     %s" % self.Pe.save_v1() +\
+               "\nheight: %0.5f" % self.height
+
     def Write_GCode(self, PostPro):
         """
         Writes the GCODE for a Break.

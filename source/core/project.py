@@ -79,12 +79,12 @@ class Project(object):
                                                            string_to_translate))
 
     def get_hash(self, shape):
-        reversed = False
+        reverse = False
         if not shape.cw:
-            reversed = True
+            reverse = True
             shape.reverse()
-        geos = [str(geo) for geo in shape.geos]
-        if reversed:
+        geos = [geo.save_v1() for geo in shape.geos.abs_iter()]
+        if reverse:
             shape.reverse()
         return hashlib.sha1(''.join(sorted(geos)).encode('utf-8')).hexdigest()
 
@@ -179,9 +179,16 @@ d2g.layers = ''' + str(layers)
                 layer.axis3_retract = parent_layer['retract']
                 layer.axis3_safe_margin = parent_layer['safe_margin']
 
-                hash_shapes = dict((self.get_hash(shape), shape) for shape in layer.shapes)
+                # hash_shapes = dict((self.get_hash(shape), shape) for shape in layer.shapes)
                 # dict comprehensions are supported since Py2.7
                 # hash_shapes = {self.get_hash(shape): shape for shape in layer.shapes}
+                hash_shapes = dict()
+                for shape in layer.shapes:
+                    shape_hash = self.get_hash(shape)
+                    if shape_hash in hash_shapes:
+                        hash_shapes[shape_hash].insert(0, shape)
+                    else:
+                        hash_shapes[shape_hash] = [shape]
 
                 shapes = []
                 for parent_shape in parent_layer['shapes']:
@@ -191,7 +198,10 @@ d2g.layers = ''' + str(layers)
                         shape.disabled = parent_shape['disabled']
                         shapes.append(shape)
                     elif parent_shape['hash_'] in hash_shapes:
-                        shape = hash_shapes[parent_shape['hash_']]
+                        shape_list = hash_shapes[parent_shape['hash_']]
+                        shape = shape_list.pop()
+                        if len(shape_list) == 0:
+                            del hash_shapes[parent_shape['hash_']]
                         shape.cut_cor = parent_shape['cut_cor']
                         shape.send_to_TSP = parent_shape['send_to_TSP']
                         shape.disabled = parent_shape['disabled']

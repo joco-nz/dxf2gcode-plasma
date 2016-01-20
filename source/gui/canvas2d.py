@@ -36,6 +36,7 @@ import logging
 
 from core.point import Point
 from core.shape import Shape
+from core.boundingbox import BoundingBox
 from core.stmove import StMove
 from gui.wpzero import WpZero
 from gui.arrow import Arrow
@@ -234,9 +235,9 @@ class MyGraphicsView(CanvasBase):
         Automatically zooms to the full extend of the current GraphicsScene
         """
         scene = self.scene()
-        width = scene.bottomRight.x - scene.topLeft.x
-        height = scene.topLeft.y - scene.bottomRight.y
-        scext = QtCore.QRectF(scene.topLeft.x, -scene.topLeft.y, width * 1.05, height * 1.05)
+        width = scene.BB.Pe.x - scene.BB.Ps.x
+        height = scene.BB.Pe.y - scene.BB.Ps.y
+        scext = QtCore.QRectF(scene.BB.Ps.x, -scene.BB.Pe.y, width * 1.05, height * 1.05)
         self.fitInView(scext, QtCore.Qt.KeepAspectRatio)
         logger.debug(self.tr("Autoscaling to extend: %s") % scext)
 
@@ -278,8 +279,7 @@ class MyGraphicsScene(QGraphicsScene):
 
         self.showDisabledPaths = False
 
-        self.topLeft = Point()
-        self.bottomRight = Point()
+        self.BB = BoundingBox()
 
     def tr(self, string_to_translate):
         """
@@ -329,8 +329,7 @@ class MyGraphicsScene(QGraphicsScene):
         drawVerLine = lambda caller, start: None  # Not used in 2D mode
         shape.make_path(drawHorLine, drawVerLine)
 
-        self.topLeft.detTopLeft(shape.topLeft)
-        self.bottomRight.detBottomRight(shape.bottomRight)
+        self.BB = self.BB.joinBB(shape.BB)
 
         shape.stmove = self.createstmove(shape)
         shape.starrow = self.createstarrow(shape)
@@ -622,7 +621,6 @@ class StMoveGUI(QGraphicsLineItem, StMove):
     def __init__(self, shape):
         QGraphicsLineItem.__init__(self)
         StMove.__init__(self, shape)
-
 
         self.allwaysshow = False
         self.path = QPainterPath()
