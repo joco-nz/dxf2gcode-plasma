@@ -176,7 +176,7 @@ class TreeHandler(QWidget):
         self.context_menu.addAction(QAction("Optimize route for selection", self, triggered=self.optimizeRouteForSelectedItems))
         self.context_menu.addAction(QAction("Don't opti. route for selection", self, triggered=self.doNotOptimizeRouteForSelectedItems))
         self.context_menu.addSeparator()
-        self.context_menu.addAction(QAction("Remove custom GCode", self, triggered=self.removeCustomGCode))
+        self.context_menu.addAction(QAction("Remove custom GCode", self, triggered=self.removeCustomGCodeSelected))
 
         self.sub_menu = QMenu("Add custom GCode ...", self)
         # Save the exact name of the action, as is defined in the config file. Later on we use it to identify the action
@@ -1475,6 +1475,14 @@ class TreeHandler(QWidget):
 
         # Update the display (refresh the treeView for the given item)
         current_tree_view.update(item.index())
+
+
+    def removeCustomGCodeSelected(self):
+        """
+        Don't concat this function with removeCustomGCode()!
+        (since the action that triggers "removeCustomGCode" sends a parameter, the "shape_item_index" is never set to None otherwise...)
+        """
+        self.removeCustomGCode(None)
 
     def removeCustomGCode(self, shape_item_index = None):
         """
