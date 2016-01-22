@@ -143,7 +143,9 @@ class TreeHandler(QWidget):
         self.ui.toolDiameterComboBox.setCurrentIndex(0)
         self.toolUpdate()
 
-        self.ui.toolDiameterComboBox.currentIndexChanged.connect(self.toolUpdate)
+        # Don't change this line, the signal _must_ be "activated" (only activates on user action) and _not_ "currentIndexChanged" (activates programmatically and on user action)
+        self.ui.toolDiameterComboBox.activated[str].connect(self.toolUpdate)
+
         self.ui.zRetractionArealLineEdit.editingFinished.connect(self.toolParameterzRetractionArealUpdate)
         self.ui.zSafetyMarginLineEdit.editingFinished.connect(self.toolParameterzSafetyMarginUpdate)
         self.ui.zInitialMillDepthLineEdit.editingFinished.connect(self.toolParameterzInitialMillDepthUpdate)
@@ -254,11 +256,12 @@ class TreeHandler(QWidget):
                     real_layer.start_radius = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['start_radius']
                     update_drawing = True
                     
-                if update_drawing:
+                if update_drawing and g.window:
                     for shape in real_layer.shapes:
-                        g.window.canvas_scene.repaint_shape(shape)
-                    if g.window:
-                        g.window.canvas_scene.update()
+                        if isinstance(shape, Shape):
+                            # Only repaint _real_ shapes (and not the custom GCode for example)
+                            g.window.canvas_scene.repaint_shape(shape)
+                    g.window.canvas_scene.update()
 
                 # Assign the export order for the shapes of the layer "real_layer"
                 for j in range(self.layer_item_model.rowCount(layer_item_index)):
@@ -895,7 +898,9 @@ class TreeHandler(QWidget):
                                 self.speed = new_speed
                                 self.start_radius = new_start_radius
                                 for shape in real_item.shapes:
-                                    g.window.canvas_scene.repaint_shape(shape)
+                                    if isinstance(shape, Shape):
+                                        # Only repaint _real_ shapes (and not the custom GCode for example)
+                                        g.window.canvas_scene.repaint_shape(shape)
                 if g.window:
                     g.window.canvas_scene.update()
 
@@ -1238,29 +1243,28 @@ class TreeHandler(QWidget):
         self.axis3_safe_margin = self.updateAndColorizeWidget(self.ui.zSafetyMarginLineEdit,
                                                               self.axis3_safe_margin,
                                                               layer_item.axis3_safe_margin)
+
         # Shape options
-        if shape_item is None:
-            shape_item = layer_item.shapes[0]
+        if isinstance(shape_item, Shape): # To avoid segfault when someone passes eg Custom GCode as a shape_item
+            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
+                                                                       self.axis3_start_mill_depth,
+                                                                       shape_item.axis3_start_mill_depth)
 
-        self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
-                                                                   self.axis3_start_mill_depth,
-                                                                   shape_item.axis3_start_mill_depth)
+            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
+                                                                  self.axis3_slice_depth,
+                                                                  shape_item.axis3_slice_depth)
 
-        self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
-                                                              self.axis3_slice_depth,
-                                                              shape_item.axis3_slice_depth)
+            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
+                                                                 self.axis3_mill_depth,
+                                                                 shape_item.axis3_mill_depth)
 
-        self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
-                                                             self.axis3_mill_depth,
-                                                             shape_item.axis3_mill_depth)
+            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+                                                           self.f_g1_plane,
+                                                           shape_item.f_g1_plane)
 
-        self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
-                                                       self.f_g1_plane,
-                                                       shape_item.f_g1_plane)
-
-        self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
-                                                       self.f_g1_depth,
-                                                       shape_item.f_g1_depth)
+            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
+                                                           self.f_g1_depth,
+                                                           shape_item.f_g1_depth)
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """
