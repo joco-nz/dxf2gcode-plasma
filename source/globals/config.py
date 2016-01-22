@@ -515,9 +515,6 @@ class MyConfig(object):
             {
                 '__section_title__': self.tr("Output settings"),
                 'done_by_machine': CfgCheckBox(self.tr('Cutter compensation is done by machine (check this box if the machine reconizes G41 and G42 commands / uncheck it otherwise)')),
-                'min_length_considered': CfgDoubleSpinBox(self.tr('Min offset coefficient for the starting point to be considered as a good starting point:')),
-                'max_length_considered': CfgDoubleSpinBox(self.tr('Max offset coefficient for the starting point to be considered as a good starting point:')),
-                'direction_maintained': CfgCheckBox(self.tr("Current shape: don't retry with the starting point moved")),
             },
             'Drag_Knife_Options':
             {
