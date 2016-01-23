@@ -143,7 +143,9 @@ class TreeHandler(QWidget):
         self.ui.toolDiameterComboBox.setCurrentIndex(0)
         self.toolUpdate()
 
-        self.ui.toolDiameterComboBox.currentIndexChanged.connect(self.toolUpdate)
+        # Don't change this line, the signal _must_ be "activated" (only activates on user action) and _not_ "currentIndexChanged" (activates programmatically and on user action)
+        self.ui.toolDiameterComboBox.activated[str].connect(self.toolUpdate)
+
         self.ui.zRetractionArealLineEdit.editingFinished.connect(self.toolParameterzRetractionArealUpdate)
         self.ui.zSafetyMarginLineEdit.editingFinished.connect(self.toolParameterzSafetyMarginUpdate)
         self.ui.zInitialMillDepthLineEdit.editingFinished.connect(self.toolParameterzInitialMillDepthUpdate)
@@ -174,15 +176,15 @@ class TreeHandler(QWidget):
         self.context_menu.addAction(QAction("Optimize route for selection", self, triggered=self.optimizeRouteForSelectedItems))
         self.context_menu.addAction(QAction("Don't opti. route for selection", self, triggered=self.doNotOptimizeRouteForSelectedItems))
         self.context_menu.addSeparator()
-        self.context_menu.addAction(QAction("Remove custom GCode", self, triggered=self.removeCustomGCode))
+        self.context_menu.addAction(QAction("Remove custom GCode", self, triggered=self.removeCustomGCodeSelected))
 
-        sub_menu = QMenu("Add custom GCode ...", self)
+        self.sub_menu = QMenu("Add custom GCode ...", self)
         # Save the exact name of the action, as is defined in the config file. Later on we use it to identify the action
         for custom_action in g.config.vars.Custom_Actions:
-            menu_action = sub_menu.addAction(custom_action.replace('_', ' '))
+            menu_action = self.sub_menu.addAction(custom_action.replace('_', ' '))
             menu_action.setData(custom_action)
 
-        self.context_menu.addMenu(sub_menu)
+        self.context_menu.addMenu(self.sub_menu)
 
         # Right click menu
         self.ui.layersShapesTreeView.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
@@ -204,6 +206,83 @@ class TreeHandler(QWidget):
         """
         return text_type(QtCore.QCoreApplication.translate('TreeHandler',
                                                            string_to_translate))
+
+    def updateConfiguration(self):
+        """
+        This function should be called each time the configuration changes. It updates tools and custom actions in the treeView
+        If a tool or a custom action disapear from the configuration, it is removed from the treeview
+        """
+        # Load the tools from the config file to the tool selection combobox
+        #self.ui.layersShapesTreeView.clearSelection()
+        self.ui.toolDiameterComboBox.blockSignals(True)
+        default_tool = 1 # Tool 1 normally always exists
+        current_tool = self.ui.toolDiameterComboBox.currentText()
+        self.ui.toolDiameterComboBox.clear()
+        for tool in g.config.vars.Tool_Parameters:
+            self.ui.toolDiameterComboBox.addItem(tool)
+        self.ui.toolDiameterComboBox.blockSignals(False)
+
+        # Load the custom gcode names from the config file
+        self.sub_menu.clear()
+        for custom_action in g.config.vars.Custom_Actions:
+            menu_action = self.sub_menu.addAction(custom_action.replace('_', ' '))
+            menu_action.setData(custom_action)
+
+        # update the items (if a tool or a custion_action disapeared from config file, we need to remove it in the treeview too)
+        i = self.layer_item_model.rowCount(QtCore.QModelIndex())
+        while i > 0:
+            i -= 1
+            layer_item_index = self.layer_item_model.index(i, 0)
+
+            if isValid(layer_item_index.data(LAYER_OBJECT)):
+                real_layer = toPyObject(layer_item_index.data(LAYER_OBJECT))
+
+                update_drawing = False
+                if real_layer is not None and str(real_layer.tool_nr) not in g.config.vars.Tool_Parameters:
+                    # The tool used for this layer doesn't exist anymore, we are going to replace it with the first tool
+                    logger.warning("Tool {0} used for \"{1}\" layer doesn't exist anymore in the configuration ; using tool {2} instead".format(real_layer.tool_nr, real_layer.name, default_tool))
+                    # Update the layer's tool and repaint
+                    real_layer.tool_nr = default_tool # Tool 1 normally always exists
+                    update_drawing = True
+
+                if real_layer is not None\
+                    and (real_layer.tool_diameter != g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['diameter']\
+                      or real_layer.speed != g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['speed']\
+                      or real_layer.start_radius != g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['start_radius']):
+                    # The tool used for this layer exists, but its definition has changed, we need to update the layer
+                    logger.warning("Tool {0} used for \"{1}\" layer has changed, updating layer's data".format(real_layer.tool_nr, real_layer.name))
+                    real_layer.tool_diameter = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['diameter']
+                    real_layer.speed = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['speed']
+                    real_layer.start_radius = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['start_radius']
+                    update_drawing = True
+                    
+                if update_drawing and g.window:
+                    for shape in real_layer.shapes:
+                        if isinstance(shape, Shape):
+                            # Only repaint _real_ shapes (and not the custom GCode for example)
+                            g.window.canvas_scene.repaint_shape(shape)
+                    g.window.canvas_scene.update()
+
+                # Assign the export order for the shapes of the layer "real_layer"
+                for j in range(self.layer_item_model.rowCount(layer_item_index)):
+                    shape_item_index = self.layer_item_model.index(j, 0, layer_item_index)
+
+                    if isValid(shape_item_index.data(CUSTOM_GCODE_OBJECT)):
+                        real_custom_action = toPyObject(shape_item_index.data(CUSTOM_GCODE_OBJECT))
+                        if real_custom_action is not None and real_custom_action.name not in g.config.vars.Custom_Actions:
+                            logger.warning("Custom action \"{0}\" used for \"{1}\" layer doesn't exist anymore in the configuration, removing it".format(real_custom_action.name, real_layer.name))
+                            self.removeCustomGCode(shape_item_index)
+
+        # Reselect the previous tool and update the tool display for the _selected_ layers
+        tool_index = self.ui.toolDiameterComboBox.findText(current_tool)
+        logger.debug("reselecting tool : " + current_tool)
+        if tool_index >= 0:
+            self.ui.toolDiameterComboBox.setCurrentIndex(tool_index)
+        else:
+            tool_index = self.ui.toolDiameterComboBox.findText(default_tool)
+            self.ui.toolDiameterComboBox.setCurrentIndex(tool_index)
+        self.toolUpdate()
+
 
     def displayContextMenu(self, position):
         """
@@ -819,7 +898,9 @@ class TreeHandler(QWidget):
                                 self.speed = new_speed
                                 self.start_radius = new_start_radius
                                 for shape in real_item.shapes:
-                                    g.window.canvas_scene.repaint_shape(shape)
+                                    if isinstance(shape, Shape):
+                                        # Only repaint _real_ shapes (and not the custom GCode for example)
+                                        g.window.canvas_scene.repaint_shape(shape)
                 if g.window:
                     g.window.canvas_scene.update()
 
@@ -1162,29 +1243,28 @@ class TreeHandler(QWidget):
         self.axis3_safe_margin = self.updateAndColorizeWidget(self.ui.zSafetyMarginLineEdit,
                                                               self.axis3_safe_margin,
                                                               layer_item.axis3_safe_margin)
+
         # Shape options
-        if shape_item is None:
-            shape_item = layer_item.shapes[0]
+        if isinstance(shape_item, Shape): # To avoid segfault when someone passes eg Custom GCode as a shape_item
+            self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
+                                                                       self.axis3_start_mill_depth,
+                                                                       shape_item.axis3_start_mill_depth)
 
-        self.axis3_start_mill_depth = self.updateAndColorizeWidget(self.ui.zInitialMillDepthLineEdit,
-                                                                   self.axis3_start_mill_depth,
-                                                                   shape_item.axis3_start_mill_depth)
+            self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
+                                                                  self.axis3_slice_depth,
+                                                                  shape_item.axis3_slice_depth)
 
-        self.axis3_slice_depth = self.updateAndColorizeWidget(self.ui.zInfeedDepthLineEdit,
-                                                              self.axis3_slice_depth,
-                                                              shape_item.axis3_slice_depth)
+            self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
+                                                                 self.axis3_mill_depth,
+                                                                 shape_item.axis3_mill_depth)
 
-        self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
-                                                             self.axis3_mill_depth,
-                                                             shape_item.axis3_mill_depth)
+            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+                                                           self.f_g1_plane,
+                                                           shape_item.f_g1_plane)
 
-        self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
-                                                       self.f_g1_plane,
-                                                       shape_item.f_g1_plane)
-
-        self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
-                                                       self.f_g1_depth,
-                                                       shape_item.f_g1_depth)
+            self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
+                                                           self.f_g1_depth,
+                                                           shape_item.f_g1_depth)
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """
@@ -1396,13 +1476,24 @@ class TreeHandler(QWidget):
         # Update the display (refresh the treeView for the given item)
         current_tree_view.update(item.index())
 
-    def removeCustomGCode(self):
+
+    def removeCustomGCodeSelected(self):
+        """
+        Don't concat this function with removeCustomGCode()!
+        (since the action that triggers "removeCustomGCode" sends a parameter, the "shape_item_index" is never set to None otherwise...)
+        """
+        self.removeCustomGCode(None)
+
+    def removeCustomGCode(self, shape_item_index = None):
         """
         Remove a custom GCode object from the treeView, just after the
         current item. Custom GCode are defined into the config file
         """
         logger.debug('Removing custom GCode...')
-        current_item_index = self.ui.layersShapesTreeView.currentIndex()
+        current_item_index = shape_item_index
+        if current_item_index is None:
+            # No parameter passed => we use current item
+            current_item_index = self.ui.layersShapesTreeView.currentIndex()
 
         if isValid(current_item_index):
             remove_row = current_item_index.row()

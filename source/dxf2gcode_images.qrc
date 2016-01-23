@@ -11,5 +11,7 @@
     <file>images/go-up.png</file>
     <file>images/layer.png</file>
     <file>images/shape.png</file>
+    <file>images/list-add.png</file>
+    <file>images/list-remove.png</file>
   </qresource>
 </RCC>

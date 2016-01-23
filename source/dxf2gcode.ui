@@ -905,6 +905,8 @@
      <addaction name="actionLathe"/>
      <addaction name="actionDragKnife"/>
     </widget>
+    <addaction name="actionConfiguration"/>
+    <addaction name="separator"/>
     <addaction name="actionTolerances"/>
     <addaction name="separator"/>
     <addaction name="actionScaleAll"/>
@@ -1003,6 +1005,14 @@
    </property>
    <property name="text">
     <string>Delete G0 Paths</string>
+   </property>
+  </action>
+  <action name="actionConfiguration">
+   <property name="text">
+    <string>Configuration...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+C</string>
    </property>
   </action>
   <action name="actionTolerances">
