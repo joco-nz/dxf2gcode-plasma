@@ -150,9 +150,9 @@ class offShapeClass(Shape):
         self.geos = Geos([])
         for geo in parent.geos:
             if isinstance(geo, LineGeo):
-                self.geos.append(OffLineGeo().abscopy(geo, parent))
+                self.geos.append(OffLineGeo(geo = geo, parent = parent))
             elif isinstance(geo, ArcGeo):
-                self.geos.append(OffArcGeo().abscopy(geo, parent))
+                self.geos.append(OffArcGeo(geo = geo, parent = parent))
             else:
                 logger.error("Should not be here")
 
@@ -889,7 +889,7 @@ class OffArcGeo(ArcGeo):
         """
     
         def __init__(self, Ps=None, Pe=None, O=None, r=1,
-                 s_ang=None, e_ang=None, direction=1, drag=False):
+                 s_ang = None, e_ang = None, direction = 1, drag = False, **kwargs):
             """
             Standard Method to initialize the ArcGeo. Not all of the parameters are
             required to fully define a arc. e.g. Ps and Pe may be given or s_ang and
@@ -903,27 +903,26 @@ class OffArcGeo(ArcGeo):
             @param direction: The arc direction where 1 is in positive direction
             """
     
+            if ("geo" in kwargs) and ("parent" in kwargs):
+                logger.debug("Alles da")
+
+                geo = kwargs["geo"]
+                parent = kwargs["parent"]
+
+                Ps = geo.Ps.rot_sca_abs(parent = parent)
+                Pe = geo.Pe.rot_sca_abs(parent = parent)
+                O = geo.O.rot_sca_abs(parent = parent)
+                r = geo.scaled_r(self.r, parent)
+
+                direction = 1 if geo.ext > 0.0 else -1
+
+                if parent is not None and parent.sca[0] * parent.sca[1] < 0.0:
+                    direction *= -1
+
             ArcGeo.__init__(self, Ps=Ps, Pe=Pe, O=O, r=r,
                      s_ang=s_ang, e_ang=e_ang, direction=direction, drag=drag)
 
-        def abscopy(self, geo = None, parent = None):
-            """
-            Generates the absolute geometry based on the given geometry and the parent. This
-            is done for rotating and scaling purposes
-            @param geo: The parent geometry which is used as an input
-            @param parent: The parent of the geo which should be an Entitiy.
-            """
-            self.Ps = geo.Ps.rot_sca_abs(parent = parent)
-            self.Pe = geo.Pe.rot_sca_abs(parent = parent)
-            self.O = geo.O.rot_sca_abs(parent = parent)
-            self.r = geo.scaled_r(self.r, parent)
 
-            direction = 1 if geo.ext > 0.0 else -1
-
-            if parent is not None and parent.sca[0] * parent.sca[1] < 0.0:
-                direction *= -1
-
-            # self.abs_geo = OffArcGeo(Ps = Ps, Pe = Pe, O = O, r = r, direction = direction)
 
 class OffLineGeo(LineGeo):
     
@@ -931,24 +930,24 @@ class OffLineGeo(LineGeo):
     Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
     clean as possible.
     """
-    def __init__(self, Ps, Pe):
+    def __init__(self, Ps, Pe, **kwargs):
         """
         Standard Method to initialize the LineGeo.
         @param Ps: The Start Point of the line
         @param Pe: the End Point of the line
         """
+
+        if ("geo" in kwargs) and ("parent" in kwargs):
+            logger.debug("Alles da")
+
+            geo = kwargs["geo"]
+            parent = kwargs["parent"]
+
+            Ps = geo.Ps.rot_sca_abs(parent = parent)
+            Pe = geo.Pe.rot_sca_abs(parent = parent)
+
         LineGeo.__init__(self, Ps=Ps, Pe=Pe)
 
-    def abscopy(self, geo = None, parent = None):
-        """
-        Generates the absolute geometry copy of the inputed geo based on the parent. This
-        is done for rotating and scaling purposes. In addidtion this is a "deepcopy" of the 
-        provided geo.
-        @param geo: The geometry which shall be copied into new inherited class (absolut)
-        @param parent: The parent Entitie of the geo if there is one
-        """
-        self.Ps = geo.Ps.rot_sca_abs(parent = parent)
-        self.Pe = geo.Pe.rot_sca_abs(parent = parent)
 
 
 class OffPoint(Point):
@@ -956,7 +955,17 @@ class OffPoint(Point):
     Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
     clean as possible.
     """
-    def __init__(self, x = 0, y = 0):
+    def __init__(self, x = 0, y = 0, **kwargs):
+
+        if ("geo" in kwargs) and ("parent" in kwargs):
+            logger.debug("Alles da")
+
+            geo = kwargs["geo"]
+            parent = kwargs["parent"]
+
+            x = geo.rot_sca_abs(parent = parent).x
+            y = geo.rot_sca_abs(parent = parent).y
+
         self.x = x
         self.y = y
 
