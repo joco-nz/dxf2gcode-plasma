@@ -609,24 +609,24 @@ class LineGeo(object):
         "Return true iff q is between p and r (inclusive)."
         return p <= q <= r or r <= q <= p
 
-    def join_colinear_line(self, other):
-        """
-        Check if the two lines are colinear connected or inside of each other, in
-        this case these lines will be joined to one common line, otherwise return
-        both lines
-        @param other: a second line
-        @return: Return one or two lines
-        """
-        if self.colinearconnected(other)or self.colinearoverlapping(other):
-            if self.Ps < self.Pe:
-                newPs = min(self.Ps, other.Ps, other.Pe)
-                newPe = max(self.Pe, other.Ps, other.Pe)
-            else:
-                newPs = max(self.Ps, other.Ps, other.Pe)
-                newPe = min(self.Pe, other.Ps, other.Pe)
-            return [LineGeo(newPs, newPe)]
-        else:
-            return [self, other]
+#     def join_colinear_line(self, other):
+#         """
+#         Check if the two lines are colinear connected or inside of each other, in
+#         this case these lines will be joined to one common line, otherwise return
+#         both lines
+#         @param other: a second line
+#         @return: Return one or two lines
+#         """
+#         if self.colinearconnected(other)or self.colinearoverlapping(other):
+#             if self.Ps < self.Pe:
+#                 newPs = min(self.Ps, other.Ps, other.Pe)
+#                 newPe = max(self.Pe, other.Ps, other.Pe)
+#             else:
+#                 newPs = max(self.Ps, other.Ps, other.Pe)
+#                 newPe = min(self.Pe, other.Ps, other.Pe)
+#             return [LineGeo(newPs, newPe)]
+#         else:
+#             return [self, other]
 
     def make_abs_geo(self, parent=None):
         """
@@ -666,46 +666,46 @@ class LineGeo(object):
         if self.abs_geo:
             self.abs_geo.reverse()
 
-    def split_into_2geos(self, ipoint=Point()):
-        """
-        Splits the given geometry into 2 not self intersection geometries. The
-        geometry will be splitted between ipoint and Pe.
-        @param ipoint: The Point where the intersection occures
-        @return: A list of 2 CCLineGeo's will be returned if intersection is inbetween
-        """
-        # The Point where the geo shall be splitted
-        if not(ipoint):
-            return [self]
-        elif self.intersect(ipoint):
-            Li1 = LineGeo(Ps=self.Ps, Pe=ipoint)
-            Li2 = LineGeo(Ps=ipoint, Pe=self.Pe)
-            return [Li1, Li2]
-        else:
-            return [self]
+#     def split_into_2geos(self, ipoint=Point()):
+#         """
+#         Splits the given geometry into 2 not self intersection geometries. The
+#         geometry will be splitted between ipoint and Pe.
+#         @param ipoint: The Point where the intersection occures
+#         @return: A list of 2 CCLineGeo's will be returned if intersection is inbetween
+#         """
+#         # The Point where the geo shall be splitted
+#         if not(ipoint):
+#             return [self]
+#         elif self.intersect(ipoint):
+#             Li1 = LineGeo(Ps=self.Ps, Pe=ipoint)
+#             Li2 = LineGeo(Ps=ipoint, Pe=self.Pe)
+#             return [Li1, Li2]
+#         else:
+#             return [self]
 
     def to_short_string(self):
         return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
 
-    def trim(self, Point, dir=1, rev_norm=False):
-        """
-        This instance is used to trim the geometry at the given point. The point
-        can be a point on the offset geometry a perpendicular point on line will
-        be used for trimming.
-        @param Point: The point / perpendicular point for new Geometry
-        @param dir: The direction in which the geometry will be kept (1  means the
-        being will be trimmed)
-        """
-        newPoint = self.perpedicular_on_line(Point)
-        if dir == 1:
-            new_line = LineGeo(newPoint, self.Pe)
-            new_line.end_normal = self.end_normal
-            new_line.start_normal = self.start_normal
-            return new_line
-        else:
-            new_line = LineGeo(self.Ps, newPoint)
-            new_line.end_normal = self.end_normal
-            new_line.start_normal = self.start_normal
-            return new_line
+#     def trim(self, Point, dir=1, rev_norm=False):
+#         """
+#         This instance is used to trim the geometry at the given point. The point
+#         can be a point on the offset geometry a perpendicular point on line will
+#         be used for trimming.
+#         @param Point: The point / perpendicular point for new Geometry
+#         @param dir: The direction in which the geometry will be kept (1  means the
+#         being will be trimmed)
+#         """
+#         newPoint = self.perpedicular_on_line(Point)
+#         if dir == 1:
+#             new_line = LineGeo(newPoint, self.Pe)
+#             new_line.end_normal = self.end_normal
+#             new_line.start_normal = self.start_normal
+#             return new_line
+#         else:
+#             new_line = LineGeo(self.Ps, newPoint)
+#             new_line.end_normal = self.end_normal
+#             new_line.start_normal = self.start_normal
+#             return new_line
 
     def update_start_end_points(self, start_point, value):
         prv_ang = self.Ps.norm_angle(self.Pe)

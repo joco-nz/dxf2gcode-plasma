@@ -49,7 +49,7 @@ class offShapeClass(Shape):
     "A pair-wise offset Algorithm for 2D point sequence curve"
     http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.101.8855
     """
-    def __init__(self, parent=Shape(), offset=1, offtype='in'):
+    def __init__(self, parent = None, offset = 1, offtype = 'in'):
         """ 
         Standard method to initialize the class
         @param closed: Gives information about the shape, when it is closed this
@@ -150,14 +150,13 @@ class offShapeClass(Shape):
         self.geos = Geos([])
         for geo in parent.geos:
             if isinstance(geo, LineGeo):
-                self.geos.append(OffLineGeo(geo = geo, parent = parent))
+                new_geo = OffLineGeo(geo = geo, parent = parent.parentEntity)
             elif isinstance(geo, ArcGeo):
-                self.geos.append(OffArcGeo(geo = geo, parent = parent))
+                new_geo = OffArcGeo(geo = geo, parent = parent.parentEntity)
             else:
                 logger.error("Should not be here")
 
-
-        logger.debug(self.geos)
+            self.geos.append(new_geo)
 
         self.make_shape_ccw()
         self.join_colinear_lines()
@@ -256,9 +255,10 @@ class offShapeClass(Shape):
 
                 # logger.debug("reflex")
 
-                geo1.Pe.start_normal = geo1.end_normal
-                geo1.Pe.end_normal = geo2.start_normal
-                self.segments += [geo1.Pe, geo2]
+                reflexPe = OffPoint(x = geo1.Pe.x, y = geo1.Pe.y)
+                reflexPe.start_normal = geo1.end_normal
+                reflexPe.end_normal = geo2.start_normal
+                self.segments += [reflexPe, geo2]
 
             elif (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
                              geo1.Pe + geo1.end_normal +
@@ -272,7 +272,6 @@ class offShapeClass(Shape):
                 self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
         # logger.debug("Self.segments: %s" % self.segments)
         # self.segments_plot = deepcopy(self.segments)
-
 
     def make_rawoff_seg(self, seg):
         """
@@ -904,15 +903,13 @@ class OffArcGeo(ArcGeo):
             """
     
             if ("geo" in kwargs) and ("parent" in kwargs):
-                logger.debug("Alles da")
-
                 geo = kwargs["geo"]
                 parent = kwargs["parent"]
 
                 Ps = geo.Ps.rot_sca_abs(parent = parent)
                 Pe = geo.Pe.rot_sca_abs(parent = parent)
                 O = geo.O.rot_sca_abs(parent = parent)
-                r = geo.scaled_r(self.r, parent)
+                r = geo.scaled_r(geo.r, parent)
 
                 direction = 1 if geo.ext > 0.0 else -1
 
@@ -922,15 +919,14 @@ class OffArcGeo(ArcGeo):
             ArcGeo.__init__(self, Ps=Ps, Pe=Pe, O=O, r=r,
                      s_ang=s_ang, e_ang=e_ang, direction=direction, drag=drag)
 
-
-
 class OffLineGeo(LineGeo):
     
     """
     Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
     clean as possible.
     """
-    def __init__(self, Ps, Pe, **kwargs):
+
+    def __init__(self, Ps = None, Pe = None, **kwargs):
         """
         Standard Method to initialize the LineGeo.
         @param Ps: The Start Point of the line
@@ -938,8 +934,6 @@ class OffLineGeo(LineGeo):
         """
 
         if ("geo" in kwargs) and ("parent" in kwargs):
-            logger.debug("Alles da")
-
             geo = kwargs["geo"]
             parent = kwargs["parent"]
 
@@ -948,7 +942,62 @@ class OffLineGeo(LineGeo):
 
         LineGeo.__init__(self, Ps=Ps, Pe=Pe)
 
+    def join_colinear_line(self, other):
+        """
+        Check if the two lines are colinear connected or inside of each other, in
+        this case these lines will be joined to one common line, otherwise return
+        both lines
+        @param other: a second line
+        @return: Return one or two lines
+        """
+        if self.colinearconnected(other)or self.colinearoverlapping(other):
+            if self.Ps < self.Pe:
+                newPs = min(self.Ps, other.Ps, other.Pe)
+                newPe = max(self.Pe, other.Ps, other.Pe)
+            else:
+                newPs = max(self.Ps, other.Ps, other.Pe)
+                newPe = min(self.Pe, other.Ps, other.Pe)
+            return [OffLineGeo(newPs, newPe)]
+        else:
+            return [self, other]
 
+    def split_into_2geos(self, ipoint = Point()):
+        """
+        Splits the given geometry into 2 not self intersection geometries. The
+        geometry will be splitted between ipoint and Pe.
+        @param ipoint: The Point where the intersection occures
+        @return: A list of 2 CCLineGeo's will be returned if intersection is inbetween
+        """
+        # The Point where the geo shall be splitted
+        if not(ipoint):
+            return [self]
+        elif self.intersect(ipoint):
+            Li1 = OffLineGeo(Ps = self.Ps, Pe = ipoint)
+            Li2 = OffLineGeo(Ps = ipoint, Pe = self.Pe)
+            return [Li1, Li2]
+        else:
+            return [self]
+
+    def trim(self, Point, dir = 1, rev_norm = False):
+        """
+        This instance is used to trim the geometry at the given point. The point
+        can be a point on the offset geometry a perpendicular point on line will
+        be used for trimming.
+        @param Point: The point / perpendicular point for new Geometry
+        @param dir: The direction in which the geometry will be kept (1  means the
+        being will be trimmed)
+        """
+        newPoint = self.perpedicular_on_line(Point)
+        if dir == 1:
+            new_line = OffLineGeo(newPoint, self.Pe)
+            new_line.end_normal = self.end_normal
+            new_line.start_normal = self.start_normal
+            return new_line
+        else:
+            new_line = OffLineGeo(self.Ps, newPoint)
+            new_line.end_normal = self.end_normal
+            new_line.start_normal = self.start_normal
+            return new_line
 
 class OffPoint(Point):
     """

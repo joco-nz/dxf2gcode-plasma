@@ -57,8 +57,6 @@ class Shape(object):
         if nr == -1:
             return
 
-
-        logger.debug("Init Shape")
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
