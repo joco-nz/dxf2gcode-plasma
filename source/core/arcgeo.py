@@ -676,22 +676,22 @@ class ArcGeo(object):
 
         return r
 
-    def split_into_2geos(self, ipoint=Point()):
-        """
-        Splits the given geometry into 2 geometries. The
-        geometry will be splitted at ipoint.
-        @param ipoint: The Point where the intersection occures
-        @return: A list of 2 ArcGeo's will be returned.
-        """
-
-
-        # Generate the 2 geometries and their bounding boxes.
-        Arc1 = ArcGeo(Ps=self.Ps, Pe=ipoint, r=self.r,
-                       O=self.O, direction=self.ext)
-
-        Arc2 = ArcGeo(Ps=ipoint, Pe=self.Pe, r=self.r,
-                       O=self.O, direction=self.ext)
-        return [Arc1, Arc2]
+#     def split_into_2geos(self, ipoint=Point()):
+#         """
+#         Splits the given geometry into 2 geometries. The
+#         geometry will be splitted at ipoint.
+#         @param ipoint: The Point where the intersection occures
+#         @return: A list of 2 ArcGeo's will be returned.
+#         """
+#
+#
+#         # Generate the 2 geometries and their bounding boxes.
+#         Arc1 = ArcGeo(Ps=self.Ps, Pe=ipoint, r=self.r,
+#                        O=self.O, direction=self.ext)
+#
+#         Arc2 = ArcGeo(Ps=ipoint, Pe=self.Pe, r=self.r,
+#                        O=self.O, direction=self.ext)
+#         return [Arc1, Arc2]
 
     def toShortString(self):
         return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
@@ -705,45 +705,45 @@ class ArcGeo(object):
         return text_type(QtCore.QCoreApplication.translate('ArcGeo',
                                                            string_to_translate))
 
-    def trim(self, Point, dir=1, rev_norm=False):
-        """
-        This instance is used to trim the geometry at the given point. The point
-        can be a point on the offset geometry a perpendicular point on line will
-        be used for trimming.
-        @param Point: The point / perpendicular point for new Geometry
-        @param dir: The direction in which the geometry will be kept (1  means the
-        beginn will be trimmed)
-        @param rev_norm: If the direction of the point is on the reversed side.
-        """
-
-        # logger.debug("I'm getting trimmed: %s, %s, %s, %s" % (self, Point, dir, rev_norm))
-        newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r=self.r)
-        new_normal = newPoint.unit_vector(self.O, r=1)
-
-        # logger.debug(newPoint)
-        [Arc1, Arc2] = self.split_into_2geos(newPoint)
-
-        if dir == -1:
-            new_arc = Arc1
-            if hasattr(self, "end_normal"):
-                # new_arc.end_normal = self.end_normal
-                # new_arc.start_normal = new_normal
-
-                new_arc.end_normal = new_normal
-                new_arc.start_normal = self.start_normal
-            # logger.debug(new_arc)
-            return new_arc
-        else:
-            new_arc = Arc2
-            if hasattr(self, "end_normal"):
-                # new_arc.end_normal = new_normal
-                # new_arc.start_normal = self.start_normal
-
-                new_arc.end_normal = self.end_normal
-                new_arc.start_normal = new_normal
-            # logger.debug(new_arc)
-            return new_arc
-        # return self
+#     def trim(self, Point, dir=1, rev_norm=False):
+#         """
+#         This instance is used to trim the geometry at the given point. The point
+#         can be a point on the offset geometry a perpendicular point on line will
+#         be used for trimming.
+#         @param Point: The point / perpendicular point for new Geometry
+#         @param dir: The direction in which the geometry will be kept (1  means the
+#         beginn will be trimmed)
+#         @param rev_norm: If the direction of the point is on the reversed side.
+#         """
+#
+#         # logger.debug("I'm getting trimmed: %s, %s, %s, %s" % (self, Point, dir, rev_norm))
+#         newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r=self.r)
+#         new_normal = newPoint.unit_vector(self.O, r=1)
+#
+#         # logger.debug(newPoint)
+#         [Arc1, Arc2] = self.split_into_2geos(newPoint)
+#
+#         if dir == -1:
+#             new_arc = Arc1
+#             if hasattr(self, "end_normal"):
+#                 # new_arc.end_normal = self.end_normal
+#                 # new_arc.start_normal = new_normal
+#
+#                 new_arc.end_normal = new_normal
+#                 new_arc.start_normal = self.start_normal
+#             # logger.debug(new_arc)
+#             return new_arc
+#         else:
+#             new_arc = Arc2
+#             if hasattr(self, "end_normal"):
+#                 # new_arc.end_normal = new_normal
+#                 # new_arc.start_normal = self.start_normal
+#
+#                 new_arc.end_normal = self.end_normal
+#                 new_arc.start_normal = new_normal
+#             # logger.debug(new_arc)
+#             return new_arc
+#         # return self
 
     def update_start_end_points(self, start_point, value):
         prv_dir = self.ext

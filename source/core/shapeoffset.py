@@ -882,42 +882,102 @@ class SweepElement:
                ('\nremove:    %s ' % self.remove)
                
 class OffArcGeo(ArcGeo):
-        """
-        Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
-        clean as possible.
-        """
+    """
+    Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
+    clean as possible.
+    """
     
-        def __init__(self, Ps=None, Pe=None, O=None, r=1,
+    def __init__(self, Ps=None, Pe=None, O=None, r=1,
                  s_ang = None, e_ang = None, direction = 1, drag = False, **kwargs):
-            """
-            Standard Method to initialize the ArcGeo. Not all of the parameters are
-            required to fully define a arc. e.g. Ps and Pe may be given or s_ang and
-            e_ang
-            @param Ps: The Start Point of the arc
-            @param Pe: the End Point of the arc
-            @param O: The center of the arc
-            @param r: The radius of the arc
-            @param s_ang: The Start Angle of the arc
-            @param e_ang: the End Angle of the arc
-            @param direction: The arc direction where 1 is in positive direction
-            """
-    
-            if ("geo" in kwargs) and ("parent" in kwargs):
-                geo = kwargs["geo"]
-                parent = kwargs["parent"]
+        """
+        Standard Method to initialize the ArcGeo. Not all of the parameters are
+        required to fully define a arc. e.g. Ps and Pe may be given or s_ang and
+        e_ang
+        @param Ps: The Start Point of the arc
+        @param Pe: the End Point of the arc
+        @param O: The center of the arc
+        @param r: The radius of the arc
+        @param s_ang: The Start Angle of the arc
+        @param e_ang: the End Angle of the arc
+        @param direction: The arc direction where 1 is in positive direction
+        """
 
-                Ps = geo.Ps.rot_sca_abs(parent = parent)
-                Pe = geo.Pe.rot_sca_abs(parent = parent)
-                O = geo.O.rot_sca_abs(parent = parent)
-                r = geo.scaled_r(geo.r, parent)
+        if ("geo" in kwargs) and ("parent" in kwargs):
+            geo = kwargs["geo"]
+            parent = kwargs["parent"]
 
-                direction = 1 if geo.ext > 0.0 else -1
+            Ps = geo.Ps.rot_sca_abs(parent = parent)
+            Pe = geo.Pe.rot_sca_abs(parent = parent)
+            O = geo.O.rot_sca_abs(parent = parent)
+            r = geo.scaled_r(geo.r, parent)
 
-                if parent is not None and parent.sca[0] * parent.sca[1] < 0.0:
-                    direction *= -1
+            direction = 1 if geo.ext > 0.0 else -1
 
-            ArcGeo.__init__(self, Ps=Ps, Pe=Pe, O=O, r=r,
-                     s_ang=s_ang, e_ang=e_ang, direction=direction, drag=drag)
+            if parent is not None and parent.sca[0] * parent.sca[1] < 0.0:
+                direction *= -1
+
+        ArcGeo.__init__(self, Ps=Ps, Pe=Pe, O=O, r=r,
+                 s_ang=s_ang, e_ang=e_ang, direction=direction, drag=drag)
+
+    def split_into_2geos(self, ipoint = Point()):
+        """
+        Splits the given geometry into 2 geometries. The
+        geometry will be splitted at ipoint.
+        @param ipoint: The Point where the intersection occures
+        @return: A list of 2 ArcGeo's will be returned.
+        """
+
+
+        # Generate the 2 geometries and their bounding boxes.
+        Arc1 = OffArcGeo(Ps = self.Ps, Pe = ipoint, r = self.r,
+                       O = self.O, direction = self.ext)
+
+        Arc2 = OffArcGeo(Ps = ipoint, Pe = self.Pe, r = self.r,
+                       O = self.O, direction = self.ext)
+        return [Arc1, Arc2]
+            
+    def trim(self, Point, dir=1, rev_norm=False):
+        """
+        This instance is used to trim the geometry at the given point. The point
+        can be a point on the offset geometry a perpendicular point on line will
+        be used for trimming.
+        @param Point: The point / perpendicular point for new Geometry
+        @param dir: The direction in which the geometry will be kept (1  means the
+        beginn will be trimmed)
+        @param rev_norm: If the direction of the point is on the reversed side.
+        """
+
+        # logger.debug("I'm getting trimmed: %s, %s, %s, %s" % (self, Point, dir, rev_norm))
+        newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r=self.r)
+        new_normal = newPoint.unit_vector(self.O, r=1)
+
+        # logger.debug(newPoint)
+        [Arc1, Arc2] = self.split_into_2geos(newPoint)
+
+        if dir == -1:
+            new_arc = Arc1
+            if hasattr(self, "end_normal"):
+                # new_arc.end_normal = self.end_normal
+                # new_arc.start_normal = new_normal
+
+                new_arc.end_normal = new_normal
+                new_arc.start_normal = self.start_normal
+            # logger.debug(new_arc)
+            return new_arc
+        else:
+            new_arc = Arc2
+            if hasattr(self, "end_normal"):
+                # new_arc.end_normal = new_normal
+                # new_arc.start_normal = self.start_normal
+
+                new_arc.end_normal = self.end_normal
+                new_arc.start_normal = new_normal
+            # logger.debug(new_arc)
+            return new_arc
+        # return self
+
+
+
 
 class OffLineGeo(LineGeo):
     
