@@ -51,7 +51,8 @@ def execute(self, content):
 
 class Project(object):
     header = "# +~+~+~ DXF2GCODE project file V%s ~+~+~+"
-    version = 1.1
+    supported_versions = [1.1, 1.2]
+    version = supported_versions[-1]
 
     def __init__(self, parent):
         self.parent = parent
@@ -78,12 +79,14 @@ class Project(object):
         return text_type(QtCore.QCoreApplication.translate('Project',
                                                            string_to_translate))
 
-    def get_hash(self, shape):
+    def get_hash(self, shape, version):
         reverse = False
         if not shape.cw:
             reverse = True
             shape.reverse()
-        geos = [geo.save_v1() for geo in shape.geos.abs_iter()]
+
+        shape_iter = shape.geos if version < 1.2 else shape.geos.abs_iter()  # new versions look at absolute values
+        geos = [geo.save_v1() for geo in shape_iter]
         if reverse:
             shape.reverse()
         return hashlib.sha1(''.join(sorted(geos)).encode('utf-8')).hexdigest()
@@ -101,7 +104,7 @@ class Project(object):
                                    'disabled': shape.disabled})
                 else:
                     stpoint = shape.get_start_end_points(True)
-                    shapes.append({'hash_': self.get_hash(shape),
+                    shapes.append({'hash_': self.get_hash(shape, Project.version),
                                    'cut_cor': shape.cut_cor,
                                    'cw': shape.cw,
                                    'send_to_TSP': shape.send_to_TSP,
@@ -141,7 +144,7 @@ d2g.layers = ''' + str(layers)
         if not match:
             raise Exception('Incorrect project file')
         version = float(match.groups()[0])
-        if version != Project.version:
+        if version not in  Project.supported_versions:
             raise VersionMismatchError(match.group(), Project.version)
 
         execute(self, content)
@@ -184,7 +187,7 @@ d2g.layers = ''' + str(layers)
                 # hash_shapes = {self.get_hash(shape): shape for shape in layer.shapes}
                 hash_shapes = dict()
                 for shape in layer.shapes:
-                    shape_hash = self.get_hash(shape)
+                    shape_hash = self.get_hash(shape, version)
                     if shape_hash in hash_shapes:
                         hash_shapes[shape_hash].insert(0, shape)
                     else:
@@ -215,8 +218,12 @@ d2g.layers = ''' + str(layers)
                             shape.reverse()
                         shape.setNearestStPoint(Point(parent_shape['start_x'], parent_shape['start_y']))
                         shapes.append(shape)
-                shapes.extend(set(layer.shapes) - set(shapes))  # add "new" shapes to the end
+                new_shapes = set(layer.shapes) - set(shapes);
+                shapes.extend(new_shapes)  # add "new" shapes to the end
                 layer.shapes = Shapes(shapes)  # overwrite original
+                if len(new_shapes) > 0:
+                    logger.info(self.tr("New/Unrecognized shapes added for layer:%s; %s") %
+                                (layer.name, [shape.nr for shape in new_shapes]))
 
                 layers.append(layer)
 
