@@ -37,8 +37,7 @@ import logging
 logger = logging.getLogger("core.point")
 
 class Point(object):
-    #__slots__ = ["x", "y"]
-    # __slots__ = ["x", "y"]  # TODO: currently not possible because of cutter compensation stuff located in here
+    __slots__ = ["x", "y"]
     eps=1e-12
 
     def __init__(self, x=0, y=0):

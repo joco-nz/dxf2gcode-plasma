@@ -1061,28 +1061,28 @@ class OffArcGeo(ArcGeo):
                     y = ybase - (other.O.x - self.O.x) / \
                     (2 * pow(O_dis, 2)) * root)
 
-        Pi1.v1 = self.dif_ang(self.Ps, Pi1, self.ext) / self.ext
-        Pi1.v2 = other.dif_ang(other.Ps, Pi1, other.ext) / other.ext
+        Pi1_v1 = self.dif_ang(self.Ps, Pi1, self.ext) / self.ext
+        Pi1_v2 = other.dif_ang(other.Ps, Pi1, other.ext) / other.ext
 
         Pi2 = Point(x = xbase - (other.O.y - self.O.y) / \
                          (2 * pow(O_dis, 2)) * root,
                     y = ybase + (other.O.x - self.O.x) / \
                     (2 * pow(O_dis, 2)) * root)
 
-        Pi2.v1 = self.dif_ang(self.Ps, Pi2, self.ext) / self.ext
-        Pi2.v2 = other.dif_ang(other.Ps, Pi2, other.ext) / other.ext
+        Pi2_v1 = self.dif_ang(self.Ps, Pi2, self.ext) / self.ext
+        Pi2_v2 = other.dif_ang(other.Ps, Pi2, other.ext) / other.ext
 
 
         if type == 'TIP':
-            if ((Pi1.v1 >= 0.0 and Pi1.v1 <= 1.0 and Pi1.v2 > 0.0 and Pi1.v2 <= 1.0) and
-               (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0)):
+            if ((Pi1_v1 >= 0.0 and Pi1_v1 <= 1.0 and Pi1_v2 > 0.0 and Pi1_v2 <= 1.0) and
+               (Pi2_v1 >= 0.0 and Pi2_v1 <= 1.0 and Pi2_v2 > 0.0 and Pi2_v2 <= 1.0)):
                 if (root == 0):
                     return Pi1
                 else:
                     return [Pi1, Pi2]
-            elif (Pi1.v1 >= 0.0 and Pi1.v1 <= 1.0 and Pi1.v2 > 0.0 and Pi1.v2 <= 1.0):
+            elif (Pi1_v1 >= 0.0 and Pi1_v1 <= 1.0 and Pi1_v2 > 0.0 and Pi1_v2 <= 1.0):
                 return Pi1
-            elif  (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0):
+            elif  (Pi2_v1 >= 0.0 and Pi2_v1 <= 1.0 and Pi2_v2 > 0.0 and Pi2_v2 <= 1.0):
                 return Pi2
             else:
                 return None
@@ -1667,19 +1667,19 @@ class OffLineGeo(LineGeo):
         Pi2 = Point(x = self.Ps.x + v2 * Ldx,
                y = self.Ps.y + v2 * Ldy)
 
-        Pi1.v = Arc.dif_ang(Arc.Ps, Pi1, Arc.ext) / Arc.ext
-        Pi2.v = Arc.dif_ang(Arc.Ps, Pi2, Arc.ext) / Arc.ext
+        Pi1_v = Arc.dif_ang(Arc.Ps, Pi1, Arc.ext) / Arc.ext
+        Pi2_v = Arc.dif_ang(Arc.Ps, Pi2, Arc.ext) / Arc.ext
 
         if type == 'TIP':
-            if ((Pi1.v >= 0.0 and Pi1.v <= 1.0 and self.intersect(Pi1)) and
-               (Pi1.v >= 0.0 and Pi2.v <= 1.0 and self.intersect(Pi2))):
+            if ((Pi1_v >= 0.0 and Pi1_v <= 1.0 and self.intersect(Pi1)) and
+               (Pi1_v >= 0.0 and Pi2_v <= 1.0 and self.intersect(Pi2))):
                 if (root == 0):
                     return Pi1
                 else:
                     return [Pi1, Pi2]
-            elif (Pi1.v >= 0.0 and Pi1.v <= 1.0 and self.intersect(Pi1)):
+            elif (Pi1_v >= 0.0 and Pi1_v <= 1.0 and self.intersect(Pi1)):
                 return Pi1
-            elif  (Pi1.v >= 0.0 and Pi2.v <= 1.0 and self.intersect(Pi2)):
+            elif  (Pi1_v >= 0.0 and Pi2_v <= 1.0 and self.intersect(Pi2)):
                 return Pi2
             else:
                 return None
