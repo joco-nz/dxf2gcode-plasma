@@ -243,16 +243,59 @@ class ArcGeo(object):
                 return self.Pe, Point(-direction.y, direction.x)
 
 
+    def distance_a_p(self, other):
+        """
+        Find the distance between a arc and a point
+        @param other: the instance of the 2nd geometry element.
+        @return: The distance between the two geometries
+        """
+        # The Pont is outside of the Arc
+        if self.O.distance(other) > self.r:
+            # If the Nearest Point is on Arc Segement it is the neares one.
+            # logger.debug("Nearest Point is outside of arc")
+            if self.PointAng_withinArc(other):
+                return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r = self.r))
+            elif other.distance(self.Ps) < other.distance(self.Pe):
+                    return other.distance(self.Ps)
+            else:
+                    return other.distance(self.Pe)
+
+        # logger.debug("Nearest Point is Inside of arc")
+        # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
+        # The Line may be inside of the ARc or cross it
+        if other.distance(self.Ps) < other.distance(self.Pe):
+            dis_min = other.distance(self.Ps)
+            # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+        else:
+            dis_min = other.distance(self.Pe)
+            # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+
+        if ((self.PointAng_withinArc(other)) and
+            abs(self.r - self.O.distance(other)) < dis_min):
+            dis_min = abs(self.r - self.O.distance(other))
+            # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+
+        return dis_min
+
     def isHit(self, caller, xy, tol):
-        tol2 = tol**2
-        segments = int(abs(degrees(self.ext)) // 3 + 1)
-        Ps = self.O.get_arc_point(self.s_ang, self.r)
-        for i in range(1, segments + 1):
-            Pe = self.get_point_from_start(i, segments)
-            if xy.distance2_to_line(Ps, Pe) <= tol2:
-                return True
-            Ps = Pe
-        return False
+        """
+        This function returns true if the nearest point between the two geometries is within the square of the 
+        given tolerance
+        @param caller: This is the calling entities (only used in holegeo)
+        @param xy: The point which shall be used to determine the distance
+        @tol: The tolerance which is used for Hit testing.
+        """
+        self.distance_a_p(xy) <= tol ** 2
+
+#         tol2 = tol**2
+#         segments = int(abs(degrees(self.ext)) // 3 + 1)
+#         Ps = self.O.get_arc_point(self.s_ang, self.r)
+#         for i in range(1, segments + 1):
+#             Pe = self.get_point_from_start(i, segments)
+#             if xy.distance2_to_line(Ps, Pe) <= tol2:
+#                 return True
+#             Ps = Pe
+#         return False
 
     def make_abs_geo(self, parent=None):
         """

@@ -954,39 +954,39 @@ class OffArcGeo(ArcGeo):
         Pother = other.get_nearest_point(self)
         return Pself.distance(Pother)
 
-    def distance_a_p(self, other):
-        """
-        Find the distance between a arc and a point
-        @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries
-        """
-        # The Pont is outside of the Arc
-        if self.O.distance(other) > self.r:
-            # If the Nearest Point is on Arc Segement it is the neares one.
-            # logger.debug("Nearest Point is outside of arc")
-            if self.PointAng_withinArc(other):
-                return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r = self.r))
-            elif other.distance(self.Ps) < other.distance(self.Pe):
-                    return other.distance(self.Ps)
-            else:
-                    return other.distance(self.Pe)
-
-        # logger.debug("Nearest Point is Inside of arc")
-        # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
-        # The Line may be inside of the ARc or cross it
-        if other.distance(self.Ps) < other.distance(self.Pe):
-            dis_min = other.distance(self.Ps)
-            # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-        else:
-            dis_min = other.distance(self.Pe)
-            # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-
-        if ((self.PointAng_withinArc(other)) and
-            abs(self.r - self.O.distance(other)) < dis_min):
-            dis_min = abs(self.r - self.O.distance(other))
-            # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-
-        return dis_min
+#     def distance_a_p(self, other):
+#         """
+#         Find the distance between a arc and a point
+#         @param other: the instance of the 2nd geometry element.
+#         @return: The distance between the two geometries
+#         """
+#         # The Pont is outside of the Arc
+#         if self.O.distance(other) > self.r:
+#             # If the Nearest Point is on Arc Segement it is the neares one.
+#             # logger.debug("Nearest Point is outside of arc")
+#             if self.PointAng_withinArc(other):
+#                 return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r = self.r))
+#             elif other.distance(self.Ps) < other.distance(self.Pe):
+#                     return other.distance(self.Ps)
+#             else:
+#                     return other.distance(self.Pe)
+#
+#         # logger.debug("Nearest Point is Inside of arc")
+#         # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
+#         # The Line may be inside of the ARc or cross it
+#         if other.distance(self.Ps) < other.distance(self.Pe):
+#             dis_min = other.distance(self.Ps)
+#             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#         else:
+#             dis_min = other.distance(self.Pe)
+#             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#
+#         if ((self.PointAng_withinArc(other)) and
+#             abs(self.r - self.O.distance(other)) < dis_min):
+#             dis_min = abs(self.r - self.O.distance(other))
+#             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
+#
+#         return dis_min
 
     def find_inter_point(self, other = [], type = 'TIP'):
         """
@@ -1525,47 +1525,47 @@ class OffLineGeo(LineGeo):
 
         return dis_min
 
-    def distance_l_p(self, Point):
-        """
-        Find the shortest distance between CCLineGeo and Point elements.
-        Algorithm acc. to
-        http://notejot.com/2008/09/distance-from-Point-to-line-segment-in-2d/
-        http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm
-        @param Point: the Point
-        @return: The shortest distance between the Point and Line
-        """
-        d = self.Pe - self.Ps
-        v = Point - self.Ps
-
-        t = d.dotProd(v)
-
-        if t <= 0:
-            # our Point is lying "behind" the segment
-            # so end Point 1 is closest to Point and distance is length of
-            # vector from end Point 1 to Point.
-            return self.Ps.distance(Point)
-        elif t >= d.dotProd(d):
-            # our Point is lying "ahead" of the segment
-            # so end Point 2 is closest to Point and distance is length of
-            # vector from end Point 2 to Point.
-            return self.Pe.distance(Point)
-        else:
-            # our Point is lying "inside" the segment
-            # i.e.:a perpendicular from it to the line that contains the line
-            # segment has an end Point inside the segment
-            # logger.debug(v.dotProd(v))
-            # logger.debug(d.dotProd(d))
-            # logger.debug(v.dotProd(v) - (t*t)/d.dotProd(d))
-            # logger.debug(d.dotProd(d))
-            # logger.debug(v.dotProd(v) - (t * t) / d.dotProd(d))
-            # logger.debug(eps)
-            # logger.debug((v.dotProd(v) - (t * t) / d.dotProd(d))< eps)
-            # logger.debug(((v.dotProd(v) - (t * t) / d.dotProd(d))< eps))
-
-            if (v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
-                return 0.0
-            else:
-                return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d));
+#     def distance_l_p(self, Point):
+#         """
+#         Find the shortest distance between CCLineGeo and Point elements.
+#         Algorithm acc. to
+#         http://notejot.com/2008/09/distance-from-Point-to-line-segment-in-2d/
+#         http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm
+#         @param Point: the Point
+#         @return: The shortest distance between the Point and Line
+#         """
+#         d = self.Pe - self.Ps
+#         v = Point - self.Ps
+#
+#         t = d.dotProd(v)
+#
+#         if t <= 0:
+#             # our Point is lying "behind" the segment
+#             # so end Point 1 is closest to Point and distance is length of
+#             # vector from end Point 1 to Point.
+#             return self.Ps.distance(Point)
+#         elif t >= d.dotProd(d):
+#             # our Point is lying "ahead" of the segment
+#             # so end Point 2 is closest to Point and distance is length of
+#             # vector from end Point 2 to Point.
+#             return self.Pe.distance(Point)
+#         else:
+#             # our Point is lying "inside" the segment
+#             # i.e.:a perpendicular from it to the line that contains the line
+#             # segment has an end Point inside the segment
+#             # logger.debug(v.dotProd(v))
+#             # logger.debug(d.dotProd(d))
+#             # logger.debug(v.dotProd(v) - (t*t)/d.dotProd(d))
+#             # logger.debug(d.dotProd(d))
+#             # logger.debug(v.dotProd(v) - (t * t) / d.dotProd(d))
+#             # logger.debug(eps)
+#             # logger.debug((v.dotProd(v) - (t * t) / d.dotProd(d))< eps)
+#             # logger.debug(((v.dotProd(v) - (t * t) / d.dotProd(d))< eps))
+#
+#             if (v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
+#                 return 0.0
+#             else:
+#                 return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d));
 
     def find_inter_point(self, other, type = 'TIP'):
         """

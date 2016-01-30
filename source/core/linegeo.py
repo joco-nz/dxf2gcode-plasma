@@ -101,8 +101,48 @@ class LineGeo(object):
             else:
                 return self.Pe, (self.Pe - self.Ps).unit_vector()
 
+    def distance_l_p(self, Point):
+        """
+        Find the shortest distance between CCLineGeo and Point elements.
+        Algorithm acc. to
+        http://notejot.com/2008/09/distance-from-Point-to-line-segment-in-2d/
+        http://softsurfer.com/Archive/algorithm_0106/algorithm_0106.htm
+        @param Point: the Point
+        @return: The shortest distance between the Point and Line
+        """
+        d = self.Pe - self.Ps
+        v = Point - self.Ps
+
+        t = d.dotProd(v)
+
+        if t <= 0:
+            # our Point is lying "behind" the segment
+            # so end Point 1 is closest to Point and distance is length of
+            # vector from end Point 1 to Point.
+            return self.Ps.distance(Point)
+        elif t >= d.dotProd(d):
+            # our Point is lying "ahead" of the segment
+            # so end Point 2 is closest to Point and distance is length of
+            # vector from end Point 2 to Point.
+            return self.Pe.distance(Point)
+        else:
+            # our Point is lying "inside" the segment
+            # i.e.:a perpendicular from it to the line that contains the line
+            if (v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
+                return 0.0
+            else:
+                return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d));
+
     def isHit(self, caller, xy, tol):
-        return xy.distance2_to_line(self.Ps, self.Pe) <= tol**2
+        """
+        This function returns true if the nearest point between the two geometries is within the square of the 
+        given tolerance
+        @param caller: This is the calling entities (only used in holegeo)
+        @param xy: The point which shall be used to determine the distance
+        @tol: The tolerance which is used for Hit testing.
+        """
+        return self.distance_l_p(xy) <= tol ** 2
+        # return xy.distance2_to_line(self.Ps, self.Pe) <= tol**2
 
     def make_abs_geo(self, parent=None):
         """

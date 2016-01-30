@@ -109,17 +109,27 @@ class HoleGeo(object):
             Ps = Pe
 
     def isHit(self, caller, xy, tol):
-        tol2 = tol**2
-        radius = caller.parentLayer.getToolRadius()
-        segments = 30
-        Ps = self.Ps.get_arc_point(0, radius)
-        for i in range(1, segments + 1):
-            ang = i * 2 * pi / segments
-            Pe = self.Ps.get_arc_point(ang, radius)
-            if xy.distance2_to_line(Ps, Pe) <= tol2:
-                return True
-            Ps = Pe
-        return False
+        """
+        This function returns true if the nearest point between the two geometries is within the square of the 
+        given tolerance
+        @param caller: This is the calling entities (only used in holegeo)
+        @param xy: The point which shall be used to determine the distance
+        @tol: The tolerance which is used for Hit testing.
+        """
+
+        return abs(self.ps.distance(xy) - caller.parentLayer.getToolRadius()) < tol ** 2
+
+#         tol2 = tol**2
+#         radius = caller.parentLayer.getToolRadius()
+#         segments = 30
+#         Ps = self.Ps.get_arc_point(0, radius)
+#         for i in range(1, segments + 1):
+#             ang = i * 2 * pi / segments
+#             Pe = self.Ps.get_arc_point(ang, radius)
+#             if xy.distance2_to_line(Ps, Pe) <= tol2:
+#                 return True
+#             Ps = Pe
+#         return False
 
     def Write_GCode(self, PostPro):
         """
