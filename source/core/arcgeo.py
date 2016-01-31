@@ -27,7 +27,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from math import sqrt, sin, cos, acos, pi, degrees, ceil, floor
+from math import sqrt, sin, cos, asin, pi, degrees, ceil, floor
 from copy import deepcopy
 
 
@@ -423,12 +423,16 @@ class ArcGeo(object):
         elif PostPro.vars.General["export_arcs_as_lines"]:
             # Calculation the min. arc segment angle of the export based on given tolerance.
             # https://de.wikipedia.org/wiki/Kreissegment
-            h = g.config.fitting_tolerance
-            segments = abs(degrees(self.ext)) // (2 * acos(1 - h / self.r)) + 1
+            a = g.config.fitting_tolerance
+            s = 2 * sqrt(a*(2*self.r-a))
+            alpha = 2 * asin(s / (2 * self.r))
+            segments = int(abs(self.ext // alpha))
 
-            for i in range(1, segments):
+            string = ""
+           
+            for i in range(1, segments + 1):
                 Pe = self.get_point_from_start(i, segments)
-                PostPro.lin_pol_xy(Ps, Pe)
+                string += PostPro.lin_pol_xy(Ps, Pe)
                 Ps = Pe
         else:
             if self.ext > 0:
