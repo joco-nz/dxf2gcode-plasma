@@ -318,6 +318,10 @@ class Shape(object):
         else:
             new_geos = self.geos
 
+        # If there is nothing to export
+        if len(new_geos) == 0:
+            return ""
+
         new_geos = PostPro.breaks.getNewGeos(new_geos)
         # initialisation of the string
         exstr = ""
