@@ -42,7 +42,7 @@ else:
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig")
 
-POSTPRO_VERSION = "5"
+POSTPRO_VERSION = "6"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -70,6 +70,7 @@ POSTPRO_SPEC = str('''
     cc_outside_the_piece = boolean(default=True)
     export_ccw_arcs_only = boolean(default=False)
     max_arc_radius = float(default=10000)
+    export_arcs_as_lines = boolean(default=False)
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")

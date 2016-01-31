@@ -27,12 +27,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from math import sqrt, sin, cos, pi, degrees, ceil, floor
+from math import sqrt, sin, cos, acos, pi, degrees, ceil, floor
 from copy import deepcopy
 
 
 from core.point import Point
-#from core.linegeo import LineGeo
+
 from core.boundingbox import BoundingBox
 import globals.globals as g
 
@@ -219,6 +219,12 @@ class ArcGeo(object):
         return dif_ang
 
     def get_point_from_start(self, i, segments):
+        """
+        Returns an point on the end point of the segments on the arc.
+        @param i: The end point of the segements which shall be returned
+        @param segment: The number of segments into which the arc shall be diffided.
+        @return: Returns a point on the Arc.
+        """
         ang = self.s_ang + i * self.ext / segments
         return self.O.get_arc_point(ang, self.r)
 
@@ -412,6 +418,18 @@ class ArcGeo(object):
         # If the radius of the element is bigger than the max, radius export the element as an line.
         if r > PostPro.vars.General["max_arc_radius"]:
             string = PostPro.lin_pol_xy(Ps, Pe)
+        # If the maschine is not supporting G2 and G3 moves use this option
+
+        elif PostPro.vars.General["export_arcs_as_lines"]:
+            # Calculation the min. arc segment angle of the export based on given tolerance.
+            # https://de.wikipedia.org/wiki/Kreissegment
+            h = g.config.fitting_tolerance
+            segments = abs(degrees(self.ext)) // (2 * acos(1 - h / self.r)) + 1
+
+            for i in range(1, segments):
+                Pe = self.get_point_from_start(i, segments)
+                PostPro.lin_pol_xy(Ps, Pe)
+                Ps = Pe
         else:
             if self.ext > 0:
                 string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ,self.ext)
