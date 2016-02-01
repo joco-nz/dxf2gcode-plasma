@@ -126,13 +126,11 @@ class ReadDXF(QtCore.QObject):
         # English as inches
 
         metric = 1  # default: metric
-        try:
-            line = 0
-            while not str[line].startswith("$MEASUREMENT"):
-                line += 1
-            metric = int(str[line + 2].strip())
-        except:  # $MEASUREMENT not found or is incorrect
-            pass
+
+        for line in range(len(str) - 2):
+            if str[line].startswith("$MEASUREMENT"):
+                metric = int(str[line + 2].strip())
+                break
 
         # Default drawing units for AutoCAD DesignCenter blocks:
         # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
@@ -141,17 +139,14 @@ class ReadDXF(QtCore.QObject):
         # 13 = Microns; 14 = Decimeters; 15 = Decameters;
         # 16 = Hectometers; 17 = Gigameters; 18 = Astronomical units;
         # 19 = Light years; 20 = Parsecs
-        try:
-            line = 0
-            while not str[line].startswith("$INSUNITS"):
-                line += 1
-            line += 2
-            if int(str[line].stip()) == 1:
-                metric = 0
-            elif int(str[line].strip()) == 4:
-                metric = 1
-        except:  # $INSUNITS not found or is incorrect
-            pass
+
+        for line in range(len(str) - 2):
+            if str[line].startswith("$INSUNITS"):
+                if int(str[line + 2].strip()) == 1:
+                    metric = 0
+                elif int(str[line + 2].strip()) == 4:
+                    metric = 1
+                break
 
         return metric
 
