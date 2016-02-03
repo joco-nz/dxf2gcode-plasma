@@ -104,6 +104,7 @@ class ConfigWindow(QDialog):
         @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
         """
         QDialog.__init__(self, parent)
+        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Configuration")
 
         self.cfg_window_def = definition_dict #This is the dict that describes our window
@@ -614,7 +615,7 @@ class CfgSpinBox(QWidget):
         self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
 
         self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent);
+        self.layout = QHBoxLayout(parent)
 
         self.spinbox.setMinimumWidth(200) #Provide better alignment with other items
         self.layout.addWidget(self.label)
@@ -736,7 +737,7 @@ class CfgDoubleSpinBox(CfgSpinBox):
             self.spinbox.setDecimals(precision)
 
         self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent);
+        self.layout = QHBoxLayout(parent)
 
         self.spinbox.setMinimumWidth(200) #Provide better alignment with other items
         self.layout.addWidget(self.label)
@@ -840,10 +841,7 @@ class CfgListEdit(CfgLineEdit):
         @return the current value of the QSpinBox (string list)
         """
         item_list = str(self.lineedit.text()).split(self.separator)
-        i = 0
-        while i < len(item_list):
-            item_list[i] = item_list[i].strip(' ') #remove leading and trailing whitespaces
-            i += 1
+        item_list = [item.strip(' ') for item in item_list]  # remove leading and trailing whitespaces
         return item_list
 
     def setValue(self, value):
@@ -881,7 +879,7 @@ class CfgComboBox(QWidget):
             self.setValue(default_item)
 
         self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent);
+        self.layout = QHBoxLayout(parent)
 
         self.combobox.setMinimumWidth(200) #Provide better alignment with other items
         self.layout.addWidget(self.label)
@@ -948,16 +946,16 @@ class CfgTable(QWidget):
         self.button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
         self.button_add.clicked.connect(self.appendLine)
         self.button_remove.clicked.connect(self.removeLine)
-        self.layout_button = QVBoxLayout();
+        self.layout_button = QVBoxLayout()
         self.layout_button.addWidget(self.button_add)
         self.layout_button.addWidget(self.button_remove)
 
-        self.layout_table = QHBoxLayout();
+        self.layout_table = QHBoxLayout()
         #self.tablewidget.setSizePolicy(size_policy)
         self.layout_table.addWidget(self.tablewidget)
         self.layout_table.addLayout(self.layout_button)
 
-        self.layout = QVBoxLayout(parent);
+        self.layout = QVBoxLayout(parent)
 
         self.layout.addWidget(self.label)
         self.layout.addLayout(self.layout_table)
@@ -1187,17 +1185,14 @@ class CfgTableCustomActions(CfgTable):
             result_dict[key] = {}
 
             #Get the values (other columns)
-            j = 1
-            while j < self.tablewidget.columnCount():
+            for j in range(1, self.tablewidget.columnCount()):
                 sub_key = self.keys[j] #Column name
                 value = self.tablewidget.cellWidget(i, j)
                 if not value:
-                    j += 1
                     continue
                 value = str(value.toPlainText())
                 if sub_key is not None:
                     result_dict[key][sub_key] = value
-                j += 1
 
         return result_dict
 
@@ -1302,16 +1297,13 @@ class CfgTableToolParameters(CfgTable):
             result_dict[key] = {}
 
             #Get the values (other columns)
-            j = 1
-            while j < self.tablewidget.columnCount():
+            for j in range(1,self.tablewidget.columnCount()):
                 sub_key = self.keys[j] #Column name
                 value = self.tablewidget.cellWidget(i, j)
                 if not value:
-                    j += 1
                     continue
                 value = value.value()
                 if sub_key is not None:
                     result_dict[key][sub_key] = value
-                j += 1
 
         return result_dict

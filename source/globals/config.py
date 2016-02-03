@@ -444,7 +444,7 @@ class MyConfig(object):
         The structure of the dictionnary must match the structure of the configuration file. The names of the keys must be identical to those used in the configfile.
         If a name is declared in the configfile but not here, it simply won't appear in the config window (the config_version for example must not be modified by the user, so it is not declared here)
         """
-        self.cfg_widget_def = \
+        cfg_widget_def = \
         {
             '__section_title__':
             {
@@ -566,7 +566,7 @@ class MyConfig(object):
             },
         }
 
-        return self.cfg_widget_def
+        return cfg_widget_def
 
 
 class DictDotLookup(object):
