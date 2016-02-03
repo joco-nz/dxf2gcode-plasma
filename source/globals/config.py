@@ -190,7 +190,7 @@ CONFIG_SPEC = str('''
     begin_art = option('ordered', 'random', 'heuristic', default = 'heuristic')
 
     [Import_Parameters]
-    # Tolerance at which similar points will be interpreted as similar 
+    # Tolerance at which similar points will be interpreted as similar
     point_tolerance = float(min = 0, max = 1, default = 0.001)
     # Types of check performed during spline conversion:
     # 1: Checking for Nurbs degree (polygon degree) and similar knots consistence
@@ -341,7 +341,7 @@ class MyConfig(object):
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.vars = DictDotLookup(self.var_dict)
         # add here any update needed for the internal variables of this class
-        
+
 
     def make_settings_folder(self):
         """Create settings folder if necessary"""
@@ -565,9 +565,9 @@ class MyConfig(object):
                 'window_loglevel': CfgComboBox(self.tr('Log any message with importance >= to log level on the message window (software restart needed):')),
             },
         }
-        
+
         return self.cfg_widget_def
-        
+
 
 class DictDotLookup(object):
     """
