@@ -123,7 +123,13 @@ class MainWindow(QMainWindow):
         self.TreeHandler = TreeHandler(self.ui)
         self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
 
+        #Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
+        # If string version_mismatch isn't empty, we popup an error and exit
+        if self.MyPostProcessor.version_mismatch:
+            error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', self.MyPostProcessor.version_mismatch);
+            sys.exit(error_message.exec_())
+        
         self.d2g = Project(self)
 
         self.createActions()
@@ -182,6 +188,7 @@ class MainWindow(QMainWindow):
 
         # Options
         self.ui.actionConfiguration.triggered.connect(self.config_window.show)
+        self.ui.actionConfigurationPostprocessor.triggered.connect(self.MyPostProcessor.config_postpro_window.show)
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
         self.ui.actionRotateAll.triggered.connect(self.rotateAll)
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)

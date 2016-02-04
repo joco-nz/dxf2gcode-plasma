@@ -2,10 +2,11 @@
 
 ############################################################################
 #
-#   Copyright (C) 2008-2014
+#   Copyright (C) 2008-2016
 #    Christian Kohlöffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
+#    Xavier Izard
 #
 #   This file is part of DXF2GCODE.
 #
@@ -31,6 +32,7 @@ from globals.configobj.validate import Validator
 
 import globals.globals as g
 from globals.d2gexceptions import *
+from gui.configwindow import *
 
 from globals.six import text_type
 import globals.constants as c
@@ -42,7 +44,7 @@ else:
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig")
 
-POSTPRO_VERSION = "5"
+POSTPRO_VERSION = "6"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -63,13 +65,13 @@ POSTPRO_SPEC = str('''
     [General]
     output_format = string(default=".ngc")
     output_text = string(default="G-CODE for LinuxCNC")
-    output_type = string(default="g-code")
+    output_type = option('g-code', 'dxf', 'text', default = 'g-code')
 
     abs_export = boolean(default=True)
     cancel_cc_for_depth = boolean(default=False)
     cc_outside_the_piece = boolean(default=True)
     export_ccw_arcs_only = boolean(default=False)
-    max_arc_radius = float(default=10000)
+    max_arc_radius = float(min = 0, default=10000)
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
@@ -79,8 +81,8 @@ POSTPRO_SPEC = str('''
     code_end = string(default="M2 (Program end)")
 
     [Number_Format]
-    pre_decimals = integer(default=4)
-    post_decimals = integer(default=3)
+    pre_decimals = integer(min = 0, default=4)
+    post_decimals = integer(min = 0, default=3)
     decimal_separator = string(default=".")
     pre_decimal_zero_padding = boolean(default=False)
     post_decimal_zero_padding = boolean(default=True)
@@ -125,18 +127,10 @@ class MyPostProConfig(object):
         self.folder = os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)
         self.filename = os.path.join(self.folder, filename)
 
+        self.version_mismatch = '' # no problem for now
         self.default_config = False  # whether a new name was generated
         self.var_dict = dict()
         self.spec = ConfigObj(POSTPRO_SPEC, interpolation=False, list_values=False, _inspec=True)
-
-    def tr(self, string_to_translate):
-        """
-        Translate a string using the QCoreApplication translation framework
-        @param: string_to_translate: a unicode string
-        @return: the translated unicode string if it was possible to translate
-        """
-        return text_type(QtCore.QCoreApplication.translate("MyPostProConfig",
-                                                           string_to_translate))
 
     def load_config(self):
         """
@@ -152,7 +146,7 @@ class MyPostProConfig(object):
             validate_errors = flatten_errors(self.var_dict, result)
 
             if validate_errors:
-                logger.error(self.tr("errors reading %s:") % self.filename)
+                logger.error(tr("errors reading %s:") % self.filename)
             for entry in validate_errors:
                 section_list, key, error = entry
                 if key is not None:
@@ -161,11 +155,11 @@ class MyPostProConfig(object):
                     section_list.append('[missing section]')
                 section_string = ', '.join(section_list)
                 if error == False:
-                    error = self.tr('Missing value or section.')
+                    error = tr('Missing value or section.')
                 logger.error(section_string + ' = ' + error)
 
             if validate_errors:
-                raise BadConfigFileError(self.tr("syntax errors in postpro_config file"))
+                raise BadConfigFileError(tr("syntax errors in postpro_config file"))
 
             # check config file version against internal version
 
@@ -176,30 +170,41 @@ class MyPostProConfig(object):
                     raise VersionMismatchError(fileversion, POSTPRO_VERSION)
 
         except VersionMismatchError:
-            raise VersionMismatchError(fileversion, POSTPRO_VERSION)
+            # version mismatch flag, it will be used to display an error.
+            self.version_mismatch = tr("The postprocessor configuration file version ({0}) doesn't match the software expected version ({1}).\n\nYou have to delete (or carefully edit) the configuration file \"{2}\" to solve the problem.").format(fileversion, POSTPRO_VERSION, self.filename)
 
         except Exception as inst:
             #logger.error(inst)
             (base, ext) = os.path.splitext(self.filename)
             badfilename = base + c.BAD_CONFIG_EXTENSION
-            logger.debug(self.tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
+            logger.debug(tr("trying to rename bad cfg %s to %s") % (self.filename, badfilename))
             try:
                 os.rename(self.filename, badfilename)
             except OSError as e:
-                logger.error(self.tr("rename(%s,%s) failed: %s") % (self.filename, badfilename, e.strerror))
+                logger.error(tr("rename(%s,%s) failed: %s") % (self.filename, badfilename, e.strerror))
                 raise
             else:
-                logger.debug(self.tr("renamed bad varspace %s to '%s'") % (self.filename, badfilename))
+                logger.debug(tr("renamed bad varspace %s to '%s'") % (self.filename, badfilename))
                 self.create_default_config()
                 self.default_config = True
-                logger.debug(self.tr("created default varspace '%s'") % self.filename)
+                logger.debug(tr("created default varspace '%s'") % self.filename)
         else:
             self.default_config = False
-            logger.debug(self.tr("read existing varspace '%s'") % self.filename)
+            logger.debug(tr("read existing varspace '%s'") % self.filename)
 
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.var_dict.main.interpolation = False  # avoid ConfigObj getting too clever
+        self.update_config()
+
+
+    def update_config(self):
+        """
+        Call this function each time the self.var_dict is updated (eg when the postprocessor configuration window changes some settings)
+        """
+        # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.vars = DictDotLookup(self.var_dict)
+        # add here any update needed for the internal variables of this class
+        
 
     def make_settings_folder(self):
         """
@@ -228,10 +233,10 @@ class MyPostProConfig(object):
         self.var_dict.write()
 
 
-#    def _save_varspace(self):
-#        self.var_dict.filename = self.filename
-#        self.var_dict.write()
-#
+    def _save_varspace(self):
+        self.var_dict.filename = self.filename
+        self.var_dict.write()
+
     def print_vars(self):
         """
         Print all the variables with their values
@@ -240,6 +245,81 @@ class MyPostProConfig(object):
         for k, v in self.var_dict['Variables'].items():
             print(k, "=", v)
 
+
+def tr(string_to_translate):
+    """
+    Translate a string using the QCoreApplication translation framework
+    @param string_to_translate: a unicode string
+    @return: the translated unicode string if it was possible to translate
+    """
+    return text_type(QtCore.QCoreApplication.translate('MyPostProConfig', string_to_translate))
+
+
+def makeConfigWidgets():
+    """
+    Build the postprocessor configuration widgets and store them into a dictionary.
+    The structure of the dictionnary must match the structure of the postprocessor configuration file. The names of the keys must be identical to those used in the configfile.
+    If a name is declared in the configfile but not here, it simply won't appear in the config window (the config_version for example must not be modified by the user, so it is not declared here)
+    """
+    cfg_widget_def = \
+    {
+        'General':
+        {
+            '__section_title__': tr("Software config"),
+            'output_format': CfgLineEdit(tr('Output file extension:')),
+            'output_text': CfgLineEdit(tr('Output format description:')),
+            'output_type': CfgComboBox(tr('Output type:')),
+            'abs_export': CfgCheckBox(tr('Export absolute coordinates')),
+            'cancel_cc_for_depth': CfgCheckBox(tr('Cancel cutter compensation at each slice')),
+            'cc_outside_the_piece': CfgCheckBox(tr('Perform cutter compensation outside of the piece')),
+            'export_ccw_arcs_only': CfgCheckBox(tr('Export only counter clockwise arcs')),
+            'max_arc_radius': CfgDoubleSpinBox(tr('Maximum arc radius:')),
+            'code_begin_units_mm': CfgLineEdit(tr('Units in millimeters G-code:')),
+            'code_begin_units_in': CfgLineEdit(tr('Units in inch G-code:')),
+            'code_begin_prog_abs': CfgLineEdit(tr('Absolute programming G-code:')),
+            'code_begin_prog_inc': CfgLineEdit(tr('Incremental programming G-code:')),
+            'code_begin': CfgTextEdit(tr('Startup G-code:')),
+            'code_end': CfgTextEdit(tr('End G-code:')),
+        },
+        'Number_Format':
+        {
+            '__section_title__': tr("Output formatting"),
+            'pre_decimals': CfgSpinBox(tr('Number of digit before the decimal separator:')),
+            'post_decimals': CfgSpinBox(tr('Number of digit after the decimal separator:')),
+            'pre_decimal_zero_padding': CfgCheckBox(tr("Pad with '0' digit berfore the decimal separator")),
+            'post_decimal_zero_padding': CfgCheckBox(tr("Pad with '0' digit after the decimal separator")),
+            'decimal_separator': CfgLineEdit(tr('Decimal separator:')),
+            'signed_values': CfgCheckBox(tr("Prepend the numbers with the '+' sign for positive values")),
+        },
+        'Line_Numbers':
+        {
+            '__section_title__': tr("Output formatting"),
+            'use_line_nrs': CfgCheckBox(tr('Export lines numbers')),
+            'line_nrs_begin': CfgSpinBox(tr('Line number starts at:')),
+            'line_nrs_step': CfgSpinBox(tr('Line number step:')),
+        },
+        'Program':
+        {
+            '__section_title__': tr("G-code codes"),
+            'tool_change': CfgLineEdit(tr('Tool change:')),
+            'feed_change': CfgLineEdit(tr('Feed rate change:')),
+            'rap_pos_plane': CfgLineEdit(tr('Rapid positioning for XY plane:')),
+            'rap_pos_depth': CfgLineEdit(tr('Rapid positioning for Z plane:')),
+            'lin_mov_plane': CfgLineEdit(tr('Linear feed move for XY plane:')),
+            'lin_mov_depth': CfgLineEdit(tr('Linear feed move for Z plane:')),
+            'arc_int_cw': CfgLineEdit(tr('Clockwise feed move:')),
+            'arc_int_ccw': CfgLineEdit(tr('Counter clockwise feed move:')),
+            'cutter_comp_off': CfgLineEdit(tr('Disable cutter compensation:')),
+            'cutter_comp_left': CfgLineEdit(tr('Left cutter compensation:')),
+            'cutter_comp_right': CfgLineEdit(tr('Right cutter compensation:')),
+            'pre_shape_cut': CfgLineEdit(tr('G-code placed before any shape cutting:')),
+            'post_shape_cut': CfgLineEdit(tr('G-code placed after any shape cutting:')),
+            'comment': CfgLineEdit(tr('Comment for the current shape:')),
+        },
+    }
+    
+    return cfg_widget_def
+    
 
 class DictDotLookup(object):
     """

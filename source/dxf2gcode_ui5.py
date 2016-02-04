@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmpH4oJD5'
+# Form implementation generated from reading ui file '/tmp/tmpqVBIL1'
 #
 # Created by: PyQt5 UI code generator 5.5
 #
@@ -489,6 +489,8 @@ class Ui_MainWindow(object):
         self.actionDeleteG0Paths.setObjectName("actionDeleteG0Paths")
         self.actionConfiguration = QtWidgets.QAction(MainWindow)
         self.actionConfiguration.setObjectName("actionConfiguration")
+        self.actionConfigurationPostprocessor = QtWidgets.QAction(MainWindow)
+        self.actionConfigurationPostprocessor.setObjectName("actionConfigurationPostprocessor")
         self.actionTolerances = QtWidgets.QAction(MainWindow)
         self.actionTolerances.setObjectName("actionTolerances")
         self.actionScaleAll = QtWidgets.QAction(MainWindow)
@@ -565,6 +567,7 @@ class Ui_MainWindow(object):
         self.menuMachine_Type.addAction(self.actionLathe)
         self.menuMachine_Type.addAction(self.actionDragKnife)
         self.menuTolerances.addAction(self.actionConfiguration)
+        self.menuTolerances.addAction(self.actionConfigurationPostprocessor)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionTolerances)
         self.menuTolerances.addSeparator()
@@ -654,6 +657,8 @@ class Ui_MainWindow(object):
         self.actionDeleteG0Paths.setText(_translate("MainWindow", "Delete G0 Paths"))
         self.actionConfiguration.setText(_translate("MainWindow", "Configuration..."))
         self.actionConfiguration.setShortcut(_translate("MainWindow", "Ctrl+Shift+C"))
+        self.actionConfigurationPostprocessor.setText(_translate("MainWindow", "Postprocessor configuration..."))
+        self.actionConfigurationPostprocessor.setShortcut(_translate("MainWindow", "Ctrl+Shift+P"))
         self.actionTolerances.setText(_translate("MainWindow", "Tolerances"))
         self.actionScaleAll.setText(_translate("MainWindow", "Scale All"))
         self.actionRotateAll.setText(_translate("MainWindow", "Rotate All"))

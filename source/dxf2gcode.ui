@@ -906,6 +906,7 @@
      <addaction name="actionDragKnife"/>
     </widget>
     <addaction name="actionConfiguration"/>
+    <addaction name="actionConfigurationPostprocessor"/>
     <addaction name="separator"/>
     <addaction name="actionTolerances"/>
     <addaction name="separator"/>
@@ -1013,6 +1014,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
+   </property>
+  </action>
+  <action name="actionConfigurationPostprocessor">
+   <property name="text">
+    <string>Postprocessor configuration...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Shift+P</string>
    </property>
   </action>
   <action name="actionTolerances">

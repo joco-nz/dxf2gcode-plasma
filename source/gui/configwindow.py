@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-#   Copyright (C) 2015
+#   Copyright (C) 2015-2016
 #    Xavier Izard
 #
 #   This file is part of DXF2GCODE.
@@ -54,6 +54,7 @@ config_window.finished.connect(self.updateConfiguration) #Optionnal signal to kn
  - CfgDoubleSpinBox(): a spinbox for float values
  - CfgLineEdit(): a text input (1 line)
  - CfgListEdit(): a text list input (1 line)
+ - CfgTextEdit(): a text input (multiple lines)
  - CfgComboBox(): a drop-down menu for selecting options
  - CfgTable(): a 2D table with editable text entries
  - CfgTableCustomActions(): specific module based on CfgTable(), for storing custom GCODE
@@ -74,6 +75,7 @@ from globals.configobj.configobj import ConfigObj, flatten_errors
 from globals.configobj.validate import Validator
 import globals.globals as g
 from globals.d2gexceptions import *
+from gui.popupdialog import PopUpDialog
 
 from globals.six import text_type
 import globals.constants as c
@@ -96,7 +98,7 @@ class ConfigWindow(QDialog):
     Applied = QDialog.Accepted + QDialog.Rejected + 1 #Define a result code that is different from accepted and rejected
     
     """Main Class"""
-    def __init__(self, definition_dict, config = None, configspec = None, parent = None):
+    def __init__(self, definition_dict, config = None, configspec = None, parent = None, title = "Configuration"):
         """
         Initialization of the Configuration window. ConfigObj must be instanciated before this one.
         @param definition_dict: the dict that describes our window
@@ -104,11 +106,20 @@ class ConfigWindow(QDialog):
         @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
         """
         QDialog.__init__(self, parent)
-        self.setWindowTitle("Configuration")
+        self.setWindowTitle(title)
 
         self.cfg_window_def = definition_dict #This is the dict that describes our window
-        self.var_dict = config #This is the data from the configfile (dictionary created by ConfigObj class)
-        self.configspec = configspec #This is the specifications for all the entries defined in the config file
+        self.var_dict = None
+        self.configspec = None
+
+        #There is no config file selector for now, so no callback either
+        self.selector_change_callback = None
+        self.selector_add_callback = None
+        self.selector_remove_callback = None
+        
+        #Create the vars for the optionnal configuration file selector
+        self.cfg_file_selector = None
+        self.layout_file_selector = QHBoxLayout(); #For displaying the optionnal files selector widgets
         
         #Create the config window according to the description dict received
         config_widget = self.createWidgetFromDefinitionDict()
@@ -122,12 +133,14 @@ class ConfigWindow(QDialog):
         
         #Layout the 2 above widgets vertically
         v_box = QVBoxLayout(self)
+        v_box.addLayout(self.layout_file_selector)
         v_box.addWidget(config_widget)
         v_box.addWidget(button_box)
         self.setLayout(v_box)
         
         #Populate our Configuration widget with the values from the config file
-        self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
+        if self.var_dict is not None and self.configspec is not None:
+            self.affectValuesFromConfig(self.var_dict, self.configspec)
 
     def tr(self, string_to_translate):
         """
@@ -166,7 +179,7 @@ class ConfigWindow(QDialog):
         """
         Reload our configuration widget with the values from the config file (=> Cancel the changes in the config window), then close the config window
         """
-        self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
+        self.affectValuesFromConfig(self.var_dict, self.configspec)
         QDialog.reject(self)
         logger.info('New configuration cancelled')
 
@@ -181,6 +194,84 @@ class ConfigWindow(QDialog):
         error_message.exec_()
 
 
+    def setConfigSelectorCallback(self, selection_changed_callback, add_file_callback, remove_file_callback):
+        """
+        Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
+        The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
+        """
+        self.selector_change_callback = selection_changed_callback
+        self.selector_add_callback = add_file_callback
+        self.selector_remove_callback = remove_file_callback
+        
+        
+    def setConfigSelectorFilesList(self, config_list, select_item = None):
+        """
+        Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
+        The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
+        """
+        if len(config_list) > 0:
+            if self.layout_file_selector.count() == 0:
+                #There is currently no file selector widget, so we create a new one
+                self.cfg_file_selector = CfgComboBox("Choose configuration file:", None, None)
+                button_add = QPushButton(QIcon(QPixmap(":/images/list-add.png")), "")
+                button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
+
+                #Connect the signals to call the callback when an action is done on the file selector
+                if self.selector_change_callback is not None:
+                    self.cfg_file_selector.combobox.currentIndexChanged[int].connect(self.selector_change_callback)
+                button_add.clicked.connect(self.configSelectorAddFile)
+                button_remove.clicked.connect(self.configSelectorRemoveFile)
+
+                self.layout_file_selector.addWidget(self.cfg_file_selector)
+                self.layout_file_selector.addWidget(button_add)
+                self.layout_file_selector.addWidget(button_remove)
+                
+            #Fill the combobox with the current file list
+            self.cfg_file_selector.setSpec({'string_list': config_list['filename'], 'comment': ''})
+            
+            #Select the item if not None
+            if select_item is not None:
+                self.cfg_file_selector.setValue(select_item)
+            
+        else:
+            #Item should be a layout or a widget
+            logger.warning("At least one config file must be passed to the config selector!")
+
+            #Remove all the files from the config file selector
+            if self.cfg_file_selector is not None:
+                self.cfg_file_selector.setSpec({'string_list': [], 'comment': ''})
+
+
+    def configSelectorAddFile(self):
+        """
+        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        """
+        title = self.tr('Add a configuration file')
+        label = [self.tr("Enter filename (without extension):")]
+        value = [""]
+        filename_dialog = PopUpDialog(title, label, value)
+
+        if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
+            #User has confirmed the file suppression, so let's go
+            if self.selector_add_callback is not None:
+                self.selector_add_callback(filename_dialog.result[0])
+            else:
+                logger.warning("No callback defined for adding the file, nothing will happen!")
+
+        
+    def configSelectorRemoveFile(self):
+        """
+        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        """
+        confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{}"'.format(self.cfg_file_selector.getValue())));
+        if confirmation_result == QMessageBox.Yes or confirmation_result == QMessageBox.Ok:
+            #User has confirmed the file suppression, so let's go
+            if self.selector_remove_callback is not None:
+                self.selector_remove_callback(self.cfg_file_selector.getValue())
+            else:
+                logger.warning("No callback defined for removing the file, nothing will happen!")
+
+        
     def createWidgetFromDefinitionDict(self):
         """
         Automatically build a widget, based on dict definition of the items.
@@ -268,6 +359,18 @@ class ConfigWindow(QDialog):
         
         return section_widget
 
+    
+    def affectValuesFromConfig(self, config, configspec):
+        """
+        Affect new values for the configuration
+        @param config: data readed from the configfile. This dict is created by ConfigObj module.
+        @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
+        """
+        self.var_dict = config #This is the data from the configfile (dictionary created by ConfigObj class)
+        self.configspec = configspec #This is the specifications for all the entries defined in the config file
+        
+        self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
+        
 
     def setValuesFromConfig(self, window_def, config, configspec):
         """
@@ -774,6 +877,7 @@ class CfgLineEdit(QWidget):
         self.layout.addWidget(self.lineedit)
         self.setLayout(self.layout)
         self.layout.setSpacing(1) #Don't use too much space, it makes the option window too big otherwise
+        self.layout.setContentsMargins(self.layout.contentsMargins().left(), 3, self.layout.contentsMargins().right(), 2) #Don't use too much space, it makes the option window too big otherwise
 
     def setSpec(self, spec):
         """
@@ -857,6 +961,80 @@ class CfgListEdit(CfgLineEdit):
         
         self.lineedit.setText(joined_value)
 
+
+class CfgTextEdit(QWidget):
+    """
+    Subclassed QTextEdit to match our needs.
+    """
+
+    def __init__(self, text, size_min = None, size_max = None, parent = None):
+        """
+        Initialization of the CfgLineEdit class (text edit, one line).
+        @param text: text string associated with the line edit
+        @param size_min: min length (int)
+        @param size_max: max length (int)
+        """
+        QWidget.__init__(self, parent)
+        
+        self.textedit = QTextEdit(parent)
+        self.textedit.setAcceptRichText(False)
+        self.textedit.setAutoFormatting(QTextEdit.AutoNone)
+        
+        self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
+        if size_min is not None:
+            self.size_min = size_min
+        else:
+            self.size_min = 0
+        
+        self.label = QLabel(text, parent)
+        self.layout = QVBoxLayout(parent)
+        
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.textedit)
+        self.setLayout(self.layout)
+        self.layout.setSpacing(1) #Don't use too much space, it makes the option window too big otherwise
+
+    def setSpec(self, spec):
+        """
+        Set the specifications for the item (min/max values, ...)
+        @param spec: the specifications dict (can contain the following keys: minimum, maximum, comment, string_list)
+        """
+        if spec['minimum'] is not None:
+            self.size_min = spec['minimum']
+        
+        if spec['maximum'] is not None:
+            self.textedit.setMaxLength(spec['maximum'])
+        
+        if spec['comment']:
+            self.setWhatsThis(spec['comment'])
+
+    def validateValue(self):
+        """
+        Check the minimum length value
+        @return (result_bool, result_string):
+         - result_bool: True if no errors were encountered, False otherwise
+         - result_string: a string containing all the errors encountered during the validation
+        """
+        field_length = len(str(self.textedit.toPlainText()))
+        if field_length < self.size_min:
+            result = (False, str(self.tr('\nNot enough chars (expected {0}, found {1}) for the field "{2}"\n')).format(self.size_min, field_length, self.label.text()))
+        else:
+            #OK
+            result = (True, '')
+        return result
+
+    def getValue(self):
+        """
+        @return: the current value of the QSpinBox
+        """
+        return str(self.textedit.toPlainText())
+
+    def setValue(self, value):
+        """
+        Assign the value for our object
+        @param value: text string
+        """
+        self.textedit.setPlainText(value)
 
 
 class CfgComboBox(QWidget):
