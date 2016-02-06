@@ -196,7 +196,7 @@ class ConfigWindow(QDialog):
             definition['__section_title__'] = {}
 
         #Compute all the sections
-        for section in sorted(definition):
+        for section in definition:
             #skip the special section __section_title__
             if section == '__section_title__':
                 continue
@@ -253,7 +253,7 @@ class ConfigWindow(QDialog):
         vertical_box.setSpacing(0) #Don't use too much space, it makes the option window too big otherwise
 
         if isinstance(subdefinition, dict):
-            for subsection in sorted(subdefinition):
+            for subsection in subdefinition:
                 if subsection == '__section_title__':
                     #skip the special section
                     continue
