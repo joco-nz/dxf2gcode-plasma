@@ -579,7 +579,7 @@ class CfgCheckBox(QCheckBox):
         elif check_state == QtCore.Qt.PartiallyChecked:
             check_state = 2
 
-        return check_state
+        return check_state if self.checkbox.isTristate() else check_state == 1
 
     def setValue(self, value):
         """
