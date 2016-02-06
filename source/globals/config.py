@@ -5,6 +5,7 @@
 #   Copyright (C) 2009-2015
 #    Christian Kohlöffel
 #    Jean-Paul Schouwstra
+#    Xavier Izard
 #
 #   This file is part of DXF2GCODE.
 #
@@ -347,7 +348,6 @@ class MyConfig(object):
         self.vars = DictDotLookup(self.var_dict)
         # add here any update needed for the internal variables of this class
 
-
     def make_settings_folder(self):
         """Create settings folder if necessary"""
         try:
@@ -432,7 +432,7 @@ class MyConfig(object):
         self.var_dict.filename = self.filename
         self.var_dict.write()
 
-    def _save_varspace(self):
+    def save_varspace(self):
         """Saves Variables space"""
         self.var_dict.filename = self.filename
         self.var_dict.write()
@@ -443,7 +443,7 @@ class MyConfig(object):
         for k, v in self.var_dict['Variables'].items():
             print(k, "=", v)
 
-    def makeConfigWindgets(self):
+    def makeConfigWidgets(self):
         """
         Build the configuration widgets and store them into a dictionary.
         The structure of the dictionnary must match the structure of the configuration file. The names of the keys must be identical to those used in the configfile.
@@ -460,48 +460,55 @@ class MyConfig(object):
                 'Custom_Actions' : self.tr("Custom actions")}),
             ('Paths', OrderedDict([
                 ('__section_title__', self.tr("Software config")),
-                ('import_dir', CfgLineEdit(self.tr('Default look for DXF files in:'))),
-                ('output_dir', CfgLineEdit(self.tr('Default export generated G-Code to:')))
+                ('import_dir', CfgLineEdit(self.tr('By default look for DXF files in:'))),
+                ('output_dir', CfgLineEdit(self.tr('By default export generated G-Code to:')))
             ])),
             ('Filters', OrderedDict([
                 ('__section_title__', self.tr("Software config")),
-                ('pstoedit_cmd', CfgLineEdit(self.tr('pstoedit command location:'))),
-                ('pstoedit_opt', CfgListEdit(self.tr('pstoedit command line options:'), ','))
+                ('__subtitle__', CfgSubtitle(self.tr("pstoedit"))),
+                ('pstoedit_cmd', CfgLineEdit(self.tr('Location of executable:'))),
+                ('pstoedit_opt', CfgListEdit(self.tr('Command-line options:'), ','))
             ])),
             ('Axis_letters', OrderedDict([
                 ('__section_title__', self.tr("Machine config")),
-                ('ax1_letter', CfgLineEdit(self.tr("First axis' identifier:"))),
-                ('ax2_letter', CfgLineEdit(self.tr("Second axis' identifier:"))),
-                ('ax3_letter', CfgLineEdit(self.tr("Third axis' identifier:")))
+                ('__subtitle__', CfgSubtitle(self.tr("Axes' identifiers"))),
+                ('ax1_letter', CfgLineEdit(self.tr('First axis:'))),
+                ('ax2_letter', CfgLineEdit(self.tr('Second axis:'))),
+                ('ax3_letter', CfgLineEdit(self.tr('Third axis:')))
             ])),
             ('Plane_Coordinates', OrderedDict([
                 ('__section_title__', self.tr("Machine config")),
-                ('axis1_start_end', CfgDoubleSpinBox(self.tr("First axis' start/end coordinate:"), coordinate_unit)),
-                ('axis2_start_end', CfgDoubleSpinBox(self.tr("Second axis' start/end coordinate:"), coordinate_unit))
+                ('__subtitle__', CfgSubtitle(self.tr("Start and end's coordinate"))),
+                ('axis1_start_end', CfgDoubleSpinBox(self.tr("First axis:"), coordinate_unit)),
+                ('axis2_start_end', CfgDoubleSpinBox(self.tr("Second axis:"), coordinate_unit))
             ])),
             ('Depth_Coordinates', OrderedDict([
                 ('__section_title__', self.tr("Machine config")),
-                ('axis3_retract', CfgDoubleSpinBox(self.tr("Third axis' retraction coordinate (default):"), coordinate_unit)),
-                ('axis3_safe_margin', CfgDoubleSpinBox(self.tr("Third axis' safety margin (default):"), coordinate_unit)),
-                ('axis3_start_mill_depth', CfgDoubleSpinBox(self.tr("Third axis' workpiece origin coordinate (default):"), coordinate_unit)),
-                ('axis3_slice_depth', CfgDoubleSpinBox(self.tr("Third axis' slice depth (default):"), coordinate_unit)),
-                ('axis3_mill_depth', CfgDoubleSpinBox(self.tr("Third axis' final mill depth (default):"), coordinate_unit))
+                ('__subtitle__', CfgSubtitle(self.tr("Third axis' defaults"))),
+                ('axis3_retract', CfgDoubleSpinBox(self.tr("Retraction coordinate:"), coordinate_unit)),
+                ('axis3_safe_margin', CfgDoubleSpinBox(self.tr("Safety margin:"), coordinate_unit)),
+                ('axis3_start_mill_depth', CfgDoubleSpinBox(self.tr("Workpiece origin coordinate:"), coordinate_unit)),
+                ('axis3_slice_depth', CfgDoubleSpinBox(self.tr("Slice depth:"), coordinate_unit)),
+                ('axis3_mill_depth', CfgDoubleSpinBox(self.tr("Final mill depth:"), coordinate_unit))
             ])),
             ('Feed_Rates', OrderedDict([
                 ('__section_title__', self.tr("Machine config")),
-                ('f_g1_plane', CfgDoubleSpinBox(self.tr('G1 feed rate for first and second axis (2D plane):'), speed_unit)),
-                ('f_g1_depth', CfgDoubleSpinBox(self.tr('G1 feed rate for third axis:'), speed_unit))
+                ('__subtitle__', CfgSubtitle(self.tr("G1 feed rates"))),
+                ('f_g1_plane', CfgDoubleSpinBox(self.tr('First and second axis (2D plane):'), speed_unit)),
+                ('f_g1_depth', CfgDoubleSpinBox(self.tr('Third axis:'), speed_unit))
             ])),
             ('General', OrderedDict([
-                ('__section_title__', self.tr("Software config")),
+                ('__section_title__', self.tr("General settings")),
                 ('mode3d', CfgCheckBox(self.tr('3D mode (requires OpenGL - restart needed)'))),
-                ('write_to_stdout', CfgCheckBox(self.tr('Export the G-Code to stdout (instead of a file)'))),
                 ('show_disabled_paths', CfgCheckBox(self.tr('Display disabled paths (default)'))),
                 ('live_update_export_route', CfgCheckBox(self.tr('Live update export route (default)'))),
+                ('__subtitle2__', CfgSubtitle(self.tr("Milling"))),
                 ('split_line_segments', CfgCheckBox(self.tr('Split line segments (default)'))),
                 ('automatic_cutter_compensation', CfgCheckBox(self.tr('Automatic cutter compensation (default)'))),
                 ('machine_type', CfgComboBox(self.tr('Machine type (default):'))),
-                ('tool_units', CfgComboBox(self.tr('Configuration values use the unit (restart needed):')))
+                ('tool_units', CfgComboBox(self.tr('Configuration values use the unit (restart needed):'))),
+                ('__subtitle3__', CfgSubtitle(self.tr("Output"))),
+                ('write_to_stdout', CfgCheckBox(self.tr('Export the G-Code to stdout (instead of a file)')))
             ])),
             ('Cutter_Compensation', OrderedDict([
                 ('__section_title__', self.tr("Output settings")),
@@ -513,11 +520,12 @@ class MyConfig(object):
             ('Route_Optimisation', OrderedDict([
                 ('__section_title__', self.tr("Output settings")),
                 ('default_TSP', CfgCheckBox(self.tr("By default enable the TSP optimization for ordering shapes (TSP = Travelling Salesman Problem)"))),
+                ('__subtitle__', CfgSubtitle(self.tr("TSP optimizer"))),
                 ('TSP_shape_order', CfgComboBox(self.tr('Optimizer behaviour:'))),
-                ('mutation_rate', CfgDoubleSpinBox(self.tr('Mutation rate for TSP optimizer:'))),
-                ('max_population', CfgSpinBox(self.tr('Max population for the TSP optimizer:'))),
-                ('max_iterations', CfgSpinBox(self.tr('Max iterations for the TSP optimizer:'))),
-                ('begin_art', CfgComboBox(self.tr('TSP starting point:')))
+                ('mutation_rate', CfgDoubleSpinBox(self.tr('Mutation rate:'))),
+                ('max_population', CfgSpinBox(self.tr('Max population:'))),
+                ('max_iterations', CfgSpinBox(self.tr('Max iterations:'))),
+                ('begin_art', CfgComboBox(self.tr('Starting point:')))
             ])),
             ('Import_Parameters', OrderedDict([
                 ('__section_title__', self.tr("Output settings")),
@@ -529,17 +537,18 @@ class MyConfig(object):
             ('Layer_Options', OrderedDict([
                 ('__section_title__', self.tr("Automatic tool config")),
                 ('id_float_separator', CfgLineEdit(self.tr('Separator between identifier and value:'))),
-                ('mill_depth_identifiers', CfgListEdit(self.tr('Final mill depth identifiers:'), ',')),
-                ('slice_depth_identifiers', CfgListEdit(self.tr('Infeed depth identifiers:'), ',')),
-                ('start_mill_depth_identifiers', CfgListEdit(self.tr('Workpiece top identifiers:'), ',')),
-                ('retract_identifiers', CfgListEdit(self.tr('Retraction area identifiers:'), ',')),
-                ('safe_margin_identifiers', CfgListEdit(self.tr('Safety margin identifiers:'), ',')),
-                ('f_g1_plane_identifiers', CfgListEdit(self.tr('G1 feed rate for first and second axis (2D plane) identifiers:'), ',')),
-                ('f_g1_depth_identifiers', CfgListEdit(self.tr('G1 feed rate for third axis identifiers:'), ',')),
-                ('tool_nr_identifiers', CfgListEdit(self.tr('Tool number identifiers:'), ',')),
-                ('tool_diameter_identifiers', CfgListEdit(self.tr('Tool diameter identifiers:'), ',')),
-                ('spindle_speed_identifiers', CfgListEdit(self.tr('Spindle speed identifiers:'), ',')),
-                ('start_radius_identifiers', CfgListEdit(self.tr('Start radius (cutter compensation) identifiers:'), ','))
+                ('__subtitle__', CfgSubtitle(self.tr("Parameters' identifiers"))),
+                ('mill_depth_identifiers', CfgListEdit(self.tr('Final mill depth:'), ',')),
+                ('slice_depth_identifiers', CfgListEdit(self.tr('Infeed depth:'), ',')),
+                ('start_mill_depth_identifiers', CfgListEdit(self.tr('Workpiece top:'), ',')),
+                ('retract_identifiers', CfgListEdit(self.tr('Retraction area:'), ',')),
+                ('safe_margin_identifiers', CfgListEdit(self.tr('Safety margin:'), ',')),
+                ('f_g1_plane_identifiers', CfgListEdit(self.tr('G1 feed rate for first and second axis (2D plane):'), ',')),
+                ('f_g1_depth_identifiers', CfgListEdit(self.tr('G1 feed rate for third axis:'), ',')),
+                ('tool_nr_identifiers', CfgListEdit(self.tr('Tool number:'), ',')),
+                ('tool_diameter_identifiers', CfgListEdit(self.tr('Tool diameter:'), ',')),
+                ('spindle_speed_identifiers', CfgListEdit(self.tr('Spindle speed:'), ',')),
+                ('start_radius_identifiers', CfgListEdit(self.tr('Start radius (cutter compensation):'), ','))
             ])),
             ('Tool_Parameters', CfgTableToolParameters(self.tr('Define the tools here:'))),
             ('Custom_Actions', CfgTableCustomActions(self.tr('Define here custom GCODE that can be inserted anywhere in the program:'))),
@@ -548,7 +557,7 @@ class MyConfig(object):
                 ('logfile', CfgLineEdit(self.tr('File used for logging (restart needed):'))),
                 ('console_loglevel', CfgComboBox(self.tr('On stderr console log messages with importance minimal to level (restart needed):'))),
                 ('file_loglevel', CfgComboBox(self.tr('For log-file log messages with importance minimal to level (restart needed):'))),
-                ('window_loglevel', CfgComboBox(self.tr('For the message box log messages with importance minimal to level (restart needed):')))
+                ('window_loglevel', CfgComboBox(self.tr('For message box log messages with importance minimal to level (restart needed):')))
             ]))
         ])
 

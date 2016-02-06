@@ -105,7 +105,7 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
 
         #Build the configuration window
-        self.config_window = ConfigWindow(g.config.makeConfigWindgets(), g.config.var_dict, g.config.var_dict.configspec, self)
+        self.config_window = ConfigWindow(g.config.makeConfigWidgets(), g.config.var_dict, g.config.var_dict.configspec, self)
         self.config_window.finished.connect(self.updateConfiguration)
 
         self.app = app
@@ -988,7 +988,7 @@ class MainWindow(QMainWindow):
         Once done, the signal configuration_changed is emitted, so that anyone interested in this information can connect to this signal.
         """
         if result == ConfigWindow.Applied or result == ConfigWindow.Accepted:
-            g.config._save_varspace() #Write the configuration into the config file (config.cfg)
+            g.config.save_varspace() #Write the configuration into the config file (config.cfg)
             g.config.update_config() #Rebuild the readonly configuration structure
 
             # Assign changes to the menus (if no change occured, nothing happens / otherwise QT emits a signal for the menu entry that has changed)

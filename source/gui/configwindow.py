@@ -4,6 +4,7 @@
 #
 #   Copyright (C) 2015
 #    Xavier Izard
+#    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
 #
@@ -49,6 +50,7 @@ config_window = ConfigWindow(config_widget_dict, var_dict, configspec, self) #Se
 config_window.finished.connect(self.updateConfiguration) #Optionnal signal to know when the config has changed
 
 *** List of graphical elements currently supported ***
+ - CfgSubtitle(): subtitle - just for displaying a bar with some text
  - CfgCheckBox(): a basic (possibly tristate) checkbox
  - CfgSpinBox(): a spinbox for int values
  - CfgDoubleSpinBox(): a spinbox for float values
@@ -224,11 +226,9 @@ class ConfigWindow(QDialog):
 
             #Create the tab content for this section
             self.createWidgetSubSection(definition[section], widget)
-            #Add a separator at the end of this subsection
+
+            #Add a stretch at the end of this subsection
             if widget.layout() is not None:
-                separator = QFrame()
-                separator.setFrameShape(QFrame.HLine)
-                widget.layout().addWidget(separator)
                 widget.layout().addStretch()
 
         #Add a QSpacer at the bottom of each widget, so that the items are placed on top of each tab
@@ -238,6 +238,7 @@ class ConfigWindow(QDialog):
 
         return tab_widget
 
+
     def createWidgetSubSection(self, subdefinition, section_widget):
         """
         Create the widgets that will be inserted into the tabs of the configuration window
@@ -245,12 +246,27 @@ class ConfigWindow(QDialog):
         @param section_widget: the widget that host the subwidgets
         @return: section_widget (for recursive call)
         """
-        #section_widget = QWidget()
         vertical_box = section_widget.layout()
         if vertical_box is None:
             vertical_box = QVBoxLayout()
             section_widget.setLayout(vertical_box)
-        vertical_box.setSpacing(0) #Don't use too much space, it makes the option window too big otherwise
+        vertical_box.setSpacing(0)  # Don't use too much space, it makes the option window too big otherwise
+
+        if isinstance(subdefinition, dict):
+            vertical_box.addWidget(subdefinition.get('__subtitle__', CfgSubtitle()))
+
+        self.createWidgetSubSectionWithSubLevels(subdefinition, section_widget)
+
+
+    def createWidgetSubSectionWithSubLevels(self, subdefinition, section_widget):
+        """
+        Create the widgets that will be inserted into the tabs of the configuration window
+        @param subdefinition: part of the definition dict
+        @param section_widget: the widget that host the subwidgets
+        @return: section_widget (for recursive call)
+        """
+
+        vertical_box = section_widget.layout()
 
         if isinstance(subdefinition, dict):
             for subsection in subdefinition:
@@ -259,7 +275,7 @@ class ConfigWindow(QDialog):
                     continue
 
                 #Browse sublevels
-                self.createWidgetSubSection(subdefinition[subsection], section_widget) #Recursive call, all the nested configuration item will appear at the same level
+                self.createWidgetSubSectionWithSubLevels(subdefinition[subsection], section_widget) #Recursive call, all the nested configuration item will appear at the same level
         else:
             if isinstance(subdefinition, (QWidget, QLayout)):
                 vertical_box.addWidget(subdefinition)
@@ -281,7 +297,7 @@ class ConfigWindow(QDialog):
         #Compute all the sections
         for section in window_def:
             #skip the special section __section_title__
-            if section == '__section_title__':
+            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
                 continue
 
             if config is not None and section in config:
@@ -485,7 +501,7 @@ class ConfigWindow(QDialog):
         #Compute all the sections
         for section in window_def:
             #skip the special section __section_title__
-            if section == '__section_title__':
+            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
                 continue
 
             if isinstance(window_def[section], dict):
@@ -514,7 +530,7 @@ class ConfigWindow(QDialog):
         #Compute all the sections
         for section in window_def:
             #skip the special section __section_title__
-            if section == '__section_title__':
+            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
                 continue
 
             if config is not None and section in config:
@@ -537,7 +553,42 @@ class ConfigWindow(QDialog):
 # The classes below are all based on QWidgets and allow to create various predefined elements for the configuration window #
 ############################################################################################################################
 
-class CfgCheckBox(QCheckBox):
+class CfgBase(QWidget):
+    """
+    Base class used only for setting the Layout. Want a consistent look.
+    """
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+
+    def setLayout(self, layout=None, indent=True):
+        layout.setSpacing(2)  # Don't use too much space, it makes the option window too big otherwise
+        layout.setContentsMargins(10 if indent else 0, 5, 1, 1)
+        QWidget.setLayout(self, layout)
+
+class CfgDummy(CfgBase):
+    """
+    If a class inherits this dummy class then it should be skipped - it only serves display purposes
+    """
+    def __init__(self, parent=None):
+        CfgBase.__init__(self, parent)
+
+class CfgSubtitle(CfgDummy):
+    def __init__(self, text=None, parent=None):
+        CfgDummy.__init__(self, parent)
+
+        layout = QHBoxLayout()
+
+        if text is not None:
+            layout.addWidget(QLabel(text))
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed))
+        layout.addWidget(separator)
+
+        self.setLayout(layout, False)
+
+class CfgCheckBox(CfgBase):
     """
     Subclassed QCheckBox to match our needs.
     """
@@ -548,8 +599,14 @@ class CfgCheckBox(QCheckBox):
         @param text: text string associated with the checkbox
         @param tristate: whether the checkbox must have 3 states (tristate) or 2 states
         """
-        QCheckBox.__init__(self, text, parent)
-        self.setTristate(tristate)
+        CfgBase.__init__(self, parent)
+
+        self.checkbox = QCheckBox(text, parent)
+        self.checkbox.setTristate(tristate)
+
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.checkbox)
+        self.setLayout(layout)
 
     def setSpec(self, spec):
         """
@@ -571,7 +628,7 @@ class CfgCheckBox(QCheckBox):
         """
         @return 0 when the checkbox is unchecked, 1 if it is checked and 2 if it is partly checked (tristate must be set to true for tristate mode)
         """
-        check_state = self.checkState()
+        check_state = self.checkbox.checkState()
         if check_state == QtCore.Qt.Unchecked:
             check_state = 0
         elif check_state == QtCore.Qt.Checked:
@@ -587,14 +644,14 @@ class CfgCheckBox(QCheckBox):
         @param value: 0 when the checkbox is unchecked, 1 if it is checked and 2 if it is partly checked (tristate must be set to true for tristate mode)
         """
         if value == 0:
-            self.setCheckState(QtCore.Qt.Unchecked)
+            self.checkbox.setCheckState(QtCore.Qt.Unchecked)
         elif value == 2:
-            self.setCheckState(QtCore.Qt.PartiallyChecked)
+            self.checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
         else:
-            self.setCheckState(QtCore.Qt.Checked)
+            self.checkbox.setCheckState(QtCore.Qt.Checked)
 
 
-class CfgSpinBox(QWidget):
+class CfgSpinBox(CfgBase):
     """
     Subclassed QSpinBox to match our needs.
     """
@@ -606,22 +663,23 @@ class CfgSpinBox(QWidget):
         @param minimum: min value (int)
         @param minimum: max value (int)
         """
-        QWidget.__init__(self, parent)
+        CfgBase.__init__(self, parent)
+
+        self.label = QLabel(text, parent)
 
         self.spinbox = QSpinBox(parent)
+        self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
+
         if unit is not None:
             self.setUnit(unit)
 
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.spinbox)
+        self.setLayout(layout)
+
         self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
-
-        self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent)
-
-        self.spinbox.setMinimumWidth(200) #Provide better alignment with other items
-        self.layout.addWidget(self.label)
-        self.layout.addStretch()
-        self.layout.addWidget(self.spinbox)
-        self.setLayout(self.layout)
 
     def setSpec(self, spec):
         """
@@ -632,10 +690,12 @@ class CfgSpinBox(QWidget):
             self.spinbox.setMinimum(spec['minimum'])
         else:
             self.spinbox.setMinimum(-1000000000) #if no value is defined for the minimum, use a reasonable value
+
         if spec['maximum'] is not None:
             self.spinbox.setMaximum(spec['maximum'])
         else:
             self.spinbox.setMaximum(1000000000) #if no value is defined for the maximum, use a more reasonable value than 99 (default value in QT) ...
+
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
 
@@ -725,28 +785,29 @@ class CfgDoubleSpinBox(CfgSpinBox):
         @param minimum: min value (float)
         @param minimum: max value (float)
         """
-        QWidget.__init__(self, parent)
+        CfgBase.__init__(self, parent)  # skip the init of CfgSpinBox - we want a "corrected" spinbox
 
+        self.label = QLabel(text, parent)
+
+        self.spinbox = QSpinBox(parent)
         self.spinbox = CorrectedDoubleSpinBox(parent)
-        if unit is not None:
-            self.setUnit(unit)
-
-        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
-
+        self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
         if precision is not None:
             self.spinbox.setDecimals(precision)
 
-        self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent)
+        if unit is not None:
+            self.setUnit(unit)
 
-        self.spinbox.setMinimumWidth(200) #Provide better alignment with other items
-        self.layout.addWidget(self.label)
-        self.layout.addStretch()
-        self.layout.addWidget(self.spinbox)
-        self.setLayout(self.layout)
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.spinbox)
+        self.setLayout(layout)
+
+        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
 
 
-class CfgLineEdit(QWidget):
+class CfgLineEdit(CfgBase):
     """
     Subclassed QLineEdit to match our needs.
     """
@@ -758,23 +819,19 @@ class CfgLineEdit(QWidget):
         @param size_min: min length (int)
         @param size_max: max length (int)
         """
-        QWidget.__init__(self, parent)
+        CfgBase.__init__(self, parent)
+
+        self.label = QLabel(text, parent)
 
         self.lineedit = QLineEdit(parent)
 
+        layout = QVBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addWidget(self.lineedit)
+        self.setLayout(layout)
+
+        self.size_min = 0
         self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
-        if size_min is not None:
-            self.size_min = size_min
-        else:
-            self.size_min = 0
-
-        self.label = QLabel(text, parent)
-        self.layout = QVBoxLayout(parent)
-
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.lineedit)
-        self.setLayout(self.layout)
-        self.layout.setSpacing(1) #Don't use too much space, it makes the option window too big otherwise
 
     def setSpec(self, spec):
         """
@@ -856,8 +913,7 @@ class CfgListEdit(CfgLineEdit):
         self.lineedit.setText(joined_value)
 
 
-
-class CfgComboBox(QWidget):
+class CfgComboBox(CfgBase):
     """
     Subclassed QComboBox to match our needs.
     """
@@ -869,9 +925,7 @@ class CfgComboBox(QWidget):
         @param items_list: string list containing all the available options
         @param default_item: string containing the default selected item
         """
-        QWidget.__init__(self, parent)
-
-        self.combobox = QComboBox(parent)
+        CfgBase.__init__(self, parent)
 
         if isinstance(items_list, (list, tuple)):
             self.setSpec({'string_list': items_list, 'comment': ''})
@@ -879,13 +933,15 @@ class CfgComboBox(QWidget):
             self.setValue(default_item)
 
         self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent)
 
-        self.combobox.setMinimumWidth(200) #Provide better alignment with other items
-        self.layout.addWidget(self.label)
-        self.layout.addStretch()
-        self.layout.addWidget(self.combobox)
-        self.setLayout(self.layout)
+        self.combobox = QComboBox(parent)
+        self.combobox.setMinimumWidth(200)  # Provide better alignment with other items
+
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.combobox)
+        self.setLayout(layout)
 
     def setSpec(self, spec):
         """
