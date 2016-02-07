@@ -28,11 +28,10 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from math import sin, cos, pi, sqrt
+from math import pi, sqrt
 from copy import deepcopy
 import logging
 
-import globals.globals as g
 from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
 from core.point import Point
@@ -43,27 +42,30 @@ logger = logging.getLogger('core.shapeoffset')
 
 eps = 1e-9
 
+
 class offShapeClass(Shape):
+
     """
     This Class is used to generate The fofset aof a shape according to:
     "A pair-wise offset Algorithm for 2D point sequence curve"
     http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.101.8855
     """
-    def __init__(self, parent = None, offset = 1, offtype = 'in'):
-        """ 
+
+    def __init__(self, parent=None, offset=1, offtype='in'):
+        """
         Standard method to initialize the class
-        @param closed: Gives information about the shape, when it is closed this
-        value becomes 1. Closed means it is a Polygon, otherwise it is a Polyline
+        @param closed: Gives information about the shape, when it is closed
+        this value becomes 1. Closed means it is a Polygon, otherwise it is a
+        Polyline
         @param length: The total length of the shape including all geometries
-        @param geos: The list with all geometries included in the shape. May 
-        also contain arcs. These will be reflected by multiple lines in order 
+        @param geos: The list with all geometries included in the shape. May
+        also contain arcs. These will be reflected by multiple lines in order
         to easy calclations.
         """
 
-
         super(offShapeClass, self).__init__(nr=parent.nr,
                                             closed=parent.closed,
-                                            geos = [])
+                                            geos=[])
 
         self.offset = offset
         self.offtype = offtype
@@ -74,7 +76,8 @@ class offShapeClass(Shape):
 
         self.make_segment_types()
 
-        nextConvexPoint = [e for e in self.segments if isinstance(e, ConvexPoint)]
+        nextConvexPoint = [
+            e for e in self.segments if isinstance(e, ConvexPoint)]
         # logger.debug(nextConvexPoint)
         # nextConvexPoint=[nextConvexPoint[31]]
         self.counter = 0
@@ -84,55 +87,58 @@ class offShapeClass(Shape):
             # logger.debug(len(self.segments))
             # logger.debug("convex_vertex: %s" % nextConvexPoint[0])
             # logger.debug("convex_vertex_nr: %s" % convex_vertex_nr)
-                 
-            forward, backward = self.PairWiseInterferenceDetection(convex_vertex_nr + 1, convex_vertex_nr - 1)
+
+            forward, backward = self.PairWiseInterferenceDetection(
+                convex_vertex_nr + 1, convex_vertex_nr - 1)
             # logger.debug("forward: %s, backward: %s" % (forward, backward))
- 
+
             if forward is None:
                 return
                 break
- 
- 
-            if backward == 0 and forward == (len(self.segments) - 1) and self.closed:
+
+            if (backward == 0 and
+                    forward == (len(self.segments) - 1) and
+                    self.closed):
                 self.segments = []
                 break
- 
+
             # Make Raw offset curve of forward and backward segment
             fw_rawoff_seg = self.make_rawoff_seg(self.segments[forward])
             bw_rawoff_seg = self.make_rawoff_seg(self.segments[backward])
- 
+
             # Intersect the two segements
             iPoint = fw_rawoff_seg.find_inter_point(bw_rawoff_seg)
- 
+
             if iPoint is None:
-                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %(fw_rawoff_seg,bw_rawoff_seg))
-                logger.debug("forward: %s, backward: %s, iPoint: %s =====================================" % (forward, backward, iPoint))
+                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
+                             (fw_rawoff_seg, bw_rawoff_seg))
+                logger.debug("forward: %s, backward: %s, iPoint: %s" % (
+                    forward, backward, iPoint))
                 logger.debug(fw_rawoff_seg)
                 logger.debug(bw_rawoff_seg)
                 logger.error("No intersection found?!")
                 self.segments = []
                 # raise Exception("No intersection found?!")
 
-                
                 break
- 
+
             # Reomve the LIR from the PS Curce
             self.remove_LIR(forward, backward, iPoint)
-            nextConvexPoint = [e for e in self.segments if isinstance(e, ConvexPoint)]
+            nextConvexPoint = [
+                e for e in self.segments if isinstance(e, ConvexPoint)]
             # logger.debug(nextConvexPoint)
             # nextConvexPoint=[]
             # logger.debug(nextConvexPoint)
- 
- 
+
         for seg in self.segments:
             self.rawoff += [self.make_rawoff_seg(seg)]
-        
+
     def __str__(self):
         """
         Standard method to print the object
         @return: A string
         """
-        
+
         return "\nnr:          %i" % self.nr +\
                "\nclosed:      %s" % self.closed +\
                "\ngeos:        %s" % self.geos +\
@@ -143,18 +149,28 @@ class offShapeClass(Shape):
 
     def geos_preprocessing(self, parent):
         """
-        Do all the preprocessing required in order to have working offset algorithm.
-        @param parent: The parent shape including the geometries to be offsetted.
+        Do all the preprocessing required in order to have working offset
+         algorithm.
+        @param parent: The parent shape including the geometries to
+        be offsetted.
         """
 
         self.geos = Geos([])
+        last_Pe = None
         for geo in parent.geos:
             if isinstance(geo, LineGeo):
-                new_geo = OffLineGeo(geo = geo, parent = parent.parentEntity)
+                new_geo = OffLineGeo(geo=geo, parent=parent.parentEntity)
+                mom_Pe = new_geo.Pe
             elif isinstance(geo, ArcGeo):
-                new_geo = OffArcGeo(geo = geo, parent = parent.parentEntity)
+                new_geo = OffArcGeo(geo=geo, parent=parent.parentEntity)
+                mom_Pe = new_geo.Pe
             else:
                 logger.error("Should not be here")
+
+            if last_Pe is not None:
+                logger.debug(new_geo.Ps.distance(last_Pe))
+
+            last_Pe = mom_Pe
 
             self.geos.append(new_geo)
 
@@ -163,11 +179,11 @@ class offShapeClass(Shape):
 
     def make_segment_types(self):
         """
-        This function is called in order to generate the segements according to 
-        Definiton 2.
-        An edge (line) is a linear segment and a reflex vertex is is reflex 
-        segment. Colinear lines are assumed to be removed prior to the segment 
-        type definition.        
+        This function is called in order to generate the segements according
+        to Definiton 2.
+        An edge (line) is a linear segment and a reflex vertex is is reflex
+        segment. Colinear lines are assumed to be removed prior to the segment
+        type definition.
         """
         # Do only if more then 2 geometies
 #         if len(self.geos) < 2:
@@ -183,8 +199,8 @@ class offShapeClass(Shape):
                 geo1.start_normal = geo1.Ps.get_normal_vector(geo1.Pe)
                 geo1.end_normal = geo1.Ps.get_normal_vector(geo1.Pe)
             else:
-                geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r = 1)
-                geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r = 1)
+                geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r=1)
+                geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r=1)
                 if geo1.ext < 0:
                     geo1.start_normal = geo1.start_normal * -1
                     geo1.end_normal = geo1.end_normal * -1
@@ -199,8 +215,8 @@ class offShapeClass(Shape):
                     geo1.start_normal = geo1.Ps.get_normal_vector(geo1.Pe)
                     geo1.end_normal = geo1.Ps.get_normal_vector(geo1.Pe)
                 else:
-                    geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r = 1)
-                    geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r = 1)
+                    geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r=1)
+                    geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r=1)
                     if geo1.ext < 0:
                         geo1.start_normal = geo1.start_normal * -1
                         geo1.end_normal = geo1.end_normal * -1
@@ -209,28 +225,16 @@ class offShapeClass(Shape):
                 geo2.start_normal = geo2.Ps.get_normal_vector(geo2.Pe)
                 geo2.end_normal = geo2.Ps.get_normal_vector(geo2.Pe)
             elif isinstance(geo2, ArcGeo):
-                geo2.start_normal = geo2.O.unit_vector(geo2.Ps, r = 1)
-                geo2.end_normal = geo2.O.unit_vector(geo2.Pe, r = 1)
+                geo2.start_normal = geo2.O.unit_vector(geo2.Ps, r=1)
+                geo2.end_normal = geo2.O.unit_vector(geo2.Pe, r=1)
                 if geo2.ext < 0:
-                        geo2.start_normal = geo2.start_normal * -1
-                        geo2.end_normal = geo2.end_normal * -1
+                    geo2.start_normal = geo2.start_normal * -1
+                    geo2.end_normal = geo2.end_normal * -1
 
-            # logger.debug("geo1: %s, geo2: %s" % (geo1, geo2))
-            # logger.debug("geo1.end_normal: %s, geo2.start_normal: %s" % (geo1.end_normal, geo2.start_normal))
-
-            # If it is a reflex vertex add a reflex segemnt (single point)
-
-            # Add a Reflex Point if radius becomes below zero.
-
-#             if isinstance(geo2, ArcGeo):
-#                 logger.debug(geo2)
-#                 geo2_off = self.make_rawoff_seg(geo2)
-#                 logger.debug(geo2_off)
-#
             if ((isinstance(geo2, ArcGeo)) and
-                ((self.offtype == "out" and geo2.ext > 0) or
-                 (self.offtype == "in" and geo2.ext < 0)) and
-                ((geo2.r - abs(self.offset)) <= 0.0)):
+                    ((self.offtype == "out" and geo2.ext > 0) or
+                     (self.offtype == "in" and geo2.ext < 0)) and
+                    ((geo2.r - abs(self.offset)) <= 0.0)):
 
                 newgeo2 = ConvexPoint(geo2.O.x, geo2.O.y)
                 newgeo2.start_normal = geo2.start_normal
@@ -255,16 +259,15 @@ class offShapeClass(Shape):
 
                 # logger.debug("reflex")
 
-                reflexPe = OffPoint(x = geo1.Pe.x, y = geo1.Pe.y)
+                reflexPe = OffPoint(x=geo1.Pe.x, y=geo1.Pe.y)
                 reflexPe.start_normal = geo1.end_normal
                 reflexPe.end_normal = geo2.start_normal
                 self.segments += [reflexPe, geo2]
 
             elif (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                             geo1.Pe + geo1.end_normal +
-                             geo2.start_normal) == 0):
+                              geo1.Pe + geo1.end_normal +
+                              geo2.start_normal) == 0):
                 self.segments += [geo2]
-
 
             # Add the linear segment which is a line connecting 2 vertices
             else:
@@ -275,11 +278,11 @@ class offShapeClass(Shape):
 
     def make_rawoff_seg(self, seg):
         """
-        This function returns the rawoffset of a segement. A line for a line and
-        a circle for a reflex segement.
+        This function returns the rawoffset of a segement. A line for a line
+        and a circle for a reflex segement.
         @param segment_nr: The nr of the segement for which the rawoffset
         segement shall be generated
-        @ return: Returns the rawoffsetsegement of the  defined segment 
+        @ return: Returns the rawoffsetsegement of the  defined segment
         """
 
         # seg=self.segments[segment_nr]
@@ -299,45 +302,49 @@ class offShapeClass(Shape):
             Ps = seg + seg.start_normal * offset
             Pe = seg + seg.end_normal * offset
 
-            return OffArcGeo(Ps = Ps, Pe = Pe, O = deepcopy(seg), r = self.offset, direction = offset)
+            return OffArcGeo(Ps=Ps, Pe=Pe, O=deepcopy(seg),
+                             r=self.offset, direction=offset)
         elif isinstance(seg, OffArcGeo):
             Ps = seg.Ps + seg.start_normal * offset
             Pe = seg.Pe + seg.end_normal * offset
 
             if seg.ext > 0:
-                return OffArcGeo(Ps = Ps, Pe = Pe, O = seg.O, r = seg.r + offset, direction = seg.ext)
+                return OffArcGeo(Ps=Ps, Pe=Pe, O=seg.O,
+                                 r=seg.r + offset, direction=seg.ext)
             else:
-                return OffArcGeo(Ps = Ps, Pe = Pe, O = seg.O, r = seg.r - offset, direction = seg.ext)
+                return OffArcGeo(Ps=Ps, Pe=Pe, O=seg.O,
+                                 r=seg.r - offset, direction=seg.ext)
 
         elif isinstance(seg, ConvexPoint):
             Ps = seg + seg.start_normal * offset
             Pe = seg + seg.end_normal * offset
-            return OffArcGeo(Ps = Ps, Pe = Pe, O = deepcopy(seg), r = self.offset, direction = offset)
+            return OffArcGeo(Ps=Ps, Pe=Pe, O=deepcopy(seg),
+                             r=self.offset, direction=offset)
         else:
             logger.error("Unsupportet Object type: %s" % type(seg))
 
-    def interfering_full(self, segment1, dir, segment2):
+    def interfering_full(self, segment1, direction, segment2):
         """
-        Check if the Endpoint (dependent on dir) of segment 1 is interfering with 
-        segment 2 Definition according to Definition 6
-        @param segment 1: The first segment 
-        @param dir: The direction of the line 1, as given -1 reversed direction
+        Check if the Endpoint (dependent on direction) of segment 1 is
+        interfering with segment 2 Definition according to Definition 6
+        @param segment 1: The first segment
+        @param direction: The direction of the line 1, as given -1 reversed
         @param segment 2: The second segment to be checked
         @ return: Returns True or False
         """
 
         # if segement 1 is inverted change End Point
-        if isinstance(segment1, OffLineGeo) and dir == 1:
+        if isinstance(segment1, OffLineGeo) and direction == 1:
             Pe = segment1.Pe
-        elif isinstance(segment1, OffLineGeo) and dir == -1:
+        elif isinstance(segment1, OffLineGeo) and direction == -1:
             Pe = segment1.Ps
         elif isinstance(segment1, ConvexPoint):
             return False
         elif isinstance(segment1, OffPoint):
             Pe = segment1
-        elif isinstance(segment1, OffArcGeo) and dir == 1:
+        elif isinstance(segment1, OffArcGeo) and direction == 1:
             Pe = segment1.Pe
-        elif isinstance(segment1, OffArcGeo) and dir == -1:
+        elif isinstance(segment1, OffArcGeo) and direction == -1:
             Pe = segment1.Ps
         else:
             logger.error("Unsupportet Object type: %s" % type(segment1))
@@ -348,38 +355,24 @@ class offShapeClass(Shape):
         else:
             offset = abs(self.offset)
 
-
-        if dir == 1:
+        if direction == 1:
             distance = segment2.distance(Pe + segment1.end_normal * offset)
-#             self.interferingshapes += [OffLineGeo(Pe, Pe + segment1.end_normal * offset),
-#                                      segment2,
-#                                      OffArcGeo(O=Pe + segment1.end_normal * offset,
-#                                             Ps=Pe, Pe=Pe ,
-#                                             s_ang=0, e_ang=2 * pi, r=self.offset)]
+
         else:
-            # logger.debug(Pe)
-            # logger.debug(segment1)
-            # logger.debug(segment1.start_normal)
             distance = segment2.distance(Pe + segment1.start_normal * offset)
-#             self.interferingshapes += [OffLineGeo(Pe, Pe + segment1.start_normal * offset),
-#                                      segment2,
-#                                      OffArcGeo(O=Pe + segment1.start_normal * offset,
-#                                             Ps=Pe, Pe=Pe,
-#                                             s_ang=0, e_ang=2 * pi, r=self.offset)]
 
         # logger.debug("Full distance: %s" % distance)
 
-
-        # If the distance from the Segment to the Center of the Tangential Circle
-        # is smaller then the radius we have an intersection
+        # If the distance from the Segment to the Center of the Tangential
+        # Circle is smaller then the radius we have an intersection
         return distance <= abs(offset)
 
-    def interfering_partly(self, segment1, dir, segment2):
+    def interfering_partly(self, segment1, direction, segment2):
         """
-        Check if any tangential circle of segment 1 is interfering with 
+        Check if any tangential circle of segment 1 is interfering with
         segment 2. Definition according to Definition 5
-        @param segment 1: The first Line 
-        @param dir: The direction of the segment 1, as given -1 reversed direction
+        @param segment 1: The first Line
+        @param direction: The direction of the segment 1, as given -1 reversed
         @param segment 2: The second line to be checked
         @ return: Returns True or False
         """
@@ -389,7 +382,7 @@ class offShapeClass(Shape):
         else:
             offGeo = self.make_rawoff_seg(segment1)
 #             self.interferingshapes += [offGeo]
-        
+
         # if we cut outside reverse the offset
         if self.offtype == "out":
             offset = -abs(self.offset)
@@ -406,16 +399,13 @@ class offShapeClass(Shape):
 
     def Interfering_relation(self, segment1, segment2):
         """
-        Check the interfering relation between two segements (segment1 and segment2).
-        Definition acccording to Definition 6 
+        Check the interfering relation between two segements (segment1 and
+        segment2). Definition acccording to Definition 6
         @param segment1: The first segment (forward)
         @param segment2: The second segment (backward)
-        @return: Returns one of [full, partial, reverse, None] interfering relations 
-        for both segments
+        @return: Returns one of [full, partial, reverse, None] interfering
+        relations for both segments
         """
-
-        # logger.debug("\nChecking: segment1: %s, \nsegment2: %s" % (segment1, segment2))
-
         # Check if segments are equal
         if segment1 == segment2:
             return None, None
@@ -436,7 +426,8 @@ class offShapeClass(Shape):
         else:
             L2_status = "reverse"
 
-        # logger.debug("Start Status: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
+        # logger.debug("Start Status: L1_status: %s,L2_status: %s"
+        # % (L1_status, L2_status))
 
         return [L1_status, L2_status]
 
@@ -471,14 +462,14 @@ class offShapeClass(Shape):
             if isinstance(segment2, ConvexPoint):
                 backward -= 1
                 segment2 = self.segments[backward]
-                # logger.debug("Backward ConvexPoint")
 
-            # logger.debug("Checking: forward: %s, backward: %s" % (forward, backward))
-            [L1_status, L2_status] = self.Interfering_relation(segment1, segment2)
-            # logger.debug("Start Status: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
+            [L1_status, L2_status] = self.Interfering_relation(
+                segment1, segment2)
+#             logger.debug("Start Status: L1_status: %s,L2_status: %s"
+#                          % (L1_status, L2_status))
 
             """
-            The reverse interfering segment is replaced  by the first 
+            The reverse interfering segment is replaced  by the first
             non-reverse-interfering segment along it's tracking direction
             """
             if L1_status == "reverse":
@@ -499,11 +490,15 @@ class offShapeClass(Shape):
                         segment1 = self.segments[forward]
                         # logger.debug("Forward ConvexPoint")
 
-                    # logger.debug("Reverse Replace Checking: forward: %s, backward: %s" %(forward, backward))
+#                     logger.debug("Reverse Replace: forward: %s, backward: %s"
+#                                  % (forward, backward))
 
-                    [L1_status, L2_status] = self.Interfering_relation(segment1, segment2)
-                    # logger.debug("Checking: forward: %s, backward: %s" %(forward, backward))
-                    # logger.debug("Replace Reverse: L1_status: %s,L2_status: %s" %(L1_status,L2_status))
+                    [L1_status, L2_status] = self.Interfering_relation(
+                        segment1, segment2)
+#                     logger.debug("Checking: forward: %s, backward: %s"
+#                                  %(forward, backward))
+#                     logger.debug("Replace Rev.: L1_status: %s,L2_status: %s"
+#                                  %(L1_status,L2_status))
 
             elif L2_status == "reverse":
                 while L2_status == "reverse":
@@ -514,7 +509,8 @@ class offShapeClass(Shape):
                     if self.counter >= val:
                         self.interferingshapes = []
                     backward -= 1
-                    # logger.debug("Reveerse Replace Checking: forward: %s, backward: %s" %(forward, backward))
+#                     logger.debug("Reverse Replace: forward: %s, backward: %s"
+#                                  % (forward, backward))
                     segment2 = self.segments[backward]
 
                     if isinstance(segment2, ConvexPoint):
@@ -522,11 +518,12 @@ class offShapeClass(Shape):
                         segment2 = self.segments[backward]
                         # logger.debug("Backward ConvexPoint")
 
-
-                    [L1_status, L2_status] = self.Interfering_relation(segment1, segment2)
-                    # logger.debug("Checking: forward: %s, backward: %s" %(forward, backward))
-                    # logger.debug("Replace Reverse: L1_status: %s,L2_status: %s" %(L1_status,L2_status))
-
+                    [L1_status, L2_status] = self.Interfering_relation(
+                        segment1, segment2)
+#                     logger.debug("Checking: forward: %s, backward: %s"
+#                                  % (forward, backward))
+#                     logger.debug("Replace Rev.: L1_status: %s,L2_status: %s"
+#                                  % (L1_status, L2_status))
 
             """
             Full interfering segment is replaced by the nexst segemnt along the
@@ -562,26 +559,31 @@ class offShapeClass(Shape):
         @param iPoint: The Intersection point of the LIR
         """
         if backward > forward:
-            pop_range = self.segments[backward + 1:len(self.segments)] 
+            pop_range = self.segments[backward + 1:len(self.segments)]
             pop_range += self.segments[0:forward]
-        elif backward<0:
-            pop_range = self.segments[len(self.segments)+backward + 1:len(self.segments)] 
+        elif backward < 0:
+            pop_range = self.segments[
+                len(self.segments) + backward + 1:len(self.segments)]
             pop_range += self.segments[0:forward]
         else:
             pop_range = self.segments[backward + 1:forward]
-            
+
         if self.offtype == "out":
             rev = True
         else:
             rev = False
         # Modify the first segment and the last segment of the LIR
-        self.segments[forward] = self.segments[forward].trim(Point=iPoint, dir=1, rev_norm=rev)
-        self.segments[backward] = self.segments[backward].trim(Point=iPoint, dir=-1, rev_norm=rev)
+        self.segments[forward] = self.segments[
+            forward].trim(Point=iPoint, dir=1, rev_norm=rev)
+        self.segments[backward] = self.segments[
+            backward].trim(Point=iPoint, dir=-1, rev_norm=rev)
 
         # Remove the segments which are inbetween the LIR
         self.segments = [x for x in self.segments if x not in pop_range]
 
+
 class SweepLine:
+
     def __init__(self, geos=[], closed=True):
         """
         This the init function of the SweepLine Class. It is calling a sweep line
@@ -616,9 +618,8 @@ class SweepLine:
             for swoop_ele in element.swoop:
                 swoop_array.append(swoop_ele)
 
-
-
-            sweep_array_order += [[element.Point.x, element.Point.y], add_array, rem_array, swoop_array]
+            sweep_array_order += [[element.Point.x,
+                                   element.Point.y], add_array, rem_array, swoop_array]
 
         return ('\nlen(geos):   %i' % len(self.geos)) + \
                ('\nclosed:      %i' % self.closed) + \
@@ -659,9 +660,10 @@ class SweepLine:
                 geo.neighbors.append(geos[geo_nr + 1])
 
             y_val = (geo.BB.Ps.y + geo.BB.Pe.y) / 2
-            sweep_array.append(SweepElement(Point=geo.Point, add=[geo], remove=[]))
-            sweep_array.append(SweepElement(Point=Point(x=geo.BB.Pe.x, y=y_val), add=[], remove=[geo]))
-
+            sweep_array.append(
+                SweepElement(Point=geo.Point, add=[geo], remove=[]))
+            sweep_array.append(
+                SweepElement(Point=Point(x=geo.BB.Pe.x, y=y_val), add=[], remove=[geo]))
 
         # logger.debug(sweep_array)
         sweep_array.sort(self.cmp_SweepElement)
@@ -674,41 +676,41 @@ class SweepLine:
                 self.sweep_array[-1].remove += sweep_array[ele_nr].remove
             else:
                 self.sweep_array.append(sweep_array[ele_nr])
-          
+
     def cmp_asscending_arc(self, P1, P2):
         """
         Compare Function for the sorting of Intersection Points on one common ARC
         @param P1: The first Point to be compared
         @param P2: The secon Point to be compared
         @return: 1 if the distance to the start point of P1 is bigger
-        """  
-        
+        """
+
         # The angle between startpoint and where the intersection occures
         d_ang1 = (self.O.norm_angle(P1) - self.s_ang) % (2 * pi)
         d_ang2 = (self.O.norm_angle(P2) - self.s_ang) % (2 * pi)
-        
+
         # Correct by 2*pi if the direction is wrong
         if self.ext < 0.0:
             d_ang1 -= 2 * pi
             d_ang2 -= 2 * pi
-                
+
         if d_ang1 > d_ang2:
             return 1
         elif d_ang1 == d_ang2:
             return 0
         else:
             return -1
-        
+
     def cmp_asscending_line(self, P1, P2):
         """
         Compare Function for the sorting of Intersection points on one common LINE
         @param P1: The first Point to be compared
         @param P2: The secon Point to be compared
         @return: 1 if the distance to the start point of P1 is bigger
-        """  
+        """
         d1 = P1.distance(self.Ps)
         d2 = P2.distance(self.Ps)
-              
+
         if d1 > d2:
             return 1
         elif d1 == d2:
@@ -770,11 +772,12 @@ class SweepLine:
                 # logger.debug(geo)
                 if len(search_array) >= 2:
                     if index > 0:
-                        self.search_geo_intersection(geo, search_array[index - 1])
-
+                        self.search_geo_intersection(
+                            geo, search_array[index - 1])
 
                     if index < (len(search_array) - 1):
-                        self.search_geo_intersection(geo, search_array[index + 1])
+                        self.search_geo_intersection(
+                            geo, search_array[index + 1])
 
             for geo in ele.swoop:
                 # The y values of the elements are exchanged and the upper and
@@ -782,7 +785,6 @@ class SweepLine:
                 # logger.debug(geo[0].Point)
                 # logger.debug(geo[1].Point)
                 # logger.debug(search_array)
-
 
                 y0 = geo[0].Point.y
                 y1 = geo[1].Point.y
@@ -807,12 +809,12 @@ class SweepLine:
                 min_ind = min(index0, index1)
                 max_ind = max(index0, index1)
                 if min_ind > 0:
-                    self.search_geo_intersection(search_array[min_ind], search_array[min_ind - 1])
-
+                    self.search_geo_intersection(
+                        search_array[min_ind], search_array[min_ind - 1])
 
                 if max_ind < (len(search_array) - 1):
-                    self.search_geo_intersection(search_array[max_ind], search_array[max_ind + 1])
-
+                    self.search_geo_intersection(
+                        search_array[max_ind], search_array[max_ind + 1])
 
             for geo in ele.remove:
                 index = search_array.index(geo)
@@ -821,8 +823,8 @@ class SweepLine:
                 search_array.pop(index)
                 if len(search_array) >= 2:
                     if index > 0 and index <= (len(search_array) - 1):
-                        self.search_geo_intersection(search_array[index - 1], search_array[index])
-
+                        self.search_geo_intersection(
+                            search_array[index - 1], search_array[index])
 
         logger.debug(self.found)
 
@@ -830,15 +832,15 @@ class SweepLine:
         """
         This function is called so search the intersections and to add the 
         intersection point to the sweep array. This is called during each search
-        
+
         """
         # logger.debug(search_array[index+1])
         # logger.debug("geo1: %s\ngeo2: %s" %(geo1,geo2))
         iPoint = (geo1.find_inter_point(geo2))
-        
+
         if (not(iPoint is None) and
-            not(geo2 in geo1.neighbors)):
-            
+                not(geo2 in geo1.neighbors)):
+
             iPoint.geo = [geo1, geo2]
 
             # if there is only one instersection
@@ -846,19 +848,25 @@ class SweepLine:
                 self.found.append(iPoint)
                 geo1.iPoints += [iPoint]
                 geo2.iPoints += [iPoint]
-                
-                self.sweep_array.append(SweepElement(Point=iPoint, add=[], remove=[], swoop=[[geo1, geo2]]))
+
+                self.sweep_array.append(
+                    SweepElement(Point=iPoint, add=[], remove=[], swoop=[[geo1, geo2]]))
 
             else:
                 self.found += iPoint
                 geo1.iPoints += iPoint
                 geo2.iPoints += iPoint
-                self.sweep_array.append(SweepElement(Point=iPoint[0], add=[], remove=[], swoop=[[geo1, geo2]]))
-                self.sweep_array.append(SweepElement(Point=iPoint[1], add=[], remove=[], swoop=[[geo1, geo2]]))
+                self.sweep_array.append(
+                    SweepElement(Point=iPoint[0], add=[], remove=[], swoop=[[geo1, geo2]]))
+                self.sweep_array.append(
+                    SweepElement(Point=iPoint[1], add=[], remove=[], swoop=[[geo1, geo2]]))
 
             self.sweep_array.sort(self.cmp_SweepElement)
             # logger.debug(self)
+
+
 class SweepElement:
+
     def __init__(self, Point=Point(0, 0), add=[], remove=[], swoop=[]):
         """
         This is the class for each SweepElement given in the sweep_array
@@ -880,15 +888,17 @@ class SweepElement:
         return ('\nPoint:     %s ' % (self.Point)) + \
                ('\nadd:       %s ' % self.add) + \
                ('\nremove:    %s ' % self.remove)
-               
+
+
 class OffArcGeo(ArcGeo):
+
     """
     Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
     clean as possible.
     """
-    
+
     def __init__(self, Ps=None, Pe=None, O=None, r=1,
-                 s_ang = None, e_ang = None, direction = 1, drag = False, **kwargs):
+                 s_ang=None, e_ang=None, direction=1, drag=False, **kwargs):
         """
         Standard Method to initialize the ArcGeo. Not all of the parameters are
         required to fully define a arc. e.g. Ps and Pe may be given or s_ang and
@@ -906,9 +916,9 @@ class OffArcGeo(ArcGeo):
             geo = kwargs["geo"]
             parent = kwargs["parent"]
 
-            Ps = geo.Ps.rot_sca_abs(parent = parent)
-            Pe = geo.Pe.rot_sca_abs(parent = parent)
-            O = geo.O.rot_sca_abs(parent = parent)
+            Ps = geo.Ps.rot_sca_abs(parent=parent)
+            Pe = geo.Pe.rot_sca_abs(parent=parent)
+            O = geo.O.rot_sca_abs(parent=parent)
             r = geo.scaled_r(geo.r, parent)
 
             direction = 1 if geo.ext > 0.0 else -1
@@ -917,7 +927,7 @@ class OffArcGeo(ArcGeo):
                 direction *= -1
 
         ArcGeo.__init__(self, Ps=Ps, Pe=Pe, O=O, r=r,
-                 s_ang=s_ang, e_ang=e_ang, direction=direction, drag=drag)
+                        s_ang=s_ang, e_ang=e_ang, direction=direction, drag=drag)
 
     def distance(self, other):
         """
@@ -941,7 +951,8 @@ class OffArcGeo(ArcGeo):
         elif isinstance(other, ArcGeo):
             return self.distance_a_a(other)
         else:
-            logger.error(self.tr("Unsupported geometry type: %s" % type(other)))
+            logger.error(
+                self.tr("Unsupported geometry type: %s" % type(other)))
 
     def distance_a_a(self, other):
         """
@@ -954,7 +965,7 @@ class OffArcGeo(ArcGeo):
         Pother = other.get_nearest_point(self)
         return Pself.distance(Pother)
 
-    def find_inter_point(self, other = [], type = 'TIP'):
+    def find_inter_point(self, other=[], type='TIP'):
         """
         Find the intersection between 2 geometry elements. Possible is CCLineGeo
         and ArcGeo
@@ -972,7 +983,7 @@ class OffArcGeo(ArcGeo):
         else:
             logger.error("Unsupported Instance: %s" % other.type)
 
-    def find_inter_point_a_a(self, other, type = 'TIP'):
+    def find_inter_point_a_a(self, other, type='TIP'):
         """
         Find the intersection between 2 ArcGeo elements. There can be only one
         intersection between 2 lines.
@@ -992,21 +1003,22 @@ class OffArcGeo(ArcGeo):
         if(O_dis < abs(other.r - self.r)):
             return None
 
-        # If The circles are to far away from each other no intersection possible
+        # If The circles are to far away from each other no intersection
+        # possible
         if (O_dis > abs(other.r + self.r)):
             return None
 
         # If both circles have the same center and radius
         if abs(O_dis) == 0.0 and abs(self.r - other.r) == 0.0:
-            Pi1 = Point(x = self.Ps.x, y = self.Ps.y)
-            Pi2 = Point(x = self.Pe.x, y = self.Pe.y)
+            Pi1 = Point(x=self.Ps.x, y=self.Ps.y)
+            Pi2 = Point(x=self.Pe.x, y=self.Pe.y)
 
             return [Pi1, Pi2]
         # The following algorithm was found on :
         # http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
 
-        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) *
-                  (pow(O_dis, 2) - pow(other.r - self.r, 2)))
+        root = ((pow(self.r + other.r, 2) - pow(O_dis, 2)) *
+                (pow(O_dis, 2) - pow(other.r - self.r, 2)))
 
         # If the Line is a tangent the root is 0.0.
         if root <= 0.0:
@@ -1015,40 +1027,39 @@ class OffArcGeo(ArcGeo):
             root = sqrt(root)
 
         xbase = (other.O.x + self.O.x) / 2 + \
-        (other.O.x - self.O.x) * \
-        (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
+            (other.O.x - self.O.x) * \
+            (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
 
         ybase = (other.O.y + self.O.y) / 2 + \
-        (other.O.y - self.O.y) * \
-        (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
+            (other.O.y - self.O.y) * \
+            (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
 
-        Pi1 = Point(x = xbase + (other.O.y - self.O.y) / \
-                          (2 * pow(O_dis, 2)) * root,
-                    y = ybase - (other.O.x - self.O.x) / \
+        Pi1 = Point(x=xbase + (other.O.y - self.O.y) /
+                    (2 * pow(O_dis, 2)) * root,
+                    y=ybase - (other.O.x - self.O.x) /
                     (2 * pow(O_dis, 2)) * root)
 
         Pi1_v1 = self.dif_ang(self.Ps, Pi1, self.ext) / self.ext
         Pi1_v2 = other.dif_ang(other.Ps, Pi1, other.ext) / other.ext
 
-        Pi2 = Point(x = xbase - (other.O.y - self.O.y) / \
-                         (2 * pow(O_dis, 2)) * root,
-                    y = ybase + (other.O.x - self.O.x) / \
+        Pi2 = Point(x=xbase - (other.O.y - self.O.y) /
+                    (2 * pow(O_dis, 2)) * root,
+                    y=ybase + (other.O.x - self.O.x) /
                     (2 * pow(O_dis, 2)) * root)
 
         Pi2_v1 = self.dif_ang(self.Ps, Pi2, self.ext) / self.ext
         Pi2_v2 = other.dif_ang(other.Ps, Pi2, other.ext) / other.ext
 
-
         if type == 'TIP':
             if ((Pi1_v1 >= 0.0 and Pi1_v1 <= 1.0 and Pi1_v2 > 0.0 and Pi1_v2 <= 1.0) and
-               (Pi2_v1 >= 0.0 and Pi2_v1 <= 1.0 and Pi2_v2 > 0.0 and Pi2_v2 <= 1.0)):
+                    (Pi2_v1 >= 0.0 and Pi2_v1 <= 1.0 and Pi2_v2 > 0.0 and Pi2_v2 <= 1.0)):
                 if (root == 0):
                     return Pi1
                 else:
                     return [Pi1, Pi2]
             elif (Pi1_v1 >= 0.0 and Pi1_v1 <= 1.0 and Pi1_v2 > 0.0 and Pi1_v2 <= 1.0):
                 return Pi1
-            elif  (Pi2_v1 >= 0.0 and Pi2_v1 <= 1.0 and Pi2_v2 > 0.0 and Pi2_v2 <= 1.0):
+            elif (Pi2_v1 >= 0.0 and Pi2_v1 <= 1.0 and Pi2_v2 > 0.0 and Pi2_v2 <= 1.0):
                 return Pi2
             else:
                 return None
@@ -1070,7 +1081,7 @@ class OffArcGeo(ArcGeo):
         from core.linegeo import LineGeo
 
         if isinstance(other, LineGeo):
-            return other.get_nearest_point_l_a(self, ret = "arc")
+            return other.get_nearest_point_l_a(self, ret="arc")
         elif isinstance(other, ArcGeo):
             return self.get_nearest_point_a_a(other)
         elif isinstance(other, Point):
@@ -1087,7 +1098,7 @@ class OffArcGeo(ArcGeo):
         if self.intersect(other):
             return other
 
-        PPoint = self.O.get_arc_point(self.O.norm_angle(other), r = self.r)
+        PPoint = self.O.get_arc_point(self.O.norm_angle(other), r=self.r)
         if self.intersect(PPoint):
             return PPoint
         elif self.Ps.distance(other) < self.Pe.distance(other):
@@ -1095,7 +1106,7 @@ class OffArcGeo(ArcGeo):
         else:
             return self.Pe
 
-    def get_nearest_point_a_a(self, other, ret = "self"):
+    def get_nearest_point_a_a(self, other, ret="self"):
         """
         Get the nearest point to a line lieing on the line
         @param other: The Point to be nearest to
@@ -1104,27 +1115,25 @@ class OffArcGeo(ArcGeo):
         if self.intersect(other):
             return self.find_inter_point_a_a(other)
 
-
-
         # The Arc is outside of the Arc
         # if other.O.distance(self.O)>(other.r+other.r):
 
         # If Nearest point is on both Arc Segments.
         if other.PointAng_withinArc(self.O) and self.PointAng_withinArc(other.O):
             if ret == "self":
-                return self.O.get_arc_point(self.O.norm_angle(other.O), r = self.r)
+                return self.O.get_arc_point(self.O.norm_angle(other.O), r=self.r)
             elif ret == "other":
-                return other.O.get_arc_point(other.O.norm_angle(self.O), r = other.r)
+                return other.O.get_arc_point(other.O.norm_angle(self.O), r=other.r)
         # If Nearest point is on self Arc Segment but not other
         elif self.PointAng_withinArc(other.O):
             if self.distance(other.Ps) < self.distance(other.Pe):
                 if ret == "self":
-                    return self.O.get_arc_point(self.O.norm_angle(other.Ps), r = self.r)
+                    return self.O.get_arc_point(self.O.norm_angle(other.Ps), r=self.r)
                 elif ret == "other":
                     return other.Ps
             else:
                 if ret == "self":
-                    return self.O.get_arc_point(self.O.norm_angle(other.Pe), r = self.r)
+                    return self.O.get_arc_point(self.O.norm_angle(other.Pe), r=self.r)
                 elif ret == "other":
                     return other.Pe
         # If Nearest point is on other Arc Segment but not self
@@ -1133,13 +1142,14 @@ class OffArcGeo(ArcGeo):
                 if ret == "self":
                     return self.Ps
                 elif ret == "other":
-                    return other.O.get_arc_point(other.O.norm_angle(self.Ps), r = other.r)
+                    return other.O.get_arc_point(other.O.norm_angle(self.Ps), r=other.r)
             else:
                 if ret == "self":
                     return self.Pe
                 elif ret == "other":
-                    return other.O.get_arc_point(other.O.norm_angle(self.Pe), r = other.r)
-        # If the min distance is not on any arc segemtn but other.Ps is nearer then other.Pe
+                    return other.O.get_arc_point(other.O.norm_angle(self.Pe), r=other.r)
+        # If the min distance is not on any arc segemtn but other.Ps is nearer
+        # then other.Pe
         elif self.distance(other.Ps) < self.distance(other.Pe):
             if self.Ps.distance(other.Ps) < self.Pe.distance(other.Ps):
                 if ret == "self":
@@ -1222,7 +1232,7 @@ class OffArcGeo(ArcGeo):
         v = self.dif_ang(self.Ps, Point, self.ext) / self.ext
         return v >= 0.0 and v <= 1.0
 
-    def split_into_2geos(self, ipoint = Point()):
+    def split_into_2geos(self, ipoint=Point()):
         """
         Splits the given geometry into 2 geometries. The
         geometry will be splitted at ipoint.
@@ -1230,15 +1240,14 @@ class OffArcGeo(ArcGeo):
         @return: A list of 2 ArcGeo's will be returned.
         """
 
-
         # Generate the 2 geometries and their bounding boxes.
-        Arc1 = OffArcGeo(Ps = self.Ps, Pe = ipoint, r = self.r,
-                       O = self.O, direction = self.ext)
+        Arc1 = OffArcGeo(Ps=self.Ps, Pe=ipoint, r=self.r,
+                         O=self.O, direction=self.ext)
 
-        Arc2 = OffArcGeo(Ps = ipoint, Pe = self.Pe, r = self.r,
-                       O = self.O, direction = self.ext)
+        Arc2 = OffArcGeo(Ps=ipoint, Pe=self.Pe, r=self.r,
+                         O=self.O, direction=self.ext)
         return [Arc1, Arc2]
-            
+
     def trim(self, Point, dir=1, rev_norm=False):
         """
         This instance is used to trim the geometry at the given point. The point
@@ -1278,14 +1287,15 @@ class OffArcGeo(ArcGeo):
             # logger.debug(new_arc)
             return new_arc
 
+
 class OffLineGeo(LineGeo):
-    
+
     """
     Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
     clean as possible.
     """
 
-    def __init__(self, Ps = None, Pe = None, **kwargs):
+    def __init__(self, Ps=None, Pe=None, **kwargs):
         """
         Standard Method to initialize the LineGeo.
         @param Ps: The Start Point of the line
@@ -1296,8 +1306,8 @@ class OffLineGeo(LineGeo):
             geo = kwargs["geo"]
             parent = kwargs["parent"]
 
-            Ps = geo.Ps.rot_sca_abs(parent = parent)
-            Pe = geo.Pe.rot_sca_abs(parent = parent)
+            Ps = geo.Ps.rot_sca_abs(parent=parent)
+            Pe = geo.Pe.rot_sca_abs(parent=parent)
 
         LineGeo.__init__(self, Ps=Ps, Pe=Pe)
 
@@ -1374,7 +1384,7 @@ class OffLineGeo(LineGeo):
         else:
             return False
 
-    def distance(self, other = []):
+    def distance(self, other=[]):
         """
         Find the distance between 2 geometry elements. Possible is CCLineGeo
         and ArcGeo
@@ -1390,7 +1400,8 @@ class OffLineGeo(LineGeo):
         elif isinstance(other, ArcGeo):
             return self.distance_l_a(other)
         else:
-            logger.error(self.tr("Unsupported geometry type: %s" % type(other)))
+            logger.error(
+                self.tr("Unsupported geometry type: %s" % type(other)))
 
     def distance_l_l(self, other):
         """
@@ -1425,11 +1436,11 @@ class OffLineGeo(LineGeo):
             # If the Nearest Point is on Arc Segement it is the neares one.
             # logger.debug("Nearest Point is outside of arc")
             if other.PointAng_withinArc(POnearest):
-                return POnearest.distance(other.O.get_arc_point(other.O.norm_angle(POnearest), r = other.r))
+                return POnearest.distance(other.O.get_arc_point(other.O.norm_angle(POnearest), r=other.r))
             elif self.distance(other.Ps) < self.distance(other.Pe):
-                    return self.get_nearest_point(other.Ps).distance(other.Ps)
+                return self.get_nearest_point(other.Ps).distance(other.Ps)
             else:
-                    return self.get_nearest_point(other.Pe).distance(other.Pe)
+                return self.get_nearest_point(other.Pe).distance(other.Pe)
 
         # logger.debug("Nearest Point is Inside of arc")
         # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
@@ -1442,18 +1453,18 @@ class OffLineGeo(LineGeo):
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Ps)) and
-            abs(other.r - other.O.distance(self.Ps)) < dis_min):
+                abs(other.r - other.O.distance(self.Ps)) < dis_min):
             dis_min = abs(other.r - other.O.distance(self.Ps))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Pe)) and
-            abs((other.r - other.O.distance(self.Pe))) < dis_min):
+                abs((other.r - other.O.distance(self.Pe))) < dis_min):
             dis_min = abs(other.r - other.O.distance(self.Pe))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         return dis_min
 
-    def find_inter_point(self, other, type = 'TIP'):
+    def find_inter_point(self, other, type='TIP'):
         """
         Find the intersection between 2 Geo elements. There can be only one
         intersection between 2 lines. Returns also FIP which lay on the ray.
@@ -1473,7 +1484,7 @@ class OffLineGeo(LineGeo):
         else:
             logger.error("Unsupported Instance: %s" % other.type)
 
-    def find_inter_point_l_l(self, other, type = "TIP"):
+    def find_inter_point_l_l(self, other, type="TIP"):
         """
         Find the intersection between 2 LineGeo elements. There can be only one
         intersection between 2 lines. Returns also FIP which lay on the ray.
@@ -1489,7 +1500,6 @@ class OffLineGeo(LineGeo):
         elif type == 'TIP' and not(self.intersect(other)):
 
             return None
-
 
         dx1 = self.Pe.x - self.Ps.x
         dy1 = self.Pe.y - self.Ps.y
@@ -1515,10 +1525,10 @@ class OffLineGeo(LineGeo):
         except:
             return None
 
-        return Point(x = self.Ps.x + v1 * dx1,
-                          y = self.Ps.y + v1 * dy1)
+        return Point(x=self.Ps.x + v1 * dx1,
+                     y=self.Ps.y + v1 * dy1)
 
-    def find_inter_point_l_a(self, Arc, type = "TIP"):
+    def find_inter_point_l_a(self, Arc, type="TIP"):
         """
         Find the intersection between 2 Geo elements. The intersection
         between a Line and a Arc is checked here. This function is also used
@@ -1537,7 +1547,8 @@ class OffLineGeo(LineGeo):
         # Gleichung
         a = pow(Ldx, 2) + pow(Ldy, 2)
         b = 2 * Ldx * (self.Ps.x - Arc.O.x) + 2 * Ldy * (self.Ps.y - Arc.O.y)
-        c = pow(self.Ps.x - Arc.O.x, 2) + pow(self.Ps.y - Arc.O.y, 2) - pow(Arc.r, 2)
+        c = pow(self.Ps.x - Arc.O.x, 2) + \
+            pow(self.Ps.y - Arc.O.y, 2) - pow(Arc.r, 2)
         root = pow(b, 2) - 4 * a * c
 
         # If the value under the sqrt is negative there is no intersection.
@@ -1547,25 +1558,25 @@ class OffLineGeo(LineGeo):
         v1 = (-b + sqrt(root)) / (2 * a)
         v2 = (-b - sqrt(root)) / (2 * a)
 
-        Pi1 = Point(x = self.Ps.x + v1 * Ldx,
-                       y = self.Ps.y + v1 * Ldy)
+        Pi1 = Point(x=self.Ps.x + v1 * Ldx,
+                    y=self.Ps.y + v1 * Ldy)
 
-        Pi2 = Point(x = self.Ps.x + v2 * Ldx,
-               y = self.Ps.y + v2 * Ldy)
+        Pi2 = Point(x=self.Ps.x + v2 * Ldx,
+                    y=self.Ps.y + v2 * Ldy)
 
         Pi1_v = Arc.dif_ang(Arc.Ps, Pi1, Arc.ext) / Arc.ext
         Pi2_v = Arc.dif_ang(Arc.Ps, Pi2, Arc.ext) / Arc.ext
 
         if type == 'TIP':
             if ((Pi1_v >= 0.0 and Pi1_v <= 1.0 and self.intersect(Pi1)) and
-               (Pi1_v >= 0.0 and Pi2_v <= 1.0 and self.intersect(Pi2))):
+                    (Pi1_v >= 0.0 and Pi2_v <= 1.0 and self.intersect(Pi2))):
                 if (root == 0):
                     return Pi1
                 else:
                     return [Pi1, Pi2]
             elif (Pi1_v >= 0.0 and Pi1_v <= 1.0 and self.intersect(Pi1)):
                 return Pi1
-            elif  (Pi1_v >= 0.0 and Pi2_v <= 1.0 and self.intersect(Pi2)):
+            elif (Pi1_v >= 0.0 and Pi2_v <= 1.0 and self.intersect(Pi2)):
                 return Pi2
             else:
                 return None
@@ -1616,7 +1627,7 @@ class OffLineGeo(LineGeo):
         else:
             logger.warning("No solution found")
 
-    def get_nearest_point_l_a(self, other, ret = "line"):
+    def get_nearest_point_l_a(self, other, ret="line"):
         """
         Get the nearest point to a line lieing on the line
         @param other: The Point to be nearest to
@@ -1636,7 +1647,7 @@ class OffLineGeo(LineGeo):
                 if ret == "line":
                     return POnearest
                 elif ret == "arc":
-                    return other.O.get_arc_point(other.O.norm_angle(POnearest), r = other.r)
+                    return other.O.get_arc_point(other.O.norm_angle(POnearest), r=other.r)
             elif self.distance(other.Ps) < self.distance(other.Pe):
                 if ret == "line":
                     return self.get_nearest_point(other.Ps)
@@ -1663,17 +1674,19 @@ class OffLineGeo(LineGeo):
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Ps)) and
-            abs(other.r - other.O.distance(self.Ps)) < dis_min):
+                abs(other.r - other.O.distance(self.Ps)) < dis_min):
 
             Pnearest = self.Ps
-            Pnother = other.O.get_arc_point(other.O.norm_angle(Pnearest), r = other.r)
+            Pnother = other.O.get_arc_point(
+                other.O.norm_angle(Pnearest), r=other.r)
             dis_min = abs(other.r - other.O.distance(self.Ps))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Pe)) and
-            abs((other.r - other.O.distance(self.Pe))) < dis_min):
+                abs((other.r - other.O.distance(self.Pe))) < dis_min):
             Pnearest = self.Pe
-            Pnother = other.O.get_arc_point(other.O.norm_angle(Pnearest), r = other.r)
+            Pnother = other.O.get_arc_point(
+                other.O.norm_angle(Pnearest), r=other.r)
 
             dis_min = abs(other.r - other.O.distance(self.Pe))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
@@ -1792,11 +1805,11 @@ class OffLineGeo(LineGeo):
 
         # translate the point and get the dot product
         lam = ((unit_vector.x * (other.x - self.Ps.x))
-                + (unit_vector.y * (other.y - self.Ps.y)))
-        return Point(x = (unit_vector.x * lam) + self.Ps.x,
+               + (unit_vector.y * (other.y - self.Ps.y)))
+        return Point(x=(unit_vector.x * lam) + self.Ps.x,
                      y = (unit_vector.y * lam) + self.Ps.y)
 
-    def split_into_2geos(self, ipoint = Point()):
+    def split_into_2geos(self, ipoint=Point()):
         """
         Splits the given geometry into 2 not self intersection geometries. The
         geometry will be splitted between ipoint and Pe.
@@ -1807,13 +1820,13 @@ class OffLineGeo(LineGeo):
         if not(ipoint):
             return [self]
         elif self.intersect(ipoint):
-            Li1 = OffLineGeo(Ps = self.Ps, Pe = ipoint)
-            Li2 = OffLineGeo(Ps = ipoint, Pe = self.Pe)
+            Li1 = OffLineGeo(Ps=self.Ps, Pe=ipoint)
+            Li2 = OffLineGeo(Ps=ipoint, Pe=self.Pe)
             return [Li1, Li2]
         else:
             return [self]
 
-    def trim(self, Point, dir = 1, rev_norm = False):
+    def trim(self, Point, dir=1, rev_norm=False):
         """
         This instance is used to trim the geometry at the given point. The point
         can be a point on the offset geometry a perpendicular point on line will
@@ -1838,12 +1851,15 @@ class OffLineGeo(LineGeo):
         "Return true iff q is between p and r (inclusive)."
         return p <= q <= r or r <= q <= p
 
+
 class OffPoint(Point):
+
     """
     Inherited Class for Shapeoffset only. All related offset functions are concentrated here in orde to keep base classes as 
     clean as possible.
     """
-    def __init__(self, x = 0, y = 0, **kwargs):
+
+    def __init__(self, x=0, y=0, **kwargs):
 
         if ("geo" in kwargs) and ("parent" in kwargs):
             logger.debug("Alles da")
@@ -1851,15 +1867,18 @@ class OffPoint(Point):
             geo = kwargs["geo"]
             parent = kwargs["parent"]
 
-            x = geo.rot_sca_abs(parent = parent).x
-            y = geo.rot_sca_abs(parent = parent).y
+            x = geo.rot_sca_abs(parent=parent).x
+            y = geo.rot_sca_abs(parent=parent).y
 
         self.x = x
         self.y = y
 
+
 class ConvexPoint(OffPoint):
+
     """
     Inherited Class of OffPoint required to identify Convex Points in the Offset algorithm..
     """
-    def __init__(self, x = 0, y = 0):
-        OffPoint.__init__(self, x = x, y = y)
+
+    def __init__(self, x=0, y=0):
+        OffPoint.__init__(self, x=x, y=y)
