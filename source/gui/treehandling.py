@@ -228,7 +228,7 @@ class TreeHandler(QWidget):
             menu_action = self.sub_menu.addAction(custom_action.replace('_', ' '))
             menu_action.setData(custom_action)
 
-        # update the items (if a tool or a custion_action disapeared from config file, we need to remove it in the treeview too)
+        # update the items (if a tool or a custom_action disapeared from config file, we need to remove it in the treeview too)
         i = self.layer_item_model.rowCount(QtCore.QModelIndex())
         while i > 0:
             i -= 1
@@ -255,7 +255,7 @@ class TreeHandler(QWidget):
                     real_layer.speed = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['speed']
                     real_layer.start_radius = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['start_radius']
                     update_drawing = True
-                    
+
                 if update_drawing and g.window:
                     for shape in real_layer.shapes:
                         if isinstance(shape, Shape):

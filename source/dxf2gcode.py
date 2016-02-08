@@ -195,21 +195,21 @@ class MainWindow(QMainWindow):
         # Help
         self.ui.actionAbout.triggered.connect(self.about)
 
-    def connectToolbarToConfig(self, project=False):
+    def connectToolbarToConfig(self, project=False, block_signals=True):
         # View
         if not project:
-            self.ui.actionShowDisabledPaths.blockSignals(True) #Don't emit any signal when changing state of the menu entries
+            self.ui.actionShowDisabledPaths.blockSignals(block_signals) #Don't emit any signal when changing state of the menu entries
             self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
             self.ui.actionShowDisabledPaths.blockSignals(False)
-            self.ui.actionLiveUpdateExportRoute.blockSignals(True)
+            self.ui.actionLiveUpdateExportRoute.blockSignals(block_signals)
             self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
             self.ui.actionLiveUpdateExportRoute.blockSignals(False)
 
         # Options
-        self.ui.actionSplitLineSegments.blockSignals(True)
+        self.ui.actionSplitLineSegments.blockSignals(block_signals)
         self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
         self.ui.actionSplitLineSegments.blockSignals(False)
-        self.ui.actionAutomaticCutterCompensation.blockSignals(True)
+        self.ui.actionAutomaticCutterCompensation.blockSignals(block_signals)
         self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
         self.ui.actionAutomaticCutterCompensation.blockSignals(False)
         self.updateMachineType()
@@ -992,10 +992,7 @@ class MainWindow(QMainWindow):
             g.config.update_config() #Rebuild the readonly configuration structure
 
             # Assign changes to the menus (if no change occured, nothing happens / otherwise QT emits a signal for the menu entry that has changed)
-            self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
-            self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
-            self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
-            self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
+            self.connectToolbarToConfig(block_signals=False)
 
             # Inform about the changes into the configuration
             self.configuration_changed.emit()

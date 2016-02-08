@@ -81,18 +81,42 @@ from globals.six import text_type
 import globals.constants as c
 
 if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QGridLayout, QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, QPushButton, QAbstractItemView, QWidget, QSizePolicy
+    from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, \
+        QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
+        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QListWidget, QStackedWidget, QSplitter
     from PyQt5.QtGui import QIcon, QPixmap, QValidator, QRegExpValidator
     from PyQt5.QtCore import QLocale, QRegExp
-    from PyQt5 import QtCore, QtGui
+    from PyQt5 import QtCore
 else:
-    from PyQt4.QtGui import QTabWidget, QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QGridLayout, QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, QPushButton, QAbstractItemView, QWidget, QSizePolicy, QIcon, QPixmap, QValidator, QRegExpValidator
+    from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QLabel, \
+        QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
+        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QIcon, QPixmap, QValidator, QRegExpValidator, \
+        QListWidget, QStackedWidget, QSplitter
     from PyQt4.QtCore import QLocale, QRegExp
     from PyQt4 import QtCore
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    from globals.ordereddict import OrderedDict
 
 logger = logging.getLogger("Gui.ConfigWindow")
 
+class ConfigurationTab(QListWidget):
+    def __init__(self, parent, tab_window, list_items):
+        QListWidget.__init__(self, parent)
+        self.tab_window = tab_window
+        self.list_items = list_items
+        self.addItems(list_items)
+        for widget in list_items.values():
+            self.tab_window.addWidget(widget)
+
+        self.currentTextChanged.connect(self.sellectionChanged)
+
+        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
+
+    def sellectionChanged (self,  text):
+        self.tab_window.setCurrentWidget(self.list_items[text])
 
 class ConfigWindow(QDialog):
     Applied = QDialog.Accepted + QDialog.Rejected + 1 #Define a result code that is different from accepted and rejected
@@ -106,7 +130,6 @@ class ConfigWindow(QDialog):
         @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
         """
         QDialog.__init__(self, parent)
-        self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle("Configuration")
 
         self.cfg_window_def = definition_dict #This is the dict that describes our window
@@ -114,7 +137,7 @@ class ConfigWindow(QDialog):
         self.configspec = configspec #This is the specifications for all the entries defined in the config file
 
         #Create the config window according to the description dict received
-        config_widget = self.createWidgetFromDefinitionDict()
+        self.list_items = self.createWidgetFromDefinitionDict()
 
         #Create 3 buttons
         button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Apply)
@@ -123,9 +146,21 @@ class ConfigWindow(QDialog):
         apply_button = button_box.button(QDialogButtonBox.Apply)
         apply_button.clicked.connect(self.applyChanges) #Apply button
 
-        #Layout the 2 above widgets vertically
+        #Layout
+        list_widget = QListWidget(parent)
+        self.tab_window = QStackedWidget()
+        for label, widget in self.list_items.items():
+            list_widget.addItem(label)
+            self.tab_window.addWidget(widget)
+
+        list_widget.currentTextChanged.connect(self.sellectionChanged)
+
+        self.splitter = QSplitter()
+        self.splitter.addWidget(list_widget)
+        self.splitter.addWidget(self.tab_window)
+
         v_box = QVBoxLayout(self)
-        v_box.addWidget(config_widget)
+        v_box.addWidget(self.splitter)
         v_box.addWidget(button_box)
         self.setLayout(v_box)
 
@@ -139,6 +174,9 @@ class ConfigWindow(QDialog):
         @return: the translated unicode string if it was possible to translate
         """
         return text_type(QtCore.QCoreApplication.translate('ConfigWindow', string_to_translate))
+
+    def sellectionChanged (self,  text):
+        self.tab_window.setCurrentWidget(self.list_items[str(text)])
 
     def accept(self):
         """
@@ -190,8 +228,9 @@ class ConfigWindow(QDialog):
         @return: a QWidget containing all the elements of the configuration window
         """
         logger.info('Creating configuration window')
-        tab_widget = QTabWidget()
         definition = self.cfg_window_def
+
+        tab_widgets = OrderedDict()
 
         #Create a dict with the sections' titles if not already defined. This dict contains sections' names as key and tabs' titles as values
         if '__section_title__' not in definition:
@@ -215,14 +254,14 @@ class ConfigWindow(QDialog):
 
             #Create the tab (and the widget) for the current section, if it doesn't exist yet
             widget = None
-            for i in range(tab_widget.count()):
-                if definition['__section_title__'][section] == tab_widget.tabText(i):
-                    widget = tab_widget.widget(i)
+            for widget_label in tab_widgets:
+                if definition['__section_title__'][section] == widget_label:
+                    widget = tab_widgets[widget_label]
                     break
 
             if widget is None:
                 widget = QWidget()
-                tab_widget.addTab(widget, definition['__section_title__'][section])
+                tab_widgets[definition['__section_title__'][section]] = widget
 
             #Create the tab content for this section
             self.createWidgetSubSection(definition[section], widget)
@@ -232,11 +271,11 @@ class ConfigWindow(QDialog):
                 widget.layout().addStretch()
 
         #Add a QSpacer at the bottom of each widget, so that the items are placed on top of each tab
-        for i in range(tab_widget.count()):
-            if tab_widget.widget(i).layout() is not None:
-                tab_widget.widget(i).layout().addStretch()
+        for widget in tab_widgets.values():
+            if widget.layout() is not None:
+                widget.layout().addStretch()
 
-        return tab_widget
+        return tab_widgets
 
 
     def createWidgetSubSection(self, subdefinition, section_widget):
