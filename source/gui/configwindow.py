@@ -301,7 +301,7 @@ class ConfigWindow(QDialog):
             #Call the callback function to duplicate the file
             if self.selector_duplicate_callback is not None:
                 if self.selector_duplicate_callback(self.cfg_file_selector.getValue(), filename_dialog.result[0]) == False:
-                    self.displayMessageBox(self.tr('An error occured while duplicating the file "{}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
+                    self.displayMessageBox(self.tr('An error occured while duplicating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
             else:
                 logger.warning("No callback defined for duplicating the file, nothing will happen!")
 
@@ -318,7 +318,7 @@ class ConfigWindow(QDialog):
         if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
             if self.selector_add_callback is not None:
                 if self.selector_add_callback(filename_dialog.result[0]) == False:
-                    self.displayMessageBox(self.tr('An error occured while creating the file "{}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
+                    self.displayMessageBox(self.tr('An error occured while creating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
             else:
                 logger.warning("No callback defined for adding the file, nothing will happen!")
 
@@ -327,12 +327,12 @@ class ConfigWindow(QDialog):
         """
         Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
         """
-        confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{}"'.format(self.cfg_file_selector.getValue())));
+        confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{0}"'.format(self.cfg_file_selector.getValue())));
         if confirmation_result == QMessageBox.Yes or confirmation_result == QMessageBox.Ok:
             #User has confirmed the file suppression, so let's go
             if self.selector_remove_callback is not None:
                 if self.selector_remove_callback(self.cfg_file_selector.getValue()) == False:
-                    self.displayMessageBox(self.tr('An error occured while removing the file "{}". Remove it manually'.format(self.cfg_file_selector.getValue())))
+                    self.displayMessageBox(self.tr('An error occured while removing the file "{0}". Remove it manually'.format(self.cfg_file_selector.getValue())))
             else:
                 logger.warning("No callback defined for removing the file, nothing will happen!")
 

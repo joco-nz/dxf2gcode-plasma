@@ -63,50 +63,81 @@ POSTPRO_SPEC = str('''
     str(POSTPRO_VERSION) + '")\n' +
     '''
     [General]
+    # This extension is used in the save file export dialog.
     output_format = string(default=".ngc")
+    # This title is shown in the export dialog and is used by the user to differentiate between the possibly different postprocessor configurations.
     output_text = string(default="G-CODE for LinuxCNC")
+    # This type defines the output format used in the export dialog.
     output_type = option('g-code', 'dxf', 'text', default = 'g-code')
 
+    # This may be used for G90 or G91 code which switches between absolute and relative coordinates.
     abs_export = boolean(default=True)
+    # If the cutter compensation is used e.g. G41 or G42 this option may cancel the compensation while the depth (Z-Axis) is used and enable the compensation again after the depth is reached.
     cancel_cc_for_depth = boolean(default=False)
+    # If the cutter compensation is used this will enable (G41-G42) / cancel (G40) the cutter compensation after the tool is outside of the piece.
     cc_outside_the_piece = boolean(default=True)
+    # This may be used for the export to dxf which only accepts arcs which are in counterclockwise direction. Turning this on for normal G-Code will cause in unintended outputs.
     export_ccw_arcs_only = boolean(default=False)
+    # This values indicated which arc's with radius higher than this value will be exported as a line. 
     max_arc_radius = float(min = 0, default=10000)
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
     code_begin_prog_abs = string(default="G90 (Absolute programming)")
     code_begin_prog_inc = string(default="G91 (Incremental programming)")
+    # This is code which will be written at the beginning of the exported file. 
     code_begin = string(default="G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
+    # This is code which will be written at the end of the exported file. 
     code_end = string(default="M2 (Program end)")
 
     [Number_Format]
+    # Gives the indentation for the values.
     pre_decimals = integer(min = 0, default=4)
+    # Gives the accuracy of the output after which it will be rounded.
     post_decimals = integer(min = 0, default=3)
+    # Give the separator which is used in the exported values (e.g. '.' or ',').
     decimal_separator = string(default=".")
+    # If true all values will be padded with zeros up to pre_decimals (e.g. 0001.000).
     pre_decimal_zero_padding = boolean(default=False)
+    # If false e.g. 1.000 will be given as 1 only.
     post_decimal_zero_padding = boolean(default=True)
+    # If True 1.000 will be written as +1.000 
     signed_values = boolean(default=False)
 
     [Line_Numbers]
+    # Enables lines numbers into the exported G-Code file.
     use_line_nrs = boolean(default=False)
     line_nrs_begin = integer(default=10)
     line_nrs_step = integer(default=10)
 
     [Program]
+    # This will be done after each layer, if different tools are used.
     tool_change = string(default=T%tool_nr M6%nlS%speed%nl)
+    # This will be done after each change between cutting in plane or cutting in depth.
     feed_change = string(default=F%feed%nl)
+    # This will be done between each shape to cut.
     rap_pos_plane = string(default=G0 X%XE Y%YE%nl)
+    # This will be done between each shape to cut.
     rap_pos_depth = string(default=G0 Z%ZE %nl)
+    # This will be used for shape cutting.
     lin_mov_plane = string(default= G1 X%XE Y%YE%nl)
+    # This will be used for shape cutting.
     lin_mov_depth = string(default= G1 Z%ZE%nl)
+    # This will be used for shape cutting.
     arc_int_cw = string(default=G2 X%XE Y%YE I%I J%J%nl)
+    # This will be used for shape cutting.
     arc_int_ccw = string(default=G3 X%XE Y%YE I%I J%J%nl)
+    # Generally set to G40%nl
     cutter_comp_off = string(default=G40%nl)
+    # Generally set to G41%nl
     cutter_comp_left = string(default=G41%nl)
+    # Generally set to G42%nl
     cutter_comp_right = string(default=G42%nl)
+    # This will be done before starting to cut a shape or a contour.
     pre_shape_cut = string(default=M3 M8%nl)
+    # This will be done after cutting a shape or a contour.
     post_shape_cut = string(default=M9 M5%nl)
+    # Defines comments' format. Comments are written at some places during the export in order to make the g-code better readable.
     comment = string(default=%nl(%comment)%nl)
 
 ''').splitlines()
