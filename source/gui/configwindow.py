@@ -37,13 +37,20 @@ CONFIG_SPEC = str('''
     ''').splitlines()
 
 2) Declare the corresponding dictionnary
-config_widget_dict = {
-        'MySection':
-        {
-            '__section_title__': "My Title",
-            'my_variable': CfgDoubleSpinBox("My parameter description),
-        },
-    }
+config_widget_dict = OrderedDict([
+        ('MySection', OrderedDict([
+            ('__section_title__', "My Title"),
+            ('__subtitle__', CfgSubtitle(self.tr("My possible subtitle"))),
+            ('my_variable', CfgDoubleSpinBox("My parameter description")),
+            ('my_variable2', CfgDoubleSpinBox("My parameter description2")),
+            ('NextSubtitleX', CfgSubtitle(self.tr("My not needed second subtitle"))),
+            ('my_variable3', CfgDoubleSpinBox("My parameter description3"))
+        ])),
+    ])
+
+The my __subtitle__ is not restricted to be placed under __section_title__ it can be placed on any line and
+it is also not restricted to be named like that. You can even leave it out. If you do it's replaced by a line.
+If you place it on a different line (with the name:__subtitle__), this subsection does not start with horizontal bar.
 
 3) Instanciate the config window:
 config_window = ConfigWindow(config_widget_dict, var_dict, configspec, self) #See ConfigObj for var_dict & configspec
@@ -102,21 +109,6 @@ except ImportError:
 
 logger = logging.getLogger("Gui.ConfigWindow")
 
-class ConfigurationTab(QListWidget):
-    def __init__(self, parent, tab_window, list_items):
-        QListWidget.__init__(self, parent)
-        self.tab_window = tab_window
-        self.list_items = list_items
-        self.addItems(list_items)
-        for widget in list_items.values():
-            self.tab_window.addWidget(widget)
-
-        self.currentTextChanged.connect(self.sellectionChanged)
-
-        self.setSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
-
-    def sellectionChanged (self,  text):
-        self.tab_window.setCurrentWidget(self.list_items[text])
 
 class ConfigWindow(QDialog):
     Applied = QDialog.Accepted + QDialog.Rejected + 1 #Define a result code that is different from accepted and rejected
