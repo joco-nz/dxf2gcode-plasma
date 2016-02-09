@@ -114,7 +114,7 @@ class MyPostProcessor(object):
             self.postpro_config_currently_edited = self.getPostProVars(config_file_index)
             self.config_postpro_window.affectValuesFromConfig(self.postpro_config_currently_edited.var_dict, self.postpro_config_currently_edited.var_dict.configspec)
 
-        
+
     def postproConfigAddFileCallback(self, new_name):
         """
         Callback function called whenever the user wants to add a new file in the postprocessor config window.
@@ -125,7 +125,7 @@ class MyPostProcessor(object):
         
         new_name += c.CONFIG_EXTENSION #Add the extension
         if new_name not in self.getConfigsList()['filename']:
-            logger.debug("New postprocessor config file {} is going to be created".format(new_name))
+            logger.debug("New postprocessor config file {0} is going to be created".format(new_name))
             postpro_config = MyPostProConfig(filename=new_name)
             postpro_config.create_default_config()
             postpro_config.default_config = True
@@ -147,11 +147,11 @@ class MyPostProcessor(object):
         result = True
         
         file_to_remove = os.path.join(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR), remove_name)
-        logger.debug("Postprocessor config file {} is going to be removed".format(file_to_remove))
+        logger.debug("Postprocessor config file {0} is going to be removed".format(file_to_remove))
         try:
             os.remove(file_to_remove) #Definitely removes the selected configfile
         except:
-            logger.error("An error occured while removing the postprocessor config file {} ; do the operation manually and restart the software.".format(file_to_remove))
+            logger.error("An error occured while removing the postprocessor config file {0} ; do the operation manually and restart the software.".format(file_to_remove))
             result = False
         self.loadCreateConfigFiles()
         self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList()) #Set the list of current configuration files
@@ -175,7 +175,7 @@ class MyPostProcessor(object):
             try:
                 shutil.copy(duplicate_file, new_file) #Duplicate the files
             except:
-                logger.error("An error occured while duplicating the postprocessor config file {} ; do the operation manually and restart the software.".format(duplicate_name))
+                logger.error("An error occured while duplicating the postprocessor config file {0} ; do the operation manually and restart the software.".format(duplicate_name))
                 result = False
             self.loadCreateConfigFiles()
             self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList(), new_name) #Set the list of current configuration files

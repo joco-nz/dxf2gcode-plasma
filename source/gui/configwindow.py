@@ -237,8 +237,8 @@ class ConfigWindow(QDialog):
         self.selector_add_callback = add_file_callback
         self.selector_remove_callback = remove_file_callback
         self.selector_duplicate_callback = duplicate_file_callback
-        
-        
+
+
     def setConfigSelectorFilesList(self, config_list, select_item = None):
         """
         Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
@@ -300,7 +300,7 @@ class ConfigWindow(QDialog):
         if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
             #Call the callback function to duplicate the file
             if self.selector_duplicate_callback is not None:
-                if self.selector_duplicate_callback(self.cfg_file_selector.getValue(), filename_dialog.result[0]) == False:
+                if self.selector_duplicate_callback(str(self.cfg_file_selector.getValue()), str(filename_dialog.result[0])) == False: #note: str() is needed for PyQT4
                     self.displayMessageBox(self.tr('An error occured while duplicating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
             else:
                 logger.warning("No callback defined for duplicating the file, nothing will happen!")
@@ -317,7 +317,7 @@ class ConfigWindow(QDialog):
 
         if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
             if self.selector_add_callback is not None:
-                if self.selector_add_callback(filename_dialog.result[0]) == False:
+                if self.selector_add_callback(str(filename_dialog.result[0])) == False:
                     self.displayMessageBox(self.tr('An error occured while creating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
             else:
                 logger.warning("No callback defined for adding the file, nothing will happen!")
@@ -327,16 +327,16 @@ class ConfigWindow(QDialog):
         """
         Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
         """
-        confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{0}"'.format(self.cfg_file_selector.getValue())));
+        confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{0}"'.format(self.cfg_file_selector.getValue())), QMessageBox.Ok | QMessageBox.Cancel);
         if confirmation_result == QMessageBox.Yes or confirmation_result == QMessageBox.Ok:
             #User has confirmed the file suppression, so let's go
             if self.selector_remove_callback is not None:
-                if self.selector_remove_callback(self.cfg_file_selector.getValue()) == False:
+                if self.selector_remove_callback(str(self.cfg_file_selector.getValue())) == False:
                     self.displayMessageBox(self.tr('An error occured while removing the file "{0}". Remove it manually'.format(self.cfg_file_selector.getValue())))
             else:
                 logger.warning("No callback defined for removing the file, nothing will happen!")
 
-        
+
     def createWidgetFromDefinitionDict(self):
         """
         Automatically build a widget, based on dict definition of the items.
