@@ -2,10 +2,11 @@
 
 ############################################################################
 #
-#   Copyright (C) 2008-2014
+#   Copyright (C) 2008-2016
 #    Christian Kohlöffel
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
+#    Xavier Izard
 #
 #   This file is part of DXF2GCODE.
 #
