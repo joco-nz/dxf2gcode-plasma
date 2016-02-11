@@ -71,18 +71,9 @@ config_window.finished.connect(self.updateConfiguration) #Optionnal signal to kn
 
 from __future__ import absolute_import
 
-import sys
-
-import inspect
-
-import os
-import pprint
 import logging
 
-from globals.configobj.configobj import ConfigObj, flatten_errors
-from globals.configobj.validate import Validator
-import globals.globals as g
-from globals.d2gexceptions import *
+from globals.helperfunctions import toInt, toFloat
 
 from globals.six import text_type
 import globals.constants as c
@@ -386,13 +377,6 @@ class ConfigWindow(QDialog):
             string_list = self.configspecParserExctractSections('option', configspec)
             i = 0
             while i < len(string_list): #DON'T replace this with a "for", it would silently skip some steps because we remove items inside the loop
-                #if not string_list[i]:
-                #	del string_list[i]
-                #	continue
-
-                #remove leading and trailing spaces
-                string_list[i] = string_list[i].strip()
-
                 #remove unwanted items which are unquoted (like the "default=" parameter) and remove the quotes
                 if string_list[i].startswith('"'):
                     string_list[i] = string_list[i].strip('"')
@@ -410,78 +394,14 @@ class ConfigWindow(QDialog):
                 string_list = self.configspecParserExctractSections('integer', configspec)
                 if len(string_list) <= 0:
                     string_list = self.configspecParserExctractSections('string', configspec)
-                i = 0
-                while i < len(string_list): #DON'T replace this with a "for", it would silently skip some steps because we remove items inside the loop
-                    element = string_list[i]
-                    #remove empty elements
-                    if not element:
-                        del string_list[i]
-                        continue
 
-                    #remove leading and trailing spaces
-                    element = element.strip()
-
-                    if minimum is None:
-                        try: minimum = int(element)
-                        except ValueError: pass
-                    else:
-                        if maximum is None:
-                            try: maximum = int(element)
-                            except ValueError: pass
-
-                    if minimum is None and 'min' in element:
-                        #'min' string found in a string like "min = -7"
-                        element = element.replace('min', '')
-                        element = element.strip(' =')
-                        try: minimum = int(element)
-                        except ValueError: pass
-
-                    if maximum is None and 'max' in element:
-                        #'max' string found
-                        element = element.replace('max', '')
-                        element = element.strip(' =')
-                        try: maximum = int(element)
-                        except ValueError: pass
-
-                    i += 1
+                minimum, maximum = self.handle_type_config_entries(minimum, maximum, string_list, toInt)
 
             #Handle "float" config entries
             if len(string_list) <= 0:
                 string_list = self.configspecParserExctractSections('float', configspec)
-                i = 0
-                while i < len(string_list): #DON'T replace this with a "for", it would silently skip some steps because we remove items inside the loop
-                    element = string_list[i]
-                    #remove empty elements
-                    if not element:
-                        del string_list[i]
-                        continue
 
-                    #remove leading and trailing spaces
-                    element = element.strip()
-
-                    if minimum is None:
-                        try: minimum = float(element)
-                        except ValueError: pass
-                    else:
-                        if maximum is None:
-                            try: maximum = float(element)
-                            except ValueError: pass
-
-                    if minimum is None and 'min' in element:
-                        #'min' string found in a string like "min = -7"
-                        element = element.replace('min', '')
-                        element = element.strip(' =')
-                        try: minimum = float(element)
-                        except ValueError: pass
-
-                    if maximum is None and 'max' in element:
-                        #'max' string found
-                        element = element.replace('max', '')
-                        element = element.strip(' =')
-                        try: maximum = float(element)
-                        except ValueError: pass
-
-                    i += 1
+                minimum, maximum = self.handle_type_config_entries(minimum, maximum, string_list, toFloat)
 
         #Handle comments: comments are stored in a list and contains any chars that are in the configfile (including the hash symbol and the spaces)
         comments_string = ''
@@ -501,6 +421,36 @@ class ConfigWindow(QDialog):
         result['comment'] = comments_string
         return result
 
+    def handle_type_config_entries(self, minimum, maximum, string_list, type_converter):
+        for element in string_list:
+            if minimum is not None and maximum is not None:
+                break
+
+            value = type_converter(element)
+            if value[1]:
+                if minimum is None:
+                    minimum = value[0]
+                elif maximum is None:
+                    maximum = value[0]
+
+            if minimum is None and 'min' in element:
+                # string found in a string like "min = -7"
+                element = element.replace('min', '')
+                element = element.strip(' =')
+                value = type_converter(element)
+                if value[1]:
+                    minimum = value[0]
+
+            if maximum is None and 'max' in element:
+                # 'max' string found
+                element = element.replace('max', '')
+                element = element.strip(' =')
+                value = type_converter(element)
+                if value[1]:
+                    maximum = value[0]
+
+        return minimum, maximum
+
     def configspecParserExctractSections(self, attribute_name, string):
         """
         returns a list of item from a string. Eg the string "option('mm', 'in', default = 'mm')" will be exploded into the string list ["mm", "in", "default = 'mm'"]
@@ -516,6 +466,8 @@ class ConfigWindow(QDialog):
                 #print("substring found = {0}".format(string[pos_init:pos_end]))
                 string_list = string[pos_init:pos_end].split(',')
 
+        # remove empty elements and remove leading and trailing spaces
+        string_list = [string.strip() for string in string_list if string]
         return string_list
 
 
@@ -781,18 +733,10 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
         QDoubleSpinBox.setSuffix(self, suffix)
 
     def valueFromText(self, text):
-        if c.PYQT5notPYQT4:
-            #print("valueFromText({0})".format(text.encode('utf-8')))
-            text = text.encode('utf-8').replace(self.saved_suffix.encode('utf-8'), '').replace(QLocale().decimalPoint(), '.')
-        else:
-            #print("valueFromText({0})".format(text))
-            text = text.replace(self.saved_suffix, '').replace(QLocale().decimalPoint(), '.')
-        try:
-            #result = float(text.replace('.', QLocale().decimalPoint()))
-            result = float(text) #python expect a dot ('.') as decimal separator
-        except ValueError:
-            result = 0.0
-        return result
+        # result = float(text.replace('.', QLocale().decimalPoint()))
+        # python expect a dot ('.') as decimal separator
+        text = str(text).replace(self.saved_suffix, '').replace(str(QLocale().decimalPoint()), '.')
+        return toFloat(text)[0]
 
     def validate(self, entry, pos):
         #let's *really* trust the validator
@@ -1310,9 +1254,7 @@ class CfgTableToolParameters(CfgTable):
             spinbox = CorrectedDoubleSpinBox()
             spinbox.setMinimum(0)
             spinbox.setMaximum(1000000000) #Default value is 99
-            computed_value = 0.0
-            try: computed_value = float(value) #Convert the value to float
-            except ValueError: pass
+            computed_value = toFloat(value)[0]  # Convert the value to float
             spinbox.setValue(computed_value)
         else:
             #tool number is an integer
@@ -1320,11 +1262,8 @@ class CfgTableToolParameters(CfgTable):
             spinbox.setMinimum(0)
             spinbox.setMaximum(1000000000) #Default value is 99
 
-            computed_value = 0
-            try:
-                computed_value = int(value) #Convert the value to int (we may receive a string for example)
-            except ValueError:
-                computed_value = self.max_tool_number + 1
+            converted_value = toInt(value)  # Convert the value to int (we may receive a string for example)
+            computed_value = converted_value[0] if converted_value[1] else self.max_tool_number + 1
             self.max_tool_number = max(self.max_tool_number, computed_value) #Store the max value for the tool number, so that we can automatically increment this value for new tools
             spinbox.setValue(computed_value) #first column is the key, it must be an int
 

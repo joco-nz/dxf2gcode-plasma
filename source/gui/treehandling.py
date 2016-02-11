@@ -49,6 +49,8 @@ from core.entitycontent import EntityContent
 from core.customgcode import CustomGCode
 from gui.treeview import MyStandardItemModel
 
+from globals.helperfunctions import toInt, toFloat
+
 from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
@@ -64,23 +66,6 @@ else:
     from PyQt4 import QtCore
     isValid = lambda data: data.isValid()
     toPyObject = lambda data: data.toPyObject()
-
-'''
-Following two functions are needed for Python3+, since it no longer supports these functions as is
-'''
-def toInt(text):
-    try:
-        value = (int(text), True)
-    except ValueError:
-        value = (0, False)
-    return value
-
-def toFloat(text):
-    try:
-        value = (float(text), True)
-    except ValueError:
-        value = (0.0, False)
-    return value
 
 
 class QVariantShape(QtCore.QVariant):

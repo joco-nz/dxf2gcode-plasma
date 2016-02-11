@@ -58,7 +58,9 @@ from dxfimport.importer import ReadDXF
 from postpro.postprocessor import MyPostProcessor
 from postpro.tspoptimisation import TspOptimization
 
-from globals.six import text_type, PY2
+from globals.helperfunctions import str_encode, str_decode, qstr_encode
+
+from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
@@ -66,20 +68,11 @@ if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
     getOpenFileName = QFileDialog.getOpenFileName
     getSaveFileName = QFileDialog.getSaveFileName
-    file_str = lambda filename: filename
 else:
     from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt4 import QtCore
     getOpenFileName = QFileDialog.getOpenFileNameAndFilter
     getSaveFileName = QFileDialog.getSaveFileNameAndFilter
-    file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
-
-if PY2:
-    str_encode = lambda exstr: exstr.encode('utf-8')
-    str_decode = lambda filename: filename.decode("utf-8")
-else:
-    str_encode = lambda exstr: exstr
-    str_decode = lambda filename: filename
 
 logger = logging.getLogger()
 
@@ -329,7 +322,7 @@ class MainWindow(QMainWindow):
                     format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
                     MyFormats = MyFormats + name + format_
                 filename = self.showSaveDialog(self.tr('Export to file'), MyFormats)
-                save_filename = file_str(filename[0])
+                save_filename = qstr_encode(filename[0])
             else:
                 filename = [None, None]
                 save_filename = saveas
@@ -727,7 +720,7 @@ class MainWindow(QMainWindow):
 
         # If there is something to load then call the load function callback
         if self.filename:
-            self.filename = file_str(self.filename)
+            self.filename = qstr_encode(self.filename)
             logger.info(self.tr("File: %s selected") % self.filename)
 
     def load(self, plot=True):
@@ -1012,7 +1005,7 @@ class MainWindow(QMainWindow):
         Save all variables to file
         """
         prj_filename = self.showSaveDialog(self.tr('Save project to file'), "Project files (*%s)" % c.PROJECT_EXTENSION)
-        save_prj_filename = file_str(prj_filename[0])
+        save_prj_filename = qstr_encode(prj_filename[0])
 
         # If Cancel was pressed
         if not save_prj_filename:
