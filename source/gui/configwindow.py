@@ -73,7 +73,7 @@ from __future__ import absolute_import
 
 import logging
 
-from globals.helperfunctions import toInt, toFloat
+from globals.helperfunctions import toInt, toFloat, str_encode, qstr_encode
 
 from globals.six import text_type
 import globals.constants as c
@@ -735,7 +735,7 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
     def valueFromText(self, text):
         # result = float(text.replace('.', QLocale().decimalPoint()))
         # python expect a dot ('.') as decimal separator
-        text = str(text).replace(self.saved_suffix, '').replace(str(QLocale().decimalPoint()), '.')
+        text = qstr_encode(text).replace(str_encode(self.saved_suffix), '').replace(str(QLocale().decimalPoint()), '.')
         return toFloat(text)[0]
 
     def validate(self, entry, pos):
