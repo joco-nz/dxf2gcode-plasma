@@ -84,9 +84,6 @@ class offShapeClass(Shape):
 
         while len(nextConvexPoint):  # [self.convex_vertex[-1]]:
             convex_vertex_nr = self.segments.index(nextConvexPoint[0])
-            # logger.debug(len(self.segments))
-            # logger.debug("convex_vertex: %s" % nextConvexPoint[0])
-            # logger.debug("convex_vertex_nr: %s" % convex_vertex_nr)
 
             forward, backward = self.PairWiseInterferenceDetection(
                 convex_vertex_nr + 1, convex_vertex_nr - 1)
@@ -234,20 +231,13 @@ class offShapeClass(Shape):
             if ((isinstance(geo2, ArcGeo)) and
                     ((self.offtype == "out" and geo2.ext > 0) or
                      (self.offtype == "in" and geo2.ext < 0)) and
-                    ((geo2.r - abs(self.offset)) <= 0.0)):
+                    ((geo2.r - abs(self.offset)) < -eps)):
 
                 newgeo2 = ConvexPoint(geo2.O.x, geo2.O.y)
                 newgeo2.start_normal = geo2.start_normal
                 newgeo2.end_normal = geo2.end_normal
                 geo2 = newgeo2
 
-#             logger.debug(geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-#                              geo1.Pe + geo1.end_normal +
-#                              geo2.start_normal))
-#             logger.debug(geo1)
-#             logger.debug(geo2)
-#             logger.debug(geo1.end_normal)
-#             logger.debug(geo2.start_normal)
             if (((geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
                               geo1.Pe + geo1.end_normal +
                               geo2.start_normal) == 1) and
@@ -256,8 +246,6 @@ class offShapeClass(Shape):
                              geo1.Pe + geo1.end_normal +
                              geo2.start_normal) == -1 and
                  self.offtype == "out")):
-
-                # logger.debug("reflex")
 
                 reflexPe = OffPoint(x=geo1.Pe.x, y=geo1.Pe.y)
                 reflexPe.start_normal = geo1.end_normal
@@ -271,10 +259,7 @@ class offShapeClass(Shape):
 
             # Add the linear segment which is a line connecting 2 vertices
             else:
-                # logger.debug("convex")
                 self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
-        # logger.debug("Self.segments: %s" % self.segments)
-        # self.segments_plot = deepcopy(self.segments)
 
     def make_rawoff_seg(self, seg):
         """
