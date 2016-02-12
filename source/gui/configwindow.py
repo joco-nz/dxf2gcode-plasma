@@ -4,6 +4,7 @@
 #
 #   Copyright (C) 2015-2016
 #    Xavier Izard
+#    Jean-Paul Schouwstra
 #
 #   This file is part of DXF2GCODE.
 #
@@ -36,19 +37,27 @@ CONFIG_SPEC = str('''
     ''').splitlines()
 
 2) Declare the corresponding dictionnary
-config_widget_dict = {
-        'MySection':
-        {
-            '__section_title__': "My Title",
-            'my_variable': CfgDoubleSpinBox("My parameter description),
-        },
-    }
+config_widget_dict = OrderedDict([
+        ('MySection', OrderedDict([
+            ('__section_title__', "My Title"),
+            ('__subtitle__', CfgSubtitle(self.tr("My possible subtitle"))),
+            ('my_variable', CfgDoubleSpinBox("My parameter description")),
+            ('my_variable2', CfgDoubleSpinBox("My parameter description2")),
+            ('NextSubtitleX', CfgSubtitle(self.tr("My not needed second subtitle"))),
+            ('my_variable3', CfgDoubleSpinBox("My parameter description3"))
+        ])),
+    ])
+
+The my __subtitle__ is not restricted to be placed under __section_title__ it can be placed on any line and
+it is also not restricted to be named like that. You can even leave it out. If you do it's replaced by a line.
+If you place it on a different line (with the name:__subtitle__), this subsection does not start with horizontal bar.
 
 3) Instanciate the config window:
 config_window = ConfigWindow(config_widget_dict, var_dict, configspec, self) #See ConfigObj for var_dict & configspec
 config_window.finished.connect(self.updateConfiguration) #Optionnal signal to know when the config has changed
 
 *** List of graphical elements currently supported ***
+ - CfgSubtitle(): subtitle - just for displaying a bar with some text
  - CfgCheckBox(): a basic (possibly tristate) checkbox
  - CfgSpinBox(): a spinbox for int values
  - CfgDoubleSpinBox(): a spinbox for float values
@@ -63,33 +72,33 @@ config_window.finished.connect(self.updateConfiguration) #Optionnal signal to kn
 
 from __future__ import absolute_import
 
-import sys
-
-import inspect
-
-import os
-import pprint
 import logging
 
-from globals.configobj.configobj import ConfigObj, flatten_errors
-from globals.configobj.validate import Validator
-import globals.globals as g
-from globals.d2gexceptions import *
 from gui.popupdialog import PopUpDialog
+from globals.helperfunctions import toInt, toFloat, str_encode, qstr_encode
 
 from globals.six import text_type
 import globals.constants as c
 
 if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QTabWidget, QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QGridLayout, QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, QPushButton, QAbstractItemView, QWidget, QSizePolicy
+    from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, \
+        QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
+        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QListWidget, QStackedWidget, QSplitter
     from PyQt5.QtGui import QIcon, QPixmap, QValidator, QRegExpValidator
     from PyQt5.QtCore import QLocale, QRegExp
-    from PyQt5 import QtCore, QtGui
+    from PyQt5 import QtCore
 else:
-    from PyQt4.QtGui import QTabWidget, QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QGridLayout, QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, QPushButton, QAbstractItemView, QWidget, QSizePolicy, QIcon, QPixmap, QValidator, QRegExpValidator
+    from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QLabel, \
+        QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
+        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QIcon, QPixmap, QValidator, QRegExpValidator, \
+        QListWidget, QStackedWidget, QSplitter
     from PyQt4.QtCore import QLocale, QRegExp
     from PyQt4 import QtCore
 
+try:
+    from collections import OrderedDict
+except ImportError:
+    from globals.ordereddict import OrderedDict
 
 logger = logging.getLogger("Gui.ConfigWindow")
 
@@ -111,8 +120,8 @@ class ConfigWindow(QDialog):
         self.edition_mode = False #No editing in progress for now
 
         self.cfg_window_def = definition_dict #This is the dict that describes our window
-        self.var_dict = config
-        self.configspec = configspec
+        self.var_dict = config #This is the data from the configfile (dictionary created by ConfigObj class)
+        self.configspec = configspec #This is the specifications for all the entries defined in the config file
 
         #There is no config file selector for now, so no callback either
         self.selector_change_callback = None
@@ -126,8 +135,8 @@ class ConfigWindow(QDialog):
         self.layout_file_selector = QHBoxLayout() #For displaying the optionnal files selector widgets
         
         #Create the config window according to the description dict received
-        config_widget = self.createWidgetFromDefinitionDict()
-        
+        self.list_items = self.createWidgetFromDefinitionDict()
+
         #Create 3 buttons
         self.button_box = QDialogButtonBox(QDialogButtonBox.Discard | QDialogButtonBox.Apply | QDialogButtonBox.Close)
         self.button_box.accepted.connect(self.accept) #Apply and close (currently unused)
@@ -137,13 +146,26 @@ class ConfigWindow(QDialog):
         discard_button = self.button_box.button(QDialogButtonBox.Discard)
         discard_button.clicked.connect(self.discardChanges) #Discard button
         
+        #Layout
+        list_widget = QListWidget(parent)
+        self.tab_window = QStackedWidget()
+        for label, widget in self.list_items.items():
+            list_widget.addItem(label)
+            self.tab_window.addWidget(widget)
+
+        list_widget.currentTextChanged.connect(self.selectionChanged)
+
+        self.splitter = QSplitter()
+        self.splitter.addWidget(list_widget)
+        self.splitter.addWidget(self.tab_window)
+
         #Layout the 2 above widgets vertically
         v_box = QVBoxLayout(self)
         v_box.addWidget(self.frame_file_selector)
-        v_box.addWidget(config_widget)
+        v_box.addWidget(self.splitter)
         v_box.addWidget(self.button_box)
         self.setLayout(v_box)
-        
+
         #Populate our Configuration widget with the values from the config file
         if self.var_dict is not None and self.configspec is not None:
             self.affectValuesFromConfig(self.var_dict, self.configspec)
@@ -170,6 +192,13 @@ class ConfigWindow(QDialog):
         self.button_box.button(QDialogButtonBox.Discard).setEnabled(self.edition_mode)
         self.button_box.button(QDialogButtonBox.Close).setEnabled(not self.edition_mode)
         self.frame_file_selector.setEnabled(not self.edition_mode)
+
+
+    def selectionChanged(self, text):
+        """
+        Slot called when a category is selected in the list of the config widget
+        """
+        self.tab_window.setCurrentWidget(self.list_items[str(text)])
 
 
     def accept(self):
@@ -343,19 +372,20 @@ class ConfigWindow(QDialog):
         @return: a QWidget containing all the elements of the configuration window
         """
         logger.info('Creating configuration window')
-        tab_widget = QTabWidget()
         definition = self.cfg_window_def
-        
+
+        tab_widgets = OrderedDict()
+
         #Create a dict with the sections' titles if not already defined. This dict contains sections' names as key and tabs' titles as values
         if '__section_title__' not in definition:
             definition['__section_title__'] = {}
 
         #Compute all the sections
-        for section in sorted(definition):
+        for section in definition:
             #skip the special section __section_title__
             if section == '__section_title__':
                 continue
-            
+
             #Create the title for the section if it doesn't already exist
             if section not in definition['__section_title__']:
                 #The title for this section doesn't exist yet
@@ -365,33 +395,32 @@ class ConfigWindow(QDialog):
                 else:
                     #The title for this section is not defined anywhere, so we use the section name itself as a title
                     definition['__section_title__'][section] = section.replace('_', ' ')
-        
+
             #Create the tab (and the widget) for the current section, if it doesn't exist yet
             widget = None
-            for i in range(tab_widget.count()):
-                if definition['__section_title__'][section] == tab_widget.tabText(i):
-                    widget = tab_widget.widget(i)
+            for widget_label in tab_widgets:
+                if definition['__section_title__'][section] == widget_label:
+                    widget = tab_widgets[widget_label]
                     break
-            
+
             if widget is None:
                 widget = QWidget()
-                tab_widget.addTab(widget, definition['__section_title__'][section])
-            
+                tab_widgets[definition['__section_title__'][section]] = widget
+
             #Create the tab content for this section
             self.createWidgetSubSection(definition[section], widget)
-            #Add a separator at the end of this subsection
+
+            #Add a stretch at the end of this subsection
             if widget.layout() is not None:
-                separator = QFrame()
-                separator.setFrameShape(QFrame.HLine)
-                widget.layout().addWidget(separator)
                 widget.layout().addStretch()
 
         #Add a QSpacer at the bottom of each widget, so that the items are placed on top of each tab
-        for i in range(tab_widget.count()):
-            if tab_widget.widget(i).layout() is not None:
-                tab_widget.widget(i).layout().addStretch()
-        
-        return tab_widget
+        for widget in tab_widgets.values():
+            if widget.layout() is not None:
+                widget.layout().addStretch()
+
+        return tab_widgets
+
 
     def createWidgetSubSection(self, subdefinition, section_widget):
         """
@@ -400,21 +429,36 @@ class ConfigWindow(QDialog):
         @param section_widget: the widget that host the subwidgets
         @return: section_widget (for recursive call)
         """
-        #section_widget = QWidget()
         vertical_box = section_widget.layout()
         if vertical_box is None:
             vertical_box = QVBoxLayout()
             section_widget.setLayout(vertical_box)
         vertical_box.setSpacing(0) #Don't use too much space, it makes the option window too big otherwise
-        
+
         if isinstance(subdefinition, dict):
-            for subsection in sorted(subdefinition):
+            vertical_box.addWidget(subdefinition.get('__subtitle__', CfgSubtitle()))
+
+        self.createWidgetSubSectionWithSubLevels(subdefinition, section_widget)
+
+
+    def createWidgetSubSectionWithSubLevels(self, subdefinition, section_widget):
+        """
+        Create the widgets that will be inserted into the tabs of the configuration window
+        @param subdefinition: part of the definition dict
+        @param section_widget: the widget that host the subwidgets
+        @return: section_widget (for recursive call)
+        """
+
+        vertical_box = section_widget.layout()
+
+        if isinstance(subdefinition, dict):
+            for subsection in subdefinition:
                 if subsection == '__section_title__':
                     #skip the special section
                     continue
                 
                 #Browse sublevels
-                self.createWidgetSubSection(subdefinition[subsection], section_widget) #Recursive call, all the nested configuration item will appear at the same level
+                self.createWidgetSubSectionWithSubLevels(subdefinition[subsection], section_widget) #Recursive call, all the nested configuration item will appear at the same level
         else:
             if isinstance(subdefinition, (QWidget, QLayout)):
                 vertical_box.addWidget(subdefinition)
@@ -452,7 +496,7 @@ class ConfigWindow(QDialog):
         #Compute all the sections
         for section in window_def:
             #skip the special section __section_title__
-            if section == '__section_title__':
+            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
                 continue
             
             if config is not None and section in config:
@@ -510,13 +554,6 @@ class ConfigWindow(QDialog):
             string_list = self.configspecParserExctractSections('option', configspec)
             i = 0
             while i < len(string_list): #DON'T replace this with a "for", it would silently skip some steps because we remove items inside the loop
-                #if not string_list[i]:
-                #	del string_list[i]
-                #	continue
-                
-                #remove leading and trailing spaces
-                string_list[i] = string_list[i].strip()
-                
                 #remove unwanted items which are unquoted (like the "default=" parameter) and remove the quotes
                 if string_list[i].startswith('"'):
                     string_list[i] = string_list[i].strip('"')
@@ -534,79 +571,15 @@ class ConfigWindow(QDialog):
                 string_list = self.configspecParserExctractSections('integer', configspec)
                 if len(string_list) <= 0:
                     string_list = self.configspecParserExctractSections('string', configspec)
-                i = 0
-                while i < len(string_list): #DON'T replace this with a "for", it would silently skip some steps because we remove items inside the loop
-                    element = string_list[i]
-                    #remove empty elements
-                    if not element:
-                        del string_list[i]
-                        continue
-                    
-                    #remove leading and trailing spaces
-                    element = element.strip()
-                    
-                    if minimum is None:
-                        try: minimum = int(element)
-                        except ValueError: pass
-                    else:
-                        if maximum is None:
-                            try: maximum = int(element)
-                            except ValueError: pass
-                    
-                    if minimum is None and 'min' in element:
-                        #'min' string found in a string like "min = -7"
-                        element = element.replace('min', '')
-                        element = element.strip(' =')
-                        try: minimum = int(element)
-                        except ValueError: pass
-                    
-                    if maximum is None and 'max' in element:
-                        #'max' string found
-                        element = element.replace('max', '')
-                        element = element.strip(' =')
-                        try: maximum = int(element)
-                        except ValueError: pass
-                    
-                    i += 1
-            
+
+                minimum, maximum = self.handle_type_config_entries(minimum, maximum, string_list, toInt)
+
             #Handle "float" config entries
             if len(string_list) <= 0:
                 string_list = self.configspecParserExctractSections('float', configspec)
-                i = 0
-                while i < len(string_list): #DON'T replace this with a "for", it would silently skip some steps because we remove items inside the loop
-                    element = string_list[i]
-                    #remove empty elements
-                    if not element:
-                        del string_list[i]
-                        continue
-                    
-                    #remove leading and trailing spaces
-                    element = element.strip()
-                    
-                    if minimum is None:
-                        try: minimum = float(element)
-                        except ValueError: pass
-                    else:
-                        if maximum is None:
-                            try: maximum = float(element)
-                            except ValueError: pass
-                    
-                    if minimum is None and 'min' in element:
-                        #'min' string found in a string like "min = -7"
-                        element = element.replace('min', '')
-                        element = element.strip(' =')
-                        try: minimum = float(element)
-                        except ValueError: pass
-                    
-                    if maximum is None and 'max' in element:
-                        #'max' string found
-                        element = element.replace('max', '')
-                        element = element.strip(' =')
-                        try: maximum = float(element)
-                        except ValueError: pass
-                    
-                    i += 1
-        
+
+                minimum, maximum = self.handle_type_config_entries(minimum, maximum, string_list, toFloat)
+
         #Handle comments: comments are stored in a list and contains any chars that are in the configfile (including the hash symbol and the spaces)
         comments_string = ''
         if len(comments) > 0:
@@ -625,6 +598,36 @@ class ConfigWindow(QDialog):
         result['comment'] = comments_string
         return result
 
+    def handle_type_config_entries(self, minimum, maximum, string_list, type_converter):
+        for element in string_list:
+            if minimum is not None and maximum is not None:
+                break
+
+            value = type_converter(element)
+            if value[1]:
+                if minimum is None:
+                    minimum = value[0]
+                elif maximum is None:
+                    maximum = value[0]
+
+            if minimum is None and 'min' in element:
+                # string found in a string like "min = -7"
+                element = element.replace('min', '')
+                element = element.strip(' =')
+                value = type_converter(element)
+                if value[1]:
+                    minimum = value[0]
+
+            if maximum is None and 'max' in element:
+                # 'max' string found
+                element = element.replace('max', '')
+                element = element.strip(' =')
+                value = type_converter(element)
+                if value[1]:
+                    maximum = value[0]
+
+        return minimum, maximum
+
     def configspecParserExctractSections(self, attribute_name, string):
         """
         returns a list of item from a string. Eg the string "option('mm', 'in', default = 'mm')" will be exploded into the string list ["mm", "in", "default = 'mm'"]
@@ -640,6 +643,8 @@ class ConfigWindow(QDialog):
                 #print("substring found = {0}".format(string[pos_init:pos_end]))
                 string_list = string[pos_init:pos_end].split(',')
         
+        # remove empty elements and remove leading and trailing spaces
+        string_list = [string.strip() for string in string_list if string]
         return string_list
 
 
@@ -665,7 +670,7 @@ class ConfigWindow(QDialog):
         #Compute all the sections
         for section in window_def:
             #skip the special section __section_title__
-            if section == '__section_title__':
+            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
                 continue
             
             if isinstance(window_def[section], dict):
@@ -694,7 +699,7 @@ class ConfigWindow(QDialog):
         #Compute all the sections
         for section in window_def:
             #skip the special section __section_title__
-            if section == '__section_title__':
+            if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
                 continue
             
             if config is not None and section in config:
@@ -717,7 +722,45 @@ class ConfigWindow(QDialog):
 # The classes below are all based on QWidgets and allow to create various predefined elements for the configuration window #
 ############################################################################################################################
 
-class CfgCheckBox(QCheckBox):
+class CfgBase(QWidget):
+    """
+    Base class used only for setting the Layout. Want a consistent look.
+    """
+    def __init__(self, parent=None):
+        QWidget.__init__(self, parent)
+
+    def setLayout(self, layout=None, indent=True):
+        layout.setSpacing(2)  # Don't use too much space, it makes the option window too big otherwise
+        layout.setContentsMargins(10 if indent else 0, 5, 1, 1)
+        QWidget.setLayout(self, layout)
+
+
+class CfgDummy(CfgBase):
+    """
+    If a class inherits this dummy class then it should be skipped - it only serves display purposes
+    """
+    def __init__(self, parent=None):
+        CfgBase.__init__(self, parent)
+
+
+class CfgSubtitle(CfgDummy):
+    def __init__(self, text=None, parent=None):
+        CfgDummy.__init__(self, parent)
+
+        layout = QHBoxLayout()
+
+        if text is not None:
+            layout.addWidget(QLabel(text))
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.HLine)
+        separator.setSizePolicy(QSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Fixed))
+        layout.addWidget(separator)
+
+        self.setLayout(layout, False)
+
+
+class CfgCheckBox(CfgBase):
     """
     Subclassed QCheckBox to match our needs.
     """
@@ -728,8 +771,14 @@ class CfgCheckBox(QCheckBox):
         @param text: text string associated with the checkbox
         @param tristate: whether the checkbox must have 3 states (tristate) or 2 states
         """
-        QCheckBox.__init__(self, text, parent)
-        self.setTristate(tristate)
+        CfgBase.__init__(self, parent)
+
+        self.checkbox = QCheckBox(text, parent)
+        self.checkbox.setTristate(tristate)
+
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.checkbox)
+        self.setLayout(layout)
 
     def setSpec(self, spec):
         """
@@ -745,7 +794,7 @@ class CfgCheckBox(QCheckBox):
         Assign a notifyier slot (this slot is called whenever the state of the widget changes)
         @param changeNotifyer: the function (slot) that is called in case of change
         """
-        self.stateChanged.connect(changeNotifyer)
+        self.checkbox.stateChanged.connect(changeNotifyer)
 
     def validateValue(self):
         """
@@ -758,15 +807,15 @@ class CfgCheckBox(QCheckBox):
         """
         @return 0 when the checkbox is unchecked, 1 if it is checked and 2 if it is partly checked (tristate must be set to true for tristate mode)
         """
-        check_state = self.checkState()
+        check_state = self.checkbox.checkState()
         if check_state == QtCore.Qt.Unchecked:
             check_state = 0
         elif check_state == QtCore.Qt.Checked:
             check_state = 1
         elif check_state == QtCore.Qt.PartiallyChecked:
             check_state = 2
-            
-        return check_state
+
+        return check_state if self.checkbox.isTristate() else check_state == 1
 
     def setValue(self, value):
         """
@@ -775,15 +824,15 @@ class CfgCheckBox(QCheckBox):
         """
         self.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         if value == 0:
-            self.setCheckState(QtCore.Qt.Unchecked)
+            self.checkbox.setCheckState(QtCore.Qt.Unchecked)
         elif value == 2:
-            self.setCheckState(QtCore.Qt.PartiallyChecked)
+            self.checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
         else:
-            self.setCheckState(QtCore.Qt.Checked)
+            self.checkbox.setCheckState(QtCore.Qt.Checked)
         self.blockSignals(False)
 
 
-class CfgSpinBox(QWidget):
+class CfgSpinBox(CfgBase):
     """
     Subclassed QSpinBox to match our needs.
     """
@@ -795,22 +844,23 @@ class CfgSpinBox(QWidget):
         @param minimum: min value (int)
         @param minimum: max value (int)
         """
-        QWidget.__init__(self, parent)
-        
+        CfgBase.__init__(self, parent)
+
+        self.label = QLabel(text, parent)
+
         self.spinbox = QSpinBox(parent)
+        self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
+
         if unit is not None:
             self.setUnit(unit)
 
-        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.spinbox)
+        self.setLayout(layout)
 
-        self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent);
-        
-        self.spinbox.setMinimumWidth(200) #Provide better alignment with other items
-        self.layout.addWidget(self.label)
-        self.layout.addStretch()
-        self.layout.addWidget(self.spinbox)
-        self.setLayout(self.layout)
+        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
 
     def setSpec(self, spec):
         """
@@ -821,10 +871,12 @@ class CfgSpinBox(QWidget):
             self.spinbox.setMinimum(spec['minimum'])
         else:
             self.spinbox.setMinimum(-1000000000) #if no value is defined for the minimum, use a reasonable value
+
         if spec['maximum'] is not None:
             self.spinbox.setMaximum(spec['maximum'])
         else:
             self.spinbox.setMaximum(1000000000) #if no value is defined for the maximum, use a more reasonable value than 99 (default value in QT) ...
+
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
 
@@ -894,12 +946,7 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
         else:
             #print("valueFromText({0})".format(text))
             text = text.replace(self.saved_suffix, '').replace(QLocale().decimalPoint(), '.')
-        try:
-            #result = float(text.replace('.', QLocale().decimalPoint()))
-            result = float(text) #python expect a dot ('.') as decimal separator
-        except ValueError:
-            result = 0.0
-        return result
+        return toFloat(text)[0]
 
     def validate(self, entry, pos):
         #let's *really* trust the validator
@@ -923,28 +970,29 @@ class CfgDoubleSpinBox(CfgSpinBox):
         @param minimum: min value (float)
         @param minimum: max value (float)
         """
-        QWidget.__init__(self, parent)
-        
+        CfgBase.__init__(self, parent)  # skip the init of CfgSpinBox - we want a "corrected" spinbox
+
+        self.label = QLabel(text, parent)
+
+        self.spinbox = QSpinBox(parent)
         self.spinbox = CorrectedDoubleSpinBox(parent)
-        if unit is not None:
-            self.setUnit(unit)
-        
-        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
-        
+        self.spinbox.setMinimumWidth(200)  # Provide better alignment with other items
         if precision is not None:
             self.spinbox.setDecimals(precision)
 
-        self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent);
-        
-        self.spinbox.setMinimumWidth(200) #Provide better alignment with other items
-        self.layout.addWidget(self.label)
-        self.layout.addStretch()
-        self.layout.addWidget(self.spinbox)
-        self.setLayout(self.layout)
+        if unit is not None:
+            self.setUnit(unit)
+
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.spinbox)
+        self.setLayout(layout)
+
+        self.setSpec({'minimum': minimum, 'maximum': maximum, 'comment': ''})
 
 
-class CfgLineEdit(QWidget):
+class CfgLineEdit(CfgBase):
     """
     Subclassed QLineEdit to match our needs.
     """
@@ -956,24 +1004,19 @@ class CfgLineEdit(QWidget):
         @param size_min: min length (int)
         @param size_max: max length (int)
         """
-        QWidget.__init__(self, parent)
-        
-        self.lineedit = QLineEdit(parent)
-        
-        self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
-        if size_min is not None:
-            self.size_min = size_min
-        else:
-            self.size_min = 0
-        
+        CfgBase.__init__(self, parent)
+
         self.label = QLabel(text, parent)
-        self.layout = QVBoxLayout(parent)
-        
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.lineedit)
-        self.setLayout(self.layout)
-        self.layout.setSpacing(1) #Don't use too much space, it makes the option window too big otherwise
-        self.layout.setContentsMargins(self.layout.contentsMargins().left(), 3, self.layout.contentsMargins().right(), 2) #Don't use too much space, it makes the option window too big otherwise
+
+        self.lineedit = QLineEdit(parent)
+
+        layout = QVBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addWidget(self.lineedit)
+        self.setLayout(layout)
+
+        self.size_min = 0
+        self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
 
     def setSpec(self, spec):
         """
@@ -1049,10 +1092,7 @@ class CfgListEdit(CfgLineEdit):
         @return the current value of the QSpinBox (string list)
         """
         item_list = str(self.lineedit.text()).split(self.separator)
-        i = 0
-        while i < len(item_list):
-            item_list[i] = item_list[i].strip(' ') #remove leading and trailing whitespaces
-            i += 1
+        item_list = [item.strip(' ') for item in item_list]  # remove leading and trailing whitespaces
         return item_list
 
     def setValue(self, value):
@@ -1066,8 +1106,7 @@ class CfgListEdit(CfgLineEdit):
         
         self.lineedit.setText(joined_value)
 
-
-class CfgTextEdit(QWidget):
+class CfgTextEdit(CfgBase):
     """
     Subclassed QTextEdit to match our needs.
     """
@@ -1079,7 +1118,7 @@ class CfgTextEdit(QWidget):
         @param size_min: min length (int)
         @param size_max: max length (int)
         """
-        QWidget.__init__(self, parent)
+        CfgBase.__init__(self, parent)
         
         self.textedit = QTextEdit(parent)
         self.textedit.setAcceptRichText(False)
@@ -1151,7 +1190,7 @@ class CfgTextEdit(QWidget):
         self.textedit.blockSignals(False)
 
 
-class CfgComboBox(QWidget):
+class CfgComboBox(CfgBase):
     """
     Subclassed QComboBox to match our needs.
     """
@@ -1163,23 +1202,23 @@ class CfgComboBox(QWidget):
         @param items_list: string list containing all the available options
         @param default_item: string containing the default selected item
         """
-        QWidget.__init__(self, parent)
-        
-        self.combobox = QComboBox(parent)
-        
+        CfgBase.__init__(self, parent)
+
         if isinstance(items_list, (list, tuple)):
             self.setSpec({'string_list': items_list, 'comment': ''})
         if default_item is not None:
             self.setValue(default_item)
-        
+
         self.label = QLabel(text, parent)
-        self.layout = QHBoxLayout(parent);
-        
-        self.combobox.setMinimumWidth(200) #Provide better alignment with other items
-        self.layout.addWidget(self.label)
-        self.layout.addStretch()
-        self.layout.addWidget(self.combobox)
-        self.setLayout(self.layout)
+
+        self.combobox = QComboBox(parent)
+        self.combobox.setMinimumWidth(200)  # Provide better alignment with other items
+
+        layout = QHBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addStretch()
+        layout.addWidget(self.combobox)
+        self.setLayout(layout)
 
     def setSpec(self, spec):
         """
@@ -1254,16 +1293,16 @@ class CfgTable(QWidget):
         self.button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
         self.button_add.clicked.connect(self.appendLine)
         self.button_remove.clicked.connect(self.removeLine)
-        self.layout_button = QVBoxLayout();
+        self.layout_button = QVBoxLayout()
         self.layout_button.addWidget(self.button_add)
         self.layout_button.addWidget(self.button_remove)
         
-        self.layout_table = QHBoxLayout();
+        self.layout_table = QHBoxLayout()
         #self.tablewidget.setSizePolicy(size_policy)
         self.layout_table.addWidget(self.tablewidget)
         self.layout_table.addLayout(self.layout_button)
         
-        self.layout = QVBoxLayout(parent);
+        self.layout = QVBoxLayout(parent)
         
         self.layout.addWidget(self.label)
         self.layout.addLayout(self.layout_table)
@@ -1386,7 +1425,7 @@ class CfgTable(QWidget):
                 j += 1
         
         return result_dict
-    
+
     def setValue(self, value):
         """
         Assign the value for our object
@@ -1516,17 +1555,14 @@ class CfgTableCustomActions(CfgTable):
             result_dict[key] = {}
             
             #Get the values (other columns)
-            j = 1
-            while j < self.tablewidget.columnCount():
+            for j in range(1, self.tablewidget.columnCount()):
                 sub_key = self.keys[j] #Column name
                 value = self.tablewidget.cellWidget(i, j)
                 if not value:
-                    j += 1
                     continue
                 value = str(value.toPlainText())
                 if sub_key is not None:
                     result_dict[key][sub_key] = value
-                j += 1
         
         return result_dict
 
@@ -1557,9 +1593,7 @@ class CfgTableToolParameters(CfgTable):
             spinbox = CorrectedDoubleSpinBox()
             spinbox.setMinimum(0)
             spinbox.setMaximum(1000000000) #Default value is 99
-            computed_value = 0.0
-            try: computed_value = float(value) #Convert the value to float
-            except ValueError: pass
+            computed_value = toFloat(value)[0]  # Convert the value to float
             spinbox.setValue(computed_value)
         else:
             #tool number is an integer
@@ -1567,15 +1601,13 @@ class CfgTableToolParameters(CfgTable):
             spinbox.setMinimum(0)
             spinbox.setMaximum(1000000000) #Default value is 99
             
-            computed_value = 0
-            try:
-                computed_value = int(value) #Convert the value to int (we may receive a string for example)
-            except ValueError:
-                computed_value = self.max_tool_number + 1
+            converted_value = toInt(value)  # Convert the value to int (we may receive a string for example)
+            computed_value = converted_value[0] if converted_value[1] else self.max_tool_number + 1
             self.max_tool_number = max(self.max_tool_number, computed_value) #Store the max value for the tool number, so that we can automatically increment this value for new tools
             spinbox.setValue(computed_value) #first column is the key, it must be an int
         
         spinbox.valueChanged.connect(self.valueChangedSlot) #We need to detect any change in the table's widgets
+        
         self.tablewidget.setCellWidget(line, column, spinbox)
 
     def valueChangedSlot(self):
@@ -1638,16 +1670,13 @@ class CfgTableToolParameters(CfgTable):
             result_dict[key] = {}
             
             #Get the values (other columns)
-            j = 1
-            while j < self.tablewidget.columnCount():
+            for j in range(1,self.tablewidget.columnCount()):
                 sub_key = self.keys[j] #Column name
                 value = self.tablewidget.cellWidget(i, j)
                 if not value:
-                    j += 1
                     continue
                 value = value.value()
                 if sub_key is not None:
                     result_dict[key][sub_key] = value
-                j += 1
         
         return result_dict

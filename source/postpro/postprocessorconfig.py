@@ -264,9 +264,10 @@ class MyPostProConfig(object):
         self.var_dict.write()
 
 
-    def _save_varspace(self):
+    def save_varspace(self):
         self.var_dict.filename = self.filename
         self.var_dict.write()
+
 
     def print_vars(self):
         """
