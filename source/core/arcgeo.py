@@ -46,13 +46,16 @@ else:
 import logging
 logger = logging.getLogger("core.arcgeo")
 
-eps=1e-12
+eps = 1e-12
+
 
 class ArcGeo(object):
+
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
     """
+
     def __init__(self, Ps=None, Pe=None, O=None, r=1,
                  s_ang=None, e_ang=None, direction=1, drag=False):
         """
@@ -115,7 +118,6 @@ class ArcGeo(object):
         self.length = self.r * abs(self.ext)
 
         self.calc_bounding_box()
-
 
         self.abs_geo = None
 
@@ -233,7 +235,7 @@ class ArcGeo(object):
             if angles is None:
                 return self.Ps
             elif angles:
-                return self.Ps, self.s_ang + pi/2 * self.ext / abs(self.ext)
+                return self.Ps, self.s_ang + pi / 2 * self.ext / abs(self.ext)
             else:
                 direction = (self.O - self.Ps).unit_vector()
                 direction = -direction if self.ext >= 0 else direction
@@ -242,12 +244,11 @@ class ArcGeo(object):
             if angles is None:
                 return self.Pe
             elif angles:
-                return self.Pe, self.e_ang - pi/2 * self.ext / abs(self.ext)
+                return self.Pe, self.e_ang - pi / 2 * self.ext / abs(self.ext)
             else:
                 direction = (self.O - self.Pe).unit_vector()
                 direction = -direction if self.ext >= 0 else direction
                 return self.Pe, Point(-direction.y, direction.x)
-
 
     def distance_a_p(self, other):
         """
@@ -260,11 +261,11 @@ class ArcGeo(object):
             # If the Nearest Point is on Arc Segement it is the neares one.
             # logger.debug("Nearest Point is outside of arc")
             if self.PointAng_withinArc(other):
-                return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r = self.r))
+                return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r=self.r))
             elif other.distance(self.Ps) < other.distance(self.Pe):
-                    return other.distance(self.Ps)
+                return other.distance(self.Ps)
             else:
-                    return other.distance(self.Pe)
+                return other.distance(self.Pe)
 
         # logger.debug("Nearest Point is Inside of arc")
         # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
@@ -277,7 +278,7 @@ class ArcGeo(object):
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((self.PointAng_withinArc(other)) and
-            abs(self.r - self.O.distance(other)) < dis_min):
+                abs(self.r - self.O.distance(other)) < dis_min):
             dis_min = abs(self.r - self.O.distance(other))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
@@ -379,7 +380,8 @@ class ArcGeo(object):
         self.ext = self.dif_ang(self.Ps, self.Pe, self.ext)
 
         if 2 * abs(((prv_dir - self.ext) + pi) % (2 * pi) - pi) >= pi:
-            # seems very unlikely that this is what you want - the direction changed (too drastically)
+            # seems very unlikely that this is what you want - the direction
+            # changed (too drastically)
             self.Ps, self.Pe = self.Pe, self.Ps
             self.s_ang, self.e_ang = self.e_ang, self.s_ang
             self.ext = self.dif_ang(self.Ps, self.Pe, prv_dir)
@@ -415,7 +417,8 @@ class ArcGeo(object):
         r = self.r
         IJ = O - Ps
 
-        # If the radius of the element is bigger than the max, radius export the element as an line.
+        # If the radius of the element is bigger than the max, radius export
+        # the element as an line.
         if r > PostPro.vars.General["max_arc_radius"]:
             string = PostPro.lin_pol_xy(Ps, Pe)
         # If the maschine is not supporting G2 and G3 moves use this option
@@ -424,39 +427,24 @@ class ArcGeo(object):
             # Calculation the min. arc segment angle of the export based on given tolerance.
             # https://de.wikipedia.org/wiki/Kreissegment
             a = g.config.fitting_tolerance
-            s = 2 * sqrt(a*(2*self.r-a))
+            s = 2 * sqrt(a * (2 * self.r - a))
             alpha = 2 * asin(s / (2 * self.r))
             segments = int(abs(self.ext // alpha))
 
             string = ""
-           
+
             for i in range(1, segments + 1):
                 Pe = self.get_point_from_start(i, segments)
                 string += PostPro.lin_pol_xy(Ps, Pe)
                 Ps = Pe
         else:
             if self.ext > 0:
-                string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ,self.ext)
+                string = PostPro.lin_pol_arc(
+                    "ccw", Ps, Pe, s_ang, e_ang, r, O, IJ, self.ext)
             elif self.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
-                string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe,self.ext)
+                string = PostPro.lin_pol_arc(
+                    "ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe, self.ext)
             else:
-                string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ,self.ext)
+                string = PostPro.lin_pol_arc(
+                    "cw", Ps, Pe, s_ang, e_ang, r, O, IJ, self.ext)
         return string
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
