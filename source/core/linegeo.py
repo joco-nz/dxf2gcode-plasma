@@ -36,14 +36,16 @@ from core.boundingbox import BoundingBox
 import logging
 logger = logging.getLogger("core.linegeo")
 
-eps= 1e-12
+eps = 1e-12
 
 
 class LineGeo(object):
+
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
     """
+
     def __init__(self, Ps, Pe):
         """
         Standard Method to initialize the LineGeo.
@@ -131,7 +133,7 @@ class LineGeo(object):
             if (v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
                 return 0.0
             else:
-                return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d));
+                return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d))
 
     def isHit(self, caller, xy, tol):
         """
@@ -141,8 +143,7 @@ class LineGeo(object):
         @param xy: The point which shall be used to determine the distance
         @tol: The tolerance which is used for Hit testing.
         """
-        return self.distance_l_p(xy) <= tol ** 2
-        # return xy.distance2_to_line(self.Ps, self.Pe) <= tol**2
+        return self.distance_l_p(xy) <= tol
 
     def make_abs_geo(self, parent=None):
         """
@@ -177,7 +178,8 @@ class LineGeo(object):
         new_ang = self.Ps.norm_angle(self.Pe)
 
         if 2 * abs(((prv_ang - new_ang) + pi) % (2 * pi) - pi) >= pi:
-            # seems very unlikely that this is what you want - the direction changed (too drastically)
+            # seems very unlikely that this is what you want - the direction
+            # changed (too drastically)
             self.Ps, self.Pe = self.Pe, self.Ps
 
         self.length = self.Ps.distance(self.Pe)
@@ -191,13 +193,3 @@ class LineGeo(object):
         Ps = self.get_start_end_points(True)
         Pe = self.get_start_end_points(False)
         return PostPro.lin_pol_xy(Ps, Pe)
-
-
-
-
-
-
-
-
-
-

@@ -292,17 +292,7 @@ class ArcGeo(object):
         @param xy: The point which shall be used to determine the distance
         @tol: The tolerance which is used for Hit testing.
         """
-        self.distance_a_p(xy) <= tol ** 2
-
-#         tol2 = tol**2
-#         segments = int(abs(degrees(self.ext)) // 3 + 1)
-#         Ps = self.O.get_arc_point(self.s_ang, self.r)
-#         for i in range(1, segments + 1):
-#             Pe = self.get_point_from_start(i, segments)
-#             if xy.distance2_to_line(Ps, Pe) <= tol2:
-#                 return True
-#             Ps = Pe
-#         return False
+        self.distance_a_p(xy) <= tol
 
     def make_abs_geo(self, parent=None):
         """
