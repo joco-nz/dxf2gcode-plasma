@@ -8,7 +8,8 @@
 from __future__ import division
 import matplotlib
 # matplotlib see: http://matplotlib.sourceforge.net/ and  http://www.scipy.org/Cookbook/Matplotlib/
-# numpy      see: http://numpy.scipy.org/ and http://sourceforge.net/projects/numpy/
+# numpy      see: http://numpy.scipy.org/ and
+# http://sourceforge.net/projects/numpy/
 matplotlib.use('TkAgg')
 
 import cProfile
@@ -32,9 +33,11 @@ logger = logging.getLogger()
 
 eps = 1e-9
 
+
 class Point:
     __slots__ = ["x", "y", "z"]
-    def __init__(self, x = 0, y = 0, z = 0):
+
+    def __init__(self, x=0, y=0, z=0):
         self.x = x
         self.y = y
         self.z = z
@@ -107,9 +110,9 @@ class Point:
         """
         if isinstance(other, list):
             # Scale the points
-            return Point(x = self.x * other[0], y = self.y * other[1])
+            return Point(x=self.x * other[0], y=self.y * other[1])
         elif isinstance(other, (int, float, long, complex)):
-            return Point(x = self.x * other, y = self.y * other)
+            return Point(x=self.x * other, y=self.y * other)
         elif isinstance(other, Point):
             # Calculate Scalar (dot) Product
             return self.x * other.x + self.y * other.y
@@ -117,7 +120,7 @@ class Point:
             logger.warning("Unsupported type: %s" % type(other))
 
     def __truediv__(self, other):
-        return Point(x = self.x / other, y = self.y / other)
+        return Point(x=self.x / other, y=self.y / other)
 
     def tr(self, message):
         return message
@@ -152,15 +155,15 @@ class Point:
         """
         # return (C.y-self.y)*(B.x-self.x) > (B.y-self.y)*(C.x-self.x)
 
-
-        area2 = (B.x - self.x) * (C.y - self.y) - (C.x - self.x) * (B.y - self.y)
+        area2 = (B.x - self.x) * (C.y - self.y) - \
+            (C.x - self.x) * (B.y - self.y)
         # logger.debug(area2)
         if (area2 < -eps):
             return -1
         elif area2 > eps:
             return +1
         else:
-            return  0
+            return 0
 
     def cross_product(self, other):
         """
@@ -171,10 +174,10 @@ class Point:
         """
         return Point(self.y * other.z - self.z * other.y, self.z * other.x - self.x * other.z, self.x * other.y - self.y * other.x)
 
-    def distance(self, other = None):
+    def distance(self, other=None):
         """Returns distance between two given points"""
         if type(other) == type(None):
-            other = Point(x = 0.0, y = 0.0)
+            other = Point(x=0.0, y=0.0)
         if isinstance(other, Point):
             return sqrt(pow(self.x - other.x, 2) + pow(self.y - other.y, 2))
         elif isinstance(other, LineGeo):
@@ -193,7 +196,7 @@ class Point:
         """
         return (self.x * P2.x) + (self.y * P2.y)
 
-    def get_arc_point(self, ang = 0, r = 1):
+    def get_arc_point(self, ang=0, r=1):
         """ 
         Returns the Point on the arc defined by r and the given angle, self is 
         Center of the arc
@@ -201,10 +204,10 @@ class Point:
         @param radius: The radius from the given Point
         @return: A Point at given radius and angle from Point self
         """
-        return Point(x = self.x + cos(ang) * r, \
-                     y = self.y + sin(ang) * r)
+        return Point(x=self.x + cos(ang) * r,
+                     y=self.y + sin(ang) * r)
 
-    def get_normal_vector(self, other, r = 1):
+    def get_normal_vector(self, other, r=1):
         """
         This function return the Normal to a vector defined by self and other
         @param: The second point
@@ -212,7 +215,7 @@ class Point:
         @return: Returns the Normal Vector
         """
         unit_vector = self.unit_vector(other)
-        return Point(x = unit_vector.y * r, y = -unit_vector.x * r)
+        return Point(x=unit_vector.y * r, y=-unit_vector.x * r)
 
     def get_nearest_point(self, points):
         """ 
@@ -254,20 +257,20 @@ class Point:
 
         return direction
 
-    def isintol(self, other, tol = eps):
+    def isintol(self, other, tol=eps):
         """Are the two points within 'tol' tolerance?"""
         return (abs(self.x - other.x) <= tol) & (abs(self.y - other.y) <= tol)
 
-    def norm_angle(self, other = None):
+    def norm_angle(self, other=None):
         """Returns angle between two given points"""
         if type(other) == type(None):
-            other = Point(x = 0.0, y = 0.0)
+            other = Point(x=0.0, y=0.0)
         return atan2(other.y - self.y, other.x - self.x)
 
     def transform_to_Norm_Coord(self, other, alpha):
         xt = other.x + self.x * cos(alpha) + self.y * sin(alpha)
         yt = other.y + self.x * sin(alpha) + self.y * cos(alpha)
-        return Point(x = xt, y = yt)
+        return Point(x=xt, y=yt)
 
     def triangle_height(self, other1, other2):
         """
@@ -281,7 +284,7 @@ class Point:
         c = self.distance(other2)
         return sqrt(pow(b, 2) - pow((pow(c, 2) + pow(b, 2) - pow(a, 2)) / (2 * c), 2))
 
-    def trim(self, Point, dir = 1, rev_norm = False):
+    def trim(self, Point, dir=1, rev_norm=False):
         """
         This instance is used to trim the geometry at the given point. The point 
         can be a point on the offset geometry a perpendicular point on line will
@@ -302,7 +305,7 @@ class Point:
             self.end_normal = new_normal
             return self
 
-    def unit_vector(self, Pto = None, r = 1):
+    def unit_vector(self, Pto=None, r=1):
         """
         Returns vector of length 1 with similar direction as input
         @param Pto: The other point 
@@ -312,15 +315,18 @@ class Point:
         l = diffVec.distance()
         return Point(diffVec.x / l * r, diffVec.y / l * r)
 
-    def plot2plot(self, plot, format = 'xr'):
+    def plot2plot(self, plot, format='xr'):
         plot.plot([self.x], [self.y], format)
 
+
 class BoundingBox:
+
     """ 
     Bounding Box Class. This is the standard class which provides all std. 
     Bounding Box methods.
     """
-    def __init__(self, Ps = Point(0, 0), Pe = Point(0, 0), hdl = []):
+
+    def __init__(self, Ps=Point(0, 0), Pe=Point(0, 0), hdl=[]):
         """ 
         Standard method to initialize the class
         """
@@ -328,14 +334,13 @@ class BoundingBox:
         self.Ps = Ps
         self.Pe = Pe
 
-
     def __str__(self):
         """ 
         Standard method to print the object
         @return: A string
         """
         s = ("\nPs : %s" % (self.Ps)) + \
-           ("\nPe : %s" % (self.Pe))
+            ("\nPe : %s" % (self.Pe))
         return s
 
     def joinBB(self, other):
@@ -353,9 +358,9 @@ class BoundingBox:
         ymin = min(self.Ps.y, other.Ps.y)
         ymax = max(self.Pe.y, other.Pe.y)
 
-        return BoundingBox(Ps = Point(xmin, ymin), Pe = Point(xmax, ymax))
+        return BoundingBox(Ps=Point(xmin, ymin), Pe=Point(xmax, ymax))
 
-    def hasintersection(self, other = None, tol = eps):
+    def hasintersection(self, other=None, tol=eps):
         """
         Checks if the two bounding boxes have an intersection
         @param other: The 2nd Bounding Box
@@ -365,27 +370,29 @@ class BoundingBox:
             return self.pointisinBB(other, tol)
         elif isinstance(other, BoundingBox):
             x_inter_pos = (self.Pe.x + tol > other.Ps.x) and \
-            (self.Ps.x - tol < other.Pe.x)
+                (self.Ps.x - tol < other.Pe.x)
             y_inter_pos = (self.Pe.y + tol > other.Ps.y) and \
-            (self.Ps.y - tol < other.Pe.y)
+                (self.Ps.y - tol < other.Pe.y)
 
             return x_inter_pos and y_inter_pos
         else:
             logger.warning("Unsupported Instance: %s" % other.type)
 
-    def pointisinBB(self, Point = Point(), tol = eps):
+    def pointisinBB(self, Point=Point(), tol=eps):
         """
         Checks if the Point is within the bounding box
         @param Point: The Point which shall be ckecke
         @return: Returns true or false
         """
         x_inter_pos = (self.Pe.x + tol > Point.x) and \
-        (self.Ps.x - tol < Point.x)
+            (self.Ps.x - tol < Point.x)
         y_inter_pos = (self.Pe.y + tol > Point.y) and \
-        (self.Ps.y - tol < Point.y)
+            (self.Ps.y - tol < Point.y)
         return x_inter_pos and y_inter_pos
 
+
 class LineGeo:
+
     def __init__(self, Ps, Pe):
         self.type = "LineGeo"
         self.Ps = Ps
@@ -406,10 +413,10 @@ class LineGeo:
         """
         Calculated the BoundingBox of the geometry and saves it into self.BB
         """
-        Ps = Point(x = min(self.Ps.x, self.Pe.x), y = min(self.Ps.y, self.Pe.y))
-        Pe = Point(x = max(self.Ps.x, self.Pe.x), y = max(self.Ps.y, self.Pe.y))
+        Ps = Point(x=min(self.Ps.x, self.Pe.x), y=min(self.Ps.y, self.Pe.y))
+        Pe = Point(x=max(self.Ps.x, self.Pe.x), y=max(self.Ps.y, self.Pe.y))
 
-        self.BB = BoundingBox(Ps = Ps, Pe = Pe)
+        self.BB = BoundingBox(Ps=Ps, Pe=Pe)
 
     def colinear(self, other):
         """
@@ -484,7 +491,7 @@ class LineGeo:
         else:
             return False
 
-    def distance(self, other = []):
+    def distance(self, other=[]):
         """
         Find the distance between 2 geometry elements. Possible is CCLineGeo
         and ArcGeo
@@ -498,7 +505,8 @@ class LineGeo:
         elif isinstance(other, ArcGeo):
             return self.distance_l_a(other)
         else:
-            logger.error(self.tr("Unsupported geometry type: %s" % type(other)))
+            logger.error(
+                self.tr("Unsupported geometry type: %s" % type(other)))
 
     def distance_l_l(self, other):
         """
@@ -533,11 +541,11 @@ class LineGeo:
             # If the Nearest Point is on Arc Segement it is the neares one.
             # logger.debug("Nearest Point is outside of arc")
             if other.PointAng_withinArc(POnearest):
-                return POnearest.distance(other.O.get_arc_point(other.O.norm_angle(POnearest), r = other.r))
+                return POnearest.distance(other.O.get_arc_point(other.O.norm_angle(POnearest), r=other.r))
             elif self.distance(other.Ps) < self.distance(other.Pe):
-                    return self.get_nearest_point(other.Ps).distance(other.Ps)
+                return self.get_nearest_point(other.Ps).distance(other.Ps)
             else:
-                    return self.get_nearest_point(other.Pe).distance(other.Pe)
+                return self.get_nearest_point(other.Pe).distance(other.Pe)
 
         # logger.debug("Nearest Point is Inside of arc")
         # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
@@ -550,12 +558,12 @@ class LineGeo:
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Ps)) and
-            abs(other.r - other.O.distance(self.Ps)) < dis_min):
+                abs(other.r - other.O.distance(self.Ps)) < dis_min):
             dis_min = abs(other.r - other.O.distance(self.Ps))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Pe)) and
-            abs((other.r - other.O.distance(self.Pe))) < dis_min):
+                abs((other.r - other.O.distance(self.Pe))) < dis_min):
             dis_min = abs(other.r - other.O.distance(self.Pe))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
@@ -595,9 +603,9 @@ class LineGeo:
             if abs(v.dotProd(v) - (t * t) / d.dotProd(d)) < eps:
                 return 0.0
 
-            return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d));
+            return sqrt(v.dotProd(v) - (t * t) / d.dotProd(d))
 
-    def find_inter_point(self, other, type = 'TIP'):
+    def find_inter_point(self, other, type='TIP'):
         """
         Find the intersection between 2 Geo elements. There can be only one
         intersection between 2 lines. Returns also FIP which lay on the ray.
@@ -615,7 +623,7 @@ class LineGeo:
         else:
             logger.error("Unsupported Instance: %s" % other.type)
 
-    def find_inter_point_l_l(self, other, type = "TIP"):
+    def find_inter_point_l_l(self, other, type="TIP"):
         """
         Find the intersection between 2 LineGeo elements. There can be only one
         intersection between 2 lines. Returns also FIP which lay on the ray.
@@ -631,7 +639,6 @@ class LineGeo:
         elif type == 'TIP' and not(self.intersect(other)):
 
             return None
-
 
         dx1 = self.Pe.x - self.Ps.x
         dy1 = self.Pe.y - self.Ps.y
@@ -657,10 +664,10 @@ class LineGeo:
         except:
             return None
 
-        return Point(x = self.Ps.x + v1 * dx1,
-                          y = self.Ps.y + v1 * dy1)
+        return Point(x=self.Ps.x + v1 * dx1,
+                     y=self.Ps.y + v1 * dy1)
 
-    def find_inter_point_l_a(self, Arc, type = "TIP"):
+    def find_inter_point_l_a(self, Arc, type="TIP"):
         """
         Find the intersection between 2 Geo elements. The intersection 
         between a Line and a Arc is checked here. This function is also used 
@@ -671,6 +678,10 @@ class LineGeo:
         @return: a list of intersection points.
         @todo: FIXME: The type of the intersection is not implemented up to now 
         """
+        if type == "TIP" and self.Ps.distance(Arc.Pe) < eps * 5:
+            return Arc.Pe
+        elif type == "TIP" and self.Pe.distance(Arc.Ps) < eps * 5:
+            return Arc.Ps
 
         Ldx = self.Pe.x - self.Ps.x
         Ldy = self.Pe.y - self.Ps.y
@@ -679,7 +690,8 @@ class LineGeo:
         # Gleichung
         a = pow(Ldx, 2) + pow(Ldy, 2)
         b = 2 * Ldx * (self.Ps.x - Arc.O.x) + 2 * Ldy * (self.Ps.y - Arc.O.y)
-        c = pow(self.Ps.x - Arc.O.x, 2) + pow(self.Ps.y - Arc.O.y, 2) - pow(Arc.r, 2)
+        c = pow(self.Ps.x - Arc.O.x, 2) + \
+            pow(self.Ps.y - Arc.O.y, 2) - pow(Arc.r, 2)
         root = pow(b, 2) - 4 * a * c
 
         # If the value under the sqrt is negative there is no intersection.
@@ -689,25 +701,25 @@ class LineGeo:
         v1 = (-b + sqrt(root)) / (2 * a)
         v2 = (-b - sqrt(root)) / (2 * a)
 
-        Pi1 = Point(x = self.Ps.x + v1 * Ldx,
-                       y = self.Ps.y + v1 * Ldy)
+        Pi1 = Point(x=self.Ps.x + v1 * Ldx,
+                    y=self.Ps.y + v1 * Ldy)
 
-        Pi2 = Point(x = self.Ps.x + v2 * Ldx,
-               y = self.Ps.y + v2 * Ldy)
+        Pi2 = Point(x=self.Ps.x + v2 * Ldx,
+                    y=self.Ps.y + v2 * Ldy)
 
         Pi1.v = Arc.dif_ang(Arc.Ps, Pi1, Arc.ext) / Arc.ext
         Pi2.v = Arc.dif_ang(Arc.Ps, Pi2, Arc.ext) / Arc.ext
 
         if type == 'TIP':
             if ((Pi1.v >= 0.0 and Pi1.v <= 1.0 and self.intersect(Pi1)) and
-               (Pi1.v >= 0.0 and Pi2.v <= 1.0 and self.intersect(Pi2))):
+                    (Pi1.v >= 0.0 and Pi2.v <= 1.0 and self.intersect(Pi2))):
                 if (root == 0):
                     return Pi1
                 else:
                     return [Pi1, Pi2]
             elif (Pi1.v >= 0.0 and Pi1.v <= 1.0 and self.intersect(Pi1)):
                 return Pi1
-            elif  (Pi1.v >= 0.0 and Pi2.v <= 1.0 and self.intersect(Pi2)):
+            elif (Pi1.v >= 0.0 and Pi2.v <= 1.0 and self.intersect(Pi2)):
                 return Pi2
             else:
                 return None
@@ -756,7 +768,7 @@ class LineGeo:
         else:
             logger.warning("No solution found")
 
-    def get_nearest_point_l_a(self, other, ret = "line"):
+    def get_nearest_point_l_a(self, other, ret="line"):
         """
         Get the nearest point to a line lieing on the line
         @param other: The Point to be nearest to
@@ -776,7 +788,7 @@ class LineGeo:
                 if ret == "line":
                     return POnearest
                 elif ret == "arc":
-                    return other.O.get_arc_point(other.O.norm_angle(POnearest), r = other.r)
+                    return other.O.get_arc_point(other.O.norm_angle(POnearest), r=other.r)
             elif self.distance(other.Ps) < self.distance(other.Pe):
                 if ret == "line":
                     return self.get_nearest_point(other.Ps)
@@ -803,17 +815,19 @@ class LineGeo:
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Ps)) and
-            abs(other.r - other.O.distance(self.Ps)) < dis_min):
+                abs(other.r - other.O.distance(self.Ps)) < dis_min):
 
             Pnearest = self.Ps
-            Pnother = other.O.get_arc_point(other.O.norm_angle(Pnearest), r = other.r)
+            Pnother = other.O.get_arc_point(
+                other.O.norm_angle(Pnearest), r=other.r)
             dis_min = abs(other.r - other.O.distance(self.Ps))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((other.PointAng_withinArc(self.Pe)) and
-            abs((other.r - other.O.distance(self.Pe))) < dis_min):
+                abs((other.r - other.O.distance(self.Pe))) < dis_min):
             Pnearest = self.Pe
-            Pnother = other.O.get_arc_point(other.O.norm_angle(Pnearest), r = other.r)
+            Pnother = other.O.get_arc_point(
+                other.O.norm_angle(Pnearest), r=other.r)
 
             dis_min = abs(other.r - other.O.distance(self.Pe))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
@@ -934,11 +948,11 @@ class LineGeo:
 
         # translate the point and get the dot product
         lam = ((unit_vector.x * (other.x - self.Ps.x))
-                + (unit_vector.y * (other.y - self.Ps.y)))
-        return Point(x = (unit_vector.x * lam) + self.Ps.x,
+               + (unit_vector.y * (other.y - self.Ps.y)))
+        return Point(x=(unit_vector.x * lam) + self.Ps.x,
                      y = (unit_vector.y * lam) + self.Ps.y)
 
-    def plot2plot(self, plot, format = '-m'):
+    def plot2plot(self, plot, format='-m'):
         plot.plot([self.Ps.x, self.Pe.x], [self.Ps.y, self.Pe.y], format)
 
     def reverse(self):
@@ -947,7 +961,7 @@ class LineGeo:
         """
         self.Ps, self.Pe = self.Pe, self.Ps
 
-    def split_into_2geos(self, ipoint = Point()):
+    def split_into_2geos(self, ipoint=Point()):
         """
         Splits the given geometry into 2 not self intersection geometries. The
         geometry will be splitted between ipoint and Pe.
@@ -958,13 +972,13 @@ class LineGeo:
         if not(ipoint):
             return [self]
         elif self.intersect(ipoint):
-            Li1 = LineGeo(Ps = self.Ps, Pe = ipoint)
-            Li2 = LineGeo(Ps = ipoint, Pe = self.Pe)
+            Li1 = LineGeo(Ps=self.Ps, Pe=ipoint)
+            Li2 = LineGeo(Ps=ipoint, Pe=self.Pe)
             return [Li1, Li2]
         else:
             return [self]
 
-    def trim(self, Point, dir = 1, rev_norm = False):
+    def trim(self, Point, dir=1, rev_norm=False):
         """
         This instance is used to trim the geometry at the given point. The point 
         can be a point on the offset geometry a perpendicular point on line will
@@ -985,13 +999,16 @@ class LineGeo:
             new_line.start_normal = self.start_normal
             return new_line
 
+
 class ArcGeo:
+
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
     """
-    def __init__(self, Ps = None, Pe = None, O = None, r = 1,
-                 s_ang = None, e_ang = None, direction = 1, drag = False):
+
+    def __init__(self, Ps=None, Pe=None, O=None, r=1,
+                 s_ang=None, e_ang=None, direction=1, drag=False):
         """
         Standard Method to initialize the ArcGeo. Not all of the parameters are
         required to fully define a arc. e.g. Ps and Pe may be given or s_ang and
@@ -1015,15 +1032,15 @@ class ArcGeo:
         if type(self.O) == type(None):
 
             if (type(Ps) != type(None)) and \
-            (type(Pe) != type(None)) and \
-            (type(direction) != type(None)):
+                    (type(Pe) != type(None)) and \
+                    (type(direction) != type(None)):
 
                 arc = self.Pe.norm_angle(Ps) - pi / 2
                 Ve = Pe - Ps
                 m = (sqrt(pow(Ve.x, 2) + pow(Ve.y, 2))) / 2
 
                 if abs(r - m) < 0.0001:
-                    lo = 0.0;
+                    lo = 0.0
                 else:
                     lo = sqrt(pow(r, 2) - pow(m, 2))
 
@@ -1111,8 +1128,8 @@ class ArcGeo:
         Calculated the BoundingBox of the geometry and saves it into self.BB
         """
 
-        Ps = Point(x = self.O.x - self.r, y = self.O.y - self.r)
-        Pe = Point(x = self.O.x + self.r, y = self.O.y + self.r)
+        Ps = Point(x=self.O.x - self.r, y=self.O.y - self.r)
+        Pe = Point(x=self.O.x + self.r, y=self.O.y + self.r)
 
         # Do the calculation only for arcs have positiv extend => switch angles
         if self.ext >= 0:
@@ -1139,9 +1156,9 @@ class ArcGeo:
                 self.wrap(e_ang - 1.5 * pi, 1)):
             Ps.y = min(self.Ps.y, self.Pe.y)
 
-        self.BB = BoundingBox(Ps = Ps, Pe = Pe)
+        self.BB = BoundingBox(Ps=Ps, Pe=Pe)
 
-    def dif_ang(self, P1, P2, direction, tol = eps):
+    def dif_ang(self, P1, P2, direction, tol=eps):
         """
         Calculated the angle of extend based on the 3 given points. Center Point,
         P1 and P2.
@@ -1185,7 +1202,8 @@ class ArcGeo:
         elif isinstance(other, ArcGeo):
             return self.distance_a_a(other)
         else:
-            logger.error(self.tr("Unsupported geometry type: %s" % type(other)))
+            logger.error(
+                self.tr("Unsupported geometry type: %s" % type(other)))
 
     def distance_a_a(self, other):
         """
@@ -1209,11 +1227,11 @@ class ArcGeo:
             # If the Nearest Point is on Arc Segement it is the neares one.
             # logger.debug("Nearest Point is outside of arc")
             if self.PointAng_withinArc(other):
-                return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r = self.r))
+                return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r=self.r))
             elif other.distance(self.Ps) < other.distance(self.Pe):
-                    return other.distance(self.Ps)
+                return other.distance(self.Ps)
             else:
-                    return other.distance(self.Pe)
+                return other.distance(self.Pe)
 
         # logger.debug("Nearest Point is Inside of arc")
         # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
@@ -1226,13 +1244,13 @@ class ArcGeo:
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((self.PointAng_withinArc(other)) and
-            abs(self.r - self.O.distance(other)) < dis_min):
+                abs(self.r - self.O.distance(other)) < dis_min):
             dis_min = abs(self.r - self.O.distance(other))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         return dis_min
 
-    def find_inter_point(self, other = [], type = 'TIP'):
+    def find_inter_point(self, other=[], type='TIP'):
         """
         Find the intersection between 2 geometry elements. Possible is CCLineGeo
         and ArcGeo
@@ -1248,7 +1266,7 @@ class ArcGeo:
         else:
             logger.error("Unsupported Instance: %s" % other.type)
 
-    def find_inter_point_a_a(self, other, type = 'TIP'):
+    def find_inter_point_a_a(self, other, type='TIP'):
         """
         Find the intersection between 2 ArcGeo elements. There can be only one
         intersection between 2 lines.
@@ -1268,21 +1286,22 @@ class ArcGeo:
         if(O_dis < abs(other.r - self.r)):
             return None
 
-        # If The circles are to far away from each other no intersection possible
+        # If The circles are to far away from each other no intersection
+        # possible
         if (O_dis > abs(other.r + self.r)):
             return None
 
         # If both circles have the same center and radius
         if abs(O_dis) == 0.0 and abs(self.r - other.r) == 0.0:
-            Pi1 = Point(x = self.Ps.x, y = self.Ps.y)
-            Pi2 = Point(x = self.Pe.x, y = self.Pe.y)
+            Pi1 = Point(x=self.Ps.x, y=self.Ps.y)
+            Pi2 = Point(x=self.Pe.x, y=self.Pe.y)
 
             return [Pi1, Pi2]
         # The following algorithm was found on :
         # http://www.sonoma.edu/users/w/wilsonst/Pspers/Geometry/circles/default.htm
 
-        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) *
-                  (pow(O_dis, 2) - pow(other.r - self.r, 2)))
+        root = ((pow(self.r + other.r, 2) - pow(O_dis, 2)) *
+                (pow(O_dis, 2) - pow(other.r - self.r, 2)))
 
         # If the Line is a tangent the root is 0.0.
         if root <= 0.0:
@@ -1291,40 +1310,39 @@ class ArcGeo:
             root = sqrt(root)
 
         xbase = (other.O.x + self.O.x) / 2 + \
-        (other.O.x - self.O.x) * \
-        (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
+            (other.O.x - self.O.x) * \
+            (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
 
         ybase = (other.O.y + self.O.y) / 2 + \
-        (other.O.y - self.O.y) * \
-        (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
+            (other.O.y - self.O.y) * \
+            (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
 
-        Pi1 = Point(x = xbase + (other.O.y - self.O.y) / \
-                          (2 * pow(O_dis, 2)) * root,
-                    y = ybase - (other.O.x - self.O.x) / \
+        Pi1 = Point(x=xbase + (other.O.y - self.O.y) /
+                    (2 * pow(O_dis, 2)) * root,
+                    y=ybase - (other.O.x - self.O.x) /
                     (2 * pow(O_dis, 2)) * root)
 
         Pi1.v1 = self.dif_ang(self.Ps, Pi1, self.ext) / self.ext
         Pi1.v2 = other.dif_ang(other.Ps, Pi1, other.ext) / other.ext
 
-        Pi2 = Point(x = xbase - (other.O.y - self.O.y) / \
-                         (2 * pow(O_dis, 2)) * root,
-                    y = ybase + (other.O.x - self.O.x) / \
+        Pi2 = Point(x=xbase - (other.O.y - self.O.y) /
+                    (2 * pow(O_dis, 2)) * root,
+                    y=ybase + (other.O.x - self.O.x) /
                     (2 * pow(O_dis, 2)) * root)
 
         Pi2.v1 = self.dif_ang(self.Ps, Pi2, self.ext) / self.ext
         Pi2.v2 = other.dif_ang(other.Ps, Pi2, other.ext) / other.ext
 
-
         if type == 'TIP':
             if ((Pi1.v1 >= 0.0 and Pi1.v1 <= 1.0 and Pi1.v2 > 0.0 and Pi1.v2 <= 1.0) and
-               (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0)):
+                    (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0)):
                 if (root == 0):
                     return Pi1
                 else:
                     return [Pi1, Pi2]
             elif (Pi1.v1 >= 0.0 and Pi1.v1 <= 1.0 and Pi1.v2 > 0.0 and Pi1.v2 <= 1.0):
                 return Pi1
-            elif  (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0):
+            elif (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0):
                 return Pi2
             else:
                 return None
@@ -1365,7 +1383,7 @@ class ArcGeo:
         @return: The point which is the nearest to other
         """
         if isinstance(other, LineGeo):
-            return other.get_nearest_point_l_a(self, ret = "arc")
+            return other.get_nearest_point_l_a(self, ret="arc")
         elif isinstance(other, ArcGeo):
             return self.get_nearest_point_a_a(other)
         elif isinstance(other, Point):
@@ -1382,7 +1400,7 @@ class ArcGeo:
         if self.intersect(other):
             return other
 
-        PPoint = self.O.get_arc_point(self.O.norm_angle(other), r = self.r)
+        PPoint = self.O.get_arc_point(self.O.norm_angle(other), r=self.r)
         if self.intersect(PPoint):
             return PPoint
         elif self.Ps.distance(other) < self.Pe.distance(other):
@@ -1390,109 +1408,42 @@ class ArcGeo:
         else:
             return self.Pe
 
-    def get_nearest_point_a_a(self, other, ret = "self"):
+    def get_nearest_point_a_a(self, other):
         """
         Get the nearest point to a line lieing on the line
         @param other: The Point to be nearest to
         @return: The point which is the nearest to other
         """
+
         if self.intersect(other):
             return self.find_inter_point_a_a(other)
 
-
-
-        # The Arc is outside of the Arc
-        # if other.O.distance(self.O)>(other.r+other.r):
-
         # If Nearest point is on both Arc Segments.
-        if other.PointAng_withinArc(self.O) and self.PointAng_withinArc(other.O):
-            if ret == "self":
-                return self.O.get_arc_point(self.O.norm_angle(other.O), r = self.r)
-            elif ret == "other":
-                return other.O.get_arc_point(other.O.norm_angle(self.O), r = other.r)
-        # If Nearest point is on self Arc Segment but not other
-        elif self.PointAng_withinArc(other.O):
-            if self.distance(other.Ps) < self.distance(other.Pe):
-                if ret == "self":
-                    return self.O.get_arc_point(self.O.norm_angle(other.Ps), r = self.r)
-                elif ret == "other":
-                    return other.Ps
-            else:
-                if ret == "self":
-                    return self.O.get_arc_point(self.O.norm_angle(other.Pe), r = self.r)
-                elif ret == "other":
-                    return other.Pe
-        # If Nearest point is on other Arc Segment but not self
-        elif other.PointAng_withinArc(self.O):
-            if other.distance(self.Ps) < other.distance(self.Pe):
-                if ret == "self":
-                    return self.Ps
-                elif ret == "other":
-                    return other.O.get_arc_point(other.O.norm_angle(self.Ps), r = other.r)
-            else:
-                if ret == "self":
-                    return self.Pe
-                elif ret == "other":
-                    return other.O.get_arc_point(other.O.norm_angle(self.Pe), r = other.r)
-        # If the min distance is not on any arc segemtn but other.Ps is nearer then other.Pe
-        elif self.distance(other.Ps) < self.distance(other.Pe):
-            if self.Ps.distance(other.Ps) < self.Pe.distance(other.Ps):
-                if ret == "self":
-                    return self.Ps
-                elif ret == "other":
-                    return other.Ps
-            else:
-                if ret == "self":
-                    return self.Pe
-                elif ret == "other":
-                    return other.Ps
+        if (other.PointAng_withinArc(self.O) and
+                self.PointAng_withinArc(other.O)):
+            return self.O.get_arc_point(self.O.norm_angle(other.O),
+                                        r=self.r)
+
+        # If Nearest point is at one of the start/end points
         else:
-            if self.Ps.distance(other.Pe) < self.Pe.distance(other.Pe):
-                if ret == "self":
-                    return self.Ps
-                elif ret == "other":
-                    return other.Pe
-            else:
-                if ret == "self":
-                    return self.Pe
-                elif ret == "other":
-                    return other.Pe
+            dismin = self.Ps.distance(other)
+            retpoint = self.Ps
 
+            newdis = self.Pe.distance(other)
+            if newdis < dismin:
+                dismin = newdis
+                retpoint = self.Pe
 
+            newdis = other.Ps.distance(self)
+            if newdis < dismin:
+                dismin = newdis
+                retpoint = self.get_nearest_point_a_p(other.Ps)
 
-#         #logger.debug("Nearest Point is Inside of arc")
-#         #logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
-#         # The Line may be inside of the ARc or cross it
-#         if self.distance(other.Ps)<self.distance(other.Pe):
-#             Pnearest=self.get_nearest_point(other.Ps)
-#             Pnother=other.Ps
-#             dis_min=self.distance(other.Ps)
-#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#         else:
-#             Pnearest=self.get_nearest_point(other.Pe)
-#             Pnother=other.Pe
-#             dis_min=self.distance(other.Pe)
-#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#
-#         if ((other.PointAng_withinArc(self.Ps)) and
-#             abs(other.r-other.O.distance(self.Ps)) < dis_min):
-#
-#             Pnearest=self.Ps
-#             Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
-#             dis_min=abs(other.r-other.O.distance(self.Ps))
-#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#
-#         if ((other.PointAng_withinArc(self.Pe)) and
-#             abs((other.r-other.O.distance(self.Pe))) < dis_min):
-#             Pnearest=self.Pe
-#             Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
-#
-#             dis_min=abs(other.r-other.O.distance(self.Pe))
-#             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-#         if ret=="line":
-#             return Pnearest
-#         elif ret=="arc":
-#             return Pnother
+            newdis = other.Pe.distance(self)
+            if newdis < dismin:
+                dismin = newdis
+                retpoint = self.get_nearest_point_a_p(other.Pe)
+            return retpoint
 
     def intersect(self, other):
         """
@@ -1532,14 +1483,14 @@ class ArcGeo:
         @return: True if there is an intersection
         """
         # No intersection possible if point is not within radius
-        if not(abs(self.O.distance(other) - self.r) < abs):
+        if not(abs(self.O.distance(other) - self.r) < eps):
             return False
         elif self.PointAng_withinArc(other):
             return True
         else:
             return False
 
-    def plot2plot(self, plot, format = '-m'):
+    def plot2plot(self, plot, format='-m'):
 
         x = []
         y = []
@@ -1569,7 +1520,7 @@ class ArcGeo:
         self.s_ang, self.e_ang = self.e_ang, self.s_ang
         self.ext = -self.ext
 
-    def split_into_2geos(self, ipoint = Point()):
+    def split_into_2geos(self, ipoint=Point()):
         """
         Splits the given geometry into 2 geometries. The
         geometry will be splitted at ipoint.
@@ -1577,16 +1528,15 @@ class ArcGeo:
         @return: A list of 2 ArcGeo's will be returned.
         """
 
-
         # Generate the 2 geometries and their bounding boxes.
-        Arc1 = ArcGeo(Ps = self.Ps, Pe = ipoint, r = self.r,
-                       O = self.O, direction = self.ext)
+        Arc1 = ArcGeo(Ps=self.Ps, Pe=ipoint, r=self.r,
+                      O=self.O, direction=self.ext)
 
-        Arc2 = ArcGeo(Ps = ipoint, Pe = self.Pe, r = self.r,
-                       O = self.O, direction = self.ext)
+        Arc2 = ArcGeo(Ps=ipoint, Pe=self.Pe, r=self.r,
+                      O=self.O, direction=self.ext)
         return [Arc1, Arc2]
 
-    def trim(self, Point, dir = 1, rev_norm = False):
+    def trim(self, Point, dir=1, rev_norm=False):
         """
         This instance is used to trim the geometry at the given point. The point 
         can be a point on the offset geometry a perpendicular point on line will
@@ -1598,8 +1548,8 @@ class ArcGeo:
         """
 
         # logger.debug("I'm getting trimmed: %s, %s, %s, %s" % (self, Point, dir, rev_norm))
-        newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r = self.r)
-        new_normal = newPoint.unit_vector(self.O, r = 1)
+        newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r=self.r)
+        new_normal = newPoint.unit_vector(self.O, r=1)
 
         # logger.debug(newPoint)
         [Arc1, Arc2] = self.split_into_2geos(newPoint)
@@ -1626,7 +1576,7 @@ class ArcGeo:
             return new_arc
         # return self
 
-    def wrap(self, angle, isend = 0):
+    def wrap(self, angle, isend=0):
         """
         Wrapes the given angle into a range between 0 and 2pi
         @param angle: The angle to be wraped
@@ -1642,12 +1592,15 @@ class ArcGeo:
 
         return wrap_angle
 
+
 class ShapeClass():
+
     """
     The Shape Class may contain a Polyline or a Polygon. These are based on geos
     which are stored in this class.  
     """
-    def __init__(self, geos = [], closed = False, length = 0.0):
+
+    def __init__(self, geos=[], closed=False, length=0.0):
         """ 
         Standard method to initialize the class
         @param closed: Gives information about the shape, when it is closed this
@@ -1672,7 +1625,7 @@ class ShapeClass():
                ('\nlen(geos):   %i' % len(self.geos)) + \
                ('\ngeos:        %s' % self.geos)
 
-    def contains_point(self, p = Point(x = 0, y = 0)):
+    def contains_point(self, p=Point(x=0, y=0)):
         """
         This method may be called in order to check if point is inside a closed
         shape
@@ -1696,8 +1649,6 @@ class ShapeClass():
             geo1 = new_geos[-1]
             geo2 = self.geos[i]
 
-
-
             if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
                 # Remove first geometry and add result of joined geometries. Required
                 # Cause the join will give back the last 2 geometries.
@@ -1710,7 +1661,6 @@ class ShapeClass():
             if new_geos[-1].Ps == new_geos[-1].Pe:
                 new_geos.pop()
 
-
         # For closed polylines check if the first and last items are colinear
         if self.closed:
             geo1 = new_geos[-1]
@@ -1718,7 +1668,8 @@ class ShapeClass():
             if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
                 joined_geos = geo1.join_colinear_line(geo2)
 
-                # If they are joind replace firste item by joined and remove last one
+                # If they are joind replace firste item by joined and remove
+                # last one
                 if len(joined_geos) == 1:
                     new_geos[0] = joined_geos[0]
                     new_geos.pop()
@@ -1748,7 +1699,7 @@ class ShapeClass():
                 segments = int((abs(degrees(geo.ext)) // 90) + 1)
                 for i in range(segments):
                     ang = geo.s_ang + (i + 1) * geo.ext / segments
-                    ende = Point(x = (geo.O.x + cos(ang) * abs(geo.r)),
+                    ende = Point(x=(geo.O.x + cos(ang) * abs(geo.r)),
                                  y = (geo.O.y + sin(ang) * abs(geo.r)))
                     summe += (start.x + ende.x) * (ende.y - start.y) / 2
                     start = ende
@@ -1774,23 +1725,29 @@ class ShapeClass():
         """
         return string_to_translate
 
+
 class ConvexPoint(Point):
-    def __init__(self, x = 0, y = 0, z = 0):
+
+    def __init__(self, x=0, y=0, z=0):
         self.x = x
         self.y = y
         self.z = z
 
-        Point.__init__(self, x = x, y = y, z = z)
-    def plot2plot(self, plot, format = 'dk'):
+        Point.__init__(self, x=x, y=y, z=z)
+
+    def plot2plot(self, plot, format='dk'):
         plot.plot([self.x], [self.y], 'dk')
 
+
 class offShapeClass(ShapeClass):
+
     """
     This Class is used to generate The fofset aof a shape according to:
     "A pair-wise offset Algorithm for 2D point sequence curve"
     http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.101.8855
     """
-    def __init__(self, parent = ShapeClass(), offset = 1, offtype = 'in'):
+
+    def __init__(self, parent=ShapeClass(), offset=1, offtype='in'):
         """ 
         Standard method to initialize the class
         @param closed: Gives information about the shape, when it is closed this
@@ -1801,10 +1758,9 @@ class offShapeClass(ShapeClass):
         to easy calclations.
         """
 
-
-        ShapeClass.__init__(self, closed = parent.closed,
-                            length = parent.length,
-                            geos = deepcopy(parent.geos))
+        ShapeClass.__init__(self, closed=parent.closed,
+                            length=parent.length,
+                            geos=deepcopy(parent.geos))
         self.offset = offset
         self.offtype = offtype
         self.segments = []
@@ -1818,24 +1774,24 @@ class offShapeClass(ShapeClass):
         self.make_segment_types()
         logger.debug(self.geos)
         logger.debug(self.segments)
-        nextConvexPoint = [e for e in self.segments if isinstance(e, ConvexPoint)]
+        nextConvexPoint = [
+            e for e in self.segments if isinstance(e, ConvexPoint)]
         # logger.debug(nextConvexPoint)
         # nextConvexPoint=[nextConvexPoint[31]]
         self.counter = 0
-
 
         while len(nextConvexPoint):  # [self.convex_vertex[-1]]:
             convex_vertex_nr = self.segments.index(nextConvexPoint[0])
             # logger.debug(len(self.segments))
             # logger.debug("convex_vertex_nr: %s" % convex_vertex_nr)
 
-            forward, backward = self.PairWiseInterferenceDetection(convex_vertex_nr + 1, convex_vertex_nr - 1)
+            forward, backward = self.PairWiseInterferenceDetection(
+                convex_vertex_nr + 1, convex_vertex_nr - 1)
             # logger.debug("forward: %s, backward: %s" % (forward, backward))
 
             if forward is None:
                 return
                 break
-
 
             if backward == 0 and forward == (len(self.segments) - 1):
                 self.segments = []
@@ -1853,7 +1809,6 @@ class offShapeClass(ShapeClass):
 
             self.plotshapes += [fw_rawoff_seg, bw_rawoff_seg, iPoint]
 
-
             if iPoint is None:
                 logger.error("No intersection found?!")
                 # logger.debug(fw_rawoff_seg)
@@ -1862,11 +1817,11 @@ class offShapeClass(ShapeClass):
 
             # Reomve the LIR from the PS Curce
             self.remove_LIR(forward, backward, iPoint)
-            nextConvexPoint = [e for e in self.segments if isinstance(e, ConvexPoint)]
+            nextConvexPoint = [
+                e for e in self.segments if isinstance(e, ConvexPoint)]
             # logger.debug(nextConvexPoint)
             # nextConvexPoint=[]
             # logger.debug(nextConvexPoint)
-
 
         for seg in self.segments:
             self.rawoff += [self.make_rawoff_seg(seg)]
@@ -1897,20 +1852,20 @@ class offShapeClass(ShapeClass):
             Ps = seg + seg.start_normal * offset
             Pe = seg + seg.end_normal * offset
 
-            return ArcGeo(Ps = Ps, Pe = Pe, O = deepcopy(seg), r = self.offset, direction = offset)
+            return ArcGeo(Ps=Ps, Pe=Pe, O=deepcopy(seg), r=self.offset, direction=offset)
         elif isinstance(seg, ArcGeo):
             Ps = seg.Ps + seg.start_normal * offset
             Pe = seg.Pe + seg.end_normal * offset
 
             if seg.ext > 0:
-                return ArcGeo(Ps = Ps, Pe = Pe, O = seg.O, r = seg.r + offset, direction = seg.ext)
+                return ArcGeo(Ps=Ps, Pe=Pe, O=seg.O, r=seg.r + offset, direction=seg.ext)
             else:
-                return ArcGeo(Ps = Ps, Pe = Pe, O = seg.O, r = seg.r - offset, direction = seg.ext)
+                return ArcGeo(Ps=Ps, Pe=Pe, O=seg.O, r=seg.r - offset, direction=seg.ext)
 
         elif isinstance(seg, ConvexPoint):
             Ps = seg + seg.start_normal * offset
             Pe = seg + seg.end_normal * offset
-            return ArcGeo(Ps = Ps, Pe = Pe, O = deepcopy(seg), r = self.offset, direction = offset)
+            return ArcGeo(Ps=Ps, Pe=Pe, O=deepcopy(seg), r=self.offset, direction=offset)
         else:
             logger.error("Unsupportet Object type: %s" % type(seg))
 
@@ -1941,8 +1896,8 @@ class offShapeClass(ShapeClass):
                     geo1.start_normal = geo1.Ps.get_normal_vector(geo1.Pe)
                     geo1.end_normal = geo1.Ps.get_normal_vector(geo1.Pe)
                 else:
-                    geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r = 1)
-                    geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r = 1)
+                    geo1.start_normal = geo1.O.unit_vector(geo1.Ps, r=1)
+                    geo1.end_normal = geo1.O.unit_vector(geo1.Pe, r=1)
                     if geo1.ext < 0:
                         geo1.start_normal = geo1.start_normal * -1
                         geo1.end_normal = geo1.end_normal * -1
@@ -1951,11 +1906,11 @@ class offShapeClass(ShapeClass):
                 geo2.start_normal = geo2.Ps.get_normal_vector(geo2.Pe)
                 geo2.end_normal = geo2.Ps.get_normal_vector(geo2.Pe)
             elif isinstance(geo2, ArcGeo):
-                geo2.start_normal = geo2.O.unit_vector(geo2.Ps, r = 1)
-                geo2.end_normal = geo2.O.unit_vector(geo2.Pe, r = 1)
+                geo2.start_normal = geo2.O.unit_vector(geo2.Ps, r=1)
+                geo2.end_normal = geo2.O.unit_vector(geo2.Pe, r=1)
                 if geo2.ext < 0:
-                        geo2.start_normal = geo2.start_normal * -1
-                        geo2.end_normal = geo2.end_normal * -1
+                    geo2.start_normal = geo2.start_normal * -1
+                    geo2.end_normal = geo2.end_normal * -1
 
             # logger.debug("geo1: %s, geo2: %s" % (geo1, geo2))
             # logger.debug("geo1.end_normal: %s, geo2.start_normal: %s" % (geo1.end_normal, geo2.start_normal))
@@ -1970,9 +1925,9 @@ class offShapeClass(ShapeClass):
 #                 logger.debug(geo2_off)
 #
             if ((isinstance(geo2, ArcGeo)) and
-                ((self.offtype == "out" and geo2.ext > 0) or
-                 (self.offtype == "in" and geo2.ext < 0)) and
-                ((geo2.r - abs(self.offset)) <= 0.0)):
+                    ((self.offtype == "out" and geo2.ext > 0) or
+                     (self.offtype == "in" and geo2.ext < 0)) and
+                    ((geo2.r - abs(self.offset)) <= 0.0)):
 
                 newgeo2 = ConvexPoint(geo2.O.x, geo2.O.y)
                 newgeo2.start_normal = geo2.start_normal
@@ -1982,8 +1937,8 @@ class offShapeClass(ShapeClass):
             logger.debug(geo1)
             logger.debug(geo2)
             logger.debug(geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                             geo1.Pe + geo1.end_normal +
-                             geo2.start_normal))
+                                     geo1.Pe + geo1.end_normal +
+                                     geo2.start_normal))
 
 #             logger.debug(geo1.end_normal)
 #             logger.debug(geo2.start_normal)
@@ -2003,10 +1958,9 @@ class offShapeClass(ShapeClass):
                 self.segments += [geo1.Pe, geo2]
 
             elif (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                             geo1.Pe + geo1.end_normal +
-                             geo2.start_normal) == 0):
+                              geo1.Pe + geo1.end_normal +
+                              geo2.start_normal) == 0):
                 self.segments += [geo2]
-
 
             # Add the linear segment which is a line connecting 2 vertices
             else:
@@ -2046,27 +2000,25 @@ class offShapeClass(ShapeClass):
         else:
             offset = abs(self.offset)
 
-
         if dir == 1:
             distance = segment2.distance(Pe + segment1.end_normal * offset)
             self.interferingshapes += [LineGeo(Pe, Pe + segment1.end_normal * offset),
-                                     segment2,
-                                     ArcGeo(O = Pe + segment1.end_normal * offset,
-                                            Ps = Pe, Pe = Pe ,
-                                            s_ang = 0, e_ang = 2 * pi, r = self.offset)]
+                                       segment2,
+                                       ArcGeo(O=Pe + segment1.end_normal * offset,
+                                              Ps=Pe, Pe=Pe,
+                                              s_ang=0, e_ang=2 * pi, r=self.offset)]
         else:
             # logger.debug(Pe)
             # logger.debug(segment1)
             # logger.debug(segment1.start_normal)
             distance = segment2.distance(Pe + segment1.start_normal * offset)
             self.interferingshapes += [LineGeo(Pe, Pe + segment1.start_normal * offset),
-                                     segment2,
-                                     ArcGeo(O = Pe + segment1.start_normal * offset,
-                                            Ps = Pe, Pe = Pe,
-                                            s_ang = 0, e_ang = 2 * pi, r = self.offset)]
+                                       segment2,
+                                       ArcGeo(O=Pe + segment1.start_normal * offset,
+                                              Ps=Pe, Pe=Pe,
+                                              s_ang=0, e_ang=2 * pi, r=self.offset)]
 
         # logger.debug("Full distance: %s" % distance)
-
 
         # If the distance from the Segment to the Center of the Tangential Circle
         # is smaller then the radius we have an intersection
@@ -2171,9 +2123,12 @@ class offShapeClass(ShapeClass):
                 segment2 = self.segments[backward]
                 # logger.debug("Backward ConvexPoint")
 
-            logger.debug("Checking: forward: %s, backward: %s" % (forward, backward))
-            [L1_status, L2_status] = self.Interfering_relation(segment1, segment2)
-            logger.debug("Start Status: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
+            logger.debug("Checking: forward: %s, backward: %s" %
+                         (forward, backward))
+            [L1_status, L2_status] = self.Interfering_relation(
+                segment1, segment2)
+            logger.debug(
+                "Start Status: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
 
             """
             The reverse interfering segment is replaced  by the first 
@@ -2197,11 +2152,12 @@ class offShapeClass(ShapeClass):
                         segment1 = self.segments[forward]
                         # logger.debug("Forward ConvexPoint")
 
-
-
-                    [L1_status, L2_status] = self.Interfering_relation(segment1, segment2)
-                    logger.debug("Reverse Replace Checking: forward: %s, backward: %s" % (forward, backward))
-                    logger.debug("Replace Reverse: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
+                    [L1_status, L2_status] = self.Interfering_relation(
+                        segment1, segment2)
+                    logger.debug(
+                        "Reverse Replace Checking: forward: %s, backward: %s" % (forward, backward))
+                    logger.debug(
+                        "Replace Reverse: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
 
             elif L2_status == "reverse":
                 while L2_status == "reverse":
@@ -2220,11 +2176,12 @@ class offShapeClass(ShapeClass):
                         segment2 = self.segments[backward]
                         # logger.debug("Backward ConvexPoint")
 
-
-                    [L1_status, L2_status] = self.Interfering_relation(segment1, segment2)
-                    logger.debug("Reverse Replace Checking: forward: %s, backward: %s" % (forward, backward))
-                    logger.debug("Replace Reverse: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
-
+                    [L1_status, L2_status] = self.Interfering_relation(
+                        segment1, segment2)
+                    logger.debug(
+                        "Reverse Replace Checking: forward: %s, backward: %s" % (forward, backward))
+                    logger.debug(
+                        "Replace Reverse: L1_status: %s,L2_status: %s" % (L1_status, L2_status))
 
             """
             Full interfering segment is replaced by the nexst segemnt along the
@@ -2260,14 +2217,17 @@ class offShapeClass(ShapeClass):
         @param iPoint: The Intersection point of the LIR
         """
 
-        logger.debug("==============================================================================================================")
-        logger.debug("forward: %i, backward: %i, iPoint: %s" % (forward, backward, iPoint))
+        logger.debug(
+            "==============================================================================================================")
+        logger.debug("forward: %i, backward: %i, iPoint: %s" %
+                     (forward, backward, iPoint))
 
         if backward > forward:
             pop_range = self.segments[backward + 1:len(self.segments)]
             pop_range += self.segments[0:forward]
         elif backward < 0:
-            pop_range = self.segments[len(self.segments) + backward + 1:len(self.segments)]
+            pop_range = self.segments[
+                len(self.segments) + backward + 1:len(self.segments)]
             pop_range += self.segments[0:forward]
         else:
             pop_range = self.segments[backward + 1:forward]
@@ -2278,14 +2238,18 @@ class offShapeClass(ShapeClass):
         else:
             rev = False
         # Modify the first segment and the last segment of the LIR
-        self.segments[forward] = self.segments[forward].trim(Point = iPoint, dir = 1, rev_norm = rev)
-        self.segments[backward] = self.segments[backward].trim(Point = iPoint, dir = -1, rev_norm = rev)
+        self.segments[forward] = self.segments[
+            forward].trim(Point=iPoint, dir=1, rev_norm=rev)
+        self.segments[backward] = self.segments[
+            backward].trim(Point=iPoint, dir=-1, rev_norm=rev)
 
         # Remove the segments which are inbetween the LIR
         self.segments = [x for x in self.segments if x not in pop_range]
 
+
 class SweepLine:
-    def __init__(self, geos = [], closed = True):
+
+    def __init__(self, geos=[], closed=True):
         """
         This the init function of the SweepLine Class. It is calling a sweep line
         algorithm in order to find all intersection of the given geometries
@@ -2319,16 +2283,15 @@ class SweepLine:
             for swoop_ele in element.swoop:
                 swoop_array.append(swoop_ele)
 
-
-
-            sweep_array_order += [[element.Point.x, element.Point.y], add_array, rem_array, swoop_array]
+            sweep_array_order += [[element.Point.x,
+                                   element.Point.y], add_array, rem_array, swoop_array]
 
         return ('\nlen(geos):   %i' % len(self.geos)) + \
                ('\nclosed:      %i' % self.closed) + \
                ('\ngeos:        %s' % self.geos) + \
                ('\nsweep_array_order:  %s' % sweep_array_order)
 
-    def add_to_sweep_array(self, geos = [], closed = True):
+    def add_to_sweep_array(self, geos=[], closed=True):
         """
         This instance adds the given geometries to the sweep array. If there 
         are already some defined it will just continue to add them. This may be 
@@ -2347,7 +2310,7 @@ class SweepLine:
 
             geo.neighbors = []
             geo.nr = geo_nr
-            geo.Point = Point(x = geo.BB.Ps.x, y = y_val)
+            geo.Point = Point(x=geo.BB.Ps.x, y=y_val)
 
             # Add the neighbors before the geometrie
             if geo_nr == 0 and closed:
@@ -2362,9 +2325,10 @@ class SweepLine:
                 geo.neighbors.append(geos[geo_nr + 1])
 
             y_val = (geo.BB.Ps.y + geo.BB.Pe.y) / 2
-            sweep_array.append(SweepElement(Point = geo.Point, add = [geo], remove = []))
-            sweep_array.append(SweepElement(Point = Point(x = geo.BB.Pe.x, y = y_val), add = [], remove = [geo]))
-
+            sweep_array.append(
+                SweepElement(Point=geo.Point, add=[geo], remove=[]))
+            sweep_array.append(
+                SweepElement(Point=Point(x=geo.BB.Pe.x, y=y_val), add=[], remove=[geo]))
 
         # logger.debug(sweep_array)
         sweep_array.sort(self.cmp_SweepElement)
@@ -2473,11 +2437,12 @@ class SweepLine:
                 # logger.debug(geo)
                 if len(search_array) >= 2:
                     if index > 0:
-                        self.search_geo_intersection(geo, search_array[index - 1])
-
+                        self.search_geo_intersection(
+                            geo, search_array[index - 1])
 
                     if index < (len(search_array) - 1):
-                        self.search_geo_intersection(geo, search_array[index + 1])
+                        self.search_geo_intersection(
+                            geo, search_array[index + 1])
 
             for geo in ele.swoop:
                 # The y values of the elements are exchanged and the upper and
@@ -2485,7 +2450,6 @@ class SweepLine:
                 # logger.debug(geo[0].Point)
                 # logger.debug(geo[1].Point)
                 # logger.debug(search_array)
-
 
                 y0 = geo[0].Point.y
                 y1 = geo[1].Point.y
@@ -2510,12 +2474,12 @@ class SweepLine:
                 min_ind = min(index0, index1)
                 max_ind = max(index0, index1)
                 if min_ind > 0:
-                    self.search_geo_intersection(search_array[min_ind], search_array[min_ind - 1])
-
+                    self.search_geo_intersection(
+                        search_array[min_ind], search_array[min_ind - 1])
 
                 if max_ind < (len(search_array) - 1):
-                    self.search_geo_intersection(search_array[max_ind], search_array[max_ind + 1])
-
+                    self.search_geo_intersection(
+                        search_array[max_ind], search_array[max_ind + 1])
 
             for geo in ele.remove:
                 index = search_array.index(geo)
@@ -2524,8 +2488,8 @@ class SweepLine:
                 search_array.pop(index)
                 if len(search_array) >= 2:
                     if index > 0 and index <= (len(search_array) - 1):
-                        self.search_geo_intersection(search_array[index - 1], search_array[index])
-
+                        self.search_geo_intersection(
+                            search_array[index - 1], search_array[index])
 
         logger.debug(self.found)
 
@@ -2533,14 +2497,14 @@ class SweepLine:
         """
         This function is called so search the intersections and to add the 
         intersection point to the sweep array. This is called during each search
-        
+
         """
         # logger.debug(search_array[index+1])
         # logger.debug("geo1: %s\ngeo2: %s" %(geo1,geo2))
         iPoint = (geo1.find_inter_point(geo2))
 
         if (not(iPoint is None) and
-            not(geo2 in geo1.neighbors)):
+                not(geo2 in geo1.neighbors)):
 
             iPoint.geo = [geo1, geo2]
 
@@ -2550,19 +2514,25 @@ class SweepLine:
                 geo1.iPoints += [iPoint]
                 geo2.iPoints += [iPoint]
 
-                self.sweep_array.append(SweepElement(Point = iPoint, add = [], remove = [], swoop = [[geo1, geo2]]))
+                self.sweep_array.append(
+                    SweepElement(Point=iPoint, add=[], remove=[], swoop=[[geo1, geo2]]))
 
             else:
                 self.found += iPoint
                 geo1.iPoints += iPoint
                 geo2.iPoints += iPoint
-                self.sweep_array.append(SweepElement(Point = iPoint[0], add = [], remove = [], swoop = [[geo1, geo2]]))
-                self.sweep_array.append(SweepElement(Point = iPoint[1], add = [], remove = [], swoop = [[geo1, geo2]]))
+                self.sweep_array.append(
+                    SweepElement(Point=iPoint[0], add=[], remove=[], swoop=[[geo1, geo2]]))
+                self.sweep_array.append(
+                    SweepElement(Point=iPoint[1], add=[], remove=[], swoop=[[geo1, geo2]]))
 
             self.sweep_array.sort(self.cmp_SweepElement)
             # logger.debug(self)
+
+
 class SweepElement:
-    def __init__(self, Point = Point(0, 0), add = [], remove = [], swoop = []):
+
+    def __init__(self, Point=Point(0, 0), add=[], remove=[], swoop=[]):
         """
         This is the class for each SweepElement given in the sweep_array
         @param Point: the Point of the SweepElement (e.g. 2 Points per LineGeo)
@@ -2584,33 +2554,36 @@ class SweepElement:
                ('\nadd:       %s ' % self.add) + \
                ('\nremove:    %s ' % self.remove)
 
+
 class PlotClass:
+
     """
     Class which calls matplotlib to plot the results.
     """
-    def __init__(self, master = []):
+
+    def __init__(self, master=[]):
 
         self.master = master
 
         # Erstellen des Fensters mit Rahmen und Canvas
-        self.figure = Figure(figsize = (7, 7), dpi = 100)
-        self.frame_c = Frame(relief = GROOVE, bd = 2)
-        self.frame_c.pack(fill = BOTH, expand = 1,)
-        self.canvas = FigureCanvasTkAgg(self.figure, master = self.frame_c)
+        self.figure = Figure(figsize=(7, 7), dpi = 100)
+        self.frame_c = Frame(relief=GROOVE, bd=2)
+        self.frame_c.pack(fill=BOTH, expand=1,)
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.frame_c)
         self.canvas.show()
-        self.canvas.get_tk_widget().pack(fill = BOTH, expand = 1)
+        self.canvas.get_tk_widget().pack(fill=BOTH, expand=1)
 
         # Erstellen der Toolbar unten
         self.toolbar = NavigationToolbar2TkAgg(self.canvas, self.frame_c)
         self.toolbar.update()
-        self.canvas._tkcanvas.pack(fill = BOTH, expand = 1)
+        self.canvas._tkcanvas.pack(fill=BOTH, expand=1)
 
-    def plot_lines_plot(self, lines, sb_nr = 111, text = "", wtp = [True, True, True]):
+    def plot_lines_plot(self, lines, sb_nr=111, text="", wtp=[True, True, True]):
         self.plot1 = self.figure.add_subplot(sb_nr)
         self.plot1.set_title("Lines Plot %s" % sb_nr)
-        self.plot1.grid(b = True, which = 'both', color = '0.65', linestyle = '-')
+        self.plot1.grid(b=True, which='both', color='0.65', linestyle='-')
         self.plot1.hold(True)
-        self.plot1.text(0.5, 0, text, ha = 'left', fontsize = 8)
+        self.plot1.text(0.5, 0, text, ha='left', fontsize=8)
 
         for line_nr in range(len(lines)):
 
@@ -2618,23 +2591,24 @@ class PlotClass:
             if wtp[0]:
                 line.plot2plot(self.plot1)
             if wtp[1]:
-                line.Ps.plot2plot(self.plot1, format = 'xr')
-                line.Pe.plot2plot(self.plot1, format = 'og')
+                line.Ps.plot2plot(self.plot1, format='xr')
+                line.Pe.plot2plot(self.plot1, format='og')
             Ps = (line.Ps + line.Pe) * 0.5
             if wtp[2]:
-                self.plot1.text(Ps.x, Ps.y, line_nr, ha = 'left', fontsize = 10, color = 'red')
+                self.plot1.text(
+                    Ps.x, Ps.y, line_nr, ha='left', fontsize=10, color='red')
 
         self.plot1.axis('scaled')
-        self.plot1.margins(y = .1, x = .1)
+        self.plot1.margins(y=.1, x=.1)
         self.plot1.autoscale(True, 'both', False)
         self.canvas.show()
 
-    def plot_segments(self, segments, sb_nr = 111, text = "", format = ('-m', 'xr', 'og'), fcol = 'red', wtp = [True, True, True]):
+    def plot_segments(self, segments, sb_nr=111, text="", format=('-m', 'xr', 'og'), fcol = 'red', wtp = [True, True, True]):
         self.plot1 = self.figure.add_subplot(sb_nr)
         self.plot1.set_title("Segments Plot %s" % sb_nr)
-        self.plot1.grid(b = True, which = 'both', color = '0.65', linestyle = '-')
+        self.plot1.grid(b=True, which='both', color='0.65', linestyle='-')
         self.plot1.hold(True)
-        self.plot1.text(0.5, 0, text, ha = 'left', fontsize = 8)
+        self.plot1.text(0.5, 0, text, ha='left', fontsize=8)
 
         for segment_nr in range(len(segments)):
             seg = segments[segment_nr]
@@ -2644,44 +2618,47 @@ class PlotClass:
 
                 Ps = (seg.Ps + seg.Pe) * 0.5
                 if wtp[1]:
-                    seg.Ps.plot2plot(self.plot1, format = format[1])
-                    seg.Pe.plot2plot(self.plot1, format = format[1])
+                    seg.Ps.plot2plot(self.plot1, format=format[1])
+                    seg.Pe.plot2plot(self.plot1, format=format[1])
             elif isinstance(seg, ArcGeo):
                 if wtp[0]:
-                    seg.plot2plot(self.plot1, format = format[0])
+                    seg.plot2plot(self.plot1, format=format[0])
 
                 Ps = (seg.Ps + seg.Pe) * 0.5
 
                 if wtp[1]:
-                    seg.Ps.plot2plot(self.plot1, format = format[1])
-                    seg.Pe.plot2plot(self.plot1, format = format[1])
+                    seg.Ps.plot2plot(self.plot1, format=format[1])
+                    seg.Pe.plot2plot(self.plot1, format=format[1])
 
             elif isinstance(seg, Point):
                 # seg.plot2plot(self.plot1,format=format[0])
                 if wtp[0]:
-                    seg.plot2plot(self.plot1, format = format[2])
+                    seg.plot2plot(self.plot1, format=format[2])
                 Ps = seg
 
             if wtp[2]:
-                self.plot1.text(Ps.x + 0.1, Ps.y + 0.1, segment_nr, ha = 'left', fontsize = 10, color = fcol)
+                self.plot1.text(
+                    Ps.x + 0.1, Ps.y + 0.1, segment_nr, ha='left', fontsize=10, color=fcol)
             self.plot1.axis('scaled')
 
-
-        self.plot1.margins(y = .1, x = .1)
+        self.plot1.margins(y=.1, x=.1)
         self.plot1.autoscale(True, 'both', False)
         self.canvas.show()
 
+
 class ExampleClass:
+
     def __init__(self):
         pass
+
     def CheckColinearLines(self):
         master.title("Check for Colinear Lines and Join")
 
-        L1 = LineGeo(Point(x = 0, y = 0), Point(x = 2, y = 2))
-        L2 = LineGeo(Point(x = 2, y = 2), Point(x = 4, y = 4))
-        L3 = LineGeo(Point(x = 1.5, y = 1.5), Point(x = 4, y = 4))
-        L4 = LineGeo(Point(x = 2.5, y = 2.5), Point(x = 4, y = 4))
-        L5 = LineGeo(Point(x = 1.5, y = 1.5), Point(x = 3, y = 0))
+        L1 = LineGeo(Point(x=0, y=0), Point(x=2, y=2))
+        L2 = LineGeo(Point(x=2, y=2), Point(x=4, y=4))
+        L3 = LineGeo(Point(x=1.5, y=1.5), Point(x=4, y=4))
+        L4 = LineGeo(Point(x=2.5, y=2.5), Point(x=4, y=4))
+        L5 = LineGeo(Point(x=1.5, y=1.5), Point(x=3, y=0))
 
         lines1 = L1.join_colinear_line(L2)
         lines2 = L1.join_colinear_line(L3)
@@ -2690,29 +2667,35 @@ class ExampleClass:
 
         text1 = ("\nCheck for Intersection L1; L2: %s \n" % L1.intersect(L2))
         text1 += ("Check for Colinear L1; L2: %s \n" % L1.colinear(L2))
-        text1 += ("Check for colinearoverlapping L1; L2: %s \n" % L1.colinearoverlapping(L2))
-        text1 += ("Check for colinearconnected L1; L2: %s \n" % L1.colinearconnected(L2))
+        text1 += ("Check for colinearoverlapping L1; L2: %s \n" %
+                  L1.colinearoverlapping(L2))
+        text1 += ("Check for colinearconnected L1; L2: %s \n" %
+                  L1.colinearconnected(L2))
         logger.debug(text1)
 
         text2 = ("\nCheck for Intersection L1; L3: %s \n" % L1.intersect(L3))
         text2 += ("Check for Colinear L1; L3: %s \n" % L1.colinear(L3))
-        text2 += ("Check for colinearoverlapping L1; L3: %s \n" % L1.colinearoverlapping(L3))
-        text2 += ("Check for colinearconnected L1; L3: %s \n" % L1.colinearconnected(L3))
+        text2 += ("Check for colinearoverlapping L1; L3: %s \n" %
+                  L1.colinearoverlapping(L3))
+        text2 += ("Check for colinearconnected L1; L3: %s \n" %
+                  L1.colinearconnected(L3))
         logger.debug(text2)
-
 
         text3 = ("\nCheck for Intersection L1; L4: %s \n" % L1.intersect(L4))
         text3 += ("Check for Colinear L1; L4: %s \n" % L1.colinear(L4))
-        text3 += ("Check for colinearoverlapping L1; L4: %s \n" % L1.colinearoverlapping(L4))
-        text3 += ("Check for colinearconnected L1; L4: %s \n" % L1.colinearconnected(L4))
+        text3 += ("Check for colinearoverlapping L1; L4: %s \n" %
+                  L1.colinearoverlapping(L4))
+        text3 += ("Check for colinearconnected L1; L4: %s \n" %
+                  L1.colinearconnected(L4))
         logger.debug(text3)
 
         text4 = ("\nCheck for Intersection L1; L5: %s \n" % L1.intersect(L5))
         text4 += ("Check for Colinear L1; L5: %s \n" % L1.colinear(L5))
-        text4 += ("Check for colinearoverlapping L1; L5: %s \n" % L1.colinearoverlapping(L5))
-        text4 += ("Check for colinearconnected L1; L5: %s \n" % L1.colinearconnected(L5))
+        text4 += ("Check for colinearoverlapping L1; L5: %s \n" %
+                  L1.colinearoverlapping(L5))
+        text4 += ("Check for colinearconnected L1; L5: %s \n" %
+                  L1.colinearconnected(L5))
         logger.debug(text4)
-
 
         Pl.plot_lines_plot(lines1, 221, text1)
         Pl.plot_lines_plot(lines2, 222, text2)
@@ -2722,33 +2705,32 @@ class ExampleClass:
     def CheckForIntersections(self):
         master.title("Check for Intersections and split Lines")
 
-        L1 = LineGeo(Point(x = 0, y = 0), Point(x = 2, y = 2))
-        L2 = LineGeo(Point(x = 0, y = 2), Point(x = 2, y = 0))
-        L3 = LineGeo(Point(x = 1, y = 3), Point(x = 3, y = 1))
-        L4 = LineGeo(Point(x = 2, y = 5), Point(x = 4, y = 2))
-        L5 = LineGeo(Point(x = 2, y = 2), Point(x = 3, y = 0))
+        L1 = LineGeo(Point(x=0, y=0), Point(x=2, y=2))
+        L2 = LineGeo(Point(x=0, y=2), Point(x=2, y=0))
+        L3 = LineGeo(Point(x=1, y=3), Point(x=3, y=1))
+        L4 = LineGeo(Point(x=2, y=5), Point(x=4, y=2))
+        L5 = LineGeo(Point(x=2, y=2), Point(x=3, y=0))
 
         IP1 = L1.find_inter_point(L2)
         IP2 = L1.find_inter_point(L3)
         IP3 = L1.find_inter_point(L4)
         IP4 = L1.find_inter_point(L5)
 
+        Arc1 = ArcGeo(Ps=Point(x=39.0221179632, y=5.55663167698),
+                      Pe=Point(x=39.0221179632, y=9.44336832302),
+                      O=Point(x=38.4037734968, y=7.5),
+                      s_ang=-1.26274354577, e_ang=1.26274354577,
+                      r=1.96062992126,
+                      direction=2.52548709154)
+        L1 = LineGeo(Ps=Point(x=-10.0119371519, y=-9.96248323701),
+                     Pe=Point(x=38.9982436595, y=5.63166520297))
 
-        Arc1 = ArcGeo(Ps = Point(x = 39.0221179632 , y = 5.55663167698),
-               Pe = Point(x = 39.0221179632, y = 9.44336832302),
-               O = Point(x = 38.4037734968, y = 7.5),
-               s_ang = -1.26274354577, e_ang = 1.26274354577,
-               r = 1.96062992126,
-               direction = 2.52548709154)
-        L1 = LineGeo(Ps = Point(x = -10.0119371519 , y = -9.96248323701),
-                Pe = Point(x = 38.9982436595, y = 5.63166520297))
-
-        Arc1 = ArcGeo(Ps = Point(x = -10 , y = 29),
-               Pe = Point(x = 10, y = 29),
-               O = Point(x = 0, y = 29),
-               s_ang = 3.14159265359, e_ang = 0.0,
-               r = 10,
-               direction = -3.14159265359)
+        Arc1 = ArcGeo(Ps=Point(x=-10, y=29),
+                      Pe=Point(x=10, y=29),
+                      O=Point(x=0, y=29),
+                      s_ang=3.14159265359, e_ang=0.0,
+                      r=10,
+                      direction=-3.14159265359)
 
         IP5 = Point(-14.142, 34.000)
 
@@ -2757,19 +2739,20 @@ class ExampleClass:
 
         lines4 = [] + [Arc3]  # , 1, True
 
-
         lines1 = [] + L1.split_into_2geos(IP1) + L2.split_into_2geos(IP1)
         lines2 = [] + L1.split_into_2geos(IP2) + L3.split_into_2geos(IP2)
         lines3 = [] + L1.split_into_2geos(IP3) + L4.split_into_2geos(IP3)
         # lines4 = [] + L1.split_into_2geos(IP4) + L5.split_into_2geos(IP4)
 
         text1 = ("\nCheck for Intersection L1; L2: %s \n" % L1.intersect(L2))
-        text1 += ("Lies on segment L1: %s L2: %s \n" % (L1.intersect(IP1), L2.intersect(IP1)))
+        text1 += ("Lies on segment L1: %s L2: %s \n" %
+                  (L1.intersect(IP1), L2.intersect(IP1)))
         text1 += ("Intersection at Point: %s \n" % L1.find_inter_point(L2))
         logger.debug(text1)
 
         text2 = ("Check for Intersection L1; L3: %s \n" % L1.intersect(L3))
-        text2 += ("Lies on segment L1: %s L3: %s \n" % (L1.intersect(IP2), L3.intersect(IP2)))
+        text2 += ("Lies on segment L1: %s L3: %s \n" %
+                  (L1.intersect(IP2), L3.intersect(IP2)))
         text2 += ("Intersection at Point: %s \n" % L1.find_inter_point(L3))
         logger.debug(text2)
 
@@ -2795,22 +2778,22 @@ class ExampleClass:
     def SimplePolygonCheck(self):
         master.title("Simple Polygon Check")
 
-        L0 = LineGeo(Point(x = 0, y = -1), Point(x = 0, y = 0))
-        L1 = LineGeo(Point(x = 0, y = 0), Point(x = 2, y = 2))
-        L2 = LineGeo(Point(x = 2, y = 2), Point(x = 3, y = 3))
-        L3 = LineGeo(Point(x = 3, y = 3), Point(x = 3, y = -6))
-        L4 = LineGeo(Point(x = 3, y = -6), Point(x = 0, y = -5))
-        L5 = LineGeo(Point(x = 0, y = -5), Point(x = 0, y = -4))
-        L6 = LineGeo(Point(x = 0, y = -4), Point(x = 0, y = -1))
-        shape = ShapeClass(geos = [L0, L1, L2, L3, L4, L5, L6], closed = True)
+        L0 = LineGeo(Point(x=0, y=-1), Point(x=0, y=0))
+        L1 = LineGeo(Point(x=0, y=0), Point(x=2, y=2))
+        L2 = LineGeo(Point(x=2, y=2), Point(x=3, y=3))
+        L3 = LineGeo(Point(x=3, y=3), Point(x=3, y=-6))
+        L4 = LineGeo(Point(x=3, y=-6), Point(x=0, y=-5))
+        L5 = LineGeo(Point(x=0, y=-5), Point(x=0, y=-4))
+        L6 = LineGeo(Point(x=0, y=-4), Point(x=0, y=-1))
+        shape = ShapeClass(geos=[L0, L1, L2, L3, L4, L5, L6], closed=True)
 
-        L0 = LineGeo(Point(x = 0, y = -1), Point(x = 0, y = 0))
-        L1 = LineGeo(Point(x = 0, y = 0), Point(x = 2, y = 2))
-        L2 = LineGeo(Point(x = 2, y = 2), Point(x = 3, y = 3))
-        L3 = LineGeo(Point(x = 3, y = 3), Point(x = 3, y = -6))
-        L4 = LineGeo(Point(x = 3, y = -6), Point(x = 0, y = -5))
-        L5 = LineGeo(Point(x = 0, y = -5), Point(x = 0, y = -4))
-        shape2 = ShapeClass(geos = [L0, L1, L2, L3, L4, L5], closed = False)
+        L0 = LineGeo(Point(x=0, y=-1), Point(x=0, y=0))
+        L1 = LineGeo(Point(x=0, y=0), Point(x=2, y=2))
+        L2 = LineGeo(Point(x=2, y=2), Point(x=3, y=3))
+        L3 = LineGeo(Point(x=3, y=3), Point(x=3, y=-6))
+        L4 = LineGeo(Point(x=3, y=-6), Point(x=0, y=-5))
+        L5 = LineGeo(Point(x=0, y=-5), Point(x=0, y=-4))
+        shape2 = ShapeClass(geos=[L0, L1, L2, L3, L4, L5], closed=False)
 
         Pl.plot_lines_plot(shape.geos, 221)
 
@@ -2825,143 +2808,99 @@ class ExampleClass:
 
     def Distance_Check(self):
 
-        L1 = LineGeo(Point(x = 1, y = 0), Point(x = 2, y = 2))
-        L3 = LineGeo(Point(x = 3, y = 3), Point(x = 4, y = 0))
-        L7 = LineGeo(Point(x = 0, y = -2), Point(x = 0, y = -1))
-        Lt = LineGeo(Point(x = 3, y = 0), Point(x = 2, y = 1))
-        Lc = LineGeo(Point(x = 2, y = 0), Point(x = 3, y = 2))
-        Li = LineGeo(Point(x = 1, y = 0.5), Point(x = 1.5, y = 0))
+        #         L1 = ArcGeo(Ps=Point(x=18.7004232309, y=64.0266463648),
+        #                     Pe=Point(x=19.3077409394, y=63.7668316255),
+        #                     O=Point(x=64.139661471, y=169.401287028),
+        #                     s_ang=-1.97792023657, e_ang=-1.97216393466,
+        #                     r=114.754255985,
+        #                     direction=0.00575630191168)
+        #
+        #         L1O = ArcGeo(Ps=Point(x=18.8984082113, y=64.485778097),
+        #                      Pe=Point(x=19.5030797534, y=64.2270954061),
+        #                      O=Point(x=64.139661471, y=169.401287028),
+        #                      s_ang=-1.97792023657, e_ang=-1.97216393466,
+        #                      r=114.254255985,
+        #                      direction=0.00575630191145)
+        #
+        #         A1 = ArcGeo(Ps=Point(x=17.3966156543, y=61.016694598),
+        #                     Pe=Point(x=18.7004232309, y=64.0266463648),
+        #                     O=Point(x=17.872837694, y=62.5977697722),
+        #                     s_ang=-1.86335494887, e_ang=1.04582173286,
+        #                     r=1.65123775929,
+        #                     direction=-3.37400862544)
+        #
+        #         A1O = ArcGeo(Ps=Point(x=17.2524141191, y=60.53794005),
+        #                      Pe=Point(x=18.9510187409, y=64.4593147024),
+        #                      O=Point(x=17.872837694, y=62.5977697722),
+        #                      s_ang=-1.86335494887, e_ang=1.04582173286,
+        #                      r=2.15123775929,
+        #                      direction=-3.37400862544)
+        #
+        #         PointN3 = A1O.get_nearest_point(L1)
+        #         PointN4 = L1.get_nearest_point(A1O)
+        #         NL1 = LineGeo(PointN3, PointN4)
+        #         SD2 = L1.distance(A1O)
+        #
+        #         logger.debug("Distance L10 to A1: %s" % SD2)
+        #         logger.debug("Distance L10.Pe to A1: %s" % L1.Pe.distance(A1O))
+        #         logger.debug("Distance L10.Ps to A1: %s" % L1.Ps.distance(A1O))
+        #
+        #         segments = [L1, A1]
+        #         segmentsO = [L1O, A1O]
+        #         seg_con = [NL1]
+        #         Pl.plot_segments(segments, 121)
+        #
+        #         Pl.plot_segments(
+        #             segmentsO, 121, format=('g', '.g', 'og'), fcol = 'green')
+        #
+        #         Pl.plot_segments(seg_con, 121, format=('b', '.b', 'ob'), fcol = 'blue')
 
-        Arct = ArcGeo(Ps = Point(-11.680, 14.364), s_ang = 1.11502, Pe = Point(-12.120, 14.466), e_ang = 1.57080, O = Point(-12.120, 13.466), r = 1.000)
-        Linet = LineGeo(Point(-11.409, 14.364), Point(-11.497, 14.364))
-        Arct.find_inter_point(Linet)
+        L1 = ArcGeo(Ps=Point(x=40.7853364238, y=60.2416365061),
+                    Pe=Point(x=40.5774489211, y=60.0202434127),
+                    O=Point(x=35.7878738322, y=64.7259406235),
+                    s_ang=-0.731330356314, e_ang=-0.776564746742,
+                    r=6.71443339173,
+                    direction=-0.0452343904279)
 
+        L1O = ArcGeo(Ps=Point(x=40.4131931393, y=60.5755667021),
+                     Pe=Point(x=40.2207862803, y=60.3706599658),
+                     O=Point(x=35.7878738322, y=64.7259406235),
+                     s_ang=-0.731330356314, e_ang=-0.776564746742,
+                     r=6.21443339173,
+                     direction=-0.0452343904279)
 
-        PointN1 = L1.get_nearest_point(L3)
-        PointN2 = L3.get_nearest_point(L1)
-        NL = LineGeo(PointN1, PointN2)
+        A1 = ArcGeo(Ps=Point(x=40.7400176593, y=61.8716918983),
+                    Pe=Point(x=40.8258090205, y=60.2867939128),
+                    O=Point(x=39.3818624357, y=61.0034032835),
+                    s_ang=0.568826881617, e_ang=-0.460671383711,
+                    r=1.61198968051,
+                    direction=-1.02949826533)
 
-        PointN3 = L1.get_nearest_point(L7)
-        PointN4 = L7.get_nearest_point(L1)
+        A1O = ArcGeo(Ps=Point(x=40.3187509353, y=61.6023698843),
+                     Pe=Point(x=40.3779319025, y=60.5090687137),
+                     O=Point(x=39.3818624357, y=61.0034032835),
+                     s_ang=0.568826881617, e_ang=-0.460671383711,
+                     r=1.11198968051,
+                     direction=-1.02949826533)
+
+        PointN3 = A1.get_nearest_point(L1O)
+        PointN4 = L1O.get_nearest_point(A1)
         NL1 = LineGeo(PointN3, PointN4)
+        SD2 = L1O.distance(A1)
 
-        PointN5 = L1.get_nearest_point(Lt)
-        PointN6 = Lt.get_nearest_point(L1)
-        NL2 = LineGeo(PointN5, PointN6)
+        logger.debug("Distance L10 to A1: %s" % SD2)
+        logger.debug("Distance L10.Pe to A1: %s" % L1O.Pe.distance(A1))
+        logger.debug("Distance L10.Ps to A1: %s" % L1O.Ps.distance(A1))
 
-        PointN7 = L1.get_nearest_point(Lc)
-        PointN8 = Lc.get_nearest_point(L1)
-        NL3 = LineGeo(PointN7, PointN8)
+        segments = [L1, A1]
+        segmentsO = [L1O, A1O]
+        seg_con = [NL1]
+        Pl.plot_segments(segments, 122)
 
-        PointN9 = L1.get_nearest_point(Li)
-        PointN10 = Li.get_nearest_point(L1)
+        Pl.plot_segments(
+            segmentsO, 122, format=('g', '.g', 'og'), fcol = 'green')
 
-        NL4 = LineGeo(PointN9, PointN10)
-
-        SD1 = L1.distance(L3)
-        SD2 = L1.distance(L7)
-        SD3 = L1.distance(Lt)
-        SD4 = L1.distance(Lc)
-        SD5 = L1.distance(Li)
-
-
-        segments = [L1, L3, L7, Lt, Lc, Li]
-        Pl.plot_segments(segments, 131, text = ("SD1: %0.2f, SD2: %0.2f, SD3: %0.2f, SD4: %0.2f, SD5: %0.2f") % (SD1, SD2, SD3, SD4, SD5))
-        seg_con = [NL, NL1, NL2, NL3, NL4]
-        Pl.plot_segments(seg_con, 131, format = ('b', '.b', 'ob'), fcol = 'blue')
-
-        Arc0 = ArcGeo(Ps = Point(x = 1, y = 0), Pe = Point(x = 0, y = 1), O = Point(x = 0, y = 0), r = 1)
-        Lin = LineGeo(Point(-1, 1), Point(0.7, 0.7))
-        Lin2 = LineGeo(Point(x = -1, y = 0.3), Point(x = -2, y = 2))
-        Lout = LineGeo(Point(3, 2), Point(2, -2))
-
-        PointN1 = L1.get_nearest_point(Arc0)
-        PointN2 = Arc0.get_nearest_point(L1)
-
-        PointN3 = Lin.get_nearest_point(Arc0)
-        PointN4 = Arc0.get_nearest_point(Lin)
-
-        PointN5 = Lout.get_nearest_point(Arc0)
-        PointN6 = Arc0.get_nearest_point(Lout)
-
-        PointN7 = Lin2.get_nearest_point(Arc0)
-        PointN8 = Arc0.get_nearest_point(Lin2)
-
-        PointN9 = Linet.get_nearest_point(Arct)
-        PointN10 = Arct.get_nearest_point(Linet)
-
-        NL1 = LineGeo(PointN1, PointN2)
-        NL2 = LineGeo(PointN3, PointN4)
-        NL3 = LineGeo(PointN5, PointN6)
-        NL4 = LineGeo(PointN7, PointN8)
-        NL5 = LineGeo(PointN9, PointN10)
-
-        SD1 = L1.distance(Arc0)
-        SD2 = Lin.distance(Arc0)
-        SD3 = Lout.distance(Arc0)
-        SD4 = Lin2.distance(Arc0)
-        SD5 = Linet.distance(Arct)
-
-        segments = [Arc0, L1, Lin, Lout, Lin2, Linet, Arct]
-        seg_con = [NL1, NL2, NL3, NL4]
-
-        Pl.plot_segments(segments, 132, text = ("SD1: %0.2f, SD2: %0.2f, SD3: %0.2f, SD4: %0.2f, SD5: %s") % (SD1, SD2, SD3, SD4, SD5))
-
-        Pl.plot_segments(seg_con, 132, format = ('b', '.b', 'ob'), fcol = 'blue')
-
-        Ltest = LineGeo(Ps = Point(x = -12.222 , y = 13.466), Pe = Point(x = -12.222, y = 15.144))
-        Atest = ArcGeo(Ps = Point(x = -10.509 , y = 13.364),
-                        Pe = Point(x = -11.409, y = 14.264),
-                        O = Point(x = -11.409, y = 13.364),
-                        s_ang = 0.0, e_ang = 1.57079632679,
-                        r = 0.9,
-                        direction = 1.57079632679)
-
-
-        Pt1 = Arct.get_nearest_point(Atest)
-        Pt2 = Atest.get_nearest_point(Arct)
-
-        NLt = LineGeo(Pt1, Pt2)
-
-        SDt = Arct.distance(Atest)
-        logger.debug(SDt)
-
-
-        segments = [Atest, Arct]
-        seg_con = [NLt]
-
-        Pl.plot_segments(segments, 133, text = ("SDt: %0.2f") % (SDt))
-        Pl.plot_segments(seg_con, 133, format = ('b', '.b', 'ob'), fcol = 'blue')
-
-
-#        L0=LineGeo(Point(x=0,y=-0),Point(x=0.5,y=0))
-#        L01=LineGeo(Point(x=0.5,y=0),Point(x=0.5,y=-1))
-#        L02=LineGeo(Point(x=0.5,y=-1),Point(x=1,y=0))
-#        L1=LineGeo(Point(x=1,y=0),Point(x=2,y=2))
-#        L2=LineGeo(Point(x=2,y=2),Point(x=3,y=3))
-#        L3=LineGeo(Point(x=3,y=3),Point(x=4,y=0))
-#        L4=LineGeo(Point(x=4,y=0),Point(x=5,y=3))
-#        L5=LineGeo(Point(x=5,y=3),Point(x=5,y=-6))
-#        L6=LineGeo(Point(x=5,y=-6),Point(x=0,y=-5))
-#        L7=LineGeo(Point(x=0,y=-5), Point(x=0,y=-4))
-#        L8=LineGeo(Point(x=0,y=-4), Point(x=0,y=0))
-#
-#
-#
-#        shape=ShapeClass(geos=[L0,L01,L02,L1,L2,L3,L4,L5,L6,L7,L8],closed=True)
-#        Pl.plot_lines_plot(shape.geos,133)
-#
-#        Normal=L0.Ps.get_normal_vector(L0.Pe,0.5)
-#        Normal_Line1=LineGeo(L0.Pe,L0.Pe+Normal)
-#
-#        Normal2=L2.Ps.get_normal_vector(L2.Pe,-0.5)
-#        Normal_Line2=LineGeo(L2.Pe,L2.Pe+Normal2)
-#
-#        Normal3=L3.Ps.get_normal_vector(L3.Pe,0.75)
-#        Normal_Line3=LineGeo(L3.Pe,L3.Pe+Normal3)
-#
-#        Pl.plot_lines_plot(shape.geos+[Normal_Line1,Normal_Line2,Normal_Line3],133)
-#
+        Pl.plot_segments(seg_con, 122, format=('b', '.b', 'ob'), fcol = 'blue')
 
     def PWIDTest(self):
         master.title("PWIDTest Check")
@@ -3004,7 +2943,7 @@ class ExampleClass:
 #                                 LineGeo(Point(-6.072, 17.836), Point(-5.742, 18.346)),
 #                                 LineGeo(Point(-5.742, 18.346), Point(-5.412, 18.854)),
 #                                 LineGeo(Point(-5.412, 18.854), Point(-5.107, 19.412)),
-#                                 LineGeo(Point(-5.107, 19.412), Point(-4.522, 1.066))], closed=True)
+# LineGeo(Point(-5.107, 19.412), Point(-4.522, 1.066))], closed=True)
 
 #         shape = ShapeClass(geos=[LineGeo(Point(-16.084, 7.926), Point(-16.973, 8.028)),
 #                                 LineGeo(Point(-16.973, 8.028), Point(-17.914, 8.282)),
@@ -3302,53 +3241,55 @@ class ExampleClass:
 #                                 LineGeo(Point(16.084, 7.926), Point(18.193, -50.818)),
 #                                 LineGeo(Point(18.193, -50.818), Point(0, -81.412)),
 #                                 LineGeo(Point(0, -81.412), Point(-18.193, -50.818)),
-#                                 LineGeo(Point(-18.193, -50.818), Point(-16.084, 7.926))], closed=True)
+# LineGeo(Point(-18.193, -50.818), Point(-16.084, 7.926))], closed=True)
 
-        shape = ShapeClass(geos = [LineGeo(Point(x = 0, y = -1), Point(x = 0, y = 0)),
-                               LineGeo(Point(x = 0, y = 0), Point(x = 2, y = 2)),
-                               LineGeo(Point(x = 2, y = 2), Point(x = 3, y = 3)),
-                               LineGeo(Point(x = 3, y = 3), Point(x = 3, y = 0.5)),
-                               LineGeo(Point(x = 3, y = 0.5), Point(x = 6, y = 2)),
-                               LineGeo(Point(x = 6, y = 2), Point(x = 6, y = -4)),
-                               LineGeo(Point(x = 6, y = -4), Point(x = 3, y = -0.5)),
-                               LineGeo(Point(x = 3, y = -0.5), Point(x = 0, y = -5)),
-                               LineGeo(Point(x = 0, y = -5), Point(x = 0, y = -4)),
-                               LineGeo(Point(x = 0, y = -4), Point(x = 0, y = -1))],
-                               closed = True)
+        shape = ShapeClass(geos=[LineGeo(Point(x=0, y=-1), Point(x=0, y=0)),
+                                 LineGeo(Point(x=0, y=0), Point(x=2, y=2)),
+                                 LineGeo(Point(x=2, y=2), Point(x=3, y=3)),
+                                 LineGeo(Point(x=3, y=3), Point(x=3, y=0.5)),
+                                 LineGeo(Point(x=3, y=0.5), Point(x=6, y=2)),
+                                 LineGeo(Point(x=6, y=2), Point(x=6, y=-4)),
+                                 LineGeo(Point(x=6, y=-4), Point(x=3, y=-0.5)),
+                                 LineGeo(Point(x=3, y=-0.5), Point(x=0, y=-5)),
+                                 LineGeo(Point(x=0, y=-5), Point(x=0, y=-4)),
+                                 LineGeo(Point(x=0, y=-4), Point(x=0, y=-1))],
+                           closed=True)
 
 #         shape = ShapeClass(geos=[LineGeo(Point(10, 29), Point(30, 29)),
 #                                 LineGeo(Point(30, 29), Point(30, -29)),
 #                                 LineGeo(Point(30, -29), Point(10, -29)),
-#                                 ArcGeo(Ps=Point(10, -29), Pe=Point(-10, -29), O=Point(0, -29), r=10, direction=-1),  # ,s_ang=90/180*pi,e_ang=90/180*pi
+# ArcGeo(Ps=Point(10, -29), Pe=Point(-10, -29), O=Point(0, -29), r=10, direction=-1),  # ,s_ang=90/180*pi,e_ang=90/180*pi
 #                                 LineGeo(Point(-10, -29), Point(-30, -29)),
 #                                 LineGeo(Point(-30, -29), Point(-30, 29)),
 #                                 LineGeo(Point(-30, 29), Point(-10, 29)),
-#                                 ArcGeo(Ps=Point(-10, 29), Pe=Point(10, 29), O=Point(0, 29), r=10, direction=-1)],  # ,s_ang=270/180*pi,e_ang=-90/180*pi
+# ArcGeo(Ps=Point(-10, 29), Pe=Point(10, 29), O=Point(0, 29), r=10, direction=-1)],  # ,s_ang=270/180*pi,e_ang=-90/180*pi
 #                          closed=True)
 
         ref = 0.5
 
-        offshape11 = offShapeClass(shape, offset = ref * 1, offtype = 'out')
-        offshape12 = offShapeClass(shape, offset = ref * 2, offtype = 'out')
-        offshape13 = offShapeClass(shape, offset = ref * 3, offtype = 'out')
+        offshape11 = offShapeClass(shape, offset=ref * 1, offtype='out')
+        offshape12 = offShapeClass(shape, offset=ref * 2, offtype='out')
+        offshape13 = offShapeClass(shape, offset=ref * 3, offtype='out')
 
+        Pl.plot_lines_plot(offshape11.geos, 121, wtp=[True, True, True])
+        Pl.plot_segments(offshape11.rawoff, 121, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
+        Pl.plot_segments(offshape12.rawoff, 121, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
+        Pl.plot_segments(offshape13.rawoff, 121, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
 
-        Pl.plot_lines_plot(offshape11.geos, 121, wtp = [True, True, True])
-        Pl.plot_segments(offshape11.rawoff, 121, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
-        Pl.plot_segments(offshape12.rawoff, 121, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
-        Pl.plot_segments(offshape13.rawoff, 121, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
+        offshape21 = offShapeClass(shape, offset=ref * 1, offtype='in')
+        offshape22 = offShapeClass(shape, offset=ref * 2, offtype='in')
+        offshape23 = offShapeClass(shape, offset=ref * 3, offtype='in')
 
-
-
-        offshape21 = offShapeClass(shape, offset = ref * 1, offtype = 'in')
-        offshape22 = offShapeClass(shape, offset = ref * 2, offtype = 'in')
-        offshape23 = offShapeClass(shape, offset = ref * 3, offtype = 'in')
-
-
-        Pl.plot_lines_plot(offshape21.geos, 122, wtp = [True, True, True])
-        Pl.plot_segments(offshape21.rawoff, 122, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
-        Pl.plot_segments(offshape22.rawoff, 122, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
-        Pl.plot_segments(offshape23.rawoff, 122, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
+        Pl.plot_lines_plot(offshape21.geos, 122, wtp=[True, True, True])
+        Pl.plot_segments(offshape21.rawoff, 122, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
+        Pl.plot_segments(offshape22.rawoff, 122, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
+        Pl.plot_segments(offshape23.rawoff, 122, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
 
     def SweepLineTest(self):
         master.title("PWIDTest Check")
@@ -3648,7 +3589,7 @@ class ExampleClass:
 #                                 LineGeo(Point(16.084, 7.926), Point(18.193, -50.818)),
 #                                 LineGeo(Point(18.193, -50.818), Point(0, -81.412)),
 #                                 LineGeo(Point(0, -81.412), Point(-18.193, -50.818)),
-#                                 LineGeo(Point(-18.193, -50.818), Point(-16.084, 7.926))], closed=True)
+# LineGeo(Point(-18.193, -50.818), Point(-16.084, 7.926))], closed=True)
 
 #         shape = ShapeClass(geos=[LineGeo(Point(x=0, y=-1), Point(x=0, y=0)),
 #                                LineGeo(Point(x=0, y=0), Point(x=2, y=2)),
@@ -3818,35 +3759,38 @@ class ExampleClass:
 #                                 ArcGeo(Ps = Point(-10, 14.5), Pe = Point(10, 14.5), O = Point(0, 14.5,), r = 10, direction = 180)],
 #                             closed = True)
 
-        shape = ShapeClass(geos = [
-                                LineGeo(Ps = Point(-10, -10), Pe = Point(39.010180811, 5.59414844)),
-                                ArcGeo(Ps = Point(39.010180811, 5.59414844), Pe = Point(39.010180811, 9.40585156), O = Point(38.403773497, 7.5,), r = 2, direction = 144.69975156),
-                                LineGeo(Ps = Point(39.010180811, 9.40585156), Pe = Point(-10, 25)),
-                                LineGeo(Ps = Point(-10, 25), Pe = Point(-10, 30)),
-                                LineGeo(Ps = Point(-10, 30), Pe = Point(50, 30)),
-                                LineGeo(Ps = Point(50, 30), Pe = Point(50, 10)),
-                                LineGeo(Ps = Point(50, 10), Pe = Point(70, 10)),
-                                LineGeo(Ps = Point(70, 10), Pe = Point(70, 5)),
-                                LineGeo(Ps = Point(70, 5), Pe = Point(50, 5)),
-                                LineGeo(Ps = Point(50, 5), Pe = Point(50, -15)),
-                                LineGeo(Ps = Point(50, -15), Pe = Point(-10, -15)),
-                                LineGeo(Ps = Point(-10, -15), Pe = Point(-10, -10))],
-                                closed = True)
+        shape = ShapeClass(geos=[
+            LineGeo(Ps=Point(-10, -10), Pe=Point(39.010180811, 5.59414844)),
+            ArcGeo(Ps=Point(39.010180811, 5.59414844), Pe=Point(
+                39.010180811, 9.40585156), O=Point(38.403773497, 7.5,), r=2, direction=144.69975156),
+            LineGeo(Ps=Point(39.010180811, 9.40585156), Pe=Point(-10, 25)),
+            LineGeo(Ps=Point(-10, 25), Pe=Point(-10, 30)),
+            LineGeo(Ps=Point(-10, 30), Pe=Point(50, 30)),
+            LineGeo(Ps=Point(50, 30), Pe=Point(50, 10)),
+            LineGeo(Ps=Point(50, 10), Pe=Point(70, 10)),
+            LineGeo(Ps=Point(70, 10), Pe=Point(70, 5)),
+            LineGeo(Ps=Point(70, 5), Pe=Point(50, 5)),
+            LineGeo(Ps=Point(50, 5), Pe=Point(50, -15)),
+            LineGeo(Ps=Point(50, -15), Pe=Point(-10, -15)),
+            LineGeo(Ps=Point(-10, -15), Pe=Point(-10, -10))],
+            closed=True)
 
-        offshape = offShapeClass(shape, offset = 1, offtype = 'out')
-        Pl.plot_lines_plot(offshape.geos, 121, wtp = [True, False, False])
-        Pl.plot_segments(offshape.plotshapes, 121, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
+        offshape = offShapeClass(shape, offset=1, offtype='out')
+        Pl.plot_lines_plot(offshape.geos, 121, wtp=[True, False, False])
+        Pl.plot_segments(offshape.plotshapes, 121, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, False, False])
 
-
-
-        Pl.plot_segments(offshape.segments, 122, format = ('b', '.b', '.b'), fcol = 'blue', wtp = [True, True, True])
+        Pl.plot_segments(offshape.segments, 122, format=(
+            'b', '.b', '.b'), fcol = 'blue', wtp = [True, True, True])
         # Pl.plot_segments(offshape.interferingshapes, 122, format = ('r', '.r', '.r'), fcol = 'red', wtp = [True, False, False])
-        Pl.plot_segments(offshape.rawoff, 122, format = ('m', '.m', '.m'), fcol = 'magenta', wtp = [True, False, True])
+        Pl.plot_segments(offshape.rawoff, 122, format=(
+            'm', '.m', '.m'), fcol = 'magenta', wtp = [True, False, True])
         # swpln = SweepLine(offshape.rawoff, offshape.closed)
         # swpln.search_intersections()
         # Pl.plot_segments(swpln.found, 111, wtp=[True, False, False])
 
-logging.basicConfig(level = logging.DEBUG, format = "%(funcName)-30s %(lineno)-6d: %(message)s")
+logging.basicConfig(
+    level=logging.DEBUG, format="%(funcName)-30s %(lineno)-6d: %(message)s")
 master = Tk()
 Pl = PlotClass(master)
 Ex = ExampleClass()
@@ -3855,16 +3799,11 @@ Ex = ExampleClass()
 # Ex.CheckColinearLines()
 # Ex.CheckForIntersections()
 # Ex.SimplePolygonCheck()
-# Ex.Distance_Check()
+Ex.Distance_Check()
 # cProfile.run("Ex.PWIDTest()",sort='cumtime')
 # Ex.PWIDTest()
-Ex.SweepLineTest()
+# Ex.SweepLineTest()
 # self.make_offshape()
 
 
-
 master.mainloop()
-
-
-
-

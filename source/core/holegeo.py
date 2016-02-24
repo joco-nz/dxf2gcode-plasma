@@ -34,9 +34,11 @@ from core.boundingbox import BoundingBox
 
 
 class HoleGeo(object):
+
     """
     HoleGeo represents drilling holes.
     """
+
     def __init__(self, Ps):
         """
         Standard Method to initialise the HoleGeo
@@ -59,16 +61,16 @@ class HoleGeo(object):
     def save_v1(self):
         return "\nHoleGeo at (%s) " % self.Ps.save_v1()
 
-    def calc_bounding_box(self, radius = 1):
+    def calc_bounding_box(self, radius=1):
         """
         Calculated the BoundingBox of the geometry and saves it into self.BB
         @param radius: The Radius of the HoleGeo to be used for BoundingBox
         """
 
-        Ps = Point(x = self.Ps.x - radius, y = self.Ps.y - radius)
-        Pe = Point(x = self.Ps.x + radius, y = self.Ps.y + radius)
+        Ps = Point(x=self.Ps.x - radius, y=self.Ps.y - radius)
+        Pe = Point(x=self.Ps.x + radius, y=self.Ps.y + radius)
 
-        self.BB = BoundingBox(Ps = Ps, Pe = Pe)
+        self.BB = BoundingBox(Ps=Ps, Pe=Pe)
 
     def reverse(self):
         """
@@ -95,9 +97,8 @@ class HoleGeo(object):
 
     def make_path(self, caller, drawHorLine):
 
-
         radius = caller.parentLayer.tool_diameter / 2
-        self.calc_bounding_box(radius = radius)
+        self.calc_bounding_box(radius=radius)
 
         segments = 30
         Ps = self.Ps.get_arc_point(0, radius)
@@ -109,17 +110,15 @@ class HoleGeo(object):
             Ps = Pe
 
     def isHit(self, caller, xy, tol):
-        tol2 = tol**2
-        radius = caller.parentLayer.getToolRadius()
-        segments = 30
-        Ps = self.Ps.get_arc_point(0, radius)
-        for i in range(1, segments + 1):
-            ang = i * 2 * pi / segments
-            Pe = self.Ps.get_arc_point(ang, radius)
-            if xy.distance2_to_line(Ps, Pe) <= tol2:
-                return True
-            Ps = Pe
-        return False
+        """
+        This function returns true if the nearest point between the two geometries is within the square of the 
+        given tolerance
+        @param caller: This is the calling entities (only used in holegeo)
+        @param xy: The point which shall be used to determine the distance
+        @tol: The tolerance which is used for Hit testing.
+        """
+
+        return abs(self.ps.distance(xy) - caller.parentLayer.getToolRadius()) < tol
 
     def Write_GCode(self, PostPro):
         """

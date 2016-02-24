@@ -48,17 +48,18 @@ logger = logging.getLogger("Core.Shape")
 
 
 class Shape(object):
+
     """
     The Shape Class includes all plotting, GUI functionality and export functions
     related to the Shapes.
     """
-    # only need default arguments here because of the change of usage with super in QGraphicsItem
+    # only need default arguments here because of the change of usage with
+    # super in QGraphicsItem
+
     def __init__(self, nr=-1, closed=True, parentEntity=None, geos=[]):
         if nr == -1:
             return
 
-
-        logger.debug("Init Shape")
         self.type = "Shape"
         self.nr = nr
         self.closed = closed
@@ -78,20 +79,24 @@ class Shape(object):
         self.allowedToChange = True
 
         # preset defaults
-        self.axis3_start_mill_depth = g.config.vars.Depth_Coordinates['axis3_start_mill_depth']
-        self.axis3_slice_depth = g.config.vars.Depth_Coordinates['axis3_slice_depth']
-        self.axis3_mill_depth = g.config.vars.Depth_Coordinates['axis3_mill_depth']
+        self.axis3_start_mill_depth = g.config.vars.Depth_Coordinates[
+            'axis3_start_mill_depth']
+        self.axis3_slice_depth = g.config.vars.Depth_Coordinates[
+            'axis3_slice_depth']
+        self.axis3_mill_depth = g.config.vars.Depth_Coordinates[
+            'axis3_mill_depth']
         self.f_g1_plane = g.config.vars.Feed_Rates['f_g1_plane']
         self.f_g1_depth = g.config.vars.Feed_Rates['f_g1_depth']
         # Parameters for drag knife
-        self.drag_angle = radians(g.config.vars.Drag_Knife_Options['drag_angle'])
+        self.drag_angle = radians(
+            g.config.vars.Drag_Knife_Options['drag_angle'])
 
     def __str__(self):
         """
         Standard method to print the object
         @return: A string
         """
-        
+
         logger.debug(self.closed)
         return "\nnr:          %i" % self.nr +\
                "\nclosed:      %s" % self.closed +\
@@ -145,7 +150,8 @@ class Shape(object):
             summe += (end.x + start.x) * (end.y - start.y)
 
         if summe == 0:  # inconclusive
-            logger.debug(self.tr("Shoelace method cannot (directly) be applied to this shape"))
+            logger.debug(
+                self.tr("Shoelace method cannot (directly) be applied to this shape"))
             # lets take it clock wise with relation to the workpiece zero
 
             start = geos.abs_el(0).get_start_end_points(True)
@@ -159,14 +165,16 @@ class Shape(object):
                     end = pos_end
                     distance2 = pos_distance2
             direction = start.to3D().cross_product(end.to3D()).z
-            if -1e-5 < direction < 1e-5:  # start and end are aligned wrt to wp zero
+            # start and end are aligned wrt to wp zero
+            if -1e-5 < direction < 1e-5:
                 direction = start.length_squared() - end.length_squared()
             summe = direction
         return summe > 0.0
 
     def AnalyseAndOptimize(self):
         self.setNearestStPoint(Point())
-        logger.debug(self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
+        logger.debug(
+            self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
 
         if self.isDirectionOfGeosCCW(self.geos):
             self.reverse()
@@ -180,7 +188,8 @@ class Shape(object):
             logger.debug(self.tr("Old Start Point: %s" % start))
 
             min_geo_nr, _ = min(enumerate(self.geos.abs_iter()),
-                                key=lambda geo: geo[1].get_start_end_points(True).distance(stPoint))
+                                key=lambda geo:
+                                geo[1].get_start_end_points(True).distance(stPoint))
 
             # Overwrite the geometries in changed order.
             self.geos = Geos(self.geos[min_geo_nr:] + self.geos[:min_geo_nr])
@@ -220,11 +229,14 @@ class Shape(object):
         if start_point or self.closed:
             return self.get_start_end_points(start_point, angles)
         else:
-            max_slice = max(self.axis3_slice_depth, self.axis3_mill_depth - self.axis3_start_mill_depth)
+            max_slice = max(self.axis3_slice_depth,
+                            self.axis3_mill_depth -
+                            self.axis3_start_mill_depth)
             if max_slice == 0:
                 end_should_be_start = True
             else:
-                end_should_be_start = (self.axis3_start_mill_depth - self.axis3_mill_depth) // max_slice % 2 == 0
+                end_should_be_start = (
+                    self.axis3_start_mill_depth - self.axis3_mill_depth) // max_slice % 2 == 0
             if not end_should_be_start:
                 return self.get_start_end_points(start_point, angles)
             else:
@@ -256,7 +268,7 @@ class Shape(object):
 
         if not self.closed:
             drawVerLine(self, geo.get_start_end_points(False))
-            
+
         self.calc_bounding_box()
 
     def calc_bounding_box(self):
@@ -266,9 +278,9 @@ class Shape(object):
         self.BB = self.geos.abs_el(0).BB
         for geo in self.geos.abs_iter():
             self.BB = self.BB.joinBB(geo.BB)
-        
+
     def make_shape_ccw(self):
-        """ 
+        """
         This method is called after the shape has been generated before it gets
         plotted to change all shape direction to a CW shape.
         """
@@ -283,7 +295,7 @@ class Shape(object):
             self.reverse()
             logger.debug(self.tr("Had to reverse the shape to be CW"))
         self.cw = True
-    
+
     def isHit(self, xy, tol):
         if self.BB.Ps.x - tol <= xy.x <= self.BB.Pe.x + tol\
                 and self.BB.Ps.y - tol <= xy.y <= self.BB.Pe.y + tol:
@@ -293,7 +305,8 @@ class Shape(object):
         return False
 
     def Write_GCode_for_geo(self, geo, PostPro):
-        # Used to remove zero length geos. If not, arcs can become a full circle
+        # Used to remove zero length geos. If not, arcs can become a full
+        # circle
         post_dec = PostPro.vars.Number_Format["post_decimals"]
         if isinstance(geo, HoleGeo) or\
            round(geo.Ps.x, post_dec) != round(geo.Pe.x, post_dec) or\
@@ -314,11 +327,16 @@ class Shape(object):
             return self.Write_GCode_Drag_Knife(PostPro)
 
         prv_cut_cor = self.cut_cor
-        if self.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+        if (self.cut_cor != 40 and
+                not g.config.vars.Cutter_Compensation["done_by_machine"]):
             self.cut_cor = 40
             new_geos = Geos(self.stmove.geos[1:])
         else:
             new_geos = self.geos
+
+        # If there is nothing to export
+        if len(new_geos) == 0:
+            return ""
 
         new_geos = PostPro.breaks.getNewGeos(new_geos)
         # initialisation of the string
@@ -330,7 +348,8 @@ class Shape(object):
 
         max_slice = self.axis3_slice_depth
         workpiece_top_Z = self.axis3_start_mill_depth
-        # We want to mill the piece, even for the first pass, so remove one "slice"
+        # We want to mill the piece, even for the first pass, so remove one
+        # "slice"
         initial_mill_depth = workpiece_top_Z - abs(max_slice)
         depth = self.axis3_mill_depth
         f_g1_plane = self.f_g1_plane
@@ -349,7 +368,7 @@ class Shape(object):
         if initial_mill_depth < depth:
             logger.warning(self.tr(
                 "WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth.") % (
-                               initial_mill_depth, depth))
+                initial_mill_depth, depth))
 
             # Do not cut below the depth.
             initial_mill_depth = depth
@@ -362,7 +381,8 @@ class Shape(object):
         # Add string to be added before the shape will be cut.
         exstr += PostPro.write_pre_shape_cut()
 
-        # Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done outside the piece
+        # Cutter radius compensation when G41 or G42 is on, AND cutter
+        # compensation option is set to be done outside the piece
         if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
             exstr += PostPro.set_cut_cor(self.cut_cor)
 
@@ -376,7 +396,8 @@ class Shape(object):
         exstr += PostPro.lin_pol_z(mom_depth)
         exstr += PostPro.chg_feed_rate(f_g1_plane)
 
-        # Cutter radius compensation when G41 or G42 is on, AND cutter compensation option is set to be done inside the piece
+        # Cutter radius compensation when G41 or G42 is on, AND cutter
+        # compensation option is set to be done inside the piece
         if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
             exstr += PostPro.set_cut_cor(self.cut_cor)
 
@@ -409,7 +430,9 @@ class Shape(object):
             if not self.closed:
                 self.reverse(new_geos)
                 self.switch_cut_cor()
-                has_reversed = not has_reversed  # switch the "reversed" state (in order to restore it at the end)
+                # switch the "reversed" state (in order to restore it at the
+                # end)
+                has_reversed = not has_reversed
 
                 # If cutter radius compensation is turned on. Turn it off - because some interpreters cannot handle
                 # a switch
@@ -544,8 +567,6 @@ class Shape(object):
             geo1 = new_geos[-1]
             geo2 = self.geos[i]
 
-           
-            
             if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
                 # Remove first geometry and add result of joined geometries. Required
                 # Cause the join will give back the last 2 geometries.
@@ -558,7 +579,6 @@ class Shape(object):
             if new_geos[-1].Ps == new_geos[-1].Pe:
                 new_geos.pop()
 
-
         # For closed polylines check if the first and last items are colinear
         if self.closed:
             geo1 = new_geos[-1]
@@ -566,13 +586,17 @@ class Shape(object):
             if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
                 joined_geos = geo1.join_colinear_line(geo2)
 
-                # If they are joind replace firste item by joined and remove last one
+                # If they are joind replace firste item by joined and remove
+                # last one
                 if len(joined_geos) == 1:
                     new_geos[0] = joined_geos[0]
                     new_geos.pop()
 
         self.geos = new_geos
+
+
 class Geos(list):
+
     def __init__(self, *args):
         list.__init__(self, *args)
 
