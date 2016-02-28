@@ -2,7 +2,7 @@
 
 ############################################################################
 #
-#   Copyright (C) 2015
+#   Copyright (C) 2015-2016
 #    Xavier Izard
 #    Jean-Paul Schouwstra
 #
@@ -63,6 +63,7 @@ config_window.finished.connect(self.updateConfiguration) #Optionnal signal to kn
  - CfgDoubleSpinBox(): a spinbox for float values
  - CfgLineEdit(): a text input (1 line)
  - CfgListEdit(): a text list input (1 line)
+ - CfgTextEdit(): a text input (multiple lines)
  - CfgComboBox(): a drop-down menu for selecting options
  - CfgTable(): a 2D table with editable text entries
  - CfgTableCustomActions(): specific module based on CfgTable(), for storing custom GCODE
@@ -98,6 +99,8 @@ try:
 except ImportError:
     from globals.ordereddict import OrderedDict
 
+from gui.popupdialog import PopUpDialog
+
 logger = logging.getLogger("Gui.ConfigWindow")
 
 
@@ -105,7 +108,7 @@ class ConfigWindow(QDialog):
     Applied = QDialog.Accepted + QDialog.Rejected + 1 #Define a result code that is different from accepted and rejected
 
     """Main Class"""
-    def __init__(self, definition_dict, config = None, configspec = None, parent = None):
+    def __init__(self, definition_dict, config = None, configspec = None, parent = None, title = "Configuration"):
         """
         Initialization of the Configuration window. ConfigObj must be instanciated before this one.
         @param definition_dict: the dict that describes our window
@@ -113,21 +116,36 @@ class ConfigWindow(QDialog):
         @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
         """
         QDialog.__init__(self, parent)
-        self.setWindowTitle("Configuration")
+        self.setWindowTitle(title)
+
+        self.edition_mode = False #No editing in progress for now
 
         self.cfg_window_def = definition_dict #This is the dict that describes our window
         self.var_dict = config #This is the data from the configfile (dictionary created by ConfigObj class)
         self.configspec = configspec #This is the specifications for all the entries defined in the config file
 
+        #There is no config file selector for now, so no callback either
+        self.selector_change_callback = None
+        self.selector_add_callback = None
+        self.selector_remove_callback = None
+        self.selector_duplicate_callback = None
+
+        #Create the vars for the optionnal configuration file selector
+        self.cfg_file_selector = None
+        self.frame_file_selector = QFrame()
+        self.layout_file_selector = QHBoxLayout() #For displaying the optionnal files selector widgets
+
         #Create the config window according to the description dict received
         self.list_items = self.createWidgetFromDefinitionDict()
 
         #Create 3 buttons
-        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel | QDialogButtonBox.Apply)
-        button_box.accepted.connect(self.accept) #OK button
-        button_box.rejected.connect(self.reject) #Cancel button
-        apply_button = button_box.button(QDialogButtonBox.Apply)
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Discard | QDialogButtonBox.Apply | QDialogButtonBox.Close)
+        self.button_box.accepted.connect(self.accept) #Apply and close (currently unused)
+        self.button_box.rejected.connect(self.reject) #Close
+        apply_button = self.button_box.button(QDialogButtonBox.Apply)
         apply_button.clicked.connect(self.applyChanges) #Apply button
+        discard_button = self.button_box.button(QDialogButtonBox.Discard)
+        discard_button.clicked.connect(self.discardChanges) #Discard button
 
         #Layout
         list_widget = QListWidget(parent)
@@ -143,12 +161,18 @@ class ConfigWindow(QDialog):
         self.splitter.addWidget(self.tab_window)
 
         v_box = QVBoxLayout(self)
+        v_box.addWidget(self.frame_file_selector)
         v_box.addWidget(self.splitter)
-        v_box.addWidget(button_box)
+        v_box.addWidget(self.button_box)
         self.setLayout(v_box)
 
         #Populate our Configuration widget with the values from the config file
-        self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
+        if self.var_dict is not None and self.configspec is not None:
+            self.affectValuesFromConfig(self.var_dict, self.configspec)
+
+        #No modification in progress for now
+        self.setEditInProgress(False)
+
 
     def tr(self, string_to_translate):
         """
@@ -161,6 +185,17 @@ class ConfigWindow(QDialog):
     def sellectionChanged (self,  text):
         self.tab_window.setCurrentWidget(self.list_items[str(text)])
 
+    def setEditInProgress(self, edit_mode):
+        """
+        @param edit_mode: when True, the configuration window swith to edition mode, meaning that the "Apply" and "OK" buttons are enabled, ...
+        """
+        self.edition_mode = edit_mode != False
+        self.button_box.button(QDialogButtonBox.Apply).setEnabled(self.edition_mode)
+        self.button_box.button(QDialogButtonBox.Discard).setEnabled(self.edition_mode)
+        self.button_box.button(QDialogButtonBox.Close).setEnabled(not self.edition_mode)
+        self.frame_file_selector.setEnabled(not self.edition_mode)
+
+
     def accept(self):
         """
         Check and apply the changes, then close the config window (OK button)
@@ -170,6 +205,8 @@ class ConfigWindow(QDialog):
             self.updateConfiguration(self.cfg_window_def, self.var_dict) #Update the configuration dict according to the new settings in our config window
             QDialog.accept(self)
             logger.info('New configuration OK')
+            #No more modification in progress
+            self.setEditInProgress(False)
         else:
             self.displayMessageBox(errors_list)
 
@@ -183,6 +220,8 @@ class ConfigWindow(QDialog):
             self.setResult(ConfigWindow.Applied) #Return a result code that is different from accepted and rejected
             self.finished.emit(self.result())
             logger.info('New configuration applied')
+            #No more modification in progress
+            self.setEditInProgress(False)
         else:
             self.displayMessageBox(errors_list)
 
@@ -190,8 +229,16 @@ class ConfigWindow(QDialog):
         """
         Reload our configuration widget with the values from the config file (=> Cancel the changes in the config window), then close the config window
         """
-        self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
+        self.affectValuesFromConfig(self.var_dict, self.configspec)
         QDialog.reject(self)
+        logger.info('New configuration cancelled')
+
+
+    def discardChanges(self):
+        """
+        Reload our configuration widget with the values from the config file (=> Cancel the changes in the config window). Don't close the config window
+        """
+        self.affectValuesFromConfig(self.var_dict, self.configspec)
         logger.info('New configuration cancelled')
 
 
@@ -203,6 +250,115 @@ class ConfigWindow(QDialog):
         errors_list = self.tr('Please correct the following error(s):\n') + errors_list
         error_message = QMessageBox(QMessageBox.Critical, self.tr('Invalid changes'), errors_list);
         error_message.exec_()
+
+
+    def setConfigSelectorCallback(self, selection_changed_callback, add_file_callback, remove_file_callback, duplicate_file_callback):
+        """
+        Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
+        The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
+        """
+        self.selector_change_callback = selection_changed_callback
+        self.selector_add_callback = add_file_callback
+        self.selector_remove_callback = remove_file_callback
+        self.selector_duplicate_callback = duplicate_file_callback
+
+
+    def setConfigSelectorFilesList(self, config_list, select_item = None):
+        """
+        Define the functions called when the config file selector is used (respectively when a new file is selected in the combobox / when a file is added / when a file is removed)
+        The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
+        """
+        if len(config_list) > 0:
+            if self.layout_file_selector.count() == 0:
+                #There is currently no file selector widget, so we create a new one
+                self.cfg_file_selector = CfgComboBox("Choose configuration file:", None, None)
+                button_duplicate = QPushButton(QIcon(QPixmap(":/images/layer.png")), "")
+                button_duplicate.setToolTip(self.tr("Duplicate the current post-processor"))
+                button_add = QPushButton(QIcon(QPixmap(":/images/list-add.png")), "")
+                button_add.setToolTip(self.tr("Add a new post-processor with default values"))
+                button_remove = QPushButton(QIcon(QPixmap(":/images/list-remove.png")), "")
+                button_remove.setToolTip(self.tr("Remove the current post-processor"))
+
+                #Connect the signals to call the callback when an action is done on the file selector
+                if self.selector_change_callback is not None:
+                    self.cfg_file_selector.combobox.currentIndexChanged[int].connect(self.selector_change_callback)
+                button_duplicate.clicked.connect(self.configSelectorDuplicateFile)
+                button_add.clicked.connect(self.configSelectorAddFile)
+                button_remove.clicked.connect(self.configSelectorRemoveFile)
+
+                self.layout_file_selector.addWidget(self.cfg_file_selector)
+                self.layout_file_selector.addWidget(button_duplicate)
+                self.layout_file_selector.addWidget(button_add)
+                self.layout_file_selector.addWidget(button_remove)
+                self.frame_file_selector.setLayout(self.layout_file_selector)
+
+            #Fill the combobox with the current file list
+            self.cfg_file_selector.setSpec({'string_list': config_list['filename'], 'comment': ''})
+
+            #Select the item if not None
+            if select_item is not None:
+                self.cfg_file_selector.setValue(select_item)
+
+            #Load the current config
+            if self.selector_change_callback is not None:
+                self.selector_change_callback(self.cfg_file_selector.combobox.currentIndex())
+
+        else:
+            #Item should be a layout or a widget
+            logger.warning("At least one config file must be passed to the config selector!")
+
+            #Remove all the files from the config file selector
+            if self.cfg_file_selector is not None:
+                self.cfg_file_selector.setSpec({'string_list': [], 'comment': ''})
+
+
+    def configSelectorDuplicateFile(self):
+        """
+        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        """
+        title = self.tr('Duplicate a configuration file')
+        label = [self.tr("Enter a new filename (without extension):")]
+        value = [""]
+        filename_dialog = PopUpDialog(title, label, value)
+
+        if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
+            #Call the callback function to duplicate the file
+            if self.selector_duplicate_callback is not None:
+                if self.selector_duplicate_callback(str(self.cfg_file_selector.getValue()), str(filename_dialog.result[0])) == False: #note: str() is needed for PyQT4
+                    self.displayMessageBox(self.tr('An error occured while duplicating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
+            else:
+                logger.warning("No callback defined for duplicating the file, nothing will happen!")
+
+
+    def configSelectorAddFile(self):
+        """
+        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        """
+        title = self.tr('Add a configuration file')
+        label = [self.tr("Enter filename (without extension):")]
+        value = [""]
+        filename_dialog = PopUpDialog(title, label, value)
+
+        if filename_dialog.result is not None and len(filename_dialog.result[0]) > 0:
+            if self.selector_add_callback is not None:
+                if self.selector_add_callback(str(filename_dialog.result[0])) == False:
+                    self.displayMessageBox(self.tr('An error occured while creating the file "{0}". Check that it doesn\'t already exists for example'.format(filename_dialog.result[0])))
+            else:
+                logger.warning("No callback defined for adding the file, nothing will happen!")
+
+
+    def configSelectorRemoveFile(self):
+        """
+        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        """
+        confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{0}"'.format(self.cfg_file_selector.getValue())), QMessageBox.Ok | QMessageBox.Cancel);
+        if confirmation_result == QMessageBox.Yes or confirmation_result == QMessageBox.Ok:
+            #User has confirmed the file suppression, so let's go
+            if self.selector_remove_callback is not None:
+                if self.selector_remove_callback(str(self.cfg_file_selector.getValue())) == False:
+                    self.displayMessageBox(self.tr('An error occured while removing the file "{0}". Remove it manually'.format(self.cfg_file_selector.getValue())))
+            else:
+                logger.warning("No callback defined for removing the file, nothing will happen!")
 
 
     def createWidgetFromDefinitionDict(self):
@@ -301,12 +457,28 @@ class ConfigWindow(QDialog):
         else:
             if isinstance(subdefinition, (QWidget, QLayout)):
                 vertical_box.addWidget(subdefinition)
+                if hasattr(subdefinition, 'setChangeSlot'):
+                    subdefinition.setChangeSlot(self.changeOccured)
             else:
                 #Item should be a layout or a widget
                 logger.error("item subdefinition is incorrect")
 
         return section_widget
 
+
+    def affectValuesFromConfig(self, config, configspec):
+        """
+        Affect new values for the configuration
+        @param config: data readed from the configfile. This dict is created by ConfigObj module.
+        @param configspec: specifications of the configfile. This variable is created by ConfigObj module.
+        """
+        self.var_dict = config #This is the data from the configfile (dictionary created by ConfigObj class)
+        self.configspec = configspec #This is the specifications for all the entries defined in the config file
+
+        self.setValuesFromConfig(self.cfg_window_def, self.var_dict, self.configspec)
+
+        #No modification in progress for now
+        self.setEditInProgress(False)
 
     def setValuesFromConfig(self, window_def, config, configspec):
         """
@@ -471,6 +643,15 @@ class ConfigWindow(QDialog):
         return string_list
 
 
+    def changeOccured(self):
+        """
+        This function (slot) is called whenever a modification occurs in the configuration window.
+        It enables "Apply" and "OK" buttons, plus disable the configfile selector.
+        """
+        #There are some changes, we swith to edit mode
+        self.setEditInProgress(True)
+
+
     def validateConfiguration(self, window_def, result_string = '', result_bool = True):
         """
         Check the configuration (check the limits, eg min/max values, ...). These limits are set according to the configspec passed to the constructor
@@ -600,6 +781,13 @@ class CfgCheckBox(CfgBase):
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
 
+    def setChangeSlot(self, changeNotifyer):
+        """
+        Assign a notifyier slot (this slot is called whenever the state of the widget changes)
+        @param changeNotifyer: the function (slot) that is called in case of change
+        """
+        self.checkbox.stateChanged.connect(changeNotifyer)
+
     def validateValue(self):
         """
         This item can't be wrong, so we always return true and an empty string
@@ -626,12 +814,14 @@ class CfgCheckBox(CfgBase):
         Assign the value for our object
         @param value: 0 when the checkbox is unchecked, 1 if it is checked and 2 if it is partly checked (tristate must be set to true for tristate mode)
         """
+        self.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         if value == 0:
             self.checkbox.setCheckState(QtCore.Qt.Unchecked)
         elif value == 2:
             self.checkbox.setCheckState(QtCore.Qt.PartiallyChecked)
         else:
             self.checkbox.setCheckState(QtCore.Qt.Checked)
+        self.blockSignals(False)
 
 
 class CfgSpinBox(CfgBase):
@@ -682,6 +872,13 @@ class CfgSpinBox(CfgBase):
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
 
+    def setChangeSlot(self, changeNotifyer):
+        """
+        Assign a notifyier slot (this slot is called whenever the state of the widget changes)
+        @param changeNotifyer: the function (slot) that is called in case of change
+        """
+        self.spinbox.valueChanged.connect(changeNotifyer)
+
     def setUnit(self, unit):
         """
         Set the unit of the SpinBox (unit is displayed just after the value)
@@ -707,7 +904,9 @@ class CfgSpinBox(CfgBase):
         Assign the value for our object
         @param value: int value
         """
+        self.spinbox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         self.spinbox.setValue(value)
+        self.spinbox.blockSignals(False)
 
 
 class CorrectedDoubleSpinBox(QDoubleSpinBox):
@@ -822,6 +1021,13 @@ class CfgLineEdit(CfgBase):
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
 
+    def setChangeSlot(self, changeNotifyer):
+        """
+        Assign a notifyier slot (this slot is called whenever the state of the widget changes)
+        @param changeNotifyer: the function (slot) that is called in case of change
+        """
+        self.lineedit.editingFinished.connect(changeNotifyer)
+
     def validateValue(self):
         """
         Check the minimum length value
@@ -848,7 +1054,9 @@ class CfgLineEdit(CfgBase):
         Assign the value for our object
         @param value: text string
         """
+        self.lineedit.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         self.lineedit.setText(value)
+        self.lineedit.blockSignals(False)
 
 
 class CfgListEdit(CfgLineEdit):
@@ -887,6 +1095,89 @@ class CfgListEdit(CfgLineEdit):
 
         self.lineedit.setText(joined_value)
 
+class CfgTextEdit(QWidget):
+    """
+    Subclassed QTextEdit to match our needs.
+    """
+
+    def __init__(self, text, size_min = None, size_max = None, parent = None):
+        """
+        Initialization of the CfgLineEdit class (text edit, one line).
+        @param text: text string associated with the line edit
+        @param size_min: min length (int)
+        @param size_max: max length (int)
+        """
+        QWidget.__init__(self, parent)
+
+        self.textedit = QTextEdit(parent)
+        self.textedit.setAcceptRichText(False)
+        self.textedit.setAutoFormatting(QTextEdit.AutoNone)
+
+        self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
+        if size_min is not None:
+            self.size_min = size_min
+        else:
+            self.size_min = 0
+
+        self.label = QLabel(text, parent)
+        self.layout = QVBoxLayout(parent)
+
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.textedit)
+        self.setLayout(self.layout)
+        self.layout.setSpacing(1) #Don't use too much space, it makes the option window too big otherwise
+
+    def setSpec(self, spec):
+        """
+        Set the specifications for the item (min/max values, ...)
+        @param spec: the specifications dict (can contain the following keys: minimum, maximum, comment, string_list)
+        """
+        if spec['minimum'] is not None:
+            self.size_min = spec['minimum']
+
+        if spec['maximum'] is not None:
+            self.textedit.setMaxLength(spec['maximum'])
+
+        if spec['comment']:
+            self.setWhatsThis(spec['comment'])
+
+    def setChangeSlot(self, changeNotifyer):
+        """
+        Assign a notifyier slot (this slot is called whenever the state of the widget changes)
+        @param changeNotifyer: the function (slot) that is called in case of change
+        """
+        self.textedit.textChanged.connect(changeNotifyer)
+
+    def validateValue(self):
+        """
+        Check the minimum length value
+        @return (result_bool, result_string):
+         - result_bool: True if no errors were encountered, False otherwise
+         - result_string: a string containing all the errors encountered during the validation
+        """
+        field_length = len(str(self.textedit.toPlainText()))
+        if field_length < self.size_min:
+            result = (False, str(self.tr('\nNot enough chars (expected {0}, found {1}) for the field "{2}"\n')).format(self.size_min, field_length, self.label.text()))
+        else:
+            #OK
+            result = (True, '')
+        return result
+
+    def getValue(self):
+        """
+        @return: the current value of the QSpinBox
+        """
+        return str(self.textedit.toPlainText())
+
+    def setValue(self, value):
+        """
+        Assign the value for our object
+        @param value: text string
+        """
+        self.textedit.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
+        self.textedit.setPlainText(value)
+        self.textedit.blockSignals(False)
+
 
 class CfgComboBox(CfgBase):
     """
@@ -923,11 +1214,20 @@ class CfgComboBox(CfgBase):
         Set the specifications for the item (min/max values, ...)
         @param spec: the specifications dict (can contain the following keys: minimum, maximum, comment, string_list)
         """
+        self.combobox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         self.combobox.clear()
         self.combobox.addItems(spec['string_list'])
 
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
+        self.combobox.blockSignals(False)
+
+    def setChangeSlot(self, changeNotifyer):
+        """
+        Assign a notifyier slot (this slot is called whenever the state of the widget changes)
+        @param changeNotifyer: the function (slot) that is called in case of change
+        """
+        self.combobox.currentIndexChanged.connect(changeNotifyer)
 
     def validateValue(self):
         """
@@ -947,13 +1247,18 @@ class CfgComboBox(CfgBase):
         Assign the value for our object
         @param value: the text of the entry to select in the combobox
         """
+        self.combobox.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         self.combobox.setCurrentIndex(self.combobox.findText(value)) #Compatible with both PyQt4 and PyQt5
+        self.combobox.blockSignals(False)
 
 
 class CfgTable(QWidget):
     """
     Subclassed QTableWidget to match our needs.
     """
+    #Define a QT signal that is emitted when the table is modified.
+    #Note: this signal is not emitted in this class ; it is up to the subclasses to emit it
+    tableChanged = QtCore.pyqtSignal()
 
     def __init__(self, text, columns = None, parent = None):
         """
@@ -1012,6 +1317,17 @@ class CfgTable(QWidget):
         if spec['comment']:
             self.setWhatsThis(spec['comment'])
 
+    def setChangeSlot(self, changeNotifyer):
+        """
+        Assign a notifyier slot (this slot is called whenever the state of the widget changes)
+        @param changeNotifyer: the function (slot) that is called in case of change
+        """
+        self.tableChanged.connect(changeNotifyer)
+        self.tablewidget.itemChanged.connect(changeNotifyer)
+        self.tablewidget.cellChanged.connect(changeNotifyer)
+        self.button_add.clicked.connect(changeNotifyer)
+        self.button_remove.clicked.connect(changeNotifyer)
+
     def appendLine(self, line = None):
         """
         Add a line to the table. The new line is inserted before the selected line, or at the end of the table is no line is selected
@@ -1058,7 +1374,9 @@ class CfgTable(QWidget):
         @param column: column number (int)
         @param value: cell content (string)
         """
+        self.tablewidget.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         self.tablewidget.setItem(line, column, QTableWidgetItem(value))
+        self.tablewidget.blockSignals(False)
 
     def validateValue(self):
         """
@@ -1103,6 +1421,7 @@ class CfgTable(QWidget):
         @param value: this is a nested dict, with keys going to the first column of our table and values going to the other columns. Example of received value:
         {'15': {'diameter': 1.5, 'speed': 6000.0, 'start_radius': 1.5}, '20': {'diameter': 2.0, 'speed': 6000.0, 'start_radius': 2.0}, '30': {'diameter': 3.0, 'speed': 6000.0, 'start_radius': 3.0}}
         """
+        self.tablewidget.blockSignals(True) # Avoid unnecessary signal (we don't want the config window to emit any signal when filling the fields programatically)
         result = True
         if isinstance(value, dict) and len(self.keys) > 0:
             self.tablewidget.setRowCount(0)
@@ -1135,6 +1454,8 @@ class CfgTable(QWidget):
         else:
             result = False
 
+        self.tablewidget.blockSignals(False)
+
         return result
 
 
@@ -1165,9 +1486,16 @@ class CfgTableCustomActions(CfgTable):
             text_edit.setAutoFormatting(QTextEdit.AutoNone)
             text_edit.setPlainText(value)
             self.tablewidget.setCellWidget(line, column, text_edit)
+            text_edit.textChanged.connect(self.valueChangedSlot) #We need to detect any change in the table's widgets
         else:
-            #Normal case: use standard QT functions
+            #Normal case: use standard QT functions (and we dont need to generate any signal here, it is already handled by the parent class)
             CfgTable.setCellValue(self, line, column, value)
+
+    def valueChangedSlot(self):
+        """
+        Slot called when something changes in the table. We emit a signal, so that the config window can detect this change
+        """
+        self.tableChanged.emit()
 
     def validateValue(self):
         """
@@ -1267,7 +1595,14 @@ class CfgTableToolParameters(CfgTable):
             self.max_tool_number = max(self.max_tool_number, computed_value) #Store the max value for the tool number, so that we can automatically increment this value for new tools
             spinbox.setValue(computed_value) #first column is the key, it must be an int
 
+        spinbox.valueChanged.connect(self.valueChangedSlot) #We need to detect any change in the table's widgets
         self.tablewidget.setCellWidget(line, column, spinbox)
+
+    def valueChangedSlot(self):
+        """
+        Slot called when something changes in the table. We emit a signal, so that the config window can detect this change
+        """
+        self.tableChanged.emit()
 
     def validateValue(self):
         """
