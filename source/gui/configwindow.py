@@ -132,8 +132,7 @@ class ConfigWindow(QDialog):
 
         #Create the vars for the optionnal configuration file selector
         self.cfg_file_selector = None
-        self.frame_file_selector = QFrame()
-        self.layout_file_selector = QHBoxLayout() #For displaying the optionnal files selector widgets
+        self.frame_file_selector = CfgBase()
 
         #Create the config window according to the description dict received
         self.list_items = self.createWidgetFromDefinitionDict()
@@ -156,13 +155,18 @@ class ConfigWindow(QDialog):
 
         list_widget.currentTextChanged.connect(self.sellectionChanged)
 
-        self.splitter = QSplitter()
-        self.splitter.addWidget(list_widget)
-        self.splitter.addWidget(self.tab_window)
+        tab_widget = CfgBase()
+        tab_box = QVBoxLayout(self)
+        tab_box.addWidget(self.frame_file_selector)
+        tab_box.addWidget(self.tab_window)
+        tab_widget.setLayout(tab_box)
+
+        splitter = QSplitter()
+        splitter.addWidget(list_widget)
+        splitter.addWidget(tab_widget)
 
         v_box = QVBoxLayout(self)
-        v_box.addWidget(self.frame_file_selector)
-        v_box.addWidget(self.splitter)
+        v_box.addWidget(splitter)
         v_box.addWidget(self.button_box)
         self.setLayout(v_box)
 
@@ -269,7 +273,7 @@ class ConfigWindow(QDialog):
         The ConfigWindow class is just toplevel configuration widget, it doesn't know about anything about the data, hence the callback
         """
         if len(config_list) > 0:
-            if self.layout_file_selector.count() == 0:
+            if self.frame_file_selector.layout() is None:
                 #There is currently no file selector widget, so we create a new one
                 self.cfg_file_selector = CfgComboBox("Choose configuration file:", None, None)
                 button_duplicate = QPushButton(QIcon(QPixmap(":/images/layer.png")), "")
@@ -286,11 +290,12 @@ class ConfigWindow(QDialog):
                 button_add.clicked.connect(self.configSelectorAddFile)
                 button_remove.clicked.connect(self.configSelectorRemoveFile)
 
-                self.layout_file_selector.addWidget(self.cfg_file_selector)
-                self.layout_file_selector.addWidget(button_duplicate)
-                self.layout_file_selector.addWidget(button_add)
-                self.layout_file_selector.addWidget(button_remove)
-                self.frame_file_selector.setLayout(self.layout_file_selector)
+                layout_file_selector = QHBoxLayout() #For displaying the optionnal files selector widgets
+                layout_file_selector.addWidget(self.cfg_file_selector)
+                layout_file_selector.addWidget(button_duplicate)
+                layout_file_selector.addWidget(button_add)
+                layout_file_selector.addWidget(button_remove)
+                self.frame_file_selector.setLayout(layout_file_selector)
 
             #Fill the combobox with the current file list
             self.cfg_file_selector.setSpec({'string_list': config_list['filename'], 'comment': ''})
