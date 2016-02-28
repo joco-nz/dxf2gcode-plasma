@@ -58,7 +58,9 @@ from dxfimport.importer import ReadDXF
 from postpro.postprocessor import MyPostProcessor
 from postpro.tspoptimisation import TspOptimization
 
-from globals.six import text_type, PY2
+from globals.helperfunctions import str_encode, str_decode, qstr_encode
+
+from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
@@ -66,20 +68,11 @@ if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
     getOpenFileName = QFileDialog.getOpenFileName
     getSaveFileName = QFileDialog.getSaveFileName
-    file_str = lambda filename: filename
 else:
     from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt4 import QtCore
     getOpenFileName = QFileDialog.getOpenFileNameAndFilter
     getSaveFileName = QFileDialog.getSaveFileNameAndFilter
-    file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
-
-if PY2:
-    str_encode = lambda exstr: exstr.encode('utf-8')
-    str_decode = lambda filename: filename.decode("utf-8")
-else:
-    str_encode = lambda exstr: exstr
-    str_decode = lambda filename: filename
 
 logger = logging.getLogger()
 
@@ -109,7 +102,7 @@ class MainWindow(QMainWindow):
         QMainWindow.__init__(self)
 
         # Build the configuration window
-        self.config_window = ConfigWindow(g.config.makeConfigWindgets(),
+        self.config_window = ConfigWindow(g.config.makeConfigWidgets(),
                                           g.config.var_dict,
                                           g.config.var_dict.configspec,
                                           self)
@@ -128,10 +121,15 @@ class MainWindow(QMainWindow):
             self.canvas_scene = None
 
         self.TreeHandler = TreeHandler(self.ui)
-        self.configuration_changed.connect(
-            self.TreeHandler.updateConfiguration)
+        self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
 
+        #Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
+        # If string version_mismatch isn't empty, we popup an error and exit
+        if self.MyPostProcessor.version_mismatch:
+            error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', self.MyPostProcessor.version_mismatch);
+            sys.exit(error_message.exec_())
+
         self.d2g = Project(self)
 
         self.createActions()
@@ -158,9 +156,8 @@ class MainWindow(QMainWindow):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate(
-            'MainWindow',
-            string_to_translate))
+        return text_type(QtCore.QCoreApplication.translate('MainWindow',
+                                                           string_to_translate))
 
     def createActions(self):
         """
@@ -177,64 +174,52 @@ class MainWindow(QMainWindow):
         # Export
         self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
         self.ui.actionExportShapes.triggered.connect(self.exportShapes)
-        self.ui.actionOptimizeAndExportShapes.triggered.connect(
-            self.optimizeAndExportShapes)
+        self.ui.actionOptimizeAndExportShapes.triggered.connect(self.optimizeAndExportShapes)
 
         # View
-        self.ui.actionShowPathDirections.triggered.connect(
-            self.setShowPathDirections)
+        self.ui.actionShowPathDirections.triggered.connect(self.setShowPathDirections)
         # We need toggled (and not triggered), otherwise the signal is not
         # emitted when state is changed programmatically
-        self.ui.actionShowDisabledPaths.toggled.connect(
-            self.setShowDisabledPaths)
-        self.ui.actionLiveUpdateExportRoute.toggled.connect(
-            self.liveUpdateExportRoute)
+        self.ui.actionShowDisabledPaths.toggled.connect(self.setShowDisabledPaths)
+        self.ui.actionLiveUpdateExportRoute.toggled.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
         if g.config.mode3d:
             self.ui.actionTopView.triggered.connect(self.canvas.topView)
-            self.ui.actionIsometricView.triggered.connect(
-                self.canvas.isometricView)
+            self.ui.actionIsometricView.triggered.connect(self.canvas.isometricView)
 
         # Options
         self.ui.actionConfiguration.triggered.connect(self.config_window.show)
+        self.ui.actionConfigurationPostprocessor.triggered.connect(self.MyPostProcessor.config_postpro_window.show)
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
         self.ui.actionRotateAll.triggered.connect(self.rotateAll)
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)
-        self.ui.actionMoveWorkpieceZero.triggered.connect(
-            self.moveWorkpieceZero)
+        self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
         self.ui.actionSplitLineSegments.toggled.connect(self.d2g.small_reload)
-        self.ui.actionAutomaticCutterCompensation.toggled.connect(
-            self.d2g.small_reload)
+        self.ui.actionAutomaticCutterCompensation.toggled.connect(self.d2g.small_reload)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
-        self.ui.actionDragKnife.triggered.connect(
-            self.setMachineTypeToDragKnife)
+        self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
 
         # Help
         self.ui.actionAbout.triggered.connect(self.about)
 
-    def connectToolbarToConfig(self, project=False):
+    def connectToolbarToConfig(self, project=False, block_signals=True):
         # View
         if not project:
-            # Don't emit any signal when changing state of the menu entries
-            self.ui.actionShowDisabledPaths.blockSignals(True)
-            self.ui.actionShowDisabledPaths.setChecked(
-                g.config.vars.General['show_disabled_paths'])
+            self.ui.actionShowDisabledPaths.blockSignals(block_signals) #Don't emit any signal when changing state of the menu entries
+            self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
             self.ui.actionShowDisabledPaths.blockSignals(False)
-            self.ui.actionLiveUpdateExportRoute.blockSignals(True)
-            self.ui.actionLiveUpdateExportRoute.setChecked(
-                g.config.vars.General['live_update_export_route'])
+            self.ui.actionLiveUpdateExportRoute.blockSignals(block_signals)
+            self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
             self.ui.actionLiveUpdateExportRoute.blockSignals(False)
 
         # Options
-        self.ui.actionSplitLineSegments.blockSignals(True)
-        self.ui.actionSplitLineSegments.setChecked(
-            g.config.vars.General['split_line_segments'])
+        self.ui.actionSplitLineSegments.blockSignals(block_signals)
+        self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
         self.ui.actionSplitLineSegments.blockSignals(False)
-        self.ui.actionAutomaticCutterCompensation.blockSignals(True)
-        self.ui.actionAutomaticCutterCompensation.setChecked(
-            g.config.vars.General['automatic_cutter_compensation'])
+        self.ui.actionAutomaticCutterCompensation.blockSignals(block_signals)
+        self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
         self.ui.actionAutomaticCutterCompensation.blockSignals(False)
         self.updateMachineType()
 
@@ -350,12 +335,10 @@ class MainWindow(QMainWindow):
                 MyFormats = ""
                 for i in range(len(self.MyPostProcessor.output_format)):
                     name = "%s " % (self.MyPostProcessor.output_text[i])
-                    format_ = "(*%s);;" % (
-                        self.MyPostProcessor.output_format[i])
+                    format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
                     MyFormats = MyFormats + name + format_
-                filename = self.showSaveDialog(
-                    self.tr('Export to file'), MyFormats)
-                save_filename = file_str(filename[0])
+                filename = self.showSaveDialog(self.tr('Export to file'), MyFormats)
+                save_filename = qstr_encode(filename[0])
             else:
                 filename = [None, None]
                 save_filename = saveas
@@ -377,8 +360,7 @@ class MainWindow(QMainWindow):
                     pp_file_nr = i
             if fileExtension != self.MyPostProcessor.output_format[pp_file_nr]:
                 if not QtCore.QFile.exists(save_filename):
-                    save_filename += self.MyPostProcessor.output_format[
-                        pp_file_nr]
+                    save_filename += self.MyPostProcessor.output_format[pp_file_nr]
 
             self.MyPostProcessor.getPostProVars(pp_file_nr)
         else:
@@ -415,8 +397,7 @@ class MainWindow(QMainWindow):
         self.canvas_scene.addexproutest()
         for LayerContent in self.layerContents.non_break_layer_iter():
             if len(LayerContent.exp_order) > 0:
-                self.canvas_scene.addexproute(
-                    LayerContent.exp_order, LayerContent.nr)
+                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
         if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
             self.canvas_scene.addexprouteen()
@@ -444,29 +425,23 @@ class MainWindow(QMainWindow):
             shapes_fixed_order = []
             shapes_st_en_points = []
 
-            # Check all shapes of Layer which shall be exported and create List
-            # for it.
+            # Check all shapes of Layer which shall be exported and create List for it.
             logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
-                         % (len(LayerContent.shapes),
-                             len(LayerContent.exp_order)))
-            logger.debug(self.tr("Export Order for start: %s") %
-                         LayerContent.exp_order)
+                         % (len(LayerContent.shapes), len(LayerContent.exp_order)))
+            logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
 
             for shape_nr in range(len(LayerContent.exp_order)):
                 if not self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP:
                     shapes_fixed_order.append(shape_nr)
 
                 shapes_to_write.append(shape_nr)
-                shapes_st_en_points.append(
-                    self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
+                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
 
-            # Perform Export only if the Number of shapes to export is bigger
-            # than 0
+            # Perform Export only if the Number of shapes to export is bigger than 0
             if len(shapes_to_write) > 0:
                 # Errechnen der Iterationen
                 # Calculate the iterations
-                iter_ = min(
-                    g.config.vars.Route_Optimisation['max_iterations'], len(shapes_to_write) * 50)
+                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'], len(shapes_to_write)*50)
 
                 # Adding the Start and End Points to the List.
                 x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
@@ -476,8 +451,7 @@ class MainWindow(QMainWindow):
                 shapes_st_en_points.append([start, ende])
 
                 TSPs = TspOptimization(shapes_st_en_points, shapes_fixed_order)
-                logger.info(
-                    self.tr("TSP start values initialised for Layer %s") % LayerContent.name)
+                logger.info(self.tr("TSP start values initialised for Layer %s") % LayerContent.name)
                 logger.debug(self.tr("Shapes to write: %s") % shapes_to_write)
                 logger.debug(self.tr("Fixed order: %s") % shapes_fixed_order)
 
@@ -485,17 +459,14 @@ class MainWindow(QMainWindow):
                     # Only show each 50th step.
                     if it_nr % 50 == 0:
                         TSPs.calc_next_iteration()
-                        new_exp_order = [LayerContent.exp_order[nr]
-                                         for nr in TSPs.opt_route[1:]]
+                        new_exp_order = [LayerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
 
                 logger.debug(self.tr("TSP done with result: %s") % TSPs)
 
                 LayerContent.exp_order = new_exp_order
 
-                self.canvas_scene.addexproute(
-                    LayerContent.exp_order, LayerContent.nr)
-                logger.debug(
-                    self.tr("New Export Order after TSP: %s") % new_exp_order)
+                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
+                logger.debug(self.tr("New Export Order after TSP: %s") % new_exp_order)
                 self.app.processEvents()
             else:
                 LayerContent.exp_order = []
@@ -504,8 +475,7 @@ class MainWindow(QMainWindow):
             self.ui.actionDeleteG0Paths.setEnabled(True)
             self.canvas_scene.addexprouteen()
 
-        # Update order in the treeView, according to path calculation done by
-        # the TSP
+        # Update order in the treeView, according to path calculation done by the TSP
         self.TreeHandler.updateTreeViewOrder()
         self.canvas_scene.update()
 
@@ -555,8 +525,7 @@ class MainWindow(QMainWindow):
         (beg, ende) = os.path.split(self.filename)
         (fileBaseName, fileExtension) = os.path.splitext(ende)
 
-        default_name = os.path.join(
-            g.config.vars.Paths['output_dir'], fileBaseName)
+        default_name = os.path.join(g.config.vars.Paths['output_dir'], fileBaseName)
 
         selected_filter = self.MyPostProcessor.output_format[0]
         filename = getSaveFileName(self,
@@ -768,7 +737,7 @@ class MainWindow(QMainWindow):
 
         # If there is something to load then call the load function callback
         if self.filename:
-            self.filename = file_str(self.filename)
+            self.filename = qstr_encode(self.filename)
             logger.info(self.tr("File: %s selected") % self.filename)
 
     def load(self, plot=True):
@@ -779,8 +748,7 @@ class MainWindow(QMainWindow):
         """
         if not QtCore.QFile.exists(self.filename):
             logger.info(self.tr("Cannot locate file: %s") % self.filename)
-            self.OpenFileDialog(
-                self.tr("Manually open file: %s") % self.filename)
+            self.OpenFileDialog(self.tr("Manually open file: %s") % self.filename)
             if not self.filename:
                 return False  # cancelled
 
@@ -799,14 +767,12 @@ class MainWindow(QMainWindow):
             logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
 
             # Create temporary file which will be read by the program
-            self.filename = os.path.join(
-                tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
+            self.filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
 
             pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
             pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
             ps_filename = os.path.normcase(self.filename)
-            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + \
-                [('%s' % ps_filename), ('%s' % self.filename)]
+            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % self.filename)]
             logger.debug(cmd)
             try:
                 subprocess.call(cmd)
@@ -827,8 +793,7 @@ class MainWindow(QMainWindow):
 
         # Output the information in the text window
         logger.info(self.tr('Loaded layers: %s') % len(self.valuesDXF.layers))
-        logger.info(self.tr('Loaded blocks: %s') %
-                    len(self.valuesDXF.blocks.Entities))
+        logger.info(self.tr('Loaded blocks: %s') % len(self.valuesDXF.blocks.Entities))
         for i in range(len(self.valuesDXF.blocks.Entities)):
             layers = self.valuesDXF.blocks.Entities[i].get_used_layers()
             logger.info(self.tr('Block %i includes %i Geometries, reduced to %i Contours, used layers: %s')
@@ -987,12 +952,9 @@ class MainWindow(QMainWindow):
 
                     if not g.config.mode3d:
                         # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
-                        # so that selections of the shapes are reflected on the
-                        # treeView
-                        tmp_shape.setSelectionChangedCallback(
-                            self.TreeHandler.updateShapeSelection)
-                        tmp_shape.setEnableDisableCallback(
-                            self.TreeHandler.updateShapeEnabling)
+                        # so that selections of the shapes are reflected on the treeView
+                        tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
+                        tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
 
     def append_geo_to_shape(self, shape, geo):
         if -1e-5 <= geo.length < 1e-5:  # TODO adjust import for this
@@ -1039,21 +1001,13 @@ class MainWindow(QMainWindow):
         """
         if result == ConfigWindow.Applied or result == ConfigWindow.Accepted:
             # Write the configuration into the config file (config.cfg)
-            g.config._save_varspace()
+            g.config.save_varspace()
             # Rebuild the readonly configuration structure
             g.config.update_config()
 
             # Assign changes to the menus (if no change occured, nothing
-            # happens / otherwise QT emits a signal for the menu entry that has
-            # changed)
-            self.ui.actionShowDisabledPaths.setChecked(
-                g.config.vars.General['show_disabled_paths'])
-            self.ui.actionLiveUpdateExportRoute.setChecked(
-                g.config.vars.General['live_update_export_route'])
-            self.ui.actionSplitLineSegments.setChecked(
-                g.config.vars.General['split_line_segments'])
-            self.ui.actionAutomaticCutterCompensation.setChecked(
-                g.config.vars.General['automatic_cutter_compensation'])
+            # happens / otherwise QT emits a signal for the menu entry that has changed)
+            self.connectToolbarToConfig(block_signals=False)
 
             # Inform about the changes into the configuration
             self.configuration_changed.emit()
@@ -1072,9 +1026,8 @@ class MainWindow(QMainWindow):
         """
         Save all variables to file
         """
-        prj_filename = self.showSaveDialog(
-            self.tr('Save project to file'), "Project files (*%s)" % c.PROJECT_EXTENSION)
-        save_prj_filename = file_str(prj_filename[0])
+        prj_filename = self.showSaveDialog(self.tr('Save project to file'), "Project files (*%s)" % c.PROJECT_EXTENSION)
+        save_prj_filename = qstr_encode(prj_filename[0])
 
         # If Cancel was pressed
         if not save_prj_filename:
@@ -1140,12 +1093,10 @@ if __name__ == "__main__":
 
     # If string version_mismatch isn't empty, we popup an error and exit
     if g.config.version_mismatch:
-        error_message = QMessageBox(
-            QMessageBox.Critical, 'Configuration error', g.config.version_mismatch)
+        error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', g.config.version_mismatch)
         sys.exit(error_message.exec_())
 
-    # Delay imports - needs to be done after logger and config initialization;
-    # and before the main window
+    # Delay imports - needs to be done after logger and config initialization; and before the main window
     if c.PYQT5notPYQT4:
         from dxf2gcode_ui5 import Ui_MainWindow
     else:

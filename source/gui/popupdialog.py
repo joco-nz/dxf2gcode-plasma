@@ -116,7 +116,6 @@ class PopUpDialog(QDialog):
 
         self.setLayout(vbox)
 
-        self.resize(50, 50)
         self.setWindowFlags(self.windowFlags() & ~QtCore.Qt.WindowContextHelpButtonHint)
         self.setWindowTitle(self.title)
         iconWT = QIcon()
