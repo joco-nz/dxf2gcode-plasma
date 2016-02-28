@@ -1100,7 +1100,7 @@ class CfgListEdit(CfgLineEdit):
 
         self.lineedit.setText(joined_value)
 
-class CfgTextEdit(QWidget):
+class CfgTextEdit(CfgBase):
     """
     Subclassed QTextEdit to match our needs.
     """
@@ -1112,25 +1112,21 @@ class CfgTextEdit(QWidget):
         @param size_min: min length (int)
         @param size_max: max length (int)
         """
-        QWidget.__init__(self, parent)
+        CfgBase.__init__(self, parent)
+
+        self.label = QLabel(text, parent)
 
         self.textedit = QTextEdit(parent)
         self.textedit.setAcceptRichText(False)
         self.textedit.setAutoFormatting(QTextEdit.AutoNone)
 
+        layout = QVBoxLayout(parent)
+        layout.addWidget(self.label)
+        layout.addWidget(self.textedit)
+        self.setLayout(layout)
+
+        self.size_min = 0
         self.setSpec({'minimum': size_min, 'maximum': size_max, 'comment': ''})
-        if size_min is not None:
-            self.size_min = size_min
-        else:
-            self.size_min = 0
-
-        self.label = QLabel(text, parent)
-        self.layout = QVBoxLayout(parent)
-
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.textedit)
-        self.setLayout(self.layout)
-        self.layout.setSpacing(1) #Don't use too much space, it makes the option window too big otherwise
 
     def setSpec(self, spec):
         """
