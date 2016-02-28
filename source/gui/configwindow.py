@@ -117,6 +117,9 @@ class ConfigWindow(QDialog):
         """
         QDialog.__init__(self, parent)
         self.setWindowTitle(title)
+        iconWT = QIcon()
+        iconWT.addPixmap(QPixmap(":images/DXF2GCODE-001.ico"), QIcon.Normal, QIcon.Off)
+        self.setWindowIcon(QIcon(iconWT))
 
         self.edition_mode = False #No editing in progress for now
 
@@ -233,9 +236,11 @@ class ConfigWindow(QDialog):
         """
         Reload our configuration widget with the values from the config file (=> Cancel the changes in the config window), then close the config window
         """
-        self.affectValuesFromConfig(self.var_dict, self.configspec)
+        self.affectValuesFromConfig(self.var_dict, self.configspec) # cannot be in the if statement - it is possible that the changeOccured was not fired
+        if not self.button_box.button(QDialogButtonBox.Close).isEnabled():
+            logger.info('New configuration cancelled')
+        self.setEditInProgress(False)
         QDialog.reject(self)
-        logger.info('New configuration cancelled')
 
 
     def discardChanges(self):
@@ -1031,7 +1036,7 @@ class CfgLineEdit(CfgBase):
         Assign a notifyier slot (this slot is called whenever the state of the widget changes)
         @param changeNotifyer: the function (slot) that is called in case of change
         """
-        self.lineedit.editingFinished.connect(changeNotifyer)
+        self.lineedit.textChanged.connect(changeNotifyer)
 
     def validateValue(self):
         """
