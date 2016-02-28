@@ -65,20 +65,20 @@ POSTPRO_SPEC = str('''
     [General]
     # This extension is used in the save file export dialog.
     output_format = string(default=".ngc")
-    # This title is shown in the export dialog and is used by the user to differentiate between the possibly different postprocessor configurations.
+    # This title is shown in the export dialog and is used by the user to differentiate between the possible different postprocessor configurations.
     output_text = string(default="G-CODE for LinuxCNC")
     # This type defines the output format used in the export dialog.
     output_type = option('g-code', 'dxf', 'text', default = 'g-code')
 
-    # This may be used for G90 or G91 code which switches between absolute and relative coordinates.
+    # Used to switch between absolute (G90) and relative/incremental coordinates (G91).
     abs_export = boolean(default=True)
-    # If the cutter compensation is used e.g. G41 or G42 this option may cancel the compensation while the depth (Z-Axis) is used and enable the compensation again after the depth is reached.
+    # If cutter compensation is used, e.g. G41 or G42, this option cancels the compensation when there is a momevement on the 3rd-axis, and enables the compensation again afterwards.
     cancel_cc_for_depth = boolean(default=False)
-    # If the cutter compensation is used this will enable (G41-G42) / cancel (G40) the cutter compensation after the tool is outside of the piece.
+    # If cutter compensation is used (G41-G42) this will apply the cutter compensation outside the piece (i.e. it is applied before it is at milling depth).
     cc_outside_the_piece = boolean(default=True)
-    # This may be used for the export to dxf which only accepts arcs which are in counterclockwise direction. Turning this on for normal G-Code will cause in unintended outputs.
+    # Used for dxfs which only support arcs that are in counterclockwise direction. Turning this on for normal G-Code will result in unintended output.
     export_ccw_arcs_only = boolean(default=False)
-    # This values indicated which arc's with radius higher than this value will be exported as a line.
+    # If an arc's radius exceeds this value, then it will be exported as a line.
     max_arc_radius = float(min = 0, default=10000)
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
@@ -105,7 +105,7 @@ POSTPRO_SPEC = str('''
     signed_values = boolean(default=False)
 
     [Line_Numbers]
-    # Enables lines numbers into the exported G-Code file.
+    # Enables line numbers into the exported G-Code file.
     use_line_nrs = boolean(default=False)
     line_nrs_begin = integer(default=10)
     line_nrs_step = integer(default=10)
@@ -301,31 +301,31 @@ def makeConfigWidgets():
             ('__subtitle2__', CfgSubtitle(tr("Output options"))),
             ('abs_export', CfgCheckBox(tr('Export absolute coordinates'))),
             ('cancel_cc_for_depth', CfgCheckBox(tr('Cancel cutter compensation at each slice'))),
-            ('cc_outside_the_piece', CfgCheckBox(tr('Perform cutter compensation outside of the piece'))),
+            ('cc_outside_the_piece', CfgCheckBox(tr('Perform cutter compensation outside the piece'))),
             ('export_ccw_arcs_only', CfgCheckBox(tr('Export only counter clockwise arcs'))),
             ('max_arc_radius', CfgDoubleSpinBox(tr('Maximum arc radius:'))),
             ('__subtitle3__', CfgSubtitle(tr("G-code constants"))),
-            ('code_begin_units_mm', CfgLineEdit(tr('Units in millimeters G-code:'))),
-            ('code_begin_units_in', CfgLineEdit(tr('Units in inch G-code:'))),
-            ('code_begin_prog_abs', CfgLineEdit(tr('Absolute programming G-code:'))),
-            ('code_begin_prog_inc', CfgLineEdit(tr('Incremental programming G-code:'))),
-            ('code_begin', CfgTextEdit(tr('Startup G-code:'))),
-            ('code_end', CfgTextEdit(tr('End G-code:')))
+            ('code_begin_units_mm', CfgLineEdit(tr('Units in millimeters:'))),
+            ('code_begin_units_in', CfgLineEdit(tr('Units in inch:'))),
+            ('code_begin_prog_abs', CfgLineEdit(tr('Absolute programming:'))),
+            ('code_begin_prog_inc', CfgLineEdit(tr('Incremental programming:'))),
+            ('code_begin', CfgTextEdit(tr('Startup:'))),
+            ('code_end', CfgTextEdit(tr('End:')))
         ])),
         ('Number_Format', OrderedDict([
             ('__section_title__', tr("Output formatting")),
             ('__subtitle__', CfgSubtitle(tr("Output formatting"))),
-            ('signed_values', CfgCheckBox(tr("Prepend the numbers with the '+' sign for positive values"))),
-            ('pre_decimals', CfgSpinBox(tr('Number of digit before the decimal separator:'))),
-            ('pre_decimal_zero_padding', CfgCheckBox(tr("Pad with '0' digit berfore the decimal separator"))),
-            ('post_decimals', CfgSpinBox(tr('Number of digit after the decimal separator:'))),
-            ('post_decimal_zero_padding', CfgCheckBox(tr("Pad with '0' digit after the decimal separator"))),
+            ('signed_values', CfgCheckBox(tr("Prepend numbers with the '+' sign for positive values"))),
+            ('pre_decimals', CfgSpinBox(tr('Number of digits before the decimal separator:'))),
+            ('pre_decimal_zero_padding', CfgCheckBox(tr("Padding with '0' digit before the decimal separator"))),
+            ('post_decimals', CfgSpinBox(tr('Number of digits after the decimal separator:'))),
+            ('post_decimal_zero_padding', CfgCheckBox(tr("Padding with '0' digit after the decimal separator"))),
             ('decimal_separator', CfgLineEdit(tr('Decimal separator:')))
         ])),
         ('Line_Numbers', OrderedDict([
             ('__section_title__', tr("Output formatting")),
-            ('__subtitle__', CfgSubtitle(tr("Lines numbers"))),
-            ('use_line_nrs', CfgCheckBox(tr('Export lines numbers'))),
+            ('__subtitle__', CfgSubtitle(tr("Line numbers"))),
+            ('use_line_nrs', CfgCheckBox(tr('Export line numbers'))),
             ('line_nrs_begin', CfgSpinBox(tr('Line number starts at:'))),
             ('line_nrs_step', CfgSpinBox(tr('Line number step:')))
         ])),
@@ -342,9 +342,9 @@ def makeConfigWidgets():
             ('cutter_comp_off', CfgLineEdit(tr('Disable cutter compensation:'))),
             ('cutter_comp_left', CfgLineEdit(tr('Left cutter compensation:'))),
             ('cutter_comp_right', CfgLineEdit(tr('Right cutter compensation:'))),
-            ('pre_shape_cut', CfgLineEdit(tr('G-code placed before any shape cutting:'))),
-            ('post_shape_cut', CfgLineEdit(tr('G-code placed after any shape cutting:'))),
-            ('comment', CfgLineEdit(tr('Comment for the current shape:')))
+            ('pre_shape_cut', CfgLineEdit(tr('Placed in front of any shape:'))),
+            ('post_shape_cut', CfgLineEdit(tr('Placed after any shape:'))),
+            ('comment', CfgLineEdit(tr('Comment for current shape:')))
         ]))
     ])
 

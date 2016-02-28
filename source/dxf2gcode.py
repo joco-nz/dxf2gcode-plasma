@@ -3,7 +3,7 @@
 
 ############################################################################
 #
-#   Copyright (C) 2010-2015
+#   Copyright (C) 2010-2016
 #    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #
@@ -776,7 +776,7 @@ class MainWindow(QMainWindow):
             logger.debug(cmd)
             try:
                 subprocess.call(cmd)
-            except FileNotFoundError as e:
+            except OSError as e:
                 logger.error(e.strerror)
                 self.unsetCursor()
                 QMessageBox.critical(self,

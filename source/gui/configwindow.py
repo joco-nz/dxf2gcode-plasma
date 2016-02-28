@@ -54,7 +54,7 @@ If you place it on a different line (with the name:__subtitle__), this subsectio
 
 3) Instanciate the config window:
 config_window = ConfigWindow(config_widget_dict, var_dict, configspec, self) #See ConfigObj for var_dict & configspec
-config_window.finished.connect(self.updateConfiguration) #Optionnal signal to know when the config has changed
+config_window.finished.connect(self.updateConfiguration) #Optional signal to know when the config has changed
 
 *** List of graphical elements currently supported ***
  - CfgSubtitle(): subtitle - just for displaying a bar with some text
@@ -133,7 +133,7 @@ class ConfigWindow(QDialog):
         self.selector_remove_callback = None
         self.selector_duplicate_callback = None
 
-        #Create the vars for the optionnal configuration file selector
+        #Create the vars for the optional configuration's file selector
         self.cfg_file_selector = None
         self.frame_file_selector = CfgBase() #For displaying the optionnal files selector widgets
 
@@ -208,11 +208,11 @@ class ConfigWindow(QDialog):
         """
         @param edit_mode: when True, the configuration window swith to edition mode, meaning that the "Apply" and "OK" buttons are enabled, ...
         """
-        self.edition_mode = edit_mode != False
-        self.button_box.button(QDialogButtonBox.Apply).setEnabled(self.edition_mode)
-        self.button_box.button(QDialogButtonBox.Discard).setEnabled(self.edition_mode)
-        self.button_box.button(QDialogButtonBox.Close).setEnabled(not self.edition_mode)
-        self.frame_file_selector.setEnabled(not self.edition_mode)
+        editor_mode = edit_mode != False
+        self.button_box.button(QDialogButtonBox.Apply).setEnabled(editor_mode)
+        self.button_box.button(QDialogButtonBox.Discard).setEnabled(editor_mode)
+        self.button_box.button(QDialogButtonBox.Close).setEnabled(not editor_mode)
+        self.frame_file_selector.setEnabled(not editor_mode)
 
 
     def selectionChanged(self, text):
@@ -314,7 +314,7 @@ class ConfigWindow(QDialog):
                 button_add.clicked.connect(self.configSelectorAddFile)
                 button_remove.clicked.connect(self.configSelectorRemoveFile)
 
-                layout_file_selector = QHBoxLayout() #For displaying the optionnal files selector widgets
+                layout_file_selector = QHBoxLayout() #For displaying the optional file's selector widget
                 layout_file_selector.addWidget(self.cfg_file_selector)
                 layout_file_selector.addWidget(button_duplicate)
                 layout_file_selector.addWidget(button_add)
@@ -343,7 +343,7 @@ class ConfigWindow(QDialog):
 
     def configSelectorDuplicateFile(self):
         """
-        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        Function called when the "Remove configuration file" is clicked in the optional config selector zone
         """
         title = self.tr('Duplicate a configuration file')
         label = [self.tr("Enter a new filename (without extension):")]
@@ -361,7 +361,7 @@ class ConfigWindow(QDialog):
 
     def configSelectorAddFile(self):
         """
-        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        Function called when the "Remove configuration file" is clicked in the optional config selector zone
         """
         title = self.tr('Add a configuration file')
         label = [self.tr("Enter filename (without extension):")]
@@ -378,7 +378,7 @@ class ConfigWindow(QDialog):
 
     def configSelectorRemoveFile(self):
         """
-        Function called when the "Remove configuration file" is clicked in the optionnal config selector zone
+        Function called when the "Remove configuration file" is clicked in the optional config selector zone
         """
         confirmation_result = QMessageBox.question(self, self.tr('Delete configuration file?'), self.tr('Are you sure you want to permanently remove the file "{0}"'.format(self.cfg_file_selector.getValue())), QMessageBox.Ok | QMessageBox.Cancel);
         if confirmation_result == QMessageBox.Yes or confirmation_result == QMessageBox.Ok:
