@@ -291,62 +291,62 @@ def makeConfigWidgets():
     The structure of the dictionnary must match the structure of the postprocessor configuration file. The names of the keys must be identical to those used in the configfile.
     If a name is declared in the configfile but not here, it simply won't appear in the config window (the config_version for example must not be modified by the user, so it is not declared here)
     """
-    cfg_widget_def = \
-    {
-        'General':
-        {
-            '__section_title__': tr("Software config"),
-            'output_format': CfgLineEdit(tr('Output file extension:')),
-            'output_text': CfgLineEdit(tr('Output format description:')),
-            'output_type': CfgComboBox(tr('Output type:')),
-            'abs_export': CfgCheckBox(tr('Export absolute coordinates')),
-            'cancel_cc_for_depth': CfgCheckBox(tr('Cancel cutter compensation at each slice')),
-            'cc_outside_the_piece': CfgCheckBox(tr('Perform cutter compensation outside of the piece')),
-            'export_ccw_arcs_only': CfgCheckBox(tr('Export only counter clockwise arcs')),
-            'max_arc_radius': CfgDoubleSpinBox(tr('Maximum arc radius:')),
-            'code_begin_units_mm': CfgLineEdit(tr('Units in millimeters G-code:')),
-            'code_begin_units_in': CfgLineEdit(tr('Units in inch G-code:')),
-            'code_begin_prog_abs': CfgLineEdit(tr('Absolute programming G-code:')),
-            'code_begin_prog_inc': CfgLineEdit(tr('Incremental programming G-code:')),
-            'code_begin': CfgTextEdit(tr('Startup G-code:')),
-            'code_end': CfgTextEdit(tr('End G-code:')),
-        },
-        'Number_Format':
-        {
-            '__section_title__': tr("Output formatting"),
-            'pre_decimals': CfgSpinBox(tr('Number of digit before the decimal separator:')),
-            'post_decimals': CfgSpinBox(tr('Number of digit after the decimal separator:')),
-            'pre_decimal_zero_padding': CfgCheckBox(tr("Pad with '0' digit berfore the decimal separator")),
-            'post_decimal_zero_padding': CfgCheckBox(tr("Pad with '0' digit after the decimal separator")),
-            'decimal_separator': CfgLineEdit(tr('Decimal separator:')),
-            'signed_values': CfgCheckBox(tr("Prepend the numbers with the '+' sign for positive values")),
-        },
-        'Line_Numbers':
-        {
-            '__section_title__': tr("Output formatting"),
-            'use_line_nrs': CfgCheckBox(tr('Export lines numbers')),
-            'line_nrs_begin': CfgSpinBox(tr('Line number starts at:')),
-            'line_nrs_step': CfgSpinBox(tr('Line number step:')),
-        },
-        'Program':
-        {
-            '__section_title__': tr("G-code codes"),
-            'tool_change': CfgLineEdit(tr('Tool change:')),
-            'feed_change': CfgLineEdit(tr('Feed rate change:')),
-            'rap_pos_plane': CfgLineEdit(tr('Rapid positioning for XY plane:')),
-            'rap_pos_depth': CfgLineEdit(tr('Rapid positioning for Z plane:')),
-            'lin_mov_plane': CfgLineEdit(tr('Linear feed move for XY plane:')),
-            'lin_mov_depth': CfgLineEdit(tr('Linear feed move for Z plane:')),
-            'arc_int_cw': CfgLineEdit(tr('Clockwise feed move:')),
-            'arc_int_ccw': CfgLineEdit(tr('Counter clockwise feed move:')),
-            'cutter_comp_off': CfgLineEdit(tr('Disable cutter compensation:')),
-            'cutter_comp_left': CfgLineEdit(tr('Left cutter compensation:')),
-            'cutter_comp_right': CfgLineEdit(tr('Right cutter compensation:')),
-            'pre_shape_cut': CfgLineEdit(tr('G-code placed before any shape cutting:')),
-            'post_shape_cut': CfgLineEdit(tr('G-code placed after any shape cutting:')),
-            'comment': CfgLineEdit(tr('Comment for the current shape:')),
-        },
-    }
+    cfg_widget_def = OrderedDict([
+        ('General', OrderedDict([
+            ('__section_title__', tr("Software config")),
+            ('__subtitle__', CfgSubtitle(tr("Output specifications"))),
+            ('output_text', CfgLineEdit(tr('Output format description:'))),
+            ('output_format', CfgLineEdit(tr('Output file extension:'))),
+            ('output_type', CfgComboBox(tr('Output type:'))),
+            ('__subtitle2__', CfgSubtitle(tr("Output options"))),
+            ('abs_export', CfgCheckBox(tr('Export absolute coordinates'))),
+            ('cancel_cc_for_depth', CfgCheckBox(tr('Cancel cutter compensation at each slice'))),
+            ('cc_outside_the_piece', CfgCheckBox(tr('Perform cutter compensation outside of the piece'))),
+            ('export_ccw_arcs_only', CfgCheckBox(tr('Export only counter clockwise arcs'))),
+            ('max_arc_radius', CfgDoubleSpinBox(tr('Maximum arc radius:'))),
+            ('__subtitle3__', CfgSubtitle(tr("G-code constants"))),
+            ('code_begin_units_mm', CfgLineEdit(tr('Units in millimeters G-code:'))),
+            ('code_begin_units_in', CfgLineEdit(tr('Units in inch G-code:'))),
+            ('code_begin_prog_abs', CfgLineEdit(tr('Absolute programming G-code:'))),
+            ('code_begin_prog_inc', CfgLineEdit(tr('Incremental programming G-code:'))),
+            ('code_begin', CfgTextEdit(tr('Startup G-code:'))),
+            ('code_end', CfgTextEdit(tr('End G-code:')))
+        ])),
+        ('Number_Format', OrderedDict([
+            ('__section_title__', tr("Output formatting")),
+            ('__subtitle__', CfgSubtitle(tr("Output formatting"))),
+            ('signed_values', CfgCheckBox(tr("Prepend the numbers with the '+' sign for positive values"))),
+            ('pre_decimals', CfgSpinBox(tr('Number of digit before the decimal separator:'))),
+            ('pre_decimal_zero_padding', CfgCheckBox(tr("Pad with '0' digit berfore the decimal separator"))),
+            ('post_decimals', CfgSpinBox(tr('Number of digit after the decimal separator:'))),
+            ('post_decimal_zero_padding', CfgCheckBox(tr("Pad with '0' digit after the decimal separator"))),
+            ('decimal_separator', CfgLineEdit(tr('Decimal separator:')))
+        ])),
+        ('Line_Numbers', OrderedDict([
+            ('__section_title__', tr("Output formatting")),
+            ('__subtitle__', CfgSubtitle(tr("Lines numbers"))),
+            ('use_line_nrs', CfgCheckBox(tr('Export lines numbers'))),
+            ('line_nrs_begin', CfgSpinBox(tr('Line number starts at:'))),
+            ('line_nrs_step', CfgSpinBox(tr('Line number step:')))
+        ])),
+        ('Program', OrderedDict([
+            ('__section_title__', tr("G-code codes")),
+            ('tool_change', CfgLineEdit(tr('Tool change:'))),
+            ('feed_change', CfgLineEdit(tr('Feed rate change:'))),
+            ('rap_pos_plane', CfgLineEdit(tr('Rapid positioning for XY plane:'))),
+            ('rap_pos_depth', CfgLineEdit(tr('Rapid positioning for Z plane:'))),
+            ('lin_mov_plane', CfgLineEdit(tr('Linear feed move for XY plane:'))),
+            ('lin_mov_depth', CfgLineEdit(tr('Linear feed move for Z plane:'))),
+            ('arc_int_cw', CfgLineEdit(tr('Clockwise feed move:'))),
+            ('arc_int_ccw', CfgLineEdit(tr('Counter clockwise feed move:'))),
+            ('cutter_comp_off', CfgLineEdit(tr('Disable cutter compensation:'))),
+            ('cutter_comp_left', CfgLineEdit(tr('Left cutter compensation:'))),
+            ('cutter_comp_right', CfgLineEdit(tr('Right cutter compensation:'))),
+            ('pre_shape_cut', CfgLineEdit(tr('G-code placed before any shape cutting:'))),
+            ('post_shape_cut', CfgLineEdit(tr('G-code placed after any shape cutting:'))),
+            ('comment', CfgLineEdit(tr('Comment for the current shape:')))
+        ]))
+    ])
 
     return cfg_widget_def
 
