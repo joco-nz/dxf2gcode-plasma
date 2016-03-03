@@ -34,6 +34,8 @@ see http://code.activestate.com/recipes/65207/ for module const
 
 import logging
 
+import platform
+
 '''
 By default we (should) want to run the PyQt5 version
 '''
@@ -43,9 +45,14 @@ try:
 except ImportError:
     PYQT5notPYQT4 = False
 
+if PYQT5notPYQT4:
+    from PyQt5 import QtCore
+else:
+    from PyQt4 import QtCore
+
 # Global Variables
 APPNAME = "DXF2GCODE"
-VERSION = "PyQt%i Beta" % (5 if PYQT5notPYQT4 else 4)
+VERSION = "Py%s PyQt%s" % (platform.python_version(), QtCore.PYQT_VERSION_STR)
 
 DATE     =  "$Date$"
 REVISION =  "$Revision$"

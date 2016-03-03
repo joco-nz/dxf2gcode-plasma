@@ -78,16 +78,16 @@ POSTPRO_SPEC = str('''
     cc_outside_the_piece = boolean(default=True)
     # This may be used for the export to dxf which only accepts arcs which are in counterclockwise direction. Turning this on for normal G-Code will cause in unintended outputs.
     export_ccw_arcs_only = boolean(default=False)
-    # This values indicated which arc's with radius higher than this value will be exported as a line. 
+    # This values indicated which arc's with radius higher than this value will be exported as a line.
     max_arc_radius = float(min = 0, default=10000)
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
     code_begin_prog_abs = string(default="G90 (Absolute programming)")
     code_begin_prog_inc = string(default="G91 (Incremental programming)")
-    # This is code which will be written at the beginning of the exported file. 
+    # This is code which will be written at the beginning of the exported file.
     code_begin = string(default="G64 (Default cutting) G17 (XY plane) G40 (Cancel radius comp.) G49 (Cancel length comp.)")
-    # This is code which will be written at the end of the exported file. 
+    # This is code which will be written at the end of the exported file.
     code_end = string(default="M2 (Program end)")
 
     [Number_Format]
@@ -101,7 +101,7 @@ POSTPRO_SPEC = str('''
     pre_decimal_zero_padding = boolean(default=False)
     # If false e.g. 1.000 will be given as 1 only.
     post_decimal_zero_padding = boolean(default=True)
-    # If True 1.000 will be written as +1.000 
+    # If True 1.000 will be written as +1.000
     signed_values = boolean(default=False)
 
     [Line_Numbers]
@@ -235,7 +235,7 @@ class MyPostProConfig(object):
         # convenience - flatten nested config dict to access it via self.config.sectionname.varname
         self.vars = DictDotLookup(self.var_dict)
         # add here any update needed for the internal variables of this class
-        
+
 
     def make_settings_folder(self):
         """
@@ -263,11 +263,9 @@ class MyPostProConfig(object):
         self.var_dict.filename = self.filename
         self.var_dict.write()
 
-
     def save_varspace(self):
         self.var_dict.filename = self.filename
         self.var_dict.write()
-
 
     def print_vars(self):
         """
@@ -349,9 +347,9 @@ def makeConfigWidgets():
             'comment': CfgLineEdit(tr('Comment for the current shape:')),
         },
     }
-    
+
     return cfg_widget_def
-    
+
 
 class DictDotLookup(object):
     """

@@ -27,17 +27,17 @@ from __future__ import absolute_import
 from globals.six import PY2
 
 if PY2:
-    str_encode = lambda exstr: exstr.encode('utf-8')
-    str_decode = lambda filename: filename.decode("utf-8")
+    str_encode = lambda string: string.encode('utf-8')
+    str_decode = lambda string: string.decode("utf-8")
 else:
-    str_encode = lambda exstr: exstr
-    str_decode = lambda filename: filename
+    str_encode = lambda string: string
+    str_decode = lambda string: string
 
 import globals.constants as c
 if c.PYQT5notPYQT4:
-    qstr_encode = lambda filename: filename
+    qstr_encode = lambda string: str_encode(string)
 else:
-    qstr_encode = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
+    qstr_encode = lambda string: str_encode(unicode(string.toUtf8(), encoding="utf-8"))
 
 '''
 Following two functions are needed for Python3+, since it no longer supports these functions as is

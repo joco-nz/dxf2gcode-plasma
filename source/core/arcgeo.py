@@ -27,12 +27,12 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from math import sqrt, sin, cos, pi, degrees, ceil, floor
+from math import sqrt, sin, cos, asin, pi, degrees, ceil, floor
 from copy import deepcopy
 
 
 from core.point import Point
-#from core.linegeo import LineGeo
+
 from core.boundingbox import BoundingBox
 import globals.globals as g
 
@@ -46,13 +46,16 @@ else:
 import logging
 logger = logging.getLogger("core.arcgeo")
 
-eps=1e-12
+eps = 1e-12
+
 
 class ArcGeo(object):
+
     """
     Standard Geometry Item used for DXF Import of all geometries, plotting and
     G-Code export.
     """
+
     def __init__(self, Ps=None, Pe=None, O=None, r=1,
                  s_ang=None, e_ang=None, direction=1, drag=False):
         """
@@ -115,7 +118,6 @@ class ArcGeo(object):
         self.length = self.r * abs(self.ext)
 
         self.calc_bounding_box()
-
 
         self.abs_geo = None
 
@@ -218,40 +220,35 @@ class ArcGeo(object):
 
         return dif_ang
 
-    def distance(self, other):
+    def get_point_from_start(self, i, segments):
         """
-        Find the distance between 2 geometry elements. Possible is LineGeo
-        and ArcGeo
-        @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries
+        Returns an point on the end point of the segments on the arc.
+        @param i: The end point of the segements which shall be returned
+        @param segment: The number of segments into which the arc shall be diffided.
+        @return: Returns a point on the Arc.
         """
-        """
-        Find the distance between 2 geometry elements. Possible is Point, LineGeo
-        and ArcGeo
-        @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries
-        """
-        from core.linegeo import LineGeo
+        ang = self.s_ang + i * self.ext / segments
+        return self.O.get_arc_point(ang, self.r)
 
-        if isinstance(other, LineGeo):
-            return other.distance_l_a(self)
-        elif isinstance(other, Point):
-            return self.distance_a_p(other)
-        elif isinstance(other, ArcGeo):
-            return self.distance_a_a(other)
+    def get_start_end_points(self, start_point, angles=None):
+        if start_point:
+            if angles is None:
+                return self.Ps
+            elif angles:
+                return self.Ps, self.s_ang + pi / 2 * self.ext / abs(self.ext)
+            else:
+                direction = (self.O - self.Ps).unit_vector()
+                direction = -direction if self.ext >= 0 else direction
+                return self.Ps, Point(-direction.y, direction.x)
         else:
-            logger.error(self.tr("Unsupported geometry type: %s" % type(other)))
-
-    def distance_a_a(self, other):
-        """
-        Find the distance between two arcs
-        @param other: the instance of the 2nd geometry element.
-        @return: The distance between the two geometries
-        """
-        # logger.error('Unsupported function')
-        Pself = self.get_nearest_point(other)
-        Pother = other.get_nearest_point(self)
-        return Pself.distance(Pother)
+            if angles is None:
+                return self.Pe
+            elif angles:
+                return self.Pe, self.e_ang - pi / 2 * self.ext / abs(self.ext)
+            else:
+                direction = (self.O - self.Pe).unit_vector()
+                direction = -direction if self.ext >= 0 else direction
+                return self.Pe, Point(-direction.y, direction.x)
 
     def distance_a_p(self, other):
         """
@@ -266,9 +263,9 @@ class ArcGeo(object):
             if self.PointAng_withinArc(other):
                 return other.distance(self.O.get_arc_point(self.O.norm_angle(other), r=self.r))
             elif other.distance(self.Ps) < other.distance(self.Pe):
-                    return other.distance(self.Ps)
+                return other.distance(self.Ps)
             else:
-                    return other.distance(self.Pe)
+                return other.distance(self.Pe)
 
         # logger.debug("Nearest Point is Inside of arc")
         # logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
@@ -281,336 +278,21 @@ class ArcGeo(object):
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         if ((self.PointAng_withinArc(other)) and
-            abs(self.r - self.O.distance(other)) < dis_min):
+                abs(self.r - self.O.distance(other)) < dis_min):
             dis_min = abs(self.r - self.O.distance(other))
             # logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
 
         return dis_min
 
-    def find_inter_point(self, other=[], type='TIP'):
-        """
-        Find the intersection between 2 geometry elements. Possible is CCLineGeo
-        and ArcGeo
-        @param other: the instance of the 2nd geometry element.
-        @param type: Can be "TIP" for True Intersection Point or "Ray" for
-        Intersection which is in Ray (of Line)        @return: a list of intersection points.
-        """
-        from core.linegeo import LineGeo
-
-        if isinstance(other, LineGeo):
-            IPoints = other.find_inter_point_l_a(self, type)
-            return IPoints
-        elif isinstance(other, ArcGeo):
-            return self.find_inter_point_a_a(other, type)
-        else:
-            logger.error("Unsupported Instance: %s" % other.type)
-
-    def find_inter_point_a_a(self, other, type='TIP'):
-        """
-        Find the intersection between 2 ArcGeo elements. There can be only one
-        intersection between 2 lines.
-        @param other: the instance of the 2nd geometry element.
-        @param type: Can be "TIP" for True Intersection Point or "Ray" for
-        Intersection which is in Ray (of Line)
-        @return: a list of intersection points.
-        @todo: FIXME: The type of the intersection is not implemented up to now
-        """
-        O_dis = self.O.distance(other.O)
-
-        # If self circle is surrounded by the other no intersection
-        if(O_dis < abs(self.r - other.r)):
-            return None
-
-        # If other circle is surrounded by the self no intersection
-        if(O_dis < abs(other.r - self.r)):
-            return None
-
-        # If The circles are to far away from each other no intersection possible
-        if (O_dis > abs(other.r + self.r)):
-            return None
-
-        # If both circles have the same center and radius
-        if abs(O_dis) == 0.0 and abs(self.r - other.r) == 0.0:
-            Pi1 = Point(x=self.Ps.x, y=self.Ps.y)
-            Pi2 = Point(x=self.Pe.x, y=self.Pe.y)
-
-            return [Pi1, Pi2]
-        # The following algorithm was found on :
-        # http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
-
-        root = ((pow(self.r + other.r , 2) - pow(O_dis, 2)) *
-                  (pow(O_dis, 2) - pow(other.r - self.r, 2)))
-
-        # If the Line is a tangent the root is 0.0.
-        if root <= 0.0:
-            root = 0.0
-        else:
-            root = sqrt(root)
-
-        xbase = (other.O.x + self.O.x) / 2 + \
-        (other.O.x - self.O.x) * \
-        (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
-
-        ybase = (other.O.y + self.O.y) / 2 + \
-        (other.O.y - self.O.y) * \
-        (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
-
-        Pi1 = Point(x=xbase + (other.O.y - self.O.y) / \
-                          (2 * pow(O_dis, 2)) * root,
-                    y=ybase - (other.O.x - self.O.x) / \
-                    (2 * pow(O_dis, 2)) * root)
-
-        Pi1.v1 = self.dif_ang(self.Ps, Pi1, self.ext) / self.ext
-        Pi1.v2 = other.dif_ang(other.Ps, Pi1, other.ext) / other.ext
-
-        Pi2 = Point(x=xbase - (other.O.y - self.O.y) / \
-                         (2 * pow(O_dis, 2)) * root,
-                    y=ybase + (other.O.x - self.O.x) / \
-                    (2 * pow(O_dis, 2)) * root)
-
-        Pi2.v1 = self.dif_ang(self.Ps, Pi2, self.ext) / self.ext
-        Pi2.v2 = other.dif_ang(other.Ps, Pi2, other.ext) / other.ext
-
-
-        if type == 'TIP':
-            if ((Pi1.v1 >= 0.0 and Pi1.v1 <= 1.0 and Pi1.v2 > 0.0 and Pi1.v2 <= 1.0) and
-               (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0)):
-                if (root == 0):
-                    return Pi1
-                else:
-                    return [Pi1, Pi2]
-            elif (Pi1.v1 >= 0.0 and Pi1.v1 <= 1.0 and Pi1.v2 > 0.0 and Pi1.v2 <= 1.0):
-                return Pi1
-            elif  (Pi2.v1 >= 0.0 and Pi2.v1 <= 1.0 and Pi2.v2 > 0.0 and Pi2.v2 <= 1.0):
-                return Pi2
-            else:
-                return None
-        elif type == "Ray":
-            # If the root is zero only one solution and the line is a tangent.
-            if root == 0:
-                return Pi1
-            else:
-                return [Pi1, Pi2]
-        else:
-            logger.error("We should not be here")
-
-    def get_nearest_point(self, other):
-        """
-        Get the nearest point on the arc to another geometry.
-        @param other: The Line to be nearest to
-        @return: The point which is the nearest to other
-        """
-        from core.linegeo import LineGeo
-
-        if isinstance(other, LineGeo):
-            return other.get_nearest_point_l_a(self, ret="arc")
-        elif isinstance(other, ArcGeo):
-            return self.get_nearest_point_a_a(other)
-        elif isinstance(other, Point):
-            return self.get_nearest_point_a_p(other)
-        else:
-            logger.error("Unsupported Instance: %s" % other.type)
-
-    def get_nearest_point_a_p(self, other):
-        """
-        Get the nearest point to a point lieing on the arc
-        @param other: The Point to be nearest to
-        @return: The point which is the nearest to other
-        """
-        if self.intersect(other):
-            return other
-
-        PPoint = self.O.get_arc_point(self.O.norm_angle(other), r=self.r)
-        if self.intersect(PPoint):
-            return PPoint
-        elif self.Ps.distance(other) < self.Pe.distance(other):
-            return self.Ps
-        else:
-            return self.Pe
-
-    def get_nearest_point_a_a(self, other, ret="self"):
-        """
-        Get the nearest point to a line lieing on the line
-        @param other: The Point to be nearest to
-        @return: The point which is the nearest to other
-        """
-        if self.intersect(other):
-            return self.find_inter_point_a_a(other)
-
-
-
-        # The Arc is outside of the Arc
-        # if other.O.distance(self.O)>(other.r+other.r):
-
-        # If Nearest point is on both Arc Segments.
-        if other.PointAng_withinArc(self.O) and self.PointAng_withinArc(other.O):
-            if ret == "self":
-                return self.O.get_arc_point(self.O.norm_angle(other.O), r=self.r)
-            elif ret == "other":
-                return other.O.get_arc_point(other.O.norm_angle(self.O), r=other.r)
-        # If Nearest point is on self Arc Segment but not other
-        elif self.PointAng_withinArc(other.O):
-            if self.distance(other.Ps) < self.distance(other.Pe):
-                if ret == "self":
-                    return self.O.get_arc_point(self.O.norm_angle(other.Ps), r=self.r)
-                elif ret == "other":
-                    return other.Ps
-            else:
-                if ret == "self":
-                    return self.O.get_arc_point(self.O.norm_angle(other.Pe), r=self.r)
-                elif ret == "other":
-                    return other.Pe
-        # If Nearest point is on other Arc Segment but not self
-        elif other.PointAng_withinArc(self.O):
-            if other.distance(self.Ps) < other.distance(self.Pe):
-                if ret == "self":
-                    return self.Ps
-                elif ret == "other":
-                    return other.O.get_arc_point(other.O.norm_angle(self.Ps), r=other.r)
-            else:
-                if ret == "self":
-                    return self.Pe
-                elif ret == "other":
-                    return other.O.get_arc_point(other.O.norm_angle(self.Pe), r=other.r)
-        # If the min distance is not on any arc segemtn but other.Ps is nearer then other.Pe
-        elif self.distance(other.Ps) < self.distance(other.Pe):
-            if self.Ps.distance(other.Ps) < self.Pe.distance(other.Ps):
-                if ret == "self":
-                    return self.Ps
-                elif ret == "other":
-                    return other.Ps
-            else:
-                if ret == "self":
-                    return self.Pe
-                elif ret == "other":
-                    return other.Ps
-        else:
-            if self.Ps.distance(other.Pe) < self.Pe.distance(other.Pe):
-                if ret == "self":
-                    return self.Ps
-                elif ret == "other":
-                    return other.Pe
-            else:
-                if ret == "self":
-                    return self.Pe
-                elif ret == "other":
-                    return other.Pe
-
-            #         #logger.debug("Nearest Point is Inside of arc")
-            #         #logger.debug("self.distance(other.Ps): %s, self.distance(other.Pe): %s" %(self.distance(other.Ps),self.distance(other.Pe)))
-            #         # The Line may be inside of the ARc or cross it
-            #         if self.distance(other.Ps)<self.distance(other.Pe):
-            #             Pnearest=self.get_nearest_point(other.Ps)
-            #             Pnother=other.Ps
-            #             dis_min=self.distance(other.Ps)
-            #             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-            #         else:
-            #             Pnearest=self.get_nearest_point(other.Pe)
-            #             Pnother=other.Pe
-            #             dis_min=self.distance(other.Pe)
-            #             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-            #
-            #         if ((other.PointAng_withinArc(self.Ps)) and
-            #             abs(other.r-other.O.distance(self.Ps)) < dis_min):
-            #
-            #             Pnearest=self.Ps
-            #             Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
-            #             dis_min=abs(other.r-other.O.distance(self.Ps))
-            #             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-            #
-            #         if ((other.PointAng_withinArc(self.Pe)) and
-            #             abs((other.r-other.O.distance(self.Pe))) < dis_min):
-            #             Pnearest=self.Pe
-            #             Pnother=other.O.get_arc_point(other.O.norm_angle(Pnearest),r=other.r)
-            #
-            #             dis_min=abs(other.r-other.O.distance(self.Pe))
-            #             #logger.debug("Pnearest: %s, distance: %s" %(Pnearest, dis_min))
-            #         if ret=="line":
-            #             return Pnearest
-            #         elif ret=="arc":
-            #             return Pnother
-
-    def get_point_from_start(self, i, segments):
-        ang = self.s_ang + i * self.ext / segments
-        return self.O.get_arc_point(ang, self.r)
-
-    def get_start_end_points(self, start_point, angles=None):
-        if start_point:
-            if angles is None:
-                return self.Ps
-            elif angles:
-                return self.Ps, self.s_ang + pi/2 * self.ext / abs(self.ext)
-            else:
-                direction = (self.O - self.Ps).unit_vector()
-                direction = -direction if self.ext >= 0 else direction
-                return self.Ps, Point(-direction.y, direction.x)
-        else:
-            if angles is None:
-                return self.Pe
-            elif angles:
-                return self.Pe, self.e_ang - pi/2 * self.ext / abs(self.ext)
-            else:
-                direction = (self.O - self.Pe).unit_vector()
-                direction = -direction if self.ext >= 0 else direction
-                return self.Pe, Point(-direction.y, direction.x)
-
-    def intersect(self, other):
-        """
-        Check if there is an intersection of two geometry elements
-        @param, a second geometry which shall be checked for intersection
-        @return: True if there is an intersection
-        """
-        # Do a raw check first with BoundingBox
-        # logger.debug("self: %s, \nother: %s, \nintersect: %s" %(self,other,self.BB.hasintersection(other.BB)))
-        # logger.debug("self.BB: %s \nother.BB: %s")
-
-        # We need to test Point first cause it has no BB
-        from core.linegeo import LineGeo
-
-        if isinstance(other, Point):
-            return self.intersect_a_p(other)
-        elif not(self.BB.hasintersection(other.BB)):
-            return False
-        elif isinstance(other, LineGeo):
-            return other.intersect_l_a(self)
-        elif isinstance(other, ArcGeo):
-            return self.intersect_a_a(other)
-        else:
-            logger.error("Unsupported Instance: %s" % other.type)
-
-    def intersect_a_a(self, other):
-        """
-        Check if there is an intersection of two arcs
-        @param, a second arc which shall be checked for intersection
-        @return: True if there is an intersection
-        """
-        inter = self.find_inter_point_a_a(other)
-        return not(inter is None)
-
-    def intersect_a_p(self, other):
-        """
-        Check if there is an intersection of an point and a arc
-        @param, a second arc which shall be checked for intersection
-        @return: True if there is an intersection
-        """
-        # No intersection possible if point is not within radius
-        if not(abs(self.O.distance(other) - self.r) < abs):
-            return False
-        elif self.PointAng_withinArc(other):
-            return True
-        else:
-            return False
-
     def isHit(self, caller, xy, tol):
-        tol2 = tol**2
-        segments = int(abs(degrees(self.ext)) // 3 + 1)
-        Ps = self.O.get_arc_point(self.s_ang, self.r)
-        for i in range(1, segments + 1):
-            Pe = self.get_point_from_start(i, segments)
-            if xy.distance2_to_line(Ps, Pe) <= tol2:
-                return True
-            Ps = Pe
-        return False
+        """
+        This function returns true if the nearest point between the two geometries is within the square of the 
+        given tolerance
+        @param caller: This is the calling entities (only used in holegeo)
+        @param xy: The point which shall be used to determine the distance
+        @tol: The tolerance which is used for Hit testing.
+        """
+        self.distance_a_p(xy) <= tol
 
     def make_abs_geo(self, parent=None):
         """
@@ -638,18 +320,6 @@ class ArcGeo(object):
             drawHorLine(caller, Ps, Pe)
             Ps = Pe
 
-    def PointAng_withinArc(self, Point):
-        """
-        Check if the angle defined by Point is within the span of the arc.
-        @param Point: The Point which angle to be checked
-        @return: True or False
-        """
-        if self.ext == 0.0:
-            return False
-
-        v = self.dif_ang(self.Ps, Point, self.ext) / self.ext
-        return v >= 0.0 and v <= 1.0
-
     def reverse(self):
         """
         Reverses the direction of the arc (switch direction).
@@ -676,23 +346,6 @@ class ArcGeo(object):
 
         return r
 
-    def split_into_2geos(self, ipoint=Point()):
-        """
-        Splits the given geometry into 2 geometries. The
-        geometry will be splitted at ipoint.
-        @param ipoint: The Point where the intersection occures
-        @return: A list of 2 ArcGeo's will be returned.
-        """
-
-
-        # Generate the 2 geometries and their bounding boxes.
-        Arc1 = ArcGeo(Ps=self.Ps, Pe=ipoint, r=self.r,
-                       O=self.O, direction=self.ext)
-
-        Arc2 = ArcGeo(Ps=ipoint, Pe=self.Pe, r=self.r,
-                       O=self.O, direction=self.ext)
-        return [Arc1, Arc2]
-
     def toShortString(self):
         return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
 
@@ -704,46 +357,6 @@ class ArcGeo(object):
         """
         return text_type(QtCore.QCoreApplication.translate('ArcGeo',
                                                            string_to_translate))
-
-    def trim(self, Point, dir=1, rev_norm=False):
-        """
-        This instance is used to trim the geometry at the given point. The point
-        can be a point on the offset geometry a perpendicular point on line will
-        be used for trimming.
-        @param Point: The point / perpendicular point for new Geometry
-        @param dir: The direction in which the geometry will be kept (1  means the
-        beginn will be trimmed)
-        @param rev_norm: If the direction of the point is on the reversed side.
-        """
-
-        # logger.debug("I'm getting trimmed: %s, %s, %s, %s" % (self, Point, dir, rev_norm))
-        newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r=self.r)
-        new_normal = newPoint.unit_vector(self.O, r=1)
-
-        # logger.debug(newPoint)
-        [Arc1, Arc2] = self.split_into_2geos(newPoint)
-
-        if dir == -1:
-            new_arc = Arc1
-            if hasattr(self, "end_normal"):
-                # new_arc.end_normal = self.end_normal
-                # new_arc.start_normal = new_normal
-
-                new_arc.end_normal = new_normal
-                new_arc.start_normal = self.start_normal
-            # logger.debug(new_arc)
-            return new_arc
-        else:
-            new_arc = Arc2
-            if hasattr(self, "end_normal"):
-                # new_arc.end_normal = new_normal
-                # new_arc.start_normal = self.start_normal
-
-                new_arc.end_normal = self.end_normal
-                new_arc.start_normal = new_normal
-            # logger.debug(new_arc)
-            return new_arc
-        # return self
 
     def update_start_end_points(self, start_point, value):
         prv_dir = self.ext
@@ -757,7 +370,8 @@ class ArcGeo(object):
         self.ext = self.dif_ang(self.Ps, self.Pe, self.ext)
 
         if 2 * abs(((prv_dir - self.ext) + pi) % (2 * pi) - pi) >= pi:
-            # seems very unlikely that this is what you want - the direction changed (too drastically)
+            # seems very unlikely that this is what you want - the direction
+            # changed (too drastically)
             self.Ps, self.Pe = self.Pe, self.Ps
             self.s_ang, self.e_ang = self.e_ang, self.s_ang
             self.ext = self.dif_ang(self.Ps, self.Pe, prv_dir)
@@ -793,32 +407,34 @@ class ArcGeo(object):
         r = self.r
         IJ = O - Ps
 
-        # If the radius of the element is bigger than the max, radius export the element as an line.
+        # If the radius of the element is bigger than the max, radius export
+        # the element as an line.
         if r > PostPro.vars.General["max_arc_radius"]:
             string = PostPro.lin_pol_xy(Ps, Pe)
+        # If the maschine is not supporting G2 and G3 moves use this option
+
+        elif PostPro.vars.General["export_arcs_as_lines"]:
+            # Calculation the min. arc segment angle of the export based on given tolerance.
+            # https://de.wikipedia.org/wiki/Kreissegment
+            a = g.config.fitting_tolerance
+            s = 2 * sqrt(a * (2 * self.r - a))
+            alpha = 2 * asin(s / (2 * self.r))
+            segments = int(abs(self.ext // alpha))
+
+            string = ""
+
+            for i in range(1, segments + 1):
+                Pe = self.get_point_from_start(i, segments)
+                string += PostPro.lin_pol_xy(Ps, Pe)
+                Ps = Pe
         else:
             if self.ext > 0:
-                string = PostPro.lin_pol_arc("ccw", Ps, Pe, s_ang, e_ang, r, O, IJ,self.ext)
+                string = PostPro.lin_pol_arc(
+                    "ccw", Ps, Pe, s_ang, e_ang, r, O, IJ, self.ext)
             elif self.ext < 0 and PostPro.vars.General["export_ccw_arcs_only"]:
-                string = PostPro.lin_pol_arc("ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe,self.ext)
+                string = PostPro.lin_pol_arc(
+                    "ccw", Pe, Ps, e_ang, s_ang, r, O, O - Pe, self.ext)
             else:
-                string = PostPro.lin_pol_arc("cw", Ps, Pe, s_ang, e_ang, r, O, IJ,self.ext)
+                string = PostPro.lin_pol_arc(
+                    "cw", Ps, Pe, s_ang, e_ang, r, O, IJ, self.ext)
         return string
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

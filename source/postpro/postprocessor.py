@@ -81,7 +81,7 @@ class MyPostProcessor(object):
 
         self.config_postpro_window = ConfigWindow(makeConfigWidgets(), title = self.tr("Postprocessor configuration"))
         #Enable the config file selector into the configuration widget
-        self.config_postpro_window.setConfigSelectorCallback(self.postproConfigSelectionChangedCallback, self.postproConfigAddFileCallback, self.postproConfigRemoveFileCallback, self.postproConfigDuplicateFileCallback) 
+        self.config_postpro_window.setConfigSelectorCallback(self.postproConfigSelectionChangedCallback, self.postproConfigAddFileCallback, self.postproConfigRemoveFileCallback, self.postproConfigDuplicateFileCallback)
         self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList()) #Set the list of current configuration files
         self.config_postpro_window.finished.connect(self.updatePostprocessorConfiguration)
 
@@ -123,7 +123,7 @@ class MyPostProcessor(object):
         @param: the new filename
         """
         result = True
-        
+
         new_name += c.CONFIG_EXTENSION #Add the extension
         if new_name not in self.getConfigsList()['filename']:
             logger.debug("New postprocessor config file {0} is going to be created".format(new_name))
@@ -146,7 +146,7 @@ class MyPostProcessor(object):
         @param: the filename to remove
         """
         result = True
-        
+
         file_to_remove = os.path.join(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR), remove_name)
         logger.debug("Postprocessor config file {0} is going to be removed".format(file_to_remove))
         try:
@@ -167,7 +167,7 @@ class MyPostProcessor(object):
         @param: the filename to remove
         """
         result = True
-        
+
         new_name += c.CONFIG_EXTENSION
         if new_name not in self.getConfigsList()['filename']:
             new_file = os.path.join(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR), new_name)
@@ -182,7 +182,7 @@ class MyPostProcessor(object):
             self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList(), new_name) #Set the list of current configuration files
         else:
             result = False
-        
+
         return result
 
 
@@ -193,7 +193,7 @@ class MyPostProcessor(object):
         del self.postprocessor_files[:] # store the postprocessors filenames
         del self.output_format[:] # store the postprocessors filenames extensions
         del self.output_text[:] # store the postprocessors descriptions
-        
+
         try:
             lfiles = sorted(os.listdir(os.path.join(g.folder, c.DEFAULT_POSTPRO_DIR)))
             """
@@ -250,7 +250,7 @@ class MyPostProcessor(object):
 
             self.output_format.append(PostProConfig.vars.General['output_format'])
             self.output_text.append(PostProConfig.vars.General['output_text'])
-            
+
 
     def getPostProVars(self, file_index):
         """
@@ -261,9 +261,9 @@ class MyPostProcessor(object):
         PostProConfig = MyPostProConfig(filename=self.postprocessor_files[file_index])
         PostProConfig.load_config()
         self.vars = PostProConfig.vars
-        
+
         return PostProConfig
-        
+
 
     def exportShapes(self, load_filename, save_filename, LayerContents):
         """
@@ -533,7 +533,7 @@ class MyPostProcessor(object):
 
         self.Ps = Ps
         self.r = R
-        
+
         self.ext = ext
 
         if not self.abs_export:

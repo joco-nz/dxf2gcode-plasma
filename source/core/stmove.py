@@ -81,9 +81,6 @@ class StMove(object):
         if g.config.machine_type == 'drag_knife':
             self.make_swivelknife_move()
             return
-        elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
-            self.make_own_cutter_compensation()
-            return
 
         # Get the start rad. and the length of the line segment at begin.
         start_rad = self.shape.parentLayer.start_radius
@@ -97,6 +94,18 @@ class StMove(object):
 
         if self.shape.cut_cor == 40:
             self.append(RapidPos(start))
+            
+        elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+
+            toolwidth = self.shape.parentLayer.getToolRadius()
+            offtype = "in"  if self.shape.cut_cor == 42 else "out"
+            offshape = offShapeClass(parent = self.shape, offset = toolwidth, offtype = offtype)
+
+            if len(offshape.rawoff) > 0:
+                start, angle = offshape.rawoff[0].get_start_end_points(True, True)
+
+                self.append(RapidPos(start))
+                self.geos += offshape.rawoff
 
         # Cutting Compensation Left
         elif self.shape.cut_cor == 41:
@@ -219,16 +228,6 @@ class StMove(object):
         self.geos.insert(0, RapidPos(self.geos.abs_el(0).Ps))
         self.geos[0].make_abs_geo()
 
-    def make_own_cutter_compensation(self):
-        toolwidth = self.shape.parentLayer.getToolRadius()
-
-        self.geos = Geos([])
-
-        offtype = "in"  if self.shape.cut_cor == 42 else "out"
-
-        offshape = offShapeClass(parent=self.shape, offset=toolwidth, offtype=offtype)
-
-        self.geos+=offshape.rawoff
 
     def make_path(self, drawHorLine, drawVerLine):
         for geo in self.geos.abs_iter():

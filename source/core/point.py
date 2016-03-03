@@ -37,8 +37,7 @@ import logging
 logger = logging.getLogger("core.point")
 
 class Point(object):
-    #__slots__ = ["x", "y"]
-    # __slots__ = ["x", "y"]  # TODO: currently not possible because of cutter compensation stuff located in here
+    __slots__ = ["x", "y"]
     eps=1e-12
 
     def __init__(self, x=0, y=0):
@@ -220,34 +219,30 @@ class Point(object):
                      self.z * other.x - self.x * other.z,
                      self.x * other.y - self.y * other.x)
 
-    def detTopLeft(self, point):
-        self.x = min(self.x, point.x)
-        self.y = max(self.y, point.y)
-
-    def detBottomRight(self, point):
-        self.x = max(self.x, point.x)
-        self.y = min(self.y, point.y)
-
     def distance(self, other=None):
-        """Returns distance between two given points"""
+        """
+        Returns distance between two given points
+        @param other: the other geometry
+        @return: the minimum distance between the the given geometries.
+        """
         if other is None:
             other = Point(x=0.0, y=0.0)
         if not isinstance(other, Point):
             return other.distance(self)
         return (self - other).length()
 
-    def distance2_to_line(self, Ps, Pe):
-        dLine = Pe - Ps
-
-        u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
-        if u > 1.0:
-            u = 1.0
-        elif u < 0.0:
-            u = 0.0
-
-        closest = Ps + u * dLine
-        diff = closest - self
-        return diff.length_squared()
+#     def distance2_to_line(self, Ps, Pe):
+#         dLine = Pe - Ps
+#
+#         u = ((self.x - Ps.x) * dLine.x + (self.y - Ps.y) * dLine.y) / dLine.length_squared()
+#         if u > 1.0:
+#             u = 1.0
+#         elif u < 0.0:
+#             u = 0.0
+#
+#         closest = Ps + u * dLine
+#         diff = closest - self
+#         return diff.length_squared()
 
     def dotProd(self, P2):
         """
