@@ -106,7 +106,7 @@ logger = logging.getLogger("Gui.ConfigWindow")
 
 class ConfigWindow(QDialog):
     Applied = QDialog.Accepted + QDialog.Rejected + 1 #Define a result code that is different from accepted and rejected
-    
+
     """Main Class"""
     def __init__(self, definition_dict, config = None, configspec = None, parent = None, title = "Configuration"):
         """
@@ -609,7 +609,7 @@ class ConfigWindow(QDialog):
         if len(comments) > 0:
             for comment in comments:
                 comments_string += comment.strip()
-            
+
             comments_string = comments_string.strip(' #')
             comments_string = comments_string.replace('#', '\n')
 
@@ -725,7 +725,7 @@ class ConfigWindow(QDialog):
             #skip the special section __section_title__
             if section == '__section_title__' or isinstance(window_def[section], CfgDummy):
                 continue
-            
+
             if config is not None and section in config:
                 if isinstance(window_def[section], dict):
                     #Browse sublevels
@@ -967,6 +967,7 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
         # result = float(text.replace('.', QLocale().decimalPoint()))
         # python expect a dot ('.') as decimal separator
         text = qstr_encode(text).replace(str_encode(self.saved_suffix), '').replace(str(QLocale().decimalPoint()), '.')
+        return toFloat(text)[0]
 
     def validate(self, entry, pos):
         #let's *really* trust the validator
@@ -1123,8 +1124,9 @@ class CfgListEdit(CfgLineEdit):
         joined_value = value
         if isinstance(value, (list, tuple)):
             joined_value = (self.separator + ' ').join(value) #Join the strings and add a space for more readability (the space will be removed when writting)
-        
+
         self.lineedit.setText(joined_value)
+
 
 class CfgTextEdit(CfgBase):
     """
@@ -1439,7 +1441,7 @@ class CfgTable(QWidget):
                 if sub_key is not None:
                     result_dict[key][sub_key] = value
                 j += 1
-        
+
         return result_dict
 
     def setValue(self, value):
@@ -1544,7 +1546,7 @@ class CfgTableCustomActions(CfgTable):
                 else:
                     #Create a list with all the "keys" from the first column (here a key is the custom action name)
                     keys_list.append(self.tablewidget.item(i, 0).text())
-            
+
             nb_duplicate_elements = len(keys_list) - len(set(keys_list))
             if nb_duplicate_elements != 0:
                 #There are duplicate entries, that's wrong because the key must be unique
@@ -1661,7 +1663,7 @@ class CfgTableToolParameters(CfgTable):
                 #There are duplicate entries, that's wrong because the key must be unique
                 result_bool = False
                 result_string += str(self.tr('\nFound {0} duplicate elements for the table "{1}"\n')).format(nb_duplicate_elements, self.label.text())
-        
+
         if not contains_tool_1:
             result_bool = False
             result_string += str(self.tr('\nThe table "{0}" must always contains tool number \'1\'\n')).format(self.label.text()) #Note: str() is needed for PyQt4
