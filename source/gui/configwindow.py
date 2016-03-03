@@ -174,6 +174,19 @@ class ConfigWindow(QDialog):
         self.setEditInProgress(False)
 
 
+    def keyPressEvent(self, event):
+        """
+        Reimplemented keyPressEvent() function so that we can catch and ignore the [ENTER] key
+        (When pressed inside a QDialog, this key apply the changes by default)
+        """
+        if event.key() == QtCore.Qt.Key_Enter or event.key() == QtCore.Qt.Key_Return:
+            #key [ENTER]
+            event.accept() #We caught the key and we "eat" it, so it prevents its default behaviour
+        else:
+            #Default behaviour for all the other keys
+            QDialog.keyPressEvent(self, event)
+
+
     def tr(self, string_to_translate):
         """
         Translate a string using the QCoreApplication translation framework
