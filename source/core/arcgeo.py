@@ -284,15 +284,27 @@ class ArcGeo(object):
 
         return dis_min
 
+    def PointAng_withinArc(self, Point):
+        """
+        Check if the angle defined by Point is within the span of the arc.
+        @param Point: The Point which angle to be checked
+        @return: True or False
+        """
+        if self.ext == 0.0:
+            return False
+
+        v = self.dif_ang(self.Ps, Point, self.ext) / self.ext
+        return v >= 0.0 and v <= 1.0
+
     def isHit(self, caller, xy, tol):
         """
-        This function returns true if the nearest point between the two geometries is within the square of the 
+        This function returns true if the nearest point between the two geometries is within the square of the
         given tolerance
         @param caller: This is the calling entities (only used in holegeo)
         @param xy: The point which shall be used to determine the distance
         @tol: The tolerance which is used for Hit testing.
         """
-        self.distance_a_p(xy) <= tol
+        return self.distance_a_p(xy) <= tol
 
     def make_abs_geo(self, parent=None):
         """
