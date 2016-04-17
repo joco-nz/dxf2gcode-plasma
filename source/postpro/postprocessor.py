@@ -35,7 +35,7 @@ import logging
 import globals.globals as g
 
 from core.point import Point
-from postpro.postprocessorconfig import MyPostProConfig, makeConfigWidgets
+from postpro.postprocessorconfig import MyPostProConfig
 from postpro.breaks import Breaks
 from gui.configwindow import *
 
@@ -79,7 +79,7 @@ class MyPostProcessor(object):
         # Load the existing postprocessor config files, or create a new one
         self.loadCreateConfigFiles()
 
-        self.config_postpro_window = ConfigWindow(makeConfigWidgets(), title = self.tr("Postprocessor configuration"))
+        self.config_postpro_window = ConfigWindow(MyPostProConfig.makeConfigWidgets(), title = self.tr("Postprocessor configuration"))
         #Enable the config file selector into the configuration widget
         self.config_postpro_window.setConfigSelectorCallback(self.postproConfigSelectionChangedCallback, self.postproConfigAddFileCallback, self.postproConfigRemoveFileCallback, self.postproConfigDuplicateFileCallback)
         self.config_postpro_window.setConfigSelectorFilesList(self.getConfigsList()) #Set the list of current configuration files
