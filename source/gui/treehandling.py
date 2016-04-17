@@ -49,6 +49,8 @@ from core.entitycontent import EntityContent
 from core.customgcode import CustomGCode
 from gui.treeview import MyStandardItemModel
 
+from globals.helperfunctions import toInt, toFloat
+
 from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
@@ -64,23 +66,6 @@ else:
     from PyQt4 import QtCore
     isValid = lambda data: data.isValid()
     toPyObject = lambda data: data.toPyObject()
-
-'''
-Following two functions are needed for Python3+, since it no longer supports these functions as is
-'''
-def toInt(text):
-    try:
-        value = (int(text), True)
-    except ValueError:
-        value = (0, False)
-    return value
-
-def toFloat(text):
-    try:
-        value = (float(text), True)
-    except ValueError:
-        value = (0.0, False)
-    return value
 
 
 class QVariantShape(QtCore.QVariant):
@@ -228,7 +213,7 @@ class TreeHandler(QWidget):
             menu_action = self.sub_menu.addAction(custom_action.replace('_', ' '))
             menu_action.setData(custom_action)
 
-        # update the items (if a tool or a custion_action disapeared from config file, we need to remove it in the treeview too)
+        # update the items (if a tool or a custom_action disapeared from config file, we need to remove it in the treeview too)
         i = self.layer_item_model.rowCount(QtCore.QModelIndex())
         while i > 0:
             i -= 1
@@ -255,7 +240,7 @@ class TreeHandler(QWidget):
                     real_layer.speed = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['speed']
                     real_layer.start_radius = g.config.vars.Tool_Parameters[str(real_layer.tool_nr)]['start_radius']
                     update_drawing = True
-                    
+
                 if update_drawing and g.window:
                     for shape in real_layer.shapes:
                         if isinstance(shape, Shape):

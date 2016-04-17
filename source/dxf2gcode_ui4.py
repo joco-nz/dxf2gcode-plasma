@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file '/tmp/tmp5yUTYr'
+# Form implementation generated from reading ui file '/tmp/tmpXwE2ZV'
 #
-# Created: Tue Oct 27 02:25:46 2015
+# Created: Tue Feb  2 23:38:16 2016
 #      by: PyQt4 UI code generator 4.9.6
 #
 # WARNING! All changes made in this file will be lost!
@@ -504,6 +504,8 @@ class Ui_MainWindow(object):
         self.actionDeleteG0Paths.setObjectName(_fromUtf8("actionDeleteG0Paths"))
         self.actionConfiguration = QtGui.QAction(MainWindow)
         self.actionConfiguration.setObjectName(_fromUtf8("actionConfiguration"))
+        self.actionConfigurationPostprocessor = QtGui.QAction(MainWindow)
+        self.actionConfigurationPostprocessor.setObjectName(_fromUtf8("actionConfigurationPostprocessor"))
         self.actionTolerances = QtGui.QAction(MainWindow)
         self.actionTolerances.setObjectName(_fromUtf8("actionTolerances"))
         self.actionScaleAll = QtGui.QAction(MainWindow)
@@ -580,6 +582,7 @@ class Ui_MainWindow(object):
         self.menuMachine_Type.addAction(self.actionLathe)
         self.menuMachine_Type.addAction(self.actionDragKnife)
         self.menuTolerances.addAction(self.actionConfiguration)
+        self.menuTolerances.addAction(self.actionConfigurationPostprocessor)
         self.menuTolerances.addSeparator()
         self.menuTolerances.addAction(self.actionTolerances)
         self.menuTolerances.addSeparator()
@@ -668,6 +671,8 @@ class Ui_MainWindow(object):
         self.actionDeleteG0Paths.setText(_translate("MainWindow", "Delete G0 Paths", None))
         self.actionConfiguration.setText(_translate("MainWindow", "Configuration...", None))
         self.actionConfiguration.setShortcut(_translate("MainWindow", "Ctrl+Shift+C", None))
+        self.actionConfigurationPostprocessor.setText(_translate("MainWindow", "Postprocessor configuration...", None))
+        self.actionConfigurationPostprocessor.setShortcut(_translate("MainWindow", "Ctrl+Shift+P", None))
         self.actionTolerances.setText(_translate("MainWindow", "Tolerances", None))
         self.actionScaleAll.setText(_translate("MainWindow", "Scale All", None))
         self.actionRotateAll.setText(_translate("MainWindow", "Rotate All", None))

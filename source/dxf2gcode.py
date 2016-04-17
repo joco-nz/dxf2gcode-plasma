@@ -3,7 +3,7 @@
 
 ############################################################################
 #
-#   Copyright (C) 2010-2015
+#   Copyright (C) 2010-2016
 #    Christian Kohlöffel
 #    Jean-Paul Schouwstra
 #
@@ -58,7 +58,9 @@ from dxfimport.importer import ReadDXF
 from postpro.postprocessor import MyPostProcessor
 from postpro.tspoptimisation import TspOptimization
 
-from globals.six import text_type, PY2
+from globals.helperfunctions import str_encode, str_decode, qstr_encode
+
+from globals.six import text_type
 import globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
@@ -66,20 +68,11 @@ if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
     getOpenFileName = QFileDialog.getOpenFileName
     getSaveFileName = QFileDialog.getSaveFileName
-    file_str = lambda filename: filename
 else:
     from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt4 import QtCore
     getOpenFileName = QFileDialog.getOpenFileNameAndFilter
     getSaveFileName = QFileDialog.getSaveFileNameAndFilter
-    file_str = lambda filename: unicode(filename.toUtf8(), encoding="utf-8")
-
-if PY2:
-    str_encode = lambda exstr: exstr.encode('utf-8')
-    str_decode = lambda filename: filename.decode("utf-8")
-else:
-    str_encode = lambda exstr: exstr
-    str_decode = lambda filename: filename
 
 logger = logging.getLogger()
 
@@ -90,10 +83,14 @@ if os.path.islink(sys.argv[0]):
 
 
 class MainWindow(QMainWindow):
-    """Main Class"""
 
-    #Define a QT signal that is emitted when the configuration changes.
-    #Connect to this signal if you need to know when the configuration has changed.
+    """
+    Main Class
+    """
+
+    # Define a QT signal that is emitted when the configuration changes.
+    # Connect to this signal if you need to know when the configuration has
+    # changed.
     configuration_changed = QtCore.pyqtSignal()
 
     def __init__(self, app):
@@ -104,8 +101,11 @@ class MainWindow(QMainWindow):
         """
         QMainWindow.__init__(self)
 
-        #Build the configuration window
-        self.config_window = ConfigWindow(g.config.makeConfigWindgets(), g.config.var_dict, g.config.var_dict.configspec, self)
+        # Build the configuration window
+        self.config_window = ConfigWindow(g.config.makeConfigWidgets(),
+                                          g.config.var_dict,
+                                          g.config.var_dict.configspec,
+                                          self)
         self.config_window.finished.connect(self.updateConfiguration)
 
         self.app = app
@@ -123,7 +123,13 @@ class MainWindow(QMainWindow):
         self.TreeHandler = TreeHandler(self.ui)
         self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
 
+        #Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
+        # If string version_mismatch isn't empty, we popup an error and exit
+        if self.MyPostProcessor.version_mismatch:
+            error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', self.MyPostProcessor.version_mismatch);
+            sys.exit(error_message.exec_())
+
         self.d2g = Project(self)
 
         self.createActions()
@@ -172,7 +178,9 @@ class MainWindow(QMainWindow):
 
         # View
         self.ui.actionShowPathDirections.triggered.connect(self.setShowPathDirections)
-        self.ui.actionShowDisabledPaths.toggled.connect(self.setShowDisabledPaths) #We need toggled (and not triggered), otherwise the signal is not emitted when state is changed programmatically
+        # We need toggled (and not triggered), otherwise the signal is not
+        # emitted when state is changed programmatically
+        self.ui.actionShowDisabledPaths.toggled.connect(self.setShowDisabledPaths)
         self.ui.actionLiveUpdateExportRoute.toggled.connect(self.liveUpdateExportRoute)
         self.ui.actionDeleteG0Paths.triggered.connect(self.deleteG0Paths)
         self.ui.actionAutoscale.triggered.connect(self.canvas.autoscale)
@@ -182,6 +190,7 @@ class MainWindow(QMainWindow):
 
         # Options
         self.ui.actionConfiguration.triggered.connect(self.config_window.show)
+        self.ui.actionConfigurationPostprocessor.triggered.connect(self.MyPostProcessor.config_postpro_window.show)
         self.ui.actionTolerances.triggered.connect(self.setTolerances)
         self.ui.actionRotateAll.triggered.connect(self.rotateAll)
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)
@@ -195,21 +204,21 @@ class MainWindow(QMainWindow):
         # Help
         self.ui.actionAbout.triggered.connect(self.about)
 
-    def connectToolbarToConfig(self, project=False):
+    def connectToolbarToConfig(self, project=False, block_signals=True):
         # View
         if not project:
-            self.ui.actionShowDisabledPaths.blockSignals(True) #Don't emit any signal when changing state of the menu entries
+            self.ui.actionShowDisabledPaths.blockSignals(block_signals) #Don't emit any signal when changing state of the menu entries
             self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
             self.ui.actionShowDisabledPaths.blockSignals(False)
-            self.ui.actionLiveUpdateExportRoute.blockSignals(True)
+            self.ui.actionLiveUpdateExportRoute.blockSignals(block_signals)
             self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
             self.ui.actionLiveUpdateExportRoute.blockSignals(False)
 
         # Options
-        self.ui.actionSplitLineSegments.blockSignals(True)
+        self.ui.actionSplitLineSegments.blockSignals(block_signals)
         self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
         self.ui.actionSplitLineSegments.blockSignals(False)
-        self.ui.actionAutomaticCutterCompensation.blockSignals(True)
+        self.ui.actionAutomaticCutterCompensation.blockSignals(block_signals)
         self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
         self.ui.actionAutomaticCutterCompensation.blockSignals(False)
         self.updateMachineType()
@@ -329,7 +338,7 @@ class MainWindow(QMainWindow):
                     format_ = "(*%s);;" % (self.MyPostProcessor.output_format[i])
                     MyFormats = MyFormats + name + format_
                 filename = self.showSaveDialog(self.tr('Export to file'), MyFormats)
-                save_filename = file_str(filename[0])
+                save_filename = qstr_encode(filename[0])
             else:
                 filename = [None, None]
                 save_filename = saveas
@@ -524,7 +533,7 @@ class MainWindow(QMainWindow):
                                    MyFormats, selected_filter)
 
         logger.info(self.tr("File: %s selected") % filename[0])
-        logger.info("<a href='%s'>%s</a>" %(filename[0],filename[0]))
+        logger.info("<a href='%s'>%s</a>" % (filename[0], filename[0]))
         return filename
 
     def about(self):
@@ -534,25 +543,25 @@ class MainWindow(QMainWindow):
         """
 
         message = self.tr("<html>"
-                "<h2><center>You are using</center></h2>"
-                "<body bgcolor="\
-                "<center><img src=':images/dxf2gcode_logo.png' border='1' color='white'></center></body>"
-                "<h2>Version:</h2>"
-                "<body>%s: %s<br>"
-                "Last change: %s<br>"
-                "Changed by: %s<br></body>"
-                "<h2>Where to get help:</h2>"
-                "For more information and updates, "
-                "please visit "
-                "<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a><br>"
-                "For any questions on how to use dxf2gcode please use the "
-                "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"
-                "To log bugs, or request features please use the "
-                "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"
-                "<h2>License and copyright:</h2>"
-                "<body>This program is written in Python and is published under the "
-                "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
-                "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
+                          "<h2><center>You are using</center></h2>"
+                          "<body bgcolor="
+                          "<center><img src=':images/dxf2gcode_logo.png' border='1' color='white'></center></body>"
+                          "<h2>Version:</h2>"
+                          "<body>%s: %s<br>"
+                          "Last change: %s<br>"
+                          "Changed by: %s<br></body>"
+                          "<h2>Where to get help:</h2>"
+                          "For more information and updates, "
+                          "please visit "
+                          "<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a><br>"
+                          "For any questions on how to use dxf2gcode please use the "
+                          "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"
+                          "To log bugs, or request features please use the "
+                          "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"
+                          "<h2>License and copyright:</h2>"
+                          "<body>This program is written in Python and is published under the "
+                          "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
+                          "</body></html>") % (c.VERSION, c.REVISION, c.DATE, c.AUTHOR)
 
         AboutDialog(title=self.tr("About DXF2GCODE"), message=message)
 
@@ -617,7 +626,8 @@ class MainWindow(QMainWindow):
 
     def rotateAll(self):
         title = self.tr('Rotate Contour')
-        label = [self.tr("Rotate Contour by deg:")]  # TODO should we support radians for drawing unit non metric?
+        # TODO should we support radians for drawing unit non metric?
+        label = [self.tr("Rotate Contour by deg:")]
         value = [degrees(self.cont_rotate)]
         RotEntDialog = PopUpDialog(title, label, value)
 
@@ -727,7 +737,7 @@ class MainWindow(QMainWindow):
 
         # If there is something to load then call the load function callback
         if self.filename:
-            self.filename = file_str(self.filename)
+            self.filename = qstr_encode(self.filename)
             logger.info(self.tr("File: %s selected") % self.filename)
 
     def load(self, plot=True):
@@ -766,14 +776,16 @@ class MainWindow(QMainWindow):
             logger.debug(cmd)
             try:
                 subprocess.call(cmd)
-            except FileNotFoundError as e:
+            except OSError as e:
                 logger.error(e.strerror)
                 self.unsetCursor()
                 QMessageBox.critical(self,
                                      "ERROR",
                                      self.tr("Please make sure you have installed pstoedit, and configured it in the config file."))
                 return True
-            subprocess.check_output()  # If the return code was non-zero it raises a subprocess.CalledProcessError.
+            # If the return code was non-zero it raises a
+            # subprocess.CalledProcessError.
+            subprocess.check_output()
 
         logger.info(self.tr('Loading file: %s') % self.filename)
 
@@ -940,7 +952,7 @@ class MainWindow(QMainWindow):
 
                     if not g.config.mode3d:
                         # Connect the shapeSelectionChanged and enableDisableShape signals to our treeView,
-                        #  so that selections of the shapes are reflected on the treeView
+                        # so that selections of the shapes are reflected on the treeView
                         tmp_shape.setSelectionChangedCallback(self.TreeHandler.updateShapeSelection)
                         tmp_shape.setEnableDisableCallback(self.TreeHandler.updateShapeEnabling)
 
@@ -988,14 +1000,14 @@ class MainWindow(QMainWindow):
         Once done, the signal configuration_changed is emitted, so that anyone interested in this information can connect to this signal.
         """
         if result == ConfigWindow.Applied or result == ConfigWindow.Accepted:
-            g.config._save_varspace() #Write the configuration into the config file (config.cfg)
-            g.config.update_config() #Rebuild the readonly configuration structure
+            # Write the configuration into the config file (config.cfg)
+            g.config.save_varspace()
+            # Rebuild the readonly configuration structure
+            g.config.update_config()
 
-            # Assign changes to the menus (if no change occured, nothing happens / otherwise QT emits a signal for the menu entry that has changed)
-            self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
-            self.ui.actionLiveUpdateExportRoute.setChecked(g.config.vars.General['live_update_export_route'])
-            self.ui.actionSplitLineSegments.setChecked(g.config.vars.General['split_line_segments'])
-            self.ui.actionAutomaticCutterCompensation.setChecked(g.config.vars.General['automatic_cutter_compensation'])
+            # Assign changes to the menus (if no change occured, nothing
+            # happens / otherwise QT emits a signal for the menu entry that has changed)
+            self.connectToolbarToConfig(block_signals=False)
 
             # Inform about the changes into the configuration
             self.configuration_changed.emit()
@@ -1015,7 +1027,7 @@ class MainWindow(QMainWindow):
         Save all variables to file
         """
         prj_filename = self.showSaveDialog(self.tr('Save project to file'), "Project files (*%s)" % c.PROJECT_EXTENSION)
-        save_prj_filename = file_str(prj_filename[0])
+        save_prj_filename = qstr_encode(prj_filename[0])
 
         # If Cancel was pressed
         if not save_prj_filename:
@@ -1074,14 +1086,14 @@ if __name__ == "__main__":
 
     # Get local language and install if available.
     locale = QtCore.QLocale.system().name()
-    logger.debug("locale: %s" %locale)
+    logger.debug("locale: %s" % locale)
     translator = QtCore.QTranslator()
     if translator.load("dxf2gcode_" + locale, "./i18n"):
         app.installTranslator(translator)
 
     # If string version_mismatch isn't empty, we popup an error and exit
     if g.config.version_mismatch:
-        error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', g.config.version_mismatch);
+        error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', g.config.version_mismatch)
         sys.exit(error_message.exec_())
 
     # Delay imports - needs to be done after logger and config initialization; and before the main window
