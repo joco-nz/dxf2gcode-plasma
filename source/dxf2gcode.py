@@ -660,16 +660,20 @@ class MainWindow(QMainWindow):
                 if not shape.isDisabled():
                     minx = min(minx, shape.BB.Ps.x)
                     miny = min(miny, shape.BB.Ps.y)
-            self.cont_dx = self.entityRoot.p0.x - minx
-            self.cont_dy = self.entityRoot.p0.y - miny
+            if not (minx == sys.float_info.max or miny == sys.float_info.max):
+                self.cont_dx = self.entityRoot.p0.x - minx
+                self.cont_dy = self.entityRoot.p0.y - miny
         else:
             self.cont_dx = float(MoveWpzDialog.result[0])
             self.cont_dy = float(MoveWpzDialog.result[1])
 
-        self.entityRoot.p0.x = self.cont_dx
-        self.entityRoot.p0.y = self.cont_dy
+        if self.entityRoot.p0.x != self.cont_dx or self.entityRoot.p0.y != self.cont_dy:
+            self.entityRoot.p0.x = self.cont_dx
+            self.entityRoot.p0.y = self.cont_dy
 
-        self.d2g.small_reload()
+            self.d2g.small_reload()
+        else:
+            logger.info(self.tr("No differences found. Ergo, workpiece zero is not moved"))
 
     def setMachineTypeToMilling(self):
         g.config.machine_type = 'milling'
