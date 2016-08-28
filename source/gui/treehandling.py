@@ -112,7 +112,7 @@ class TreeHandler(QWidget):
         self.layers_list = None
         self.auto_update_export_order = False
         self.ui.layersShapesTreeView.setExportOrderUpdateCallback(self.prepareExportOrderUpdate)
-        self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange)  # pass the callback function to the QTreeView
+        #self.ui.layersShapesTreeView.setSelectionCallback(self.actionOnSelectionChange)  # pass the callback function to the QTreeView
         self.ui.layersShapesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.layersShapesTreeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.ui.layersShapesTreeView.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -142,7 +142,7 @@ class TreeHandler(QWidget):
         # Entities TreeView
         self.entity_item_model = None
         self.entities_list = None
-        self.ui.entitiesTreeView.setSelectionCallback(self.actionOnSelectionChange)  # pass the callback function to the QTreeView
+        #self.ui.entitiesTreeView.setSelectionCallback(self.actionOnSelectionChange)  # pass the callback function to the QTreeView
         self.ui.entitiesTreeView.setKeyPressEventCallback(self.actionOnKeyPress)
         self.ui.entitiesTreeView.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.ui.entitiesTreeView.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -1101,9 +1101,11 @@ class TreeHandler(QWidget):
                         elif isValid(element.data(ENTITY_OBJECT)):
                             itemEntitySelection.select(model_index, model_index)
         selectionLayer = self.ui.layersShapesTreeView.selectionModel()
-        selectionLayer.select(itemLayerSelection, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
+        if selectionLayer:
+            selectionLayer.select(itemLayerSelection, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
-        selectionEntity.select(itemEntitySelection, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
+        if selectionEntity:
+            selectionEntity.select(itemEntitySelection, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
 
         # Selects all the shapes that are selected
         itemLayerSelection = QItemSelection()
@@ -1147,9 +1149,11 @@ class TreeHandler(QWidget):
                             self.traverseChildrenAndSelect(self.entity_item_model, model_index, itemEntitySelection)
 
         selectionLayer = self.ui.layersShapesTreeView.selectionModel()
-        selectionLayer.select(itemLayerSelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        if selectionLayer:
+            selectionLayer.select(itemLayerSelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
-        selectionEntity.select(itemEntitySelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        if selectionEntity:
+            selectionEntity.select(itemEntitySelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
 
         g.window.canvas_scene.update()
 
