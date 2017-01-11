@@ -91,9 +91,219 @@ class StMove(object):
         # Calculate the starting point with and without compensation.
         start = self.start
         angle = self.angle
+        
+        #set the proper direction for the tool path
+        if self.shape.cw ==True:
+            direction = -1;
+        else:
+            direction = 1;
 
+        # Pocket Milling - draw toolpath
+        if self.shape.Pocket == True:
+            #for circular pocket
+            if isinstance(self.shape.geos[0],ArcGeo):
+                numberofrotations = int((self.shape.geos[0].r - tool_rad)/self.shape.OffsetXY)
+                if ((self.shape.geos[0].r - tool_rad)/self.shape.OffsetXY)> numberofrotations :
+                    numberofrotations += 1
+                logger.debug("stmove:make_start_moves:Tool Radius: %f" % (tool_rad))
+                logger.debug("stmove:make_start_moves:StepOver XY: %f" % (self.shape.OffsetXY))
+                logger.debug("stmove:make_start_moves:Shape Radius: %f" % (self.shape.geos[0].r))
+                logger.debug("stmove:make_start_moves:Shape Origin at: %f,%f" % (self.shape.geos[0].O.x, self.shape.geos[0].O.y))
+                logger.debug("stmove:make_start_moves:Number of Arcs: %f" % (numberofrotations+1))
+                for i in range(0, numberofrotations + 1):
+                    st_point = Point(self.shape.geos[0].O.x,self.shape.geos[0].O.y)
+                    Ps_point = Point(self.shape.geos[0].O.x +(tool_rad + (i*self.shape.OffsetXY)) ,self.shape.geos[0].O.y)
+                    Pe_point = Ps_point
+                    if ((Ps_point.x - self.shape.geos[0].O.x + tool_rad) < self.shape.geos[0].r):
+                        self.append(ArcGeo(Ps=Ps_point, Pe=Pe_point, O=st_point, r=(tool_rad + (i*self.shape.OffsetXY)), direction=direction))
+                    else:
+                        Ps_point = Point(self.shape.geos[0].O.x + self.shape.geos[0].r - tool_rad  ,self.shape.geos[0].O.y)
+                        Pe_point = Ps_point
+                        self.append(ArcGeo(Ps=Ps_point, Pe=Pe_point, O=st_point, r=(Ps_point.x - self.shape.geos[0].O.x), direction=direction))
+                    logger.debug("stmove:make_start_moves:Toolpath Arc at: %f,%f" % (Ps_point.x,Ps_point.x))   
+                    if i<numberofrotations:
+                        st_point = Point(Ps_point.x,Ps_point.y)
+                        if ((Ps_point.x + self.shape.OffsetXY - self.shape.geos[0].O.x + tool_rad) < self.shape.geos[0].r):
+                            en_point = Point(Ps_point.x + self.shape.OffsetXY,Ps_point.y)
+                        else:
+                            en_point = Point(self.shape.geos[0].O.x + self.shape.geos[0].r - tool_rad,Ps_point.y)
+                            
+                        self.append(LineGeo(st_point,en_point))
+            
+            #for rectangular pocket
+            if isinstance(self.shape.geos[0],LineGeo):
+                #get Rectangle width and height
+                firstgeox = abs(self.shape.geos[0].Ps.x - self.shape.geos[0].Pe.x)
+                firstgeoy = abs(self.shape.geos[0].Ps.y - self.shape.geos[0].Pe.y)
+                secondgeox = abs(self.shape.geos[1].Ps.x - self.shape.geos[1].Pe.x)
+                secondgeoy = abs(self.shape.geos[1].Ps.y - self.shape.geos[1].Pe.y)
+                if firstgeox > secondgeox:
+                    Pocketx = firstgeox
+                    if self.shape.geos[0].Ps.x < self.shape.geos[0].Pe.x:
+                        minx = self.shape.geos[0].Ps.x
+                    else:
+                        minx = self.shape.geos[0].Pe.x
+                else:
+                    Pocketx = secondgeox
+                    if self.shape.geos[1].Ps.x < self.shape.geos[1].Pe.x:
+                        minx = self.shape.geos[1].Ps.x
+                    else:
+                        minx = self.shape.geos[1].Pe.x
+                if firstgeoy > secondgeoy:
+                    Pockety = firstgeoy
+                    if self.shape.geos[0].Ps.y < self.shape.geos[0].Pe.y:
+                        miny = self.shape.geos[0].Ps.y
+                    else:
+                        miny = self.shape.geos[0].Pe.y
+                else:
+                    Pockety = secondgeoy
+                    if self.shape.geos[1].Ps.y < self.shape.geos[1].Pe.y:
+                        miny = self.shape.geos[1].Ps.y
+                    else:
+                        miny = self.shape.geos[1].Pe.y
+                Centerpt = Point(Pocketx/2 + minx, Pockety/2 +miny)
+                # calc number of rotations
+                if Pockety > Pocketx:
+                    numberofrotations = int(((Pocketx/2) - tool_rad)/self.shape.OffsetXY)+1
+                    if (((Pocketx/2) - tool_rad)/self.shape.OffsetXY)> int(((Pocketx/2) - tool_rad)/self.shape.OffsetXY)+0.5 :
+                        numberofrotations += 1
+                else:
+                    numberofrotations = int(((Pockety/2) - tool_rad)/self.shape.OffsetXY)+1
+                    if (((Pockety/2) - tool_rad)/self.shape.OffsetXY)> int(((Pockety/2) - tool_rad)/self.shape.OffsetXY)+0.5 :
+                        numberofrotations += 1
+                logger.debug("stmove:make_start_moves:Shape Center at: %f,%f" % (Centerpt.x, Centerpt.y))        
+                for i in range(0, numberofrotations):
+                    # for CCW Climb milling
+                    if Pockety > Pocketx: 
+                        if (Centerpt.y - (Pockety-Pocketx)/2 - (tool_rad + (i*self.shape.OffsetXY)) - tool_rad >= miny):
+                            Ps_point1 = Point(Centerpt.x +(tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y + ((Pockety-Pocketx)/2 +(tool_rad + (i*self.shape.OffsetXY))) )
+                            Pe_point1 = Point(Centerpt.x -(tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y + ((Pockety-Pocketx)/2 +(tool_rad + (i*self.shape.OffsetXY))) )
+                            Ps_point2 = Pe_point1
+                            Pe_point2 = Point(Centerpt.x -(tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y - ((Pockety-Pocketx)/2 +(tool_rad + (i*self.shape.OffsetXY))) )
+                            Ps_point3 = Pe_point2
+                            Pe_point3 = Point(Centerpt.x +(tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y - ((Pockety-Pocketx)/2 +(tool_rad + (i*self.shape.OffsetXY))) )
+                            Ps_point4 = Pe_point3
+                            Pe_point4 = Ps_point1
+                        else:
+                            Ps_point1 = Point(Centerpt.x + Pocketx/2 - tool_rad ,Centerpt.y + Pockety/2 - tool_rad )
+                            Pe_point1 = Point(Centerpt.x - Pocketx/2 + tool_rad ,Centerpt.y + Pockety/2 - tool_rad )
+                            Ps_point2 = Pe_point1
+                            Pe_point2 = Point(Centerpt.x - Pocketx/2 + tool_rad ,Centerpt.y - Pockety/2 + tool_rad )
+                            Ps_point3 = Pe_point2
+                            Pe_point3 = Point(Centerpt.x + Pocketx/2 - tool_rad ,Centerpt.y - Pockety/2 + tool_rad )
+                            Ps_point4 = Pe_point3
+                            Pe_point4 = Ps_point1
+                        logger.debug("stmove:make_start_moves:Starting point at: %f,%f" % (Ps_point1.x, Ps_point1.y))
+                        if direction == 1: # this is CCW
+                            self.append(LineGeo(Ps_point1,Pe_point1))
+                            self.append(LineGeo(Ps_point2,Pe_point2))
+                            self.append(LineGeo(Ps_point3,Pe_point3))
+                            self.append(LineGeo(Ps_point4,Pe_point4))
+                        else: # this is CW
+                            self.append(LineGeo(Pe_point4,Ps_point4))
+                            self.append(LineGeo(Pe_point3,Ps_point3))
+                            self.append(LineGeo(Pe_point2,Ps_point2))
+                            self.append(LineGeo(Pe_point1,Ps_point1))
+                            
+                        if i<numberofrotations-1:
+                            if direction == 1: # this is CCW
+                                st_point = Point(Ps_point1.x,Ps_point1.y)
+                            else: # this is CW
+                                st_point = Point(Pe_point4.x,Pe_point4.y)
+                            if (Centerpt.y - (Pockety-Pocketx)/2 - (tool_rad + ((i+1)*self.shape.OffsetXY)) - tool_rad >= miny):
+                                en_point = Point(Ps_point1.x + self.shape.OffsetXY,Ps_point1.y + self.shape.OffsetXY)
+                            else:
+                                en_point = Point(Centerpt.x + Pocketx/2 - tool_rad,Centerpt.y + Pockety/2 - tool_rad)
+                                 
+                            self.append(LineGeo(st_point,en_point))
+                    elif Pocketx > Pockety:
+                        if (Centerpt.x - (Pocketx-Pockety)/2 - (tool_rad + (i*self.shape.OffsetXY)) - tool_rad >= minx):
+                            Ps_point1 = Point(Centerpt.x + ((Pocketx-Pockety)/2 +(tool_rad + (i*self.shape.OffsetXY))) ,Centerpt.y + (tool_rad + (i*self.shape.OffsetXY)) )
+                            Pe_point1 = Point(Centerpt.x - ((Pocketx-Pockety)/2 +(tool_rad + (i*self.shape.OffsetXY))) ,Centerpt.y + (tool_rad + (i*self.shape.OffsetXY)) )
+                            Ps_point2 = Pe_point1
+                            Pe_point2 = Point(Centerpt.x - ((Pocketx-Pockety)/2 +(tool_rad + (i*self.shape.OffsetXY))) ,Centerpt.y - (tool_rad + (i*self.shape.OffsetXY)) )
+                            Ps_point3 = Pe_point2
+                            Pe_point3 = Point(Centerpt.x + ((Pocketx-Pockety)/2 +(tool_rad + (i*self.shape.OffsetXY))) ,Centerpt.y - (tool_rad + (i*self.shape.OffsetXY)) )
+                            Ps_point4 = Pe_point3
+                            Pe_point4 = Ps_point1
+                        else:
+                            Ps_point1 = Point(Centerpt.x + Pocketx/2 - tool_rad ,Centerpt.y + Pockety/2 - tool_rad )
+                            Pe_point1 = Point(Centerpt.x - Pocketx/2 + tool_rad ,Centerpt.y + Pockety/2 - tool_rad )
+                            Ps_point2 = Pe_point1
+                            Pe_point2 = Point(Centerpt.x - Pocketx/2 + tool_rad ,Centerpt.y - Pockety/2 + tool_rad )
+                            Ps_point3 = Pe_point2
+                            Pe_point3 = Point(Centerpt.x + Pocketx/2 - tool_rad ,Centerpt.y - Pockety/2 + tool_rad )
+                            Ps_point4 = Pe_point3
+                            Pe_point4 = Ps_point1
+                        logger.debug("stmove:make_start_moves:Starting point at: %f,%f" % (Ps_point1.x, Ps_point1.y))
+                        if direction == 1: # this is CCW
+                            self.append(LineGeo(Ps_point1,Pe_point1))
+                            self.append(LineGeo(Ps_point2,Pe_point2))
+                            self.append(LineGeo(Ps_point3,Pe_point3))
+                            self.append(LineGeo(Ps_point4,Pe_point4))
+                        else: # this is CW
+                            self.append(LineGeo(Pe_point4,Ps_point4))
+                            self.append(LineGeo(Pe_point3,Ps_point3))
+                            self.append(LineGeo(Pe_point2,Ps_point2))
+                            self.append(LineGeo(Pe_point1,Ps_point1))
+                        if i<numberofrotations-1:
+                            if direction == 1: # this is CCW
+                                st_point = Point(Ps_point1.x,Ps_point1.y)
+                            else: # this is CW
+                                st_point = Point(Pe_point4.x,Pe_point4.y)
+                            if (Centerpt.x - (Pocketx-Pockety)/2 - (tool_rad + ((i+1)*self.shape.OffsetXY)) - tool_rad >= minx):
+                                en_point = Point(Ps_point1.x + self.shape.OffsetXY,Ps_point1.y + self.shape.OffsetXY)
+                            else:
+                                en_point = Point(Centerpt.x + Pocketx/2 - tool_rad,Centerpt.y + Pockety/2 - tool_rad)
+                                 
+                            self.append(LineGeo(st_point,en_point))
+                    elif Pocketx == Pockety:
+                        if (Centerpt.x - (tool_rad + (i*self.shape.OffsetXY)) - tool_rad >= minx):
+                            Ps_point1 = Point(Centerpt.x + (tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y + (tool_rad + (i*self.shape.OffsetXY)) )
+                            Pe_point1 = Point(Centerpt.x - (tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y + (tool_rad + (i*self.shape.OffsetXY)) )
+                            Ps_point2 = Pe_point1
+                            Pe_point2 = Point(Centerpt.x - (tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y - (tool_rad + (i*self.shape.OffsetXY)) )
+                            Ps_point3 = Pe_point2
+                            Pe_point3 = Point(Centerpt.x + (tool_rad + (i*self.shape.OffsetXY)) ,Centerpt.y - (tool_rad + (i*self.shape.OffsetXY)) )
+                            Ps_point4 = Pe_point3
+                            Pe_point4 = Ps_point1
+                        else:
+                            Ps_point1 = Point(Centerpt.x + Pocketx/2 - tool_rad ,Centerpt.y + Pockety/2 - tool_rad )
+                            Pe_point1 = Point(Centerpt.x - Pocketx/2 + tool_rad ,Centerpt.y + Pockety/2 - tool_rad )
+                            Ps_point2 = Pe_point1
+                            Pe_point2 = Point(Centerpt.x - Pocketx/2 + tool_rad ,Centerpt.y - Pockety/2 + tool_rad )
+                            Ps_point3 = Pe_point2
+                            Pe_point3 = Point(Centerpt.x + Pocketx/2 - tool_rad ,Centerpt.y - Pockety/2 + tool_rad )
+                            Ps_point4 = Pe_point3
+                            Pe_point4 = Ps_point1
+                        logger.debug("stmove:make_start_moves:Starting point at: %f,%f" % (Ps_point1.x, Ps_point1.y)) 
+                        if direction == 1: # this is CCW
+                            self.append(LineGeo(Ps_point1,Pe_point1))
+                            self.append(LineGeo(Ps_point2,Pe_point2))
+                            self.append(LineGeo(Ps_point3,Pe_point3))
+                            self.append(LineGeo(Ps_point4,Pe_point4))
+                        else: # this is CW
+                            self.append(LineGeo(Pe_point4,Ps_point4))
+                            self.append(LineGeo(Pe_point3,Ps_point3))
+                            self.append(LineGeo(Pe_point2,Ps_point2))
+                            self.append(LineGeo(Pe_point1,Ps_point1))
+                        if i<numberofrotations-1:
+                            if direction == 1: # this is CCW
+                                st_point = Point(Ps_point1.x,Ps_point1.y)
+                            else: # this is CW
+                                st_point = Point(Pe_point4.x,Pe_point4.y)
+                            if (Centerpt.x - (tool_rad + ((i+1)*self.shape.OffsetXY)) - tool_rad >= minx):
+                                en_point = Point(Ps_point1.x + self.shape.OffsetXY,Ps_point1.y + self.shape.OffsetXY)
+                            else:
+                                en_point = Point(Centerpt.x + Pocketx/2 - tool_rad,Centerpt.y + Pockety/2 - tool_rad)
+                                 
+                            self.append(LineGeo(st_point,en_point))
+                      
+
+            
         if self.shape.cut_cor == 40:
-            self.append(RapidPos(start))
+            if self.shape.Pocket == False:
+                self.append(RapidPos(start))
             
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
 

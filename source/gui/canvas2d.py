@@ -38,6 +38,7 @@ from core.point import Point
 from core.shape import Shape
 from core.boundingbox import BoundingBox
 from core.stmove import StMove
+from core.arcgeo import ArcGeo
 from gui.wpzero import WpZero
 from gui.arrow import Arrow
 from gui.routetext import RouteText
@@ -355,7 +356,10 @@ class MyGraphicsScene(QGraphicsScene):
         """
 
         length = 20
-        start, start_ang = shape.get_start_end_points_physical(True, True)
+        if shape.Pocket == False:
+            start, start_ang = shape.get_start_end_points_physical(True, True)
+        else:
+            start, start_ang = shape.get_start_end_points_physical(True, True, PPocket=True)
         arrow = Arrow(startp=start,
                       length=length,
                       angle=start_ang,
@@ -370,7 +374,11 @@ class MyGraphicsScene(QGraphicsScene):
         @param shape: The shape for which the Arrow shall be created.
         """
         length = 20
-        end, end_ang = shape.get_start_end_points_physical(False, True)
+        if shape.Pocket == False:
+            end, end_ang = shape.get_start_end_points_physical(False, True)
+        else:
+            end, end_ang = shape.get_start_end_points_physical(False, True, PPocket=True)
+            
         arrow = Arrow(startp=end,
                       length=length,
                       angle=end_ang,
@@ -415,7 +423,12 @@ class MyGraphicsScene(QGraphicsScene):
         for shape_nr in range(len(exp_order)):
             shape = self.shapes[exp_order[shape_nr]]
             st = self.expprv
-            en, self.expprv = shape.get_start_end_points_physical()
+            if shape.Pocket == True:
+                start_en_points = shape.get_start_end_points(PPocket=True)
+                en = start_en_points[0]
+                self.expprv = start_en_points[1]
+            else:
+                en, self.expprv = shape.get_start_end_points_physical()
             self.routearrows.append(Arrow(startp=en,
                                           endp=st,
                                           color=self.expcol,

@@ -138,6 +138,7 @@ class TreeHandler(QWidget):
         self.ui.zFinalMillDepthLineEdit.editingFinished.connect(self.toolParameterzFinalMillDepthUpdate)
         self.ui.g1FeedXYLineEdit.editingFinished.connect(self.toolParameterg1FeedXYUpdate)
         self.ui.g1FeedZLineEdit.editingFinished.connect(self.toolParameterg1FeedZUpdate)
+        self.ui.OffsetXYLineEdit.editingFinished.connect(self.toolParameterzOffsetXYUpdate)
 
         # Entities TreeView
         self.entity_item_model = None
@@ -1062,6 +1063,32 @@ class TreeHandler(QWidget):
                             g.window.canvas_scene.repaint_shape(real_item)
             self.prepareExportOrderUpdate()
             g.window.canvas_scene.update()
+            
+    def toolParameterzOffsetXYUpdate(self):
+        """
+        Slot that updates the above tools parameter when the
+        corresponding LineEdit changes
+        @param text: the value of the LineEdit
+        """
+        self.ui.OffsetXYLineEdit.setPalette(self.palette)  # Restore color
+
+        # Get the new value and convert it to float
+        val = toFloat(self.ui.OffsetXYLineEdit.text())
+        if val[1]:
+            selected_indexes_list = self.ui.layersShapesTreeView.selectedIndexes()
+
+            for model_index in selected_indexes_list:
+                if isValid(model_index):
+                    model_index = model_index.sibling(model_index.row(), 0)  # get the first column of the selected row, since it's the only one that contains data
+                    element = model_index.model().itemFromIndex(model_index)
+                    if isValid(element.data(SHAPE_OBJECT)):
+                        real_item = toPyObject(element.data(SHAPE_OBJECT)).shapeobj
+                        if real_item.OffsetXY != val[0]:
+                            real_item.OffsetXY = val[0]
+                            self.OffsetXY = real_item.OffsetXY
+                            g.window.canvas_scene.repaint_shape(real_item)
+            self.prepareExportOrderUpdate()
+            g.window.canvas_scene.update()
 
     def actionOnSelectionChange(self, parent, selected, deselected):
         """
@@ -1173,6 +1200,7 @@ class TreeHandler(QWidget):
             self.axis3_mill_depth = None
             self.f_g1_plane = None
             self.f_g1_depth = None
+            self.OffsetXY = None
 
             self.ui.toolDiameterComboBox.setPalette(self.palette)
             self.ui.toolDiameterLabel.setPalette(self.palette)
@@ -1183,6 +1211,8 @@ class TreeHandler(QWidget):
             self.ui.zInfeedDepthLineEdit.setPalette(self.palette)
             self.ui.g1FeedXYLineEdit.setPalette(self.palette)
             self.ui.g1FeedZLineEdit.setPalette(self.palette)
+            self.ui.OffsetXYLineEdit.setPalette(self.palette)
+            self.ui.OffsetXYLineEdit.setEnabled(False)
             self.ui.zInitialMillDepthLineEdit.setPalette(self.palette)
             self.ui.zFinalMillDepthLineEdit.setPalette(self.palette)
 
@@ -1250,6 +1280,37 @@ class TreeHandler(QWidget):
             self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
                                                            self.f_g1_depth,
                                                            shape_item.f_g1_depth)
+
+            if(shape_item.Pocket == True):
+                self.ui.OffsetXYLineEdit.setEnabled(True)
+                self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+                                                           self.OffsetXY,
+                                                           shape_item.OffsetXY)
+            else:
+                self.ui.OffsetXYLineEdit.setEnabled(False)
+                self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+                                                           self.OffsetXY,
+                                                           shape_item.OffsetXY)
+                
+    def updatePocketMill(self, shape_item, enable):
+        """
+        This method is a "slot" (callback) called from the main when the
+        Pocket Mill is enabled or disabled on the graphic view.
+        It aims to update the Mill Settings Frame according to the
+        graphic view.
+        
+        @param enable: whether the Shape has been enabled (True) or disabled (False)
+        """
+        if(enable):
+            self.ui.OffsetXYLineEdit.setEnabled(True)
+            self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+                                                       self.OffsetXY,
+                                                       shape_item.OffsetXY)
+        else:
+            self.ui.OffsetXYLineEdit.setEnabled(False)
+            self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+                                                       self.OffsetXY,
+                                                       shape_item.OffsetXY)
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """

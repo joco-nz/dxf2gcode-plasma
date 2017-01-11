@@ -28,6 +28,8 @@ from __future__ import absolute_import
 import logging
 
 import globals.globals as g
+from core.linegeo import LineGeo
+from core.arcgeo import ArcGeo
 
 from globals.six import text_type
 import globals.constants as c
@@ -96,6 +98,23 @@ class MyDropDownMenu(QMenu):
         swdirectionAction = self.addAction(self.tr("Switch Direction"))
         SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
 
+        self.addSeparator()
+        
+        if len(self.selectedItems) == 1 and self.selectedItems[0].closed == True and ((len(self.selectedItems[0].geos) == 2 or len(self.selectedItems[0].geos) == 4) or self.selectedItems[0].Pocket == True) : 
+            if (isinstance(self.selectedItems[0].geos[0], ArcGeo) and (len(self.selectedItems[0].geos) == 2) or self.selectedItems[0].Pocket == True) or\
+                (isinstance(self.selectedItems[0].geos[0], LineGeo) and (len(self.selectedItems[0].geos) == 4) or self.selectedItems[0].Pocket == True)  :#and geo.length > 0.5 * 0.1 ** post_dec * pi:
+                self.PocketAction = self.addAction(self.tr("Pocket Mill"))
+                self.PocketAction.setCheckable(True)
+                if g.config.machine_type == 'drag_knife':
+                    pass
+                else:
+                    self.PocketAction.triggered.connect(self.setPocket)
+                if self.selectedItems[0].Pocket == True:
+                    self.PocketAction.setChecked(True)
+                else:
+                    self.PocketAction.setChecked(False)
+                    
+                
         if g.config.machine_type == 'drag_knife':
             pass
         else:
@@ -256,3 +275,19 @@ class MyDropDownMenu(QMenu):
             logger.debug(self.tr('Changed Cutter Correction to right for shape: %i') % shape.nr)
             self.canvas_scene.repaint_shape(shape)
         self.canvas_scene.update()
+    def setPocket(self):
+        for shape in self.selectedItems:
+            if shape.Pocket == False:
+                shape.Pocket = True
+                self.PocketAction.setChecked(True)
+                logger.debug(self.tr('Set to True for Pocket Mill for shape: %i') % shape.nr)
+                g.window.TreeHandler.updatePocketMill(shape,True)
+            else:
+                shape.Pocket = False
+                self.PocketAction.setChecked(False)
+                logger.debug(self.tr('Set to False for Pocket Mill for shape: %i') % shape.nr)
+                g.window.TreeHandler.updatePocketMill(shape,False)
+            self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.update()
+        
