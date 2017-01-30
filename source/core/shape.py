@@ -628,7 +628,7 @@ class Shape(object):
         # Numbers of loops
         snr = 0
         # Loops for the number of cuts
-        while mom_depth > depth and max_slice != 0.0:
+        while (mom_depth - abs(max_slice)) >= depth and max_slice != 0.0:
             snr += 1
             mom_depth = mom_depth - abs(max_slice)
             if mom_depth < depth:

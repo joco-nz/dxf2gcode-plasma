@@ -102,7 +102,7 @@ class StMove(object):
         if self.shape.Pocket == True:
             #for circular pocket
             if isinstance(self.shape.geos[0],ArcGeo):
-                numberofrotations = int((self.shape.geos[0].r - tool_rad)/self.shape.OffsetXY)
+                numberofrotations = int((self.shape.geos[0].r - tool_rad)/self.shape.OffsetXY)-1
                 if ((self.shape.geos[0].r - tool_rad)/self.shape.OffsetXY)> numberofrotations :
                     numberofrotations += 1
                 logger.debug("stmove:make_start_moves:Tool Radius: %f" % (tool_rad))
@@ -164,11 +164,11 @@ class StMove(object):
                 Centerpt = Point(Pocketx/2 + minx, Pockety/2 +miny)
                 # calc number of rotations
                 if Pockety > Pocketx:
-                    numberofrotations = int(((Pocketx/2) - tool_rad)/self.shape.OffsetXY)+1
+                    numberofrotations = int(((Pocketx/2) - tool_rad)/self.shape.OffsetXY)#+1
                     if (((Pocketx/2) - tool_rad)/self.shape.OffsetXY)> int(((Pocketx/2) - tool_rad)/self.shape.OffsetXY)+0.5 :
                         numberofrotations += 1
                 else:
-                    numberofrotations = int(((Pockety/2) - tool_rad)/self.shape.OffsetXY)+1
+                    numberofrotations = int(((Pockety/2) - tool_rad)/self.shape.OffsetXY)#+1
                     if (((Pockety/2) - tool_rad)/self.shape.OffsetXY)> int(((Pockety/2) - tool_rad)/self.shape.OffsetXY)+0.5 :
                         numberofrotations += 1
                 logger.debug("stmove:make_start_moves:Shape Center at: %f,%f" % (Centerpt.x, Centerpt.y))        
