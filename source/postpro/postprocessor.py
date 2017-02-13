@@ -371,6 +371,8 @@ class MyPostProcessor(object):
         self.s_ang = 0.0
         self.e_ang = 0.0
         self.ext = 0.0
+        self.Q = 0.0
+        self.RD = 0.0
 
         self.ze = g.config.vars.Depth_Coordinates['axis3_retract']
         self.lz = self.ze
@@ -389,6 +391,10 @@ class MyPostProcessor(object):
                         "%-YS": 'self.fnprint(-self.Ps.y*fac)',
                         "%ZE": 'self.fnprint(self.ze)',
                         "%-ZE": 'self.fnprint(-self.ze)',
+                        "%Q": 'self.fnprint(self.Q)',
+                        "%-Q": 'self.fnprint(-self.Q)',
+                        "%RD": 'self.fnprint(self.RD)',
+                        "%-RD": 'self.fnprint(-self.RD)',
                         "%I": 'self.fnprint(self.IJ.x)',
                         "%-I": 'self.fnprint(-self.IJ.x)',
                         "%J": 'self.fnprint(self.IJ.y*fac)',
@@ -547,6 +553,22 @@ class MyPostProcessor(object):
         else:
             return self.make_print_str(self.vars.Program["arc_int_ccw"])
 
+    def Drill(self,O,z_pos, RD, Q, Dfeed):
+        self.xe = O.x
+        self.ye = O.x
+        self.ze = z_pos
+
+        self.RD = RD
+        self.Q = abs(Q)
+        self.feed = Dfeed
+
+        l = []
+        l.append(self.vars.Program["G73Drill"])
+        l.append(self.vars.Program["G80CancelCanning"])
+
+        s = ''.join(l)
+        return self.make_print_str(s)
+    
     def rap_pos_z(self, z_pos):
         """
         Code to add if the machine is rapidly commanded to a new

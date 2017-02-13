@@ -126,4 +126,9 @@ class HoleGeo(object):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        return PostPro.make_print_str("(Drilled hole)%nl")
+        
+        if self.DrillType == 'G73':
+            string = PostPro.Drill(self.Ps,self.z_pos, self.R, self.Q,self.DFeed)
+            return string
+        else:
+            return PostPro.make_print_str("(Drilled hole)%nl") 

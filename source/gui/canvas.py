@@ -114,7 +114,26 @@ class MyDropDownMenu(QMenu):
                 else:
                     self.PocketAction.setChecked(False)
                     
-                
+        if g.config.machine_type == 'drag_knife':
+            pass
+        else:
+            if (isinstance(self.selectedItems[0].geos[0], ArcGeo)):
+                submenu2 = QMenu(self.tr('Drill'), self)
+
+                self.G73DrillAction = submenu2.addAction(self.tr("G73 - Drilling - Chip Breaking"))
+                self.G73DrillAction.triggered.connect(self.setG73Drill)
+                self.G73DrillAction.setCheckable(True)
+                if self.selectedItems[0].Drill == True:
+                    if(self.selectedItems[0].DrillType != None):
+                        if(self.selectedItems[0].DrillType == "G73"):
+                            self.G73DrillAction.setChecked(True)
+                else:
+                    self.G73DrillAction.setChecked(False)
+    
+                #self.checkMenuDir(self.calcMenuDir())
+    
+                self.addMenu(submenu2)
+                    
         if g.config.machine_type == 'drag_knife':
             pass
         else:
@@ -287,6 +306,24 @@ class MyDropDownMenu(QMenu):
                 self.PocketAction.setChecked(False)
                 logger.debug(self.tr('Set to False for Pocket Mill for shape: %i') % shape.nr)
                 g.window.TreeHandler.updatePocketMill(shape,False)
+            self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.update()
+    
+    def setG73Drill(self):
+        for shape in self.selectedItems:
+            if shape.Drill == False:
+                shape.Drill = True
+                shape.DrillType = "G73"
+                self.G73DrillAction.setChecked(True)
+                logger.debug(self.tr('Set to True for G73 Drill, for shape: %i') % shape.nr)
+                g.window.TreeHandler.updateDrill(shape,True)
+            else:
+                shape.Drill = False
+                shape.DrillType = None
+                self.G73DrillAction.setChecked(False)
+                logger.debug(self.tr('Set to False for G73 Drill, for shape: %i') % shape.nr)
+                g.window.TreeHandler.updateDrill(shape,False)
             self.canvas_scene.repaint_shape(shape)
         self.canvas_scene.repaint_shape(shape)
         self.canvas_scene.update()

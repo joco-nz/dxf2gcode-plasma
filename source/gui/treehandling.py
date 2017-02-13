@@ -1272,10 +1272,18 @@ class TreeHandler(QWidget):
             self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
                                                                  self.axis3_mill_depth,
                                                                  shape_item.axis3_mill_depth)
-
-            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+            
+            if(shape_item.Drill == True):
+                self.ui.g1FeedXYLineEdit.setEnabled(False)
+                self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
                                                            self.f_g1_plane,
                                                            shape_item.f_g1_plane)
+            else:
+                self.ui.g1FeedXYLineEdit.setEnabled(True)
+                self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+                                                           self.f_g1_plane,
+                                                           shape_item.f_g1_plane)
+            
 
             self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
                                                            self.f_g1_depth,
@@ -1311,7 +1319,28 @@ class TreeHandler(QWidget):
             self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
                                                        self.OffsetXY,
                                                        shape_item.OffsetXY)
-
+                
+    def updateDrill(self, shape_item, enable):
+        """
+        This method is a "slot" (callback) called from the main when the
+        Drill is enabled or disabled on the graphic view.
+        It aims to update the Mill Settings Frame according to the
+        graphic view.
+        
+        @param enable: whether the Shape has been enabled (True) or disabled (False)
+        """
+        if(enable):
+            self.ui.OffsetXYLineEdit.setEnabled(False)
+            self.ui.g1FeedXYLineEdit.setEnabled(False)
+            #self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+            #                                           self.OffsetXY,
+            #                                           shape_item.OffsetXY)
+        else:
+            self.ui.g1FeedXYLineEdit.setEnabled(True)
+            #self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+            #                                           self.OffsetXY,
+            #                                           shape_item.OffsetXY)
+            
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """
         This function colours the text in grey when two values are

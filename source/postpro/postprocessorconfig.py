@@ -139,6 +139,10 @@ POSTPRO_SPEC = str('''
     post_shape_cut = string(default=M9 M5%nl)
     # Defines comments' format. Comments are written at some places during the export in order to make the g-code better readable.
     comment = string(default=%nl(%comment)%nl)
+    # This will be used for Peck Drilling G73.
+    G73Drill = string(default=G73 X%XE Y%YE Z%ZE R%RD Q%Q F%feed%nlG80%nl)
+    # This will be used for Cancelling a Canning Cycle.
+    G80CancelCanning = string(default=G80%nl)
 
 ''').splitlines()
 """ format, type and default value specification of the global config file"""
@@ -339,6 +343,8 @@ class MyPostProConfig(object):
                 ('lin_mov_depth', CfgLineEdit(MyPostProConfig.tr('Linear feed move for Z plane:'))),
                 ('arc_int_cw', CfgLineEdit(MyPostProConfig.tr('Clockwise feed move:'))),
                 ('arc_int_ccw', CfgLineEdit(MyPostProConfig.tr('Counter clockwise feed move:'))),
+                ('G73Drill', CfgLineEdit(MyPostProConfig.tr('G73 Peck Drill:'))),
+                ('G80CancelCanning', CfgLineEdit(MyPostProConfig.tr('Cancel Canning Cycle:'))),
                 ('cutter_comp_off', CfgLineEdit(MyPostProConfig.tr('Disable cutter compensation:'))),
                 ('cutter_comp_left', CfgLineEdit(MyPostProConfig.tr('Left cutter compensation:'))),
                 ('cutter_comp_right', CfgLineEdit(MyPostProConfig.tr('Right cutter compensation:'))),

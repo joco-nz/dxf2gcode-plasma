@@ -65,6 +65,8 @@ class Shape(object):
         self.closed = closed
         self.cut_cor = 40
         self.Pocket = False
+        self.Drill = False
+        self.DrillType = None
         self.parentEntity = parentEntity
         self.parentLayer = None
         self.geos = Geos(geos)
@@ -600,8 +602,9 @@ class Shape(object):
         exstr += PostPro.rap_pos_z(
             workpiece_top_Z + abs(safe_margin))  # Compute the safe margin from the initial mill depth
         exstr += PostPro.chg_feed_rate(f_g1_depth)
-        exstr += PostPro.lin_pol_z(mom_depth)
-        exstr += PostPro.chg_feed_rate(f_g1_plane)
+        if(self.Drill != True):
+            exstr += PostPro.lin_pol_z(mom_depth)
+            exstr += PostPro.chg_feed_rate(f_g1_plane)
 
         # Cutter radius compensation when G41 or G42 is on, AND cutter
         # compensation option is set to be done inside the piece
@@ -617,6 +620,16 @@ class Shape(object):
                 exstr += self.Write_GCode_for_geo(geo, PostPro)
             mylinegeo = LineGeo(self.stmove.geos[-1].Pe,self.stmove.geos[0].Ps)
             exstr += mylinegeo.Write_GCode(PostPro)
+        elif self.Drill == True:
+            #do nothing
+            logger.debug(self.tr("Debug: Gcode Drill"))
+            myholegeo = HoleGeo(self.geos[0].O)
+            myholegeo.z_pos = self.axis3_mill_depth
+            myholegeo.Q = self.axis3_mill_depth
+            myholegeo.R = self.parentLayer.axis3_safe_margin
+            myholegeo.DrillType = self.DrillType
+            myholegeo.DFeed = self.f_g1_depth
+            exstr += myholegeo.Write_GCode(PostPro) 
         else:
             for geo in new_geos.abs_iter():
                 exstr += self.Write_GCode_for_geo(geo, PostPro)
@@ -628,7 +641,7 @@ class Shape(object):
         # Numbers of loops
         snr = 0
         # Loops for the number of cuts
-        while (mom_depth - abs(max_slice)) >= depth and max_slice != 0.0:
+        while (mom_depth - abs(max_slice)) >= depth and max_slice != 0.0 and self.Drill != True:
             snr += 1
             mom_depth = mom_depth - abs(max_slice)
             if mom_depth < depth:
@@ -636,8 +649,9 @@ class Shape(object):
 
             # Erneutes Eintauchen
             exstr += PostPro.chg_feed_rate(f_g1_depth)
-            exstr += PostPro.lin_pol_z(mom_depth)
-            exstr += PostPro.chg_feed_rate(f_g1_plane)
+            if(self.Drill != True):
+                exstr += PostPro.lin_pol_z(mom_depth)
+                exstr += PostPro.chg_feed_rate(f_g1_plane)
 
             # If it is not a closed contour
             if not self.closed:

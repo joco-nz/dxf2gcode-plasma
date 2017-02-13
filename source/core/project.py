@@ -107,6 +107,8 @@ class Project(object):
                     shapes.append({'hash_': self.get_hash(shape, Project.version),
                                    'cut_cor': shape.cut_cor,
                                    'Pocket_Mill': shape.Pocket,
+                                   'Drill': shape.Drill,
+                                   'DrillType': shape.DrillType,
                                    'cw': shape.cw,
                                    'send_to_TSP': shape.send_to_TSP,
                                    'disabled': shape.disabled,
@@ -209,6 +211,8 @@ d2g.layers = ''' + str(layers)
                             del hash_shapes[parent_shape['hash_']]
                         shape.cut_cor = parent_shape['cut_cor']
                         shape.Pocket = parent_shape['Pocket_Mill']
+                        shape.Drill = parent_shape['Drill']
+                        shape.DrillType = parent_shape['DrillType']
                         shape.send_to_TSP = parent_shape['send_to_TSP']
                         shape.disabled = parent_shape['disabled']
                         shape.axis3_start_mill_depth = parent_shape['start_mill_depth']
