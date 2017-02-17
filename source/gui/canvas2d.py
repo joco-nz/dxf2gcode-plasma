@@ -427,6 +427,10 @@ class MyGraphicsScene(QGraphicsScene):
                 start_en_points = shape.get_start_end_points(PPocket=True)
                 en = start_en_points[0]
                 self.expprv = start_en_points[1]
+            elif shape.Drill == True:
+                start_en_points = shape.get_start_end_points(Drill=True)
+                en = start_en_points[0]
+                self.expprv = start_en_points[1]
             else:
                 en, self.expprv = shape.get_start_end_points_physical()
             self.routearrows.append(Arrow(startp=en,

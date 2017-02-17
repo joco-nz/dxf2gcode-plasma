@@ -555,7 +555,7 @@ class MyPostProcessor(object):
 
     def Drill(self,O,z_pos, RD, Q, Dfeed):
         self.xe = O.x
-        self.ye = O.x
+        self.ye = O.y
         self.ze = z_pos
 
         self.RD = RD

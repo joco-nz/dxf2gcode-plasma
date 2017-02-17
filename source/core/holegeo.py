@@ -126,7 +126,10 @@ class HoleGeo(object):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        
+        PostPro.O.x = self.Ps.x
+        PostPro.O.y = self.Ps.y
+        PostPro.Pe.x = self.Ps.x
+        PostPro.Pe.y = self.Ps.y
         if self.DrillType == 'G73':
             string = PostPro.Drill(self.Ps,self.z_pos, self.R, self.Q,self.DFeed)
             return string

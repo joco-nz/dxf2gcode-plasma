@@ -35,6 +35,7 @@ import globals.globals as g
 
 from core.linegeo import LineGeo
 from core.arcgeo import ArcGeo
+from core.holegeo import HoleGeo
 from core.point import Point
 from core.intersect import Intersect
 from core.shape import Geos
@@ -299,7 +300,17 @@ class StMove(object):
                                  
                             self.append(LineGeo(st_point,en_point))
                       
-
+        if self.shape.Drill == True:
+            st_point = Point(self.shape.geos[0].O.x,self.shape.geos[0].O.y)
+            en_point = st_point
+            myholegeo = HoleGeo(self.shape.geos[0].O)
+            myholegeo.z_pos = self.shape.axis3_mill_depth
+            myholegeo.Q = self.shape.axis3_mill_depth
+            myholegeo.R = self.shape.parentLayer.axis3_safe_margin
+            myholegeo.DrillType = self.shape.DrillType
+            myholegeo.DFeed = self.shape.f_g1_depth
+            self.append(myholegeo)
+            self.append(RapidPos(st_point))
             
         if self.shape.cut_cor == 40:
             if self.shape.Pocket == False:

@@ -235,6 +235,16 @@ class Shape(object):
             direction = -1;
         else:
             direction = 1;
+            
+        if self.Drill == True:
+            st_point = Point(self.geos[0].O.x,self.geos[0].O.y)
+            en_point = Point(self.geos[0].O.x,self.geos[0].O.y)    
+            if start_point is None:
+                return (st_point, en_point),direction*1.57
+            elif start_point:
+                return st_point,direction*1.57
+            else:
+                return en_point,direction*(-1.57)
         
         if PPocket ==True:
             #Calculate the start and end points for pocket entry and exit for a circular pocket
@@ -355,12 +365,22 @@ class Shape(object):
 
     
     
-    def get_start_end_points(self, start_point=None, angles=None, PPocket=False):
+    def get_start_end_points(self, start_point=None, angles=None, PPocket=False, Drill=False):
 
         if self.cw ==True:
             direction = -1;
         else:
             direction = 1;
+        
+        if Drill == True:
+            st_point = Point(self.geos[0].O.x,self.geos[0].O.y)
+            en_point = Point(self.geos[0].O.x,self.geos[0].O.y)    
+            if start_point is None:
+                return (st_point, en_point)
+            elif start_point:
+                return st_point,direction*1.57
+            else:
+                return en_point,direction*(-1.57)
         
         if PPocket ==True:
             #Calculate the start and end points for pocket entry and exit for a circular pocket
@@ -583,6 +603,9 @@ class Shape(object):
         # Move the tool to the start.
         if self.Pocket == True:
             mylinegeo = LineGeo(Point(0,0),self.stmove.geos[0].Ps)
+            exstr += mylinegeo.Write_GCode(PostPro)
+        elif self.Drill == True:
+            mylinegeo = LineGeo(Point(0,0),self.stmove.geos[0])
             exstr += mylinegeo.Write_GCode(PostPro)
         else:
             exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
