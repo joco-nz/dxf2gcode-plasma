@@ -771,15 +771,17 @@ class MainWindow(QMainWindow):
             logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
 
             # Create temporary file which will be read by the program
-            self.filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
+            tmp_filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
 
             pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
             pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
             ps_filename = os.path.normcase(self.filename)
-            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % self.filename)]
+            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % os.path.normcase(self.filename)), ('%s' % os.path.normcase(tmp_filename))]
             logger.debug(cmd)
+            self.filename=os.path.normcase(tmp_filename)
             try:
                 subprocess.call(cmd)
+                
             except OSError as e:
                 logger.error(e.strerror)
                 self.unsetCursor()
@@ -789,7 +791,7 @@ class MainWindow(QMainWindow):
                 return True
             # If the return code was non-zero it raises a
             # subprocess.CalledProcessError.
-            subprocess.check_output()
+            # subprocess.check_output()
 
         logger.info(self.tr('Loading file: %s') % self.filename)
 

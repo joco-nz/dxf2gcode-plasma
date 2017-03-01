@@ -118,7 +118,7 @@ CONFIG_SPEC = str('''
     [Filters]
     # pstoedit is an external tool to import *.ps (postscript) files and convert them to DXF, in order to import them in dxf2gcode.
     pstoedit_cmd = string(default = "''' + PSTOEDIT_CMD + '''")
-    pstoedit_opt = list(default = list('-f', 'dxf', '-mm', '-dt'))
+    pstoedit_opt = list(default = list('-dt', '-f', 'dxf:-mm'))
 
     [Axis_letters]
     ax1_letter = string(min = 1, default = "X")
