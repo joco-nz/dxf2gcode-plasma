@@ -554,7 +554,7 @@ class MainWindow(QMainWindow):
                           "For any questions on how to use dxf2gcode please use the "
                           "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"
                           "To log bugs, or request features please use the "
-                          "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"
+                          "<a href='http://sourceforge.net/p/dxf2gcode/tickets/'>issue tracking system</a><br>"
                           "<h2>License and copyright:</h2>"
                           "<body>This program is written in Python and is published under the "
                           "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
