@@ -1,0 +1,6 @@
+include dxf2gcode.desktop
+include dxf2gcode.appdata.xml
+include images/dxf2gcode.svg
+include i18n/*.qm
+include COPYING
+

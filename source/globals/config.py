@@ -275,8 +275,8 @@ CONFIG_SPEC = str('''
     gcode = string(default = "(change subsection name and insert your custom GCode here. Use triple quote to place the code on several lines)")
 
     [Logging]
-    # Logging to textfile is enabled automatically for now
-    logfile = string(default = "logfile.txt")
+    # Logging to textfile is disabled by default
+    logfile = string(default = "")
 
     # This really goes to stderr
     console_loglevel = option('DEBUG', 'INFO', 'WARNING', 'ERROR','CRITICAL', default = 'CRITICAL')
@@ -351,7 +351,7 @@ class MyConfig(object):
     def make_settings_folder(self):
         """Create settings folder if necessary"""
         try:
-            os.mkdir(self.folder)
+            os.makedirs(self.folder)
         except OSError:
             pass
 

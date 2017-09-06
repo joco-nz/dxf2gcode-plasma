@@ -76,10 +76,7 @@ else:
 
 logger = logging.getLogger()
 
-# Get folder of the main instance and write into globals
-g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
-if os.path.islink(sys.argv[0]):
-    g.folder = os.path.dirname(os.readlink(sys.argv[0]))
+g.folder = os.path.join(os.path.expanduser("~"), ".config/dxf2gcode").replace("\\", "/")
 
 
 class MainWindow(QMainWindow):
@@ -1086,7 +1083,11 @@ if __name__ == "__main__":
 
     g.config = MyConfig()
     Log.set_console_handler_loglevel()
-    Log.add_file_logger()
+
+    if not g.config.vars.Logging['logfile']:
+        Log.add_window_logger()
+    else:
+        Log.add_file_logger()
 
     app = QApplication(sys.argv)
 
@@ -1095,6 +1096,8 @@ if __name__ == "__main__":
     logger.debug("locale: %s" % locale)
     translator = QtCore.QTranslator()
     if translator.load("dxf2gcode_" + locale, "./i18n"):
+        app.installTranslator(translator)
+    elif translator.load("dxf2gcode_" + locale, "/usr/share/dxf2gcode/i18n"):
         app.installTranslator(translator)
 
     # If string version_mismatch isn't empty, we popup an error and exit
