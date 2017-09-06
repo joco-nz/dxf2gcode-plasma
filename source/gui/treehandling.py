@@ -1151,7 +1151,8 @@ class TreeHandler(QWidget):
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
         selectionEntity.select(itemEntitySelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
 
-        g.window.canvas_scene.update()
+        if g.window.canvas_scene:
+            g.window.canvas_scene.update()
 
     def clearToolsParameters(self):
         """
