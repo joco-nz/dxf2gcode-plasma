@@ -8,22 +8,22 @@
   <summary>2D dxf drawings to CNC machine compatible G-Code converter</summary>
   <description>
     <p>
-      dxf2gcode is a tool for converting 2D (dxf, pdf, ps) drawings to CNC machine compatible GCode.
+      dxf2gcode is a tool for converting 2D (DXF, PDF, PS) drawings to CNC machine compatible G-Code.
     </p>
 
     <p>Some features:</p>
       <ul>
         <li>Integration in EMC2,</li>
         <li>Fully adjustable Postprocessor,</li>
-        <li>G0 moves reduction by route optimisation,</li>
+        <li>G0 moves reduction by route optimization,</li>
         <li>Import of DXF and PDF,</li>
         <li>Improved accuracy for splines import by Line and Arc's,</li>
-        <li>Mill parameter specifcation by layers,</li>
+        <li>Mill parameter specification by layers,</li>
         <li>Drag knife and lathe support,</li>
         <li>Breaks a.k.a Tabs support,</li>
         <li>AutoCAD Blocks and Inserts,</li>
         <li>Multiple tools,</li>
-        <li>Multiple language support: english, german, french, russian,</li>
+        <li>Multiple language support: English, German, French, Russian,</li>
         <li>3D viewer.</li>
       </ul>
   </description>
