@@ -1076,6 +1076,9 @@ class TreeHandler(QWidget):
         @param select: list of selected items in the treeView
         @param deselect: list of deselected items in the treeView
         """
+        if not self.ui.layersShapesTreeView.selectionModel():
+            return
+
         self.clearToolsParameters()  # disable tools parameters widgets, ...
 
         # Deselects all the shapes that are selected
