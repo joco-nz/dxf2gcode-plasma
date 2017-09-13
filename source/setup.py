@@ -6,7 +6,7 @@ import shutil
 from cx_Freeze import setup, Executable
 
 
-version = "17.4.2016"
+version = "20170913"
 
 base = 'Console'
 if sys.platform == 'win32':
