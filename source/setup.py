@@ -47,8 +47,6 @@ executables = [
     Executable(script='dxf2gcode.py',
                base=base,
                icon="images\\DXF2GCODE-001.ico",
-               appendScriptToExe=True,
-               appendScriptToLibrary=False,
                targetName="dxf2gcode.exe"
                )
 ]
