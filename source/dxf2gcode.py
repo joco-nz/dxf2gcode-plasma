@@ -110,6 +110,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
 
         self.ui.setupUi(self)
+        self.showMaximized()
 
         self.canvas = self.ui.canvas
         if g.config.mode3d:
