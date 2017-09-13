@@ -51,7 +51,7 @@ except ImportError:
 
 logger = logging.getLogger("Core.Config")
 
-CONFIG_VERSION = "9.9"
+CONFIG_VERSION = "9.10"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -64,12 +64,20 @@ if "linux" in sys.platform.lower() or "unix" in sys.platform.lower():
     #Declare here the path that are specific to Linux
     IMPORT_DIR = "~/Documents"
     OUTPUT_DIR = "~/Documents"
+    PDFTOPS_CMD = "/usr/bin/pdftops"
     PSTOEDIT_CMD = "/usr/bin/pstoedit"
 else:
     #Declare here the path that are specific to Windows
     IMPORT_DIR = "D:/Eclipse_Workspace/DXF2GCODE/trunk/dxf"
     OUTPUT_DIR = "D:"
-    PSTOEDIT_CMD = "C:/Program Files (x86)/pstoedit/pstoedit.exe"
+    # Xpdf Tools from http://www.xpdfreader.com/download.html
+    PDFTOPS_CMD = "C:/xpdf-tools-win-4.00/bin64/pdftops.exe"
+    # pstoedit from https://sourceforge.net/projects/pstoedit/
+    # and https://sourceforge.net/projects/ghostscript/ dependency
+    # if gs in not on the PATH it might be necessary to add -gs option
+    # to psedit in Option->Configuration->Software config->pstoedit
+    # e.g.  -gs, C:/Program Files (x86)/gs/gs9.09/bin/gswin32c.exe
+    PSTOEDIT_CMD = "C:/Program Files/pstoedit/pstoedit.exe"
 
 """
 HOWTO declare a new variable in the config file:
@@ -116,6 +124,10 @@ CONFIG_SPEC = str('''
     output_dir = string(default = "''' + OUTPUT_DIR + '''")
 
     [Filters]
+    # pstoedit is an external tool to convert PDF files to PS (postscript) files, which can be further processed by pstoedit tool.
+    pdftops_cmd = string(default = "''' + PDFTOPS_CMD + '''")
+    pdftops_opt = list(default = list())
+
     # pstoedit is an external tool to import *.ps (postscript) files and convert them to DXF, in order to import them in dxf2gcode.
     pstoedit_cmd = string(default = "''' + PSTOEDIT_CMD + '''")
     pstoedit_opt = list(default = list('-dt', '-f', 'dxf:-mm'))
@@ -465,7 +477,11 @@ class MyConfig(object):
             ])),
             ('Filters', OrderedDict([
                 ('__section_title__', self.tr("Software config")),
-                ('__subtitle__', CfgSubtitle(self.tr("pstoedit"))),
+                ('__subtitle__', CfgSubtitle(self.tr("pdftops"))),
+                ('pdftops_cmd', CfgLineEdit(self.tr('Location of executable:'))),
+                ('pdftops_opt', CfgListEdit(self.tr('Command-line options:'), ',')),
+
+                ('__subtitle2__', CfgSubtitle(self.tr("pstoedit"))),
                 ('pstoedit_cmd', CfgLineEdit(self.tr('Location of executable:'))),
                 ('pstoedit_opt', CfgListEdit(self.tr('Command-line options:'), ','))
             ])),

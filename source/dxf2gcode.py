@@ -766,26 +766,74 @@ class MainWindow(QMainWindow):
             return True  # kill this load operation - we opened a new one
 
         if ext.lower() == ".ps" or ext.lower() == ".pdf":
-            logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
+            # in case of PDF the two stage conversion will take place
+            # as pstoedit is not able to directly convert PDF->DXF
+            # Stages:
+            #     1) PDF->PS (using pdftops - not pdf2ps!)
+            #     2) PS->DXF (using pstoedit)
+            if ext.lower() == ".pdf":
+                logger.info(self.tr("Converting {0} to {1}").format("PDF", "PS"))
+
+                # Create temporary file which will be read by the program
+                tmp_filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.ps')
+
+                pdftops_cmd = g.config.vars.Filters['pdftops_cmd']
+                pdftops_opt = g.config.vars.Filters['pdftops_opt']
+                if len(pdftops_opt) == 1 and len(pdftops_opt[0]) == 0:
+                    pdftops_opt = list()
+                ps_filename = os.path.normcase(self.filename)
+                cmd = [('%s' % pdftops_cmd)] + pdftops_opt + [('%s' % os.path.normcase(self.filename)),
+                                                              ('%s' % os.path.normcase(tmp_filename))]
+                logger.debug(cmd)
+                self.filename = os.path.normcase(tmp_filename)
+                try:
+                    rv = subprocess.call(cmd)
+                    if rv != 0:
+                        self.unsetCursor()
+                        QMessageBox.critical(self,
+                                             "ERROR",
+                                             self.tr(
+                                                 "Command:\n{0}\nreturned error code: {1}").format(' '.join(cmd), rv))
+                        return True
+
+                except OSError as e:
+                    logger.error(e.strerror)
+                    self.unsetCursor()
+                    QMessageBox.critical(self,
+                                         "ERROR",
+                                         self.tr(
+                                             "Please make sure you have installed {0}, and configured it in the config file.").format("pdftops"))
+                    return True
+
+            logger.info(self.tr("Converting {0} to {1}").format("PS", "DXF"))
 
             # Create temporary file which will be read by the program
             tmp_filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
 
             pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
             pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
+            if len(pstoedit_opt) == 1 and len(pstoedit_opt[0]) == 0:
+                pstoedit_opt = list()
             ps_filename = os.path.normcase(self.filename)
             cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % os.path.normcase(self.filename)), ('%s' % os.path.normcase(tmp_filename))]
             logger.debug(cmd)
             self.filename=os.path.normcase(tmp_filename)
             try:
-                subprocess.call(cmd)
-                
+                rv = subprocess.call(cmd)
+                if rv != 0:
+                    self.unsetCursor()
+                    QMessageBox.critical(self,
+                                         "ERROR",
+                                         self.tr(
+                                             "Command:\n{0}\nreturned error code: {1}").format(' '.join(cmd), rv))
+                    return True
+
             except OSError as e:
                 logger.error(e.strerror)
                 self.unsetCursor()
                 QMessageBox.critical(self,
                                      "ERROR",
-                                     self.tr("Please make sure you have installed pstoedit, and configured it in the config file."))
+                                     self.tr("Please make sure you have installed {0}, and configured it in the config file.").format("pstoedit"))
                 return True
             # If the return code was non-zero it raises a
             # subprocess.CalledProcessError.
