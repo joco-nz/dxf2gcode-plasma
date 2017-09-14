@@ -112,10 +112,22 @@ class ReadDXF(QtCore.QObject):
         @param: filename: name of the file to load
         @return: file contents as a list of strings
         """
-        file_ = open(filename, 'r')
-        str_ = file_.readlines()
-        file_.close()
-        return str_
+        encodings = ['utf-8', 'cp1252', 'cp850']
+        last_exception = None
+
+        for e in encodings:
+            try:
+                file_ = open(filename, 'r', encoding=e)
+                str_ = file_.readlines()
+                file_.close()
+                return str_
+            except UnicodeDecodeError as ex:
+                last_exception = ex
+                logger.debug("Read_File: UnicodeDecodeError: {0}".format(ex))
+                pass
+
+        # If that happens, please consider to extend the list of supported encodings.
+        raise last_exception
 
     def Get_Unit(self, str):
         """
