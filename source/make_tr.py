@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -9,14 +9,27 @@ import os, sys
 import subprocess
 
 if "linux" in sys.platform.lower() or "unix" in sys.platform.lower():
-    #On Linux, the executable are normaly on the PATH (just install lib64-qt4-devel and python-qt4-devel)
-    PLYPATH = "pylupdate4"
-    LREPATH = "lrelease"
+    #On Linux, the executable are normaly on the PATH (just install which contains those executables)
+    PLYPATH = "pylupdate5"
+    LREPATH = None
+    names = ["/usr/bin/lrelease-qt5", "/usr/bin/lrelease5", "/usr/bin/lrelease"]
+    for name in names:
+        if os.path.exists(name):
+            LREPATH = name
+            break
+
+    if not LREPATH:
+        print("ERROR: Cannot file lrelease tool.")
+        print("Please consider to install lrelease tool - to use this script.")
+        sys.exit(1)
+
     print("Using Linux platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
 else:
     PYTHONPATH = os.path.split(sys.executable)[0]
-    PLYPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt4/pylupdate4.exe")
-    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt4/lrelease.exe")
+    # To get pylupdate5.exe use: pip3.exe install PyQt5
+    PLYPATH = os.path.join(PYTHONPATH, "scripts/pylupdate5.exe")
+    # To get lrelease.exe use: pip3.exe install pyqt5-tools
+    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/pyqt5-tools/lrelease.exe")
     print("Using Windows platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
