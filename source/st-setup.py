@@ -36,7 +36,7 @@ class install_scripts(distutils.command.install_scripts.install_scripts):
 setup(
     name='dxf2gcode',
 
-    version='20170913',
+    version='20170915',
 
     description='2D drawings to CNC machine compatible G-Code converter.',
 

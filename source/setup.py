@@ -1,12 +1,12 @@
 #!/usr/bin/python
-# run: python setup.py build
+# run: python setup.py [build|bdist_msi]
 
 import sys, os
 import shutil
 from cx_Freeze import setup, Executable
 
 
-version = "20170913"
+version = "2017.09.15"
 
 base = 'Console'
 if sys.platform == 'win32':

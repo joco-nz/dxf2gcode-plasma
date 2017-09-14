@@ -1,6 +1,20 @@
-include dxf2gcode.desktop
-include dxf2gcode.appdata.xml
-include images/dxf2gcode.svg
-include i18n/*.qm
+exclude dxf2gcode_images?_rc.py
+exclude dxf2gcode_ui?.py
+exclude i18n/*.qm
+exclude *.py
 include COPYING
-
+include dxf2gcode.appdata.xml
+include dxf2gcode.desktop
+include dxf2gcode_images.qrc
+include dxf2gcode.py
+include dxf2gcode.ui
+include images/*.svg
+include images/*.png
+include images/*.ico
+include i18n/*.ts
+include make_exe.py
+include make_py_uic.py
+include make_tr.py
+include setup.cfg
+include setup.py
+include st-setup.py
