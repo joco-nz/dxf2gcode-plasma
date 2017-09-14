@@ -47,6 +47,7 @@ coverage.xml
 logfile.txt
 
 # Translations
+*.qm
 *.mo
 *.pot
 
@@ -68,3 +69,7 @@ target/
 
 # PyCharm stuff
 .idea/
+
+# Generated files:
+dxf2gcode_images*_rc.py*
+dxf2gcode_ui*.py
