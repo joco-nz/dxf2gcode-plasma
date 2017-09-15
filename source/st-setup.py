@@ -47,6 +47,8 @@ setup(
 
     author='Christian Kohloffel',
 
+    author_email='christian-kohloeffel@t-online.de',
+
     license='GPLv3',
 
     packages=[
