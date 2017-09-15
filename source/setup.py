@@ -1,12 +1,13 @@
-#!/usr/bin/python
-# run: python setup.py [build|bdist_msi]
+#!/usr/bin/python3
+# To create MSI installer with automatic Menu shortcut installation run the following:
+# python3 setup.py bdist_msi
 
 import sys, os
 import shutil
 from cx_Freeze import setup, Executable
 
 
-version = "2017.09.15"
+version = "20170915"
 
 base = 'Console'
 if sys.platform == 'win32':
@@ -47,12 +48,14 @@ executables = [
     Executable(script='dxf2gcode.py',
                base=base,
                icon="images\\DXF2GCODE-001.ico",
-               targetName="dxf2gcode.exe"
+               targetName="dxf2gcode.exe",
+               shortcutName="DXF to G-Code Converter",
+               shortcutDir="ProgramMenuFolder"
                )
 ]
 
 setup(name='DXF2GCODE',
-      version=version,
+      version=version[0:4] + "." + version[4:6] + "." + version[6:8], # converts YYYYMMDD -> YYYY.MM.DD
       description='Converting 2D drawings to CNC machine compatible G-Code.',
       options=options,
       executables=executables
