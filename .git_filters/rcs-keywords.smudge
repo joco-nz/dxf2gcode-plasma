@@ -27,7 +27,7 @@ if (0 == length($filename)) {
 }
 
 # Need to grab filename and to use git log for this to be accurate.
-$rev = `git log -- | head -n 3`;
+$rev = `git log -- | head -n 4`;
 $rev =~ /^Author:\s*(.*)\s*$/m;
 $author = $1;
 $author =~ /\s*(.*)\s*<.*/;
