@@ -53,7 +53,7 @@ Prerequisites
     - python3 (>=3.6.2),
     - PyQt5 (>=5.9),
     - PyOpenGL (>=3.1),
-    - pdftops (>=4.00) [http://www.xpdfreader.com/download.html],
+    - pdftops (>=4.00) [http://www.xpdfreader.com/download.html] (Xpdf-tools package),
     - pstoedit (>=3.70) [https://sourceforge.net/projects/pstoedit/],
     - gswin32c (>=9.09) [https://sourceforge.net/projects/ghostscript/].
 
@@ -61,6 +61,11 @@ Prerequisites
     pstoedit tool in Options->Configuration->Software config->pstoedit
     e.g.: -gs, C:/Program Files (x86)/gs/gs9.09/bin/gswin32c.exe
     (above assumes v9.09 and default path installation).
+
+    Note(2): pstoedit needs C++ runtime libraries if you don't have it please search for:
+    "Microsoft Visual C++ 2010 Redistributable Package (x64)" and install it.
+    It is recommended to run both pdftops and pstoedit from command line (CMD)
+    to verify the installation correctness.
 
 
 Building and Installing
