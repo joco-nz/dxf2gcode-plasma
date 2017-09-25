@@ -232,7 +232,7 @@ class offShapeClass(Shape):
                 if geo2.ext < 0:
                     geo2.start_normal = geo2.start_normal * -1
                     geo2.end_normal = geo2.end_normal * -1
-
+                    
             if ((isinstance(geo2, ArcGeo)) and
                     ((self.offtype == "out" and geo2.ext > 0) or
                      (self.offtype == "in" and geo2.ext < 0)) and
@@ -256,7 +256,7 @@ class offShapeClass(Shape):
                 reflexPe.start_normal = geo1.end_normal
                 reflexPe.end_normal = geo2.start_normal
                 self.segments += [reflexPe, geo2]
-
+                
             elif (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
                               geo1.Pe + geo1.end_normal +
                               geo2.start_normal) == 0):
@@ -265,7 +265,7 @@ class offShapeClass(Shape):
             # Add the linear segment which is a line connecting 2 vertices
             else:
                 self.segments += [ConvexPoint(geo1.Pe.x, geo1.Pe.y), geo2]
-
+            
     def make_rawoff_seg(self, seg):
         """
         This function returns the rawoffset of a segement. A line for a line
@@ -286,6 +286,7 @@ class offShapeClass(Shape):
         if isinstance(seg, OffLineGeo):
             Ps = seg.Ps + seg.start_normal * offset
             Pe = seg.Pe + seg.end_normal * offset
+            
             return OffLineGeo(Ps, Pe)
 
         elif isinstance(seg, OffPoint):
@@ -297,6 +298,11 @@ class offShapeClass(Shape):
         elif isinstance(seg, OffArcGeo):
             Ps = seg.Ps + seg.start_normal * offset
             Pe = seg.Pe + seg.end_normal * offset
+
+            logger.debug(seg.Ps)
+            logger.debug(seg.Pe)
+            logger.debug(seg.start_normal)
+            logger.debug(seg.end_normal)                         
 
             if seg.ext > 0:
                 return OffArcGeo(Ps=Ps, Pe=Pe, O=seg.O,
@@ -388,7 +394,10 @@ class offShapeClass(Shape):
         """
         if isinstance(segment1, ConvexPoint):
             logger.debug("Should not be here")
+            logger.debug(segment1)
             return False
+            #offGeo = self.make_rawoff_seg(segment1)
+            
         else:
             offGeo = self.make_rawoff_seg(segment1)
 #
@@ -1280,7 +1289,16 @@ class OffArcGeo(ArcGeo):
         # logger.debug("I'm getting trimmed: %s, %s, %s, %s"
         # % (self, Point, dir, rev_norm))
         newPoint = self.O.get_arc_point(self.O.norm_angle(Point), r=self.r)
-        new_normal = newPoint.unit_vector(self.O, r=1)
+        
+        new_normal = self.O.unit_vector(newPoint, r=1)
+        
+        if self.ext < 0:
+            new_normal = new_normal * -1
+        
+#         new_normal = newPoint.unit_vector(self.O, r=1)
+#         
+#         if self.ext<0:
+#             new_normal = new_normal*-1
 
         # logger.debug(newPoint)
         [Arc1, Arc2] = self.split_into_2geos(newPoint)
@@ -1291,7 +1309,7 @@ class OffArcGeo(ArcGeo):
                 # new_arc.end_normal = self.end_normal
                 # new_arc.start_normal = new_normal
 
-                new_arc.end_normal = new_normal
+                new_arc.end_normal =  new_normal
                 new_arc.start_normal = self.start_normal
             # logger.debug(new_arc)
             return new_arc
@@ -1921,3 +1939,7 @@ class ConvexPoint(OffPoint):
 
     def __init__(self, x=0, y=0):
         OffPoint.__init__(self, x=x, y=y)
+        
+    def __str__(self):
+        return 'X ->%6.3f  Y ->%6.3f' % (self.x, self.y)
+        # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))

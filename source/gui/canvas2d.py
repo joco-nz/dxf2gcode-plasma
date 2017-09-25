@@ -153,7 +153,7 @@ class MyGraphicsView(CanvasBase):
         elif event.button() == QtCore.Qt.LeftButton:
             self.currentItems = []
             scene = self.scene()
-            if not self.isMultiSelect:
+            if scene and not self.isMultiSelect:
                 for item in scene.selectedItems():
                     item.setSelected(False, False)
             # If the mouse button is pressed without movement of rubberband

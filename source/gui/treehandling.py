@@ -214,7 +214,10 @@ class TreeHandler(QWidget):
             menu_action.setData(custom_action)
 
         # update the items (if a tool or a custom_action disapeared from config file, we need to remove it in the treeview too)
-        i = self.layer_item_model.rowCount(QtCore.QModelIndex())
+        i = 0
+        if self.layer_item_model: #  this is not set until buildLayerTree() is called
+            i = self.layer_item_model.rowCount(QtCore.QModelIndex())
+
         while i > 0:
             i -= 1
             layer_item_index = self.layer_item_model.index(i, 0)
@@ -886,7 +889,7 @@ class TreeHandler(QWidget):
                                     if isinstance(shape, Shape):
                                         # Only repaint _real_ shapes (and not the custom GCode for example)
                                         g.window.canvas_scene.repaint_shape(shape)
-                if g.window:
+                if g.window and g.window.canvas_scene:
                     g.window.canvas_scene.update()
 
     def toolParameterzRetractionArealUpdate(self):
@@ -1076,6 +1079,9 @@ class TreeHandler(QWidget):
         @param select: list of selected items in the treeView
         @param deselect: list of deselected items in the treeView
         """
+        if not self.ui.layersShapesTreeView.selectionModel():
+            return
+
         self.clearToolsParameters()  # disable tools parameters widgets, ...
 
         # Deselects all the shapes that are selected
@@ -1151,7 +1157,8 @@ class TreeHandler(QWidget):
         selectionEntity = self.ui.entitiesTreeView.selectionModel()
         selectionEntity.select(itemEntitySelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
 
-        g.window.canvas_scene.update()
+        if g.window.canvas_scene:
+            g.window.canvas_scene.update()
 
     def clearToolsParameters(self):
         """

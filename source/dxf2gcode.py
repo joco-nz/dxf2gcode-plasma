@@ -76,10 +76,7 @@ else:
 
 logger = logging.getLogger()
 
-# Get folder of the main instance and write into globals
-g.folder = os.path.dirname(os.path.abspath(sys.argv[0])).replace("\\", "/")
-if os.path.islink(sys.argv[0]):
-    g.folder = os.path.dirname(os.readlink(sys.argv[0]))
+g.folder = os.path.join(os.path.expanduser("~"), ".config/dxf2gcode").replace("\\", "/")
 
 
 class MainWindow(QMainWindow):
@@ -113,6 +110,7 @@ class MainWindow(QMainWindow):
         self.ui = Ui_MainWindow()
 
         self.ui.setupUi(self)
+        self.showMaximized()
 
         self.canvas = self.ui.canvas
         if g.config.mode3d:
@@ -557,7 +555,7 @@ class MainWindow(QMainWindow):
                           "For any questions on how to use dxf2gcode please use the "
                           "<a href='https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users'>mailing list</a><br>"
                           "To log bugs, or request features please use the "
-                          "<a href='http://sourceforge.net/projects/dxf2gcode/tickets/'>issue tracking system</a><br>"
+                          "<a href='http://sourceforge.net/p/dxf2gcode/tickets/'>issue tracking system</a><br>"
                           "<h2>License and copyright:</h2>"
                           "<body>This program is written in Python and is published under the "
                           "<a href='http://www.gnu.org/licenses/'>GNU GPLv3 license.</a><br>"
@@ -660,16 +658,20 @@ class MainWindow(QMainWindow):
                 if not shape.isDisabled():
                     minx = min(minx, shape.BB.Ps.x)
                     miny = min(miny, shape.BB.Ps.y)
-            self.cont_dx = self.entityRoot.p0.x - minx
-            self.cont_dy = self.entityRoot.p0.y - miny
+            if not (minx == sys.float_info.max or miny == sys.float_info.max):
+                self.cont_dx = self.entityRoot.p0.x - minx
+                self.cont_dy = self.entityRoot.p0.y - miny
         else:
             self.cont_dx = float(MoveWpzDialog.result[0])
             self.cont_dy = float(MoveWpzDialog.result[1])
 
-        self.entityRoot.p0.x = self.cont_dx
-        self.entityRoot.p0.y = self.cont_dy
+        if self.entityRoot.p0.x != self.cont_dx or self.entityRoot.p0.y != self.cont_dy:
+            self.entityRoot.p0.x = self.cont_dx
+            self.entityRoot.p0.y = self.cont_dy
 
-        self.d2g.small_reload()
+            self.d2g.small_reload()
+        else:
+            logger.info(self.tr("No differences found. Ergo, workpiece zero is not moved"))
 
     def setMachineTypeToMilling(self):
         g.config.machine_type = 'milling'
@@ -764,28 +766,78 @@ class MainWindow(QMainWindow):
             return True  # kill this load operation - we opened a new one
 
         if ext.lower() == ".ps" or ext.lower() == ".pdf":
-            logger.info(self.tr("Sending Postscript/PDF to pstoedit"))
+            # in case of PDF the two stage conversion will take place
+            # as pstoedit is not able to directly convert PDF->DXF
+            # Stages:
+            #     1) PDF->PS (using pdftops - not pdf2ps!)
+            #     2) PS->DXF (using pstoedit)
+            if ext.lower() == ".pdf":
+                logger.info(self.tr("Converting {0} to {1}").format("PDF", "PS"))
+
+                # Create temporary file which will be read by the program
+                tmp_filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.ps')
+
+                pdftops_cmd = g.config.vars.Filters['pdftops_cmd']
+                pdftops_opt = g.config.vars.Filters['pdftops_opt']
+                if len(pdftops_opt) == 1 and len(pdftops_opt[0]) == 0:
+                    pdftops_opt = list()
+                ps_filename = os.path.normcase(self.filename)
+                cmd = [('%s' % pdftops_cmd)] + pdftops_opt + [('%s' % os.path.normcase(self.filename)),
+                                                              ('%s' % os.path.normcase(tmp_filename))]
+                logger.debug(cmd)
+                self.filename = os.path.normcase(tmp_filename)
+                try:
+                    rv = subprocess.call(cmd)
+                    if rv != 0:
+                        self.unsetCursor()
+                        QMessageBox.critical(self,
+                                             "ERROR",
+                                             self.tr(
+                                                 "Command:\n{0}\nreturned error code: {1}").format(' '.join(cmd), rv))
+                        return True
+
+                except OSError as e:
+                    logger.error(e.strerror)
+                    self.unsetCursor()
+                    QMessageBox.critical(self,
+                                         "ERROR",
+                                         self.tr(
+                                             "Please make sure you have installed {0}, and configured it in the config file.").format("pdftops"))
+                    return True
+
+            logger.info(self.tr("Converting {0} to {1}").format("PS", "DXF"))
 
             # Create temporary file which will be read by the program
-            self.filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
+            tmp_filename = os.path.join(tempfile.gettempdir(), 'dxf2gcode_temp.dxf')
 
             pstoedit_cmd = g.config.vars.Filters['pstoedit_cmd']
             pstoedit_opt = g.config.vars.Filters['pstoedit_opt']
+            if len(pstoedit_opt) == 1 and len(pstoedit_opt[0]) == 0:
+                pstoedit_opt = list()
             ps_filename = os.path.normcase(self.filename)
-            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % self.filename)]
+            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % os.path.normcase(self.filename)), ('%s' % os.path.normcase(tmp_filename))]
             logger.debug(cmd)
+            self.filename=os.path.normcase(tmp_filename)
             try:
-                subprocess.call(cmd)
+                rv = subprocess.call(cmd)
+                if rv != 0:
+                    self.unsetCursor()
+                    QMessageBox.critical(self,
+                                         "ERROR",
+                                         self.tr(
+                                             "Command:\n{0}\nreturned error code: {1}").format(' '.join(cmd), rv))
+                    return True
+
             except OSError as e:
                 logger.error(e.strerror)
                 self.unsetCursor()
                 QMessageBox.critical(self,
                                      "ERROR",
-                                     self.tr("Please make sure you have installed pstoedit, and configured it in the config file."))
+                                     self.tr("Please make sure you have installed {0}, and configured it in the config file.").format("pstoedit"))
                 return True
             # If the return code was non-zero it raises a
             # subprocess.CalledProcessError.
-            subprocess.check_output()
+            # subprocess.check_output()
 
         logger.info(self.tr('Loading file: %s') % self.filename)
 
@@ -1080,7 +1132,11 @@ if __name__ == "__main__":
 
     g.config = MyConfig()
     Log.set_console_handler_loglevel()
-    Log.add_file_logger()
+
+    if not g.config.vars.Logging['logfile']:
+        Log.add_window_logger()
+    else:
+        Log.add_file_logger()
 
     app = QApplication(sys.argv)
 
@@ -1089,6 +1145,8 @@ if __name__ == "__main__":
     logger.debug("locale: %s" % locale)
     translator = QtCore.QTranslator()
     if translator.load("dxf2gcode_" + locale, "./i18n"):
+        app.installTranslator(translator)
+    elif translator.load("dxf2gcode_" + locale, "/usr/share/dxf2gcode/i18n"):
         app.installTranslator(translator)
 
     # If string version_mismatch isn't empty, we popup an error and exit

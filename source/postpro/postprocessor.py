@@ -420,6 +420,8 @@ class MyPostProcessor(object):
         if self.vars.General["output_type"] == 'g-code':
             exstr = self.tr("(Generated with: %s, Version: %s, Date: %s)\n") % (c.APPNAME, c.VERSION, c.DATE)
             exstr += self.tr("(Created from file: %s)\n") % re.sub('[()]', '_', load_filename)
+            if self.vars.General["output_text"]:
+                exstr += self.tr("(Output format description: %s)\n") % re.sub('[()]', '', self.vars.General["output_text"])
             exstr += self.tr("(Time: %s)\n") % time.asctime()
         elif self.vars.General["output_type"] == 'dxf':
             exstr = ''
@@ -429,13 +431,13 @@ class MyPostProcessor(object):
         # In addition the text defined in the PostProcessor Config file is
         # added.
         if g.config.metric == 0:
-            exstr += "%s " % self.vars.General["code_begin_units_in"]
+            exstr += "%s\n" % self.vars.General["code_begin_units_in"]
         else:
-            exstr += "%s " % self.vars.General["code_begin_units_mm"]
+            exstr += "%s\n" % self.vars.General["code_begin_units_mm"]
         if self.abs_export:
-            exstr += " %s " % self.vars.General["code_begin_prog_abs"]
+            exstr += "%s\n" % self.vars.General["code_begin_prog_abs"]
         else:
-            exstr += "%s " % self.vars.General["code_begin_prog_inc"]
+            exstr += "%s\n" % self.vars.General["code_begin_prog_inc"]
         exstr += "%s\n" % self.vars.General["code_begin"]
 
         return self.make_print_str(exstr)

@@ -128,7 +128,8 @@ class ArcGeo(object):
                       deepcopy(self.r, memo),
                       deepcopy(self.s_ang, memo),
                       deepcopy(self.e_ang, memo),
-                      deepcopy(self.ext, memo))
+                      deepcopy(self.ext, memo),
+                      deepcopy(self.drag, memo))
 
     def __str__(self):
         """
@@ -321,7 +322,7 @@ class ArcGeo(object):
         if parent is not None and parent.sca[0] * parent.sca[1] < 0.0:
             direction *= -1
 
-        self.abs_geo = ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=direction)
+        self.abs_geo = ArcGeo(Ps=Ps, Pe=Pe, O=O, r=r, direction=direction, drag=self.drag)
 
     def make_path(self, caller, drawHorLine):
         segments = int(abs(degrees(self.ext)) // 3 + 1)

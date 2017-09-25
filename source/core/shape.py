@@ -438,6 +438,8 @@ class Shape(object):
                 # a switch
                 if self.cut_cor != 40 and not PostPro.vars.General["cancel_cc_for_depth"]:
                     exstr += PostPro.deactivate_cut_cor()
+                    exstr += PostPro.set_cut_cor(self.cut_cor)
+
 
             # If cutter correction is enabled
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
