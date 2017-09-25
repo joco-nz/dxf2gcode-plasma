@@ -1,7 +1,7 @@
 ############################################################################
 #
 #   Copyright (C) 2017
-#    Damian Wrobel <dwrobel@ertelnet.rybnil.pl>
+#    Damian Wrobel <dwrobel@ertelnet.rybnik.pl>
 #
 #   This file is part of DXF2GCODE.
 #
@@ -36,7 +36,7 @@ class install_scripts(distutils.command.install_scripts.install_scripts):
 setup(
     name='dxf2gcode',
 
-    version='20170915',
+    version='20170925',
 
     description='2D drawings to CNC machine compatible G-Code converter.',
 
