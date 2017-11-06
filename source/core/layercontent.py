@@ -29,9 +29,11 @@ from __future__ import absolute_import
 from __future__ import division
 
 import re
+import logging
 
 import globals.globals as g
 
+logger = logging.getLogger("Core.LayerContent")
 
 class LayerContent(object):
     def __init__(self, nr, name, shapes):
@@ -91,8 +93,17 @@ class LayerContent(object):
                 name, value = lc.split(g.config.vars.Layer_Options['id_float_separator'])
                 name = name.strip()
                 # print '\"%s\" \"%s\"' %(name, value)
+                default_tool = 1 # Tool 1 normally always exists
                 if name in g.config.vars.Layer_Options['tool_nr_identifiers']:
-                    self.tool_nr = float(value)
+                    self.tool_nr = int(value)
+                    # Check that the requested tool exists in the tool table & substitute tool 1 if not
+                    if str(self.tool_nr) not in g.config.vars.Tool_Parameters:
+                        logger.warning("Tool {0} used for \"{1}\" layer doesn't exist anymore in the configuration ; using tool {2} instead".format(self.tool_nr, self.name, default_tool))
+                        self.tool_nr = default_tool
+                    # set the diameter, speed and start radius according to the selected tool
+                    self.tool_diameter = g.config.vars.Tool_Parameters[str(self.tool_nr)]['diameter']
+                    self.speed = g.config.vars.Tool_Parameters[str(self.tool_nr)]['speed']
+                    self.start_radius = g.config.vars.Tool_Parameters[str(self.tool_nr)]['start_radius']
                 elif name in g.config.vars.Layer_Options['tool_diameter_identifiers']:
                     self.tool_diameter = float(value)
                 elif name in g.config.vars.Layer_Options['spindle_speed_identifiers']:

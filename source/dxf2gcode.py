@@ -730,10 +730,10 @@ class MainWindow(QMainWindow):
         self.filename, _ = getOpenFileName(self,
                                            title,
                                            g.config.vars.Paths['import_dir'],
-                                           self.tr("All supported files (*.dxf *.ps *.pdf *%s);;"
-                                                   "DXF files (*.dxf);;"
-                                                   "PS files (*.ps);;"
-                                                   "PDF files (*.pdf);;"
+                                           self.tr("All supported files (*.dxf *.DXF *.ps *.PS *.pdf *.PDF *%s);;"
+                                                   "DXF files (*.dxf *.DXF);;"
+                                                   "PS files (*.ps *.PS);;"
+                                                   "PDF files (*.pdf *.PDF);;"
                                                    "Project files (*%s);;"
                                                    "All types (*.*)") % (c.PROJECT_EXTENSION, c.PROJECT_EXTENSION))
 

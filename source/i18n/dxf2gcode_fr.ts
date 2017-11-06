@@ -185,8 +185,8 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     </message>
     <message>
         <location filename="dxf2gcode.py" line="733"/>
-        <source>All supported files (*.dxf *.ps *.pdf *%s);;DXF files (*.dxf);;PS files (*.ps);;PDF files (*.pdf);;Project files (*%s);;All types (*.*)</source>
-        <translation>Fichiers acceptés (*.dxf *.ps *.pdf *%s);;Fichiers DXF (*.dxf);;Fichiers PS (*.ps);;Fichiers PDF (*.pdf);;Project files (*%s);;Tout les fichiers (*.*)</translation>
+        <source>All supported files (*.dxf *.DXF *.ps *.PS *.pdf *.PDF *%s);;DXF files (*.dxf *.DXF);;PS files (*.ps *.PS);;PDF files (*.pdf *.PDF);;Project files (*%s);;All types (*.*)</source>
+        <translation>Fichiers acceptés (*.dxf *.DXF *.ps *.PS *.pdf *.PDF *%s);;Fichiers DXF (*.dxf *.DXF);;Fichiers PS (*.ps *.PS);;Fichiers PDF (*.pdf *.PDF);;Project files (*%s);;Tout les fichiers (*.*)</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="746"/>

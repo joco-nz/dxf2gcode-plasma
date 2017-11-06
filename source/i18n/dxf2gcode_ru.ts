@@ -5,7 +5,7 @@
     <message>
         <location filename="arcgeo.py" line="108"/>
         <source>Missing value for Arc Geometry</source>
-        <translation>Отсутствует значение для геометрии дуги</translation>
+        <translation>От�?ут�?твует значение дл�? геометрии дуги</translation>
     </message>
 </context>
 <context>
@@ -13,7 +13,7 @@
     <message>
         <location filename="configobj.py" line="193"/>
         <source>Undefined Name</source>
-        <translation type="obsolete">Необределённое имя</translation>
+        <translation type="obsolete">�?еобределённое им�?</translation>
     </message>
 </context>
 <context>
@@ -82,72 +82,72 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="configobj.py" line="1259"/>
         <source>Config file not found: &quot;%s&quot;.</source>
-        <translation type="obsolete">Файл настроек не найден: &quot;%s&quot;.</translation>
+        <translation type="obsolete">Файл на�?троек не найден: &quot;%s&quot;.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1303"/>
         <source>infile must be a filename, file like object, or list of lines.</source>
-        <translation type="obsolete">файл должен быть именем файла, объектом или списком строк.</translation>
+        <translation type="obsolete">файл должен быть именем файла, объектом или �?пи�?ком �?трок.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1579"/>
         <source>Cannot compute the section depth at line %s.</source>
-        <translation type="obsolete">Невозможно рассчитать глубину раздела на строке %s.</translation>
+        <translation type="obsolete">�?евозможно ра�?�?читать глубину раздела на �?троке %s.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1589"/>
         <source>Cannot compute nesting level at line %s.</source>
-        <translation type="obsolete">Невозможно рассчитать уровень вложения на строке %s.</translation>
+        <translation type="obsolete">�?евозможно ра�?�?читать уровень вложени�? на �?троке %s.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1599"/>
         <source>Section too nested at line %s.</source>
-        <translation type="obsolete">Слишком большая глубина вложения раздела на строке %s.</translation>
+        <translation type="obsolete">Слишком больша�? глубина вложени�? раздела на �?троке %s.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1604"/>
         <source>Duplicate section name at line %s.</source>
-        <translation type="obsolete">Повторяющееся название раздела на строке %s.</translation>
+        <translation type="obsolete">Повтор�?ющее�?�? название раздела на �?троке %s.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1677"/>
         <source>Parse error in value at line %s.</source>
-        <translation type="obsolete">Ошибка разбора значения на строке %s.</translation>
+        <translation type="obsolete">Ошибка разбора значени�? на �?троке %s.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1666"/>
         <source>Unknown name or type in value at line %s.</source>
-        <translation type="obsolete">Неизвестное имя или тип значения на строке %s.</translation>
+        <translation type="obsolete">�?еизве�?тное им�? или тип значени�? на �?троке %s.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1684"/>
         <source>Duplicate keyword name at line %s.</source>
-        <translation type="obsolete">Повтояющееся имя ключевого слова на строке %s.</translation>
+        <translation type="obsolete">Повто�?ющее�?�? им�? ключевого �?лова на �?троке %s.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1793"/>
         <source>Value &quot;%s&quot; is not a string.</source>
-        <translation type="obsolete">Значение &quot;%s&quot; не является строкой.</translation>
+        <translation type="obsolete">Значение &quot;%s&quot; не �?вл�?ет�?�? �?трокой.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1839"/>
         <source>Value &quot;%s&quot; cannot be safely quoted.</source>
-        <translation type="obsolete">Значение &quot;%s&quot; не может быть безопасно окружено кавычками.</translation>
+        <translation type="obsolete">Значение &quot;%s&quot; не может быть безопа�?но окружено кавычками.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1944"/>
         <source>Parsing configspec failed: %s</source>
-        <translation type="obsolete">Ошибка разбора спецификации настроек: %s</translation>
+        <translation type="obsolete">Ошибка разбора �?пецификации на�?троек: %s</translation>
     </message>
     <message>
         <location filename="configobj.py" line="1946"/>
         <source>Reading configspec failed: %s</source>
-        <translation type="obsolete">Ошибка чтения спецификации настроек: %s</translation>
+        <translation type="obsolete">Ошибка чтени�? �?пецификации на�?троек: %s</translation>
     </message>
     <message>
         <location filename="configobj.py" line="2164"/>
         <source>No configspec supplied.</source>
-        <translation type="obsolete">Не указаны спецификации настроек.</translation>
+        <translation type="obsolete">�?е указаны �?пецификации на�?троек.</translation>
     </message>
 </context>
 <context>
@@ -237,7 +237,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="geoent_arc.py" line="126"/>
         <source>Found extrusion direction: %s</source>
-        <translation>Найдено направление выдавливания: %s</translation>
+        <translation>�?айдено направление выдавливани�?: %s</translation>
     </message>
 </context>
 <context>
@@ -245,7 +245,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="geoent_circle.py" line="108"/>
         <source>Found extrusion direction: %s</source>
-        <translation>Найдено направление выдавливания: %s</translation>
+        <translation>�?айдено направление выдавливани�?: %s</translation>
     </message>
 </context>
 <context>
@@ -253,7 +253,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="geoent_line.py" line="122"/>
         <source>Found extrusion direction: %s</source>
-        <translation>Найдено направление выдавливания: %s</translation>
+        <translation>�?айдено направление выдавливани�?: %s</translation>
     </message>
 </context>
 <context>
@@ -284,12 +284,12 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="175"/>
         <source>Collapse all items</source>
-        <translation>Свернуть все элементы</translation>
+        <translation>Свернуть в�?е �?лементы</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="198"/>
         <source>Expand all items</source>
-        <translation>Раскрыть все элементы</translation>
+        <translation>Ра�?крыть в�?е �?лементы</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="143"/>
@@ -299,12 +299,12 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="234"/>
         <source>Move-up the selected shape/layer</source>
-        <translation>Перенести вверх выбранные формы или слои </translation>
+        <translation>Перене�?ти вверх выбранные формы или �?лои </translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="257"/>
         <source>Move-down the selected shape/layer</source>
-        <translation>Перенести вних выбранные формы или слои </translation>
+        <translation>Перене�?ти вних выбранные формы или �?лои </translation>
     </message>
     <message encoding="UTF-8">
         <location filename="dxf2gcode.ui" line="344"/>
@@ -319,7 +319,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="370"/>
         <source>/ speed </source>
-        <translation>/ скорость </translation>
+        <translation>/ �?коро�?ть </translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="400"/>
@@ -329,7 +329,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="458"/>
         <source>Feed rate XY</source>
-        <translation>Скорость подачи XY</translation>
+        <translation>Скоро�?ть подачи XY</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="868"/>
@@ -339,7 +339,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="491"/>
         <source>Z Final mill depth</source>
-        <translation>Финальная глубина фрезировки Z</translation>
+        <translation>Финальна�? глубина фрезировки Z</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="531"/>
@@ -349,7 +349,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="581"/>
         <source>Z Safety margin</source>
-        <translation>Граница безопасности по Z</translation>
+        <translation>Граница безопа�?но�?ти по Z</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="621"/>
@@ -364,23 +364,23 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="691"/>
         <source>Start X</source>
-        <translation>Начало X</translation>
+        <translation>�?ачало X</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="741"/>
         <source>Feed rate Z</source>
-        <translation>Скорость подачи Z</translation>
+        <translation>Скоро�?ть подачи Z</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="774"/>
         <source>Start Y</source>
-        <translation>Начало Y</translation>
+        <translation>�?ачало Y</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="798"/>
         <source>Graphic Area for drawing
 </source>
-        <translation type="obsolete">Графическая область для отрисовки</translation>
+        <translation type="obsolete">Графиче�?ка�? обла�?ть дл�? отри�?овки</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="859"/>
@@ -390,12 +390,12 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="873"/>
         <source>Export the current project to G-Code</source>
-        <translation>Экспортировать текущий проект в G-коды</translation>
+        <translation>Эк�?портировать текущий проект в G-коды</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="876"/>
         <source>Export</source>
-        <translation>Экспорт</translation>
+        <translation>Эк�?порт</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="884"/>
@@ -455,7 +455,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="947"/>
         <source>Show the Workpiece Zero symbol in the plot.</source>
-        <translation type="obsolete">Показать символ нуля для заготовки.</translation>
+        <translation type="obsolete">Показать �?имвол нул�? дл�? заготовки.</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="961"/>
@@ -465,7 +465,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="975"/>
         <source>Always shows the path direction in the plot (not only while selected)</source>
-        <translation>Всегда показывать направление траекторий, а не только при выборе</translation>
+        <translation>В�?егда показывать направление траекторий, а не только при выборе</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="978"/>
@@ -475,7 +475,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="997"/>
         <source>Autoscale</source>
-        <translation>Автомасштаб</translation>
+        <translation>�?втома�?штаб</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="994"/>
@@ -485,22 +485,22 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="1029"/>
         <source>Tolerances</source>
-        <translation>Допуски</translation>
+        <translation>Допу�?ки</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1007"/>
         <source>Scale all</source>
-        <translation type="obsolete">Масштабировать всё</translation>
+        <translation type="obsolete">Ма�?штабировать в�?ё</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1015"/>
         <source>Rotate all</source>
-        <translation type="obsolete">Повернуть всё</translation>
+        <translation type="obsolete">Повернуть в�?ё</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1023"/>
         <source>Move WP zero</source>
-        <translation type="obsolete">Перенести нуль заготовки</translation>
+        <translation type="obsolete">Перене�?ти нуль заготовки</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="1058"/>
@@ -520,7 +520,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="1077"/>
         <source>Export Shapes</source>
-        <translation>Экспортировать формы</translation>
+        <translation>Эк�?портировать формы</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="1080"/>
@@ -530,7 +530,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1049"/>
         <source>Optimize and Export shapes</source>
-        <translation type="obsolete">Оптимизировать и экспортировать формы</translation>
+        <translation type="obsolete">Оптимизировать и �?к�?портировать формы</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="1091"/>
@@ -540,7 +540,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1063"/>
         <source>Live update export route</source>
-        <translation type="obsolete">Отображать экспортируемые траектории</translation>
+        <translation type="obsolete">Отображать �?к�?портируемые траектории</translation>
     </message>
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1068"/>
@@ -560,17 +560,17 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="1082"/>
         <source>Split edges, e.g. can be used for compensation (G41/G42) in combination with EMC</source>
-        <translation type="obsolete">Разделение углов может быть использовано для компенсации (G41/G42) в комбинации с EMC</translation>
+        <translation type="obsolete">Разделение углов может быть и�?пользовано дл�? компен�?ации (G41/G42) в комбинации �? EMC</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="1135"/>
         <source>Automatic Cutter Compensation</source>
-        <translation>Автоматическая компенсация инструмента</translation>
+        <translation>�?втоматиче�?ка�? компен�?аци�? ин�?трумента</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="1143"/>
         <source>Milling</source>
-        <translation>Фрезерная</translation>
+        <translation>Фрезерна�?</translation>
     </message>
     <message>
         <location filename="dxf2gcode.ui" line="1151"/>
@@ -580,67 +580,67 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.ui" line="1159"/>
         <source>Lathe</source>
-        <translation>Токарная</translation>
+        <translation>Токарна�?</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="320"/>
         <source>Export the enabled shapes</source>
-        <translation>Экспортировать разрешённые формы</translation>
+        <translation>Эк�?портировать разрешённые формы</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="326"/>
         <source>Sorted layers:</source>
-        <translation>Сортированные слои:</translation>
+        <translation>Сортированные �?лои:</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="340"/>
         <source>Export to file</source>
-        <translation>Экспорт в файл</translation>
+        <translation>Эк�?порт в файл</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="415"/>
         <source>Optimize order of enabled shapes per layer</source>
-        <translation>Оптимизировать порядок разрешённых форм по слою</translation>
+        <translation>Оптимизировать пор�?док разрешённых форм по �?лою</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="419"/>
         <source>Updating order according to TreeView</source>
-        <translation>Обновление порядка в соотвествии с древовидной структурой</translation>
+        <translation>Обновление пор�?дка в �?оотве�?твии �? древовидной �?труктурой</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="430"/>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
-        <translation>Количество форм %s, количество форм в траектории %s</translation>
+        <translation>Количе�?тво форм %s, количе�?тво форм в траектории %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="432"/>
         <source>Export Order for start: %s</source>
-        <translation>Начальный порядок экспорта: %s</translation>
+        <translation>�?ачальный пор�?док �?к�?порта: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="455"/>
         <source>TSP start values initialised for Layer %s</source>
-        <translation>Начальные значения задачи коммивояжёра для слоя: %s</translation>
+        <translation>�?ачальные значени�? задачи коммиво�?жёра дл�? �?ло�?: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="456"/>
         <source>Shapes to write: %s</source>
-        <translation>Форм для записи: %s</translation>
+        <translation>Форм дл�? запи�?и: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="457"/>
         <source>Fixed order: %s</source>
-        <translation>Фиксированный порядок: %s</translation>
+        <translation>Фик�?ированный пор�?док: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="465"/>
         <source>TSP done with result: %s</source>
-        <translation>Результат задачи коммивояжёра: %s</translation>
+        <translation>Результат задачи коммиво�?жёра: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="470"/>
         <source>New Export Order after TSP: %s</source>
-        <translation>Новый порядок экспорта после задачи коммивояжёра: %s</translation>
+        <translation>�?овый пор�?док �?к�?порта по�?ле задачи коммиво�?жёра: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="746"/>
@@ -650,7 +650,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.py" line="567"/>
         <source>&lt;html&gt;&lt;h2&gt;&lt;center&gt;You are using&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;:images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Version:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Last change: %s&lt;br&gt;Changed by: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Where to get help:&lt;/h2&gt;For more information and updates, please visit &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/&apos;&gt;http://sourceforge.net/projects/dxf2gcode/&lt;/a&gt;&lt;br&gt;For any questions on how to use dxf2gcode please use the &lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;mailing list&lt;/a&gt;&lt;br&gt;To log bugs, or request features please use the &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/tickets/&apos;&gt;issue tracking system&lt;/a&gt;&lt;br&gt;&lt;h2&gt;License and copyright:&lt;/h2&gt;&lt;body&gt;This program is written in Python and is published under the &lt;a href=&apos;http://www.gnu.org/licenses/&apos;&gt;GNU GPLv3 license.&lt;/a&gt;&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</source>
-        <translation type="obsolete">&lt;html&gt;&lt;h2&gt;&lt;center&gt;Вы используете&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Версия:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;Последнее изменение: %s&lt;br&gt;Автор изменеия: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Где получить помощь:&lt;/h2&gt;Для дальнейшей информации и обновлений, посетите проект &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/&apos;&gt;http://sourceforge.net/projects/dxf2gcode/&lt;/a&gt;&lt;br&gt;Для любых вопросов по использованию dxf2gcode, используйте &lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;список рассылки&lt;/a&gt;&lt;br&gt;Для сообщения об ошибках или пожеланиях, используйте &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/tickets/&apos;&gt;систему отслеживания проблем&lt;/a&gt;.&lt;br&gt;&lt;h2&gt;Лицензия и авторские права:&lt;/h2&gt;&lt;body&gt;Данная программа написана на языке Python и опубликована на условиях &lt;a href=&apos;http://www.gnu.org/licenses/&apos;&gt;лицензии GNU GPLv3&lt;/a&gt;.&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</translation>
+        <translation type="obsolete">&lt;html&gt;&lt;h2&gt;&lt;center&gt;Вы и�?пользуете&lt;/center&gt;&lt;/h2&gt;&lt;body bgcolor=&lt;center&gt;&lt;img src=&apos;images/dxf2gcode_logo.png&apos; border=&apos;1&apos; color=&apos;white&apos;&gt;&lt;/center&gt;&lt;/body&gt;&lt;h2&gt;Вер�?и�?:&lt;/h2&gt;&lt;body&gt;%s: %s&lt;br&gt;По�?леднее изменение: %s&lt;br&gt;�?втор изменеи�?: %s&lt;br&gt;&lt;/body&gt;&lt;h2&gt;Где получить помощь:&lt;/h2&gt;Дл�? дальнейшей информации и обновлений, по�?етите проект &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/&apos;&gt;http://sourceforge.net/projects/dxf2gcode/&lt;/a&gt;&lt;br&gt;Дл�? любых вопро�?ов по и�?пользованию dxf2gcode, и�?пользуйте &lt;a href=&apos;https://groups.google.com/forum/?fromgroups#!forum/dxf2gcode-users&apos;&gt;�?пи�?ок ра�?�?ылки&lt;/a&gt;&lt;br&gt;Дл�? �?ообщени�? об ошибках или пожелани�?х, и�?пользуйте &lt;a href=&apos;http://sourceforge.net/projects/dxf2gcode/tickets/&apos;&gt;�?и�?тему от�?леживани�? проблем&lt;/a&gt;.&lt;br&gt;&lt;h2&gt;Лицензи�? и автор�?кие права:&lt;/h2&gt;&lt;body&gt;Данна�? программа напи�?ана на �?зыке Python и опубликована на у�?лови�?х &lt;a href=&apos;http://www.gnu.org/licenses/&apos;&gt;лицензии GNU GPLv3&lt;/a&gt;.&lt;br&gt;&lt;/body&gt;&lt;/html&gt;</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="567"/>
@@ -660,7 +660,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.py" line="596"/>
         <source>Contour tolerances</source>
-        <translation>Допуски контура</translation>
+        <translation>Допу�?ки контура</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="598"/>
@@ -675,17 +675,17 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.py" line="603"/>
         <source>set Tolerances</source>
-        <translation>Установить допуски</translation>
+        <translation>У�?тановить допу�?ки</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="615"/>
         <source>Scale Contour</source>
-        <translation>Масштабировать контур</translation>
+        <translation>Ма�?штабировать контур</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="616"/>
         <source>Scale Contour by factor:</source>
-        <translation>Масштабировать контур с коэффициентом:</translation>
+        <translation>Ма�?штабировать контур �? ко�?ффициентом:</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="629"/>
@@ -710,7 +710,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.py" line="706"/>
         <source>No Z-Axis for lathe</source>
-        <translation>Нет Z-оси для токарного станка</translation>
+        <translation>�?ет Z-о�?и дл�? токарного �?танка</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="712"/>
@@ -724,8 +724,8 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     </message>
     <message>
         <location filename="dxf2gcode.py" line="733"/>
-        <source>All supported files (*.dxf *.ps *.pdf *%s);;DXF files (*.dxf);;PS files (*.ps);;PDF files (*.pdf);;Project files (*%s);;All types (*.*)</source>
-        <translation>Все поддерживаемые файлы (*.dxf *.ps *.pdf *%s);;DXF-файлы (*.dxf);;PS-файлы (*.ps);;PDF-файлы (*.pdf);;файлы проекта (*%s);;Все типы (*.*)</translation>
+        <source>All supported files (*.dxf *.DXF *.ps *.PS *.pdf *.PDF *%s);;DXF files (*.dxf *.DXF);;PS files (*.ps *.PS);;PDF files (*.pdf *.PDF);;Project files (*%s);;All types (*.*)</source>
+        <translation>В�?е поддерживаемые файлы (*.dxf *.DXF *.ps *.PS *.pdf *.PDF *%s);;DXF-файлы (*.dxf *.DXF);;PS-файлы (*.ps *.PS);;PDF-файлы (*.pdf *.PDF);;файлы проекта (*%s);;В�?е типы (*.*)</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="755"/>
@@ -750,7 +750,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.py" line="850"/>
         <source>Loaded layers: %s</source>
-        <translation>Загружено слоев: %s</translation>
+        <translation>Загружено �?лоев: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="851"/>
@@ -760,12 +760,12 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.py" line="854"/>
         <source>Block %i includes %i Geometries, reduced to %i Contours, used layers: %s</source>
-        <translation>Блок %i содержит %i геом. форм, уменьшеных до %i контуров, используемые слои: %s</translation>
+        <translation>Блок %i �?одержит %i геом. форм, уменьшеных до %i контуров, и�?пользуемые �?лои: %s</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="858"/>
         <source>Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i</source>
-        <translation>Загружено %i геом. форм; уменьшеных до %i контуров; используемы слои: %s; колечество вставок %i</translation>
+        <translation>Загружено %i геом. форм; уменьшеных до %i контуров; и�?пользуемы �?лои: %s; колече�?тво в�?тавок %i</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="862"/>
@@ -810,7 +810,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode.py" line="1106"/>
         <source>Cannot Save the File</source>
-        <translation>Невозможно сохранить в файл</translation>
+        <translation>�?евозможно �?охранить в файл</translation>
     </message>
     <message>
         <location filename="dxf2gcode.py" line="1111"/>
@@ -990,17 +990,17 @@ returned error code: {1}</source>
     <message>
         <location filename="messagebox.py" line="54"/>
         <source>You are using DXF2GCODE</source>
-        <translation>Вы используете DXF2GCODE</translation>
+        <translation>Вы и�?пользуете DXF2GCODE</translation>
     </message>
     <message>
         <location filename="messagebox.py" line="55"/>
         <source>Version %s (%s)</source>
-        <translation>Версия %s (%s)</translation>
+        <translation>Вер�?и�? %s (%s)</translation>
     </message>
     <message>
         <location filename="messagebox.py" line="56"/>
         <source>For more information and updates visit:</source>
-        <translation>Для дальнейшей информации см.:</translation>
+        <translation>Дл�? дальнейшей информации �?м.:</translation>
     </message>
 </context>
 <context>
@@ -1008,32 +1008,32 @@ returned error code: {1}</source>
     <message>
         <location filename="config.py" line="382"/>
         <source>errors reading %s:</source>
-        <translation>ошибки чтения %s:</translation>
+        <translation>ошибки чтени�? %s:</translation>
     </message>
     <message>
         <location filename="config.py" line="392"/>
         <source>Missing value or section.</source>
-        <translation>Отсутствует значение или раздел.</translation>
+        <translation>От�?ут�?твует значение или раздел.</translation>
     </message>
     <message>
         <location filename="config.py" line="414"/>
         <source>trying to rename bad cfg %s to %s</source>
-        <translation>попытка переименовать ошибочной настройки %s в %s</translation>
+        <translation>попытка переименовать ошибочной на�?тройки %s в %s</translation>
     </message>
     <message>
         <location filename="config.py" line="418"/>
         <source>rename(%s,%s) failed: %s</source>
-        <translation>ошибка переименования rename(%s, %s): %s</translation>
+        <translation>ошибка переименовани�? rename(%s, %s): %s</translation>
     </message>
     <message>
         <location filename="config.py" line="421"/>
         <source>renamed bad varspace %s to &apos;%s&apos;</source>
-        <translation>переименовано ошибочное пространство переменных &apos;%s&apos; в &apos;%s&apos;</translation>
+        <translation>переименовано ошибочное про�?тран�?тво переменных &apos;%s&apos; в &apos;%s&apos;</translation>
     </message>
     <message>
         <location filename="config.py" line="433"/>
         <source>created default varspace &apos;%s&apos;</source>
-        <translation>создано пространство переменных по умолчанию &apos;%s&apos;</translation>
+        <translation>�?оздано про�?тран�?тво переменных по умолчанию &apos;%s&apos;</translation>
     </message>
     <message>
         <location filename="config.py" line="408"/>
@@ -1250,7 +1250,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="config.py" line="467"/>
         <source>Milling</source>
-        <translation>Фрезерная</translation>
+        <translation>Фрезерна�?</translation>
     </message>
     <message>
         <location filename="config.py" line="467"/>
@@ -1418,32 +1418,32 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="canvas.py" line="97"/>
         <source>Set Nearest StartPoint</source>
-        <translation>Установить ближайшую начальную точку</translation>
+        <translation>У�?тановить ближайшую начальную точку</translation>
     </message>
     <message>
         <location filename="canvas.py" line="103"/>
         <source>Cutter Compensation</source>
-        <translation>Компенсация инструмента</translation>
+        <translation>Компен�?аци�? ин�?трумента</translation>
     </message>
     <message>
         <location filename="canvas.py" line="104"/>
         <source>G40 No Compensation</source>
-        <translation>G40 без компенсации</translation>
+        <translation>G40 без компен�?ации</translation>
     </message>
     <message>
         <location filename="canvas.py" line="106"/>
         <source>G41 Left Compensation</source>
-        <translation>G41 компенсация слева</translation>
+        <translation>G41 компен�?аци�? �?лева</translation>
     </message>
     <message>
         <location filename="canvas.py" line="108"/>
         <source>G42 Right Compensation</source>
-        <translation>G42 компенсация справа</translation>
+        <translation>G42 компен�?аци�? �?права</translation>
     </message>
     <message>
         <location filename="canvas.py" line="111"/>
         <source>The selected shapes have the following direction: %i</source>
-        <translation>Направление выбранных форм: %i</translation>
+        <translation>�?аправление выбранных форм: %i</translation>
     </message>
     <message>
         <location filename="canvas.py" line="209"/>
@@ -1453,17 +1453,17 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="canvas.py" line="236"/>
         <source>Changed Cutter Correction to None for shape: %i</source>
-        <translation>Коррекция инструмента отключена для формы №%i</translation>
+        <translation>Коррекци�? ин�?трумента отключена дл�? формы №%i</translation>
     </message>
     <message>
         <location filename="canvas.py" line="246"/>
         <source>Changed Cutter Correction to left for shape: %i</source>
-        <translation>Коррекция инструмента изменена на левую для формы №%i</translation>
+        <translation>Коррекци�? ин�?трумента изменена на левую дл�? формы №%i</translation>
     </message>
     <message>
         <location filename="canvas.py" line="256"/>
         <source>Changed Cutter Correction to right for shape: %i</source>
-        <translation>Коррекция инструмента изменена на правую для формы №%i</translation>
+        <translation>Коррекци�? ин�?трумента изменена на правую дл�? формы №%i</translation>
     </message>
 </context>
 <context>
@@ -1479,7 +1479,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="canvas2d.py" line="242"/>
         <source>Autoscaling to extend: %s</source>
-        <translation>Автомасштабирование до: %s</translation>
+        <translation>�?втома�?штабирование до: %s</translation>
     </message>
 </context>
 <context>
@@ -1487,42 +1487,42 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="postprocessorconfig.py" line="180"/>
         <source>errors reading %s:</source>
-        <translation>ошибки чтения %s:</translation>
+        <translation>ошибки чтени�? %s:</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="189"/>
         <source>Missing value or section.</source>
-        <translation>Отсутствует значение или раздел.</translation>
+        <translation>От�?ут�?твует значение или раздел.</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="193"/>
         <source>syntax errors in postpro_config file</source>
-        <translation>синтаксическая ошибка в фале postpro_config</translation>
+        <translation>�?интак�?иче�?ка�? ошибка в фале postpro_config</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="211"/>
         <source>trying to rename bad cfg %s to %s</source>
-        <translation>попытка переименовать ошибочной настройки %s в %s</translation>
+        <translation>попытка переименовать ошибочной на�?тройки %s в %s</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="215"/>
         <source>rename(%s,%s) failed: %s</source>
-        <translation>ошибка переименования rename(%s, %s): %s</translation>
+        <translation>ошибка переименовани�? rename(%s, %s): %s</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="218"/>
         <source>renamed bad varspace %s to &apos;%s&apos;</source>
-        <translation>переименовано ошибочное пространство переменных &apos;%s&apos; в &apos;%s&apos;</translation>
+        <translation>переименовано ошибочное про�?тран�?тво переменных &apos;%s&apos; в &apos;%s&apos;</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="221"/>
         <source>created default varspace &apos;%s&apos;</source>
-        <translation>создано пространство переменных по умолчанию &apos;%s&apos;</translation>
+        <translation>�?оздано про�?тран�?тво переменных по умолчанию &apos;%s&apos;</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="224"/>
         <source>read existing varspace &apos;%s&apos;</source>
-        <translation>чтение существующего пространства переменных &apos;%s&apos;</translation>
+        <translation>чтение �?уще�?твующего про�?тран�?тва переменных &apos;%s&apos;</translation>
     </message>
     <message>
         <location filename="postprocessorconfig.py" line="205"/>
@@ -1757,32 +1757,32 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="postprocessor.py" line="205"/>
         <source>created default varspace</source>
-        <translation>создано пространство переменных по умолчанию</translation>
+        <translation>�?оздано про�?тран�?тво переменных по умолчанию</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="297"/>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
-        <translation>Количество форм %s, количество форм в траектории %s</translation>
+        <translation>Количе�?тво форм %s, количе�?тво форм в траектории %s</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="331"/>
         <source>Export to STDOUT was successful</source>
-        <translation>Экспорт в стандартный поток вывода STDOUT успешно завершён</translation>
+        <translation>Эк�?порт в �?тандартный поток вывода STDOUT у�?пешно завершён</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="340"/>
         <source>Export to FILE was successful</source>
-        <translation>Экспорт в файл успешно завершён</translation>
+        <translation>Эк�?порт в файл у�?пешно завершён</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="342"/>
         <source>Warning during Export</source>
-        <translation>Предупреждение при экспорте</translation>
+        <translation>Предупреждение при �?к�?порте</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="342"/>
         <source>Cannot Save the File</source>
-        <translation>Невозможно сохранить в файл</translation>
+        <translation>�?евозможно �?охранить в файл</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="422"/>
@@ -1805,12 +1805,12 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="postprocessor.py" line="295"/>
         <source>Beginning export of Layer Nr. %s, Name %s</source>
-        <translation>Начало экспорта слоя № %s с названием %s</translation>
+        <translation>�?ачало �?к�?порта �?ло�? № %s �? названием %s</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="311"/>
         <source>Beginning export of Shape Nr: %s</source>
-        <translation>Начало экспорта формы № %s</translation>
+        <translation>�?ачало �?к�?порта формы № %s</translation>
     </message>
     <message>
         <location filename="postprocessor.py" line="82"/>
@@ -1829,7 +1829,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="popupdialog.py" line="99"/>
         <source>Auto</source>
-        <translation>Автоматически</translation>
+        <translation>�?втоматиче�?ки</translation>
     </message>
     <message>
         <location filename="popupdialog.py" line="100"/>
@@ -1863,7 +1863,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="importer.py" line="79"/>
         <source>Reading DXF Structure</source>
-        <translation>Чтение структуры DXF</translation>
+        <translation>Чтение �?труктуры DXF</translation>
     </message>
     <message>
         <location filename="importer.py" line="94"/>
@@ -1883,23 +1883,23 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <location filename="importer.py" line="478"/>
         <source>Short Elements</source>
-        <translation>Короткие элементы</translation>
+        <translation>Короткие �?лементы</translation>
     </message>
     <message>
         <location filename="importer.py" line="478"/>
         <source>Length of some Elements too short!
 Length must be greater than tolerance.
 Skipped Geometries</source>
-        <translation>Слишком короткая длина некоторых элементов!
-Длина должна быть больше допуска.
+        <translation>Слишком коротка�? длина некоторых �?лементов!
+Длина должна быть больше допу�?ка.
 Пропущенные геом. формы</translation>
     </message>
     <message>
         <location filename="importer.py" line="186"/>
         <source>Reading stopped at line %i.
  &quot;%s&quot; is not a valid code (number) - please, check/correct dxf file</source>
-        <translation>Ошибка при чтении линии на строке %i.
- Проверьте и исправьте соответствующую строку в DXF-файле.</translation>
+        <translation>Ошибка при чтении линии на �?троке %i.
+ Проверьте и и�?правьте �?оответ�?твующую �?троку в DXF-файле.</translation>
     </message>
     <message>
         <location filename="importer.py" line="191"/>
@@ -1912,22 +1912,22 @@ Skipped Geometries</source>
     <message>
         <location filename="configobj.py" line="601"/>
         <source>The key &quot;%s&quot; is not a string.</source>
-        <translation type="obsolete">Ключ &quot;%s&quot; не является строкой.</translation>
+        <translation type="obsolete">Ключ &quot;%s&quot; не �?вл�?ет�?�? �?трокой.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="642"/>
         <source>Value is not a string &quot;%s&quot;.</source>
-        <translation type="obsolete">Значение &quot;%s&quot; не является строкой.</translation>
+        <translation type="obsolete">Значение &quot;%s&quot; не �?вл�?ет�?�? �?трокой.</translation>
     </message>
     <message>
         <location filename="configobj.py" line="693"/>
         <source>: &apos;popitem(): dictionary is empty&apos;</source>
-        <translation type="obsolete">: &apos;popitem(): словарь пуст&apos;</translation>
+        <translation type="obsolete">: &apos;popitem(): �?ловарь пу�?т&apos;</translation>
     </message>
     <message>
         <location filename="configobj.py" line="986"/>
         <source>Value &quot;%s&quot; is neither True nor False</source>
-        <translation type="obsolete">Значение &quot;%s&quot; не является истиной (true) или ложью (false)</translation>
+        <translation type="obsolete">Значение &quot;%s&quot; не �?вл�?ет�?�? и�?тиной (true) или ложью (false)</translation>
     </message>
 </context>
 <context>
@@ -1940,7 +1940,7 @@ Skipped Geometries</source>
     <message>
         <location filename="shape.py" line="176"/>
         <source>Analysing the shape for CW direction Nr: %s</source>
-        <translation>Анализ формы по направлению часовой стрелки №%s</translation>
+        <translation>�?нализ формы по направлению ча�?овой �?трелки №%s</translation>
     </message>
     <message>
         <location filename="shape.py" line="296"/>
@@ -1950,27 +1950,27 @@ Skipped Geometries</source>
     <message>
         <location filename="shape.py" line="186"/>
         <source>Clicked Point: %s</source>
-        <translation>Указанная точка: %s</translation>
+        <translation>Указанна�? точка: %s</translation>
     </message>
     <message>
         <location filename="shape.py" line="188"/>
         <source>Old Start Point: %s</source>
-        <translation>Прежняя начальная точка: %s</translation>
+        <translation>Прежн�?�? начальна�? точка: %s</translation>
     </message>
     <message>
         <location filename="shape.py" line="198"/>
         <source>New Start Point: %s</source>
-        <translation>Новая начальная точка: %s</translation>
+        <translation>�?ова�? начальна�? точка: %s</translation>
     </message>
     <message>
         <location filename="shape.py" line="369"/>
         <source>ERROR: Z infeed depth is null!</source>
-        <translation>ОШИБКА: отстутствует глубина подачи Z!</translation>
+        <translation>ОШИБК�?: от�?тут�?твует глубина подачи Z!</translation>
     </message>
     <message>
         <location filename="shape.py" line="372"/>
         <source>WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth.</source>
-        <translation>ВНИМАНИЕ: начальная глубина фрезерования (%i) меньше чем конечная (%i). Будет использоватся конечная глубина как финальная.</translation>
+        <translation>В�?ИМ�?�?ИЕ: начальна�? глубина фрезеровани�? (%i) меньше чем конечна�? (%i). Будет и�?пользоват�?�? конечна�? глубина как финальна�?.</translation>
     </message>
 </context>
 <context>
@@ -2021,12 +2021,12 @@ Skipped Geometries</source>
     <message>
         <location filename="validate.py" line="642"/>
         <source>Bad syntax in check &quot;%s&quot;.</source>
-        <translation type="obsolete">Ошибка синтаксиса при проверке &quot;%s&quot;.</translation>
+        <translation type="obsolete">Ошибка �?интак�?и�?а при проверке &quot;%s&quot;.</translation>
     </message>
     <message>
         <location filename="validate.py" line="723"/>
         <source>Check &quot;%s&quot; has no default value.</source>
-        <translation type="obsolete">Проверка &quot;%s&quot; не имеет значения по умолчанию.</translation>
+        <translation type="obsolete">Проверка &quot;%s&quot; не имеет значени�? по умолчанию.</translation>
     </message>
 </context>
 </TS>
