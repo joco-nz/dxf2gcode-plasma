@@ -101,9 +101,13 @@ class offShapeClass(Shape):
             # Make Raw offset curve of forward and backward segment
             fw_rawoff_seg = self.make_rawoff_seg(self.segments[forward])
             bw_rawoff_seg = self.make_rawoff_seg(self.segments[backward])
+            
+            logger.debug(fw_rawoff_seg)
+            logger.debug(bw_rawoff_seg)
 
             # Intersect the two segements
             iPoint = fw_rawoff_seg.find_inter_point(bw_rawoff_seg, typ="TIP")
+
 
             if iPoint is None:
                 logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
@@ -112,9 +116,18 @@ class offShapeClass(Shape):
                     forward, backward, iPoint))
                 logger.error("No intersection found?!")
                 self.segments = []
-                # raise Exception("No intersection found?!")
-
-                break
+                #break
+            
+            if isinstance(iPoint,list):
+                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
+                             (fw_rawoff_seg, bw_rawoff_seg))
+                logger.debug("forward: %s, backward: %s, iPoint: %s" % (
+                    forward, backward, iPoint))
+                logger.debug(iPoint[0])
+                logger.debug(iPoint[1])
+                logger.warning("Found more then one intersection points?! Using first one")
+                iPoint=iPoint[0]
+                
 
             # Reomve the LIR from the PS Curce
             self.remove_LIR(forward, backward, iPoint)
@@ -299,17 +312,17 @@ class offShapeClass(Shape):
             Ps = seg.Ps + seg.start_normal * offset
             Pe = seg.Pe + seg.end_normal * offset
 
-            logger.debug(seg.Ps)
-            logger.debug(seg.Pe)
-            logger.debug(seg.start_normal)
-            logger.debug(seg.end_normal)                         
+            #logger.debug(seg.Ps)
+            #logger.debug(seg.Pe)
+            #logger.debug(seg.start_normal)
+            #logger.debug(seg.end_normal)                         
 
             if seg.ext > 0:
                 return OffArcGeo(Ps=Ps, Pe=Pe, O=seg.O,
                                  r=seg.r + offset, direction=seg.ext)
             else:
                 return OffArcGeo(Ps=Ps, Pe=Pe, O=seg.O,
-                                 r=seg.r - offset, direction=seg.ext)
+                                 r=seg.r - offset, direction=seg.ext)    
 
         elif isinstance(seg, ConvexPoint):
             Ps = seg + seg.start_normal * offset
