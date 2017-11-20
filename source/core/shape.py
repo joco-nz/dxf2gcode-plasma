@@ -588,7 +588,7 @@ class Shape(object):
             if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
                 joined_geos = geo1.join_colinear_line(geo2)
 
-                # If they are joind replace firste item by joined and remove
+                # If they are joined replace first item by joined and remove
                 # last one
                 if len(joined_geos) == 1:
                     new_geos[0] = joined_geos[0]
