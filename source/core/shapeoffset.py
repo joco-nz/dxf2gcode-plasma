@@ -40,7 +40,7 @@ from core.shape import Shape
 
 logger = logging.getLogger('core.shapeoffset')
 
-eps = 1e-9
+eps = 1e-8
 
 
 class offShapeClass(Shape):
@@ -66,6 +66,8 @@ class offShapeClass(Shape):
         super(offShapeClass, self).__init__(nr=parent.nr,
                                             closed=parent.closed,
                                             geos=[])
+        
+        logger.debug("The shape is: %s" %(self.closed))
 
         self.offset = offset
         self.offtype = offtype
@@ -102,27 +104,26 @@ class offShapeClass(Shape):
             fw_rawoff_seg = self.make_rawoff_seg(self.segments[forward])
             bw_rawoff_seg = self.make_rawoff_seg(self.segments[backward])
             
-            logger.debug(fw_rawoff_seg)
-            logger.debug(bw_rawoff_seg)
-
             # Intersect the two segements
             iPoint = fw_rawoff_seg.find_inter_point(bw_rawoff_seg, typ="TIP")
 
 
             if iPoint is None:
-                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
-                             (fw_rawoff_seg, bw_rawoff_seg))
                 logger.debug("forward: %s, backward: %s, iPoint: %s" % (
                     forward, backward, iPoint))
-                logger.error("No intersection found?!")
+                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
+                             (fw_rawoff_seg, bw_rawoff_seg))
+
+
+                logger.warning("No intersection found?!")
                 self.segments = []
-                #break
+                return
             
             if isinstance(iPoint,list):
-                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
-                             (fw_rawoff_seg, bw_rawoff_seg))
                 logger.debug("forward: %s, backward: %s, iPoint: %s" % (
                     forward, backward, iPoint))
+                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
+                             (fw_rawoff_seg, bw_rawoff_seg))
                 logger.debug(iPoint[0])
                 logger.debug(iPoint[1])
                 logger.warning("Found more then one intersection points?! Using first one")
@@ -1063,6 +1064,7 @@ class OffArcGeo(ArcGeo):
             Pi1 = Point(x=self.Ps.x, y=self.Ps.y)
             Pi2 = Point(x=self.Pe.x, y=self.Pe.y)
 
+            logger.debug("Both circels have the same center and radius")
             return [Pi1, Pi2]
         # The following algorithm was found on :
         # http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
@@ -1109,6 +1111,7 @@ class OffArcGeo(ArcGeo):
                     return Pi1
                 else:
                     return [Pi1, Pi2]
+                logger.debug("2 Solutions found for TIP")
             elif (Pi1_v1 >= 0.0 and Pi1_v1 <= 1.0 and
                   Pi1_v2 > 0.0 and Pi1_v2 <= 1.0):
                 return Pi1
@@ -1835,7 +1838,14 @@ class OffLineGeo(LineGeo):
         @param other: a second line
         @return: Return one or two lines
         """
-        if self.colinearconnected(other)or self.colinearoverlapping(other):
+        if self.colinearconnected(other):
+            return [OffLineGeo(self.Ps, other.Pe)]
+        
+        """
+        FIXME: This is not working as expected, maybe change to a function going 
+        for max distance between points. min max is comparing to 0?.
+        """
+        elif self.colinearoverlapping(other):
             if self.Ps < self.Pe:
                 newPs = min(self.Ps, other.Ps, other.Pe)
                 newPe = max(self.Pe, other.Ps, other.Pe)
