@@ -1841,10 +1841,10 @@ class OffLineGeo(LineGeo):
         if self.colinearconnected(other):
             return [OffLineGeo(self.Ps, other.Pe)]
         
-        """
-        FIXME: This is not working as expected, maybe change to a function going 
-        for max distance between points. min max is comparing to 0?.
-        """
+            """
+            FIXME: This is not working as expected, maybe change to a function going 
+            for max distance between points. min max is comparing to 0?.
+            """
         elif self.colinearoverlapping(other):
             if self.Ps < self.Pe:
                 newPs = min(self.Ps, other.Ps, other.Pe)
