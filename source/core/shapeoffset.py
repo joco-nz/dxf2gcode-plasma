@@ -41,6 +41,8 @@ from core.shape import Shape
 logger = logging.getLogger('core.shapeoffset')
 
 eps = 1e-8
+min_length=0.01
+
 
 
 class offShapeClass(Shape):
@@ -141,8 +143,9 @@ class offShapeClass(Shape):
         for seg in self.segments:
             self.rawoff += [self.make_rawoff_seg(seg)]
 
-        
-        SweepLine(geos=self.rawoff, closed=self.closed)
+
+        self.postprocessing()
+        #SweepLine(geos=self.rawoff, closed=self.closed)
 
     def __str__(self):
         """
@@ -195,6 +198,18 @@ class offShapeClass(Shape):
 
         self.make_shape_ccw()
         self.join_colinear_lines()
+        
+    def geos_postprocessing(self, min_length):
+        """
+        Do all the postprocessing required in order to have working sweepline
+         algorithm.
+        @param min_length: The min_length must be bigger ghen eps, otherwise 
+        potential errors may occure.
+        """
+        #FIXME
+        pass
+        
+        
 
     def make_segment_types(self):
         """
