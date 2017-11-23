@@ -67,7 +67,7 @@ class offShapeClass(Shape):
                                             closed=parent.closed,
                                             geos=[])
         
-        logger.debug("The shape is: %s" %(self.closed))
+        logger.debug("The shape is: %s" % (self.closed))
 
         self.offset = offset
         self.offtype = offtype
@@ -111,7 +111,7 @@ class offShapeClass(Shape):
             if iPoint is None:
                 logger.debug("forward: %s, backward: %s, iPoint: %s" % (
                     forward, backward, iPoint))
-                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
+                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" % 
                              (fw_rawoff_seg, bw_rawoff_seg))
 
 
@@ -119,15 +119,15 @@ class offShapeClass(Shape):
                 self.segments = []
                 return
             
-            if isinstance(iPoint,list):
+            if isinstance(iPoint, list):
                 logger.debug("forward: %s, backward: %s, iPoint: %s" % (
                     forward, backward, iPoint))
-                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" %
+                logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" % 
                              (fw_rawoff_seg, bw_rawoff_seg))
                 logger.debug(iPoint[0])
                 logger.debug(iPoint[1])
                 logger.warning("Found more then one intersection points?! Using first one")
-                iPoint=iPoint[0]
+                iPoint = iPoint[0]
                 
 
             # Reomve the LIR from the PS Curce
@@ -141,18 +141,21 @@ class offShapeClass(Shape):
         for seg in self.segments:
             self.rawoff += [self.make_rawoff_seg(seg)]
 
+        
+        SweepLine(geos=self.rawoff, closed=self.closed)
+
     def __str__(self):
         """
         Standard method to print the object
         @return: A string
         """
 
-        return "\nnr:          %i" % self.nr +\
-               "\nclosed:      %s" % self.closed +\
-               "\ngeos:        %s" % self.geos +\
-               "\nofftype:     %s" % self.offtype +\
-               "\noffset:      %s" % self.offset +\
-               "\nsegments:    %s" % self.segments +\
+        return "\nnr:          %i" % self.nr + \
+               "\nclosed:      %s" % self.closed + \
+               "\ngeos:        %s" % self.geos + \
+               "\nofftype:     %s" % self.offtype + \
+               "\noffset:      %s" % self.offset + \
+               "\nsegments:    %s" % self.segments + \
                "\nrawoff       %s" % self.rawoff
 
     def geos_preprocessing(self, parent):
@@ -258,11 +261,11 @@ class offShapeClass(Shape):
                 geo2 = newgeo2
 
             if (((geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                              geo1.Pe + geo1.end_normal +
+                              geo1.Pe + geo1.end_normal + 
                               geo2.start_normal) == 1) and
                  self.offtype == "in") or
                 (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                             geo1.Pe + geo1.end_normal +
+                             geo1.Pe + geo1.end_normal + 
                              geo2.start_normal) == -1 and
                  self.offtype == "out")):
 
@@ -272,7 +275,7 @@ class offShapeClass(Shape):
                 self.segments += [reflexPe, geo2]
                 
             elif (geo1.Pe.ccw(geo1.Pe + geo1.end_normal,
-                              geo1.Pe + geo1.end_normal +
+                              geo1.Pe + geo1.end_normal + 
                               geo2.start_normal) == 0):
                 self.segments += [geo2]
 
@@ -313,10 +316,10 @@ class offShapeClass(Shape):
             Ps = seg.Ps + seg.start_normal * offset
             Pe = seg.Pe + seg.end_normal * offset
 
-            #logger.debug(seg.Ps)
-            #logger.debug(seg.Pe)
-            #logger.debug(seg.start_normal)
-            #logger.debug(seg.end_normal)                         
+            # logger.debug(seg.Ps)
+            # logger.debug(seg.Pe)
+            # logger.debug(seg.start_normal)
+            # logger.debug(seg.end_normal)                         
 
             if seg.ext > 0:
                 return OffArcGeo(Ps=Ps, Pe=Pe, O=seg.O,
@@ -410,7 +413,7 @@ class offShapeClass(Shape):
             logger.debug("Should not be here")
             logger.debug(segment1)
             return False
-            #offGeo = self.make_rawoff_seg(segment1)
+            # offGeo = self.make_rawoff_seg(segment1)
             
         else:
             offGeo = self.make_rawoff_seg(segment1)
@@ -617,17 +620,24 @@ class SweepLine:
         """
         The init function of the SweepLine Class. It is calling a sweep line
         algorithm in order to find all intersection of the given geometries
-        @param geos: A list if with geometries in their ordered structure.
+        @param geos: A list with geometries in their ordered structure.
         @param closed: If the geometries are closed (Polyline or Polygon)
         """
 
         self.geos = []
+        self.found =[]
         self.closed = closed
 
         self.sweep_array = []
         self.intersections = []
 
         self.add_to_sweep_array(geos, self.closed)
+        #logger.debug("Sweep Array created")
+        self.search_intersections()
+        
+        logger.debug(self.found)
+        for ele in self.found:
+            logger.debug(ele)
 
     def __str__(self):
         """
@@ -666,6 +676,7 @@ class SweepLine:
         @param: the geometries to be added
         @param: if these geometries are closed shape or not
         """
+        from functools import cmp_to_key
 
         sweep_array = []
         self.geos += geos
@@ -699,13 +710,12 @@ class SweepLine:
                              add=[],
                              remove=[geo]))
 
-        # logger.debug(sweep_array)
-        sweep_array.sort(self.cmp_SweepElement)
+        sweep_array.sort(key=cmp_to_key(self.cmp_SweepElement))
 
         # Remove all Points which are there twice
         self.sweep_array = [sweep_array[0]]
         for ele_nr in range(1, len(sweep_array)):
-            if abs(self.sweep_array[-1].Point.x -
+            if abs(self.sweep_array[-1].Point.x - 
                    sweep_array[ele_nr].Point.x) < eps:
                 self.sweep_array[-1].add += sweep_array[ele_nr].add
                 self.sweep_array[-1].remove += sweep_array[ele_nr].remove
@@ -792,22 +802,22 @@ class SweepLine:
         This instance is called to search all intersection
         points between the Elements defined in geos
         """
+        from functools import cmp_to_key
+        
         search_array = []
         self.found = []
         ele_nr = 0
 
         while ele_nr < len(self.sweep_array):
             ele = self.sweep_array[ele_nr]
-            # logger.debug(ele)
             ele_nr += 1
+            #logger.debug(ele.add)
 
             for geo in ele.add:
                 search_array.append(geo)
-                search_array.sort(self.cmp_SweepElementy)
+                search_array.sort(key=cmp_to_key(self.cmp_SweepElementy))
                 index = search_array.index(geo)
-                # logger.debug("add_index: %s" %index)
-                # logger.debug(index)
-                # logger.debug(geo)
+
                 if len(search_array) >= 2:
                     if index > 0:
                         self.search_geo_intersection(
@@ -817,46 +827,52 @@ class SweepLine:
                         self.search_geo_intersection(
                             geo, search_array[index + 1])
 
-            for geo in ele.swoop:
-                # The y values of the elements are exchanged and the upper and
-                # lower neighbors are checked for intersections
-                # logger.debug(geo[0].Point)
-                # logger.debug(geo[1].Point)
-                # logger.debug(search_array)
-
-                y0 = geo[0].Point.y
-                y1 = geo[1].Point.y
-
-                geo[1].Point.y = y0
-                geo[0].Point.y = y1
-
-                # logger.debug(geo[0].Point)
-                # logger.debug(geo[1].Point)
-                # logger.debug(search_array)
-
-                index0 = search_array.index(geo[0])
-                index1 = search_array.index(geo[1])
-                # logger.debug("Pre sort index: %s, %s" %(index0,index1))
-
-                search_array.sort(self.cmp_SweepElementy)
-
-                index0 = search_array.index(geo[0])
-                index1 = search_array.index(geo[1])
-                # logger.debug("Post sort index: %s, %s" %(index0,index1))
-
-                min_ind = min(index0, index1)
-                max_ind = max(index0, index1)
-                if min_ind > 0:
-                    self.search_geo_intersection(
-                        search_array[min_ind], search_array[min_ind - 1])
-
-                if max_ind < (len(search_array) - 1):
-                    self.search_geo_intersection(
-                        search_array[max_ind], search_array[max_ind + 1])
+            #logger.debug(ele.swoop)
+#             for geo in ele.swoop:
+#                 # The y values of the elements are exchanged and the upper and
+#                 # lower neighbors are checked for intersections
+#                 
+#                 logger.debug(geo)
+#                 #logger.debug(geo[0])
+#                 #logger.debug(geo[1])
+# 
+#                 y0 = geo[0].Point.y
+#                 y1 = geo[1].Point.y
+#                 
+#                 logger.debug("geht1")
+# 
+#                 geo[1].Point.y = y0
+#                 geo[0].Point.y = y1
+#                 
+#                 logger.debug("geht2")
+# 
+# 
+#                 logger.debug(search_array)
+#                 logger.debug(geo[0])
+#                 index0 = search_array.index(geo[0])
+#                 index1 = search_array.index(geo[1])
+#                 logger.debug("Pre sort index: %s, %s" %(index0,index1))
+# 
+#                 search_array.sort(key=cmp_to_key(self.cmp_SweepElementy))
+# 
+#                 index0 = search_array.index(geo[0])
+#                 index1 = search_array.index(geo[1])
+#                 logger.debug("Post sort index: %s, %s" %(index0,index1))
+# 
+#                 min_ind = min(index0, index1)
+#                 max_ind = max(index0, index1)
+#                 if min_ind > 0:
+#                     self.search_geo_intersection(
+#                         search_array[min_ind], search_array[min_ind - 1])
+#                     
+# 
+#                 if max_ind < (len(search_array) - 1):
+#                     self.search_geo_intersection(
+#                         search_array[max_ind], search_array[max_ind + 1])
 
             for geo in ele.remove:
                 index = search_array.index(geo)
-                # logger.debug("remove_index: %s" %index)
+                #logger.debug("remove_index: %s" %index)
 
                 search_array.pop(index)
                 if len(search_array) >= 2:
@@ -864,25 +880,36 @@ class SweepLine:
                         self.search_geo_intersection(
                             search_array[index - 1], search_array[index])
 
-        logger.debug(self.found)
-
     def search_geo_intersection(self, geo1, geo2):
         """
         This function is called so search the intersections and to add
         the intersection point to the sweep array. This is called during
         each search
         """
-        # logger.debug(search_array[index+1])
-        # logger.debug("geo1: %s\ngeo2: %s" %(geo1,geo2))
+        from functools import cmp_to_key
+        #logger.debug("geo1: %s\ngeo2: %s" %(geo1,geo2))
+        #logger.debug(geo1.neighbors)
         iPoint = (geo1.find_inter_point(geo2))
+        
 
         if (not(iPoint is None) and
                 not(geo2 in geo1.neighbors)):
+            
+            if isinstance(iPoint,list):
+                #FIXME
+                logger.error("More the none iPoint")
+            else:
+                iPoint = IntPoint(Point=iPoint, geo1=geo1, geo2=geo2)
+                
+#             logger.debug(iPoint)
+#             logger.debug([geo2])
+#             logger.debug(geo1.neighbors[0])
+#             logger.debug(geo1.neighbors[1])
+#             logger.debug(geo2)
 
-            iPoint.geo = [geo1, geo2]
 
             # if there is only one instersection
-            if isinstance(iPoint, Point):
+            if isinstance(iPoint, IntPoint):
                 self.found.append(iPoint)
                 geo1.iPoints += [iPoint]
                 geo2.iPoints += [iPoint]
@@ -908,9 +935,7 @@ class SweepLine:
                                  remove=[],
                                  swoop=[[geo1, geo2]]))
 
-            self.sweep_array.sort(self.cmp_SweepElement)
-            # logger.debug(self)
-
+            self.sweep_array.sort(key=cmp_to_key(self.cmp_SweepElement))
 
 class SweepElement:
 
@@ -1069,7 +1094,7 @@ class OffArcGeo(ArcGeo):
         # The following algorithm was found on :
         # http://www.sonoma.edu/users/w/wilsonst/Papers/Geometry/circles/default.htm
 
-        root = ((pow(self.r + other.r, 2) - pow(O_dis, 2)) *
+        root = ((pow(self.r + other.r, 2) - pow(O_dis, 2)) * 
                 (pow(O_dis, 2) - pow(other.r - self.r, 2)))
 
         # If the Line is a tangent the root is 0.0.
@@ -1086,17 +1111,17 @@ class OffArcGeo(ArcGeo):
             (other.O.y - self.O.y) * \
             (pow(self.r, 2) - pow(other.r, 2)) / (2 * pow(O_dis, 2))
 
-        Pi1 = Point(x=xbase + (other.O.y - self.O.y) /
+        Pi1 = Point(x=xbase + (other.O.y - self.O.y) / 
                     (2 * pow(O_dis, 2)) * root,
-                    y=ybase - (other.O.x - self.O.x) /
+                    y=ybase - (other.O.x - self.O.x) / 
                     (2 * pow(O_dis, 2)) * root)
 
         Pi1_v1 = self.dif_ang(self.Ps, Pi1, self.ext) / self.ext
         Pi1_v2 = other.dif_ang(other.Ps, Pi1, other.ext) / other.ext
 
-        Pi2 = Point(x=xbase - (other.O.y - self.O.y) /
+        Pi2 = Point(x=xbase - (other.O.y - self.O.y) / 
                     (2 * pow(O_dis, 2)) * root,
-                    y=ybase + (other.O.x - self.O.x) /
+                    y=ybase + (other.O.x - self.O.x) / 
                     (2 * pow(O_dis, 2)) * root)
 
         Pi2_v1 = self.dif_ang(self.Ps, Pi2, self.ext) / self.ext
@@ -1325,7 +1350,7 @@ class OffArcGeo(ArcGeo):
                 # new_arc.end_normal = self.end_normal
                 # new_arc.start_normal = new_normal
 
-                new_arc.end_normal =  new_normal
+                new_arc.end_normal = new_normal
                 new_arc.start_normal = self.start_normal
             # logger.debug(new_arc)
             return new_arc
@@ -1886,7 +1911,7 @@ class OffLineGeo(LineGeo):
         lam = ((unit_vector.x * (other.x - self.Ps.x))
                + (unit_vector.y * (other.y - self.Ps.y)))
         return Point(x=(unit_vector.x * lam) + self.Ps.x,
-                     y = (unit_vector.y * lam) + self.Ps.y)
+                     y=(unit_vector.y * lam) + self.Ps.y)
 
     def split_into_2geos(self, ipoint=Point()):
         """
@@ -1935,13 +1960,12 @@ class OffPoint(Point):
 
     """
     Inherited Class for Shapeoffset only. All related offset functions are
-    concentrated here in orde to keep base classes as clean as possible.
+    concentrated here in order to keep base classes as clean as possible.
     """
 
     def __init__(self, x=0, y=0, **kwargs):
 
         if ("geo" in kwargs) and ("parent" in kwargs):
-            logger.debug("Alles da")
 
             geo = kwargs["geo"]
             parent = kwargs["parent"]
@@ -1966,3 +1990,26 @@ class ConvexPoint(OffPoint):
     def __str__(self):
         return 'X ->%6.3f  Y ->%6.3f' % (self.x, self.y)
         # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
+
+class IntPoint(Point):
+    """
+    Inherited Class of Point
+    """
+    def __init__(self, x=0, y=0, geo1=None, geo2=None, **kwargs):
+
+        self.x = x
+        self.y = y
+        self.geo1 = geo1
+        self.geo2 = geo2
+
+        if ("Point" in kwargs):
+            Point = kwargs["Point"]
+            self.x = Point.x
+            self.y = Point.y
+        
+
+        
+#     def __str__(self):
+#         return 'X ->%6.3f  Y ->%6.3f \ngeo1: %s, \ngeo2:%s' % (self.x, self.y, self.geo1, self.geo2)
+        # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,
+        
