@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 """
 Generates the python file based on the defined uifile
@@ -12,6 +12,23 @@ import tempfile
 from globals.six import PY2
 import globals.constants as c
 
+def which(program):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
 if len(sys.argv) > 1:
     try:
         pyQtVer = sys.argv[1]
@@ -24,11 +41,37 @@ else:
     else:
         pyQtVer = '4'
 
-if "linux" in sys.platform.lower() or "unix" in sys.platform.lower():
-    #On Linux, the executable are normaly on the PATH (just install packages like lib64-qt4-devel and python-qt4-devel)
-    UICPATH = "pyuic%s" % pyQtVer
+if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin" in sys.platform.lower():
+    #On Linux and macOS executables are normaly on the PATH (on Linux please install packages like lib64-qt5-devel and python-qt5-devel)
+    names = ["pyuic%s" % pyQtVer]
+    UICPATH = None
+
+    for name in names:
+        if which(name):
+            UICPATH = name
+            break
+
+    if not UICPATH:
+        print("ERROR: Cannot file uic tool.")
+        print("Please consider to install uic tool - to use this script.")
+        sys.exit(1)
+
+    names = ["pyrcc%s" % pyQtVer]
+    RCCPATH = None
+
+    for name in names:
+        if which(name):
+            RCCPATH = name
+            break
+
+    if not UICPATH:
+        print("ERROR: Cannot file rcc tool.")
+        print("Please consider to install rcc tool - to use this script.")
+        sys.exit(1)
+
     RCCPATH = "pyrcc%s" % pyQtVer
-    print("Using Linux platform tools \"%s\" and \"%s\"\n" % (UICPATH, RCCPATH))
+
+    print("Using platform tools \"%s\" and \"%s\"\n" % (UICPATH, RCCPATH))
 else:
     PYTHONPATH = os.path.split(sys.executable)[0]
     UICPATH = os.path.join(PYTHONPATH, "scripts/pyuic%s.exe" % (pyQtVer))
