@@ -369,6 +369,9 @@ class MyConfig(object):
 
     def load_config(self):
         """Load Config File"""
+        
+        logger.info(self.filename)
+        
         if os.path.isfile(self.filename):
             try:
                 # file exists, read & validate it

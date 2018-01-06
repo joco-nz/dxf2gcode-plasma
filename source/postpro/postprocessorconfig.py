@@ -44,7 +44,7 @@ else:
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig")
 
-POSTPRO_VERSION = "6"
+POSTPRO_VERSION = "7"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -80,6 +80,8 @@ POSTPRO_SPEC = str('''
     export_ccw_arcs_only = boolean(default=False)
     # If an arc's radius exceeds this value, then it will be exported as a line.
     max_arc_radius = float(min = 0, default=10000)
+    # Set this to true if you want to export als arcs as line segment
+    export_arcs_as_lines = boolean(default=False)
 
     code_begin_units_mm = string(default="G21 (Units in millimeters)")
     code_begin_units_in = string(default="G20 (Units in inches)")
@@ -304,6 +306,7 @@ class MyPostProConfig(object):
                 ('cc_outside_the_piece', CfgCheckBox(MyPostProConfig.tr('Perform cutter compensation outside the piece'))),
                 ('export_ccw_arcs_only', CfgCheckBox(MyPostProConfig.tr('Export only counter clockwise arcs'))),
                 ('max_arc_radius', CfgDoubleSpinBox(MyPostProConfig.tr('Maximum arc radius:'))),
+                ('export_arcs_as_lines', CfgCheckBox(MyPostProConfig.tr('Export all arcs as line seg'))),
                 ('__subtitle3__', CfgSubtitle(MyPostProConfig.tr("G-code constants"))),
                 ('code_begin_units_mm', CfgLineEdit(MyPostProConfig.tr('Units in millimeters:'))),
                 ('code_begin_units_in', CfgLineEdit(MyPostProConfig.tr('Units in inch:'))),
