@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -8,13 +8,30 @@ Generates the tr file based on the defined PyQt Project File
 import os, sys
 import subprocess
 
-if "linux" in sys.platform.lower() or "unix" in sys.platform.lower():
-    #On Linux, the executable are normaly on the PATH (just install which contains those executables)
-    PLYPATH = "pylupdate5"
+def which(program):
+    import os
+    def is_exe(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
+if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin" in sys.platform.lower():
+    #On Linux, the executable are normaly on the PATH
     LREPATH = None
-    names = ["/usr/bin/lrelease-qt5", "/usr/bin/lrelease5", "/usr/bin/lrelease"]
+    names = ["lrelease-qt5", "lrelease5", "lrelease"]
     for name in names:
-        if os.path.exists(name):
+        if which(name):
             LREPATH = name
             break
 
@@ -23,7 +40,19 @@ if "linux" in sys.platform.lower() or "unix" in sys.platform.lower():
         print("Please consider to install lrelease tool - to use this script.")
         sys.exit(1)
 
-    print("Using Linux platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
+    PLYPATH = None
+    names = ["pylupdate5", "lupdate5", "lupdate"]
+    for name in names:
+        if which(name):
+            PLYPATH = name
+            break
+
+    if not PLYPATH:
+        print("ERROR: Cannot file pylupdate5 tool.")
+        print("Please consider to install lupdate tool - to use this script.")
+        sys.exit(1)
+
+    print("Using platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
 else:
     PYTHONPATH = os.path.split(sys.executable)[0]
     # To get pylupdate5.exe use: pip3.exe install PyQt5
