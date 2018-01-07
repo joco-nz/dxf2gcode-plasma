@@ -69,7 +69,7 @@ class offShapeClass(Shape):
                                             closed=parent.closed,
                                             geos=[])
         
-        logger.debug("The shape is: %s" % (self.closed))
+        #logger.debug("The shape is: %s" % (self.closed))
 
         self.offset = offset
         self.offtype = offtype
@@ -144,7 +144,7 @@ class offShapeClass(Shape):
             self.rawoff += [self.make_rawoff_seg(seg)]
 
 
-        self.postprocessing()
+        self.geos_postprocessing(eps*5)
         #SweepLine(geos=self.rawoff, closed=self.closed)
 
     def __str__(self):
