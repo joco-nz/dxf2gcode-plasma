@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 ############################################################################
@@ -120,6 +120,10 @@ class MainWindow(QMainWindow):
 
         self.TreeHandler = TreeHandler(self.ui)
         self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
+
+        if sys.version_info[0] == 2:
+            error_message = QMessageBox(QMessageBox.Critical, 'ERROR', self.tr("Python version 2 is not supported, please use it with python version 3."));
+            sys.exit(error_message.exec_())
 
         #Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
