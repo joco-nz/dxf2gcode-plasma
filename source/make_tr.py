@@ -100,9 +100,12 @@ for TSFILE in TSFILES:
 
 OPTIONS = "-ts"
 
-cmd1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
-print(cmd1)
-print(subprocess.call(cmd1, shell=True))
+if len(sys.argv) >= 2 and sys.argv[1] == '--no-pylupdate':
+    print("skipping pylupdate")
+else:
+    cmd1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
+    print(cmd1)
+    print(subprocess.call(cmd1, shell=True))
 
 cmd2 = ("%s %s\n" % (LREPATH, TSFILESTR))
 print(cmd2)
