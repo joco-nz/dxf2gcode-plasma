@@ -30,22 +30,22 @@ from __future__ import absolute_import
 from copy import deepcopy, copy
 import logging
 
-from core.point import Point
-from dxfimport.classes import ContourClass
-from dxfimport.geoent_arc import GeoentArc
-from dxfimport.geoent_circle import GeoentCircle
-from dxfimport.geoent_insert import GeoentInsert
-from dxfimport.geoent_line import GeoentLine
-from dxfimport.geoent_polyline import GeoentPolyline
-from dxfimport.geoent_spline import GeoentSpline
-from dxfimport.geoent_ellipse import GeoentEllipse
-from dxfimport.geoent_lwpolyline import GeoentLwPolyline
-from dxfimport.geoent_point import GeoentPoint
+from dxf2gcode.core.point import Point
+from dxf2gcode.dxfimport.classes import ContourClass
+from dxf2gcode.dxfimport.geoent_arc import GeoentArc
+from dxf2gcode.dxfimport.geoent_circle import GeoentCircle
+from dxf2gcode.dxfimport.geoent_insert import GeoentInsert
+from dxf2gcode.dxfimport.geoent_line import GeoentLine
+from dxf2gcode.dxfimport.geoent_polyline import GeoentPolyline
+from dxf2gcode.dxfimport.geoent_spline import GeoentSpline
+from dxf2gcode.dxfimport.geoent_ellipse import GeoentEllipse
+from dxf2gcode.dxfimport.geoent_lwpolyline import GeoentLwPolyline
+from dxf2gcode.dxfimport.geoent_point import GeoentPoint
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMessageBox
     from PyQt5 import QtCore

@@ -26,8 +26,8 @@
 Special purpose canvas including all required plotting function etc.
 """
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QTextBrowser
     from PyQt5 import QtCore

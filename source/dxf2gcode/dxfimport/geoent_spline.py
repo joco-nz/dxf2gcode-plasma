@@ -25,11 +25,11 @@
 
 from __future__ import absolute_import
 
-from core.point import Point
-from dxfimport.spline_convert import Spline2Arcs
-from dxfimport.classes import PointsClass, ContourClass
+from dxf2gcode.core.point import Point
+from dxf2gcode.dxfimport.spline_convert import Spline2Arcs
+from dxf2gcode.dxfimport.classes import PointsClass, ContourClass
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
 
 class GeoentSpline:

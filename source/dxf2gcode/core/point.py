@@ -30,7 +30,7 @@ from __future__ import division
 from math import sqrt, sin, cos, atan2
 
 
-from core.point3d import Point3D
+from dxf2gcode.core.point3d import Point3D
 
 import numbers
 import logging

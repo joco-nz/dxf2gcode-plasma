@@ -26,13 +26,13 @@
 from math import sqrt
 import logging
 
-from core.linegeo import LineGeo
-from core.arcgeo import ArcGeo
-from core.breakgeo import BreakGeo
-from core.point import Point
-from core.shape import Geos
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.core.arcgeo import ArcGeo
+from dxf2gcode.core.breakgeo import BreakGeo
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.shape import Geos
 
-import globals.constants as c
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtCore import QLineF, QPointF
 else:

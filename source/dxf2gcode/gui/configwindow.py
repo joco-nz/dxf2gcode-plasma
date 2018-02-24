@@ -74,10 +74,10 @@ from __future__ import absolute_import
 
 import logging
 
-from globals.helperfunctions import toInt, toFloat, str_encode, qstr_encode
+from dxf2gcode.globals.helperfunctions import toInt, toFloat, str_encode, qstr_encode
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, \
@@ -97,9 +97,9 @@ else:
 try:
     from collections import OrderedDict
 except ImportError:
-    from globals.ordereddict import OrderedDict
+    from dxf2gcode.globals.ordereddict import OrderedDict
 
-from gui.popupdialog import PopUpDialog
+from dxf2gcode.gui.popupdialog import PopUpDialog
 
 logger = logging.getLogger("Gui.ConfigWindow")
 

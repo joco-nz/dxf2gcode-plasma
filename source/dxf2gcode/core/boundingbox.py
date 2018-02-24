@@ -30,7 +30,7 @@ from __future__ import division
 from math import sqrt, sin, cos, atan2
 from copy import deepcopy
 
-from core.point import Point
+from dxf2gcode.core.point import Point
 
 import logging
 logger = logging.getLogger("core.boundingbox")

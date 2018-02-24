@@ -27,8 +27,8 @@ from __future__ import absolute_import
 
 import logging
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton
     from PyQt5.QtGui import QIcon, QPixmap

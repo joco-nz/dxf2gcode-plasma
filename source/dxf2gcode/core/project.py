@@ -28,14 +28,14 @@ import logging
 import hashlib
 import re
 
-from core.point import Point
-from core.customgcode import CustomGCode
-from core.layercontent import Layers, Shapes
-from globals.d2gexceptions import VersionMismatchError
-import globals.globals as g
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.customgcode import CustomGCode
+from dxf2gcode.core.layercontent import Layers, Shapes
+from dxf2gcode.globals.d2gexceptions import VersionMismatchError
+import dxf2gcode.globals.globals as g
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
 else:

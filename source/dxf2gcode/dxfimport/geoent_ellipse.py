@@ -28,11 +28,11 @@ from __future__ import division
 
 from math import sqrt, sin, cos, atan2, degrees, pi
 
-from core.point import Point
-from dxfimport.biarc import BiarcClass
-from dxfimport.classes import PointsClass, ContourClass
+from dxf2gcode.core.point import Point
+from dxf2gcode.dxfimport.biarc import BiarcClass
+from dxf2gcode.dxfimport.classes import PointsClass, ContourClass
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
 
 class GeoentEllipse(object):

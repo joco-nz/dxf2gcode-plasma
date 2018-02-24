@@ -29,10 +29,10 @@ from __future__ import division
 from math import atan2
 import logging
 
-from core.point import Point
-from core.arcgeo import ArcGeo
-from core.linegeo import LineGeo
-from dxfimport.biarc import BiarcClass
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.arcgeo import ArcGeo
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.dxfimport.biarc import BiarcClass
 
 logger = logging.getLogger("DxfImport.SplineConvert")
 

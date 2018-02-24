@@ -34,7 +34,7 @@ Subclass is done in order to:
           enable and set export order of the shapes
 """
 
-import globals.constants as c
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QTreeView
     from PyQt5.QtGui import QStandardItemModel

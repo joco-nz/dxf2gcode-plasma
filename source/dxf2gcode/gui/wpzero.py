@@ -27,7 +27,7 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import globals.constants as c
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QGraphicsItem
     from PyQt5.QtGui import QPen

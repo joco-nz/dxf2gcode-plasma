@@ -28,10 +28,10 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import division
 
-from core.point import Point
-from core.arcgeo import ArcGeo
-from core.linegeo import LineGeo
-from dxfimport.classes import PointsClass, ContourClass
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.arcgeo import ArcGeo
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.dxfimport.classes import PointsClass, ContourClass
 
 
 class GeoentLwPolyline(object):

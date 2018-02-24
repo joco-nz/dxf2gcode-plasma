@@ -25,9 +25,9 @@
 
 import logging
 
-from core.point import Point
+from dxf2gcode.core.point import Point
 
-import globals.constants as c
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QGraphicsItem
     from PyQt5.QtGui import QPainterPath, QPen, QColor, QFont

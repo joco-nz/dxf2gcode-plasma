@@ -24,9 +24,9 @@
 
 from __future__ import absolute_import
 
-from core.holegeo import HoleGeo
-from core.point import Point
-from dxfimport.classes import ContourClass
+from dxf2gcode.core.holegeo import HoleGeo
+from dxf2gcode.core.point import Point
+from dxf2gcode.dxfimport.classes import ContourClass
 
 
 class GeoentPoint:

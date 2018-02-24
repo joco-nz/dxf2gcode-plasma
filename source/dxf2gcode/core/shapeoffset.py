@@ -32,11 +32,11 @@ from math import pi, sqrt, sin, cos
 from copy import deepcopy
 import logging
 
-from core.linegeo import LineGeo
-from core.arcgeo import ArcGeo
-from core.point import Point
-from core.shape import Geos
-from core.shape import Shape
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.core.arcgeo import ArcGeo
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.shape import Geos
+from dxf2gcode.core.shape import Shape
 
 logger = logging.getLogger('core.shapeoffset')
 

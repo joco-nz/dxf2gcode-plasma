@@ -30,10 +30,10 @@ from __future__ import division
 from random import random, shuffle
 from math import floor, ceil
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
 else:

@@ -31,7 +31,7 @@ from __future__ import division
 import re
 import logging
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
 logger = logging.getLogger("Core.LayerContent")
 

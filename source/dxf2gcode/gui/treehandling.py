@@ -42,17 +42,17 @@ from __future__ import absolute_import
 from math import degrees
 import logging
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
-from core.shape import Shape
-from core.entitycontent import EntityContent
-from core.customgcode import CustomGCode
-from gui.treeview import MyStandardItemModel
+from dxf2gcode.core.shape import Shape
+from dxf2gcode.core.entitycontent import EntityContent
+from dxf2gcode.core.customgcode import CustomGCode
+from dxf2gcode.gui.treeview import MyStandardItemModel
 
-from globals.helperfunctions import toInt, toFloat
+from dxf2gcode.globals.helperfunctions import toInt, toFloat
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QAction, QMenu, QWidget, QAbstractItemView, QTreeView
     from PyQt5.QtCore import QItemSelectionModel, QItemSelection

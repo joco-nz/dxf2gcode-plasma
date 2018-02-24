@@ -27,8 +27,8 @@ from __future__ import absolute_import
 import sys
 import logging
 
-from globals.six import string_types
-import globals.globals as g
+from dxf2gcode.globals.six import string_types
+import dxf2gcode.globals.globals as g
 
 
 logger = logging.getLogger(__name__)

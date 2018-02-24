@@ -31,14 +31,14 @@ import sys
 import pprint
 import logging
 
-from globals.configobj.configobj import ConfigObj, flatten_errors
-from globals.configobj.validate import Validator
-import globals.globals as g
-from globals.d2gexceptions import *
-from gui.configwindow import *
+from dxf2gcode.globals.configobj.configobj import ConfigObj, flatten_errors
+from dxf2gcode.globals.configobj.validate import Validator
+import dxf2gcode.globals.globals as g
+from dxf2gcode.globals.d2gexceptions import *
+from dxf2gcode.gui.configwindow import *
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
 else:
@@ -47,7 +47,7 @@ else:
 try:
     from collections import OrderedDict
 except ImportError:
-    from globals.ordereddict import OrderedDict
+    from dxf2gcode.globals.ordereddict import OrderedDict
 
 logger = logging.getLogger("Core.Config")
 

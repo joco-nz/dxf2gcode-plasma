@@ -29,8 +29,8 @@ from __future__ import division
 from copy import deepcopy
 from math import pi
 
-from core.point import Point
-from core.boundingbox import BoundingBox
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.boundingbox import BoundingBox
 
 
 class HoleGeo(object):

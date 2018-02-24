@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 from copy import deepcopy
 
-from core.linegeo import LineGeo
+from dxf2gcode.core.linegeo import LineGeo
 
 
 class BreakGeo(LineGeo):

@@ -26,17 +26,17 @@ from __future__ import division
 from math import pi, cos, sin, radians
 import logging
 
-from globals.six import text_type
+from dxf2gcode.globals.six import text_type
 from PyQt5.QtCore import QPoint, Qt, QCoreApplication
 from PyQt5.QtGui import QColor
 
-from core.layercontent import Shapes
-from core.point import Point
-from core.boundingbox import BoundingBox
-from core.point3d import Point3D
-from core.stmove import StMove
-import globals.globals as g
-from gui.canvas import CanvasBase, MyDropDownMenu
+from dxf2gcode.core.layercontent import Shapes
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.boundingbox import BoundingBox
+from dxf2gcode.core.point3d import Point3D
+from dxf2gcode.core.stmove import StMove
+import dxf2gcode.globals.globals as g
+from dxf2gcode.gui.canvas import CanvasBase, MyDropDownMenu
 
 
 logger = logging.getLogger("Gui.Canvas")

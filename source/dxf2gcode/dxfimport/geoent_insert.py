@@ -27,8 +27,8 @@ from __future__ import absolute_import
 
 from math import degrees, radians
 
-from core.point import Point
-from dxfimport.classes import ContourClass
+from dxf2gcode.core.point import Point
+from dxf2gcode.dxfimport.classes import ContourClass
 
 class GeoentInsert(object):
     def __init__(self, Nr=0, caller=None):

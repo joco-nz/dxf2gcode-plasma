@@ -19,8 +19,8 @@ import sys
 
 from codecs import BOM_UTF8, BOM_UTF16, BOM_UTF16_BE, BOM_UTF16_LE
 
-import globals.six as six
-from globals.configobj._version import __version__
+import dxf2gcode.globals.six as six
+from dxf2gcode.globals.configobj._version import __version__
 
 # imported lazily to avoid startup performance hit if it isn't used
 compiler = None
@@ -2170,7 +2170,7 @@ class ConfigObj(Section):
             if preserve_errors:
                 # We do this once to remove a top level dependency on the validate module
                 # Which makes importing configobj faster
-                from globals.configobj.validate import VdtMissingValue
+                from dxf2gcode.globals.configobj.validate import VdtMissingValue
                 self._vdtMissingValue = VdtMissingValue
 
             section = self

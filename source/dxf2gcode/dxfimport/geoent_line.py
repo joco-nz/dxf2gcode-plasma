@@ -27,12 +27,12 @@ from __future__ import absolute_import
 
 import logging
 
-from core.point import Point
-from core.linegeo import LineGeo
-from dxfimport.classes import PointsClass
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.dxfimport.classes import PointsClass
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
 else:

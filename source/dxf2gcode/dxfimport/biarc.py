@@ -27,9 +27,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 from math import sin, cos, pi, ceil
-from core.linegeo import LineGeo
-from core.arcgeo import ArcGeo
-from core.point import Point
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.core.arcgeo import ArcGeo
+from dxf2gcode.core.point import Point
 
 
 class BiarcClass(object):

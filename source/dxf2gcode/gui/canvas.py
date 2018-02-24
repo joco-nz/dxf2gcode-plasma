@@ -27,10 +27,10 @@ from __future__ import absolute_import
 
 import logging
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QGraphicsView, QMenu
     from PyQt5 import QtCore
@@ -47,10 +47,10 @@ to be the canvas3d or canvas2d class
 """
 def Canvas(parent=None):
     if g.config.mode3d:
-        from gui.canvas3d import GLWidget
+        from dxf2gcode.gui.canvas3d import GLWidget
         return GLWidget(parent)
     else:
-        from gui.canvas2d import MyGraphicsView
+        from dxf2gcode.gui.canvas2d import MyGraphicsView
         return MyGraphicsView(parent)
 
 def CanvasObject():

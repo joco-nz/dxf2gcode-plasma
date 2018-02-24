@@ -31,13 +31,13 @@ from math import sqrt, sin, cos, asin, pi, degrees, ceil, floor
 from copy import deepcopy
 
 
-from core.point import Point
+from dxf2gcode.core.point import Point
 
-from core.boundingbox import BoundingBox
-import globals.globals as g
+from dxf2gcode.core.boundingbox import BoundingBox
+import dxf2gcode.globals.globals as g
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
 else:

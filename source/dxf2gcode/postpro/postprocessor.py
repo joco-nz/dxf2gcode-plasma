@@ -32,15 +32,15 @@ from math import degrees
 import shutil
 import logging
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
-from core.point import Point
-from postpro.postprocessorconfig import MyPostProConfig
-from postpro.breaks import Breaks
-from gui.configwindow import *
+from dxf2gcode.core.point import Point
+from dxf2gcode.postpro.postprocessorconfig import MyPostProConfig
+from dxf2gcode.postpro.breaks import Breaks
+from dxf2gcode.gui.configwindow import *
 
-from globals.six import text_type, PY2
-import globals.constants as c
+from dxf2gcode.globals.six import text_type, PY2
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMessageBox
     from PyQt5 import QtCore

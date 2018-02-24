@@ -23,7 +23,7 @@
 #
 ############################################################################
 
-import globals.constants as c
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QDialog, QVBoxLayout, QGridLayout, QTextBrowser
     from PyQt5.QtGui import QIcon, QPixmap, QTextCursor

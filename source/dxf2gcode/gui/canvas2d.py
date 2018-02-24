@@ -34,19 +34,19 @@ from __future__ import division
 
 import logging
 
-from core.point import Point
-from core.shape import Shape
-from core.boundingbox import BoundingBox
-from core.stmove import StMove
-from gui.wpzero import WpZero
-from gui.arrow import Arrow
-from gui.routetext import RouteText
-from gui.canvas import CanvasBase, MyDropDownMenu
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.shape import Shape
+from dxf2gcode.core.boundingbox import BoundingBox
+from dxf2gcode.core.stmove import StMove
+from dxf2gcode.gui.wpzero import WpZero
+from dxf2gcode.gui.arrow import Arrow
+from dxf2gcode.gui.routetext import RouteText
+from dxf2gcode.gui.canvas import CanvasBase, MyDropDownMenu
 
-import globals.globals as g
+import dxf2gcode.globals.globals as g
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QGraphicsItem, QGraphicsView, QRubberBand, QGraphicsScene, QGraphicsLineItem
     from PyQt5.QtGui import QPainterPath, QPen, QColor, QPainterPathStroker

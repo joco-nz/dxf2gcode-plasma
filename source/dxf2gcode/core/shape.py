@@ -31,14 +31,14 @@ from math import radians, pi
 from copy import deepcopy
 import logging
 
-import globals.globals as g
-from core.point import Point
-from core.linegeo import LineGeo
-from core.arcgeo import ArcGeo
-from core.holegeo import HoleGeo
+import dxf2gcode.globals.globals as g
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.core.arcgeo import ArcGeo
+from dxf2gcode.core.holegeo import HoleGeo
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
 else:

@@ -29,9 +29,9 @@ from __future__ import division
 from math import sqrt, pi
 from copy import deepcopy
 
-from core.point import Point
-from core.boundingbox import BoundingBox
-#from core.arcgeo import ArcGeo
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.boundingbox import BoundingBox
+#from dxf2gcode.core.arcgeo import ArcGeo
 
 import logging
 logger = logging.getLogger("core.linegeo")

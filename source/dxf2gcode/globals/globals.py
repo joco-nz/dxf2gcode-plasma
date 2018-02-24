@@ -33,7 +33,7 @@ import sys
 import gettext
 import locale
 
-import globals.constants as constants
+import dxf2gcode.globals.constants as constants
 
 
 # logger instance, see http://docs.python.org/library/logging.html
