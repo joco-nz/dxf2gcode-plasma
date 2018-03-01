@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 ############################################################################
 #
 #   Copyright (C) 2017
@@ -26,12 +27,19 @@ import glob
 import distutils.command.install_scripts
 import shutil
 
+import platform
+
 class install_scripts(distutils.command.install_scripts.install_scripts):
     def run(self):
         distutils.command.install_scripts.install_scripts.run(self)
         for script in self.get_outputs():
             if script.endswith(".py"):
                 shutil.move(script, script[:-3])
+
+setup_requires = []
+
+if platform.system() == 'Darwin':
+    setup_requires.append('py2app')
 
 setup(
     name='dxf2gcode',
@@ -82,5 +90,19 @@ setup(
 
     cmdclass = {"install_scripts": install_scripts},
 
-    scripts=['dxf2gcode.py']
+    scripts=['dxf2gcode.py'],
+
+#   setup for py2app
+    app=['dxf2gcode.py'],
+    options={
+        'py2app': {
+            'iconfile': 'images/dxf2gcode.icns',
+            'plist': {
+                'CFBundleName': "dxf2gcode",
+                'CFBundleDisplayName': "dxf2gcode",
+                'CFBundleIdentifier': "org.sourceforge.dxf2gcode"
+            }
+        }
+    },
+    setup_requires=setup_requires
 )
