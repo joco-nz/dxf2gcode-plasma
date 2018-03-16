@@ -37,31 +37,31 @@ import argparse
 import subprocess
 import tempfile
 
-from core.point import Point
-from core.layercontent import LayerContent, Layers, Shapes
-from core.entitycontent import EntityContent
-from core.customgcode import CustomGCode
-from core.linegeo import LineGeo
-from core.holegeo import HoleGeo
-from core.project import Project
-from globals.config import MyConfig
-import globals.globals as g
-from globals.logger import LoggerClass
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.layercontent import LayerContent, Layers, Shapes
+from dxf2gcode.core.entitycontent import EntityContent
+from dxf2gcode.core.customgcode import CustomGCode
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.core.holegeo import HoleGeo
+from dxf2gcode.core.project import Project
+from dxf2gcode.globals.config import MyConfig
+import dxf2gcode.globals.globals as g
+from dxf2gcode.globals.logger import LoggerClass
 
-from gui.configwindow import ConfigWindow
-from gui.treehandling import TreeHandler
-from gui.popupdialog import PopUpDialog
-from gui.aboutdialog import AboutDialog
+from dxf2gcode.gui.configwindow import ConfigWindow
+from dxf2gcode.gui.treehandling import TreeHandler
+from dxf2gcode.gui.popupdialog import PopUpDialog
+from dxf2gcode.gui.aboutdialog import AboutDialog
 
-from dxfimport.importer import ReadDXF
+from dxf2gcode.dxfimport.importer import ReadDXF
 
-from postpro.postprocessor import MyPostProcessor
-from postpro.tspoptimisation import TspOptimization
+from dxf2gcode.postpro.postprocessor import MyPostProcessor
+from dxf2gcode.postpro.tspoptimisation import TspOptimization
 
-from globals.helperfunctions import str_encode, str_decode, qstr_encode
+from dxf2gcode.globals.helperfunctions import str_encode, str_decode, qstr_encode
 
-from globals.six import text_type
-import globals.constants as c
+from dxf2gcode.globals.six import text_type
+import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt5.QtGui import QSurfaceFormat
@@ -1164,14 +1164,14 @@ if __name__ == "__main__":
     else:
         from dxf2gcode_ui4 import Ui_MainWindow
     if g.config.mode3d:
-        from core.shape import Shape
+        from dxf2gcode.core.shape import Shape
         # multi-sampling has been introduced in PyQt5
         fmt = QSurfaceFormat()
         fmt.setSamples(4)
         QSurfaceFormat.setDefaultFormat(fmt)
     else:
-        from gui.canvas2d import MyGraphicsScene
-        from gui.canvas2d import ShapeGUI as Shape
+        from dxf2gcode.gui.canvas2d import MyGraphicsScene
+        from dxf2gcode.gui.canvas2d import ShapeGUI as Shape
     window = MainWindow(app)
     g.window = window
     Log.add_window_logger(window.ui.messageBox)

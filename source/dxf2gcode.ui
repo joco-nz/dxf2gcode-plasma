@@ -1197,17 +1197,17 @@
   <customwidget>
    <class>Canvas</class>
    <extends>QGraphicsView</extends>
-   <header>gui.canvas</header>
+   <header>dxf2gcode.gui.canvas</header>
   </customwidget>
   <customwidget>
    <class>MessageBox</class>
    <extends>QTextBrowser</extends>
-   <header>gui.messagebox</header>
+   <header>dxf2gcode.gui.messagebox</header>
   </customwidget>
   <customwidget>
    <class>TreeView</class>
    <extends>QTreeView</extends>
-   <header>gui.treeview</header>
+   <header>dxf2gcode.gui.treeview</header>
   </customwidget>
  </customwidgets>
  <tabstops>

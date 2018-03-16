@@ -9,8 +9,8 @@ import sys
 import subprocess
 import tempfile
 
-from globals.six import PY2
-import globals.constants as c
+from dxf2gcode.globals.six import PY2
+import dxf2gcode.globals.constants as c
 
 def which(program):
     import os

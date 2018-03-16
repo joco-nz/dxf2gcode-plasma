@@ -52,12 +52,13 @@ setup(
     license='GPLv3',
 
     packages=[
-        'core',
-        'dxfimport',
-        'globals',
-        'globals.configobj',
-        'gui',
-        'postpro'
+        'dxf2gcode',
+        'dxf2gcode.core',
+        'dxf2gcode.dxfimport',
+        'dxf2gcode.globals',
+        'dxf2gcode.globals.configobj',
+        'dxf2gcode.gui',
+        'dxf2gcode.postpro'
     ],
 
     py_modules=[
