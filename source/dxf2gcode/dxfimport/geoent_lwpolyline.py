@@ -28,10 +28,14 @@ from __future__ import division
 from __future__ import absolute_import
 from __future__ import division
 
+import logging
+
 from dxf2gcode.core.point import Point
 from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.dxfimport.classes import PointsClass, ContourClass
+
+logger = logging.getLogger("DXFImport.GeoentLWPolyline")
 
 
 class GeoentLwPolyline(object):
@@ -163,7 +167,7 @@ class GeoentLwPolyline(object):
 
             s_bulge = lp.index_code(42, s + 1, e_nxt_b)
 
-            # print('stemp: %s, e: %s, next 10: %s' %(s_temp,e,lp.index_code(10,s+1,e)))
+            #logger.debug('stemp: %s, e: %s, next 10: %s' %(s_bulge,e,lp.index_code(10,s+1,e)))
             if s_bulge is not None:
                 bulge = float(lp.line_pair[s_bulge].value)
                 s_nxt_x = s_nxt_x
@@ -173,12 +177,12 @@ class GeoentLwPolyline(object):
 
             # Assign the geometries for the Polyline
             if Ps is not None:
-                if next_bulge == 0:
+                if bulge == 0:
                     self.geo.append(LineGeo(Ps=Ps, Pe=Pe))
                 else:
                     # self.geo.append(LineGeo(Ps=Ps,Pe=Pe))
                     # print bulge
-                    self.geo.append(self.bulge2arc(Ps, Pe, next_bulge))
+                    self.geo.append(self.bulge2arc(Ps, Pe, bulge))
 
                 # L�nge drauf rechnen wenns eine Geometrie ist
                 # Wenns Ldnge count on it is a geometry ???
@@ -189,13 +193,18 @@ class GeoentLwPolyline(object):
             Ps = Pe
 
         if LWPLClosed == 1 or LWPLClosed == 129:
-            # print("sollten �bereinstimmen: %s, %s" %(Ps,Pe))
-            if next_bulge:
+            #logger.debug("sollten �bereinstimmen: %s, %s" %(Ps,Pe))
+            #logger.debug(self.geo)
+            if next_bulge and len(self.geo)>0:
                 self.geo.append(self.bulge2arc(Ps, self.geo[0].Ps, next_bulge))
-            else:
+                self.length += self.geo[-1].length
+            elif len(self.geo)>0:
                 self.geo.append(LineGeo(Ps=Ps, Pe=self.geo[0].Ps))
+                self.length += self.geo[-1].length
+            else:
+                pass
 
-            self.length += self.geo[-1].length
+
 
         # New starting value for the next geometry
         caller.start = e
