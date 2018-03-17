@@ -56,9 +56,9 @@ if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin"
 else:
     PYTHONPATH = os.path.split(sys.executable)[0]
     # To get pylupdate5.exe use: pip3.exe install PyQt5
-    PLYPATH = os.path.join(PYTHONPATH, "scripts/pylupdate5.exe")
+    PLYPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt5/pylupdate5.exe")
     # To get lrelease.exe use: pip3.exe install pyqt5-tools
-    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/pyqt5-tools/lrelease.exe")
+    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/pyqt5/lrelease.exe")
     print("Using Windows platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))

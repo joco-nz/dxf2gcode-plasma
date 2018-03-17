@@ -74,8 +74,8 @@ if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin"
     print("Using platform tools \"%s\" and \"%s\"\n" % (UICPATH, RCCPATH))
 else:
     PYTHONPATH = os.path.split(sys.executable)[0]
-    UICPATH = os.path.join(PYTHONPATH, "scripts/pyuic%s.exe" % (pyQtVer))
-    RCCPATH = os.path.join(PYTHONPATH, "scripts/pyrcc%s.exe" % (pyQtVer))
+    UICPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt5/pyuic5.bat")
+    RCCPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt5/pyrcc5.exe")
     print("Using Windows platform tools \"%s\" and \"%s\"\n" % (UICPATH, RCCPATH))
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
