@@ -74,7 +74,7 @@ setup(
     include_package_data=True,
 
     data_files=[
-        ('share/appdata', ['dxf2gcode.appdata.xml']),
+        ('share/metainfo', ['dxf2gcode.appdata.xml']),
         ('share/applications', ['dxf2gcode.desktop']),
         ('share/dxf2gcode/i18n', glob.glob('i18n/*.qm')),
         ('share/icons/hicolor/scalable/apps/', ['images/dxf2gcode.svg'])
