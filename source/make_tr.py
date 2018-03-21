@@ -40,26 +40,26 @@ if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin"
         print("Please consider to install lrelease tool - to use this script.")
         sys.exit(1)
 
-    PYLPATH = None
+    PLYPATH = None
     names = ["pylupdate5", "lupdate5", "lupdate"]
     for name in names:
         if which(name):
-            PYLPATH = name
+            PLYPATH = name
             break
 
-    if not PYLPATH:
+    if not PLYPATH:
         print("ERROR: Cannot file pylupdate5 tool.")
         print("Please consider to install lupdate tool - to use this script.")
         sys.exit(1)
 
-    print("Using platform tools \"%s\" and \"%s\"\n" % (PYLPATH, LREPATH))
+    print("Using platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
 else:
     PYTHONPATH = os.path.split(sys.executable)[0]
     # To get pylupdate5.exe use: pip3.exe install PyQt5
-    PYLPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt5/pylupdate5.exe")
+    PLYPATH = os.path.join(PYTHONPATH, "Scripts/pylupdate5.exe")
     # To get lrelease.exe use: pip3.exe install pyqt5-tools
-    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/pyqt5/lrelease.exe")
-    print("Using Windows platform tools \"%s\" and \"%s\"\n" % (PYLPATH, LREPATH))
+    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/pyqt5-tools/lrelease.exe")
+    print("Using Windows platform tools \"%s\" and \"%s\"\n" % (PLYPATH, LREPATH))
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
 
@@ -100,16 +100,13 @@ for TSFILE in TSFILES:
 
 OPTIONS = "-ts"
 
-if len(sys.argv) >= 2 and sys.argv[1] == '--no-pylupdate':
-    print("skipping pylupdate")
-else:
-    cmd1 = ("%s %s %s %s\n" % (PYLPATH, FILESSTR, OPTIONS, TSFILESTR))
-    print(cmd1)
-    print(subprocess.call(cmd1, shell=True))
+cmd1 = ("%s %s %s %s\n" % (PLYPATH, FILESSTR, OPTIONS, TSFILESTR))
+print(cmd1)
+subprocess.check_call(cmd1, shell=True)
 
 cmd2 = ("%s %s\n" % (LREPATH, TSFILESTR))
 print(cmd2)
-print(subprocess.call(cmd2, shell=True))
+subprocess.check_call(cmd2, shell=True)
 
 print("\nREADY")
 

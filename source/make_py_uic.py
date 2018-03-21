@@ -74,8 +74,8 @@ if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin"
     print("Using platform tools \"%s\" and \"%s\"\n" % (UICPATH, RCCPATH))
 else:
     PYTHONPATH = os.path.split(sys.executable)[0]
-    UICPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt5/pyuic5.bat")
-    RCCPATH = os.path.join(PYTHONPATH, "Lib/site-packages/PyQt5/pyrcc5.exe")
+    UICPATH = os.path.join(PYTHONPATH, "Scripts/pyuic5.exe")
+    RCCPATH = os.path.join(PYTHONPATH, "Scripts/pyrcc5.exe")
     print("Using Windows platform tools \"%s\" and \"%s\"\n" % (UICPATH, RCCPATH))
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
@@ -106,10 +106,10 @@ try:
     cmd2 = "%s %s %s %s" % (RCCPATH, OPTIONS, RCPYFILEver, RCFILE)
 
     print(cmd1)
-    print(subprocess.call(cmd1, shell=True)) #shell=True argument needed on Linux
+    subprocess.check_call(cmd1, shell=True) #shell=True argument needed on Linux
 
     print(cmd2)
-    print(subprocess.call(cmd2, shell=True)) #shell=True argument needed on Linux
+    subprocess.check_call(cmd2, shell=True) #shell=True argument needed on Linux
 
 finally:
     os.remove(tmp_ui_filename)
