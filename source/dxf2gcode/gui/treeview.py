@@ -318,6 +318,7 @@ class MyStandardItemModel(QStandardItemModel):
         """
         mimeData = QtCore.QMimeData()
         #mimeData.setData("application/x-qabstractitemmodeldatalist", "")
-        mimeData.setData("application/x-qstandarditemmodeldatalist", "")
+        #mimeData.setData("application/x-qstandarditemmodeldatalist", "")
+        #mimeData.setData("application/x-qstandarditemmodeldatalist",0)
 
         return mimeData
