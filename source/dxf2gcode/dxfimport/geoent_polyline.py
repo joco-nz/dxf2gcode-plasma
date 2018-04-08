@@ -209,7 +209,7 @@ class GeoentPolyline:
                 Ps = Pe
 
         # It is a closed polyline
-        if PolyLineFlag == 1:
+        if PolyLineFlag == 1 and len(self.geo) > 0:
             # print("sollten �bereinstimmen: %s, %s" %(Ps,Pe))
             if next_bulge == 0:
                 self.geo.append(LineGeo(Ps=Ps, Pe=self.geo[0].Ps))
