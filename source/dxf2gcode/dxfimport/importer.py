@@ -337,10 +337,10 @@ class ReadDXF(QtCore.QObject):
         """
         Read_Entities() - Read the entities geometries
         """
+        entities = EntitiesClass(0, 'Entities', [])
         for section_nr in range(len(sections)):
             if sections[section_nr - 1].name.startswith("ENTITIES"):
                 # g.logger.logger.info("Reading Entities", 1)
-                entities = EntitiesClass(0, 'Entities', [])
                 entities.geo = self.Get_Geo(sections[section_nr - 1].begin + 1,
                                                     sections[section_nr - 1].end - 1)
 
