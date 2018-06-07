@@ -60,6 +60,7 @@ class MessageBox(QTextBrowser):
         self.append("<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a>")
         self.append("For Configuration files refer to folder:")
         self.append("<a href='%s'>%s</a>" %(g.folder,g.folder))
+        self.append("")
 
 
     def tr(self, string_to_translate):
