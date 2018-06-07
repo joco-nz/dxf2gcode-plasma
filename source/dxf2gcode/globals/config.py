@@ -323,9 +323,9 @@ class MyConfig(object):
         self.spec = ConfigObj(CONFIG_SPEC, interpolation=False, list_values=False, _inspec=True)
 
         # try:
-
         self.load_config()
         self.update_config()
+
 
         # The following settings won't be modified after a change in the configuration window.
         # If a setting need to be updated when the configuration changes, move it to the update_config() function

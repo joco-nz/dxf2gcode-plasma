@@ -26,8 +26,11 @@
 Special purpose canvas including all required plotting function etc.
 """
 
+import os
 from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
+import dxf2gcode.globals.globals as g
+
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QTextBrowser
     from PyQt5 import QtCore
@@ -55,6 +58,9 @@ class MessageBox(QTextBrowser):
         self.append(self.tr("Version %s (%s)") % (c.VERSION, c.DATE))
         self.append(self.tr("For more information and updates visit:"))
         self.append("<a href='http://sourceforge.net/projects/dxf2gcode/'>http://sourceforge.net/projects/dxf2gcode/</a>")
+        self.append("For Configuration files refer to folder:")
+        self.append("<a href='%s'>%s</a>" %(g.folder,g.folder))
+
 
     def tr(self, string_to_translate):
         """
