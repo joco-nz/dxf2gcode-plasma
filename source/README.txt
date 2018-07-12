@@ -17,10 +17,12 @@ Prerequisites
     - /usr/bin/python3 and development package (>=3.5),
     - PyQt5 (>=5.7),
     - PyOpenGL (>=3.1),
+    - py2app (>=0.14 only on macOS),
     - /usr/bin/lrelease-qt5 or /usr/bin/lrelease5 or /usr/bin/lrelease,
     - /usr/bin/pylupdate5,
     - /usr/bin/pyuic5,
     - /usr/bin/pyrcc5
+    - /usr/bin/productbuild (only on macOS)
 
   - Runtime dependencies:
     - /usr/bin/python3 (>=3.5),
@@ -85,6 +87,8 @@ Building and Installing
     installed directly either by using: dnf install dxf2gcode or from
     your preferred graphical package manager (e.g. GNOME Software)
     (see also: https://src.fedoraproject.org/rpms/dxf2gcode).
+    Development versions of dxf2gcode (from develop branch) are available
+    in: https://copr.fedorainfracloud.org/coprs/dwrobel/dxf2gcode/
 
   - Windows (assumes python.exe v3 is on PATH):
     python.exe ./make_tr.py
@@ -93,10 +97,21 @@ Building and Installing
     Install DXF2GCODE-<version>-win32.msi (located in dist sub-directory).
     Launch it from Start Menu by typing: dxf2gcode
 
-  - macOS (not tested at all):
-    $ python3 ./make_tr.py
-    $ python3 ./make_py_uic.py
-    $ python3 ./setup.py bdist_dmg # this should create Mac disk image
+  - macOS:
+    Note(1): It is recommended to install python dependencies using 'pip' tool.
+    $ ./makeo_tr.py
+        If 'lrelease' is not on the PATH use something like the following:
+        $ PATH=$PATH:/usr/local/Cellar/qt/5.11.1/bin ./make_tr.py
+    $ ./make_py_uic.py
+    $ ./st-setup.py py2app # builds standalone application
+
+    To launch application use either:
+        $ open dist/dxf2gcode.app
+    or
+        $ ./dist/dxf2gcode.app/Contents/MacOS/dxf2gcode
+
+    It is still untested but in order to build dxf2gcode.pkg use the following:
+    $ productbuild  --component dist/dxf2gcode.app /Applications dist/dxf2gcode.pkg
 
 
 Configuration
@@ -146,7 +161,8 @@ Authors
   Jean-Paul Schouwstra,
   John Bradshaw,
   Vinzenz Schulz,
-  Robert Lichtenberger.
+  Robert Lichtenberger,
+  Damian Wrobel
 
 
 License
