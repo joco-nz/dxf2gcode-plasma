@@ -1,0 +1,16 @@
+[flake8]
+jobs = auto
+
+ignore =
+        # Line too long
+        E501
+
+exclude = .git,
+          .eggs,
+          __pycache__,
+          build,
+          dist,
+          dxf2gcode_ui5.py,
+          dxf2gcode_images5_rc.py
+
+max-complexity = 40
