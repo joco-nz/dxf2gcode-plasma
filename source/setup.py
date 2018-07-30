@@ -2,9 +2,11 @@
 # To create MSI installer with automatic Menu shortcut installation run the following:
 # python3 setup.py bdist_msi
 
-import sys, os
+import os
 import shutil
-from cx_Freeze import setup, Executable
+import sys
+
+from cx_Freeze import Executable, setup
 
 
 version = "20170925"
@@ -12,6 +14,7 @@ version = "20170925"
 base = 'Console'
 if sys.platform == 'win32':
     base = 'Win32GUI'  # Tells the build script to hide the console.
+
 
 # script based on
 # https://github.com/Fireforge/PySide-OpenGL-cx_Freeze-Example
@@ -29,6 +32,7 @@ def include_OpenGL():
                  )
             )
     return zip_includes
+
 
 # Remove the existing folders
 shutil.rmtree("build", ignore_errors=True)
@@ -55,7 +59,7 @@ executables = [
 ]
 
 setup(name='DXF2GCODE',
-      version=version[0:4] + "." + version[4:6] + "." + version[6:8], # converts YYYYMMDD -> YYYY.MM.DD
+      version=version[0:4] + "." + version[4:6] + "." + version[6:8],  # converts YYYYMMDD -> YYYY.MM.DD
       description='Converting 2D drawings to CNC machine compatible G-Code.',
       options=options,
       executables=executables

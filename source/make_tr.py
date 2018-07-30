@@ -5,11 +5,12 @@
 Generates the tr file based on the defined PyQt Project File
 """
 
-import os, sys
+import os
 import subprocess
+import sys
+
 
 def which(program):
-    import os
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
@@ -27,7 +28,7 @@ def which(program):
 
 
 if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin" in sys.platform.lower():
-    #On Linux, the executable are normaly on the PATH
+    # On Linux, the executable are normaly on the PATH
     LREPATH = None
     names = ["lrelease-qt5", "lrelease5", "lrelease"]
     for name in names:
@@ -112,4 +113,3 @@ print(cmd2)
 subprocess.check_call(cmd2, shell=True)
 
 print("\nREADY")
-

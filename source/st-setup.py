@@ -21,13 +21,13 @@
 #
 ############################################################################
 
-from setuptools import setup
-import glob
-
 import distutils.command.install_scripts
+import glob
+import platform
 import shutil
 
-import platform
+from setuptools import setup
+
 
 class install_scripts(distutils.command.install_scripts.install_scripts):
     def run(self):
@@ -35,6 +35,7 @@ class install_scripts(distutils.command.install_scripts.install_scripts):
         for script in self.get_outputs():
             if script.endswith(".py"):
                 shutil.move(script, script[:-3])
+
 
 setup_requires = []
 
@@ -88,11 +89,11 @@ setup(
         ('share/icons/hicolor/scalable/apps/', ['images/dxf2gcode.svg'])
     ],
 
-    cmdclass = {"install_scripts": install_scripts},
+    cmdclass={"install_scripts": install_scripts},
 
     scripts=['dxf2gcode.py'],
 
-#   setup for py2app
+    # setup for py2app
     app=['dxf2gcode.py'],
     options={
         'py2app': {

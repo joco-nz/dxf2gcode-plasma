@@ -5,15 +5,15 @@ Generates the python file based on the defined uifile
 """
 
 import os
-import sys
 import subprocess
+import sys
 import tempfile
 
-from dxf2gcode.globals.six import PY2
 import dxf2gcode.globals.constants as c
+from dxf2gcode.globals.six import PY2
+
 
 def which(program):
-    import os
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
@@ -29,6 +29,7 @@ def which(program):
 
     return None
 
+
 if len(sys.argv) > 1:
     try:
         pyQtVer = sys.argv[1]
@@ -42,7 +43,7 @@ else:
         pyQtVer = '4'
 
 if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin" in sys.platform.lower():
-    #On Linux and macOS executables are normaly on the PATH (on Linux please install packages like lib64-qt5-devel and python-qt5-devel)
+    # On Linux and macOS executables are normaly on the PATH (on Linux please install packages like lib64-qt5-devel and python-qt5-devel)
     names = ["pyuic%s" % pyQtVer]
     UICPATH = None
 
@@ -106,10 +107,10 @@ try:
     cmd2 = "%s %s %s %s" % (RCCPATH, OPTIONS, RCPYFILEver, RCFILE)
 
     print(cmd1)
-    subprocess.check_call(cmd1, shell=True) #shell=True argument needed on Linux
+    subprocess.check_call(cmd1, shell=True)  # shell=True argument needed on Linux
 
     print(cmd2)
-    subprocess.check_call(cmd2, shell=True) #shell=True argument needed on Linux
+    subprocess.check_call(cmd2, shell=True)  # shell=True argument needed on Linux
 
 finally:
     os.remove(tmp_ui_filename)

@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import subprocess
+import sys
 
 PYTHONPATH = os.path.split(sys.executable)[0]
 pyinpfad = os.path.join(PYTHONPATH, "Scripts\\pyinstaller-script.py")

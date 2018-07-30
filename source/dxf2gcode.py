@@ -27,41 +27,36 @@
 from __future__ import absolute_import
 from __future__ import division
 
-import os
-import sys
-
-from math import degrees, radians
-from copy import copy, deepcopy
-import logging
 import argparse
+import logging
+import os
 import subprocess
+import sys
 import tempfile
+from copy import copy, deepcopy
+from math import degrees, radians
 
-from dxf2gcode.core.point import Point
-from dxf2gcode.core.layercontent import LayerContent, Layers, Shapes
-from dxf2gcode.core.entitycontent import EntityContent
-from dxf2gcode.core.customgcode import CustomGCode
-from dxf2gcode.core.linegeo import LineGeo
-from dxf2gcode.core.holegeo import HoleGeo
-from dxf2gcode.core.project import Project
-from dxf2gcode.globals.config import MyConfig
+import dxf2gcode.globals.constants as c
 import dxf2gcode.globals.globals as g
-from dxf2gcode.globals.logger import LoggerClass
-
-from dxf2gcode.gui.configwindow import ConfigWindow
-from dxf2gcode.gui.treehandling import TreeHandler
-from dxf2gcode.gui.popupdialog import PopUpDialog
-from dxf2gcode.gui.aboutdialog import AboutDialog
-
+from dxf2gcode.core.customgcode import CustomGCode
+from dxf2gcode.core.entitycontent import EntityContent
+from dxf2gcode.core.holegeo import HoleGeo
+from dxf2gcode.core.layercontent import LayerContent, Layers, Shapes
+from dxf2gcode.core.linegeo import LineGeo
+from dxf2gcode.core.point import Point
+from dxf2gcode.core.project import Project
 from dxf2gcode.dxfimport.importer import ReadDXF
-
+from dxf2gcode.globals.config import MyConfig
+from dxf2gcode.globals.helperfunctions import qstr_encode, str_decode, str_encode
+from dxf2gcode.globals.logger import LoggerClass
+from dxf2gcode.globals.six import text_type
+from dxf2gcode.gui.aboutdialog import AboutDialog
+from dxf2gcode.gui.configwindow import ConfigWindow
+from dxf2gcode.gui.popupdialog import PopUpDialog
+from dxf2gcode.gui.treehandling import TreeHandler
 from dxf2gcode.postpro.postprocessor import MyPostProcessor
 from dxf2gcode.postpro.tspoptimisation import TspOptimization
 
-from dxf2gcode.globals.helperfunctions import str_encode, str_decode, qstr_encode
-
-from dxf2gcode.globals.six import text_type
-import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
     from PyQt5.QtGui import QSurfaceFormat
@@ -122,14 +117,14 @@ class MainWindow(QMainWindow):
         self.configuration_changed.connect(self.TreeHandler.updateConfiguration)
 
         if sys.version_info[0] == 2:
-            error_message = QMessageBox(QMessageBox.Critical, 'ERROR', self.tr("Python version 2 is not supported, please use it with python version 3."));
+            error_message = QMessageBox(QMessageBox.Critical, 'ERROR', self.tr("Python version 2 is not supported, please use it with python version 3."))
             sys.exit(error_message.exec_())
 
-        #Load the post-processor configuration and build the post-processor configuration window
+        # Load the post-processor configuration and build the post-processor configuration window
         self.MyPostProcessor = MyPostProcessor()
         # If string version_mismatch isn't empty, we popup an error and exit
         if self.MyPostProcessor.version_mismatch:
-            error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', self.MyPostProcessor.version_mismatch);
+            error_message = QMessageBox(QMessageBox.Critical, 'Configuration error', self.MyPostProcessor.version_mismatch)
             sys.exit(error_message.exec_())
 
         self.d2g = Project(self)
@@ -209,7 +204,7 @@ class MainWindow(QMainWindow):
     def connectToolbarToConfig(self, project=False, block_signals=True):
         # View
         if not project:
-            self.ui.actionShowDisabledPaths.blockSignals(block_signals) #Don't emit any signal when changing state of the menu entries
+            self.ui.actionShowDisabledPaths.blockSignals(block_signals)  # Don't emit any signal when changing state of the menu entries
             self.ui.actionShowDisabledPaths.setChecked(g.config.vars.General['show_disabled_paths'])
             self.ui.actionShowDisabledPaths.blockSignals(False)
             self.ui.actionLiveUpdateExportRoute.blockSignals(block_signals)
@@ -397,9 +392,9 @@ class MainWindow(QMainWindow):
         self.canvas_scene.delete_opt_paths()
 
         self.canvas_scene.addexproutest()
-        for LayerContent in self.layerContents.non_break_layer_iter():
-            if len(LayerContent.exp_order) > 0:
-                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
+        for layer in self.layerContents.non_break_layer_iter():
+            if len(layer.exp_order) > 0:
+                self.canvas_scene.addexproute(layer.exp_order, layer.nr)
         if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
             self.canvas_scene.addexprouteen()
@@ -421,7 +416,7 @@ class MainWindow(QMainWindow):
         self.TreeHandler.updateExportOrder()
         self.canvas_scene.addexproutest()
 
-        for LayerContent in self.layerContents.non_break_layer_iter():
+        for layerContent in self.layerContents.non_break_layer_iter():
             # Initial values for the Lists to export.
             shapes_to_write = []
             shapes_fixed_order = []
@@ -429,21 +424,21 @@ class MainWindow(QMainWindow):
 
             # Check all shapes of Layer which shall be exported and create List for it.
             logger.debug(self.tr("Nr. of Shapes %s; Nr. of Shapes in Route %s")
-                         % (len(LayerContent.shapes), len(LayerContent.exp_order)))
-            logger.debug(self.tr("Export Order for start: %s") % LayerContent.exp_order)
+                         % (len(layerContent.shapes), len(layerContent.exp_order)))
+            logger.debug(self.tr("Export Order for start: %s") % layerContent.exp_order)
 
-            for shape_nr in range(len(LayerContent.exp_order)):
-                if not self.shapes[LayerContent.exp_order[shape_nr]].send_to_TSP:
+            for shape_nr in range(len(layerContent.exp_order)):
+                if not self.shapes[layerContent.exp_order[shape_nr]].send_to_TSP:
                     shapes_fixed_order.append(shape_nr)
 
                 shapes_to_write.append(shape_nr)
-                shapes_st_en_points.append(self.shapes[LayerContent.exp_order[shape_nr]].get_start_end_points())
+                shapes_st_en_points.append(self.shapes[layerContent.exp_order[shape_nr]].get_start_end_points())
 
             # Perform Export only if the Number of shapes to export is bigger than 0
             if len(shapes_to_write) > 0:
                 # Errechnen der Iterationen
                 # Calculate the iterations
-                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'], len(shapes_to_write)*50)
+                iter_ = min(g.config.vars.Route_Optimisation['max_iterations'], len(shapes_to_write) * 50)
 
                 # Adding the Start and End Points to the List.
                 x_st = g.config.vars.Plane_Coordinates['axis1_start_end']
@@ -453,7 +448,7 @@ class MainWindow(QMainWindow):
                 shapes_st_en_points.append([start, ende])
 
                 TSPs = TspOptimization(shapes_st_en_points, shapes_fixed_order)
-                logger.info(self.tr("TSP start values initialised for Layer %s") % LayerContent.name)
+                logger.info(self.tr("TSP start values initialised for Layer %s") % layerContent.name)
                 logger.debug(self.tr("Shapes to write: %s") % shapes_to_write)
                 logger.debug(self.tr("Fixed order: %s") % shapes_fixed_order)
 
@@ -461,17 +456,17 @@ class MainWindow(QMainWindow):
                     # Only show each 50th step.
                     if it_nr % 50 == 0:
                         TSPs.calc_next_iteration()
-                        new_exp_order = [LayerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
+                        new_exp_order = [layerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
 
                 logger.debug(self.tr("TSP done with result: %s") % TSPs)
 
-                LayerContent.exp_order = new_exp_order
+                layerContent.exp_order = new_exp_order
 
-                self.canvas_scene.addexproute(LayerContent.exp_order, LayerContent.nr)
+                self.canvas_scene.addexproute(layerContent.exp_order, layerContent.nr)
                 logger.debug(self.tr("New Export Order after TSP: %s") % new_exp_order)
                 self.app.processEvents()
             else:
-                LayerContent.exp_order = []
+                layerContent.exp_order = []
 
         if len(self.canvas_scene.routearrows) > 0:
             self.ui.actionDeleteG0Paths.setEnabled(True)
@@ -786,7 +781,7 @@ class MainWindow(QMainWindow):
                 if len(pdftops_opt) == 1 and len(pdftops_opt[0]) == 0:
                     pdftops_opt = list()
                 ps_filename = os.path.normcase(self.filename)
-                cmd = [('%s' % pdftops_cmd)] + pdftops_opt + [('%s' % os.path.normcase(self.filename)),
+                cmd = [('%s' % pdftops_cmd)] + pdftops_opt + [('%s' % ps_filename),
                                                               ('%s' % os.path.normcase(tmp_filename))]
                 logger.debug(cmd)
                 self.filename = os.path.normcase(tmp_filename)
@@ -819,9 +814,9 @@ class MainWindow(QMainWindow):
             if len(pstoedit_opt) == 1 and len(pstoedit_opt[0]) == 0:
                 pstoedit_opt = list()
             ps_filename = os.path.normcase(self.filename)
-            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % os.path.normcase(self.filename)), ('%s' % os.path.normcase(tmp_filename))]
+            cmd = [('%s' % pstoedit_cmd)] + pstoedit_opt + [('%s' % ps_filename), ('%s' % os.path.normcase(tmp_filename))]
             logger.debug(cmd)
-            self.filename=os.path.normcase(tmp_filename)
+            self.filename = os.path.normcase(tmp_filename)
             try:
                 rv = subprocess.call(cmd)
                 if rv != 0:
