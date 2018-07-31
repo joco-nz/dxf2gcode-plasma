@@ -15,9 +15,10 @@ Prerequisites
 - Unix machines:
   - Build dependencies:
     - /usr/bin/python3 and development package (>=3.5),
-    - PyQt5 (>=5.7),
-    - PyOpenGL (>=3.1),
-    - py2app (>=0.14 only on macOS),
+    - PyQt5     (>=5.7),
+    - PyOpenGL  (>=3.1),
+    - configobj (>=5.0.6).
+    - py2app    (>=0.14 only on macOS),
     - /usr/bin/lrelease-qt5 or /usr/bin/lrelease5 or /usr/bin/lrelease,
     - /usr/bin/pylupdate5,
     - /usr/bin/pyuic5,
@@ -25,10 +26,11 @@ Prerequisites
     - /usr/bin/productbuild (only on macOS)
 
   - Runtime dependencies:
-    - /usr/bin/python3 (>=3.5),
-    - PyQt5 (>=5.7),
-    - PyOpenGL (>=3.1),
-    - /usr/bin/pdftops (>=0.45),
+    - /usr/bin/python3  (>=3.5),
+    - PyQt5             (>=5.7),
+    - PyOpenGL          (>=3.1),
+    - configobj         (>=5.0.6),
+    - /usr/bin/pdftops  (>=0.45),
     - /usr/bin/pstoedit (>=3.70).
 
     Note: Depending you used operating system flavour different package names
@@ -37,27 +39,33 @@ Prerequisites
 
 - Windows machine
   - Build dependencies:
-    - python3 (>=3.6.2),
-    - setuptools (>=28.8.0),
-    - sip     (>=4.19.3),
-    - pip     (>=9.0.1),
-    - PyQt5   (>=5.9),
-    - PyOpenGL (>=3.1),
+    - python3     (>=3.6.2),
+    - setuptools  (>=28.8.0),
+    - sip         (>=4.19.3),
+    - pip         (>=9.0.1),
+    - PyQt5       (>=5.9),
+    - PyOpenGL    (>=3.1),
     - pyqt5-tools (>=5.9.0.1.2),
-    - cx-Freeze   (>=5.0.2).
+    - cx-Freeze   (>=5.0.2),
+    - configobj   (>=5.0.6).
 
     Python 3 should be installed from: https://www.python.org/downloads/,
-    during installation pip package should be installed which should install
-    sip, and setuptools packages. Using pip remaining python dependencies like:
-    PyQt5, PyOpenGL, pyqt5-tools and cx-Freeze should be installed.
+    during installation pip package should be selected to be installed.
+    Using pip remaining python dependencies might be installed using:
+
+    C:\> pip3 install sip PyQt5 PyOpenGL pyqt5-tools cx-Freeze configobj
+
+    Note: Please do not install python3 version 3.7.x as at the time of writing
+    there is no pyqt5-tools package available for this version of the python.
 
   - Runtime dependencies:
-    - python3 (>=3.6.2),
-    - PyQt5 (>=5.9),
-    - PyOpenGL (>=3.1),
-    - pdftops (>=4.00) [http://www.xpdfreader.com/download.html] (Xpdf-tools package),
-    - pstoedit (>=3.70) [https://sourceforge.net/projects/pstoedit/],
-    - gswin32c (>=9.09) [https://sourceforge.net/projects/ghostscript/].
+    - python3   (>=3.6.2),
+    - PyQt5     (>=5.9),
+    - PyOpenGL  (>=3.1),
+    - configobj (>=5.0.6),
+    - pdftops   (>=4.00) [http://www.xpdfreader.com/download.html] (Xpdf-tools package),
+    - pstoedit  (>=3.70) [https://sourceforge.net/projects/pstoedit/],
+    - gswin32c  (>=9.09) [https://sourceforge.net/projects/ghostscript/].
 
     Note: if gswin32c is not on the PATH then -gs option needs to be added to
     pstoedit tool in Options->Configuration->Software config->pstoedit
@@ -99,7 +107,7 @@ Building and Installing
 
   - macOS:
     Note(1): It is recommended to install python dependencies using 'pip' tool.
-    $ ./makeo_tr.py
+    $ ./make_tr.py
         If 'lrelease' is not on the PATH use something like the following:
         $ PATH=$PATH:/usr/local/Cellar/qt/5.11.1/bin ./make_tr.py
     $ ./make_py_uic.py

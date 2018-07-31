@@ -65,7 +65,6 @@ setup(
         'dxf2gcode.core',
         'dxf2gcode.dxfimport',
         'dxf2gcode.globals',
-        'dxf2gcode.globals.configobj',
         'dxf2gcode.gui',
         'dxf2gcode.postpro'
     ],
@@ -76,6 +75,7 @@ setup(
     ],
 
     install_requires=[
+        'configobj',
         'PyQt5',
         'PyOpenGL'
     ],

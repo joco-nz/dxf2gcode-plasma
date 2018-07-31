@@ -27,8 +27,8 @@
 
 import os
 
-from dxf2gcode.globals.configobj.configobj import ConfigObj, flatten_errors
-from dxf2gcode.globals.configobj.validate import Validator
+from configobj import ConfigObj, flatten_errors
+from validate import Validator
 
 import dxf2gcode.globals.globals as g
 from dxf2gcode.globals.d2gexceptions import *
