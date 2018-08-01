@@ -28,13 +28,10 @@ from __future__ import absolute_import
 import logging
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton
-    from PyQt5.QtGui import QIcon, QPixmap
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton, QIcon, QPixmap
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton
+from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5 import QtCore
+
 
 logger = logging.getLogger("Gui.PopUpDialog")
 

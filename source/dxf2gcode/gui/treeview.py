@@ -35,13 +35,9 @@ Subclass is done in order to:
 """
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QTreeView
-    from PyQt5.QtGui import QStandardItemModel
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QTreeView, QStandardItemModel
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QTreeView
+from PyQt5.QtGui import QStandardItemModel
+from PyQt5 import QtCore
 
 
 class TreeView(QTreeView):

@@ -35,10 +35,7 @@ from dxf2gcode.globals.d2gexceptions import VersionMismatchError
 import dxf2gcode.globals.globals as g
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5 import QtCore
-else:
-    from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 logger = logging.getLogger("Core.Project")
 

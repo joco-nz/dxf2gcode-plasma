@@ -39,10 +39,7 @@ from dxf2gcode.globals.d2gexceptions import *
 from dxf2gcode.gui.configwindow import *
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5 import QtCore
-else:
-    from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 
 logger = logging.getLogger("Core.Config")

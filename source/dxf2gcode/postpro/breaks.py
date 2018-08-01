@@ -33,10 +33,7 @@ from dxf2gcode.core.point import Point
 from dxf2gcode.core.shape import Geos
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtCore import QLineF, QPointF
-else:
-    from PyQt4.QtCore import QLineF, QPointF
+from PyQt5.QtCore import QLineF, QPointF
 
 logger = logging.getLogger("PostPro.Breaks")
 

@@ -52,19 +52,12 @@ from dxf2gcode.gui.treeview import MyStandardItemModel
 from dxf2gcode.globals.helperfunctions import toInt, toFloat
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QAction, QMenu, QWidget, QAbstractItemView, QTreeView
-    from PyQt5.QtCore import QItemSelectionModel, QItemSelection
-    from PyQt5.QtGui import QStandardItem, QIcon, QPixmap, QStandardItemModel, QPalette
-    from PyQt5 import QtCore
-    isValid = lambda data: data
-    toPyObject = lambda data: data
-else:
-    from PyQt4.QtGui import QAction, QMenu, QWidget, QAbstractItemView, QStandardItem, QIcon, QPixmap, \
-        QTreeView, QStandardItemModel, QItemSelectionModel, QItemSelection, QPalette
-    from PyQt4 import QtCore
-    isValid = lambda data: data.isValid()
-    toPyObject = lambda data: data.toPyObject()
+from PyQt5.QtWidgets import QAction, QMenu, QWidget, QAbstractItemView, QTreeView
+from PyQt5.QtCore import QItemSelectionModel, QItemSelection
+from PyQt5.QtGui import QStandardItem, QIcon, QPixmap, QStandardItemModel, QPalette
+from PyQt5 import QtCore
+isValid = lambda data: data
+toPyObject = lambda data: data
 
 
 class QVariantShape(QtCore.QVariant):
@@ -301,8 +294,6 @@ class TreeHandler(QWidget):
         if self.layer_item_model:
             self.layer_item_model.clear()  # Remove any existing item_model
         self.layer_item_model = MyStandardItemModel()  # This is the container for the data (QStandardItemModel)
-        if not c.PYQT5notPYQT4:
-            self.layer_item_model.setSupportedDragActions(QtCore.Qt.MoveAction)
         self.layer_item_model.setHorizontalHeaderItem(0, QStandardItem(self.tr("[en]")))
         self.layer_item_model.setHorizontalHeaderItem(1, QStandardItem(self.tr("Name")))
         self.layer_item_model.setHorizontalHeaderItem(2, QStandardItem(self.tr("Nr")))

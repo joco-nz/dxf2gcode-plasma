@@ -32,10 +32,7 @@ from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.dxfimport.classes import PointsClass
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5 import QtCore
-else:
-    from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 logger = logging.getLogger("DXFImport.GeoentLine")
 

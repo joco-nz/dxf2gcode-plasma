@@ -33,10 +33,7 @@ from dxf2gcode.dxfimport.classes import PointsClass
 from dxf2gcode.core.arcgeo import ArcGeo
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5 import QtCore
-else:
-    from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 logger = logging.getLogger("DXFImport.GeoentArc")
 

@@ -28,13 +28,10 @@ import logging
 from dxf2gcode.core.point import Point
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsItem
-    from PyQt5.QtGui import QPainterPath, QPen, QColor, QFont
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QPainterPath, QGraphicsItem, QPen, QColor, QFont
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QGraphicsItem
+from PyQt5.QtGui import QPainterPath, QPen, QColor, QFont
+from PyQt5 import QtCore
+
 
 logger = logging.getLogger("Gui.RouteText")
 

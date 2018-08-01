@@ -28,13 +28,9 @@ from __future__ import absolute_import
 from __future__ import division
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsItem
-    from PyQt5.QtGui import QPen
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QGraphicsItem, QPen
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QGraphicsItem
+from PyQt5.QtGui import QPen
+from PyQt5 import QtCore
 
 
 class WpZero(QGraphicsItem):

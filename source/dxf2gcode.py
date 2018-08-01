@@ -56,17 +56,11 @@ from dxf2gcode.gui.treehandling import TreeHandler
 from dxf2gcode.postpro.postprocessor import MyPostProcessor
 from dxf2gcode.postpro.tspoptimisation import TspOptimization
 
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
-    from PyQt5.QtGui import QSurfaceFormat
-    from PyQt5 import QtCore
-    getOpenFileName = QFileDialog.getOpenFileName
-    getSaveFileName = QFileDialog.getSaveFileName
-else:
-    from PyQt4.QtGui import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
-    from PyQt4 import QtCore
-    getOpenFileName = QFileDialog.getOpenFileNameAndFilter
-    getSaveFileName = QFileDialog.getSaveFileNameAndFilter
+from PyQt5.QtWidgets import QMainWindow, QGraphicsView, QFileDialog, QApplication, QMessageBox
+from PyQt5.QtGui import QSurfaceFormat
+from PyQt5 import QtCore
+getOpenFileName = QFileDialog.getOpenFileName
+getSaveFileName = QFileDialog.getSaveFileName
 
 logger = logging.getLogger()
 
@@ -1153,10 +1147,8 @@ if __name__ == "__main__":
         sys.exit(error_message.exec_())
 
     # Delay imports - needs to be done after logger and config initialization; and before the main window
-    if c.PYQT5notPYQT4:
-        from dxf2gcode_ui5 import Ui_MainWindow
-    else:
-        from dxf2gcode_ui4 import Ui_MainWindow
+    from dxf2gcode_ui5 import Ui_MainWindow
+
     if g.config.mode3d:
         from dxf2gcode.core.shape import Shape
         # multi-sampling has been introduced in PyQt5

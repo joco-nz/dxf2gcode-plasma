@@ -40,12 +40,8 @@ from dxf2gcode.postpro.breaks import Breaks
 from dxf2gcode.gui.configwindow import *
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QMessageBox
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QMessageBox
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5 import QtCore
 
 str_encode = lambda exstr: exstr
 

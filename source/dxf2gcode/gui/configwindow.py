@@ -79,20 +79,12 @@ from dxf2gcode.globals.helperfunctions import toInt, toFloat, str_encode, qstr_e
 
 import dxf2gcode.globals.constants as c
 
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, \
-        QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
-        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QListWidget, QStackedWidget, QSplitter
-    from PyQt5.QtGui import QIcon, QPixmap, QValidator, QRegExpValidator
-    from PyQt5.QtCore import QLocale, QRegExp
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, QLabel, \
-        QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
-        QPushButton, QAbstractItemView, QWidget, QSizePolicy, QIcon, QPixmap, QValidator, QRegExpValidator, \
-        QListWidget, QStackedWidget, QSplitter
-    from PyQt4.QtCore import QLocale, QRegExp
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QMessageBox, QVBoxLayout, QHBoxLayout, QLayout, QFrame, \
+    QLabel, QLineEdit, QTextEdit, QCheckBox, QSpinBox, QDoubleSpinBox, QComboBox, QTableWidget, QTableWidgetItem, \
+    QPushButton, QAbstractItemView, QWidget, QSizePolicy, QListWidget, QStackedWidget, QSplitter
+from PyQt5.QtGui import QIcon, QPixmap, QValidator, QRegExpValidator
+from PyQt5.QtCore import QLocale, QRegExp
+from PyQt5 import QtCore
 
 from dxf2gcode.gui.popupdialog import PopUpDialog
 
@@ -968,10 +960,7 @@ class CorrectedDoubleSpinBox(QDoubleSpinBox):
         #let's *really* trust the validator
         #http://python.6.x6.nabble.com/QValidator-raises-TypeError-td1923683.html
         #print("validate({}, {})".format(entry, pos))
-        if c.PYQT5notPYQT4:
-            return (QValidator.Acceptable, entry, pos)
-        else:
-            return (QValidator.Acceptable, pos)
+        return (QValidator.Acceptable, entry, pos)
 
 
 class CfgDoubleSpinBox(CfgSpinBox):

@@ -46,14 +46,10 @@ from dxf2gcode.gui.canvas import CanvasBase, MyDropDownMenu
 import dxf2gcode.globals.globals as g
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsItem, QGraphicsView, QRubberBand, QGraphicsScene, QGraphicsLineItem
-    from PyQt5.QtGui import QPainterPath, QPen, QColor, QPainterPathStroker
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QPainterPath, QGraphicsItem, QPen, QColor, QGraphicsView, QRubberBand,\
-        QGraphicsScene, QPainterPathStroker, QGraphicsLineItem
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsView, QRubberBand, QGraphicsScene, QGraphicsLineItem
+from PyQt5.QtGui import QPainterPath, QPen, QColor, QPainterPathStroker
+from PyQt5 import QtCore
+
 
 logger = logging.getLogger("DxfImport.myCanvasClass")
 
@@ -112,10 +108,7 @@ class MyGraphicsView(CanvasBase):
         @purpose: Scale by mouse wheel
         @param event: Event Parameters passed to function
         """
-        if c.PYQT5notPYQT4:
-            delta = event.angleDelta().y()
-        else:
-            delta = event.delta()
+        delta = event.angleDelta().y()
         scale = (1000 + delta) / 1000.0
         self.scale(scale, scale)
 

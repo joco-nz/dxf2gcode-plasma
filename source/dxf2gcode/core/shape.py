@@ -38,10 +38,7 @@ from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.core.holegeo import HoleGeo
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5 import QtCore
-else:
-    from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 logger = logging.getLogger("Core.Shape")
 

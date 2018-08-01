@@ -30,12 +30,9 @@ import logging
 import dxf2gcode.globals.globals as g
 
 import dxf2gcode.globals.constants as c
-if c.PYQT5notPYQT4:
-    from PyQt5.QtWidgets import QGraphicsView, QMenu
-    from PyQt5 import QtCore
-else:
-    from PyQt4.QtGui import QGraphicsView, QMenu
-    from PyQt4 import QtCore
+from PyQt5.QtWidgets import QGraphicsView, QMenu
+from PyQt5 import QtCore
+
 
 logger = logging.getLogger("DxfImport.myCanvasClass")
 

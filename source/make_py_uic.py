@@ -29,17 +29,7 @@ def which(program):
     return None
 
 
-if len(sys.argv) > 1:
-    try:
-        pyQtVer = sys.argv[1]
-        print("Using PyQt version read from command line = %d" % int(pyQtVer))
-    except:
-        sys.exit("Argument 1 is the PyQt version and must be an integer number (currently 4 and 5 are supported)")
-else:
-    if c.PYQT5notPYQT4:
-        pyQtVer = '5'
-    else:
-        pyQtVer = '4'
+pyQtVer = '5'
 
 if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin" in sys.platform.lower():
     # On Linux and macOS executables are normaly on the PATH (on Linux please install packages like lib64-qt5-devel and python-qt5-devel)

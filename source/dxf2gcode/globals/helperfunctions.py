@@ -29,10 +29,7 @@ import dxf2gcode.globals.constants as c
 str_encode = lambda string: string
 str_decode = lambda string: string
 
-if c.PYQT5notPYQT4:
-    qstr_encode = lambda string: str_encode(string)
-else:
-    qstr_encode = lambda string: str_encode(unicode(string.toUtf8(), encoding="utf-8"))
+qstr_encode = lambda string: str_encode(string)
 
 '''
 Following two functions are needed for Python3+, since it no longer supports these functions as is

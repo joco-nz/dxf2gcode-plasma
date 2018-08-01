@@ -36,19 +36,7 @@ import logging
 
 import platform
 
-'''
-By default we (should) want to run the PyQt5 version
-'''
-PYQT5notPYQT4 = True
-try:
-    import PyQt5
-except ImportError:
-    PYQT5notPYQT4 = False
-
-if PYQT5notPYQT4:
-    from PyQt5 import QtCore
-else:
-    from PyQt4 import QtCore
+from PyQt5 import QtCore
 
 # Global Variables
 APPNAME = "DXF2GCODE"
