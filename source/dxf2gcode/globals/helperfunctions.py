@@ -23,16 +23,12 @@
 ############################################################################
 
 from __future__ import absolute_import
-from dxf2gcode.globals.six import PY2
-
-if PY2:
-    str_encode = lambda string: string.encode('utf-8')
-    str_decode = lambda string: string.decode("utf-8")
-else:
-    str_encode = lambda string: string
-    str_decode = lambda string: string
 
 import dxf2gcode.globals.constants as c
+
+str_encode = lambda string: string
+str_decode = lambda string: string
+
 if c.PYQT5notPYQT4:
     qstr_encode = lambda string: str_encode(string)
 else:

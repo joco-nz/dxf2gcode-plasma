@@ -31,23 +31,19 @@ import sys
 import pprint
 import logging
 
+from collections import OrderedDict
 from configobj import ConfigObj, flatten_errors
 from validate import Validator
 import dxf2gcode.globals.globals as g
 from dxf2gcode.globals.d2gexceptions import *
 from dxf2gcode.gui.configwindow import *
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
 else:
     from PyQt4 import QtCore
 
-try:
-    from collections import OrderedDict
-except ImportError:
-    from dxf2gcode.globals.ordereddict import OrderedDict
 
 logger = logging.getLogger("Core.Config")
 
@@ -349,7 +345,7 @@ class MyConfig(object):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MyConfig',
+        return str(QtCore.QCoreApplication.translate('MyConfig',
                                                            string_to_translate))
 
     def update_config(self):

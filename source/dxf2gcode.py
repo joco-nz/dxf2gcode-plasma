@@ -49,7 +49,6 @@ from dxf2gcode.dxfimport.importer import ReadDXF
 from dxf2gcode.globals.config import MyConfig
 from dxf2gcode.globals.helperfunctions import qstr_encode, str_decode, str_encode
 from dxf2gcode.globals.logger import LoggerClass
-from dxf2gcode.globals.six import text_type
 from dxf2gcode.gui.aboutdialog import AboutDialog
 from dxf2gcode.gui.configwindow import ConfigWindow
 from dxf2gcode.gui.popupdialog import PopUpDialog
@@ -153,7 +152,7 @@ class MainWindow(QMainWindow):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MainWindow',
+        return str(QtCore.QCoreApplication.translate('MainWindow',
                                                            string_to_translate))
 
     def createActions(self):

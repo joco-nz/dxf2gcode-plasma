@@ -23,11 +23,10 @@
 from __future__ import absolute_import
 from __future__ import division
 
-from math import pi, cos, sin, radians
 import logging
+from math import cos, pi, radians, sin
 
-from dxf2gcode.globals.six import text_type
-from PyQt5.QtCore import QPoint, Qt, QCoreApplication
+from PyQt5.QtCore import QCoreApplication, QPoint, Qt
 from PyQt5.QtGui import QColor
 
 from dxf2gcode.core.layercontent import Shapes
@@ -104,7 +103,7 @@ class GLWidget(CanvasBase):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QCoreApplication.translate('GLWidget',
+        return str(QCoreApplication.translate('GLWidget',
                                                     string_to_translate))
 
     def resetAll(self):

@@ -32,7 +32,6 @@ from dxf2gcode.core.point import Point
 from dxf2gcode.dxfimport.classes import PointsClass
 from dxf2gcode.core.arcgeo import ArcGeo
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
@@ -67,7 +66,7 @@ class GeoentArc(object):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('GeoentArc',
+        return str(QtCore.QCoreApplication.translate('GeoentArc',
                                                            string_to_translate))
 
     def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):

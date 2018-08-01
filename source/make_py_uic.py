@@ -10,7 +10,6 @@ import sys
 import tempfile
 
 import dxf2gcode.globals.constants as c
-from dxf2gcode.globals.six import PY2
 
 
 def which(program):
@@ -95,10 +94,7 @@ with open(UIFILE, "r") as myfile:
 
 fd, tmp_ui_filename = tempfile.mkstemp()
 try:
-    if PY2:
-        os.write(fd, ui_data)
-    else:  # Python3
-        os.write(fd, bytes(ui_data, 'UTF-8'))
+    os.write(fd, bytes(ui_data, 'UTF-8'))
     os.close(fd)
 
     OPTIONS = "-o"

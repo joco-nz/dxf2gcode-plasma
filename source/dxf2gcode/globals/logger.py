@@ -27,7 +27,6 @@ from __future__ import absolute_import
 import sys
 import logging
 
-from dxf2gcode.globals.six import string_types
 import dxf2gcode.globals.globals as g
 
 
@@ -107,7 +106,7 @@ class LoggerClass(object):
         @param level: The String with the Level
         @return: Returns the converted string acc. to logging needs.
         """
-        if isinstance(level, string_types):
+        if isinstance(level, str):
             return logging.getLevelName(level)
         else:
             return level

@@ -73,10 +73,10 @@ config_window.finished.connect(self.updateConfiguration) #Optional signal to kno
 from __future__ import absolute_import
 
 import logging
+from collections import OrderedDict
 
 from dxf2gcode.globals.helperfunctions import toInt, toFloat, str_encode, qstr_encode
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 
 if c.PYQT5notPYQT4:
@@ -93,11 +93,6 @@ else:
         QListWidget, QStackedWidget, QSplitter
     from PyQt4.QtCore import QLocale, QRegExp
     from PyQt4 import QtCore
-
-try:
-    from collections import OrderedDict
-except ImportError:
-    from dxf2gcode.globals.ordereddict import OrderedDict
 
 from dxf2gcode.gui.popupdialog import PopUpDialog
 
@@ -201,7 +196,7 @@ class ConfigWindow(QDialog):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('ConfigWindow', string_to_translate))
+        return str(QtCore.QCoreApplication.translate('ConfigWindow', string_to_translate))
 
 
     def setEditInProgress(self, edit_mode):

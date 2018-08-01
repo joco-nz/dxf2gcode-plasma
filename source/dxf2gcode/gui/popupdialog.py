@@ -27,7 +27,6 @@ from __future__ import absolute_import
 
 import logging
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QDialog, QVBoxLayout, QFrame, QGridLayout, QLabel, QLineEdit, QPushButton
@@ -66,7 +65,7 @@ class PopUpDialog(QDialog):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('PopUpDialog',
+        return str(QtCore.QCoreApplication.translate('PopUpDialog',
                                                            string_to_translate))
 
     def initUI(self, haveAuto):

@@ -44,7 +44,6 @@ from dxf2gcode.dxfimport.geoent_point import GeoentPoint
 
 import dxf2gcode.globals.globals as g
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMessageBox
@@ -103,7 +102,7 @@ class ReadDXF(QtCore.QObject):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('ReadDXF',
+        return str(QtCore.QCoreApplication.translate('ReadDXF',
                                                            string_to_translate))
 
     def Read_File(self, filename):

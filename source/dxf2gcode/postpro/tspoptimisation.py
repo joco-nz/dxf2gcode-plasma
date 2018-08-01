@@ -32,7 +32,6 @@ from math import floor, ceil
 
 import dxf2gcode.globals.globals as g
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
@@ -169,7 +168,7 @@ class PopulationClass:
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate("PopulationClass",
+        return str(QtCore.QCoreApplication.translate("PopulationClass",
                                                            string_to_translate))
 
     def random_begin(self, size):

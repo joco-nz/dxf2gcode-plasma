@@ -45,7 +45,6 @@ from dxf2gcode.gui.canvas import CanvasBase, MyDropDownMenu
 
 import dxf2gcode.globals.globals as g
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QGraphicsItem, QGraphicsView, QRubberBand, QGraphicsScene, QGraphicsLineItem
@@ -93,7 +92,7 @@ class MyGraphicsView(CanvasBase):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MyGraphicsView',
+        return str(QtCore.QCoreApplication.translate('MyGraphicsView',
                                                            string_to_translate))
 
     def contextMenuEvent(self, event):
@@ -287,7 +286,7 @@ class MyGraphicsScene(QGraphicsScene):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MyGraphicsScene',
+        return str(QtCore.QCoreApplication.translate('MyGraphicsScene',
                                                            string_to_translate))
 
     def plotAll(self, shapes):

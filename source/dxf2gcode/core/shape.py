@@ -37,7 +37,6 @@ from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.core.holegeo import HoleGeo
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5 import QtCore
@@ -108,7 +107,7 @@ class Shape(object):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate("Shape",
+        return str(QtCore.QCoreApplication.translate("Shape",
                                                            string_to_translate))
 
     def setSelected(self, flag=False):

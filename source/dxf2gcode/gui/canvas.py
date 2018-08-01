@@ -29,7 +29,6 @@ import logging
 
 import dxf2gcode.globals.globals as g
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QGraphicsView, QMenu
@@ -135,7 +134,7 @@ class MyDropDownMenu(QMenu):
         @param string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('MyDropDownMenu',
+        return str(QtCore.QCoreApplication.translate('MyDropDownMenu',
                                                            string_to_translate))
 
     def calcMenuDir(self):

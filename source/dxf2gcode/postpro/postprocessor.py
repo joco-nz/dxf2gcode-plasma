@@ -39,7 +39,6 @@ from dxf2gcode.postpro.postprocessorconfig import MyPostProConfig
 from dxf2gcode.postpro.breaks import Breaks
 from dxf2gcode.gui.configwindow import *
 
-from dxf2gcode.globals.six import text_type, PY2
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QMessageBox
@@ -48,10 +47,7 @@ else:
     from PyQt4.QtGui import QMessageBox
     from PyQt4 import QtCore
 
-if PY2:
-    str_encode = lambda exstr: exstr.encode('utf-8')
-else:
-    str_encode = lambda exstr: exstr
+str_encode = lambda exstr: exstr
 
 logger = logging.getLogger("PostPro.PostProcessor")
 
@@ -92,7 +88,7 @@ class MyPostProcessor(object):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate("MyPostProcessor",
+        return str(QtCore.QCoreApplication.translate("MyPostProcessor",
                                                            string_to_translate))
 
     def updatePostprocessorConfiguration(self, result):

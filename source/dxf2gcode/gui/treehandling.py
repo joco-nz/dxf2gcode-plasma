@@ -51,7 +51,6 @@ from dxf2gcode.gui.treeview import MyStandardItemModel
 
 from dxf2gcode.globals.helperfunctions import toInt, toFloat
 
-from dxf2gcode.globals.six import text_type
 import dxf2gcode.globals.constants as c
 if c.PYQT5notPYQT4:
     from PyQt5.QtWidgets import QAction, QMenu, QWidget, QAbstractItemView, QTreeView
@@ -189,7 +188,7 @@ class TreeHandler(QWidget):
         @param: string_to_translate: a unicode string
         @return: the translated unicode string if it was possible to translate
         """
-        return text_type(QtCore.QCoreApplication.translate('TreeHandler',
+        return str(QtCore.QCoreApplication.translate('TreeHandler',
                                                            string_to_translate))
 
     def updateConfiguration(self):
