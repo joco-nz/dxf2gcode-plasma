@@ -101,6 +101,7 @@ POSTPRO_SPEC = str('''
     pre_decimal_zero_padding = boolean(default=False)
     # If false e.g. 1.000 will be given as 1 only.
     post_decimal_zero_padding = boolean(default=True)
+    win_line_endings = boolean(default=False)
     # If True 1.000 will be written as +1.000
     signed_values = boolean(default=False)
 
@@ -315,12 +316,13 @@ class MyPostProConfig(object):
             ('Number_Format', OrderedDict([
                 ('__section_title__', MyPostProConfig.tr("Output formatting")),
                 ('__subtitle__', CfgSubtitle(MyPostProConfig.tr("Output formatting"))),
+                ('win_line_endings', CfgCheckBox(MyPostProConfig.tr('Windows line-endings'))),
                 ('signed_values', CfgCheckBox(MyPostProConfig.tr("Prepend numbers with the '+' sign for positive values"))),
                 ('pre_decimals', CfgSpinBox(MyPostProConfig.tr('Number of digits before the decimal separator:'))),
                 ('pre_decimal_zero_padding', CfgCheckBox(MyPostProConfig.tr("Padding with '0' digit before the decimal separator"))),
                 ('post_decimals', CfgSpinBox(MyPostProConfig.tr('Number of digits after the decimal separator:'))),
                 ('post_decimal_zero_padding', CfgCheckBox(MyPostProConfig.tr("Padding with '0' digit after the decimal separator"))),
-                ('decimal_separator', CfgLineEdit(MyPostProConfig.tr('Decimal separator:')))
+                ('decimal_separator', CfgLineEdit(MyPostProConfig.tr('Decimal separator:'))),
             ])),
             ('Line_Numbers', OrderedDict([
                 ('__section_title__', MyPostProConfig.tr("Output formatting")),
