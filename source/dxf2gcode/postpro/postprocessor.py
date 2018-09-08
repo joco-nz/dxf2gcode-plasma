@@ -316,6 +316,7 @@ class MyPostProcessor(object):
         exstr += self.write_gcode_en()
 
         exstr = self.make_line_numbers(exstr)
+        exstr = self.make_windows_line_endings(exstr)
 
         # If the String shall be given to STDOUT
         if g.config.vars.General['write_to_stdout']:
@@ -465,6 +466,12 @@ class MyPostProcessor(object):
                                                         exstr[nr + 1:len(exstr)]))
 
                 nr = exstr.find('\n', nr + len(line_format % line_nr) + 2)
+
+        return exstr
+
+    def make_windows_line_endings(self, exstr):
+        if self.vars.Number_Format["win_line_endings"]:
+            return exstr.replace('\n', '\r\n')
 
         return exstr
 
