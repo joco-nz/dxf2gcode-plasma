@@ -45,7 +45,7 @@ if platform.system() == 'Darwin':
 setup(
     name='dxf2gcode',
 
-    version='20170925',
+    version='20190103',
 
     description='2D drawings to CNC machine compatible G-Code converter.',
 

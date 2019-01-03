@@ -9,7 +9,7 @@ import sys
 from cx_Freeze import Executable, setup
 
 
-version = "20170925"
+version = "20190103"
 
 base = 'Console'
 if sys.platform == 'win32':
