@@ -59,7 +59,7 @@ else:
     # To get pylupdate5.exe use: pip3.exe install PyQt5
     PYLPATH = os.path.join(PYTHONPATH, "Scripts/pylupdate5.exe")
     # To get lrelease.exe use: pip3.exe install pyqt5-tools
-    LREPATH = os.path.join(PYTHONPATH, "Lib/site-packages/pyqt5-tools/lrelease.exe")
+    LREPATH = os.path.join(PYTHONPATH, "Scripts/lrelease.exe")
     print("Using Windows platform tools \"%s\" and \"%s\"\n" % (PYLPATH, LREPATH))
 
 FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
