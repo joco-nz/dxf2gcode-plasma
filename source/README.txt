@@ -145,8 +145,15 @@ Development
   - Development:
     For development/debugging purposes you may run the program directly from
     the source code directory by typing (depending on operating system):
-      - Unix: $ python3 ./dxf2gcode
-      - Windows: python.exe ./dxf2gcode
+      - Unix: $ python3 ./dxf2gcode.py
+      - Windows: python.exe ./dxf2gcode.py
+
+  - Tests:
+    It is recommended to check if program can successfully convert all DXF
+    files from the dxf directory. In order to do that please run from the
+    source code directory dxf2gcode_test.py test as following:
+      - Unix: $ python3 ./dxf2gcode_test.py
+      - Windows: python.exe ./dxf2gcode_test.py
 
   - New releases:
     - Source tarball (for both Unix and Windows) can be prepared by running:
