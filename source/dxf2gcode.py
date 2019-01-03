@@ -1176,6 +1176,7 @@ if __name__ == "__main__":
 #    parser.add_option("-v", "--verbose",
 #                      action = "store_true", dest = "verbose")
     options = parser.parse_args()
+    g.quiet = options.quiet
 
     # (options, args) = parser.parse_args()
     logger.debug("Started with following options:\n%s" % parser)

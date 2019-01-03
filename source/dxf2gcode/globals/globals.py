@@ -48,6 +48,7 @@ folder = None
 
 window = None
 
+quiet = False
 
 #-------------------------------------
 

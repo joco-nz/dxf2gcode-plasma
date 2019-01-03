@@ -191,8 +191,11 @@ class ReadDXF(QtCore.QObject):
         except ValueError:
             message = self.tr('Reading stopped at line %i.\n "%s" is not a valid code (number) - please, check/correct dxf file')\
                       % (line + 1, string[line].strip())
-            logger.warning(message)
-            QMessageBox.warning(g.window, self.tr("Warning reading linepairs"), message)
+
+            if g.quiet:
+                logger.warning(message)
+            else:
+                QMessageBox.warning(g.window, self.tr("Warning reading linepairs"), message)
 
         line_pairs.nrs = len(line_pairs.line_pair)
         logger.debug(self.tr('Did read %i of linepairs from DXF') % line_pairs.nrs)
@@ -482,10 +485,14 @@ class ReadDXF(QtCore.QObject):
             warning = geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
 
         if warning:
-            QMessageBox.warning(g.window, self.tr("Short Elements"),
-                                self.tr("Length of some Elements too short!"
-                                "\nLength must be greater than tolerance."
-                                "\nSkipped Geometries"))
+            message = self.tr("Length of some Elements too short!"
+                              "\nLength must be greater than tolerance."
+                              "\nSkipped Geometries")
+
+            if g.quiet:
+                logger.warning(message)
+            else:
+                QMessageBox.warning(g.window, self.tr("Short Elements"), message)
 
         return points
 
