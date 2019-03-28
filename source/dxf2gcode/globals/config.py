@@ -328,7 +328,8 @@ class MyConfig(object):
         self.fitting_tolerance = self.vars.Import_Parameters['fitting_tolerance']
         self.point_tolerance = self.vars.Import_Parameters['point_tolerance']
 
-        self.metric = 1  # true unit is determined while importing
+       
+        self.metric = 0 if self.vars.General['tool_units'] == 'in' else 1   # Standard if no other unit is determined while importing
         self.tool_units = self.vars.General['tool_units'] # store the initial tool_units (we don't want it to change until software restart)
         self.tool_units_metric = 0 if self.vars.General['tool_units'] == 'in' else 1
 

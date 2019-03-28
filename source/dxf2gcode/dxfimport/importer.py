@@ -136,8 +136,12 @@ class ReadDXF(QtCore.QObject):
 
         for line in range(len(str) - 2):
             if str[line].startswith("$MEASUREMENT"):
-                metric = int(str[line + 2].strip())
+                if int(str[line + 2].strip()) == 1:
+                    metric = 0
+                elif int(str[line + 2].strip()) == 4:
+                    metric = 1
                 break
+
 
         # Default drawing units for AutoCAD DesignCenter blocks:
         # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
