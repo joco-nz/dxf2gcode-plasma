@@ -525,9 +525,12 @@ class MyConfig(object):
             ])),
             ('Cutter_Compensation', OrderedDict([
                 ('__section_title__', self.tr("Output settings")),
+                ('__subtitle__', CfgSubtitle(self.tr("Cutter compensation"))),
                 ('done_by_machine', CfgCheckBox(self.tr('Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise)')))
             ])),
             ('Drag_Knife_Options', OrderedDict([
+                ('__section_title__', self.tr("Output settings")),
+                ('__subtitle__', CfgSubtitle(self.tr("Drag Knife options"))),
                 ('drag_angle', CfgDoubleSpinBox(self.tr('Retract to drag depth ("Third axis slice depth") if angle exceeds:'), u'°'))#u for unicode
             ])),
             ('Route_Optimisation', OrderedDict([
