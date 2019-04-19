@@ -480,7 +480,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="dxf2gcode_pyQt4_ui.ui" line="978"/>
         <source>Show disabled paths</source>
-        <translation type="obsolete">Показать запрещённые траектории </translation>
+        <translation type="obsolete">Отображать выключенные фигуры</translation>
     </message>
     <message>
         <location filename="../dxf2gcode.ui" line="997"/>
@@ -630,7 +630,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="../dxf2gcode.py" line="447"/>
         <source>TSP start values initialised for Layer %s</source>
-        <translation>Начальные значения задачи коммивояжёра для слоя: %s</translation>
+        <translation>Установлены начальные условия ЗК для слоя: %s</translation>
     </message>
     <message>
         <location filename="../dxf2gcode.py" line="448"/>
@@ -895,7 +895,7 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
     <message>
         <location filename="../dxf2gcode.ui" line="1102"/>
         <source>Live Update Export Route</source>
-        <translation>Постоянный экспорт маршрута</translation>
+        <translation>Обновлять маршруты при изменениях</translation>
     </message>
     <message>
         <location filename="../dxf2gcode.ui" line="1110"/>
@@ -1023,37 +1023,37 @@ returned error code: {1}</source>
 <context>
     <name>MyConfig</name>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="378"/>
+        <location filename="../dxf2gcode/globals/config.py" line="379"/>
         <source>errors reading %s:</source>
         <translation>ошибки чтения %s:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="388"/>
+        <location filename="../dxf2gcode/globals/config.py" line="389"/>
         <source>Missing value or section.</source>
         <translation>Отсутствует значение или раздел.</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="410"/>
+        <location filename="../dxf2gcode/globals/config.py" line="411"/>
         <source>trying to rename bad cfg %s to %s</source>
         <translation>попытка переименовать ошибочной настройки %s в %s</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="414"/>
+        <location filename="../dxf2gcode/globals/config.py" line="415"/>
         <source>rename(%s,%s) failed: %s</source>
         <translation>ошибка переименования (%s -&gt; %s): %s</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="417"/>
+        <location filename="../dxf2gcode/globals/config.py" line="418"/>
         <source>renamed bad varspace %s to &apos;%s&apos;</source>
         <translation>переименовано ошибочное пространство переменных &apos;%s&apos; в &apos;%s&apos;</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="429"/>
+        <location filename="../dxf2gcode/globals/config.py" line="430"/>
         <source>created default varspace &apos;%s&apos;</source>
         <translation>создано пространство переменных по умолчанию &apos;%s&apos;</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="404"/>
+        <location filename="../dxf2gcode/globals/config.py" line="405"/>
         <source>The configuration file version ({0}) doesn&apos;t match the software expected version ({1}).
 
 You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to solve the problem.</source>
@@ -1062,362 +1062,362 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
 Для решения проблемы Вам придётся удалить (или внимательно отредактировать) файл &quot;{2}&quot;.</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Tools table</source>
         <translation>Список инструментов</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Custom actions</source>
         <translation>Специальные действия</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Software config</source>
         <translation>Настройка программы</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Machine config</source>
         <translation>Конфигурация станка</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>G1 feed rate for first and second axis (2D plane):</source>
         <translation>Подача G1 для первых двух осей (плоскость 2D):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>G1 feed rate for third axis:</source>
         <translation>Подача G1 для третьей оси:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Output settings</source>
         <translation>Настройка результата</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>DXF default import point tolerance:</source>
         <translation>Допуск координат при импорте DXF:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>DXF import spline check:</source>
         <translation>Проверка кривых при импорте DXF:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>DXF default import fit tolerance:</source>
         <translation>Допуск по умолчанию при импорте DXF:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>insert elements which are part of a block to layer where the block is inserted</source>
         <translation>расщепить блоки на составные элементы</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Automatic tool config</source>
         <translation>Автоконфигурация инструмента</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Separator between identifier and value:</source>
         <translation>Разделитель идентификатора и значения:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Define the tools here:</source>
         <translation>Список инструментов:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Define here custom GCODE that can be inserted anywhere in the program:</source>
         <translation>Задать фрагменты G-кода, которые можно вставлять в программу:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="461"/>
+        <location filename="../dxf2gcode/globals/config.py" line="462"/>
         <source> mm</source>
         <translation> мм</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="461"/>
+        <location filename="../dxf2gcode/globals/config.py" line="462"/>
         <source> in</source>
         <translation> дюйм</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="462"/>
+        <location filename="../dxf2gcode/globals/config.py" line="463"/>
         <source> mm/min</source>
         <translation> мм/мин</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="462"/>
+        <location filename="../dxf2gcode/globals/config.py" line="463"/>
         <source> IPS</source>
         <translation> дюйм/мин</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>By default look for DXF files in:</source>
         <translation>Начальный каталог для DXF файлов:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>By default export generated G-Code to:</source>
         <translation>Каталог для создаваемого G-кода:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>pstoedit</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Location of executable:</source>
         <translation>Путь к программе:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Command-line options:</source>
         <translation>Опции командной строки:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Axes&apos; identifiers</source>
         <translation>Идентификаторы осей</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>First axis:</source>
         <translation>Первая ось:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Second axis:</source>
         <translation>Вторая ось:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Third axis:</source>
         <translation>Третья ось:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Start and end&apos;s coordinate</source>
         <translation>Начало и конец координат</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Third axis&apos; defaults</source>
         <translation>Настройки третьей оси</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Retraction coordinate:</source>
         <translation>Координата возврата:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Safety margin:</source>
         <translation>Граница безопасности:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Workpiece origin coordinate:</source>
         <translation>Начало координат заготовки:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Slice depth:</source>
         <translation>Глубина слоя:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Final mill depth:</source>
         <translation>Конечная глубина реза:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>G1 feed rates</source>
         <translation>Подача G1</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>First and second axis (2D plane):</source>
         <translation>Первая и вторая ось (плоскость 2D):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>General settings</source>
         <translation>Общие настройки</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>3D mode (requires OpenGL - restart needed)</source>
         <translation>Режим 3D (требует OpenGL - требуется перезапуск)</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Display disabled paths (default)</source>
-        <translation>Показать запрещённые траектории</translation>
+        <translation>Отображать выключенные фигуры</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Live update export route (default)</source>
         <translation>Постоянный экспорт маршрута</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Milling</source>
         <translation>Фрезерная</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Split line segments (default)</source>
         <translation>Делить линии на сегменты</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Automatic cutter compensation (default)</source>
         <translation>Автокомпенсация инструмента</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Machine type (default):</source>
         <translation>Тип машины:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Configuration values use the unit (restart needed):</source>
         <translation>Единицы измерений в конфигурации (нужен перезапуск):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Output</source>
         <translation>Результат</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Export the G-Code to stdout (instead of a file)</source>
         <translation>Экспорт G-кода на стандартный вывод (вместо файла)</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise)</source>
         <translation>Компенсацию инструмента делает станок (выберите только если машина поддерживает команды G41 и G42)</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Retract to drag depth (&quot;Third axis slice depth&quot;) if angle exceeds:</source>
         <translation>Вернуться на глубину реза (&quot;Глубина слоя по третьей оси&quot;) если угол превышает:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>By default enable the TSP optimization for ordering shapes (TSP = Travelling Salesman Problem)</source>
         <translation>Включить оптимизацию ЗК для упорядочения контуров (ЗК = задача коммивояжёра)</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>TSP optimizer</source>
         <translation>Оптимизатор ЗК</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Optimizer behaviour:</source>
         <translation>Поведение оптимизатора:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Mutation rate:</source>
         <translation>Скорость мутаций:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Max population:</source>
         <translation>Макс. население:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Max iterations:</source>
         <translation>Макс. итераций:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Starting point:</source>
         <translation>Точка старта:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Parameters&apos; identifiers</source>
         <translation>Идентификаторы параметров</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Infeed depth:</source>
         <translation>Глубина погружения:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Workpiece top:</source>
         <translation>Верх заготовки:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Retraction area:</source>
         <translation>Область отвода:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Tool number:</source>
         <translation>Номер инструмента:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Tool diameter:</source>
         <translation>Диаметр инструмента:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Spindle speed:</source>
         <translation>Скорость шпинделя:</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Start radius (cutter compensation):</source>
         <translation>Начальный радиус (компенсация резчика):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>File used for logging (restart needed):</source>
         <translation>Файл журнала (требуется перезапуск):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>On stderr console log messages with importance minimal to level (restart needed):</source>
         <translation>Макс. важность сообщения для вывода на stderr (требуется рестарт):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>For log-file log messages with importance minimal to level (restart needed):</source>
         <translation>Макс. важность сообщений для записи в файл журнала (требуется рестарт):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>For message box log messages with importance minimal to level (restart needed):</source>
         <translation>Макс. важность сообщений для вывода окна с сообщением (требуется рестарт):</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>pdftops</source>
         <translation></translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Cutter compensation</source>
         <translation>Компенсация реза</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/globals/config.py" line="463"/>
+        <location filename="../dxf2gcode/globals/config.py" line="464"/>
         <source>Drag Knife options</source>
         <translation>Настройки резака</translation>
     </message>
@@ -1921,17 +1921,17 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
         <translation>Создание контуров</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/dxfimport/importer.py" line="198"/>
+        <location filename="../dxf2gcode/dxfimport/importer.py" line="202"/>
         <source>Warning reading linepairs</source>
         <translation>Предупреждение при чтении пар линий</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/dxfimport/importer.py" line="495"/>
+        <location filename="../dxf2gcode/dxfimport/importer.py" line="499"/>
         <source>Short Elements</source>
         <translation>Короткие элементы</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/dxfimport/importer.py" line="488"/>
+        <location filename="../dxf2gcode/dxfimport/importer.py" line="492"/>
         <source>Length of some Elements too short!
 Length must be greater than tolerance.
 Skipped Geometries</source>
@@ -1940,14 +1940,14 @@ Skipped Geometries</source>
 Пропущенные геом. формы</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/dxfimport/importer.py" line="193"/>
+        <location filename="../dxf2gcode/dxfimport/importer.py" line="197"/>
         <source>Reading stopped at line %i.
  &quot;%s&quot; is not a valid code (number) - please, check/correct dxf file</source>
         <translation>Ошибка при чтении линии на строке %i.
  Проверьте и исправьте соответствующую строку в DXF-файле</translation>
     </message>
     <message>
-        <location filename="../dxf2gcode/dxfimport/importer.py" line="201"/>
+        <location filename="../dxf2gcode/dxfimport/importer.py" line="205"/>
         <source>Did read %i of linepairs from DXF</source>
         <translation>Прочитано %i пар линий из DXF</translation>
     </message>
