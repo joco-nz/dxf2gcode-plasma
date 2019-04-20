@@ -61,8 +61,6 @@ class StMove(object):
         self.start, self.angle = self.shape.get_start_end_points(True, True)
         self.end = self.start
 
-        self.geos = Geos([])
-
         self.make_start_moves()
 
     def append(self, geo):
