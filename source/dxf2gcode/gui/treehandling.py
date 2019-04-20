@@ -1072,6 +1072,10 @@ class TreeHandler(QWidget):
         if not self.ui.layersShapesTreeView.selectionModel():
             return
 
+        # if invoked from updateSelection() do nothing
+        if hasattr (self, "updateSelectionInProgress"):
+            return
+
         self.clearToolsParameters()  # disable tools parameters widgets, ...
 
         # Deselects all the shapes that are selected
@@ -1145,9 +1149,13 @@ class TreeHandler(QWidget):
         for branch in range(model.rowCount()):
             self.updateSelectionRecursive(model, model.index(branch, 0), item_sel, item_desel)
 
+        # Block actionOnSelectionChange to avoid unselecting whole blocks
+        # (because they are part of item_desel).
+        self.updateSelectionInProgress = True
         selection = treeview.selectionModel()
         selection.select(item_sel, QItemSelectionModel.Select | QItemSelectionModel.Rows)
         selection.select(item_desel, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
+        del self.updateSelectionInProgress
 
     def updateSelectionRecursive(self, model, root, item_sel, item_desel):
         """
@@ -1162,9 +1170,13 @@ class TreeHandler(QWidget):
             if isValid(root.data(SHAPE_OBJECT)):
                 if toPyObject(root.data(SHAPE_OBJECT)).shapeobj.isSelected():
                     item_sel.select(root, root)
+                else:
+                    item_desel.select(root, root)
             elif isValid(root.data(CUSTOM_GCODE_OBJECT)):
                 if toPyObject(root.data(CUSTOM_GCODE_OBJECT)).isSelected():
                     item_sel.select(root, root)
+                else:
+                    item_desel.select(root, root)
 
     def clearToolsParameters(self):
         """
