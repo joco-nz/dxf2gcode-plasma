@@ -45,6 +45,7 @@ class CustomGCode(object):
         self.parentLayer = parentLayer
         self.disabled = False
         self.send_to_TSP = False  # Never optimize path for CustomGCode
+        self.selected = False
 
     def __str__(self):
         """
@@ -68,6 +69,12 @@ class CustomGCode(object):
         Returns the state of self.disabled
         """
         return self.disabled
+
+    def setSelected(self, flag=False):
+        self.selected = flag
+
+    def isSelected(self):
+        return self.selected
 
     def Write_GCode(self, PostPro):
         """
