@@ -445,18 +445,16 @@ class MainWindow(QMainWindow):
                 logger.debug(self.tr("Shapes to write: %s") % shapes_to_write)
                 logger.debug(self.tr("Fixed order: %s") % shapes_fixed_order)
 
-                for it_nr in range(iter_):
-                    # Only show each 50th step.
-                    if it_nr % 50 == 0:
-                        TSPs.calc_next_iteration()
-                        new_exp_order = [layerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
+                for it_nr in range(iter_ // 50):
+                    TSPs.calc_next_iteration()
 
                 logger.debug(self.tr("TSP done with result: %s") % TSPs)
 
-                layerContent.exp_order = new_exp_order
+                layerContent.exp_order = [layerContent.exp_order[nr] for nr in TSPs.opt_route[1:]]
+                layerContent.optimize()
 
                 self.canvas_scene.addexproute(layerContent.exp_order, layerContent.nr)
-                logger.debug(self.tr("New Export Order after TSP: %s") % new_exp_order)
+                logger.debug(self.tr("New Export Order after TSP: %s") % layerContent.exp_order)
                 self.app.processEvents()
             else:
                 layerContent.exp_order = []

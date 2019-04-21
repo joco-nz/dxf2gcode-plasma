@@ -140,8 +140,8 @@ class GLWidget(CanvasBase):
         """
         This function initialises the Arrows of the export route order and its numbers.
         """
-        for shape_nr in range(len(exp_order)):
-            shape = self.shapes[exp_order[shape_nr]]
+        for order in exp_order:
+            shape = self.shapes[order]
             st = self.expprv
             en, self.expprv = shape.get_start_end_points_physical()
             en = en.to3D(shape.axis3_start_mill_depth)
