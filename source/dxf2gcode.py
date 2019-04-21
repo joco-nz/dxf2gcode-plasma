@@ -221,18 +221,12 @@ class MainWindow(QMainWindow):
         """
         if event.isAutoRepeat():
             return
-        if event.key() == QtCore.Qt.Key_Control:
+        if g.config.mode3d:
+            self.canvas.updateModifiers(event)
+        elif event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = True
         elif event.key() == QtCore.Qt.Key_Shift:
-            if g.config.mode3d:
-                self.canvas.isPanning = True
-                self.canvas.setCursor(QtCore.Qt.OpenHandCursor)
-            else:
-                self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
-        elif event.key() == QtCore.Qt.Key_Alt:
-            if g.config.mode3d:
-                self.canvas.isRotating = True
-                self.canvas.setCursor(QtCore.Qt.PointingHandCursor)
+            self.canvas.setDragMode(QGraphicsView.ScrollHandDrag)
 
     def keyReleaseEvent(self, event):
         """
@@ -240,25 +234,12 @@ class MainWindow(QMainWindow):
         @purpose: Changes to RubberBandDrag while Control released
         @param event:    Event Parameters passed to function
         """
-        if event.key() == QtCore.Qt.Key_Control:
+        if g.config.mode3d:
+            self.canvas.updateModifiers(event)
+        elif event.key() == QtCore.Qt.Key_Control:
             self.canvas.isMultiSelect = False
         elif event.key() == QtCore.Qt.Key_Shift:
-            if g.config.mode3d:
-                self.canvas.isPanning = False
-                self.canvas.unsetCursor()
-            else:
-                self.canvas.setDragMode(QGraphicsView.NoDrag)
-        elif event.key() == QtCore.Qt.Key_Alt:
-            if g.config.mode3d:
-                self.canvas.isRotating = False
-                if -5 < self.canvas.rotX < 5 and\
-                   -5 < self.canvas.rotY < 5 and\
-                   -5 < self.canvas.rotZ < 5:
-                    self.canvas.rotX = 0
-                    self.canvas.rotY = 0
-                    self.canvas.rotZ = 0
-                    self.canvas.update()
-                self.canvas.unsetCursor()
+            self.canvas.setDragMode(QGraphicsView.NoDrag)
 
     def enableToolbarButtons(self, status=True):
         # File
