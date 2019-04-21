@@ -306,6 +306,11 @@ Not enough chars (expected {0}, found {1}) for the field &quot;{2}&quot;
         <source>Move-down the selected shape/layer</source>
         <translation>Перене�?ти вних выбранные формы или �?лои </translation>
     </message>
+    <message>
+        <location filename="../dxf2gcode.py" line="374"/>
+        <source>Error exporting shapes: %s</source>
+        <translation>Ошибка при экспорте: %s</translation>
+    </message>
     <message encoding="UTF-8">
         <location filename="../dxf2gcode.ui" line="344"/>
         <source>⌀</source>
