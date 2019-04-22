@@ -94,6 +94,7 @@ class MainWindow(QMainWindow):
         self.config_window.finished.connect(self.updateConfiguration)
 
         self.app = app
+        self.settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
 
         self.ui = Ui_MainWindow()
 
@@ -138,7 +139,7 @@ class MainWindow(QMainWindow):
         self.cont_rotate = 0.0
         self.cont_scale = 1.0
 
-        # self.readSettings()
+        self.restoreWindowState()
 
     def tr(self, string_to_translate):
         """
@@ -1098,22 +1099,23 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, e):
         logger.debug(self.tr("Closing"))
-        # self.writeSettings()
+        self.saveWindowState()
         e.accept()
 
-    def readSettings(self):
-        settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
-        settings.beginGroup("MainWindow")
-        self.resize(settings.value("size", QtCore.QSize(800, 600)).toSize())
-        self.move(settings.value("pos", QtCore.QPoint(200, 200)).toPoint())
-        settings.endGroup()
+    def restoreWindowState(self):
+        self.settings.beginGroup("MainWindow")
+        geometry = self.settings.value("geometry")
+        state = self.settings.value("state")
+        self.settings.endGroup()
+        if (geometry is not None) and (state is not None):
+            self.restoreGeometry(geometry)
+            self.restoreState(state)
 
-    def writeSettings(self):
-        settings = QtCore.QSettings("dxf2gcode", "dxf2gcode")
-        settings.beginGroup("MainWindow")
-        settings.setValue("size", self.size())
-        settings.setValue("pos", self.pos())
-        settings.endGroup()
+    def saveWindowState(self):
+        self.settings.beginGroup("MainWindow")
+        self.settings.setValue("geometry", self.saveGeometry())
+        self.settings.setValue("state", self.saveState())
+        self.settings.endGroup()
 
 
 if __name__ == "__main__":
