@@ -32,6 +32,9 @@ import dxf2gcode.globals.globals as g
 import dxf2gcode.globals.constants as c
 from PyQt5.QtWidgets import QGraphicsView, QMenu
 from PyQt5 import QtCore
+from PyQt5.QtGui import QMouseEvent, QKeyEvent
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtCore import Qt
 
 
 logger = logging.getLogger("DxfImport.myCanvasClass")
@@ -66,7 +69,46 @@ class CanvasBase(CanvasObject()):
     def __init__(self, parent=None):
         super(CanvasBase, self).__init__(parent)
 
+        self.isPanning = False
+        self.isRotating = False
         self.isMultiSelect = False
+
+        self.setMouseTracking (True)
+
+
+    def updateModifiers(self, event):
+        """
+        Handle all canvas keyboard modifiers in one place.
+        """
+
+        if type (event) == QMouseEvent:
+            buttons = event.buttons()
+        else:
+            buttons = QApplication.mouseButtons()
+
+        if type (event) == QKeyEvent:
+            modifiers = event.modifiers()
+        else:
+            modifiers = QApplication.keyboardModifiers()
+
+        # allow only clean modifiers, no combos
+        wantMultiSelect = (modifiers == Qt.ControlModifier)
+        self.isMultiSelect = wantMultiSelect and ((buttons == Qt.NoButton) or (buttons == Qt.LeftButton))
+        wantPanning = (modifiers == Qt.ShiftModifier)
+        self.isPanning = wantPanning and (buttons == Qt.LeftButton)
+        wantRotating = (modifiers == Qt.AltModifier)
+        self.isRotating = wantRotating and (buttons == Qt.LeftButton)
+
+        if self.isPanning or self.isRotating:
+            self.setCursor(Qt.ClosedHandCursor)
+        elif wantPanning:
+            self.setCursor(Qt.OpenHandCursor)
+        elif wantRotating:
+            self.setCursor(Qt.PointingHandCursor)
+        elif wantMultiSelect:
+            self.setCursor(Qt.CrossCursor)
+        else:
+            self.unsetCursor()
 
 
 class MyDropDownMenu(QMenu):

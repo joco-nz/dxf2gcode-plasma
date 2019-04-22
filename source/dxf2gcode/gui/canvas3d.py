@@ -76,9 +76,6 @@ class GLWidget(CanvasBase):
         self.routearrows = []
         self.expprv = None
 
-        self.isPanning = False
-        self.isRotating = False
-        self.isMultiSelect = False
         self._lastPos = QPoint()
 
         self.posX = 0.0
@@ -89,6 +86,9 @@ class GLWidget(CanvasBase):
         self.rotZ = 0.0
         self.scale = 1.0
         self.scaleCorr = 1.0
+
+        # total (squared) distance traveled by mouse while LMB was down
+        self.clickTravelSq = 0
 
         self.showPathDirections = False
         self.showDisabledPaths = False
@@ -178,12 +178,31 @@ class GLWidget(CanvasBase):
     def normalizeAngle(self, angle):
         return (angle - 180) % -360 + 180
 
+    def updateModifiers(self, event):
+        wasRotating = self.isRotating
+
+        super ().updateModifiers (event)
+
+        # short Alt+LeftClick restores rotation to default
+        if not wasRotating and self.isRotating:
+            self.clickTravelSq = 0.0
+        elif wasRotating and not self.isRotating:
+            if self.clickTravelSq < 5 * 5:
+                self.rotX = 0
+                self.rotY = 0
+                self.rotZ = 0
+                self.update()
+
     def mousePressEvent(self, event):
+        self.updateModifiers(event)
+
         if self.isPanning or self.isRotating:
-            self.setCursor(Qt.ClosedHandCursor)
+            pass
+
         elif event.button() == Qt.LeftButton:
             clicked, offset, tol = self.getClickedDetails(event)
             xyForZ = {}
+            anyHit = False
             for shape in self.shapes:
                 hit = False
                 z = shape.axis3_start_mill_depth
@@ -197,6 +216,11 @@ class GLWidget(CanvasBase):
                         xyForZ[z] = self.determineSelectedPosition(clicked, z, offset)
                     hit |= shape.isHit(xyForZ[z], tol)
 
+                if self.isMultiSelect and not hit:
+                    continue
+
+                anyHit |= hit;
+
                 if self.isMultiSelect and shape.selected:
                     hit = not hit
 
@@ -205,7 +229,14 @@ class GLWidget(CanvasBase):
 
                 shape.selected = hit
 
+            # If clicking on empty space without Control pressed, deselect all shapes
+            if not anyHit and not self.isMultiSelect:
+                for shape in self.shapes:
+                    if shape.selected:
+                        g.window.TreeHandler.updateShapeSelection(shape, false)
+
             self.update()
+
         self._lastPos = event.pos()
 
     def getClickedDetails(self, event):
@@ -213,7 +244,7 @@ class GLWidget(CanvasBase):
         clicked = Point((event.pos().x() - self.frameSize().width() / 2),
                         (event.pos().y() - self.frameSize().height() / 2)) / min_side / self.scale
         offset = Point3D(-self.posX, -self.posY, -self.posZ) / self.scale
-        tol = 4 * self.scaleCorr / min_side / self.scale
+        tol = 10 * self.scaleCorr / min_side / self.scale
         return clicked, offset, tol
 
     def determineSelectedPosition(self, clicked, forZ, offset):
@@ -226,15 +257,14 @@ class GLWidget(CanvasBase):
         return Point(sx + offset.x, - sy - offset.y)  #, sz + offset.z
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.LeftButton or event.button() == Qt.RightButton:
-            if self.isPanning:
-                self.setCursor(Qt.OpenHandCursor)
-            elif self.isRotating:
-                self.setCursor(Qt.PointingHandCursor)
+        self.updateModifiers(event)
 
     def mouseMoveEvent(self, event):
+        self.updateModifiers(event)
+
         dx = event.pos().x() - self._lastPos.x()
         dy = event.pos().y() - self._lastPos.y()
+        self.clickTravelSq += dx * dx + dy * dy
 
         if self.isRotating:
             if event.buttons() == Qt.LeftButton:
