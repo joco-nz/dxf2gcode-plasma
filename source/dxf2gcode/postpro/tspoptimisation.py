@@ -385,8 +385,10 @@ class FittnessClass:
         n_pts = len(self.population.pop[-1])
         for pop in self.population.pop:
             st_pt_nr = pop.index(n_pts - 1)
-            # Contour with the starting point at the beginning
-            pop[:] = pop[st_pt_nr:n_pts] + pop[0:st_pt_nr]
+            # 99% of the time we don't have to reorder the arrays
+            if st_pt_nr > 0:
+                # Contour with the starting point at the beginning
+                pop[:] = pop[st_pt_nr:n_pts] + pop[0:st_pt_nr]
 
     def get_pop_index_list(self, pop):
         return [pop.index(order) for order in self.order]

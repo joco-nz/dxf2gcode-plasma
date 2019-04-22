@@ -324,8 +324,10 @@ class Point(object):
             rot = parent.rot
 
             pc = self - pb
-            rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
-            roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
+            cos_rot = cos(rot)
+            sin_rot = sin(rot)
+            rotx = (pc.x * cos_rot + pc.y * -sin_rot) * sca[0]
+            roty = (pc.x * sin_rot + pc.y * cos_rot) * sca[1]
             p1 = Point(rotx, roty) + p0
 
             # Recursive loop if the point self is  introduced
@@ -333,20 +335,15 @@ class Point(object):
                 p1 = p1.rot_sca_abs(parent=parent.parent)
 
         elif parent is None and sca is None:
-            p0 = Point()
-            pb = Point()
-            sca = [1.0, 1.0, 1.0]
-            rot = 0.0
-
-            pc = self - pb
-            rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
-            roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
-            p1 = Point(rotx, roty) + p0
+            # no rotation/scaling
+            p1 = self
 
         else:
             pc = self - pb
-            rotx = (pc.x * cos(rot) + pc.y * -sin(rot)) * sca[0]
-            roty = (pc.x * sin(rot) + pc.y * cos(rot)) * sca[1]
+            cos_rot = cos(rot)
+            sin_rot = sin(rot)
+            rotx = (pc.x * cos_rot + pc.y * -sin_rot) * sca[0]
+            roty = (pc.x * sin_rot + pc.y * cos_rot) * sca[1]
             p1 = Point(rotx, roty) + p0
 
 #        print(("Self:    %s\n" % self)+\

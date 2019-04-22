@@ -32,6 +32,7 @@ import re
 import logging
 
 import dxf2gcode.globals.globals as g
+from dxf2gcode.core.point import Point
 
 logger = logging.getLogger("Core.LayerContent")
 
@@ -134,6 +135,28 @@ class LayerContent(object):
             for shape in self.shapes:
                 shape.setDisable(True)
 
+    def optimize(self):
+        """
+        Optimize jumps between shape export order by choosing the
+        start point of next shape as closest to last point of previous.
+
+        This is called after TSP optimization.
+        """
+
+        # exp_order_complete is not filled yet, so we'll have to lookup shape by nr.
+        # Create a shape.nr -> shape map so that we don't run in O(n^2) time
+        nr2shape = {}
+        for shape in self.shapes:
+            nr2shape[shape.nr] = shape
+
+        lastPoint = None
+        for nr in self.exp_order:
+            shape = nr2shape.get(nr, None)
+            if shape is None:
+                continue
+            if lastPoint is not None:
+                shape.setNearestStPoint (lastPoint)
+            lastPoint = shape.get_start_end_points (False)
 
 class Layers(list):
     def __init__(self, *args):
