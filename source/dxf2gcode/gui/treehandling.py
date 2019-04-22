@@ -744,7 +744,7 @@ class TreeHandler(QWidget):
                 if found_item_index:
                     return found_item_index
 
-    def traverseChildrenAndSelect(self, item_model, item_index, itemSelection):
+    def traverseChildrenAndSelect(self, item_model, item_index, state):
         """
         This method is used internally to select/deselect all children
         of a given entity (eg to select all the shapes of a given layer
@@ -758,13 +758,13 @@ class TreeHandler(QWidget):
             sub_item_index = item_model.index(i, 0, item_index)
 
             if item_model.hasChildren(sub_item_index):
-                self.traverseChildrenAndSelect(item_model, sub_item_index, itemSelection)
-
-            element = sub_item_index.model().itemFromIndex(sub_item_index)
-            if element:
-                if isValid(element.data(SHAPE_OBJECT)) or isValid(element.data(CUSTOM_GCODE_OBJECT)):
-                    # only select Shapes or Custom GCode
-                    itemSelection.select(sub_item_index, sub_item_index)
+                self.traverseChildrenAndSelect(item_model, sub_item_index, state)
+            else:
+                element = sub_item_index.model().itemFromIndex(sub_item_index)
+                if element:
+                    obj = element.data(SHAPE_OBJECT) or element.data(CUSTOM_GCODE_OBJECT)
+                    if obj:
+                        toPyObject(element.data(SHAPE_OBJECT)).shapeobj.setSelected (state)
 
     def traverseChildrenAndEnableDisable(self, item_model, item_index, checked_state):
         """
@@ -1072,38 +1072,33 @@ class TreeHandler(QWidget):
         if not self.ui.layersShapesTreeView.selectionModel():
             return
 
+        # if invoked from updateSelection() do nothing
+        if hasattr (self, "updateSelectionInProgress"):
+            return
+
         self.clearToolsParameters()  # disable tools parameters widgets, ...
 
         # Deselects all the shapes that are selected
-        itemLayerSelection = QItemSelection()
-        itemEntitySelection = QItemSelection()
         for selection in deselected:
             for model_index in selection.indexes():
                 if isValid(model_index):
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
                         if isValid(element.data(SHAPE_OBJECT)):
-                            real_item = toPyObject(element.data(SHAPE_OBJECT)).shapeobj
-                            real_item.setSelected(False)  # Deselect the shape on the canvas
-                            # Update the other TreeViews
-                            item_index = self.findEntityItemIndexFromShape(real_item)
-                            if model_index.model() == self.layer_item_model and item_index:
-                                itemEntitySelection.select(item_index, item_index)
-                            item_index = self.findLayerItemIndexFromShape(real_item)
-                            if model_index.model() == self.entity_item_model and item_index:
-                                itemLayerSelection.select(item_index, item_index)
+                            # Deselect the shape on the canvas
+                            toPyObject(element.data(SHAPE_OBJECT)).shapeobj.setSelected(False)
+
+                        elif isValid(element.data(CUSTOM_GCODE_OBJECT)):
+                            toPyObject(element.data(CUSTOM_GCODE_OBJECT)).shapeobj.setSelected(False)
+
                         elif isValid(element.data(LAYER_OBJECT)):
-                            itemLayerSelection.select(model_index, model_index)
+                            self.traverseChildrenAndSelect(self.layer_item_model, model_index, False)
+
                         elif isValid(element.data(ENTITY_OBJECT)):
-                            itemEntitySelection.select(model_index, model_index)
-        selectionLayer = self.ui.layersShapesTreeView.selectionModel()
-        selectionLayer.select(itemLayerSelection, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
-        selectionEntity = self.ui.entitiesTreeView.selectionModel()
-        selectionEntity.select(itemEntitySelection, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
+                            self.traverseChildrenAndSelect(self.entity_item_model, model_index, False)
 
         # Selects all the shapes that are selected
-        itemLayerSelection = QItemSelection()
-        itemEntitySelection = QItemSelection()
+        lastSelected = None
         for selection in selected:
             for model_index in selection.indexes():
                 if isValid(model_index):
@@ -1111,44 +1106,77 @@ class TreeHandler(QWidget):
                     element = model_index.model().itemFromIndex(model_index)
                     if element:
                         if isValid(element.data(SHAPE_OBJECT)):
-                            real_item = toPyObject(element.data(SHAPE_OBJECT)).shapeobj
-                            # update the tools parameters according to the selection
-                            self.displayToolParametersForItem(real_item.parentLayer, real_item)
+                            lastSelected = toPyObject(element.data(SHAPE_OBJECT)).shapeobj
+                            lastSelected.setSelected(True)  # Select the shape on the canvas
 
-                            real_item.setSelected(True)  # Select the shape on the canvas
-                            # Update the other TreeViews
-                            item_index = self.findEntityItemIndexFromShape(real_item)
-                            if model_index.model() == self.layer_item_model and item_index:
-                                itemEntitySelection.select(item_index, item_index)
-                            item_index = self.findLayerItemIndexFromShape(real_item)
-                            if model_index.model() == self.entity_item_model and item_index:
-                                itemLayerSelection.select(item_index, item_index)
+                        elif isValid(element.data(CUSTOM_GCODE_OBJECT)):
+                            lastSelected = toPyObject(element.data(CUSTOM_GCODE_OBJECT)).shapeobj
+                            lastSelected.setSelected(True)  # Select the shape on the canvas
 
                         # select all the children of a given layer when clicked
                         elif isValid(element.data(LAYER_OBJECT)):
-                            selection_model = self.ui.layersShapesTreeView.selectionModel()  # Get the selection model of the QTreeView
-                            # Deselect the Layer in the list.
-                            self.columnsSelectDeselect(selection_model, model_index, False)
-                            self.traverseChildrenAndSelect(self.layer_item_model, model_index, itemLayerSelection)
-
-                            real_item = toPyObject(element.data(LAYER_OBJECT))
-                            # update the tools parameters according to the selection
-                            self.displayToolParametersForItem(real_item)
+                            self.traverseChildrenAndSelect(self.layer_item_model, model_index, True)
+                            lastSelected = toPyObject(element.data(LAYER_OBJECT))
 
                         # select all the children of a given entity when clicked
                         elif isValid(element.data(ENTITY_OBJECT)):
-                            selection_model = self.ui.entitiesTreeView.selectionModel()  # Get the selection model of the QTreeView
-                            # Deselect the Entities in the list.
-                            self.columnsSelectDeselect(selection_model, model_index, False)
-                            self.traverseChildrenAndSelect(self.entity_item_model, model_index, itemEntitySelection)
+                            self.traverseChildrenAndSelect(self.entity_item_model, model_index, True)
 
-        selectionLayer = self.ui.layersShapesTreeView.selectionModel()
-        selectionLayer.select(itemLayerSelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
-        selectionEntity = self.ui.entitiesTreeView.selectionModel()
-        selectionEntity.select(itemEntitySelection, QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        # Update tree selection for both layer and entity pages
+        self.updateSelection(self.ui.layersShapesTreeView)
+        self.updateSelection(self.ui.entitiesTreeView)
+
+        if lastSelected is not None:
+            # update the tools parameters according to the selection
+            parentLayer = getattr (lastSelected, 'parentLayer', None) or lastSelected
+            self.displayToolParametersForItem(parentLayer, lastSelected)
 
         if g.window.canvas_scene:
             g.window.canvas_scene.update()
+
+    def updateSelection(self, treeview):
+        """
+        Update selection of all tree items in a tree view according to value of
+        .selected field of the object that corresponds to this tree item.
+
+        This is called after massive item selections/deselections.
+        """
+
+        model = treeview.model()
+        item_sel = QItemSelection()
+        item_desel = QItemSelection()
+
+        for branch in range(model.rowCount()):
+            self.updateSelectionRecursive(model, model.index(branch, 0), item_sel, item_desel)
+
+        # Block actionOnSelectionChange to avoid unselecting whole blocks
+        # (because they are part of item_desel).
+        self.updateSelectionInProgress = True
+        selection = treeview.selectionModel()
+        selection.select(item_sel, QItemSelectionModel.Select | QItemSelectionModel.Rows)
+        selection.select(item_desel, QItemSelectionModel.Deselect | QItemSelectionModel.Rows)
+        del self.updateSelectionInProgress
+
+    def updateSelectionRecursive(self, model, root, item_sel, item_desel):
+        """
+        Helper routine for updateSelection() used for recursion
+        """
+        if model.hasChildren(root):
+            # always unselect layer and entity rows, otherwise selection misbehaves
+            item_desel.select(root, root)
+            for branch in range(model.rowCount(root)):
+                self.updateSelectionRecursive(model, model.index(branch, 0, root), item_sel, item_desel)
+        else:
+            if isValid(root.data(SHAPE_OBJECT)):
+                if toPyObject(root.data(SHAPE_OBJECT)).shapeobj.isSelected():
+                    item_sel.select(root, root)
+                else:
+                    item_desel.select(root, root)
+            elif isValid(root.data(CUSTOM_GCODE_OBJECT)):
+                if toPyObject(root.data(CUSTOM_GCODE_OBJECT)).isSelected():
+                    item_sel.select(root, root)
+                else:
+                    item_desel.select(root, root)
 
     def clearToolsParameters(self):
         """
