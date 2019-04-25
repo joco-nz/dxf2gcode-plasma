@@ -191,6 +191,8 @@ class MainWindow(QMainWindow):
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
+        self.ui.actionMillimeters.triggered.connect(self.setMeasurementUnitsToMillimeters)
+        self.ui.actionInches.triggered.connect(self.setMeasurementUnitsToInches)
 
         # Help
         self.ui.actionAbout.triggered.connect(self.about)
@@ -688,6 +690,47 @@ class MainWindow(QMainWindow):
             self.ui.actionLathe.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
 
+    def setMeasurementUnitsToMillimeters(self):
+        self.setMeasurementUnits(1)
+
+    def setMeasurementUnitsToInches(self):
+        self.setMeasurementUnits(0)
+
+    def setMeasurementUnits(self, metric, refresh_ui=False):
+        """
+        Change the measurement units used in DXF file.
+        Helps if dxf2gcode was unable to detect the correct units.
+        """
+
+        self.ui.menu_Measurement_units.setEnabled(True)
+        self.ui.actionMillimeters.setChecked(metric == 1)
+        self.ui.actionInches.setChecked(metric == 0)
+
+        if (g.config.metric != metric) or refresh_ui:
+            if metric == 0:
+                logger.info(self.tr("Drawing units: inches"))
+                distance = self.tr("[in]")
+                speed = self.tr("[IPM]")
+            else:
+                logger.info(self.tr("Drawing units: millimeters"))
+                distance = self.tr("[mm]")
+                speed = self.tr("[mm/min]")
+            self.ui.unitLabel_3.setText(distance)
+            self.ui.unitLabel_4.setText(distance)
+            self.ui.unitLabel_5.setText(distance)
+            self.ui.unitLabel_6.setText(distance)
+            self.ui.unitLabel_7.setText(distance)
+            self.ui.unitLabel_8.setText(speed)
+            self.ui.unitLabel_9.setText(speed)
+
+        if g.config.metric != metric:
+            for layerContent in self.layerContents:
+                layerContent.changeMeasuringUnits(g.config.metric, metric)
+            g.config.metric = metric
+            g.config.update_tool_values()
+            self.configuration_changed.emit()
+            self.TreeHandler.updateToolParameters()
+
     def open(self):
         """
         This function is called by the menu "File/Load File" of the main toolbar.
@@ -835,21 +878,7 @@ class MainWindow(QMainWindow):
         logger.info(self.tr('Loaded %i entity geometries; reduced to %i contours; used layers: %s; number of inserts %i')
                     % (len(self.valuesDXF.entities.geo), len(self.valuesDXF.entities.cont), layers, insert_nr))
 
-        if g.config.metric == 0:
-            logger.info(self.tr("Drawing units: inches"))
-            distance = self.tr("[in]")
-            speed = self.tr("[IPM]")
-        else:
-            logger.info(self.tr("Drawing units: millimeters"))
-            distance = self.tr("[mm]")
-            speed = self.tr("[mm/min]")
-        self.ui.unitLabel_3.setText(distance)
-        self.ui.unitLabel_4.setText(distance)
-        self.ui.unitLabel_5.setText(distance)
-        self.ui.unitLabel_6.setText(distance)
-        self.ui.unitLabel_7.setText(distance)
-        self.ui.unitLabel_8.setText(speed)
-        self.ui.unitLabel_9.setText(speed)
+        self.setMeasurementUnits(g.config.metric, True)
 
         self.makeShapes()
         if plot:

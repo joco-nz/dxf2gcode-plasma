@@ -60,9 +60,9 @@ class ReadDXF(QtCore.QObject):
         # logger = g.logger.logger
 
         str_ = self.Read_File(filename)
-        g.config.metric = self.Get_Unit(str_)
 
-        self.update_tool_values()
+        g.config.metric = self.Get_Unit(str_)
+        g.config.update_tool_values()
 
         # Load the contour and store the values in the classes
         self.line_pairs = self.Get_Line_Pairs(str_)
@@ -127,54 +127,44 @@ class ReadDXF(QtCore.QObject):
     def Get_Unit(self, str):
         """
         Get_Unit() - Get unit of measure English (Imperial) or Metric from DXF file
+        Return 0 = Imperial, 1 = Metric
         """
-        # Set drawing units: 0 = English; 1 = Metric
-        # Metric will be treated as being in millimeters
-        # English as inches
 
-        metric = 1  # default: metric
+        measurement = None
+        insunits = None
 
         for line in range(len(str) - 2):
+            # Set drawing units: 0 = English; 1 = Metric
+            # Metric will be treated as being in millimeters
+            # English as inches
             if str[line].startswith("$MEASUREMENT"):
-                if int(str[line + 2].strip()) == 1:
-                    metric = 0
-                elif int(str[line + 2].strip()) == 4:
-                    metric = 1
-                break
+                measurement = int(str[line + 2].strip())
 
+            # Default drawing units for AutoCAD DesignCenter blocks:
+            # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
+            # 5 = Centimeters; 6 = Meters; 7 = Kilometers; 8 = Microinches;
+            # 9 = Mils (thous); 10 = Yards; 11 = Angstroms; 12 = Nanometers;
+            # 13 = Microns; 14 = Decimeters; 15 = Decameters;
+            # 16 = Hectometers; 17 = Gigameters; 18 = Astronomical units;
+            # 19 = Light years; 20 = Parsecs
 
-        # Default drawing units for AutoCAD DesignCenter blocks:
-        # 0 = Unitless; 1 = Inches; 2 = Feet; 3 = Miles; 4 = Millimeters;
-        # 5 = Centimeters; 6 = Meters; 7 = Kilometers; 8 = Microinches;
-        # 9 = Mils (thous); 10 = Yards; 11 = Angstroms; 12 = Nanometers;
-        # 13 = Microns; 14 = Decimeters; 15 = Decameters;
-        # 16 = Hectometers; 17 = Gigameters; 18 = Astronomical units;
-        # 19 = Light years; 20 = Parsecs
-
-        for line in range(len(str) - 2):
             if str[line].startswith("$INSUNITS"):
                 if int(str[line + 2].strip()) == 1:
-                    metric = 0
+                    insunits = 0
                 elif int(str[line + 2].strip()) == 4:
-                    metric = 1
+                    insunits = 1
+
+            if (measurement is not None) and (insunits is not None):
                 break
 
-        return metric
+        # Use INSUNITS if found, otherwise use MEASUREMENT
+        if insunits is not None:
+            return insunits
+        elif measurement is not None:
+            return measurement
 
-    def update_tool_values(self):
-        # update the tool default values depending on the unit of the drawing
-        if g.config.tool_units_metric != g.config.metric:
-            scale = 1/25.4 if g.config.metric == 0 else 25.4
-            for key in g.config.vars.Plane_Coordinates:
-                g.config.vars.Plane_Coordinates[key] *= scale
-            for key in g.config.vars.Depth_Coordinates:
-                g.config.vars.Depth_Coordinates[key] *= scale
-            for key in g.config.vars.Feed_Rates:
-                g.config.vars.Feed_Rates[key] *= scale
-            for tool in g.config.vars.Tool_Parameters:
-                g.config.vars.Tool_Parameters[tool]['diameter'] *= scale
-                g.config.vars.Tool_Parameters[tool]['start_radius'] *= scale
-            g.config.tool_units_metric = g.config.metric
+        # Default: Metric
+        return 1
 
     # Convert the uploaded file into line pairs (code & Value).
     def Get_Line_Pairs(self, string):

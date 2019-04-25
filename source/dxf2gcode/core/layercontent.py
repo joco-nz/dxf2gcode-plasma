@@ -158,6 +158,28 @@ class LayerContent(object):
                 shape.setNearestStPoint (lastPoint)
             lastPoint = shape.get_start_end_points (False)
 
+    def changeMeasuringUnits(self, metric_was, metric_is):
+        """
+        Change metric units used in this layer.
+        This is invoked when user switches measuring units via main menu
+        """
+        if metric_was == metric_is:
+            return
+
+        scale = 1/25.4 if metric_is == 0 else 25.4
+        self.tool_diameter *= scale
+        self.start_radius *= scale
+        self.axis3_retract *= scale
+        self.axis3_safe_margin *= scale
+
+        for shape in self.shapes:
+            shape.axis3_start_mill_depth *= scale
+            shape.axis3_slice_depth *= scale
+            shape.axis3_mill_depth *= scale
+            shape.f_g1_plane *= scale
+            shape.f_g1_depth *= scale
+
+
 class Layers(list):
     def __init__(self, *args):
         list.__init__(self, *args)

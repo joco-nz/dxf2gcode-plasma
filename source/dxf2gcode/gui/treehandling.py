@@ -120,6 +120,10 @@ class TreeHandler(QWidget):
         self.ui.toolDiameterComboBox.setCurrentIndex(0)
         self.toolUpdate()
 
+        # The layer/shape which is currently displayed in the parameters box
+        self.display_tool_layer = None
+        self.display_tool_shape = None
+
         # Don't change this line, the signal _must_ be "activated" (only activates on user action) and _not_ "currentIndexChanged" (activates programmatically and on user action)
         self.ui.toolDiameterComboBox.activated[str].connect(self.toolUpdate)
 
@@ -616,7 +620,7 @@ class TreeHandler(QWidget):
         blocked when updating the selections in the treeViews
         options
         @param shape: the Shape whose selection has changed
-        @param selection: whether the Shape has been selected (True) or deselected (False)
+        @param select: whether the Shape has been selected (True) or deselected (False)
         """
         # Layer treeView
         item_index = self.findLayerItemIndexFromShape(shape)
@@ -1217,6 +1221,13 @@ class TreeHandler(QWidget):
         else:
             self.ui.millSettingsFrame.setEnabled(True)
 
+    def updateToolParameters(self):
+        """
+        Refresh tool parameters for currently selected shape/layer.
+        """
+        if self.display_tool_layer is not None:
+            self.displayToolParametersForItem(self.display_tool_layer, self.display_tool_shape)
+
     def displayToolParametersForItem(self, layer_item, shape_item = None):
         """
         Display the current tools settings (fill the QLineEdit, ...)
@@ -1224,6 +1235,10 @@ class TreeHandler(QWidget):
         @param layer_item: layer instance as defined in LayerContent.py
         @param shape_item: shape instance as defined in Shape.py
         """
+
+        self.display_tool_layer = layer_item
+        self.display_tool_shape = shape_item
+
         # Selects the tool for the selected layer
         self.ui.toolDiameterComboBox.setCurrentIndex(self.ui.toolDiameterComboBox.findText(str(layer_item.tool_nr)))
         if self.tool_nr is not None and layer_item.tool_nr != self.tool_nr:
@@ -1275,6 +1290,14 @@ class TreeHandler(QWidget):
             self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
                                                            self.f_g1_depth,
                                                            shape_item.f_g1_depth)
+        else:
+            for widget in self.ui.zInitialMillDepthLineEdit,\
+                          self.ui.zInfeedDepthLineEdit,\
+                          self.ui.zFinalMillDepthLineEdit,\
+                          self.ui.g1FeedXYLineEdit,\
+                          self.ui.g1FeedZLineEdit:
+                widget.setText("")
+                widget.setEnabled(False)
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """
@@ -1292,6 +1315,8 @@ class TreeHandler(QWidget):
             palette = QPalette()
             palette.setColor(QPalette.Text, QtCore.Qt.gray)
             widget.setPalette(palette)
+
+        widget.setEnabled(True)
 
         return value
 

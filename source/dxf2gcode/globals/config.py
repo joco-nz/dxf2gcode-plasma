@@ -328,7 +328,6 @@ class MyConfig(object):
         self.fitting_tolerance = self.vars.Import_Parameters['fitting_tolerance']
         self.point_tolerance = self.vars.Import_Parameters['point_tolerance']
 
-       
         self.metric = 0 if self.vars.General['tool_units'] == 'in' else 1   # Standard if no other unit is determined while importing
         self.tool_units = self.vars.General['tool_units'] # store the initial tool_units (we don't want it to change until software restart)
         self.tool_units_metric = 0 if self.vars.General['tool_units'] == 'in' else 1
@@ -474,13 +473,26 @@ class MyConfig(object):
             ])),
             ('Filters', OrderedDict([
                 ('__section_title__', self.tr("Software config")),
-                ('__subtitle__', CfgSubtitle(self.tr("pdftops"))),
+                ('__subtitle__', CfgSubtitle("pdftops")),
                 ('pdftops_cmd', CfgLineEdit(self.tr('Location of executable:'))),
                 ('pdftops_opt', CfgListEdit(self.tr('Command-line options:'), ',')),
 
-                ('__subtitle2__', CfgSubtitle(self.tr("pstoedit"))),
+                ('__subtitle2__', CfgSubtitle("pstoedit")),
                 ('pstoedit_cmd', CfgLineEdit(self.tr('Location of executable:'))),
                 ('pstoedit_opt', CfgListEdit(self.tr('Command-line options:'), ','))
+            ])),
+            ('General', OrderedDict([
+                ('__section_title__', self.tr("General settings")),
+                ('mode3d', CfgCheckBox(self.tr('3D mode (requires OpenGL - restart needed)'))),
+                ('show_disabled_paths', CfgCheckBox(self.tr('Display disabled paths (default)'))),
+                ('live_update_export_route', CfgCheckBox(self.tr('Live update export route (default)'))),
+                ('__subtitle2__', CfgSubtitle(self.tr("Milling"))),
+                ('split_line_segments', CfgCheckBox(self.tr('Split line segments (default)'))),
+                ('automatic_cutter_compensation', CfgCheckBox(self.tr('Automatic cutter compensation (default)'))),
+                ('machine_type', CfgComboBox(self.tr('Machine type (default):'))),
+                ('tool_units', CfgComboBox(self.tr('Configuration values use the unit (restart needed):'))),
+                ('__subtitle3__', CfgSubtitle(self.tr("Output"))),
+                ('write_to_stdout', CfgCheckBox(self.tr('Export the G-Code to stdout (instead of a file)')))
             ])),
             ('Axis_letters', OrderedDict([
                 ('__section_title__', self.tr("Machine config")),
@@ -509,19 +521,6 @@ class MyConfig(object):
                 ('__subtitle__', CfgSubtitle(self.tr("G1 feed rates"))),
                 ('f_g1_plane', CfgDoubleSpinBox(self.tr('First and second axis (2D plane):'), speed_unit)),
                 ('f_g1_depth', CfgDoubleSpinBox(self.tr('Third axis:'), speed_unit))
-            ])),
-            ('General', OrderedDict([
-                ('__section_title__', self.tr("General settings")),
-                ('mode3d', CfgCheckBox(self.tr('3D mode (requires OpenGL - restart needed)'))),
-                ('show_disabled_paths', CfgCheckBox(self.tr('Display disabled paths (default)'))),
-                ('live_update_export_route', CfgCheckBox(self.tr('Live update export route (default)'))),
-                ('__subtitle2__', CfgSubtitle(self.tr("Milling"))),
-                ('split_line_segments', CfgCheckBox(self.tr('Split line segments (default)'))),
-                ('automatic_cutter_compensation', CfgCheckBox(self.tr('Automatic cutter compensation (default)'))),
-                ('machine_type', CfgComboBox(self.tr('Machine type (default):'))),
-                ('tool_units', CfgComboBox(self.tr('Configuration values use the unit (restart needed):'))),
-                ('__subtitle3__', CfgSubtitle(self.tr("Output"))),
-                ('write_to_stdout', CfgCheckBox(self.tr('Export the G-Code to stdout (instead of a file)')))
             ])),
             ('Cutter_Compensation', OrderedDict([
                 ('__section_title__', self.tr("Output settings")),
@@ -578,6 +577,23 @@ class MyConfig(object):
         ])
 
         return cfg_widget_def
+
+    def update_tool_values(self):
+        """
+        update the tool default values depending on the unit of the drawing
+        """
+        if self.tool_units_metric != self.metric:
+            scale = 1/25.4 if self.metric == 0 else 25.4
+            for key in self.vars.Plane_Coordinates:
+                self.vars.Plane_Coordinates[key] *= scale
+            for key in self.vars.Depth_Coordinates:
+                self.vars.Depth_Coordinates[key] *= scale
+            for key in self.vars.Feed_Rates:
+                self.vars.Feed_Rates[key] *= scale
+            for tool in self.vars.Tool_Parameters:
+                self.vars.Tool_Parameters[tool]['diameter'] *= scale
+                self.vars.Tool_Parameters[tool]['start_radius'] *= scale
+            self.tool_units_metric = self.metric
 
 
 class DictDotLookup(object):

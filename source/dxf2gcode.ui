@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>696</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -53,7 +53,7 @@
         <bool>false</bool>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>1</number>
        </property>
        <widget class="QWidget" name="tab">
         <attribute name="title">
@@ -341,7 +341,7 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>&#8960;</string>
+                     <string>⌀</string>
                     </property>
                    </widget>
                   </item>
@@ -851,12 +851,12 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>31</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>&amp;File</string>
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionReload"/>
@@ -873,7 +873,7 @@
      <string>Export the current project to G-Code</string>
     </property>
     <property name="title">
-     <string>Export</string>
+     <string>&amp;Export</string>
     </property>
     <addaction name="actionOptimizePaths"/>
     <addaction name="actionExportShapes"/>
@@ -881,7 +881,7 @@
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <addaction name="actionShowPathDirections"/>
     <addaction name="actionShowDisabledPaths"/>
@@ -893,17 +893,30 @@
     <addaction name="actionTopView"/>
     <addaction name="actionIsometricView"/>
    </widget>
-   <widget class="QMenu" name="menuTolerances">
+   <widget class="QMenu" name="menuOptions">
     <property name="title">
-     <string>Options</string>
+     <string>&amp;Options</string>
     </property>
     <widget class="QMenu" name="menuMachine_Type">
      <property name="title">
-      <string>Machine Type</string>
+      <string>Mac&amp;hine Type</string>
      </property>
      <addaction name="actionMilling"/>
      <addaction name="actionLathe"/>
      <addaction name="actionDragKnife"/>
+    </widget>
+    <widget class="QMenu" name="menu_Measurement_units">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="toolTip">
+      <string/>
+     </property>
+     <property name="title">
+      <string>Measurement &amp;units</string>
+     </property>
+     <addaction name="actionMillimeters"/>
+     <addaction name="actionInches"/>
     </widget>
     <addaction name="actionConfiguration"/>
     <addaction name="actionConfigurationPostprocessor"/>
@@ -918,23 +931,24 @@
     <addaction name="actionSplitLineSegments"/>
     <addaction name="actionAutomaticCutterCompensation"/>
     <addaction name="menuMachine_Type"/>
+    <addaction name="menu_Measurement_units"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
-     <string>Help</string>
+     <string>&amp;Help</string>
     </property>
     <addaction name="actionAbout"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuExport"/>
    <addaction name="menuView"/>
-   <addaction name="menuTolerances"/>
+   <addaction name="menuOptions"/>
    <addaction name="menuHelp"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
    <property name="text">
-    <string>Open...</string>
+    <string>&amp;Open...</string>
    </property>
    <property name="statusTip">
     <string>Load DXF or other supported document</string>
@@ -949,7 +963,7 @@
      <normaloff>:/images/delete.png</normaloff>:/images/delete.png</iconset>
    </property>
    <property name="text">
-    <string>Exit</string>
+    <string>&amp;Exit</string>
    </property>
    <property name="statusTip">
     <string>Exit DXF2GCODE and close window</string>
@@ -969,7 +983,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show Path Directions</string>
+    <string>&amp;Show Path Directions</string>
    </property>
    <property name="statusTip">
     <string>Always shows the path direction in the plot (not only while selected)</string>
@@ -986,7 +1000,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show Disabled Paths</string>
+    <string>Show Disabled &amp;Paths</string>
    </property>
   </action>
   <action name="actionAutoscale">
@@ -994,7 +1008,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Autoscale</string>
+    <string>&amp;Autoscale</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V, A</string>
@@ -1005,12 +1019,12 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Delete G0 Paths</string>
+    <string>&amp;Delete G0 Paths</string>
    </property>
   </action>
   <action name="actionConfiguration">
    <property name="text">
-    <string>Configuration...</string>
+    <string>&amp;Configuration...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+C</string>
@@ -1018,7 +1032,7 @@
   </action>
   <action name="actionConfigurationPostprocessor">
    <property name="text">
-    <string>Postprocessor configuration...</string>
+    <string>&amp;Postprocessor configuration...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+P</string>
@@ -1026,7 +1040,7 @@
   </action>
   <action name="actionTolerances">
    <property name="text">
-    <string>Tolerances</string>
+    <string>&amp;Tolerances</string>
    </property>
   </action>
   <action name="actionScaleAll">
@@ -1034,7 +1048,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Scale All</string>
+    <string>&amp;Scale All</string>
    </property>
   </action>
   <action name="actionRotateAll">
@@ -1042,7 +1056,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Rotate All</string>
+    <string>&amp;Rotate All</string>
    </property>
   </action>
   <action name="actionMoveWorkpieceZero">
@@ -1050,12 +1064,12 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Move Workpiece Zero</string>
+    <string>&amp;Move Workpiece Zero</string>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
-    <string>About</string>
+    <string>&amp;About</string>
    </property>
   </action>
   <action name="actionOptimizePaths">
@@ -1063,7 +1077,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Optimize Paths</string>
+    <string>&amp;Optimize Paths</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+O</string>
@@ -1074,7 +1088,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Export Shapes</string>
+    <string>&amp;Export Shapes</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Shift+E</string>
@@ -1085,7 +1099,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Optimize and Export Shapes</string>
+    <string>Optimize &amp;and Export Shapes</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+E</string>
@@ -1099,7 +1113,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Live Update Export Route</string>
+    <string>&amp;Live Update Export Route</string>
    </property>
   </action>
   <action name="actionReload">
@@ -1107,7 +1121,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Reload</string>
+    <string>&amp;Reload</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+R</string>
@@ -1118,7 +1132,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Split Line Segments</string>
+    <string>Split &amp;Line Segments</string>
    </property>
    <property name="statusTip">
     <string>Split line segments, e.g. can be used for compensation (G41/G42) in combination with EMC</string>
@@ -1132,7 +1146,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Automatic Cutter Compensation</string>
+    <string>&amp;Automatic Cutter Compensation</string>
    </property>
   </action>
   <action name="actionMilling">
@@ -1140,7 +1154,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Milling</string>
+    <string>&amp;Milling</string>
    </property>
   </action>
   <action name="actionDragKnife">
@@ -1148,7 +1162,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Drag Knife</string>
+    <string>&amp;Drag Knife</string>
    </property>
   </action>
   <action name="actionLathe">
@@ -1156,7 +1170,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Lathe</string>
+    <string>&amp;Lathe</string>
    </property>
   </action>
   <action name="actionTopView">
@@ -1164,7 +1178,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Top View</string>
+    <string>&amp;Top View</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V, T</string>
@@ -1175,7 +1189,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Isometric View</string>
+    <string>&amp;Isometric View</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+V, I</string>
@@ -1186,10 +1200,29 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Save Project As...</string>
+    <string>&amp;Save Project As...</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
+   </property>
+  </action>
+  <action name="actionMillimeters">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Millimeters</string>
+   </property>
+  </action>
+  <action name="actionInches">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Inches</string>
    </property>
   </action>
  </widget>
