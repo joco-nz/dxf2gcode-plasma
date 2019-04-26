@@ -147,7 +147,7 @@ class GLWidget(CanvasBase):
             en = en.to3D(shape.axis3_start_mill_depth)
             self.expprv = self.expprv.to3D(shape.axis3_mill_depth)
 
-            self.routearrows.append([st, en, 0])
+            self.routearrows.append([st, en, -1])
 
             # TODO self.routetext.append(RouteText(text=("%s,%s" % (layer_nr, shape_nr+1)), startp=en))
 
@@ -157,7 +157,7 @@ class GLWidget(CanvasBase):
                      g.config.vars.Plane_Coordinates['axis2_start_end'],
                      0)
 
-        self.routearrows.append([st, en, 0])
+        self.routearrows.append([st, en, -1])
         for route in self.routearrows:
             route[2] = self.makeRouteArrowHead(route[0], route[1])
 
@@ -407,6 +407,9 @@ class GLWidget(CanvasBase):
         GL.glScalef(self.scaleCorr / self.scale, self.scaleCorr / self.scale, self.scaleCorr / self.scale)
         scaleArrow = self.scale / self.scaleCorr
         for route in self.routearrows:
+            # ignore uninitialized arrows
+            if route[2] < 0:
+                continue
             end = scaleArrow * route[1]
             GL.glTranslatef(end.x, -end.y, end.z)
             GL.glCallList(route[2])

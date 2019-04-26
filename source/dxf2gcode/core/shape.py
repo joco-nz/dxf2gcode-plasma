@@ -566,8 +566,12 @@ class Shape(object):
         if len(self.geos) < 2:
             return
 
-        new_geos = [self.geos[0]]
-        for i in range(1, len(self.geos)):
+        new_geos = []
+        for i in range(len(self.geos)):
+            if len(new_geos) == 0:
+                new_geos.append(self.geos[i])
+                continue
+
             geo1 = new_geos[-1]
             geo2 = self.geos[i]
 
@@ -577,14 +581,15 @@ class Shape(object):
                 new_geos.pop()
                 new_geos += geo1.join_colinear_line(geo2)
             elif isinstance(geo1, ArcGeo) or isinstance(geo2, ArcGeo):
-                new_geos += [geo2]
+                new_geos.append(geo2)
 
             # If start end End Point are the same remove geometry
             if new_geos[-1].Ps == new_geos[-1].Pe:
+                # Note that this can make new_geos absolutely empty!
                 new_geos.pop()
 
         # For closed polylines check if the first and last items are colinear
-        if self.closed:
+        if self.closed and (len (new_geos) > 1):
             geo1 = new_geos[-1]
             geo2 = new_geos[0]
             if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo):
