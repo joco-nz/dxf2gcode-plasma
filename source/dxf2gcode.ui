@@ -341,7 +341,10 @@
                      </sizepolicy>
                     </property>
                     <property name="text">
-                     <string>⌀</string>
+                     <string notr="true">⌀</string>
+                    </property>
+                    <property name="textFormat">
+                     <enum>Qt::PlainText</enum>
                     </property>
                    </widget>
                   </item>
@@ -851,7 +854,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>31</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

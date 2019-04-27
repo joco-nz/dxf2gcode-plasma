@@ -8,6 +8,7 @@ Generates the tr file based on the defined PyQt Project File
 import os
 import subprocess
 import sys
+import getopt
 
 
 def which(program):
@@ -27,6 +28,35 @@ def which(program):
     return None
 
 
+#
+# Linenumbers may be of a little help while doing translations,
+# but are a big problem in a multiple-developer environment.
+#
+# A change to almost any source file will trigger a change in .ts
+# files, this leads to many conflicts while merging branches and
+# submitting patches.
+#
+# Thus, the default behavior is to remove <location> tags in all
+# .ts files (and keep the Git repository clean of them), but if
+# you're going to do translation work, run make_tr.py with the
+# --keep-ln option, then translate everythin, and run make_tr.py
+# without options again before you commit.
+#
+def remove_linenumbers(fpath):
+    print("Removing <location> tags in", fpath)
+
+    inf = open(fpath, "r")
+    outf = open(fpath + "~", "w")
+    for line in inf.readlines():
+        if line.find ("<location ") < 0:
+            outf.write(line)
+
+    inf.close()
+    outf.close()
+    os.unlink(fpath)
+    os.rename(fpath + "~", fpath)
+
+
 if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin" in sys.platform.lower():
     # On Linux, the executable are normaly on the PATH
     LREPATH = None
@@ -42,7 +72,9 @@ if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin"
         sys.exit(1)
 
     PYLPATH = None
-    names = ["pylupdate5", "lupdate5", "lupdate"]
+    # using lupdate instead of pylupdate will ruin translation files
+    # since it doesn't know Python.
+    names = ["pylupdate5"] #, "lupdate-qt5", "lupdate5", "lupdate"
     for name in names:
         if which(name):
             PYLPATH = name
@@ -99,14 +131,45 @@ TSFILESTR = ""
 for TSFILE in TSFILES:
     TSFILESTR += ("%s/i18n/%s " % (FILEPATH, TSFILE))
 
-OPTIONS = "-ts"
+try:
+    (opts, left) = getopt.getopt(sys.argv[1:], "h", ["help", "no-pylupdate", "keep-ln"])
+except getopt.GetoptError as e:
+    print(e)
+    sys.exit(1)
 
-if len(sys.argv) >= 2 and sys.argv[1] == '--no-pylupdate':
+if left != list():
+    print("unrecognized name on command line:", left [0])
+    sys.exit(1)
+
+OPTIONS = "-ts"
+SKIP_PYLUPDATE = False
+KEEP_LINENUMBERS = False
+
+for opt,val in opts:
+    if opt == "-h" or opt == "--help":
+        print ("""\
+Usage: %s [options]
+    -U --no-pylupdate Don't update TS files by running 'pylupdate'
+    -k --keep-ln      Keep line numbers in TS files, use this if
+                      you're planning to use 'linguist'.
+""" % sys.argv[0])
+        sys.exit(1)
+    elif opt == "--no-pylupdate":
+        SKIP_PYLUPDATE = True
+    elif opt == "--keep-ln":
+        KEEP_LINENUMBERS = True
+
+if SKIP_PYLUPDATE:
     print("skipping pylupdate")
 else:
     cmd1 = ("%s %s %s %s\n" % (PYLPATH, FILESSTR, OPTIONS, TSFILESTR))
     print(cmd1)
     subprocess.check_call(cmd1, shell=True)
+
+    if not KEEP_LINENUMBERS:
+        for ts in TSFILES:
+            fpath = "%s/i18n/%s" % (FILEPATH, ts)
+            remove_linenumbers(fpath)
 
 cmd2 = ("%s %s\n" % (LREPATH, TSFILESTR))
 print(cmd2)

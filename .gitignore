@@ -70,6 +70,9 @@ target/
 # PyCharm stuff
 .idea/
 
+# Qt Creator stuff
+*.pro.user
+
 # Generated files:
 dxf2gcode_images*_rc.py*
 dxf2gcode_ui*.py
