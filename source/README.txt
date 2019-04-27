@@ -170,6 +170,23 @@ Contributing
   https://sourceforge.net/p/dxf2gcode/wiki/Home/
 
 
+Translations
+------------
+
+  DXF2GCODE uses Qt's built-in translation mechanism.
+  As such, you will need the usual Qt tools to work on translations
+  (lrelease, linguist and pylupdate5 from PyQt5 instead of Qt's lupdate,
+  because the later doesn't speak Python).
+
+  To do translation work, run 'make trs' first. This will prepare the
+  .ts files in i18n/ to be edited with 'linguist'. Then you may run
+  'linguist' on the .ts files you're interested in, and translate what
+  you intend. After that, please run 'make trf' again, this will remove
+  <location> tags from the .ts files which are a constant source of
+  merge conflicts (and blows up the diffs). Finally, do a commit and
+  submit it to upstream.
+
+
 Authors
 -------
   Christian Kohlöffel,
