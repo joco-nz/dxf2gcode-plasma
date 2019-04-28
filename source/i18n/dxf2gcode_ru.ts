@@ -1651,6 +1651,20 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
 </context>
 <context>
+    <name>OffArcGeo</name>
+    <message>
+        <source>Unsupported geometry type: %s</source>
+        <translation>Тип геометрии не поддерживается: %s</translation>
+    </message>
+</context>
+<context>
+    <name>OffLineGeo</name>
+    <message>
+        <source>Unsupported geometry type: %s</source>
+        <translation>Тип геометрии не поддерживается: %s</translation>
+    </message>
+</context>
+<context>
     <name>PopUpDialog</name>
     <message>
         <source>Auto</source>

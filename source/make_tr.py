@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# The list of source code files and translation files are contained
+# in dxf2gcode.pro.
+#
+# Note if you add .py files to .pro file from the IDE, they will be added
+# to the DISTFILES variable. You will have to edit .pro file and move the
+# .py files to SOURCES instead.
+#
 
 """
-Generates the tr file based on the defined PyQt Project File
+Generates the translation files based on the defined PyQt Project File
 """
 
 import os
@@ -43,10 +51,10 @@ def which(program):
 # without options again before you commit.
 #
 def remove_linenumbers(fpath):
-    print("Removing <location> tags in", fpath)
+    print("    Removing <location> tags from", fpath)
 
-    inf = open(fpath, "r")
-    outf = open(fpath + "~", "w")
+    inf = open(fpath, "r", encoding = "utf8")
+    outf = open(fpath + "~", "w", encoding = "utf8")
     for line in inf.readlines():
         if line.find ("<location ") < 0:
             outf.write(line)
@@ -55,6 +63,35 @@ def remove_linenumbers(fpath):
     outf.close()
     os.unlink(fpath)
     os.rename(fpath + "~", fpath)
+
+
+# Extract the list of .ts files from the QMakefile
+def extract_from_pro(qmf, varname):
+    inf = open(qmf, "r", encoding = "utf8")
+    ts = []
+    collect = False
+    for line in inf.readlines():
+        line = line.strip()
+        next_collect = collect
+        if collect:
+            if line.endswith('\\'):
+                line = line[:-1]
+            else:
+                next_collect = False
+        elif line.strip().startswith(varname):
+            eq = line.find('=')
+            if eq > 0:
+                collect = next_collect = True
+                line = line[eq + 1:]
+                if line.endswith('\\'):
+                    line = line[:-1]
+
+        if collect:
+            ts += line.split()
+
+        collect = next_collect
+
+    return ts
 
 
 if "linux" in sys.platform.lower() or "unix" in sys.platform.lower() or "darwin" in sys.platform.lower():
@@ -94,45 +131,9 @@ else:
     LREPATH = os.path.join(PYTHONPATH, "Scripts/lrelease.exe")
     print("Using Windows platform tools \"%s\" and \"%s\"\n" % (PYLPATH, LREPATH))
 
-FILEPATH = os.path.realpath(os.path.dirname(sys.argv[0]))
-
-FILES = ("../dxf2gcode/core/arcgeo.py",
-         "../dxf2gcode/core/project.py",
-         "../dxf2gcode/core/shape.py",
-         "../dxf2gcode/dxfimport/geoent_arc.py",
-         "../dxf2gcode/dxfimport/geoent_circle.py",
-         "../dxf2gcode/dxfimport/geoent_line.py",
-         "../dxf2gcode/dxfimport/importer.py",
-         "../dxf2gcode/globals/config.py",
-         "../dxf2gcode/gui/canvas.py",
-         "../dxf2gcode/gui/canvas2d.py",
-         "../dxf2gcode/gui/canvas3d.py",
-         "../dxf2gcode/gui/configwindow.py",
-         "../dxf2gcode/gui/messagebox.py",
-         "../dxf2gcode/gui/popupdialog.py",
-         "../dxf2gcode/gui/treehandling.py",
-         "../dxf2gcode/postpro/postprocessor.py",
-         "../dxf2gcode/postpro/postprocessorconfig.py",
-         "../dxf2gcode/postpro/tspoptimisation.py",
-         "../dxf2gcode.py",
-         "../dxf2gcode.ui"
-         )
-
-
-TSFILES = ("dxf2gcode_de_DE.ts",
-           "dxf2gcode_fr.ts",
-           "dxf2gcode_ru.ts")
-
-FILESSTR = ""
-for FILE in FILES:
-    FILESSTR += ("%s/i18n/%s " % (FILEPATH, FILE))
-
-TSFILESTR = ""
-for TSFILE in TSFILES:
-    TSFILESTR += ("%s/i18n/%s " % (FILEPATH, TSFILE))
-
+# Handle command line options
 try:
-    (opts, left) = getopt.getopt(sys.argv[1:], "h", ["help", "no-pylupdate", "keep-ln"])
+    (opts, left) = getopt.getopt(sys.argv[1:], "hkU", ["help", "no-pylupdate", "keep-ln"])
 except getopt.GetoptError as e:
     print(e)
     sys.exit(1)
@@ -141,7 +142,7 @@ if left != list():
     print("unrecognized name on command line:", left [0])
     sys.exit(1)
 
-OPTIONS = "-ts"
+QMAKEFILE = "dxf2gcode.pro"
 SKIP_PYLUPDATE = False
 KEEP_LINENUMBERS = False
 
@@ -154,25 +155,30 @@ Usage: %s [options]
                       you're planning to use 'linguist'.
 """ % sys.argv[0])
         sys.exit(1)
-    elif opt == "--no-pylupdate":
+    elif opt == "--no-pylupdate" or opt == "-U":
         SKIP_PYLUPDATE = True
-    elif opt == "--keep-ln":
+    elif opt == "--keep-ln" or opt == "-k":
         KEEP_LINENUMBERS = True
+
+TSFILES = extract_from_pro(QMAKEFILE, "TRANSLATIONS")
 
 if SKIP_PYLUPDATE:
     print("skipping pylupdate")
 else:
-    cmd1 = ("%s %s %s %s\n" % (PYLPATH, FILESSTR, OPTIONS, TSFILESTR))
-    print(cmd1)
-    subprocess.check_call(cmd1, shell=True)
+    print("Updating translations from source files...")
+    cmd = [PYLPATH, QMAKEFILE]
+    print(" ".join(cmd))
+    subprocess.check_call(cmd)
 
     if not KEEP_LINENUMBERS:
+        print("Removing sourcecode references from translation files...")
         for ts in TSFILES:
-            fpath = "%s/i18n/%s" % (FILEPATH, ts)
-            remove_linenumbers(fpath)
+            remove_linenumbers(ts)
 
-cmd2 = ("%s %s\n" % (LREPATH, TSFILESTR))
-print(cmd2)
-subprocess.check_call(cmd2, shell=True)
+if not KEEP_LINENUMBERS:
+    print("Compiling translation files to binary .qm format...")
+    cmd = [LREPATH] + TSFILES
+    print(" ".join(cmd))
+    subprocess.check_call(cmd)
 
 print("\nREADY")

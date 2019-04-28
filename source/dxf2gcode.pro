@@ -1,10 +1,6 @@
 TARGET = dxf2gcode.py
 
-DISTFILES += \
-    README.txt \
-    dxf2gcode.desktop \
-    dxf2gcode.appdata.xml \
-    MANIFEST.in \
+SOURCES += \
     dxf2gcode.py \
     make_tr.py \
     dxf2gcode_test.py \
@@ -71,8 +67,19 @@ DISTFILES += \
     dxf2gcode/postpro/postprocessorconfig.py \
     dxf2gcode/postpro/tspoptimisation.py
 
+DISTFILES += \
+    README.txt \
+    dxf2gcode.desktop \
+    dxf2gcode.appdata.xml \
+    MANIFEST.in
+
 RESOURCES += \
     dxf2gcode_images.qrc
 
 FORMS += \
     dxf2gcode.ui
+
+TRANSLATIONS += \
+    i18n/dxf2gcode_de_DE.ts \
+    i18n/dxf2gcode_fr.ts \
+    i18n/dxf2gcode_ru.ts
