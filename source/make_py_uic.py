@@ -89,14 +89,14 @@ try:
 
     OPTIONS = "-o"
 
-    cmd1 = "%s %s %s %s" % (UICPATH, tmp_ui_filename, OPTIONS, PYFILEver)
-    cmd2 = "%s %s %s %s" % (RCCPATH, OPTIONS, RCPYFILEver, RCFILE)
+    cmd1 = [UICPATH, tmp_ui_filename, OPTIONS, PYFILEver]
+    cmd2 = [RCCPATH, OPTIONS, RCPYFILEver, RCFILE]
 
-    print(cmd1)
-    subprocess.check_call(cmd1, shell=True)  # shell=True argument needed on Linux
+    print(" ".join(cmd1))
+    subprocess.check_call(cmd1)
 
-    print(cmd2)
-    subprocess.check_call(cmd2, shell=True)  # shell=True argument needed on Linux
+    print(" ".join(cmd2))
+    subprocess.check_call(cmd2)
 
 finally:
     os.remove(tmp_ui_filename)
