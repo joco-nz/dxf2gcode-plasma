@@ -147,7 +147,7 @@ class offShapeClass(Shape):
         self.geos_postprocessing(eps*5)
         #SweepLine(geos=self.rawoff, closed=self.closed)
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
@@ -654,7 +654,7 @@ class SweepLine:
         for ele in self.found:
             logger.debug(ele)
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
@@ -967,7 +967,7 @@ class SweepElement:
         self.remove = remove
         self.swoop = swoop
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
@@ -2002,7 +2002,7 @@ class ConvexPoint(OffPoint):
     def __init__(self, x=0, y=0):
         OffPoint.__init__(self, x=x, y=y)
         
-    def __str__(self):
+    def __repr__(self):
         return 'X ->%6.3f  Y ->%6.3f' % (self.x, self.y)
         # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
 
@@ -2024,7 +2024,7 @@ class IntPoint(Point):
         
 
         
-#     def __str__(self):
+#     def __repr__(self):
 #         return 'X ->%6.3f  Y ->%6.3f \ngeo1: %s, \ngeo2:%s' % (self.x, self.y, self.geo1, self.geo2)
         # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,
         

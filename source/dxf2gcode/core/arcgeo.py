@@ -127,7 +127,7 @@ class ArcGeo(object):
                       deepcopy(self.ext, memo),
                       deepcopy(self.drag, memo))
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string

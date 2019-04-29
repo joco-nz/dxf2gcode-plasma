@@ -35,8 +35,8 @@ class Point3D(object):
         self.y = y
         self.z = z
 
-    def __str__(self):
-        return 'X -> %6.3f  Y -> %6.3f   Z -> %6.3f' % (self.x, self.y, self.z)
+    def __repr__(self):
+        return 'Point3D(X %.3f Y %.3f Z %.3f)' % (self.x, self.y, self.z)
 
     def save_v1(self):
         return 'X -> %6.3f  Y -> %6.3f   Z -> %6.3f' % (self.x, self.y, self.z)

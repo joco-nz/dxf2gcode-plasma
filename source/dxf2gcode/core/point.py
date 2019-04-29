@@ -44,8 +44,8 @@ class Point(object):
         self.x = x
         self.y = y
 
-    def __str__(self):
-        return 'X ->%6.3f  Y ->%6.3f' % (self.x, self.y)
+    def __repr__(self):
+        return 'Point(X %.3f Y %.3f)' % (self.x, self.y)
         # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
 
     def save_v1(self):

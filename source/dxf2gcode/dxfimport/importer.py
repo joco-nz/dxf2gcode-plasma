@@ -782,7 +782,7 @@ class dxflinepairClass:
         self.code = code
         self.value = value
 
-    def __str__(self):
+    def __repr__(self):
         return 'Code ->' + str(self.code) + '\nvalue ->' + self.value
 
 class dxflinepairsClass:
@@ -790,7 +790,7 @@ class dxflinepairsClass:
         self.nrs = 0
         self.line_pair = line_pair
 
-    def __str__(self):
+    def __repr__(self):
         return 'Number of Line Pairs: ' + str(self.nrs)
 
     # Search for information in the line pairs (both code & value)
@@ -838,7 +838,7 @@ class LayerClass:
         self.Nr = Nr
         self.name = name
 
-    def __str__(self):
+    def __repr__(self):
         # how to print the object
         return 'Nr ->' + str(self.Nr) + '\nName ->' + self.name
 
@@ -852,7 +852,7 @@ class SectionClass:
         self.begin = begin
         self.end = end
 
-    def __str__(self):
+    def __repr__(self):
         # how to print the object
         return 'Nr ->' + str(self.Nr) + '\nName ->' + self.name + '\nBegin ->' + str(self.begin) + '\nEnd: ->' + str(self.end)
 
@@ -867,7 +867,7 @@ class EntitiesClass:
         self.geo = geo
         self.cont = cont
 
-    def __str__(self):
+    def __repr__(self):
         # how to print the object
         return "\nNr:      %s" % self.Nr +\
                "\nName:    %s" % self.Name +\
@@ -900,7 +900,7 @@ class BlocksClass:
     def __init__(self, Entities=[]):
         self.Entities = Entities
 
-    def __str__(self):
+    def __repr__(self):
         # how to print the object
         s = 'Blocks:\nNumber of Blocks ->' + str(len(self.Entities))
         for entitie in self.Entities:
