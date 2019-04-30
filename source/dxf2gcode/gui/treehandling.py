@@ -766,9 +766,10 @@ class TreeHandler(QWidget):
             else:
                 element = sub_item_index.model().itemFromIndex(sub_item_index)
                 if element:
-                    obj = element.data(SHAPE_OBJECT) or element.data(CUSTOM_GCODE_OBJECT)
-                    if obj:
+                    if element.data(SHAPE_OBJECT):
                         toPyObject(element.data(SHAPE_OBJECT)).shapeobj.setSelected (state)
+                    elif element.data(CUSTOM_GCODE_OBJECT):
+                        toPyObject(element.data(CUSTOM_GCODE_OBJECT)).setSelected (state)
 
     def traverseChildrenAndEnableDisable(self, item_model, item_index, checked_state):
         """
@@ -1093,7 +1094,7 @@ class TreeHandler(QWidget):
                             toPyObject(element.data(SHAPE_OBJECT)).shapeobj.setSelected(False)
 
                         elif isValid(element.data(CUSTOM_GCODE_OBJECT)):
-                            toPyObject(element.data(CUSTOM_GCODE_OBJECT)).shapeobj.setSelected(False)
+                            toPyObject(element.data(CUSTOM_GCODE_OBJECT)).setSelected(False)
 
                         elif isValid(element.data(LAYER_OBJECT)):
                             self.traverseChildrenAndSelect(self.layer_item_model, model_index, False)
@@ -1114,7 +1115,7 @@ class TreeHandler(QWidget):
                             lastSelected.setSelected(True)  # Select the shape on the canvas
 
                         elif isValid(element.data(CUSTOM_GCODE_OBJECT)):
-                            lastSelected = toPyObject(element.data(CUSTOM_GCODE_OBJECT)).shapeobj
+                            lastSelected = toPyObject(element.data(CUSTOM_GCODE_OBJECT))
                             lastSelected.setSelected(True)  # Select the shape on the canvas
 
                         # select all the children of a given layer when clicked
