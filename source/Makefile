@@ -42,7 +42,12 @@ clean:
 .PHONY: trs
 trs:
 	./make_tr.py --keep-ln
+	@echo ""
+	@echo ">>> Translation files prepared for work."
+	@echo ">>> Don't forget to run 'make trf' after you finish translating."
 
 .PHONY: trf
 trf:
 	./make_tr.py
+	@echo ""
+	@echo ">>> Translation files are ready for commiting into repository."

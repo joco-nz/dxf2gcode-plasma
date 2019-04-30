@@ -930,7 +930,7 @@ returned error code: {1}</source>
     </message>
     <message>
         <source>&amp;Drag Knife</source>
-        <translation>&amp;Резак</translation>
+        <translation>&amp;Флюгерный нож</translation>
     </message>
     <message>
         <source>&amp;Lathe</source>
@@ -1284,7 +1284,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Drag Knife options</source>
-        <translation>Настройки резака</translation>
+        <translation>Настройки флюгерного ножа</translation>
     </message>
 </context>
 <context>
