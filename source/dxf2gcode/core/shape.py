@@ -87,7 +87,7 @@ class Shape(object):
         self.drag_angle = radians(
             g.config.vars.Drag_Knife_Options['drag_angle'])
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
@@ -189,15 +189,19 @@ class Shape(object):
 
             # Overwrite the geometries in changed order.
             self.geos = Geos(self.geos[min_geo_nr:] + self.geos[:min_geo_nr])
-
             start = self.get_start_end_points(True)
             logger.debug(self.tr("New Start Point: %s" % start))
+
         elif len (self.geos) > 0:
             # if shape is not closed, we can just select between start and end points
             dist1 = self.geos.abs_el(0).get_start_end_points(True).distance(stPoint)
             dist2 = self.geos.abs_el(-1).get_start_end_points(False).distance(stPoint)
             if dist2 < dist1:
                 self.reverse()
+
+        # Update start move after reordering the shape
+        if self.stmove is not None:
+            self.stmove.update()
 
     def reverse(self, geos=None):
         if not geos:
