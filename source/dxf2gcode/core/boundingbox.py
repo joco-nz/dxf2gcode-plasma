@@ -51,7 +51,7 @@ class BoundingBox:
         self.Pe = Pe
 
 
-    def __repr__(self):
+    def __str__(self):
         """ 
         Standard method to print the object
         @return: A string

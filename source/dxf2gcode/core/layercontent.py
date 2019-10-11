@@ -53,7 +53,7 @@ class LayerContent(object):
         self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']
         self.axis3_safe_margin = g.config.vars.Depth_Coordinates['axis3_safe_margin']
 
-    def __repr__(self):
+    def __str__(self):
         """
         Standard method to print the object
         @return: A string
@@ -145,7 +145,9 @@ class LayerContent(object):
 
         # exp_order_complete is not filled yet, so we'll have to lookup shape by nr.
         # Create a shape.nr -> shape map so that we don't run in O(n^2) time
-        nr2shape = dict((shape.nr,shape) for shape in self.shapes)
+        nr2shape = {}
+        for shape in self.shapes:
+            nr2shape[shape.nr] = shape
 
         lastPoint = None
         for nr in self.exp_order:

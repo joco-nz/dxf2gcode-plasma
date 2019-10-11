@@ -47,7 +47,7 @@ class GeoentPolyline:
         # Read the geometry
         self.Read(caller)
 
-    def __repr__(self):
+    def __str__(self):
         # how to print the object
         string = "\nTyp: Polyline" +\
                  "\nNr: %i" % self.Nr +\

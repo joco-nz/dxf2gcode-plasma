@@ -43,7 +43,7 @@ class EntityContent(object):
         self.sca = sca
         self.rot = rot
 
-    def __repr__(self):
+    def __str__(self):
         return "\nEntityContent" +\
                "\nnr :      %i" % self.nr +\
                "\nname:     %s" % self.name +\

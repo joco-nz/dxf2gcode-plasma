@@ -67,7 +67,7 @@ class GeoentSpline:
         for geo in self.geo:
             self.length += geo.length
 
-    def __repr__(self):
+    def __str__(self):
         # how to print the object
         s = "\nTyp: Spline" +\
             "\nNr: %i" % self.Nr +\

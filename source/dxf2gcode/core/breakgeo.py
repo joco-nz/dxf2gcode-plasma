@@ -48,7 +48,7 @@ class BreakGeo(LineGeo):
                         deepcopy(self.xyfeed, memo),
                         deepcopy(self.zfeed, memo))
 
-    def __repr__(self):
+    def __str__(self):
         """
         Standard method to print the object
         @return: A string

@@ -50,7 +50,7 @@ class GeoentArc(object):
         # Read the geometry
         self.Read(caller)
 
-    def __repr__(self):
+    def __str__(self):
         # how to print the object
         return "\nTyp: Arc" + \
                "\nNr: %i" % self.Nr + \

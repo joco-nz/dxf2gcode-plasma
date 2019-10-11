@@ -58,29 +58,16 @@ class StMove(object):
 
         self.shape = shape
 
-        self.update()
+        self.start, self.angle = self.shape.get_start_end_points(True, True)
+        self.end = self.start
 
-    def __repr__(self):
-        return "StMove(shape %d start %s angle %s end %s)" % \
-            (self.shape.nr, str(self.start), str(self.angle), str(self.end))
-
+        self.make_start_moves()
 
     def append(self, geo):
         # we don't want to additional scale / rotate the stmove geo
         # so no geo.make_abs_geo(self.shape.parentEntity)
         geo.make_abs_geo()
         self.geos.append(geo)
-
-
-    def update(self):
-        """
-        Update start move after shape is changed.
-        """
-        self.start, self.angle = self.shape.get_start_end_points(True, True)
-        self.end = self.start
-
-        self.make_start_moves()
-
 
     def make_start_moves(self):
         """
@@ -105,7 +92,7 @@ class StMove(object):
 
         if self.shape.cut_cor == 40:
             self.append(RapidPos(start))
-
+            
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
 
             toolwidth = self.shape.parentLayer.getToolRadius()
@@ -252,9 +239,6 @@ class RapidPos(Point):
     def __init__(self, point):
         Point.__init__(self, point.x, point.y)
         self.abs_geo = None
-
-    def __repr__(self):
-        return Point.__repr__(self)
 
     def get_start_end_points(self, start_point, angles=None):
         if angles is None:

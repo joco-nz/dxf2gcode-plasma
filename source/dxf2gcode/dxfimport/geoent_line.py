@@ -49,7 +49,7 @@ class GeoentLine(object):
         # Read the geometry
         self.Read(caller)
 
-    def __repr__(self):
+    def __str__(self):
         # how to print the object
         return "\nTyp: Line" +\
                "\nNr: %i" % self.Nr +\
