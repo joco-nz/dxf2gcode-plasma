@@ -612,8 +612,7 @@ class Geos(list):
     def abs_iter(self):
         for geo in list.__iter__(self):
             yield geo.abs_geo if geo.abs_geo else geo
-        else:
-            raise StopIteration()
+
 
     def abs_el(self, element):
         return self[element].abs_geo if self[element].abs_geo else self[element]

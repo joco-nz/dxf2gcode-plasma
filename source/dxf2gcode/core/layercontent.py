@@ -189,15 +189,11 @@ class Layers(list):
         for layer in list.__iter__(self):
             if not layer.isBreakLayer():
                 yield layer
-        else:
-            raise StopIteration()
 
     def break_layer_iter(self):
         for layer in list.__iter__(self):
             if layer.isBreakLayer():
                 yield layer
-        else:
-            raise StopIteration()
 
 
 class Shapes(list):
@@ -209,19 +205,13 @@ class Shapes(list):
         for shape in list.__iter__(self):
             if shape.selected:
                 yield shape
-        else:
-            raise StopIteration()
 
     def not_selected_iter(self):
         for shape in list.__iter__(self):
             if not shape.selected:
                 yield shape
-        else:
-            raise StopIteration()
 
     def not_disabled_iter(self):
         for shape in list.__iter__(self):
             if not shape.disabled:
                 yield shape
-        else:
-            raise StopIteration()

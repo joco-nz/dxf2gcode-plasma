@@ -265,6 +265,3 @@ class RapidPos(Point):
         @return: Returns the string to be written to a file.
         """
         return PostPro.rap_pos_xy(self)
-
-
-
