@@ -9,6 +9,7 @@ include dxf2gcode.desktop
 include dxf2gcode_images.qrc
 include dxf2gcode.py
 include dxf2gcode.ui
+include dxf2gcode.pro
 include images/*.svg
 include images/*.png
 include images/*.ico
