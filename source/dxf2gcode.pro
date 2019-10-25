@@ -3,7 +3,6 @@ TARGET = dxf2gcode.py
 SOURCES += \
     dxf2gcode.py \
     make_tr.py \
-    dxf2gcode_test.py \
     dxf2gcode.py \
     make_exe.py \
     make_py_uic.py \
