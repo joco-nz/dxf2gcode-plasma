@@ -7,6 +7,9 @@
 #    Vinzenz Schulz
 #    Jean-Paul Schouwstra
 #
+#   Copyright (C) 20019-2020
+#    San Zamoyski (PocketMill parts)
+#
 #   This file is part of DXF2GCODE.
 #
 #   DXF2GCODE is free software: you can redistribute it and/or modify
@@ -36,6 +39,7 @@ from dxf2gcode.core.point import Point
 from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.core.holegeo import HoleGeo
+from dxf2gcode.core.pocketmove import PocketMove
 
 import dxf2gcode.globals.constants as c
 from PyQt5 import QtCore
@@ -60,6 +64,7 @@ class Shape(object):
         self.nr = nr
         self.closed = closed
         self.cut_cor = 40
+        self.Pocket = False
         self.parentEntity = parentEntity
         self.parentLayer = None
         self.geos = Geos(geos)
@@ -223,11 +228,21 @@ class Shape(object):
         geo.make_abs_geo(self.parentEntity)
         self.geos.append(geo)
 
-    def get_start_end_points_physical(self, start_point=None, angles=None):
+    def get_start_end_points_physical(self, start_point=None, angles=None, PPocket=False):
         """
         With multiple slices end point could be start point.
         e.g. useful for the optimal rout etc
         """
+        
+        if self.cw ==True:
+            direction = -1;
+        else:
+            direction = 1;
+            
+        ### drill cut here
+        
+        #TODO: end point will change to zig-zag's end
+        
         if start_point or self.closed:
             return self.get_start_end_points(start_point, angles)
         else:
@@ -252,7 +267,13 @@ class Shape(object):
                 else:
                     return end_stuff
 
-    def get_start_end_points(self, start_point=None, angles=None):
+    def get_start_end_points(self, start_point=None, angles=None, PPocket=False, Drill=False):
+
+        if self.cw ==True:
+            direction = -1;
+        else:
+            direction = 1;
+        
         if start_point is None:
             return (self.geos.abs_el(0).get_start_end_points(True, angles),
                     self.geos.abs_el(-1).get_start_end_points(False, angles))
@@ -309,6 +330,10 @@ class Shape(object):
     def Write_GCode_for_geo(self, geo, PostPro):
         # Used to remove zero length geos. If not, arcs can become a full
         # circle
+        
+        if isinstance(geo, PocketMove):
+            return geo.Write_GCode(PostPro)
+        
         post_dec = PostPro.vars.Number_Format["post_decimals"]
         if isinstance(geo, HoleGeo) or\
            round(geo.Ps.x, post_dec) != round(geo.Pe.x, post_dec) or\
@@ -377,7 +402,6 @@ class Shape(object):
 
         mom_depth = initial_mill_depth
 
-        # Move the tool to the start.
         exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.
@@ -405,11 +429,14 @@ class Shape(object):
 
             exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
             exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
-
-        # Write the geometries for the first cut
+        
         for geo in new_geos.abs_iter():
-            exstr += self.Write_GCode_for_geo(geo, PostPro)
-
+            if isinstance(geo, PocketMove):
+                geo.setZMove(f_g1_depth, f_g1_plane, workpiece_top_Z + abs(safe_margin), mom_depth, safe_retract_depth)
+                exstr += geo.Write_GCode(PostPro)
+            else:
+                exstr += self.Write_GCode_for_geo(geo, PostPro)
+        
         # Turning the cutter radius compensation
         if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
             exstr += PostPro.deactivate_cut_cor()
@@ -422,6 +449,12 @@ class Shape(object):
             mom_depth = mom_depth - abs(max_slice)
             if mom_depth < depth:
                 mom_depth = depth
+                
+            #If this is last slice, remove last element
+            # (no need to return to start point)
+            if mom_depth == depth and self.Pocket == True:
+                popped = new_geos.pop()
+                #print("Pop from geos %s." % (popped))
 
             # Erneutes Eintauchen
             exstr += PostPro.chg_feed_rate(f_g1_depth)
@@ -442,13 +475,20 @@ class Shape(object):
                     exstr += PostPro.deactivate_cut_cor()
                     exstr += PostPro.set_cut_cor(self.cut_cor)
 
-
             # If cutter correction is enabled
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
                 exstr += PostPro.set_cut_cor(self.cut_cor)
-
+            
             for geo in new_geos.abs_iter():
-                exstr += self.Write_GCode_for_geo(geo, PostPro)
+                if isinstance(geo, PocketMove):
+                    geo.setZMove(f_g1_depth, f_g1_plane, workpiece_top_Z + abs(safe_margin), mom_depth, safe_retract_depth)
+                    exstr += geo.Write_GCode(PostPro)
+                else:
+                    exstr += self.Write_GCode_for_geo(geo, PostPro)
+                            
+            # Turning off the cutter radius compensation if needed
+            if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
+                exstr += PostPro.deactivate_cut_cor()
 
             # Turning off the cutter radius compensation if needed
             if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
@@ -612,7 +652,6 @@ class Geos(list):
     def abs_iter(self):
         for geo in list.__iter__(self):
             yield geo.abs_geo if geo.abs_geo else geo
-
 
     def abs_el(self, element):
         return self[element].abs_geo if self[element].abs_geo else self[element]

@@ -28,6 +28,9 @@ from __future__ import absolute_import
 import logging
 
 import dxf2gcode.globals.globals as g
+#TODO: check if can be removed:
+#from dxf2gcode.core.linegeo import LineGeo
+#from dxf2gcode.core.arcgeo import ArcGeo
 
 import dxf2gcode.globals.constants as c
 from PyQt5.QtWidgets import QGraphicsView, QMenu
@@ -133,6 +136,31 @@ class MyDropDownMenu(QMenu):
 
         swdirectionAction = self.addAction(self.tr("Switch Direction"))
         SetNxtStPAction = self.addAction(self.tr("Set Nearest StartPoint"))
+
+        self.addSeparator()
+        
+        #enable pocket mill only if all selected shapes are closed
+        allClosed = True
+        
+        for item in self.selectedItems:
+            if item.closed == False:
+                allClosed == False
+                break
+            
+        #if all are closed and compensation is NOT done by machine,
+        # since I do not know how this should work... /SZ
+        if allClosed == True and not g.config.vars.Cutter_Compensation["done_by_machine"]:            
+            self.PocketAction = self.addAction(self.tr("Pocket Mill"))
+            self.PocketAction.setCheckable(True)
+            if g.config.machine_type == 'drag_knife':
+                pass
+            else:
+                self.PocketAction.triggered.connect(self.setPocket)
+            if self.selectedItems[0].Pocket == True:
+                self.PocketAction.setChecked(True)
+            else:
+                self.PocketAction.setChecked(False)
+                    
 
         if g.config.machine_type == 'drag_knife':
             pass
@@ -293,4 +321,38 @@ class MyDropDownMenu(QMenu):
             shape.cut_cor = 42
             logger.debug(self.tr('Changed Cutter Correction to right for shape: %i') % shape.nr)
             self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.update()
+
+    def setPocket(self):
+        for shape in self.selectedItems:
+            if shape.Pocket == False:
+                shape.Pocket = True
+                self.PocketAction.setChecked(True)
+                logger.debug(self.tr('Set to True for Pocket Mill for shape: %i') % shape.nr)
+                g.window.TreeHandler.updatePocketMill(shape,True)
+            else:
+                shape.Pocket = False
+                self.PocketAction.setChecked(False)
+                logger.debug(self.tr('Set to False for Pocket Mill for shape: %i') % shape.nr)
+                g.window.TreeHandler.updatePocketMill(shape,False)
+            self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.update()
+    
+    def setG73Drill(self):
+        for shape in self.selectedItems:
+            if shape.Drill == False:
+                shape.Drill = True
+                shape.DrillType = "G73"
+                self.G73DrillAction.setChecked(True)
+                logger.debug(self.tr('Set to True for G73 Drill, for shape: %i') % shape.nr)
+                g.window.TreeHandler.updateDrill(shape,True)
+            else:
+                shape.Drill = False
+                shape.DrillType = None
+                self.G73DrillAction.setChecked(False)
+                logger.debug(self.tr('Set to False for G73 Drill, for shape: %i') % shape.nr)
+                g.window.TreeHandler.updateDrill(shape,False)
+            self.canvas_scene.repaint_shape(shape)
+        self.canvas_scene.repaint_shape(shape)
         self.canvas_scene.update()
