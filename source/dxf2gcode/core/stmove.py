@@ -58,6 +58,12 @@ class StMove(object):
 
         self.shape = shape
 
+        self.update()
+
+    def __repr__(self):
+        return "StMove(shape %d start %s angle %s end %s)" % \
+            (self.shape.nr, str(self.start), str(self.angle), str(self.end))
+
         self.start, self.angle = self.shape.get_start_end_points(True, True)
         self.end = self.start
 
@@ -68,6 +74,15 @@ class StMove(object):
         # so no geo.make_abs_geo(self.shape.parentEntity)
         geo.make_abs_geo()
         self.geos.append(geo)
+
+    def update(self):
+        """
+        Update start move after shape is changed.
+        """
+        self.start, self.angle = self.shape.get_start_end_points(True, True)
+        self.end = self.start
+
+        self.make_start_moves()
 
     def make_start_moves(self):
         """

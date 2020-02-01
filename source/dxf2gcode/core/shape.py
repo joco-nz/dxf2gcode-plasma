@@ -199,6 +199,10 @@ class Shape(object):
             if dist2 < dist1:
                 self.reverse()
 
+        # Update start move after reordering the shape
+        if self.stmove is not None:
+            self.stmove.update()
+
     def reverse(self, geos=None):
         if not geos:
             geos = self.geos
