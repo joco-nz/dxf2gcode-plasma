@@ -64,7 +64,7 @@ class LineGeo(object):
         return LineGeo(deepcopy(self.Ps, memo),
                        deepcopy(self.Pe, memo))
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string

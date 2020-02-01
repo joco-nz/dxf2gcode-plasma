@@ -87,7 +87,7 @@ class Shape(object):
         self.drag_angle = radians(
             g.config.vars.Drag_Knife_Options['drag_angle'])
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string

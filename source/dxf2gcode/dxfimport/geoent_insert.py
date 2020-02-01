@@ -48,7 +48,7 @@ class GeoentInsert(object):
         # Red the geometry
         self.Read(caller)
 
-    def __str__(self):
+    def __repr__(self):
         # how to print the object
         return "\nTyp: Insert" +\
                "\nNr:          %i" % self.Nr +\
