@@ -143,6 +143,7 @@ class GeoentLwPolyline(object):
         # print LWPLClosed
 
         s = lp.index_code(10, s + 1, e)
+        bulge = None
         while 1:
             # X Value
             if s is None:
@@ -155,7 +156,7 @@ class GeoentLwPolyline(object):
             Pe = Point(x=x, y=y)
 
             # Bulge
-            bulge = 0
+            nxt_bulge = 0
 
             s_nxt_x = lp.index_code(10, s + 1, e)
             e_nxt_b = s_nxt_x
@@ -165,12 +166,12 @@ class GeoentLwPolyline(object):
             if e_nxt_b is None:
                 e_nxt_b = e
 
-            s_bulge = lp.index_code(42, s + 1, e_nxt_b)
+            s_nxt_bulge = lp.index_code(42, s + 1, e_nxt_b)
 
-            #logger.debug('stemp: %s, e: %s, next 10: %s' %(s_bulge,e,lp.index_code(10,s+1,e)))
-            if s_bulge is not None:
-                bulge = float(lp.line_pair[s_bulge].value)
-                s_nxt_x = s_nxt_x
+            #logger.debug('stemp: %s, e: %s, next 10: %s' %(s_nxt_bulge,e,lp.index_code(10,s+1,e)))
+            if s_nxt_bulge is not None:
+                # Bulge refers to segment between current & next point!
+                nxt_bulge = float(lp.line_pair[s_nxt_bulge].value)
 
             # Take the next X value as the starting value
             s = s_nxt_x
@@ -189,14 +190,14 @@ class GeoentLwPolyline(object):
                 self.length += self.geo[-1].length
 
             # The bulge is always given for the next point
-            next_bulge = bulge
+            bulge = nxt_bulge
             Ps = Pe
 
         if LWPLClosed == 1 or LWPLClosed == 129:
             #logger.debug("sollten �bereinstimmen: %s, %s" %(Ps,Pe))
             #logger.debug(self.geo)
-            if next_bulge and len(self.geo)>0:
-                self.geo.append(self.bulge2arc(Ps, self.geo[0].Ps, next_bulge))
+            if bulge and len(self.geo)>0:
+                self.geo.append(self.bulge2arc(Ps, self.geo[0].Ps, bulge))
                 self.length += self.geo[-1].length
             elif len(self.geo)>0:
                 self.geo.append(LineGeo(Ps=Ps, Pe=self.geo[0].Ps))
