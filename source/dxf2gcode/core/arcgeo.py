@@ -127,17 +127,13 @@ class ArcGeo(object):
                       deepcopy(self.ext, memo),
                       deepcopy(self.drag, memo))
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
         """
-        return ("\nArcGeo(Ps=Point(x=%s ,y=%s), \n" % (self.Ps.x, self.Ps.y)) + \
-               ("Pe=Point(x=%s, y=%s),\n" % (self.Pe.x, self.Pe.y)) + \
-               ("O=Point(x=%s, y=%s),\n" % (self.O.x, self.O.y)) + \
-               ("s_ang=%s,e_ang=%s,\n" % (self.s_ang, self.e_ang)) + \
-               ("r=%s, \n" % self.r) + \
-               ("ext=%s)" % self.ext)
+        return ("ArcGeo (Ps=%s, Pe=%s, O=%s, s_ang=%s, e_ang=%s, r=%s, ext=%s)" % \
+                (self.Ps, self.Pe, self.O, self.s_ang, self.e_ang, self.r, self.ext))
 
     def save_v1(self):
         return "\nArcGeo" +\
@@ -205,7 +201,7 @@ class ArcGeo(object):
         @param Ps: the start Point of the arc
         @param Pe: the end Point of the arc
         @param direction: the direction of the arc
-        @return: Returns the angle between -2* pi and 2 *pi for the arc,
+        @return: Returns the angle between -2*pi and 2*pi for the arc,
         0 excluded - we got a complete circle
         """
         dif_ang = (self.O.norm_angle(Pe) - self.O.norm_angle(Ps)) % (-2 * pi)

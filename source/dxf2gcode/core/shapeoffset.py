@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 ############################################################################
@@ -318,7 +317,7 @@ class offShapeClass(Shape):
         if isinstance(seg, OffLineGeo):
             Ps = seg.Ps + seg.start_normal * offset
             Pe = seg.Pe + seg.end_normal * offset
-            
+
             return OffLineGeo(Ps, Pe)
 
         elif isinstance(seg, OffPoint):
@@ -905,7 +904,6 @@ class SweepLine:
         #logger.debug("geo1: %s\ngeo2: %s" %(geo1,geo2))
         #logger.debug(geo1.neighbors)
         iPoint = (geo1.find_inter_point(geo2))
-        
 
         if (not(iPoint is None) and
                 not(geo2 in geo1.neighbors)):
@@ -2001,10 +1999,10 @@ class ConvexPoint(OffPoint):
 
     def __init__(self, x=0, y=0):
         OffPoint.__init__(self, x=x, y=y)
-        
-    def __str__(self):
-        return 'X ->%6.3f  Y ->%6.3f' % (self.x, self.y)
-        # return ('CPoints.append(Point(x=%6.5f, y=%6.5f))' %(self.x,self.y))
+
+    def __repr__(self):
+        return 'ConvexPoint (X=%6.3f, Y=%6.3f)' % (self.x, self.y)
+
 
 class IntPoint(Point):
     """

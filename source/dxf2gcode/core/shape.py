@@ -87,16 +87,15 @@ class Shape(object):
         self.drag_angle = radians(
             g.config.vars.Drag_Knife_Options['drag_angle'])
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
         """
 
         logger.debug(self.closed)
-        return "\nnr:          %i" % self.nr +\
-               "\nclosed:      %s" % self.closed +\
-               "\ngeos:        %s" % self.geos
+        return "Shape (nr=%i, closed=%s, geos=%s)" % \
+                (self.nr, self.closed, self.geos)
 
     def tr(self, string_to_translate):
         """
@@ -608,6 +607,18 @@ class Geos(list):
 
     def __init__(self, *args):
         list.__init__(self, *args)
+
+
+    def __repr__(self):
+        res = "Geos ("
+        sep = "\n"
+        for i in range(len(self)):
+            res += sep
+            res += "[%i] %s" % (i, repr(self[i]))
+            sep = ",\n"
+        res += ")"
+        return res
+
 
     def abs_iter(self):
         for geo in list.__iter__(self):

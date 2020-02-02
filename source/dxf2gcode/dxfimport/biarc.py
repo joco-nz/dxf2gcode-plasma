@@ -114,7 +114,7 @@ class BiarcClass(object):
             self.geos.append(ArcGeo(Ps=k, Pe=self.Pb, O=O2, r=r2,
                                     s_ang=s_ang2, e_ang=e_ang2, direction=dir_ang2))
 
-    def __str__(self):
+    def __repr__(self):
         s = "\nBiarc Shape: %s" % self.shape +\
             "\nPs : %s; Tangent: %0.3f" % (self.Ps, self.tan_a) +\
             "\nPb : %s; Tangent: %0.3f" % (self.Pb, self.tan_b) +\

@@ -513,7 +513,7 @@ class NURBSClass:
                                     Knots=self.Knots,
                                     CPts=self.HCPts)
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string

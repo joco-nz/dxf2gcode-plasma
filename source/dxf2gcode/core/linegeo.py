@@ -64,13 +64,12 @@ class LineGeo(object):
         return LineGeo(deepcopy(self.Ps, memo),
                        deepcopy(self.Pe, memo))
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
         """
-        return ("\nLineGeo(Ps=Point(x=%s ,y=%s),\n" % (self.Ps.x, self.Ps.y)) + \
-               ("Pe=Point(x=%s, y=%s))" % (self.Pe.x, self.Pe.y))
+        return ("LineGeo (Ps=%s, Pe=%s)" % (self.Ps, self.Pe))
 
     def save_v1(self):
         return "\nLineGeo" +\

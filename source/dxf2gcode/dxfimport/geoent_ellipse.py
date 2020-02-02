@@ -71,7 +71,7 @@ class GeoentEllipse(object):
         self.Ellipse_Grundwerte()
         self.Ellipse_2_Arcs(tol)
 
-    def __str__(self):
+    def __repr__(self):
         # how to print the object
         # As elegant as printf in C or Matlab etc. see the first line!
         return "\nTyp: Ellipse" +\
