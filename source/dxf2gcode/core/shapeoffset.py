@@ -67,12 +67,12 @@ class offShapeClass(Shape):
         super(offShapeClass, self).__init__(nr=parent.nr,
                                             closed=parent.closed,
                                             geos=[])
-        
+
         #logger.debug("The shape is: %s" % (self.closed))
 
         self.offset = offset
         self.offtype = offtype
-        self.segments = []
+        self.segments = Geos()
         self.rawoff = []
 
         self.geos_preprocessing(parent)
@@ -98,13 +98,13 @@ class offShapeClass(Shape):
             if (backward == 0 and
                     forward == (len(self.segments) - 1) and
                     self.closed):
-                self.segments = []
+                self.segments = Geos()
                 break
 
             # Make Raw offset curve of forward and backward segment
             fw_rawoff_seg = self.make_rawoff_seg(self.segments[forward])
             bw_rawoff_seg = self.make_rawoff_seg(self.segments[backward])
-            
+
             # Intersect the two segements
             iPoint = fw_rawoff_seg.find_inter_point(bw_rawoff_seg, typ="TIP")
 
@@ -115,11 +115,10 @@ class offShapeClass(Shape):
                 logger.debug("fw_rawoff_seg: %s, bw_rawoff_seg: %s" % 
                              (fw_rawoff_seg, bw_rawoff_seg))
 
-
                 logger.warning("No intersection found?!")
-                self.segments = []
+                self.segments = Geos()
                 return
-            
+
             if isinstance(iPoint, list):
                 logger.debug("forward: %s, backward: %s, iPoint: %s" % (
                     forward, backward, iPoint))
@@ -129,9 +128,9 @@ class offShapeClass(Shape):
                 logger.debug(iPoint[1])
                 logger.warning("Found more then one intersection points?! Using first one")
                 iPoint = iPoint[0]
-                
 
-            # Reomve the LIR from the PS Curce
+
+            # Remove the LIR from the PS Curce
             self.remove_LIR(forward, backward, iPoint)
             nextConvexPoint = [
                 e for e in self.segments if isinstance(e, ConvexPoint)]
@@ -625,7 +624,7 @@ class offShapeClass(Shape):
             backward].trim(Point=iPoint, dir=-1, rev_norm=rev)
 
         # Remove the segments which are inbetween the LIR
-        self.segments = [x for x in self.segments if x not in pop_range]
+        self.segments = Geos([x for x in self.segments if x not in pop_range])
 
 
 class SweepLine:
@@ -1630,10 +1629,11 @@ class OffLineGeo(LineGeo):
         @return: a list of intersection points.
         """
 
-        if typ == "TIP" and self.Ps.distance(Arc.Pe) < eps * 5:
-            return Arc.Pe
-        elif typ == "TIP" and self.Pe.distance(Arc.Ps) < eps * 5:
-            return Arc.Ps
+        if typ == "TIP":
+            if self.Ps.distance(Arc.Pe) < eps * 5:
+                return Arc.Pe
+            elif self.Pe.distance(Arc.Ps) < eps * 5:
+                return Arc.Ps
 
         Ldx = self.Pe.x - self.Ps.x
         Ldy = self.Pe.y - self.Ps.y
@@ -1659,8 +1659,9 @@ class OffLineGeo(LineGeo):
         Pi2 = Point(x=self.Ps.x + v2 * Ldx,
                     y=self.Ps.y + v2 * Ldy)
 
-        Pi1_v = Arc.dif_ang(Arc.Ps, Pi1, Arc.ext) / Arc.ext
-        Pi2_v = Arc.dif_ang(Arc.Ps, Pi2, Arc.ext) / Arc.ext
+        # dif_ang may return 2*pi which we should interpret as zero here!
+        Pi1_v = self.mod_clamp (Arc.dif_ang(Arc.Ps, Pi1, Arc.ext), -2*pi, +2*pi) / Arc.ext
+        Pi2_v = self.mod_clamp (Arc.dif_ang(Arc.Ps, Pi2, Arc.ext), -2*pi, +2*pi) / Arc.ext
 
         if typ == 'TIP':
             if ((Pi1_v >= 0.0 and Pi1_v <= 1.0 and self.intersect(Pi1)) and
@@ -1683,6 +1684,14 @@ class OffLineGeo(LineGeo):
             return [Pi1, Pi2]
         else:
             logger.error("We should not be here")
+
+    @staticmethod
+    def mod_clamp(val,min,max):
+        if val <= min:
+            return val % min
+        elif val >= max:
+            return val % max
+        return val
 
     def get_nearest_point(self, other):
         """
