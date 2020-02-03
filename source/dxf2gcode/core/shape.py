@@ -201,7 +201,7 @@ class Shape(object):
 
         # Update start move after reordering the shape
         if self.stmove is not None:
-            self.stmove.update()
+            self.stmove.updateShape()
 
     def reverse(self, geos=None):
         if not geos:

@@ -58,16 +58,11 @@ class StMove(object):
 
         self.shape = shape
 
-        self.update()
+        self.updateShape()
 
     def __repr__(self):
         return "StMove(shape %d start %s angle %s end %s)" % \
             (self.shape.nr, str(self.start), str(self.angle), str(self.end))
-
-        self.start, self.angle = self.shape.get_start_end_points(True, True)
-        self.end = self.start
-
-        self.make_start_moves()
 
     def append(self, geo):
         # we don't want to additional scale / rotate the stmove geo
@@ -75,12 +70,14 @@ class StMove(object):
         geo.make_abs_geo()
         self.geos.append(geo)
 
-    def update(self):
+    def updateShape(self):
         """
         Update start move after shape is changed.
         """
         self.start, self.angle = self.shape.get_start_end_points(True, True)
         self.end = self.start
+
+        self.geos = Geos([])
 
         self.make_start_moves()
 
