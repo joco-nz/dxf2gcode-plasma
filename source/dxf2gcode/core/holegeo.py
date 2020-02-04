@@ -51,7 +51,7 @@ class HoleGeo(object):
     def __deepcopy__(self, memo):
         return HoleGeo(deepcopy(self.Ps, memo))
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string

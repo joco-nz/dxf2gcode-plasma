@@ -47,7 +47,7 @@ class CustomGCode(object):
         self.send_to_TSP = False  # Never optimize path for CustomGCode
         self.selected = False
 
-    def __str__(self):
+    def __repr__(self):
         """
         Standard method to print the object
         @return: A string
