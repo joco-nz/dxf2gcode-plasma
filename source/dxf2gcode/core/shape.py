@@ -205,10 +205,11 @@ class Shape(object):
     def reverse(self, geos=None):
         if not geos:
             geos = self.geos
+            # switch direction if working with own geometry
+            self.cw = not self.cw
         geos.reverse()
         for geo in geos:
             geo.reverse()
-        self.cw = not self.cw
 
     def switch_cut_cor(self):
         """
