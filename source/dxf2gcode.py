@@ -470,14 +470,6 @@ class MainWindow(QMainWindow):
                                        if not self.ifNotContainedChangeCutCor(shape, shapes_left, outside_compensation, new_exp_order)]
                         outside_compensation = not outside_compensation
                     layerContent.exp_order = list(reversed(new_exp_order))
-        else:
-            # cancel cutter compensation for all shapes
-            for layerContent in self.layerContents.non_break_layer_iter():
-                if layerContent.automaticCutterCompensationEnabled():
-                    for shape in layerContent.shapes:
-                        if shape.cut_cor != 40:
-                            shape.cut_cor = 40
-                            self.canvas_scene.repaint_shape(shape)
         self.TreeHandler.updateTreeViewOrder()
         self.canvas_scene.update()
 

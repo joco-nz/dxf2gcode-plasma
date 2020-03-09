@@ -341,6 +341,7 @@ class Shape(object):
 
         # If there is nothing to export
         if len(new_geos) == 0:
+            self.cut_cor = prv_cut_cor
             return ""
 
         new_geos = PostPro.breaks.getNewGeos(new_geos)
