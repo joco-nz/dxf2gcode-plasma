@@ -104,7 +104,7 @@ class StMove(object):
 
         if self.shape.cut_cor == 40:
             self.append(RapidPos(start))
-            
+
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
 
             toolwidth = self.shape.parentLayer.getToolRadius()

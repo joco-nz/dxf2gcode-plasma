@@ -145,6 +145,10 @@ class offShapeClass(Shape):
         self.geos_postprocessing(eps*5)
         #SweepLine(geos=self.rawoff, closed=self.closed)
 
+        # If parent shape is ccw, switch direction
+        if parent.cw != self.cw:
+            self.reverse()
+
     def __repr__(self):
         """
         Standard method to print the object
@@ -158,6 +162,14 @@ class offShapeClass(Shape):
                "\noffset:      %s" % self.offset + \
                "\nsegments:    %s" % self.segments + \
                "\nrawoff       %s" % self.rawoff
+
+    def reverse(self, geos=None):
+        super().reverse(geos)
+        # If working with own geometry, toggle rawoff direction too
+        if not geos:
+            self.rawoff.reverse()
+            for geo in self.rawoff:
+                geo.reverse()
 
     def geos_preprocessing(self, parent):
         """
@@ -196,7 +208,7 @@ class offShapeClass(Shape):
 
         self.make_shape_ccw()
         self.join_colinear_lines()
-        
+
     def geos_postprocessing(self, min_length):
         """
         Do all the postprocessing required in order to have working sweepline
