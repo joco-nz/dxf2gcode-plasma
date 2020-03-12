@@ -540,6 +540,8 @@ class offShapeClass(Shape):
 
                     if isinstance(segment1, ConvexPoint):
                         forward += 1
+                        if forward >= len(self.segments):
+                            forward = 0
                         segment1 = self.segments[forward]
                         # logger.debug("Forward ConvexPoint")
 
