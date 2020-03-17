@@ -30,6 +30,9 @@ from __future__ import division
 from math import sin, cos, pi, sqrt
 from copy import deepcopy
 
+#for dumps
+from inspect import getmembers
+from pprint import pprint
 
 import dxf2gcode.globals.globals as g
 
@@ -39,6 +42,7 @@ from dxf2gcode.core.point import Point
 from dxf2gcode.core.intersect import Intersect
 from dxf2gcode.core.shape import Geos
 from dxf2gcode.core.shape import Shape
+from dxf2gcode.core.pocketmill import PocketMill
 from dxf2gcode.core.shapeoffset import *
 
 import logging
@@ -102,7 +106,10 @@ class StMove(object):
         start = self.start
         angle = self.angle
 
+        ### drill cutted from here
+            
         if self.shape.cut_cor == 40:
+            #if self.shape.Pocket == False:
             self.append(RapidPos(start))
 
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
@@ -160,7 +167,13 @@ class StMove(object):
             start_rad = ArcGeo(Ps=Ps_ein, Pe=start, O=Oein,
                                r=start_rad + tool_rad, direction=0)
             self.append(start_rad)
-
+            
+        # Pocket Milling - draw toolpath
+        if self.shape.Pocket == True:
+            
+            pocket = PocketMill(self)
+            pocket.createLines()
+            
     def make_swivelknife_move(self):
         """
         Set these variables for your tool and material

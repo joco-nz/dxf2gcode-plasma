@@ -134,7 +134,7 @@ class TreeHandler(QWidget):
         self.ui.zFinalMillDepthLineEdit.editingFinished.connect(self.toolParameterzFinalMillDepthUpdate)
         self.ui.g1FeedXYLineEdit.editingFinished.connect(self.toolParameterg1FeedXYUpdate)
         self.ui.g1FeedZLineEdit.editingFinished.connect(self.toolParameterg1FeedZUpdate)
-
+        
         # Entities TreeView
         self.entity_item_model = None
         self.entities_list = None
@@ -1060,7 +1060,7 @@ class TreeHandler(QWidget):
                             g.window.canvas_scene.repaint_shape(real_item)
             self.prepareExportOrderUpdate()
             g.window.canvas_scene.update()
-
+            
     def actionOnSelectionChange(self, parent, selected, deselected):
         """
         This function is a callback called from QTreeView class when
@@ -1283,14 +1283,28 @@ class TreeHandler(QWidget):
             self.axis3_mill_depth = self.updateAndColorizeWidget(self.ui.zFinalMillDepthLineEdit,
                                                                  self.axis3_mill_depth,
                                                                  shape_item.axis3_mill_depth)
-
-            self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+            
+            if(False): #shape_item.Drill == True #drill removed
+                self.ui.g1FeedXYLineEdit.setEnabled(False)
+                self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
                                                            self.f_g1_plane,
                                                            shape_item.f_g1_plane)
+            else:
+                self.ui.g1FeedXYLineEdit.setEnabled(True)
+                self.f_g1_plane = self.updateAndColorizeWidget(self.ui.g1FeedXYLineEdit,
+                                                           self.f_g1_plane,
+                                                           shape_item.f_g1_plane)
+            
 
             self.f_g1_depth = self.updateAndColorizeWidget(self.ui.g1FeedZLineEdit,
                                                            self.f_g1_depth,
                                                            shape_item.f_g1_depth)
+
+            #self.ui.OffsetXYLineEdit.setEnabled(shape_item.Pocket)
+            #self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+            #                                               self.OffsetXY,
+            #                                               shape_item.OffsetXY)
+                
         else:
             for widget in self.ui.zInitialMillDepthLineEdit,\
                           self.ui.zInfeedDepthLineEdit,\
@@ -1299,6 +1313,49 @@ class TreeHandler(QWidget):
                           self.ui.g1FeedZLineEdit:
                 widget.setText("")
                 widget.setEnabled(False)
+                
+    def updatePocketMill(self, shape_item, enable):
+        """
+        This method is a "slot" (callback) called from the main when the
+        Pocket Mill is enabled or disabled on the graphic view.
+        It aims to update the Mill Settings Frame according to the
+        graphic view.
+        
+        @param enable: whether the Shape has been enabled (True) or disabled (False)
+        """
+        
+        """if(enable):
+            self.ui.OffsetXYLineEdit.setEnabled(True)
+            self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+                                                       self.OffsetXY,
+                                                       shape_item.OffsetXY)
+        else:
+            self.ui.OffsetXYLineEdit.setEnabled(False)
+            self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+                                                       self.OffsetXY,
+                                                       shape_item.OffsetXY)
+        """
+        
+    def updateDrill(self, shape_item, enable):
+        """
+        This method is a "slot" (callback) called from the main when the
+        Drill is enabled or disabled on the graphic view.
+        It aims to update the Mill Settings Frame according to the
+        graphic view.
+        
+        @param enable: whether the Shape has been enabled (True) or disabled (False)
+        """
+        if(enable):
+            self.ui.OffsetXYLineEdit.setEnabled(False)
+            self.ui.g1FeedXYLineEdit.setEnabled(False)
+            #self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+            #                                           self.OffsetXY,
+            #                                           shape_item.OffsetXY)
+        else:
+            self.ui.g1FeedXYLineEdit.setEnabled(True)
+            #self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
+            #                                           self.OffsetXY,
+            #                                           shape_item.OffsetXY)
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """

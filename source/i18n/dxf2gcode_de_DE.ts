@@ -1025,7 +1025,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise)</source>
+        <source>Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise). This also disables pocket milling.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
@@ -1174,6 +1174,26 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <source>Changed Cutter Correction to right for shape: %i</source>
         <translation>Fräser Korrektur zu Rechts geändet bei Shape Nr: %i</translation>
+    </message>
+    <message>
+        <source>Pocket Mill</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set to True for Pocket Mill for shape: %i</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set to False for Pocket Mill for shape: %i</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set to True for G73 Drill, for shape: %i</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Set to False for G73 Drill, for shape: %i</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
