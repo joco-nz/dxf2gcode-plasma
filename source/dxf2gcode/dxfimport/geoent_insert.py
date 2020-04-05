@@ -29,6 +29,7 @@ from math import degrees, radians
 
 from dxf2gcode.core.point import Point
 from dxf2gcode.dxfimport.classes import ContourClass
+from dxf2gcode.globals.helperfunctions import a2u
 
 class GeoentInsert(object):
     def __init__(self, Nr=0, caller=None):
@@ -50,20 +51,20 @@ class GeoentInsert(object):
 
     def __repr__(self):
         # how to print the object
-        return "\nTyp: Insert" +\
-               "\nNr:          %i" % self.Nr +\
-               "\nLayer Nr:    %i" % self.Layer_Nr +\
-               "\nBlockName:   %s" % self.BlockName +\
-               "\nPoint:       %s" % self.Point +\
-               "\nrot:         %0.2f" % degrees(self.rot) +\
-               "\nScale:       %s" % self.Scale
+        return "\nInsert:" +\
+               "\n\tNr:          %i" % self.Nr +\
+               "\n\tLayer Nr:    %i" % self.Layer_Nr +\
+               "\n\tBlockName:   %s" % self.BlockName +\
+               "\n\tPoint:       %s" % self.Point +\
+               "\n\trot:         %0.2f" % degrees(self.rot) +\
+               "\n\tScale:       %s" % self.Scale
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         """
         App_Cont_or_Calc_IntPts()
         """
         cont.append(ContourClass(len(cont), 0, [[i, 0]], 0))
-        return warning
+        return True
 
     def Read(self, caller):
         """
@@ -76,11 +77,11 @@ class GeoentInsert(object):
         # Block Name
         ind = lp.index_code(2, caller.start + 1, e)
         # print lp.line_pair[ind].value ########################################
-        self.BlockName = lp.line_pair[ind].value
+        self.BlockName = a2u(lp.line_pair[ind].value)
 
         # Assign layer
         s = lp.index_code(8, caller.start + 1, e)
-        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
+        self.Layer_Nr = caller.Get_Layer_Nr(a2u(lp.line_pair[s].value))
 
         # X Value
         s = lp.index_code(10, s + 1, e)

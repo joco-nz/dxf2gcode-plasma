@@ -32,6 +32,7 @@ import logging
 from dxf2gcode.core.point import Point
 from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.dxfimport.classes import ContourClass
+from dxf2gcode.globals.helperfunctions import a2u
 
 import dxf2gcode.globals.constants as c
 from PyQt5 import QtCore
@@ -53,10 +54,10 @@ class GeoentCircle(object):
 
     def __repr__(self):
         # how to print the object
-        return "\nTyp: Circle " +\
-               "\nNr: %i" % self.Nr +\
-               "\nLayer Nr:%i" % self.Layer_Nr +\
-               str(self.geo[-1])
+        return "\nCircle:" +\
+               "\n\tNr: %i" % self.Nr +\
+               "\n\tLayer Nr:%i" % self.Layer_Nr +\
+               "\n\t" + str(self.geo[-1])
 
     def tr(self, string_to_translate):
         """
@@ -67,9 +68,9 @@ class GeoentCircle(object):
         return str(QtCore.QCoreApplication.translate('GeoentCircle',
                                                            string_to_translate))
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         cont.append(ContourClass(len(cont), 1, [[i, 0]], self.length))
-        return warning
+        return True
 
     def Read(self, caller):
         """
@@ -82,7 +83,7 @@ class GeoentCircle(object):
 
         # Assign layer
         s = lp.index_code(8, caller.start + 1)
-        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
+        self.Layer_Nr = caller.Get_Layer_Nr(a2u(lp.line_pair[s].value))
 
         # X Value
         s = lp.index_code(10, s + 1)

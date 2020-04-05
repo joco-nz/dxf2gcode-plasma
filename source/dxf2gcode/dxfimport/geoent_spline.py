@@ -28,6 +28,7 @@ from __future__ import absolute_import
 from dxf2gcode.core.point import Point
 from dxf2gcode.dxfimport.spline_convert import Spline2Arcs
 from dxf2gcode.dxfimport.classes import PointsClass, ContourClass
+from dxf2gcode.globals.helperfunctions import a2u
 
 import dxf2gcode.globals.globals as g
 
@@ -69,20 +70,19 @@ class GeoentSpline:
 
     def __repr__(self):
         # how to print the object
-        s = "\nTyp: Spline" +\
-            "\nNr: %i" % self.Nr +\
-            "\nLayer Nr: %i" % self.Layer_Nr +\
-            "\nSpline flag: %i" % self.Spline_flag +\
-            "\ndegree: %i" % self.degree +\
-            "\nlength: %0.3f" % self.length +\
-            "\nGeo elements: %i" % len(self.geo) +\
-            "\nKnots: %s" % self.Knots +\
-            "\nWeights: %s" % self.Weights +\
-            "\nCPoints: "
+        s = "\nSpline:" +\
+            "\n\tNr: %i" % self.Nr +\
+            "\n\tLayer Nr: %i" % self.Layer_Nr +\
+            "\n\tSpline flag: %i" % self.Spline_flag +\
+            "\n\tdegree: %i" % self.degree +\
+            "\n\tlength: %0.3f" % self.length +\
+            "\n\tGeo elements: %i" % len(self.geo) +\
+            "\n\tKnots: %s" % self.Knots +\
+            "\n\tWeights: %s" % self.Weights +\
+            "\n\tCPoints:"
 
         for Point in self.CPoints:
-            s = s + "\n" + str(Point)
-        s += "\ngeo: "
+            s = s + str(Point)
 
         return s
 
@@ -94,7 +94,7 @@ class GeoentSpline:
         for geo in self.geo:
             geo.reverse()
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         """
         App_Cont_or_Calc_IntPts()
         """
@@ -109,7 +109,7 @@ class GeoentSpline:
                                       be=self.geo[0].Ps,
                                       en=self.geo[-1].Pe,
                                       be_cp=[], en_cp=[]))
-        return warning
+        return True
 
     def analyse_and_opt(self):
         """
@@ -153,7 +153,7 @@ class GeoentSpline:
 
         # Assign layer
         s = lp.index_code(8, caller.start + 1)
-        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
+        self.Layer_Nr = caller.Get_Layer_Nr(a2u(lp.line_pair[s].value))
 
         # Spline Flap zuweisen
         # Assign Spline Flap

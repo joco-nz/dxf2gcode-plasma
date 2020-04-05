@@ -41,10 +41,11 @@ from dxf2gcode.dxfimport.geoent_spline import GeoentSpline
 from dxf2gcode.dxfimport.geoent_ellipse import GeoentEllipse
 from dxf2gcode.dxfimport.geoent_lwpolyline import GeoentLwPolyline
 from dxf2gcode.dxfimport.geoent_point import GeoentPoint
+from dxf2gcode.globals.helperfunctions import a2u
 
 import dxf2gcode.globals.globals as g
-
 import dxf2gcode.globals.constants as c
+
 from PyQt5.QtWidgets import QMessageBox
 from PyQt5 import QtCore
 
@@ -86,8 +87,9 @@ class ReadDXF(QtCore.QObject):
         for i in range(len(self.blocks.Entities)):
             # '\n'
             # print self.blocks.Entities[i]
-            logger.info(self.tr("Creating Contours of Block Nr: %i") %i)
-            self.blocks.Entities[i].cont = self.Get_Contour(self.blocks.Entities[i])
+            ent = self.blocks.Entities[i]
+            logger.info((self.tr("Creating Contours of Block Nr: %i") %i) + " (%s)" % ent.Name)
+            ent.cont = self.Get_Contour(ent)
 
         logger.info(self.tr("Creating Contours of Entities"))
         self.entities.cont = self.Get_Contour(self.entities)
@@ -195,7 +197,7 @@ class ReadDXF(QtCore.QObject):
         logger.debug(self.tr('Did read %i of linepairs from DXF') % line_pairs.nrs)
         return line_pairs
 
-    # Search the sections in the DXF file to recognize Blocke.
+    # Search the sections in the DXF file to recognize Blocks.
     def Get_Sections_pos(self):
         """
         Get_Sections_pos()
@@ -212,7 +214,7 @@ class ReadDXF(QtCore.QObject):
             sections.append(SectionClass(len(sections)))
             sections[-1].begin = start
             name_pos = self.line_pairs.index_code(2, start + 1)
-            sections[-1].name = self.line_pairs.line_pair[name_pos].value
+            sections[-1].name = a2u(self.line_pairs.line_pair[name_pos].value)
             end = self.line_pairs.index_both(0, "ENDSEC", start + 1)
 
             # If section was not properly terminated
@@ -250,7 +252,7 @@ class ReadDXF(QtCore.QObject):
                 if start is not None:
                     start = self.line_pairs.index_code(2, start + 1)
                     layers.append(LayerClass(len(layers)))
-                    layers[-1].name = self.line_pairs.line_pair[start].value
+                    layers[-1].name = a2u(self.line_pairs.line_pair[start].value)
 
         # g.logger.logger.info(("Layers found:"), 1)
         # for lay in layers:
@@ -278,7 +280,7 @@ class ReadDXF(QtCore.QObject):
                 blocks[-1].Nr = len(blocks)
                 blocks[-1].begin = start
                 name_pos = self.line_pairs.index_code(2, start + 1, blocks_section.end)
-                blocks[-1].name = self.line_pairs.line_pair[name_pos].value
+                blocks[-1].name = a2u(self.line_pairs.line_pair[name_pos].value)
                 end = self.line_pairs.index_both(0, "ENDBLK", start + 1, blocks_section.end)
                 blocks[-1].end = end
                 start = self.line_pairs.index_both(0, "BLOCK", end + 1, blocks_section.end)
@@ -348,7 +350,7 @@ class ReadDXF(QtCore.QObject):
 
         while self.start is not None:
             # Load the currently found geometry
-            name = self.line_pairs.line_pair[self.start].value
+            name = a2u(self.line_pairs.line_pair[self.start].value)
             entitie_geo = self.get_geo_entitie(len(geos), name)
 
             # Append only if something was found
@@ -473,19 +475,21 @@ class ReadDXF(QtCore.QObject):
 
         tol = g.config.point_tolerance
         points = []
-        warning = 0
+        warning = False
         for i in range(len(geo)):
             # logger.debug("geo: %s" %geo[i])
-            warning = geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol, warning)
+            if not geo[i].App_Cont_or_Calc_IntPts(cont, points, i, tol):
+                warning = True
+                logger.warning(self.tr("Element ignored: %s") % repr(geo[i]))
 
         if warning:
             message = self.tr("Length of some Elements too short!"
                               "\nLength must be greater than tolerance."
                               "\nSkipped Geometries")
 
-            if g.quiet:
-                logger.warning(message)
-            else:
+            # Always display warning in log to help user find the wrong blocks
+            logger.warning(message)
+            if not g.quiet:
                 QMessageBox.warning(g.window, self.tr("Short Elements"), message)
 
         return points
@@ -806,6 +810,7 @@ class dxflinepairsClass:
 
         # Start the search within the specified parameters
         for i in range(start, stop):
+            # .value is not passed through a2u here, so always use ASCII value as parameter!
             if self.line_pair[i].code == code and self.line_pair[i].value == value:
                 return i
 

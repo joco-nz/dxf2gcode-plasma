@@ -31,6 +31,7 @@ from math import sqrt, sin, cos, atan2, degrees, pi
 from dxf2gcode.core.point import Point
 from dxf2gcode.dxfimport.biarc import BiarcClass
 from dxf2gcode.dxfimport.classes import PointsClass, ContourClass
+from dxf2gcode.globals.helperfunctions import a2u
 
 import dxf2gcode.globals.globals as g
 
@@ -74,18 +75,18 @@ class GeoentEllipse(object):
     def __repr__(self):
         # how to print the object
         # As elegant as printf in C or Matlab etc. see the first line!
-        return "\nTyp: Ellipse" +\
-               "\nNr:     %i" % self.Nr +\
-               "\nLayer:  " + str(self.Layer_Nr) +\
-               "\ncenter: " + str(self.center) +\
-               "\nvector: " + str(self.vector) +\
-               "\nratio:  " + str(self.ratio) +\
-               "\nangles: " + str(degrees(self.AngS)) + " -> " + str(degrees(self.AngE)) +\
-               "\nextend: " + str(degrees(self.ext)) +\
-               "\na:      " + str(self.a) +\
-               "\nb:      " + str(self.b) +\
-               "\nlength: " + str(self.length) +\
-               "\nNr. of arcs: %i" % len(self.geo)
+        return "\nEllipse:" +\
+               "\n\tNr:     " + str(self.Nr) +\
+               "\n\tLayer:  " + str(self.Layer_Nr) +\
+               "\n\tcenter: " + str(self.center) +\
+               "\n\tvector: " + str(self.vector) +\
+               "\n\tratio:  " + str(self.ratio) +\
+               "\n\tangles: " + str(degrees(self.AngS)) + " -> " + str(degrees(self.AngE)) +\
+               "\n\textend: " + str(degrees(self.ext)) +\
+               "\n\ta:      " + str(self.a) +\
+               "\n\tb:      " + str(self.b) +\
+               "\n\tlength: " + str(self.length) +\
+               "\n\tNarcs:  " % str(len(self.geo))
 
     def reverse(self):
         """
@@ -95,7 +96,7 @@ class GeoentEllipse(object):
         for geo in self.geo:
             geo.reverse()
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         """
         App_Cont_or_Calc_IntPts()
         """
@@ -109,7 +110,7 @@ class GeoentEllipse(object):
                                       Layer_Nr=self.Layer_Nr,
                                       be=self.geo[0].Ps,
                                       en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
-        return warning
+        return True
 
     def Read(self, caller):
         """
@@ -121,7 +122,7 @@ class GeoentEllipse(object):
 
         # Assign Layer
         s = lp.index_code(8, caller.start + 1)
-        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
+        self.Layer_Nr = caller.Get_Layer_Nr(a2u(lp.line_pair[s].value))
 
         # Centre X value, Y value
         s = lp.index_code(10, s + 1)

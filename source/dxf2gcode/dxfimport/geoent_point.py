@@ -27,6 +27,7 @@ from __future__ import absolute_import
 from dxf2gcode.core.holegeo import HoleGeo
 from dxf2gcode.core.point import Point
 from dxf2gcode.dxfimport.classes import ContourClass
+from dxf2gcode.globals.helperfunctions import a2u
 
 
 class GeoentPoint:
@@ -43,17 +44,17 @@ class GeoentPoint:
 
     def __repr__(self):
         # how to print the object
-        return "\nTyp: Point" +\
-               "\nNr: %i" % self.Nr +\
-               "\nLayer Nr: %i" % self.Layer_Nr +\
-               str(self.geo[-1])
+        return "\nPoint:" +\
+               "\n\tNr: %i" % self.Nr +\
+               "\n\tLayer Nr: %i" % self.Layer_Nr +\
+               "\n\t" + str(self.geo[-1])
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         """
         App_Cont_or_Calc_IntPts()
         """
         cont.append(ContourClass(len(cont), 0, [[i, 0]], 0))
-        return warning
+        return True
 
     def Read(self, caller):
         """
@@ -65,7 +66,7 @@ class GeoentPoint:
 
         # Assign layer
         s = lp.index_code(8, caller.start + 1)
-        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
+        self.Layer_Nr = caller.Get_Layer_Nr(a2u(lp.line_pair[s].value))
 
         # X Value
         s = lp.index_code(10, s + 1)

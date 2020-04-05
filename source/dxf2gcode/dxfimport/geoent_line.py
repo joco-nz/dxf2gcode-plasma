@@ -30,6 +30,7 @@ import logging
 from dxf2gcode.core.point import Point
 from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.dxfimport.classes import PointsClass
+from dxf2gcode.globals.helperfunctions import a2u
 
 import dxf2gcode.globals.constants as c
 from PyQt5 import QtCore
@@ -51,10 +52,10 @@ class GeoentLine(object):
 
     def __repr__(self):
         # how to print the object
-        return "\nTyp: Line" +\
-               "\nNr: %i" % self.Nr +\
-               "\nLayer Nr: %i" % self.Layer_Nr +\
-               str(self.geo[-1])
+        return "\nLine:" +\
+               "\n\tNr: %i" % self.Nr +\
+               "\n\tLayer Nr: %i" % self.Layer_Nr +\
+               "\n\t" + str(self.geo[-1])
 
     def tr(self, string_to_translate):
         """
@@ -65,21 +66,18 @@ class GeoentLine(object):
         return str(QtCore.QCoreApplication.translate("GeoentLine",
                                                            string_to_translate))
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         """
         App_Cont_or_Calc_IntPts()
         """
-        if abs(self.length) > tol:
-            points.append(PointsClass(point_nr=len(points), geo_nr=i,
-                                      Layer_Nr=self.Layer_Nr,
-                                      be=self.geo[-1].Ps,
-                                      en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
-        else:
-#            showwarning("Short Arc Elemente", ("Length of Line geometry too short!"\
-#                                               "\nLength must be greater than tolerance."\
-#                                               "\nSkipping Line Geometry"))
-            warning = 1
-        return warning
+        if abs(self.length) <= tol:
+            return False
+
+        points.append(PointsClass(point_nr=len(points), geo_nr=i,
+                                  Layer_Nr=self.Layer_Nr,
+                                  be=self.geo[-1].Ps,
+                                  en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
+        return True
 
     def Read(self, caller):
         """
@@ -92,7 +90,7 @@ class GeoentLine(object):
 
         # Assign layer
         s = lp.index_code(8, caller.start + 1)
-        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
+        self.Layer_Nr = caller.Get_Layer_Nr(a2u(lp.line_pair[s].value))
 
         # X Value
         sl = lp.index_code(10, s + 1)

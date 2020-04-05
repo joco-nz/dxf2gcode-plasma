@@ -32,7 +32,7 @@ from dxf2gcode.core.point import Point
 from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.dxfimport.classes import PointsClass, ContourClass
-
+from dxf2gcode.globals.helperfunctions import a2u
 
 
 class GeoentPolyline:
@@ -49,11 +49,11 @@ class GeoentPolyline:
 
     def __repr__(self):
         # how to print the object
-        string = "\nTyp: Polyline" +\
-                 "\nNr: %i" % self.Nr +\
-                 "\nLayer Nr: %i" % self.Layer_Nr +\
-                 "\nNr. of Lines: %i" % len(self.geo) +\
-                 "\nlength: %0.3f" % self.length
+        string = "\nPolyline:" +\
+                 "\n\tNr: %i" % self.Nr +\
+                 "\n\tLayer Nr: %i" % self.Layer_Nr +\
+                 "\n\tNr. of Lines: %i" % len(self.geo) +\
+                 "\n\tlength: %0.3f" % self.length
 
         return string
 
@@ -65,7 +65,7 @@ class GeoentPolyline:
         for geo in self.geo:
             geo.reverse()
 
-    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol, warning):
+    def App_Cont_or_Calc_IntPts(self, cont, points, i, tol):
         """
         App_Cont_or_Calc_IntPts()
         """
@@ -83,17 +83,7 @@ class GeoentPolyline:
                                       be=self.geo[0].Ps,
                                       en=self.geo[-1].Pe, be_cp=[], en_cp=[]))
 
-        return warning
-
-#        if abs(self.length)>tol:
-#            points.append(PointsClass(point_nr=len(points),geo_nr=i,\
-#                                      Layer_Nr=self.Layer_Nr,\
-#                                      be=self.geo[0].Ps,
-#                                      en=self.geo[-1].Pe,be_cp=[],en_cp=[]))
-#        else:
-#            showwarning("Short Polyline Elemente", ("Length of Line geometrie too short!"\
-#                                               "\nLenght must be greater than tolerance."\
-#                                               "\nSkipping Line Geometrie"))
+        return True
 
     def analyse_and_opt(self):
         """
@@ -137,7 +127,7 @@ class GeoentPolyline:
 
         # Assign layer
         s = lp.index_code(8, caller.start + 1)
-        self.Layer_Nr = caller.Get_Layer_Nr(lp.line_pair[s].value)
+        self.Layer_Nr = caller.Get_Layer_Nr(a2u(lp.line_pair[s].value))
 
         # Ps=None for the first point
         Ps = None

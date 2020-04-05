@@ -41,9 +41,39 @@ def toInt(text):
         value = (0, False)
     return value
 
+
 def toFloat(text):
     try:
         value = (float(text), True)
     except ValueError:
         value = (0.0, False)
     return value
+
+
+def a2u(text):
+    """
+    Convert ASCII string with encoded chars like \ U + xxxx to Python Unicode strings.
+    """
+    cur = 0
+    out = str()
+    while cur < len(text):
+        idx = text.find('\\U+', cur)
+        if idx < 0:
+            out += text[cur:]
+            break
+
+        out += text[cur:idx]
+        for cur in range(idx + 3, len(text) + 1):
+            if cur == len (text):
+                break
+            if "0123456789abcdefABCDEF".find(text[cur]) < 0:
+                break
+
+        if cur == idx + 3:
+            # "\U+" without following digits; copy to output as-is
+            out += text[idx:cur]
+            continue
+
+        out += chr(int(text[idx+3:cur], 16))
+
+    return out
