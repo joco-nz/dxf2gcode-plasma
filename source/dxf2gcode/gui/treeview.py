@@ -38,6 +38,7 @@ import dxf2gcode.globals.constants as c
 from PyQt5.QtWidgets import QTreeView
 from PyQt5.QtGui import QStandardItemModel
 from PyQt5 import QtCore
+from PyQt5.QtCore import QByteArray
 
 
 class TreeView(QTreeView):
@@ -315,6 +316,6 @@ class MyStandardItemModel(QStandardItemModel):
         mimeData = QtCore.QMimeData()
         #mimeData.setData("application/x-qabstractitemmodeldatalist", "")
         #mimeData.setData("application/x-qstandarditemmodeldatalist", "")
-        #mimeData.setData("application/x-qstandarditemmodeldatalist",0)
+        mimeData.setData("application/x-qstandarditemmodeldatalist", QByteArray())
 
         return mimeData
