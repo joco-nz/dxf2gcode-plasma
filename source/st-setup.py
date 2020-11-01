@@ -47,16 +47,17 @@ setup(
 
     version='2020-11-01 Development',
 
-    description='2D drawings to CNC machine compatible G-Code converter.',
+    description='2D drawings to CNC machine compatible G-Code converter..',
 
     long_description=('DXF2GCODE is a tool for converting 2D (dxf, pdf, ps)'
-                      ' drawings to CNC machine compatible GCode.'),
+                       ' drawings to CNC machine compatible GCode.'
+                       ' Beta version based on development branch'),
 
     url='https://sourceforge.net/p/dxf2gcode/wiki/Home/',
 
     author='Christian Kohloffel',
 
-    author_email='christian-kohloeffel@t-online.de',
+    author_email='christian.kohloeffel@googlemail.com',
 
     license='GPLv3',
 
