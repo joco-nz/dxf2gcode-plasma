@@ -82,8 +82,10 @@ class StMove(object):
         self.end = self.start
 
         self.geos = Geos([])
-
+        logging.debug("Updating the Start Move / Offset Geometry")
         self.make_start_moves()
+        
+
 
     def make_start_moves(self):
         """
@@ -113,6 +115,8 @@ class StMove(object):
             self.append(RapidPos(start))
 
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
+            
+            logging.debug("We have custom offset by tool")
 
             toolwidth = self.shape.parentLayer.getToolRadius()
             offtype = "in"  if self.shape.cut_cor == 42 else "out"

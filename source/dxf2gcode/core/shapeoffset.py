@@ -178,6 +178,8 @@ class offShapeClass(Shape):
         @param parent: The parent shape including the geometries to
         be offsetted.
         """
+        
+        logging.debug("Doing Preprocessing")
 
         self.geos = Geos([])
         if self.closed:
