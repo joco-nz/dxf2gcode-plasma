@@ -378,12 +378,12 @@ class Shape(object):
         safe_retract_depth = self.parentLayer.axis3_retract
         safe_margin = self.parentLayer.axis3_safe_margin
 
-        max_slice = self.axis3_slice_depth
-        workpiece_top_Z = self.axis3_start_mill_depth
+        max_slice = -abs(self.axis3_slice_depth)
+        workpiece_top_Z = abs(self.axis3_start_mill_depth)
         # We want to mill the piece, even for the first pass, so remove one
         # "slice"
-        initial_mill_depth = workpiece_top_Z - abs(max_slice)
-        depth = self.axis3_mill_depth
+        initial_mill_depth = workpiece_top_Z - max_slice
+        depth = -abs(self.axis3_mill_depth)
         f_g1_plane = self.f_g1_plane
         f_g1_depth = self.f_g1_depth
 
@@ -392,14 +392,14 @@ class Shape(object):
 
         # If the Output Format is DXF do not perform more then one cut.
         if PostPro.vars.General["output_type"] == 'dxf':
-            depth = max_slice
+            depth = abs(max_slice)
 
         if max_slice == 0:
             logger.error(self.tr("ERROR: Z infeed depth is null!"))
 
         if initial_mill_depth < depth:
             logger.warning(self.tr(
-                "WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth.") % (
+                "WARNING: initial mill depth (%f0.2) is lower than end mill depth (%f0.2). Using end mill depth as final depth.") % (
                 initial_mill_depth, depth))
 
             # Do not cut below the depth.
@@ -448,12 +448,18 @@ class Shape(object):
 
         # Numbers of loops
         snr = 0
+        
+        logger.debug(size(depth))
+        logger.debug(depth)
+        logger.debug(max_slice)
+        logger.debug(mom_depth)
         # Loops for the number of cuts
         while mom_depth > depth and max_slice != 0.0:
             snr += 1
             mom_depth = mom_depth - abs(max_slice)
             if mom_depth < depth:
                 mom_depth = depth
+                logger.debug(mom_depth)
                 
             #If this is last slice, remove last element
             # (no need to return to start point)
