@@ -65,6 +65,7 @@ class Shape(object):
         self.closed = closed
         self.cut_cor = 40
         self.Pocket = False
+        self.Drill = False
         self.parentEntity = parentEntity
         self.parentLayer = None
         self.geos = Geos(geos)
@@ -271,7 +272,7 @@ class Shape(object):
                 else:
                     return end_stuff
 
-    def get_start_end_points(self, start_point=None, angles=None, PPocket=False, Drill=False):
+    def get_start_end_points(self, start_point=None, angles=None, PPocket=False):
 
         if self.cw ==True:
             direction = -1;
@@ -337,6 +338,12 @@ class Shape(object):
         
         if isinstance(geo, PocketMove):
             return geo.Write_GCode(PostPro)
+        
+        if (self.Drill==True):
+            Ps=Point(geo.O.x,geo.O.y)
+            hgeo=HoleGeo(Ps)
+            logger.debug("Will Write HoleGeo")
+            return hgeo.Write_GCode(PostPro)
         
         post_dec = PostPro.vars.Number_Format["post_decimals"]
         if isinstance(geo, HoleGeo) or\
@@ -441,6 +448,9 @@ class Shape(object):
                 exstr += geo.Write_GCode(PostPro)
             else:
                 exstr += self.Write_GCode_for_geo(geo, PostPro)
+            if (self.Drill==True):
+                logger.debug("Stopping after 1st contour as it will be drilled.")
+                break
         
         # Turning the cutter radius compensation
         if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
@@ -449,17 +459,17 @@ class Shape(object):
         # Numbers of loops
         snr = 0
         
-        logger.debug(size(depth))
-        logger.debug(depth)
-        logger.debug(max_slice)
-        logger.debug(mom_depth)
+        #logger.debug(size(depth))
+        #logger.debug(depth)
+        #logger.debug(max_slice)
+        #logger.debug(mom_depth)
         # Loops for the number of cuts
         while mom_depth > depth and max_slice != 0.0:
             snr += 1
             mom_depth = mom_depth - abs(max_slice)
             if mom_depth < depth:
                 mom_depth = depth
-                logger.debug(mom_depth)
+                #logger.debug(mom_depth)
                 
             #If this is last slice, remove last element
             # (no need to return to start point)

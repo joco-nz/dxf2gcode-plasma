@@ -30,7 +30,9 @@ import logging
 import dxf2gcode.globals.globals as g
 #TODO: check if can be removed:
 #from dxf2gcode.core.linegeo import LineGeo
-#from dxf2gcode.core.arcgeo import ArcGeo
+#from dxf2gcode.core.point import Point
+from dxf2gcode.core.arcgeo import ArcGeo
+#from dxf2gcode.core.holegeo import HoleGeo
 
 import dxf2gcode.globals.constants as c
 from PyQt5.QtWidgets import QGraphicsView, QMenu
@@ -40,7 +42,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtCore import Qt
 
 
-logger = logging.getLogger("DxfImport.myCanvasClass")
+logger = logging.getLogger("Gui.Canvas")
 
 """
 This Canvas function can be called as any class.
@@ -141,11 +143,17 @@ class MyDropDownMenu(QMenu):
         
         #enable pocket mill only if all selected shapes are closed
         allClosed = True
+        allArcs = True
         
         for item in self.selectedItems:
             if item.closed == False:
                 allClosed == False
                 break
+            for geo in item.geos:
+                if not(isinstance(geo, ArcGeo)):
+                    allArcs = False
+                    
+        
             
         #if all are closed and compensation is NOT done by machine,
         # since I do not know how this should work... /SZ
@@ -161,6 +169,18 @@ class MyDropDownMenu(QMenu):
             else:
                 self.PocketAction.setChecked(False)
                     
+
+        #ONly allow it it's a closed shaep
+        if ((allClosed == True) and (allArcs==True)):
+            self.DrillAction = self.addAction(self.tr("Drill Bore"))
+            self.DrillAction.setCheckable(True)
+            #HoleAction.triggered.connect(self.setHoleGeo)
+            self.DrillAction.triggered.connect(self.setDrill)
+            if self.selectedItems[0].Drill == True:
+                self.DrillAction.setChecked(True)
+            else:
+                self.DrillAction.setChecked(False)
+            
 
         if g.config.machine_type == 'drag_knife':
             pass
@@ -185,6 +205,8 @@ class MyDropDownMenu(QMenu):
 
         swdirectionAction.triggered.connect(self.switchDirection)
         SetNxtStPAction.triggered.connect(self.setNearestStPoint)
+
+
 
         if g.config.machine_type == 'drag_knife':
             pass
@@ -292,6 +314,7 @@ class MyDropDownMenu(QMenu):
             self.canvas_scene.repaint_shape(shape)
         g.window.updateExportRoute()
 
+
     def setNoComp(self):
         """
         Sets the compensation to 40, which is none, for the selected shapes.
@@ -338,18 +361,17 @@ class MyDropDownMenu(QMenu):
         self.canvas_scene.repaint_shape(shape)
         self.canvas_scene.update()
     
-    def setG73Drill(self):
+    def setDrill(self):
         for shape in self.selectedItems:
             if shape.Drill == False:
                 shape.Drill = True
-                shape.DrillType = "G73"
-                self.G73DrillAction.setChecked(True)
+                #shape.DrillType = "G73"
+                self.DrillAction.setChecked(True)
                 logger.debug(self.tr('Set to True for G73 Drill, for shape: %i') % shape.nr)
                 g.window.TreeHandler.updateDrill(shape,True)
             else:
                 shape.Drill = False
-                shape.DrillType = None
-                self.G73DrillAction.setChecked(False)
+                self.DrillAction.setChecked(False)
                 logger.debug(self.tr('Set to False for G73 Drill, for shape: %i') % shape.nr)
                 g.window.TreeHandler.updateDrill(shape,False)
             self.canvas_scene.repaint_shape(shape)

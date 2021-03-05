@@ -1345,6 +1345,8 @@ class TreeHandler(QWidget):
         
         @param enable: whether the Shape has been enabled (True) or disabled (False)
         """
+        
+        """
         if(enable):
             self.ui.OffsetXYLineEdit.setEnabled(False)
             self.ui.g1FeedXYLineEdit.setEnabled(False)
@@ -1356,6 +1358,7 @@ class TreeHandler(QWidget):
             #self.OffsetXY = self.updateAndColorizeWidget(self.ui.OffsetXYLineEdit,
             #                                           self.OffsetXY,
             #                                           shape_item.OffsetXY)
+        """
 
     def updateAndColorizeWidget(self, widget, previous_value, value):
         """

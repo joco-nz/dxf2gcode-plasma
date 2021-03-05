@@ -126,4 +126,16 @@ class HoleGeo(object):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
+        
+        """                
+        Ps = self.get_start_end_points(True)
+        return PostPro.lin_mov_drill(Ps)
+        """
+        
         return PostPro.make_print_str("(Drilled hole)%nl")
+    
+    
+    
+    
+    
+    

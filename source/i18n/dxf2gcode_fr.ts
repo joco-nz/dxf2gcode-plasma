@@ -995,10 +995,6 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <source>Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise). This also disables pocket milling.</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Retract to drag depth (&quot;Third axis slice depth&quot;) if angle exceeds:</source>
         <translation type="unfinished"></translation>
     </message>
@@ -1084,6 +1080,10 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Drag Knife options</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise. This also disables pocket milling.)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1537,6 +1537,10 @@ La longueur doit être supérieure à la tolérance</translation>
     </message>
     <message>
         <source>Did read %i of linepairs from DXF</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Element ignored: %s</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

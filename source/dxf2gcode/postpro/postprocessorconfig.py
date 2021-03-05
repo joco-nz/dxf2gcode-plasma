@@ -122,7 +122,8 @@ POSTPRO_SPEC = str('''
     lin_mov_plane = string(default= G1 X%XE Y%YE%nl)
     # This will be used for shape cutting.
     lin_mov_depth = string(default= G1 Z%ZE%nl)
-    # This will be used for shape cutting.
+    # This will be used to do the drilling of a Bore Hole.
+    lin_mov_drill = string(default= G1 Z%ZE%nl)
     arc_int_cw = string(default=G2 X%XE Y%YE I%I J%J%nl)
     # This will be used for shape cutting.
     arc_int_ccw = string(default=G3 X%XE Y%YE I%I J%J%nl)
