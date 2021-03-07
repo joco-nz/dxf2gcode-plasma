@@ -109,8 +109,15 @@ class StMove(object):
         angle = self.angle
 
         ### drill cutted from here
-            
-        if self.shape.cut_cor == 40:
+
+        if self.shape.Drill == True:
+            if isinstance(self.shape.geos[0], ArcGeo):
+                start = self.shape.geos[0].O
+
+            self.append(RapidPos(start))
+
+
+        elif self.shape.cut_cor == 40:
             #if self.shape.Pocket == False:
             self.append(RapidPos(start))
 

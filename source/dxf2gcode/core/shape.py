@@ -278,6 +278,7 @@ class Shape(object):
             direction = -1;
         else:
             direction = 1;
+                  
         
         if start_point is None:
             return (self.geos.abs_el(0).get_start_end_points(True, angles),
@@ -364,9 +365,13 @@ class Shape(object):
         if g.config.machine_type == 'drag_knife':
             return self.Write_GCode_Drag_Knife(PostPro)
 
+        if isinstance(self.geos[0], HoleGeo):
+            self.Drill            
+
         prv_cut_cor = self.cut_cor
         if (self.cut_cor != 40 and
-                not g.config.vars.Cutter_Compensation["done_by_machine"]):
+                not g.config.vars.Cutter_Compensation["done_by_machine"] and 
+                not self.Drill):
             self.cut_cor = 40
             new_geos = Geos(self.stmove.geos[1:])
         else:
@@ -398,8 +403,9 @@ class Shape(object):
         has_reversed = False
 
         # If the Output Format is DXF do not perform more then one cut.
-        if PostPro.vars.General["output_type"] == 'dxf':
-            depth = abs(max_slice)
+        if ((PostPro.vars.General["output_type"] == 'dxf') or (self.Drill)):
+            #depth = abs(max_slice)
+            initial_mill_depth=-abs(self.axis3_mill_depth)
 
         if max_slice == 0:
             logger.error(self.tr("ERROR: Z infeed depth is null!"))
@@ -414,47 +420,66 @@ class Shape(object):
 
         mom_depth = initial_mill_depth
 
-        exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
 
-        # Add string to be added before the shape will be cut.
-        exstr += PostPro.write_pre_shape_cut()
+        # Compute the safe margin from the initial mill depth
+        if not(self.Drill):
+            
+            # This will position the cutter on the first geometry with or without cutter comp. G1 move.
+            exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
 
-        # Cutter radius compensation when G41 or G42 is on, AND cutter
-        # compensation option is set to be done outside the piece
-        if self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]:
-            exstr += PostPro.set_cut_cor(self.cut_cor)
-
+            # Add string to be added before the shape will be cut.
+            exstr += PostPro.write_pre_shape_cut()
+            # Cutter radius compensation when G41 or G42 is on, AND cutter
+            # compensation option is set to be done outside the piece
+            if (self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]):
+                exstr += PostPro.set_cut_cor(self.cut_cor)
+    
+                exstr += PostPro.chg_feed_rate(f_g1_plane)
+                exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
+                exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
+            
+            exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin))  
+            exstr += PostPro.chg_feed_rate(f_g1_depth)
+            exstr += PostPro.lin_pol_z(mom_depth)
             exstr += PostPro.chg_feed_rate(f_g1_plane)
-            exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
-            exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
+            
 
-        exstr += PostPro.rap_pos_z(
-            workpiece_top_Z + abs(safe_margin))  # Compute the safe margin from the initial mill depth
-        exstr += PostPro.chg_feed_rate(f_g1_depth)
-        exstr += PostPro.lin_pol_z(mom_depth)
-        exstr += PostPro.chg_feed_rate(f_g1_plane)
-
-        # Cutter radius compensation when G41 or G42 is on, AND cutter
-        # compensation option is set to be done inside the piece
-        if self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]:
-            exstr += PostPro.set_cut_cor(self.cut_cor)
-
-            exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
-            exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
+            # Cutter radius compensation when G41 or G42 is on, AND cutter
+            # compensation option is set to be done inside the piece
+            if (self.cut_cor != 40 and not PostPro.vars.General["cc_outside_the_piece"]):
+                exstr += PostPro.set_cut_cor(self.cut_cor)
+    
+                exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
+                exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
+            
+            for geo in new_geos.abs_iter():
+                if isinstance(geo, PocketMove):
+                    geo.setZMove(f_g1_depth, f_g1_plane, workpiece_top_Z + abs(safe_margin), mom_depth, safe_retract_depth)
+                    exstr += geo.Write_GCode(PostPro)
+                else:
+                    exstr += self.Write_GCode_for_geo(geo, PostPro)
+                if (self.Drill==True):
+                    logger.debug("Stopping after 1st geometry as it will be drilled.")
+                    break
+                
+                        # Turning the cutter radius compensation
+            if (self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]):
+                exstr += PostPro.deactivate_cut_cor()
         
-        for geo in new_geos.abs_iter():
-            if isinstance(geo, PocketMove):
-                geo.setZMove(f_g1_depth, f_g1_plane, workpiece_top_Z + abs(safe_margin), mom_depth, safe_retract_depth)
-                exstr += geo.Write_GCode(PostPro)
-            else:
-                exstr += self.Write_GCode_for_geo(geo, PostPro)
-            if (self.Drill==True):
-                logger.debug("Stopping after 1st contour as it will be drilled.")
-                break
+        # If its a drill
+        else:
+            # This will position the cutter on the first geometry with or without cutter comp. G1 move.
+            exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
+
+            # Add string to be added before the shape will be cut.
+            exstr += PostPro.write_pre_shape_cut()
+            
+            #Posiioning is part of the Start Move                
+            exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin))  
+            exstr += PostPro.chg_feed_rate(f_g1_depth)
+            exstr += PostPro.lin_pol_drill(mom_depth)
         
-        # Turning the cutter radius compensation
-        if self.cut_cor != 40 and PostPro.vars.General["cancel_cc_for_depth"]:
-            exstr += PostPro.deactivate_cut_cor()
+
 
         # Numbers of loops
         snr = 0
@@ -562,7 +587,7 @@ class Shape(object):
         mom_depth = self.axis3_mill_depth
         drag_depth = self.axis3_slice_depth
 
-        # Move the tool to the start.
+        # Move the tool to the start with G1.
         exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
 
         # Add string to be added before the shape will be cut.

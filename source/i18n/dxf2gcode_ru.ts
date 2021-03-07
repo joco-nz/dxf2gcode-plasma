@@ -1369,6 +1369,10 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
         <source>Set to False for G73 Drill, for shape: %i</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Drill Bore</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MyGraphicsScene</name>
@@ -1610,6 +1614,10 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
         <source>Windows line-endings</source>
         <translation>Окончания строк Уиндоус</translation>
     </message>
+    <message>
+        <source>Linear feed move for drilling:</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MyPostProcessor</name>
@@ -1813,7 +1821,11 @@ Skipped Geometries</source>
     </message>
     <message>
         <source>WARNING: initial mill depth (%i) is lower than end mill depth (%i). Using end mill depth as final depth.</source>
-        <translation>ВНИМАНИЕ: начальная глубина фрезерования (%i) меньше чем конечная (%i). Будет использоватся конечная глубина как финальная.</translation>
+        <translation type="obsolete">ВНИМАНИЕ: начальная глубина фрезерования (%i) меньше чем конечная (%i). Будет использоватся конечная глубина как финальная.</translation>
+    </message>
+    <message>
+        <source>WARNING: initial mill depth (%f0.2) is lower than end mill depth (%f0.2). Using end mill depth as final depth.</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>

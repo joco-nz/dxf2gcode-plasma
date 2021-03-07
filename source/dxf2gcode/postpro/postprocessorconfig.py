@@ -40,7 +40,7 @@ from PyQt5 import QtCore
 import logging
 logger = logging.getLogger("PostPro.PostProcessorConfig")
 
-POSTPRO_VERSION = "7"
+POSTPRO_VERSION = "8"
 """
 version tag - increment this each time you edit CONFIG_SPEC
 
@@ -339,6 +339,7 @@ class MyPostProConfig(object):
                 ('rap_pos_depth', CfgLineEdit(MyPostProConfig.tr('Rapid positioning for Z plane:'))),
                 ('lin_mov_plane', CfgLineEdit(MyPostProConfig.tr('Linear feed move for XY plane:'))),
                 ('lin_mov_depth', CfgLineEdit(MyPostProConfig.tr('Linear feed move for Z plane:'))),
+                ('lin_mov_drill', CfgLineEdit(MyPostProConfig.tr('Linear feed move for drilling:'))),
                 ('arc_int_cw', CfgLineEdit(MyPostProConfig.tr('Clockwise feed move:'))),
                 ('arc_int_ccw', CfgLineEdit(MyPostProConfig.tr('Counter clockwise feed move:'))),
                 ('cutter_comp_off', CfgLineEdit(MyPostProConfig.tr('Disable cutter compensation:'))),

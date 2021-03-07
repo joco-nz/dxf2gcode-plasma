@@ -592,6 +592,20 @@ class MyPostProcessor(object):
             self.ze = z_pos
 
         return self.make_print_str(self.vars.Program["lin_mov_depth"])
+    
+    def lin_pol_drill(self, z_pos):
+        """
+        Code to add if the machine is commanded to drill a HoleGeo
+        @param z_pos: the value at which shall be positioned
+        @return: Returns the string which shall be added.
+        """
+        if not self.abs_export:
+            self.ze = z_pos - self.lz
+            self.lz = z_pos
+        else:
+            self.ze = z_pos
+
+        return self.make_print_str(self.vars.Program["lin_mov_drill"])
 
     def lin_pol_xy(self, Ps, Pe):
         """
