@@ -116,6 +116,14 @@ class StMove(object):
 
             self.append(RapidPos(start))
 
+            Ps_ein = start.get_arc_point(0,  tool_rad)
+
+            # generate the start rad. and append it.
+            circle = ArcGeo(Ps=Ps_ein, Pe=Ps_ein, O=start,
+                               r=tool_rad, direction=1)
+
+            self.append(circle)
+
 
         elif self.shape.cut_cor == 40:
             #if self.shape.Pocket == False:

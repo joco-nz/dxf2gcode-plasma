@@ -124,6 +124,9 @@ class Shape(object):
     def isDisabled(self):
         return self.disabled
 
+    def isDrill(self):
+        return self.Drill
+
     def setToolPathOptimized(self, flag=False):
         self.send_to_TSP = flag
 
