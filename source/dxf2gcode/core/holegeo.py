@@ -115,10 +115,10 @@ class HoleGeo(object):
         given tolerance
         @param caller: This is the calling entities (only used in holegeo)
         @param xy: The point which shall be used to determine the distance
-        @tol: The tolerance which is used for Hit testing.
+        @param tol: The tolerance which is used for Hit testing.
         """
 
-        return abs(self.ps.distance(xy) - caller.parentLayer.getToolRadius()) < tol
+        return abs(self.Ps.distance(xy) - caller.parentLayer.getToolRadius()) < tol
 
     def Write_GCode(self, PostPro):
         """
