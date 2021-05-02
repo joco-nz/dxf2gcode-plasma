@@ -134,7 +134,20 @@ class StMove(object):
             logging.debug("We have custom offset by tool")
 
             toolwidth = self.shape.parentLayer.getToolRadius()
-            offtype = "in"  if self.shape.cut_cor == 42 else "out"
+
+            if self.shape.cut_cor == 41 and self.shape.cw is True:
+                offtype = "out"
+            elif self.shape.cut_cor == 41 and self.shape.cw is False:
+                offtype = "in"
+            elif self.shape.cut_cor == 42 and self.shape.cw is False:
+                offtype = "out"
+            elif self.shape.cut_cor == 42 and self.shape.cw is True:
+                offtype = "in"
+            else:
+                offtype = "out"
+                Warning("should not be here")
+            logger.debug("Shape.cw %s; shape.cut_cor %i; Offset in direction: %s" %(self.shape.cw, self.shape.cut_cor,offtype))
+
             offshape = offShapeClass(parent = self.shape, offset = toolwidth, offtype = offtype)
 
             if len(offshape.rawoff) > 0:
