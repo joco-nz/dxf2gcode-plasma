@@ -397,7 +397,7 @@ class Shape(object):
         workpiece_top_Z = abs(self.axis3_start_mill_depth)
         # We want to mill the piece, even for the first pass, so remove one
         # "slice"
-        initial_mill_depth = workpiece_top_Z - max_slice
+        initial_mill_depth = 0.0 - max_slice
         depth = -abs(self.axis3_mill_depth)
         f_g1_plane = self.f_g1_plane
         f_g1_depth = self.f_g1_depth
