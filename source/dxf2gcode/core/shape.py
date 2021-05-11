@@ -92,6 +92,9 @@ class Shape(object):
         # Parameters for drag knife
         self.drag_angle = radians(
             g.config.vars.Drag_Knife_Options['drag_angle'])
+        
+        # note shape is created
+        logger.debug("shape.init: Shape created")
 
     def __repr__(self):
         """
@@ -178,7 +181,7 @@ class Shape(object):
     def AnalyseAndOptimize(self):
         self.setNearestStPoint(Point())
         logger.debug(
-            self.tr("Analysing the shape for CW direction Nr: %s" % self.nr))
+            self.tr("shape.AnalyseAndOptimize: Analysing the shape for CW direction Nr: %s" % self.nr))
 
         if self.isDirectionOfGeosCCW(self.geos):
             self.reverse()
@@ -393,7 +396,7 @@ class Shape(object):
         safe_retract_depth = self.parentLayer.axis3_retract
         safe_margin = self.parentLayer.axis3_safe_margin
 
-        max_slice = -abs(self.axis3_slice_depth)
+        max_slice = abs(self.axis3_slice_depth)
         workpiece_top_Z = abs(self.axis3_start_mill_depth)
         # We want to mill the piece, even for the first pass, so remove one
         # "slice"

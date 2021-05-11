@@ -47,7 +47,7 @@ min_length=0.01
 class offShapeClass(Shape):
 
     """
-    This Class is used to generate The fofset aof a shape according to:
+    This Class is used to generate The offset of a shape according to:
     "A pair-wise offset Algorithm for 2D point sequence curve"
     http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.101.8855
     """
@@ -68,7 +68,7 @@ class offShapeClass(Shape):
                                             closed=parent.closed,
                                             geos=[])
 
-        #logger.debug("The shape is: %s" % (self.closed))
+        logger.debug("shapeoffset.offShapeClass: The parent shape is: %s" % (self.closed))
 
         self.offset = offset
         self.offtype = offtype
@@ -81,7 +81,7 @@ class offShapeClass(Shape):
 
         nextConvexPoint = [
             e for e in self.segments if isinstance(e, ConvexPoint)]
-        # logger.debug(nextConvexPoint)
+        logger.debug(nextConvexPoint)
         # nextConvexPoint=[nextConvexPoint[31]]
         self.counter = 0
 

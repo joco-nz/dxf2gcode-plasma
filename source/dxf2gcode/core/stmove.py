@@ -46,8 +46,8 @@ from dxf2gcode.core.pocketmill import PocketMill
 from dxf2gcode.core.shapeoffset import *
 
 import logging
-logger = logging.getLogger('core.stmove')
-
+#logger = logging.getLogger('core.stmove')
+logger = logging.getLogger(__name__)
 
 class StMove(object):
     """
@@ -82,9 +82,50 @@ class StMove(object):
         self.end = self.start
 
         self.geos = Geos([])
-        logging.debug("Updating the Start Move / Offset Geometry")
+        logging.debug("stmove.updateShape: Updating the Start Move / Offset Geometry")
         self.make_start_moves()
         
+    def lead_in_builder(self, start, angle, start_rad, tool_rad):
+        """
+        This function builds up the detailed start shape based on
+        the parameters passed. General start shapes to be supported
+        include:
+        a. line + curve to cut
+        b. line to cut
+        c. curve to cut
+        each of the parts needs a size and an angle of approach to the cut
+        @param start: start point on cut line
+        @param angle: angle of start to cut line
+        @param start_rad: starting radius
+        @param tool_rad: tool radius
+        """
+        if self.shape.cut_cor == 41:
+            # Center of the Starting Radius.
+            Oein = start.get_arc_point(angle + pi/2, start_rad + tool_rad)
+            # Start Point of the Radius
+            Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            # Start Point of the straight line segment at begin.
+            Pg_ein = Ps_ein.get_arc_point(angle + pi/2, start_rad)
+
+        elif self.shape.cut_cor == 42:
+            # Center of the Starting Radius.
+            Oein = start.get_arc_point(angle - pi/2, start_rad + tool_rad)
+            # Start Point of the Radius
+            Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            # Start Point of the straight line segment at begin.
+            Pg_ein = Ps_ein.get_arc_point(angle - pi/2, start_rad)
+
+        # Get the dive point for the starting contour and append it.
+        start_ein = Pg_ein.get_arc_point(angle, tool_rad)
+        self.append(RapidPos(start_ein))
+
+        # generate the Start Line and append it including the compensation.
+        start_line = LineGeo(start_ein, Ps_ein)
+        self.append(start_line)
+        # generate the start rad. and append it.
+        start_rad = ArcGeo(Ps=Ps_ein, Pe=start, O=Oein,
+                           r=start_rad + tool_rad, direction=1)
+        self.append(start_rad)
 
 
     def make_start_moves(self):
@@ -111,6 +152,7 @@ class StMove(object):
         ### drill cutted from here
 
         if self.shape.Drill == True:
+            logging.debug("stmove.make_start_moves: Is drill")
             if isinstance(self.shape.geos[0], ArcGeo):
                 start = self.shape.geos[0].O
 
@@ -126,12 +168,14 @@ class StMove(object):
 
 
         elif self.shape.cut_cor == 40:
+            logging.debug("stmove.make_start_moves: Compensation = G40")
             #if self.shape.Pocket == False:
             self.append(RapidPos(start))
 
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
             
-            logging.debug("We have custom offset by tool")
+            logging.debug("make_start_moves: We have custom offset by tool.")
+            logging.debug("make_start_moves: Compensation by Machine = %d", g.config.vars.Cutter_Compensation["done_by_machine"])
 
             toolwidth = self.shape.parentLayer.getToolRadius()
 
@@ -145,19 +189,26 @@ class StMove(object):
                 offtype = "in"
             else:
                 offtype = "out"
-                Warning("should not be here")
-            logger.debug("Shape.cw %s; shape.cut_cor %i; Offset in direction: %s" %(self.shape.cw, self.shape.cut_cor,offtype))
+                Warning("make_start_moves: should not be here")
+                
+            logger.debug("stmove.make_start_moves: Shape.cw %s; shape.cut_cor %i; Offset in direction: %s" %(self.shape.cw, self.shape.cut_cor,offtype))
 
             offshape = offShapeClass(parent = self.shape, offset = toolwidth, offtype = offtype)
 
             if len(offshape.rawoff) > 0:
                 start, angle = offshape.rawoff[0].get_start_end_points(True, True)
-
-                self.append(RapidPos(start))
+                
+                # try a lead in line for G41 and G42
+                self.lead_in_builder(start, angle, start_rad, tool_rad)
+                
+                #self.append(RapidPos(start))
                 self.geos += offshape.rawoff
 
         # Cutting Compensation Left
         elif self.shape.cut_cor == 41:
+            logging.debug("make_start_moves: G41.")
+            logging.debug("make_start_moves: Compensation by Machine = %d", g.config.vars.Cutter_Compensation["done_by_machine"])
+            
             # Center of the Starting Radius.
             Oein = start.get_arc_point(angle + pi/2, start_rad + tool_rad)
             # Start Point of the Radius
@@ -180,6 +231,9 @@ class StMove(object):
 
         # Cutting Compensation Right
         elif self.shape.cut_cor == 42:
+            logging.debug("make_start_moves: G42.")
+            logging.debug("make_start_moves: Compensation by Machine = %d", g.config.vars.Cutter_Compensation["done_by_machine"])
+
             # Center of the Starting Radius.
             Oein = start.get_arc_point(angle - pi/2, start_rad + tool_rad)
             # Start Point of the Radius
@@ -202,6 +256,7 @@ class StMove(object):
             
         # Pocket Milling - draw toolpath
         if self.shape.Pocket == True:
+            logging.debug("make_start_moves: Pocket Milling is True")
             
             pocket = PocketMill(self)
             pocket.createLines()
