@@ -85,14 +85,13 @@ class StMove(object):
         logging.debug("stmove.updateShape: Updating the Start Move / Offset Geometry")
         self.make_start_moves()
         
-    def lead_in_builder(self, start, angle, start_rad, tool_rad):
+    def lead_in_builder(self, start, angle, start_rad, tool_rad, lead_angle_adj=pi/2):
         """
         This function builds up the detailed start shape based on
         the parameters passed. General start shapes to be supported
         include:
-        a. line + curve to cut
-        b. line to cut
-        c. curve to cut
+        a. line to cut
+        b. curve to cut
         each of the parts needs a size and an angle of approach to the cut
         @param start: start point on cut line
         @param angle: angle of start to cut line
@@ -100,31 +99,39 @@ class StMove(object):
         @param tool_rad: tool radius
         """
         if self.shape.cut_cor == 41:
-            # Center of the Starting Radius.
-            Oein = start.get_arc_point(angle + pi/2, start_rad + tool_rad)
-            # Start Point of the Radius
+            # Center of the Starting Radius as located from the tool path start point - I think
+            Oein = start.get_arc_point(angle + lead_angle_adj, start_rad + tool_rad)
+            # Start Point of the Radius lead in
             Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
-            # Start Point of the straight line segment at begin.
-            Pg_ein = Ps_ein.get_arc_point(angle + pi/2, start_rad)
+            # Start Point of the straight line segment
+            Pg_ein = Ps_ein.get_arc_point(angle + lead_angle_adj, start_rad)
+            # Direction to turn the arc angle
+            dir_of_angle = 1
 
         elif self.shape.cut_cor == 42:
             # Center of the Starting Radius.
-            Oein = start.get_arc_point(angle - pi/2, start_rad + tool_rad)
+            Oein = start.get_arc_point(angle - lead_angle_adj, start_rad + tool_rad)
             # Start Point of the Radius
             Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Ps_ein.get_arc_point(angle - pi/2, start_rad)
+            Pg_ein = Ps_ein.get_arc_point(angle - lead_angle_adj, start_rad)
+            # Direction to turn the arc angle
+            dir_of_angle = 0
 
         # Get the dive point for the starting contour and append it.
-        start_ein = Pg_ein.get_arc_point(angle, tool_rad)
-        self.append(RapidPos(start_ein))
+        #start_ein = Pg_ein.get_arc_point(angle, tool_rad)
+        #self.append(RapidPos(start_ein))
+        
+        #move dive point to the start of the arc
+        self.append(RapidPos(Ps_ein))
 
         # generate the Start Line and append it including the compensation.
-        start_line = LineGeo(start_ein, Ps_ein)
-        self.append(start_line)
-        # generate the start rad. and append it.
+        #start_line = LineGeo(start_ein, Ps_ein)
+        #self.append(start_line)
+        
+        # generate the start arc (rad=radius) and append it.
         start_rad = ArcGeo(Ps=Ps_ein, Pe=start, O=Oein,
-                           r=start_rad + tool_rad, direction=1)
+                           r=start_rad + tool_rad, direction=dir_of_angle)
         self.append(start_rad)
 
 
@@ -193,13 +200,16 @@ class StMove(object):
                 
             logger.debug("stmove.make_start_moves: Shape.cw %s; shape.cut_cor %i; Offset in direction: %s" %(self.shape.cw, self.shape.cut_cor,offtype))
 
+            # Builds the offset tool path geometry for us to be able to work with
             offshape = offShapeClass(parent = self.shape, offset = toolwidth, offtype = offtype)
 
             if len(offshape.rawoff) > 0:
+                # Get the start-point of the first segment in the tool path geom
+                # also get the angle between the start/end point-pair of that 1st segment
                 start, angle = offshape.rawoff[0].get_start_end_points(True, True)
                 
-                # try a lead in line for G41 and G42
-                self.lead_in_builder(start, angle, start_rad, tool_rad)
+                # build a lead in line for G41 and G42
+                self.lead_in_builder(start, angle, start_rad, tool_rad, pi/2)
                 
                 #self.append(RapidPos(start))
                 self.geos += offshape.rawoff
