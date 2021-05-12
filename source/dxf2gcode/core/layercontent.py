@@ -75,9 +75,17 @@ class LayerContent(object):
 
     def isDrillLayer(self):
         return self.name.startswith('DRILL' + g.config.vars.Layer_Options['id_float_separator'])
+    
+    def isPlasmaLayer(self):
+        return self.name.startswith('PLASMA' + g.config.vars.Layer_Options['id_float_separator'])
 
     def isParameterizableLayer(self):
-        return self.isMillLayer() or self.isDrillLayer() or self.isBreakLayer()
+        return (
+                self.isMillLayer() or 
+                self.isDrillLayer() or 
+                self.isBreakLayer() or 
+                self.isPlasmaLayer()
+                )
 
     def automaticCutterCompensationEnabled(self):
         return not self.should_ignore() and not self.isDrillLayer()
