@@ -146,6 +146,14 @@ class StMove(object):
             self.make_swivelknife_move()
             return
 
+        # if start moves are suppressed on the set flag to later use
+        try:
+            if self.shape.suppress_lead:
+                logger.debug("make_start_moves: suppress_lead=TRUE found")
+                suppress_lead = True
+        except AttributeError:
+            suppress_lead = False
+
         # Get the start rad. and the length of the line segment at begin.
         start_rad = self.shape.parentLayer.start_radius
 
@@ -157,7 +165,6 @@ class StMove(object):
         angle = self.angle
 
         ### drill cutted from here
-
         if self.shape.Drill == True:
             logging.debug("stmove.make_start_moves: Is drill")
             if isinstance(self.shape.geos[0], ArcGeo):
@@ -208,8 +215,9 @@ class StMove(object):
                 # also get the angle between the start/end point-pair of that 1st segment
                 start, angle = offshape.rawoff[0].get_start_end_points(True, True)
                 
-                # build a lead in line for G41 and G42
-                self.lead_in_builder(start, angle, start_rad, tool_rad, pi/2)
+                if not suppress_lead:
+                    # build a lead in line for G41 and G42
+                    self.lead_in_builder(start, angle, start_rad, tool_rad, pi/2)
                 
                 #self.append(RapidPos(start))
                 self.geos += offshape.rawoff

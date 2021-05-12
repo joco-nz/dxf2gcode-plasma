@@ -139,6 +139,10 @@ class LayerContent(object):
                 elif name in g.config.vars.Layer_Options['f_g1_depth_identifiers']:
                     for shape in self.shapes:
                         shape.f_g1_depth = float(value)
+                elif name in g.config.vars.Layer_Options['suppress_lead_identifiers']:
+                    for shape in self.shapes:
+                            shape.suppress_lead = bool(value)
+        
         if self.should_ignore():
             # Disable shape by default, if it lives on an ignored layer
             for shape in self.shapes:

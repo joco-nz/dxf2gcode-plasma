@@ -67,8 +67,8 @@ logger = logging.getLogger()
 g.folder = os.path.join(os.path.expanduser("~"), ".config/dxf2gcode").replace("\\", "/")
 
 # Set trace point
-#import sys;sys.path.append(r'/home/james/liclipse/plugins/org.python.pydev.core_7.5.0.202001101115/pysrc')
-#import pydevd;pydevd.settrace()#
+import sys;sys.path.append(r'/home/james/liclipse/plugins/org.python.pydev.core_7.5.0.202001101115/pysrc')
+import pydevd;pydevd.settrace()#
 
 class MainWindow(QMainWindow):
 
@@ -488,7 +488,7 @@ class MainWindow(QMainWindow):
                 # Outside and clockwise cut direction ok for PLASMA
                 shape.cut_cor = 41
             else:
-                if shape.parentLayer.name == "PLASMA":
+                if shape.parentLayer.name.startswith("PLASMA"):
                     # if an inside shape (i.e. a "hole" or "cut out") then
                     # need to cut CCW with G41 like offset. So reverse shape
                     # and apply 41 correction
