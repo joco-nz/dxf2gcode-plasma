@@ -139,9 +139,18 @@ class LayerContent(object):
                 elif name in g.config.vars.Layer_Options['f_g1_depth_identifiers']:
                     for shape in self.shapes:
                         shape.f_g1_depth = float(value)
-                elif name in g.config.vars.Layer_Options['suppress_lead_identifiers']:
+                elif name in g.config.vars.Layer_Options['suppress_leadin_identifiers']:
                     for shape in self.shapes:
-                            shape.suppress_lead = bool(value)
+                            shape.suppress_leadin = bool(value)
+                elif name in g.config.vars.Layer_Options['suppress_leadout_identifiers']:
+                    for shape in self.shapes:
+                            shape.suppress_leadout = bool(value)
+                elif name in g.config.vars.Layer_Options['use_leadin_type_identifiers']:
+                    for shape in self.shapes:
+                            shape.leadin_type = int(value)
+                elif name in g.config.vars.Layer_Options['use_leadout_type_identifiers']:
+                    for shape in self.shapes:
+                            shape.leadout_type = int(value)
         
         if self.should_ignore():
             # Disable shape by default, if it lives on an ignored layer

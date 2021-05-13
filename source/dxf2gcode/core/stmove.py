@@ -85,7 +85,7 @@ class StMove(object):
         logging.debug("stmove.updateShape: Updating the Start Move / Offset Geometry")
         self.make_start_moves()
         
-    def lead_out_builder(self, start, angle, start_rad, tool_rad, lead_angle_adj=pi/2):
+    def lead_out_builder(self, start, angle, start_rad, tool_rad, lead_angle_adj=pi/2, lead_style="line"):
         """
         This function builds up the detailed end shape based on
         the parameters passed. General start shapes to be supported
@@ -97,6 +97,7 @@ class StMove(object):
         @param angle: angle of start to cut line
         @param start_rad: starting radius
         @param tool_rad: tool radius
+        @param lead_style: a txt string indicating the style of lead. 'arc' or 'line'
         """
         if self.shape.cut_cor == 41:
             # Center of the Starting Radius as located from the tool path start point - I think
@@ -104,7 +105,7 @@ class StMove(object):
             # End Point of the Radius lead out
             Ps_ein = Oein.get_arc_point(angle, start_rad + tool_rad)
             # Start Point of the straight line segment
-            Pg_ein = Ps_ein.get_arc_point(angle + lead_angle_adj, start_rad)
+            Pg_ein = Ps_ein
             # Direction to turn the arc angle
             dir_of_angle = 1
     
@@ -114,17 +115,24 @@ class StMove(object):
             # Start Point of the Radius
             Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
             # Start Point of the straight line segment at begin.
-            Pg_ein = Ps_ein.get_arc_point(angle - lead_angle_adj, start_rad)
+            Pg_ein = Ps_ein
             # Direction to turn the arc angle
             dir_of_angle = 0
+
+        # determine if creating an arc or line lead
+        if lead_style == "line":
+            start_line = LineGeo(start, Pg_ein)
+            self.append(start_line)
+        else:
+            # generate the end arc (rad=radius) and append it.
+            start_rad = ArcGeo(Ps=start, Pe=Ps_ein, O=Oein,
+                               r=start_rad + tool_rad, direction=dir_of_angle)
+            self.append(start_rad)
+
     
-        # generate the end arc (rad=radius) and append it.
-        start_rad = ArcGeo(Ps=start, Pe=Ps_ein, O=Oein,
-                           r=start_rad + tool_rad, direction=dir_of_angle)
-        self.append(start_rad)
     
         
-    def lead_in_builder(self, start, angle, start_rad, tool_rad, lead_angle_adj=pi/2):
+    def lead_in_builder(self, start, angle, start_rad, tool_rad, lead_angle_adj=pi/2, lead_style="line"):
         """
         This function builds up the detailed start shape based on
         the parameters passed. General start shapes to be supported
@@ -136,14 +144,15 @@ class StMove(object):
         @param angle: angle of start to cut line
         @param start_rad: starting radius
         @param tool_rad: tool radius
+        @param lead_style: a txt string indicating the style of lead. 'arc' or 'line'
         """
         if self.shape.cut_cor == 41:
             # Center of the Starting Radius as located from the tool path start point - I think
             Oein = start.get_arc_point(angle + lead_angle_adj, start_rad + tool_rad)
             # Start Point of the Radius lead in
             Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
-            # Start Point of the straight line segment
-            Pg_ein = Ps_ein.get_arc_point(angle + lead_angle_adj, start_rad)
+            # Start Point of the straight line
+            Pg_ein = Ps_ein
             # Direction to turn the arc angle
             dir_of_angle = 1
 
@@ -152,8 +161,8 @@ class StMove(object):
             Oein = start.get_arc_point(angle - lead_angle_adj, start_rad + tool_rad)
             # Start Point of the Radius
             Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
-            # Start Point of the straight line segment at begin.
-            Pg_ein = Ps_ein.get_arc_point(angle - lead_angle_adj, start_rad)
+            # Start Point of the straight line segment
+            Pg_ein = Ps_ein
             # Direction to turn the arc angle
             dir_of_angle = 0
 
@@ -164,14 +173,15 @@ class StMove(object):
         #move dive point to the start of the arc
         self.append(RapidPos(Ps_ein))
 
-        # generate the Start Line and append it including the compensation.
-        #start_line = LineGeo(start_ein, Ps_ein)
-        #self.append(start_line)
-        
-        # generate the start arc (rad=radius) and append it.
-        start_rad = ArcGeo(Ps=Ps_ein, Pe=start, O=Oein,
-                           r=start_rad + tool_rad, direction=dir_of_angle)
-        self.append(start_rad)
+        # determine if creating an arc or line lead
+        if lead_style == "line":
+            start_line = LineGeo(Pg_ein, start)
+            self.append(start_line)
+        else:
+            # generate the start arc (rad=radius) and append it.
+            start_rad = ArcGeo(Ps=Ps_ein, Pe=start, O=Oein,
+                               r=start_rad + tool_rad, direction=dir_of_angle)
+            self.append(start_rad)
 
 
     def make_start_moves(self):
@@ -185,13 +195,34 @@ class StMove(object):
             self.make_swivelknife_move()
             return
 
-        # if start moves are suppressed on the set flag to later use
+        # save start/end  moves are suppressed on the set flag to later use
         try:
-            if self.shape.suppress_lead:
-                logger.debug("make_start_moves: suppress_lead=TRUE found")
-                suppress_lead = True
+            if self.shape.suppress_leadin:
+                logger.debug("make_start_moves: suppress_leadin=TRUE found")
+                suppress_leadin = True
         except AttributeError:
-            suppress_lead = False
+            suppress_leadin = False
+        try:
+            if self.shape.suppress_leadout:
+                logger.debug("make_start_moves: suppress_leadout=TRUE found")
+                suppress_leadout = True
+        except AttributeError:
+            suppress_leadout = False
+
+        # save lead types from layer
+        try:
+            if self.shape.leadin_type == 1:
+                logger.debug("make_start_moves: leadin_type=1 found")
+                leadin_type = "line"
+        except AttributeError:
+            leadin_type = "arc"
+        try:
+            if self.shape.leadout_type == 1:
+                logger.debug("make_start_moves: leadout_type=1 found")
+                leadout_type = "line"
+        except AttributeError:
+            leadout_type = "arc"
+            
 
         # Get the start rad. and the length of the line segment at begin.
         start_rad = self.shape.parentLayer.start_radius
@@ -255,17 +286,17 @@ class StMove(object):
                 # also get the angle between the start/end point-pair of that 1st segment
                 start, angle = offshape.rawoff[0].get_start_end_points(True, True)
                 
-                if not suppress_lead:
+                if not suppress_leadin:
                     # build a lead in line for G41 and G42
-                    self.lead_in_builder(start, angle, start_rad, tool_rad, pi/2)
+                    self.lead_in_builder(start, angle, start_rad, tool_rad, pi/2, lead_style=leadin_type)
                 
                 #self.append(RapidPos(start))
                 self.geos += offshape.rawoff
                 
                 # try adding a broken leadout
-                if not suppress_lead:
+                if not suppress_leadout:
                     # build a lead in line for G41 and G42
-                    self.lead_out_builder(start, angle, start_rad, tool_rad, pi/2)
+                    self.lead_out_builder(start, angle, start_rad, tool_rad, pi/2, lead_style=leadout_type)
 
         # Cutting Compensation Left
         elif self.shape.cut_cor == 41:
