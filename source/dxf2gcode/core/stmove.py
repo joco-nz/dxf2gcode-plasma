@@ -85,6 +85,45 @@ class StMove(object):
         logging.debug("stmove.updateShape: Updating the Start Move / Offset Geometry")
         self.make_start_moves()
         
+    def lead_out_builder(self, start, angle, start_rad, tool_rad, lead_angle_adj=pi/2):
+        """
+        This function builds up the detailed end shape based on
+        the parameters passed. General start shapes to be supported
+        include:
+        a. line to cut
+        b. curve to cut
+        each of the parts needs a size and an angle of approach to the cut
+        @param start: start point on cut line
+        @param angle: angle of start to cut line
+        @param start_rad: starting radius
+        @param tool_rad: tool radius
+        """
+        if self.shape.cut_cor == 41:
+            # Center of the Starting Radius as located from the tool path start point - I think
+            Oein = start.get_arc_point(angle + lead_angle_adj, start_rad + tool_rad)
+            # End Point of the Radius lead out
+            Ps_ein = Oein.get_arc_point(angle, start_rad + tool_rad)
+            # Start Point of the straight line segment
+            Pg_ein = Ps_ein.get_arc_point(angle + lead_angle_adj, start_rad)
+            # Direction to turn the arc angle
+            dir_of_angle = 1
+    
+        elif self.shape.cut_cor == 42:
+            # Center of the Starting Radius.
+            Oein = start.get_arc_point(angle - lead_angle_adj, start_rad + tool_rad)
+            # Start Point of the Radius
+            Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            # Start Point of the straight line segment at begin.
+            Pg_ein = Ps_ein.get_arc_point(angle - lead_angle_adj, start_rad)
+            # Direction to turn the arc angle
+            dir_of_angle = 0
+    
+        # generate the end arc (rad=radius) and append it.
+        start_rad = ArcGeo(Ps=start, Pe=Ps_ein, O=Oein,
+                           r=start_rad + tool_rad, direction=dir_of_angle)
+        self.append(start_rad)
+    
+        
     def lead_in_builder(self, start, angle, start_rad, tool_rad, lead_angle_adj=pi/2):
         """
         This function builds up the detailed start shape based on
@@ -163,6 +202,7 @@ class StMove(object):
         # Calculate the starting point with and without compensation.
         start = self.start
         angle = self.angle
+        end = self.end
 
         ### drill cutted from here
         if self.shape.Drill == True:
@@ -221,6 +261,11 @@ class StMove(object):
                 
                 #self.append(RapidPos(start))
                 self.geos += offshape.rawoff
+                
+                # try adding a broken leadout
+                if not suppress_lead:
+                    # build a lead in line for G41 and G42
+                    self.lead_out_builder(start, angle, start_rad, tool_rad, pi/2)
 
         # Cutting Compensation Left
         elif self.shape.cut_cor == 41:

@@ -67,8 +67,8 @@ logger = logging.getLogger()
 g.folder = os.path.join(os.path.expanduser("~"), ".config/dxf2gcode").replace("\\", "/")
 
 # Set trace point
-import sys;sys.path.append(r'/home/james/liclipse/plugins/org.python.pydev.core_7.5.0.202001101115/pysrc')
-import pydevd;pydevd.settrace()#
+#import sys;sys.path.append(r'/home/james/liclipse/plugins/org.python.pydev.core_7.5.0.202001101115/pysrc')
+#import pydevd;pydevd.settrace()#
 
 class MainWindow(QMainWindow):
 
