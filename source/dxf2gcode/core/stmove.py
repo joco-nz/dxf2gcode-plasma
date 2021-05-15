@@ -150,7 +150,7 @@ class StMove(object):
             # Center of the Starting Radius as located from the tool path start point - I think
             Oein = start.get_arc_point(angle + lead_angle_adj, start_rad + tool_rad)
             # Start Point of the Radius lead in
-            Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            Ps_ein = Oein.get_arc_point(angle + lead_angle_adj, start_rad + tool_rad)
             # Start Point of the straight line
             Pg_ein = Ps_ein
             # Direction to turn the arc angle
@@ -160,7 +160,7 @@ class StMove(object):
             # Center of the Starting Radius.
             Oein = start.get_arc_point(angle - lead_angle_adj, start_rad + tool_rad)
             # Start Point of the Radius
-            Ps_ein = Oein.get_arc_point(angle + pi, start_rad + tool_rad)
+            Ps_ein = Oein.get_arc_point(angle + lead_angle_adj, start_rad + tool_rad)
             # Start Point of the straight line segment
             Pg_ein = Ps_ein
             # Direction to turn the arc angle
@@ -211,17 +211,17 @@ class StMove(object):
 
         # save lead types from layer
         try:
-            if self.shape.leadin_type == 1:
-                logger.debug("make_start_moves: leadin_type=1 found")
-                leadin_type = "line"
+            if self.shape.leadin_type == 0:
+                logger.debug("make_start_moves: leadin_type=arc found")
+                leadin_type = "arc"
         except AttributeError:
-            leadin_type = "arc"
+            leadin_type = "line"
         try:
-            if self.shape.leadout_type == 1:
-                logger.debug("make_start_moves: leadout_type=1 found")
-                leadout_type = "line"
+            if self.shape.leadout_type == 0:
+                logger.debug("make_start_moves: leadout_type=arc found")
+                leadout_type = "arc"
         except AttributeError:
-            leadout_type = "arc"
+            leadout_type = "line"
             
 
         # Get the start rad. and the length of the line segment at begin.
@@ -253,12 +253,14 @@ class StMove(object):
 
 
         elif self.shape.cut_cor == 40:
+            # No compensation in place.
             logging.debug("stmove.make_start_moves: Compensation = G40")
             #if self.shape.Pocket == False:
             self.append(RapidPos(start))
 
         elif self.shape.cut_cor != 40 and not g.config.vars.Cutter_Compensation["done_by_machine"]:
-            
+            # This section deals with compensated path that calculated by
+            # the CAM tooling, NOT on the machine
             logging.debug("make_start_moves: We have custom offset by tool.")
             logging.debug("make_start_moves: Compensation by Machine = %d", g.config.vars.Cutter_Compensation["done_by_machine"])
 
