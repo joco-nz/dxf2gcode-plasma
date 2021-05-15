@@ -247,6 +247,14 @@ CONFIG_SPEC = str('''
     # To be used in the DXF layer name. See DXF2GCODE' wiki for more information.
     start_radius_identifiers = list(default = list('StartRadius', 'Sr'))
 
+    # To be used in the DXF layer name for PLASMA (BEAM) specific processing
+    suppress_leadin_identifiers = list(default = list('SuppressLeadIns', 'Sli'))
+    suppress_leadout_identifiers = list(default = list('SuppressLeadOuts', 'Slo'))
+    
+    use_leadin_type_identifiers = list(default = list('UseLeadInType', 'Lit'))
+    use_leadout_type_identifiers = list(default = list('UseLeadOutType', 'Lot'))
+
+
     # Tools table: define here the tools used for milling:
     # - name: this is the number of the tool, it will be used directly in the GCODE (eg 20 for tool T20)
     # - diameter: diameter of the tool
@@ -565,7 +573,11 @@ class MyConfig(object):
                 ('tool_nr_identifiers', CfgListEdit(self.tr('Tool number:'), ',')),
                 ('tool_diameter_identifiers', CfgListEdit(self.tr('Tool diameter:'), ',')),
                 ('spindle_speed_identifiers', CfgListEdit(self.tr('Spindle speed:'), ',')),
-                ('start_radius_identifiers', CfgListEdit(self.tr('Start radius (cutter compensation):'), ','))
+                ('start_radius_identifiers', CfgListEdit(self.tr('Start radius (cutter compensation):'), ',')),
+                ('suppress_leadin_identifiers', CfgListEdit(self.tr('Suppress Lead-In (1 = True):'), ',')),
+                ('suppress_leadout_identifiers', CfgListEdit(self.tr('Suppress Lead-Out (1 = True):'), ',')),
+                ('use_leadin_type_identifiers', CfgListEdit(self.tr('Use Lead-In Type (0 = Arc, 1 = Line):'), ',')),
+                ('use_leadout_type_identifiers', CfgListEdit(self.tr('Use Lead-Out Type (0 = Arc, 1 = Line):'), ','))
             ])),
             ('Tool_Parameters', CfgTableToolParameters(self.tr('Define the tools here:'))),
             ('Custom_Actions', CfgTableCustomActions(self.tr('Define here custom GCODE that can be inserted anywhere in the program:'))),
