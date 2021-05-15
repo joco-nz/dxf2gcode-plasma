@@ -214,12 +214,16 @@ class StMove(object):
             if self.shape.leadin_type == 0:
                 logger.debug("make_start_moves: leadin_type=arc found")
                 leadin_type = "arc"
+            else:
+                leadin_type = "line"
         except AttributeError:
             leadin_type = "line"
         try:
             if self.shape.leadout_type == 0:
                 logger.debug("make_start_moves: leadout_type=arc found")
                 leadout_type = "arc"
+            else:
+                leadout_type = "line"
         except AttributeError:
             leadout_type = "line"
             
