@@ -854,7 +854,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>24</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -907,6 +907,7 @@
      <addaction name="actionMilling"/>
      <addaction name="actionLathe"/>
      <addaction name="actionDragKnife"/>
+     <addaction name="actionBeam"/>
     </widget>
     <widget class="QMenu" name="menu_Measurement_units">
      <property name="enabled">
@@ -1226,6 +1227,14 @@
    </property>
    <property name="text">
     <string>&amp;Inches</string>
+   </property>
+  </action>
+  <action name="actionBeam">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Beam</string>
    </property>
   </action>
  </widget>

@@ -52,6 +52,7 @@ class LayerContent(object):
         # preset defaults
         self.axis3_retract = g.config.vars.Depth_Coordinates['axis3_retract']
         self.axis3_safe_margin = g.config.vars.Depth_Coordinates['axis3_safe_margin']
+        self.axis3_beam_cut_height = g.config.vars.Depth_Coordinates['axis3_beam_cut_height']
         logger.debug("layercontent.LayerContent.init: layer object loaded")
 
     def __repr__(self):

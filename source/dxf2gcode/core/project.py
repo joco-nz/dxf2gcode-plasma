@@ -121,6 +121,7 @@ class Project(object):
                            'start_radius': layer.start_radius,
                            'retract': layer.axis3_retract,
                            'safe_margin': layer.axis3_safe_margin,
+                           'beam_height': layer.axis3_beam_cut_height,
                            'shapes': shapes})
 
         pyCode = Project.header % str(Project.version) + '''
@@ -179,6 +180,7 @@ d2g.layers = ''' + str(layers)
 
                 layer.axis3_retract = parent_layer['retract']
                 layer.axis3_safe_margin = parent_layer['safe_margin']
+                layer.axis3_beam_cut_height = parent_layer['beam_height']
 
                 # hash_shapes = dict((self.get_hash(shape), shape) for shape in layer.shapes)
                 # dict comprehensions are supported since Py2.7

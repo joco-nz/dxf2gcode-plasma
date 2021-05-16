@@ -89,6 +89,8 @@ class Shape(object):
             'axis3_mill_depth']
         self.f_g1_plane = g.config.vars.Feed_Rates['f_g1_plane']
         self.f_g1_depth = g.config.vars.Feed_Rates['f_g1_depth']
+        self.f_g0_plane = g.config.vars.Feed_Rates['f_g0_plane']
+        self.f_g0_depth = g.config.vars.Feed_Rates['f_g0_depth']
         # Parameters for drag knife
         self.drag_angle = radians(
             g.config.vars.Drag_Knife_Options['drag_angle'])
@@ -368,17 +370,23 @@ class Shape(object):
         @param PostPro: this is the Postprocessor class including the methods
         to export
         """
-        if g.config.machine_type == 'drag_knife':
+        machine_type = g.config.machine_type
+        
+        if machine_type == 'drag_knife':
             return self.Write_GCode_Drag_Knife(PostPro)
 
         if isinstance(self.geos[0], HoleGeo):
             self.Drill            
 
+        # save current cutter comp for later restore.
         prv_cut_cor = self.cut_cor
         if (self.cut_cor != 40 and
                 not g.config.vars.Cutter_Compensation["done_by_machine"] and 
                 not self.Drill):
+            # compensation is baked into the path so we do not want to 
+            # issue cutter comp G codes.  So set cut-cor to 40.
             self.cut_cor = 40
+            # get the baked compensation geo for path with start/end moves
             new_geos = Geos(self.stmove.geos[1:])
         else:
             new_geos = self.geos
@@ -398,12 +406,26 @@ class Shape(object):
 
         max_slice = abs(self.axis3_slice_depth)
         workpiece_top_Z = abs(self.axis3_start_mill_depth)
+        
+        # get the beam settings defined in the GUI
+        beam_height = abs(self.parentLayer.axis3_beam_cut_height)
+        
         # We want to mill the piece, even for the first pass, so remove one
-        # "slice"
-        initial_mill_depth = 0.0 - max_slice
-        depth = -abs(self.axis3_mill_depth)
+        # "slice". However needs to be adjusted if a BEAM machine.
+        if machine_type != "beam":
+            initial_mill_depth = 0.0 - max_slice
+            depth = -abs(self.axis3_mill_depth)
+        else:
+            # we only go as far down as the beam height and since a beam we are
+            # only going to be doing a single pass as well so depth = beam height
+            initial_mill_depth = beam_height
+            depth = beam_height
+        # get G1 feed rates
         f_g1_plane = self.f_g1_plane
         f_g1_depth = self.f_g1_depth
+        # get G0 feed rates
+        f_g0_plane = self.f_g0_plane
+        f_g0_depth = self.f_g0_depth
 
         # Save the initial Cutter correction in a variable
         has_reversed = False
@@ -431,10 +453,14 @@ class Shape(object):
         if not(self.Drill):
             
             # This will position the cutter on the first geometry with or without cutter comp. G1 move.
+            # should be a G0 move - check in to where the feed rate should be set
             exstr += self.stmove.geos.abs_el(0).Write_GCode(PostPro)
 
             # Add string to be added before the shape will be cut.
-            exstr += PostPro.write_pre_shape_cut()
+            # this is typically a spindle start command.
+            # If machine is BEAM we want to do this later.
+            if machine_type != "beam":
+                exstr += PostPro.write_pre_shape_cut()
             # Cutter radius compensation when G41 or G42 is on, AND cutter
             # compensation option is set to be done outside the piece
             if (self.cut_cor != 40 and PostPro.vars.General["cc_outside_the_piece"]):
@@ -444,9 +470,19 @@ class Shape(object):
                 exstr += self.stmove.geos.abs_el(1).Write_GCode(PostPro)
                 exstr += self.stmove.geos.abs_el(2).Write_GCode(PostPro)
             
-            exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin))  
+            # position to safe margin above work piece. This should be higher than Beam height
+            exstr += PostPro.rap_pos_z(workpiece_top_Z + abs(safe_margin), feed=f_g0_depth)
+            # set G1 feed rate for depth
             exstr += PostPro.chg_feed_rate(f_g1_depth)
+            # move to Z start position for cut
             exstr += PostPro.lin_pol_z(mom_depth)
+            # If machine is BEAM we turn on the Beam now we are at correct Z height.
+            # the machine side controller should really be handling any pause for
+            # "arc ok" or equivalent on water jets and lasers.
+            if machine_type == "beam":
+                exstr += PostPro.commentprint("* Beam ON *")
+                exstr += PostPro.write_pre_shape_cut()
+            # set feed rate for 2d plane
             exstr += PostPro.chg_feed_rate(f_g1_plane)
             
 
@@ -508,7 +544,7 @@ class Shape(object):
                 popped = new_geos.pop()
                 #print("Pop from geos %s." % (popped))
 
-            # Erneutes Eintauchen
+            # Dipping again
             exstr += PostPro.chg_feed_rate(f_g1_depth)
             exstr += PostPro.lin_pol_z(mom_depth)
             exstr += PostPro.chg_feed_rate(f_g1_plane)
@@ -547,9 +583,12 @@ class Shape(object):
                 exstr += PostPro.deactivate_cut_cor()
 
         # Do the tool retraction
+        if machine_type == "beam":
+            exstr += PostPro.commentprint("* Beam OFF *")
+            exstr += PostPro.write_post_shape_cut()
         exstr += PostPro.chg_feed_rate(f_g1_depth)
         exstr += PostPro.lin_pol_z(workpiece_top_Z + abs(safe_margin))
-        exstr += PostPro.rap_pos_z(safe_retract_depth)
+        exstr += PostPro.rap_pos_z(safe_retract_depth, feed=f_g0_depth)
 
         # If cutter radius compensation is turned on.
         if self.cut_cor != 40 and not PostPro.vars.General["cancel_cc_for_depth"]:
@@ -563,7 +602,8 @@ class Shape(object):
         self.cut_cor = prv_cut_cor
 
         # Add string to be added before the shape will be cut.
-        exstr += PostPro.write_post_shape_cut()
+        if machine_type != "beam":
+            exstr += PostPro.write_post_shape_cut()
 
         return exstr
 

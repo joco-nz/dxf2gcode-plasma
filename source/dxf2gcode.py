@@ -194,6 +194,7 @@ class MainWindow(QMainWindow):
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
         self.ui.actionLathe.triggered.connect(self.setMachineTypeToLathe)
+        self.ui.actionBeam.triggered.connect(self.setMachineTypeToBeam)
         self.ui.actionMillimeters.triggered.connect(self.setMeasurementUnitsToMillimeters)
         self.ui.actionInches.triggered.connect(self.setMeasurementUnitsToInches)
 
@@ -671,6 +672,12 @@ class MainWindow(QMainWindow):
         self.updateMachineType()
         self.d2g.small_reload()
 
+    def setMachineTypeToBeam(self):
+        g.config.machine_type = 'beam'
+        self.updateMachineType()
+        self.d2g.small_reload()
+        logger.debug("Machine type set to BEAM")
+
     def setMachineTypeToDragKnife(self):
         g.config.machine_type = 'drag_knife'
         self.updateMachineType()
@@ -687,18 +694,28 @@ class MainWindow(QMainWindow):
             self.ui.actionMilling.setChecked(True)
             self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(False)
+            self.ui.actionBeam.setChecked(False)
+            self.ui.label_9.setText(self.tr("Z Infeed depth"))
+        elif g.config.machine_type == 'beam':
+            self.ui.actionAutomaticCutterCompensation.setEnabled(True)
+            self.ui.actionMilling.setChecked(False)
+            self.ui.actionDragKnife.setChecked(False)
+            self.ui.actionLathe.setChecked(False)
+            self.ui.actionBeam.setChecked(True)
             self.ui.label_9.setText(self.tr("Z Infeed depth"))
         elif g.config.machine_type == 'lathe':
             self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
             self.ui.actionDragKnife.setChecked(False)
             self.ui.actionLathe.setChecked(True)
+            self.ui.actionBeam.setChecked(False)
             self.ui.label_9.setText(self.tr("No Z-Axis for lathe"))
         elif g.config.machine_type == "drag_knife":
             self.ui.actionAutomaticCutterCompensation.setEnabled(False)
             self.ui.actionMilling.setChecked(False)
             self.ui.actionDragKnife.setChecked(True)
             self.ui.actionLathe.setChecked(False)
+            self.ui.actionBeam.setChecked(False)
             self.ui.label_9.setText(self.tr("Z Drag depth"))
 
     def setMeasurementUnitsToMillimeters(self):
