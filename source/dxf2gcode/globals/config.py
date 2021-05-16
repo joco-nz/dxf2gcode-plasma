@@ -147,10 +147,14 @@ CONFIG_SPEC = str('''
     axis3_slice_depth = float(default = -1.5)
     # Relative final third axis' depth.
     axis3_mill_depth = float(default = -3.0)
+    # Beam Cut Height relative to work top
+    axis3_beam_cut_height = float(default = 1.5)
 
     [Feed_Rates]
     f_g1_plane = float(default = 400)
     f_g1_depth = float(default = 150)
+    f_g0_plane = float(default = 1600)
+    f_g0_depth = float(default = 600)
     
     [General]
     # Enable 3D representation of the piece (requires PyQt5 and OpenGL)
@@ -166,7 +170,7 @@ CONFIG_SPEC = str('''
     # Automatically enable cutter compensation for all the shapes (G41 & G42)
     automatic_cutter_compensation = boolean(default = False)
     # Machine types supported: milling; lathe; drag_knife
-    machine_type = option('milling', 'lathe', 'drag_knife', default = 'milling')
+    machine_type = option('milling', 'lathe', 'drag_knife', 'beam', default = 'milling')
     # The unit used for all values in this file
     tool_units = option('mm', 'in', default = 'mm')
 
@@ -521,16 +525,21 @@ class MyConfig(object):
                 ('__section_title__', self.tr("Machine config")),
                 ('__subtitle__', CfgSubtitle(self.tr("Third axis' defaults"))),
                 ('axis3_retract', CfgDoubleSpinBox(self.tr("Retraction coordinate:"), coordinate_unit)),
-                ('axis3_safe_margin', CfgDoubleSpinBox(self.tr("Safety margin:"), coordinate_unit)),
+                ('axis3_safe_margin', CfgDoubleSpinBox(self.tr("Safety margin relative to first cut:"), coordinate_unit)),
                 ('axis3_start_mill_depth', CfgDoubleSpinBox(self.tr("Workpiece origin coordinate:"), coordinate_unit)),
                 ('axis3_slice_depth', CfgDoubleSpinBox(self.tr("Slice depth:"), coordinate_unit)),
-                ('axis3_mill_depth', CfgDoubleSpinBox(self.tr("Final mill depth:"), coordinate_unit))
+                ('axis3_mill_depth', CfgDoubleSpinBox(self.tr("Final mill depth:"), coordinate_unit)),
+                ('axis3_beam_cut_height', CfgDoubleSpinBox(self.tr("Beam Cut Height relative to work top:"), coordinate_unit))            
             ])),
             ('Feed_Rates', OrderedDict([
                 ('__section_title__', self.tr("Machine config")),
-                ('__subtitle__', CfgSubtitle(self.tr("G1 feed rates"))),
+                ('__subtitle2__', CfgSubtitle(self.tr("G1 feed rates"))),
                 ('f_g1_plane', CfgDoubleSpinBox(self.tr('First and second axis (2D plane):'), speed_unit)),
-                ('f_g1_depth', CfgDoubleSpinBox(self.tr('Third axis:'), speed_unit))
+                ('f_g1_depth', CfgDoubleSpinBox(self.tr('Third axis:'), speed_unit)),
+                
+                ('__subtitle3__', CfgSubtitle(self.tr("G0 feed rates"))),
+                ('f_g0_plane', CfgDoubleSpinBox(self.tr('First and second axis (2D plane):'), speed_unit)),
+                ('f_g0_depth', CfgDoubleSpinBox(self.tr('Third axis:'), speed_unit))
             ])),
             ('Cutter_Compensation', OrderedDict([
                 ('__section_title__', self.tr("Output settings")),

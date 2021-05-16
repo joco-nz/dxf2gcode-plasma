@@ -343,6 +343,7 @@ class MyPostProcessor(object):
         """
         # Initialization of the General Postprocessor parameters
         self.feed = 0
+        self.rapid_feed = 0
         self.speed = 0
         self.tool_nr = 1
         self.comment = ""
@@ -369,6 +370,7 @@ class MyPostProcessor(object):
         self.lz = self.ze
 
         self.keyvars = {"%feed": 'self.iprint(self.feed)',
+                        "%rapidfeed": 'self.iprint(self.rapid_feed)',
                         "%speed": 'self.iprint(self.speed)',
                         "%tool_nr": 'self.iprint(self.tool_nr)',
                         "%nl": 'self.nlprint()',
@@ -548,7 +550,7 @@ class MyPostProcessor(object):
         else:
             return self.make_print_str(self.vars.Program["arc_int_ccw"])
 
-    def rap_pos_z(self, z_pos):
+    def rap_pos_z(self, z_pos, feed = 0):
         """
         Code to add if the machine is rapidly commanded to a new
         3rd Axis Position.
@@ -561,9 +563,12 @@ class MyPostProcessor(object):
         else:
             self.ze = z_pos
 
+        if feed != 0:
+            self.rapid_feed = feed
+
         return self.make_print_str(self.vars.Program["rap_pos_depth"])
 
-    def rap_pos_xy(self, Pe):
+    def rap_pos_xy(self, Pe, feed = 0):
         """
         Code to add if the machine is rapidly commanded to a new
         XY Plane Position.
@@ -575,6 +580,8 @@ class MyPostProcessor(object):
             self.lPe = Pe
         else:
             self.Pe = Pe
+        if feed != 0:
+            self.rapid_feed = feed
 
         return self.make_print_str(self.vars.Program["rap_pos_plane"])
 

@@ -190,8 +190,10 @@ class StMove(object):
         be generated based on the given values for start and angle.
         """
         self.geos = Geos([])
+        
+        machine_type = g.config.machine_type
 
-        if g.config.machine_type == 'drag_knife':
+        if machine_type == 'drag_knife':
             self.make_swivelknife_move()
             return
 
@@ -240,7 +242,7 @@ class StMove(object):
         end = self.end
 
         ### drill cutted from here
-        if self.shape.Drill == True:
+        if self.shape.Drill == True and machine_type != "beam":
             logging.debug("stmove.make_start_moves: Is drill")
             if isinstance(self.shape.geos[0], ArcGeo):
                 start = self.shape.geos[0].O
@@ -299,7 +301,6 @@ class StMove(object):
                 #self.append(RapidPos(start))
                 self.geos += offshape.rawoff
                 
-                # try adding a broken leadout
                 if not suppress_leadout:
                     # build a lead in line for G41 and G42
                     self.lead_out_builder(start, angle, start_rad, tool_rad, pi/2, lead_style=leadout_type)
@@ -355,7 +356,7 @@ class StMove(object):
             self.append(start_rad)
             
         # Pocket Milling - draw toolpath
-        if self.shape.Pocket == True:
+        if self.shape.Pocket == True and machine_type != "beam":
             logging.debug("make_start_moves: Pocket Milling is True")
             
             pocket = PocketMill(self)
@@ -476,4 +477,5 @@ class RapidPos(Point):
         @param PostPro: The PostProcessor instance to be used
         @return: Returns the string to be written to a file.
         """
-        return PostPro.rap_pos_xy(self)
+        rapidfeed = g.config.vars.Feed_Rates.f_g0_plane
+        return PostPro.rap_pos_xy(self, feed = rapidfeed)
