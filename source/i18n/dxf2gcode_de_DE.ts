@@ -788,6 +788,10 @@ returned error code: {1}</source>
         <source>&amp;Inches</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>&amp;Beam</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MessageBox</name>
@@ -1114,6 +1118,34 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise. This also disables pocket milling.)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Safety margin relative to first cut:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Beam Cut Height relative to work top:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>G0 feed rates</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Suppress Lead-In (1 = True):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Suppress Lead-Out (1 = True):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Lead-In Type (0 = Arc, 1 = Line):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Lead-Out Type (0 = Arc, 1 = Line):</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1444,11 +1476,11 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Beginning export of Layer Nr. %s, Name %s</source>
-        <translation>Beginne den Export von Layer Nr. %s, Name %s</translation>
+        <translation type="obsolete">Beginne den Export von Layer Nr. %s, Name %s</translation>
     </message>
     <message>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
-        <translation>Gesamtanzahl der Shapes: %s; Anzahl der Shapes in der Export Reihenfolge %s</translation>
+        <translation type="obsolete">Gesamtanzahl der Shapes: %s; Anzahl der Shapes in der Export Reihenfolge %s</translation>
     </message>
     <message>
         <source>Beginning export of Shape Nr: %s</source>
@@ -1492,6 +1524,14 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     <message>
         <source>(Output format description: %s)
 </source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>postprocessor.MyPostProcessor.exportShapes: Beginning export of Layer Nr. %s, Name %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>postprocessor.MyPostProcessor.exportShapes: Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1587,7 +1627,7 @@ Die Länge muss größer der Toleranz sein.
     <name>Shape</name>
     <message>
         <source>Analysing the shape for CW direction Nr: %s</source>
-        <translation>Überprüfe die Shape auf CW Fräsrichtung, Nr: %s</translation>
+        <translation type="obsolete">Überprüfe die Shape auf CW Fräsrichtung, Nr: %s</translation>
     </message>
     <message>
         <source>Had to reverse the shape to be CW</source>
@@ -1619,6 +1659,10 @@ Die Länge muss größer der Toleranz sein.
     </message>
     <message>
         <source>WARNING: initial mill depth (%f0.2) is lower than end mill depth (%f0.2). Using end mill depth as final depth.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>shape.AnalyseAndOptimize: Analysing the shape for CW direction Nr: %s</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

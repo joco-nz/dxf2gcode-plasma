@@ -956,6 +956,10 @@ returned error code: {1}</source>
         <source>&amp;Inches</source>
         <translation>&amp;Дюймы</translation>
     </message>
+    <message>
+        <source>&amp;Beam</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MessageBox</name>
@@ -1288,6 +1292,34 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Cutter compensation is done by machine (check box if machine reconizes G41 and G42 commands / uncheck otherwise. This also disables pocket milling.)</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Safety margin relative to first cut:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Beam Cut Height relative to work top:</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>G0 feed rates</source>
+        <translation type="unfinished">Подача G1 {0 ?}</translation>
+    </message>
+    <message>
+        <source>Suppress Lead-In (1 = True):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Suppress Lead-Out (1 = True):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Lead-In Type (0 = Arc, 1 = Line):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Use Lead-Out Type (0 = Arc, 1 = Line):</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
@@ -1627,7 +1659,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
-        <translation>Количество форм %s, количество форм в траектории %s</translation>
+        <translation type="obsolete">Количество форм %s, количество форм в траектории %s</translation>
     </message>
     <message>
         <source>Export to STDOUT was successful</source>
@@ -1665,7 +1697,7 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Beginning export of Layer Nr. %s, Name %s</source>
-        <translation>Экспорт слоя № %s с названием %s</translation>
+        <translation type="obsolete">Экспорт слоя № %s с названием %s</translation>
     </message>
     <message>
         <source>Beginning export of Shape Nr: %s</source>
@@ -1680,6 +1712,14 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
 </source>
         <translation>(Описание выходного формата: %s)
 </translation>
+    </message>
+    <message>
+        <source>postprocessor.MyPostProcessor.exportShapes: Beginning export of Layer Nr. %s, Name %s</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>postprocessor.MyPostProcessor.exportShapes: Nr. of Shapes %s; Nr. of Shapes in Route %s</source>
+        <translation type="unfinished"></translation>
     </message>
 </context>
 <context>
@@ -1797,7 +1837,7 @@ Skipped Geometries</source>
     </message>
     <message>
         <source>Analysing the shape for CW direction Nr: %s</source>
-        <translation>Анализ формы по направлению часовой стрелки №%s</translation>
+        <translation type="obsolete">Анализ формы по направлению часовой стрелки №%s</translation>
     </message>
     <message>
         <source>Had to reverse the shape to be CW</source>
@@ -1825,6 +1865,10 @@ Skipped Geometries</source>
     </message>
     <message>
         <source>WARNING: initial mill depth (%f0.2) is lower than end mill depth (%f0.2). Using end mill depth as final depth.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>shape.AnalyseAndOptimize: Analysing the shape for CW direction Nr: %s</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
