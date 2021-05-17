@@ -42,9 +42,11 @@ from PyQt5 import QtCore
 APPNAME = "DXF2GCODE"
 VERSION = "Py%s PyQt%s" % (platform.python_version(), QtCore.PYQT_VERSION_STR)
 
+# git keyword substitues
 DATE     =  "$Date$"
 REVISION =  "$Revision$"
 AUTHOR   = u"$Author$"
+# end substitues
 
 CONFIG_EXTENSION = '.cfg'
 PY_EXTENSION = '.py'
