@@ -1036,6 +1036,10 @@ class MainWindow(QMainWindow):
                     # All shapes have to be CW direction.
                     tmp_shape.AnalyseAndOptimize()
 
+                    # clean for problem geoms
+                    tmp_shape.trim_acute_reflex_intersect_lines()
+
+
                     self.shapes.append(tmp_shape)
                     if g.config.vars.Import_Parameters['insert_at_block_layer'] and layerNr != -1:
                         self.addtoLayerContents(tmp_shape, layerNr)

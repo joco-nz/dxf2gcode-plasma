@@ -40,6 +40,8 @@ from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.core.holegeo import HoleGeo
 from dxf2gcode.core.pocketmove import PocketMove
+from dxf2gcode.core.intersect import Intersect
+
 
 import dxf2gcode.globals.constants as c
 from PyQt5 import QtCore
@@ -734,6 +736,76 @@ class Shape(object):
                     new_geos.pop()
 
         self.geos = new_geos
+
+    def trim_acute_reflex_intersect_lines(self, parent=None, tolerance=0.5):
+        """
+        This function scans down a polyline looking for ultra small lines that cross back on the last vertex.
+        These small lines will be removed and the "error" in the created gap halved in the relink.
+        For most situations this should not result in any discernable issue with the shape
+        sizing. If it does then corrections in a LibreCAD or similar will be needed.
+        """
+        # cope with a self call.  Probably a better way to do this but ...
+        if parent == None:
+            parent = self
+
+        if len(parent.geos) < 3:
+            # exit if not enough line segments to work with
+            return
+        
+        if parent.closed == False:
+            # if the shape is not closed then we don't need to do this?
+            return
+
+        new_geos = []
+        wrapped = False
+        # scan to find problem lines.  Remember need to wrap the scan around the end of a closed shape -- FIX for closed tests
+        for i in range(len(parent.geos)+1):
+            if i < 2:
+                new_geos.append(parent.geos[i])
+                continue
+            
+            if i < len(parent.geos):
+                geo1 = new_geos[len(new_geos)-2]
+                geo2 = new_geos[len(new_geos)-1]
+                geo3 = parent.geos[i]
+            else:
+                # wrap around end of closed shape
+                geo1 = new_geos[len(new_geos)-2]
+                geo2 = new_geos[len(new_geos)-1]
+                geo3 = parent.geos[0]
+                wrapped = True
+
+            if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo) and isinstance(geo2, LineGeo):
+                # dump out data on the geom so we know what is happening.
+                logger.debug("geo1-%s: %s", i-2, geo1.to_short_string())
+                logger.debug("geo2-%s: %s", i-1, geo2.to_short_string())
+                logger.debug("geo3-%s: %s", i,   geo3.to_short_string())
+                is_intersect = Intersect.get_intersection_point(geo1, geo3)
+                if is_intersect == None:
+                    logger.debug("--- No intersect ---")
+                    if not wrapped:
+                        new_geos.append(parent.geos[i])
+                else:
+                    logger.debug("--- INTERSECT: Geo2 causing issue - fixing")
+                    # remove geos2 and correct geo1, geo3 and add in geo3 if not wrapped
+                    new_geos.pop()
+                    new_geo_PesX = (geo1.Pe.x + geo3.Ps.x)/2
+                    new_geo_PesY = (geo1.Pe.y + geo3.Ps.y)/2
+                    geo1.Pe.x = new_geo_PesX
+                    geo1.Pe.y = new_geo_PesY
+                    geo3.Ps.x = new_geo_PesX
+                    geo3.Ps.y = new_geo_PesY
+                    if not wrapped:
+                        new_geos.append(parent.geos[i])
+            elif isinstance(geo1, ArcGeo) or isinstance(geo2, ArcGeo):
+                pass
+            else:
+                logger.debug("Geom type not accounted for")
+        
+        parent.geos = Geos(new_geos)
+
+
+
 
 
 class Geos(list):
