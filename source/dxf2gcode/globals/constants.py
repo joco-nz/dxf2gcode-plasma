@@ -43,9 +43,9 @@ APPNAME = "DXF2GCODE"
 VERSION = "Py%s PyQt%s" % (platform.python_version(), QtCore.PYQT_VERSION_STR)
 
 # git keyword substitues
-DATE     =  "$Date$"
-REVISION =  "$Revision$"
-AUTHOR   = u"$Author$"
+DATE     =  "$Date: Tue May 18 11:41:52 2021 +1200 $"
+REVISION =  "$Revision: 65d9206513a404a8f7273bfe1eddc1932eb3d193 $"
+AUTHOR   = u"Enhancements: $Author: James Walker <james.walker.nz@me.com> $" + u"  Authors: Christian Kohlöffel, Jean-Paul Schouwstra"
 # end substitues
 
 CONFIG_EXTENSION = '.cfg'
