@@ -772,35 +772,54 @@ class Shape(object):
                 # wrap around end of closed shape
                 geo1 = new_geos[len(new_geos)-2]
                 geo2 = new_geos[len(new_geos)-1]
-                geo3 = parent.geos[0]
+                geo3 = new_geos[0]
                 wrapped = True
 
-            if isinstance(geo1, LineGeo) and isinstance(geo2, LineGeo) and isinstance(geo2, LineGeo):
-                # dump out data on the geom so we know what is happening.
-                logger.debug("geo1-%s: %s", i-2, geo1.to_short_string())
-                logger.debug("geo2-%s: %s", i-1, geo2.to_short_string())
-                logger.debug("geo3-%s: %s", i,   geo3.to_short_string())
-                is_intersect = Intersect.get_intersection_point(geo1, geo3)
-                if is_intersect == None:
-                    logger.debug("--- No intersect ---")
-                    if not wrapped:
-                        new_geos.append(parent.geos[i])
-                else:
-                    logger.debug("--- INTERSECT: Geo2 causing issue - fixing")
-                    # remove geos2 and correct geo1, geo3 and add in geo3 if not wrapped
-                    new_geos.pop()
+            # dump out data on the geom so we know what is happening.
+            logger.debug("geo1-%s: %s", i-2, geo1.to_short_string())
+            logger.debug("geo2-%s: %s", i-1, geo2.to_short_string())
+            logger.debug("geo3-%s: %s", i,   geo3.to_short_string())
+            is_intersect = Intersect.get_intersection_point(geo1, geo3)
+            if is_intersect == None:
+                logger.debug("--- No intersect ---")
+                if not wrapped:
+                    # add to new geos list
+                    new_geos.append(parent.geos[i])
+            else:
+                logger.debug("--- INTERSECT: Geo2 causing issue - fixing")
+                # remove geos2
+                new_geos.pop()
+                # and correct geo1, geo3 and add in geo3
+                if isinstance(geo1, LineGeo) and isinstance(geo3, LineGeo):
                     new_geo_PesX = (geo1.Pe.x + geo3.Ps.x)/2
                     new_geo_PesY = (geo1.Pe.y + geo3.Ps.y)/2
                     geo1.Pe.x = new_geo_PesX
                     geo1.Pe.y = new_geo_PesY
                     geo3.Ps.x = new_geo_PesX
                     geo3.Ps.y = new_geo_PesY
+                    # if not wrapped
                     if not wrapped:
                         new_geos.append(parent.geos[i])
-            elif isinstance(geo1, ArcGeo) or isinstance(geo2, ArcGeo):
-                pass
-            else:
-                logger.debug("Geom type not accounted for")
+                elif isinstance(geo1, ArcGeo) or isinstance(geo3, ArcGeo):
+                    # process for arc's.  Rule is to treat the arc as anchored and move the line.
+                    # If both are arc's then move both based on compromise.
+                    if isinstance(geo1, LineGeo) and isinstance(geo3, ArcGeo):
+                        # add in geo3 with no change as Arc - if not wrapped
+                        if not wrapped:
+                            new_geos.append(parent.geos[i])
+                        # adjust the line
+                        geo1.Pe.x = geo3.Ps.x
+                        geo1.Pe.y = geo3.Ps.y
+                    elif isinstance(geo3, LineGeo) and isinstance(geo1, ArcGeo):
+                        # geo1 is already in list so no need to adjust
+                        # adjust geo3 and add if not wrapped.
+                        geo3.Ps.x = geo1.Pe.x
+                        geo3.Ps.y = geo1.Pe.y
+                    else:
+                        # both arcs
+                        pass
+                else:
+                    logger.debug("Geom type not accounted for")
         
         parent.geos = Geos(new_geos)
 
