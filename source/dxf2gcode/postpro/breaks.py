@@ -98,7 +98,7 @@ class Breaks(object):
                 intersections = self.intersectArcGeometry(arcGeo, breakShape)
                 if len(intersections) == 2:
                     (near, far) = self.classifyIntersections(arcGeo, intersections)
-                    logger.debug("Arc %s broken from (%f, %f) to (%f, %f)" % (arcGeo.toShortString(), near.x, near.y, far.x, far.y))
+                    logger.debug("Arc %s broken from (%f, %f) to (%f, %f)" % (arcGeo.to_short_string(), near.x, near.y, far.x, far.y))
                     newGeos.extend(self.breakArcGeo(ArcGeo(Ps=arcGeo.Ps, Pe=near, O=arcGeo.O, r=arcGeo.r, s_ang=arcGeo.s_ang, direction=arcGeo.ext)))
                     newGeos.append(BreakGeo(near, far, breakShape.axis3_mill_depth, breakShape.f_g1_plane, breakShape.f_g1_depth))
                     newGeos.extend(self.breakArcGeo(ArcGeo(Ps=far, Pe=arcGeo.Pe, O=arcGeo.O, r=arcGeo.r, e_ang=arcGeo.e_ang, direction=arcGeo.ext)))
