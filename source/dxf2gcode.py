@@ -490,11 +490,15 @@ class MainWindow(QMainWindow):
                 shape.cut_cor = 41
             else:
                 if shape.parentLayer.name.startswith("PLASMA"):
-                    # if an inside shape (i.e. a "hole" or "cut out") then
-                    # need to cut CCW with G41 like offset. So reverse shape
-                    # and apply 41 correction
-                    shape.reverse()
-                    shape.cut_cor = 41
+                    if shape.closed:
+                        # if an inside shape (i.e. a "hole" or "cut out") then
+                        # need to cut CCW with G41 like offset. So reverse shape
+                        # and apply 41 correction
+                        shape.reverse()
+                        shape.cut_cor = 41
+                    else:
+                        # shape is open so probably a line, therefore G40
+                        shape.cut_cor = 40
                 else:
                     # default to G42 effect with CW direction on internal cut
                     shape.cut_cor = 42
