@@ -351,7 +351,8 @@ class ArcGeo(object):
 
         return r
 
-    def toShortString(self):
+    def to_short_string(self):
+        # toShortString
         return "(%f, %f) -> (%f, %f)" % (self.Ps.x, self.Ps.y, self.Pe.x, self.Pe.y)
 
     def tr(self, string_to_translate):
