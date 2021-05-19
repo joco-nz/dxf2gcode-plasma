@@ -296,14 +296,14 @@ class StMove(object):
                 
                 if not suppress_leadin:
                     # build a lead in line for G41 and G42
-                    self.lead_in_builder(start, angle, start_rad, tool_rad, pi/2, lead_style=leadin_type)
+                    self.lead_in_builder(start, angle, start_rad, tool_rad, self.shape.lead_in_angle, lead_style=leadin_type)
                 
                 #self.append(RapidPos(start))
                 self.geos += offshape.rawoff
                 
                 if not suppress_leadout:
                     # build a lead in line for G41 and G42
-                    self.lead_out_builder(start, angle, start_rad, tool_rad, pi/2, lead_style=leadout_type)
+                    self.lead_out_builder(start, angle, start_rad, tool_rad, self.shape.lead_out_angle, lead_style=leadout_type)
 
         # Cutting Compensation Left
         elif self.shape.cut_cor == 41:

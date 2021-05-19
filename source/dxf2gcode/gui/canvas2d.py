@@ -257,6 +257,7 @@ class MyGraphicsView(CanvasBase):
         scene = self.scene()
         del scene
 
+
 class MyGraphicsScene(QGraphicsScene):
     """
     This is the Canvas used to print the graphical interface of dxf2gcode.
@@ -464,6 +465,39 @@ class MyGraphicsScene(QGraphicsScene):
                 shape.show()
             elif not flag and shape.isDisabled():
                 shape.hide()
+
+    def get_selected(self):
+        selectedItems = [shape for shape in self.shapes if shape.isSelected()]
+        return selectedItems
+
+    def update_shape_stmoves(self):
+        for shape in self.get_selected():
+            if shape.stmove != None:
+                shape.stmove.updateShape()
+                self.repaint_shape(shape)
+        # need to trigger a scene repaint
+        self.update()
+
+    def turnLeadInPositive(self):
+        for shape in self.get_selected():
+            shape.turn_lead_angle("in",True)
+        self.update_shape_stmoves()
+    
+    def turnLeadInNegative(self):
+        for shape in self.get_selected():
+            shape.turn_lead_angle("in",False)
+        self.update_shape_stmoves()
+
+    def turnLeadOutPositive(self):
+        for shape in self.get_selected():
+            shape.turn_lead_angle("out",True)
+        self.update_shape_stmoves()
+    
+    def turnLeadOutNegative(self):
+        for shape in self.get_selected():
+            shape.turn_lead_angle("out",False)
+        self.update_shape_stmoves()
+
 
 class ShapeGUI(QGraphicsItem, Shape):
     PEN_NORMAL = QPen(QtCore.Qt.black, 1, QtCore.Qt.SolidLine)

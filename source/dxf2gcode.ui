@@ -943,7 +943,18 @@
     </property>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionLead_In_Turn_CW"/>
+    <addaction name="actionLead_In_Turn_CCW"/>
+    <addaction name="separator"/>
+    <addaction name="actionLead_Out_Turn_CW"/>
+    <addaction name="actionLead_Out_Turn_CCW"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
    <addaction name="menuExport"/>
    <addaction name="menuView"/>
    <addaction name="menuOptions"/>
@@ -1235,6 +1246,38 @@
    </property>
    <property name="text">
     <string>&amp;Beam</string>
+   </property>
+  </action>
+  <action name="actionLead_In_Turn_CW">
+   <property name="text">
+    <string>Lead In - Turn CW</string>
+   </property>
+   <property name="shortcut">
+    <string>]</string>
+   </property>
+  </action>
+  <action name="actionLead_In_Turn_CCW">
+   <property name="text">
+    <string>Lead In - Turn CCW</string>
+   </property>
+   <property name="shortcut">
+    <string>[</string>
+   </property>
+  </action>
+  <action name="actionLead_Out_Turn_CW">
+   <property name="text">
+    <string>Lead Out - Turn CW</string>
+   </property>
+   <property name="shortcut">
+    <string>}</string>
+   </property>
+  </action>
+  <action name="actionLead_Out_Turn_CCW">
+   <property name="text">
+    <string>Lead Out - Turn CCW</string>
+   </property>
+   <property name="shortcut">
+    <string>{</string>
    </property>
   </action>
  </widget>

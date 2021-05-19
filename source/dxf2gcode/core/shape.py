@@ -75,6 +75,8 @@ class Shape(object):
         self.cw = True
 
         self.stmove = None
+        self.lead_in_angle = pi/2
+        self.lead_out_angle = pi/2
 
         self.send_to_TSP = g.config.vars.Route_Optimisation['default_TSP']
 
@@ -217,6 +219,18 @@ class Shape(object):
         # Update start move after reordering the shape
         if self.stmove is not None:
             self.stmove.updateShape()
+
+    def turn_lead_angle(self, type="in", positive=True):
+        if positive:
+            angle = pi/4
+        else:
+            angle = -pi/4
+        
+        if type == "in":
+            self.lead_in_angle += angle
+        else:
+            self.lead_out_angle += angle
+
 
     def reverse(self, geos=None):
         if not geos:

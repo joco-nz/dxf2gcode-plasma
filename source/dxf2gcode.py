@@ -165,6 +165,12 @@ class MainWindow(QMainWindow):
         self.ui.actionSaveProjectAs.triggered.connect(self.saveProject)
         self.ui.actionClose.triggered.connect(self.close)
 
+        # Edit
+        self.ui.actionLead_In_Turn_CW.triggered.connect(self.turnLeadInCW)
+        self.ui.actionLead_In_Turn_CCW.triggered.connect(self.turnLeadInCCW)
+        self.ui.actionLead_Out_Turn_CW.triggered.connect(self.turnLeadOutCW)
+        self.ui.actionLead_Out_Turn_CCW.triggered.connect(self.turnLeadOutCCW)
+
         # Export
         self.ui.actionOptimizePaths.triggered.connect(self.optimizeTSP)
         self.ui.actionExportShapes.triggered.connect(self.exportShapes)
@@ -272,6 +278,24 @@ class MainWindow(QMainWindow):
         self.ui.actionRotateAll.setEnabled(status)
         self.ui.actionScaleAll.setEnabled(status)
         self.ui.actionMoveWorkpieceZero.setEnabled(status)
+
+    # Edit Menus
+    def turnLeadInCW(self):
+        if self.canvas_scene != None:
+            self.canvas_scene.turnLeadInNegative()
+
+    def turnLeadInCCW(self):
+        if self.canvas_scene != None:
+            self.canvas_scene.turnLeadInPositive()
+
+    def turnLeadOutCW(self):
+        if self.canvas_scene != None:
+            self.canvas_scene.turnLeadOutNegative()
+
+    def turnLeadOutCCW(self):
+        if self.canvas_scene != None:
+            self.canvas_scene.turnLeadOutPositive()
+
 
     def deleteG0Paths(self):
         """
