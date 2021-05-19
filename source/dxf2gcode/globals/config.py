@@ -167,6 +167,8 @@ CONFIG_SPEC = str('''
     live_update_export_route = boolean(default = False)
     # Divide the lines in 2 parts, in order to start the cutting in the middle of a line (usefull for cutter compensation)
     split_line_segments = boolean(default = False)
+    # Join colinear lines
+    join_colinear_line_segments = boolean(default = False)
     # Automatically enable cutter compensation for all the shapes (G41 & G42)
     automatic_cutter_compensation = boolean(default = False)
     # Machine types supported: milling; lathe; drag_knife
@@ -502,6 +504,7 @@ class MyConfig(object):
                 ('live_update_export_route', CfgCheckBox(self.tr('Live update export route (default)'))),
                 ('__subtitle2__', CfgSubtitle(self.tr("Milling"))),
                 ('split_line_segments', CfgCheckBox(self.tr('Split line segments (default)'))),
+                ('join_colinear_line_segments', CfgCheckBox(self.tr('Join colinear lines (default)'))),
                 ('automatic_cutter_compensation', CfgCheckBox(self.tr('Automatic cutter compensation (default)'))),
                 ('machine_type', CfgComboBox(self.tr('Machine type (default):'))),
                 ('tool_units', CfgComboBox(self.tr('Configuration values use the unit (restart needed):'))),

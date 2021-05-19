@@ -762,6 +762,46 @@ returned error code: {1}</source>
         <source>&amp;Beam</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Edit</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lead In - Turn CW</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>]</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lead In - Turn CCW</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>[</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lead Out - Turn CW</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>}</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Lead Out - Turn CCW</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>{</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Join colinear lines</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>MessageBox</name>
@@ -1116,6 +1156,10 @@ You have to delete (or carefully edit) the configuration file &quot;{2}&quot; to
     </message>
     <message>
         <source>Use Lead-Out Type (0 = Arc, 1 = Line):</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Join colinear lines (default)</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

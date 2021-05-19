@@ -31,6 +31,8 @@ from math import pi, sqrt, sin, cos
 from copy import deepcopy
 import logging
 
+import dxf2gcode.globals.globals as g
+
 from dxf2gcode.core.linegeo import LineGeo
 from dxf2gcode.core.arcgeo import ArcGeo
 from dxf2gcode.core.point import Point
@@ -209,7 +211,11 @@ class offShapeClass(Shape):
             self.geos.append(new_geo)
 
         self.make_shape_ccw()
-        self.join_colinear_lines()
+        # the join colinear lines function will wipe out any specific geom that has been inserted to allow leads to be placed
+        # along a line.  It also fights with the existing split lines option.  It needs to be a global option  that is mutually
+        # exclusive to the split lines option.
+        if g.config.vars.General['join_colinear_line_segments']:
+            self.join_colinear_lines()
 
     def geos_postprocessing(self, min_length):
         """

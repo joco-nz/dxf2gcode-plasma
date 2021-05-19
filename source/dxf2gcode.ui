@@ -933,6 +933,7 @@
     <addaction name="actionMoveWorkpieceZero"/>
     <addaction name="separator"/>
     <addaction name="actionSplitLineSegments"/>
+    <addaction name="actionJoinColinearLines"/>
     <addaction name="actionAutomaticCutterCompensation"/>
     <addaction name="menuMachine_Type"/>
     <addaction name="menu_Measurement_units"/>
@@ -1278,6 +1279,14 @@
    </property>
    <property name="shortcut">
     <string>{</string>
+   </property>
+  </action>
+  <action name="actionJoinColinearLines">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Join colinear lines</string>
    </property>
   </action>
  </widget>
