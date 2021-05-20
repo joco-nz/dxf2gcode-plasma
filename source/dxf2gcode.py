@@ -195,7 +195,8 @@ class MainWindow(QMainWindow):
         self.ui.actionRotateAll.triggered.connect(self.rotateAll)
         self.ui.actionScaleAll.triggered.connect(self.scaleAll)
         self.ui.actionMoveWorkpieceZero.triggered.connect(self.moveWorkpieceZero)
-        self.ui.actionSplitLineSegments.toggled.connect(self.d2g.small_reload)
+        self.ui.actionSplitLineSegments.toggled.connect(self.toggleSplitLines)
+        self.ui.actionJoinColinearLines.toggled.connect(self.toggleJoinColinear)
         self.ui.actionAutomaticCutterCompensation.toggled.connect(self.d2g.small_reload)
         self.ui.actionMilling.triggered.connect(self.setMachineTypeToMilling)
         self.ui.actionDragKnife.triggered.connect(self.setMachineTypeToDragKnife)
@@ -717,6 +718,20 @@ class MainWindow(QMainWindow):
     def setMachineTypeToLathe(self):
         g.config.machine_type = 'lathe'
         self.updateMachineType()
+        self.d2g.small_reload()
+
+    def toggleSplitLines(self):
+        checked = self.ui.actionSplitLineSegments.isChecked()
+        if checked:
+            self.ui.actionJoinColinearLines.setChecked(False)
+        # force refresh
+        self.d2g.small_reload()
+
+    def toggleJoinColinear(self):
+        checked = self.ui.actionJoinColinearLines.isChecked()
+        if checked:
+            self.ui.actionSplitLineSegments.setChecked(False)
+        # force refresh
         self.d2g.small_reload()
 
     def updateMachineType(self):

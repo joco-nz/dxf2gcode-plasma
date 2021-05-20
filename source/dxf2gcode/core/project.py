@@ -61,6 +61,7 @@ class Project(object):
         self.wpzero_x = None
         self.wpzero_y = None
         self.split_lines = None
+        self.join_colinear = None
         self.aut_cut_com = None
         self.machine_type = None
 
@@ -112,6 +113,8 @@ class Project(object):
                                    'mill_depth': shape.axis3_mill_depth,
                                    'f_g1_plane': shape.f_g1_plane,
                                    'f_g1_depth': shape.f_g1_depth,
+                                   'leadin_angle': shape.lead_in_angle,
+                                   'leadout_angle': shape.lead_out_angle,
                                    'start_x': stpoint.x,
                                    'start_y': stpoint.y})
             layers.append({'name': layer.name,
@@ -133,6 +136,7 @@ d2g.rot = ''' + str(self.parent.cont_rotate) + '''
 d2g.wpzero_x = ''' + str(self.parent.cont_dx) + '''
 d2g.wpzero_y = ''' + str(self.parent.cont_dy) + '''
 d2g.split_lines = ''' + str(self.parent.ui.actionSplitLineSegments.isChecked()) + '''
+d2g.join_colinear_lines = ''' + str(self.parent.ui.actionJoinColinearLines.isChecked()) + '''
 d2g.aut_cut_com = ''' + str(self.parent.ui.actionAutomaticCutterCompensation.isChecked()) + '''
 d2g.machine_type = "''' + g.config.machine_type + '''"
 d2g.layers = ''' + str(layers)
@@ -157,6 +161,7 @@ d2g.layers = ''' + str(layers)
             self.parent.cont_dx = self.wpzero_x
             self.parent.cont_dy = self.wpzero_y
             g.config.vars.General['split_line_segments'] = self.split_lines
+            g.config.vars.General['join_colinear_lines'] = self.join_colinear
             g.config.vars.General['automatic_cutter_compensation'] = self.aut_cut_com
             g.config.machine_type = self.machine_type
 
@@ -215,6 +220,8 @@ d2g.layers = ''' + str(layers)
                         shape.axis3_mill_depth = parent_shape['mill_depth']
                         shape.f_g1_plane = parent_shape['f_g1_plane']
                         shape.f_g1_depth = parent_shape['f_g1_depth']
+                        shape.lead_in_angle = parent_shape['leadin_angle']
+                        shape.lead_out_angle = parent_shape['leadout_angle']
                         
                         if parent_shape['cw'] != shape.cw:
                             shape.reverse()
